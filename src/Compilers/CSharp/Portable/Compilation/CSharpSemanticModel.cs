@@ -4403,6 +4403,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node);
 
         /// <summary>
+        /// Gets deconstruction assignment info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node);
+
+        /// <summary>
+        /// Gets deconstruction foreach info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract DeconstructionInfo GetDeconstructionInfo(ForEachVariableStatementSyntax node);
+
+        /// <summary>
         /// Gets await expression info.
         /// </summary>
         /// <param name="node">The node.</param>

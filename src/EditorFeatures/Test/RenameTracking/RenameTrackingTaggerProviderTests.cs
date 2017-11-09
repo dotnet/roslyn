@@ -1482,5 +1482,26 @@ public struct ValueTuple&lt;T1&gt;
                 await state.AssertTag("ValueTuple", "ValueTuple2");
             }
         }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameTrackingOnDeconstruct()
+        {
+            var code = @"
+class C
+{
+    void Deconstruct$$(out int x1, out int x2) { x1 = 1; x2 = 2; }
+    void M()
+    {
+        var (y1, y2) = this;
+    }
+}";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("2");
+                await state.AssertTag("Deconstruct", "Deconstruct2");
+            }
+        }
+
     }
 }

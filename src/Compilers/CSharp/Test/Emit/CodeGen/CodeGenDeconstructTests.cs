@@ -203,6 +203,38 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
+
+            var tree = comp.Compilation.SyntaxTrees.First();
+            var model = comp.Compilation.GetSemanticModel(tree);
+            var deconstruction = (AssignmentExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.SimpleAssignmentExpression).AsNode();
+            Assert.Equal("(x, y) = new C()", deconstruction.ToString());
+            var deconstructionInfo = model.GetDeconstructionInfo(deconstruction);
+
+            var firstDeconstructMethod = comp.Compilation.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.DeconstructMethodName)
+                .OfType<SourceOrdinaryMethodSymbol>().Where(m => m.ParameterCount == 2).Single();
+            Assert.Equal(firstDeconstructMethod, deconstructionInfo.Method);
+
+            Assert.Equal("void C.Deconstruct(out System.Int32 a, out System.String b)",
+                deconstructionInfo.Method.ToTestDisplayString());
+            Assert.Null(deconstructionInfo.Conversion);
+
+            var nested = deconstructionInfo.Nested;
+            Assert.Equal(2, nested.Length);
+
+            Assert.Null(nested[0].Method);
+            Assert.Equal(ConversionKind.ImplicitNumeric, nested[0].Conversion.Value.Kind);
+            Assert.Empty(nested[0].Nested);
+
+            Assert.Null(nested[1].Method);
+            Assert.Equal(ConversionKind.Identity, nested[1].Conversion.Value.Kind);
+            Assert.Empty(nested[1].Nested);
+
+            var assignment = (AssignmentExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.SimpleAssignmentExpression, occurrence: 2).AsNode();
+            Assert.Equal("a = 1", assignment.ToString());
+            var defaultInfo = model.GetDeconstructionInfo(assignment);
+            Assert.Null(defaultInfo.Method);
+            Assert.Empty(defaultInfo.Nested);
+            Assert.Equal(ConversionKind.NoConversion, defaultInfo.Conversion.Value.Kind);
         }
 
         [Fact]
@@ -772,15 +804,40 @@ class C
     {
         long x;
         string y;
-
-        (x, y) = (1, ""hello"");
+        int i = 1;
+        (x, y) = (i, ""hello"");
         System.Console.WriteLine(x + "" "" + y);
     }
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
+
+            var tree = comp.Compilation.SyntaxTrees.First();
+            var model = comp.Compilation.GetSemanticModel(tree);
+            var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+            var deconstructionInfo = model.GetDeconstructionInfo(deconstruction);
+
+            Assert.Null(deconstructionInfo.Method);
+            Assert.Null(deconstructionInfo.Conversion);
+
+            var nested = deconstructionInfo.Nested;
+            Assert.Equal(2, nested.Length);
+
+            Assert.Null(nested[0].Method);
+            Assert.Equal(ConversionKind.Identity, nested[0].Conversion.Value.Kind);
+            Assert.Empty(nested[0].Nested);
+
+            Assert.Null(nested[1].Method);
+            Assert.Equal(ConversionKind.Identity, nested[1].Conversion.Value.Kind);
+            Assert.Empty(nested[1].Nested);
+
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            Assert.Equal(@"(i, ""hello"")", tuple.ToString());
+            var tupleConversion = model.GetConversion(tuple);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, tupleConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, tupleConversion.UnderlyingConversions[0].Kind);
         }
 
         [Fact]
@@ -1971,6 +2028,42 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
+        
+            var tree = comp.Compilation.SyntaxTrees.First();
+            var model = comp.Compilation.GetSemanticModel(tree);
+            var deconstruction = (AssignmentExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.SimpleAssignmentExpression).AsNode();
+            Assert.Equal(@"(x, (y, z)) = Tuple.Create(1, Tuple.Create(""hello"", ""world""))", deconstruction.ToString());
+            var deconstructionInfo = model.GetDeconstructionInfo(deconstruction);
+
+            Assert.Equal("void System.TupleExtensions.Deconstruct<System.Int32, System.Tuple<System.String, System.String>>(" +
+                "this System.Tuple<System.Int32, System.Tuple<System.String, System.String>> value, " +
+                "out System.Int32 item1, out System.Tuple<System.String, System.String> item2)",
+                deconstructionInfo.Method.ToTestDisplayString());
+            Assert.Null(deconstructionInfo.Conversion);
+
+            var nested = deconstructionInfo.Nested;
+            Assert.Equal(2, nested.Length);
+
+            Assert.Null(nested[0].Method);
+            Assert.Equal(ConversionKind.Identity, nested[0].Conversion.Value.Kind);
+            Assert.Empty(nested[0].Nested);
+
+            Assert.Equal("void System.TupleExtensions.Deconstruct<System.String, System.String>(" +
+                "this System.Tuple<System.String, System.String> value, " +
+                "out System.String item1, out System.String item2)",
+                nested[1].Method.ToTestDisplayString());
+            Assert.Null(nested[1].Conversion);
+
+            var nested2 = nested[1].Nested;
+            Assert.Equal(2, nested.Length);
+
+            Assert.Null(nested2[0].Method);
+            Assert.Equal(ConversionKind.Identity, nested2[0].Conversion.Value.Kind);
+            Assert.Empty(nested2[0].Nested);
+
+            Assert.Null(nested2[1].Method);
+            Assert.Equal(ConversionKind.Identity, nested2[1].Conversion.Value.Kind);
+            Assert.Empty(nested2[1].Nested);
         }
 
         [Fact]
@@ -3529,6 +3622,24 @@ class C
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetTypeInfo(x12Var).Type.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+
+                // verify deconstruction info
+                var deconstructionForeach = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single();
+                var deconstructionInfo = model.GetDeconstructionInfo(deconstructionForeach);
+
+                Assert.Null(deconstructionInfo.Method);
+                Assert.Null(deconstructionInfo.Conversion);
+
+                var nested = deconstructionInfo.Nested;
+                Assert.Equal(2, nested.Length);
+
+                Assert.Null(nested[0].Method);
+                Assert.Equal(ConversionKind.Identity, nested[0].Conversion.Value.Kind);
+                Assert.Empty(nested[0].Nested);
+
+                Assert.Null(nested[1].Method);
+                Assert.Equal(ConversionKind.Identity, nested[1].Conversion.Value.Kind);
+                Assert.Empty(nested[1].Nested);
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
@@ -7948,6 +8059,26 @@ namespace System
                 // (5,22): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly '39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var (x, y) = c ? ((object)1, a) : (b, 2);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "c ? ((object)1, a) : (b, 2)").WithArguments("Item2", "System.ValueTuple<T1, T2>", "39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 22));
+        }
+
+        [Fact]
+        public void TestGetDeconstructionInfoOnIncompleteCode()
+        {
+            string source = @"
+class C
+{
+    void M() { var (y1, y2) =}
+    void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+";
+            var comp = CreateStandardCompilation(source);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+            Assert.Equal("var (y1, y2) =", node.ToString());
+            var info = model.GetDeconstructionInfo(node);
+            Assert.Null(info.Method);
+            Assert.Empty(info.Nested);
         }
     }
 }
