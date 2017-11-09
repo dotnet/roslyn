@@ -309,6 +309,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             Assert.True(argument.Descendants().All(n => n.IsImplicit), $"Explicit node in default argument value ({argument.Syntax.RawKind}): {argument.Syntax.ToString()}");
                         }
                     }
+
+                    // Make sure that all static member references or invocations of static methods do not have implicit IInstanceReferenceOperations
+                    // as their receivers
+                    if (operation is IMemberReferenceOperation memberReference &&
+                        memberReference.Member.IsStatic &&
+                        memberReference.Instance is IInstanceReferenceOperation)
+                    {
+                        Assert.False(memberReference.Instance.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                    }
+                    else if (operation is IInvocationOperation invocation &&
+                             invocation.TargetMethod.IsStatic &&
+                             invocation.Instance is IInstanceReferenceOperation)
+                    {
+                        Assert.False(invocation.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                    }
                 }
             }
 

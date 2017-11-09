@@ -785,6 +785,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IInstanceReferenceOperation));
             LogCommonPropertiesAndNewLine(operation);
+
+            if (operation.IsImplicit)
+            {
+                if (operation.Parent is IMemberReferenceOperation memberReference && memberReference.Instance == operation)
+                {
+                    Assert.False(memberReference.Member.IsStatic);
+                }
+                else if (operation.Parent is IInvocationOperation invocation && invocation.Instance == operation)
+                {
+                    Assert.False(invocation.TargetMethod.IsStatic);
+                }
+            }
         }
 
         private void VisitMemberReferenceExpressionCommon(IMemberReferenceOperation operation)
