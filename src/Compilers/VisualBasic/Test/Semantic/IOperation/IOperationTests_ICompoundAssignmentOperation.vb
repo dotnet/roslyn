@@ -12,8 +12,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CompoundAssignment_NullArgumentToGetConversionThrows()
-            Assert.Throws(Of ArgumentNullException)("compoundOperation", Function() TryCast(Nothing, ICompoundAssignmentOperation).GetInConversion())
-            Assert.Throws(Of ArgumentNullException)("compoundOperation", Function() TryCast(Nothing, ICompoundAssignmentOperation).GetOutConversion())
+            Dim nullAssignment As ICompoundAssignmentOperation = Nothing
+            Assert.Throws(Of ArgumentNullException)("compoundOperation", Function() nullAssignment.GetInConversion())
+            Assert.Throws(Of ArgumentNullException)("compoundOperation", Function() nullAssignment.GetOutConversion())
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>

@@ -14,8 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ICompoundAssignment_NullArgumentToGetConversionThrows()
         {
-            Assert.Throws<ArgumentNullException>("compoundAssignment", () => (null as ICompoundAssignmentOperation).GetInConversion());
-            Assert.Throws<ArgumentNullException>("compoundAssignment", () => (null as ICompoundAssignmentOperation).GetOutConversion());
+            ICompoundAssignmentOperation nullAssignment = null;
+            Assert.Throws<ArgumentNullException>("compoundAssignment", () => nullAssignment.GetInConversion());
+            Assert.Throws<ArgumentNullException>("compoundAssignment", () => nullAssignment.GetOutConversion());
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
