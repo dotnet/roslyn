@@ -16,8 +16,7 @@ namespace Perf
             Benchmark benchmark,
             IResolver resolver)
         {
-            var externalProcessBenchmark = benchmark as ExternalProcessBenchmark;
-            if (externalProcessBenchmark is null)
+            if (!(benchmark is ExternalProcessBenchmark externalProcessBenchmark))
             {
                 return BuildResult.Failure(generateResult);
             }

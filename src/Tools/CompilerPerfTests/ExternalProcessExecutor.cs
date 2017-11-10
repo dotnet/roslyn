@@ -23,14 +23,12 @@ namespace Perf
     {
         public ExecuteResult Execute(ExecuteParameters executeParameters)
         {
-            if (!(executeParameters.Benchmark is ExternalProcessBenchmark))
+            if (!(executeParameters.Benchmark is ExternalProcessBenchmark benchmark))
             {
-                throw new ArgumentException("Benchmark given is not an ExternalProcessBenchmark");
+                throw new ArgumentException($"Benchmark given is not an {nameof(ExternalProcessBenchmark)}");
             }
 
             var exePath = executeParameters.BuildResult.ArtifactsPaths.ExecutablePath;
-
-            var benchmark = (ExternalProcessBenchmark)executeParameters.Benchmark;
 
             using (var proc = new Process { StartInfo = CreateStartInfo(exePath, benchmark) })
             {

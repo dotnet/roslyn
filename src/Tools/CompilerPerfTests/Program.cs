@@ -56,68 +56,53 @@ namespace Perf
                 Console.WriteLine($"Building commit: {commit}");
                 Console.WriteLine();
 
-                // git show -s --pretty=short COMMIT
-                var startInfo = new ProcessStartInfo()
-                {
-                    Arguments = $"show -s --pretty=short {commit}",
-                    FileName = "git",
-                };
-                var proc = new Process() { StartInfo = startInfo };
-                proc.Start();
-                proc.WaitForExit();
+                const int Failed = 1;
 
-                if (proc.ExitCode != 0)
+                // git show -s --pretty=short COMMIT
+                if (RunProcess("git", $"show -s --pretty=short {commit}") != 0)
                 {
-                    return proc.ExitCode;
+                    return Failed;
                 }
 
                 Console.WriteLine();
                 // git checkout COMMIT src/Compilers
-                startInfo = new ProcessStartInfo()
+                if (RunProcess("git", $"checkout {commit} \"{compilersDir}\"") != 0)
                 {
-                    Arguments = $"checkout {commit} \"{compilersDir}\"",
-                    FileName = "git",
+                    return Failed;
                 };
-                proc = new Process() { StartInfo = startInfo };
-                proc.Start();
-                proc.WaitForExit();
-
-                if (proc.ExitCode != 0)
-                {
-                    return proc.ExitCode;
-                }
 
                 // restore.cmd
-                startInfo = new ProcessStartInfo()
+                if (RunProcess($"\"{Path.Combine(slnDir, "Restore.cmd")}\"") != 0)
                 {
-                    FileName = "\"" + Path.Combine(slnDir, "Restore.cmd") + "\"",
-                };
-                proc = new Process() { StartInfo = startInfo };
-                proc.Start();
-                proc.WaitForExit();
-
-                if (proc.ExitCode != 0)
-                {
-                    return proc.ExitCode;
+                    return Failed;
                 }
 
                 // dotnet build -c Release csc.csproj
-                startInfo = new ProcessStartInfo()
+                if (RunProcess("dotnet", $"build -c Release \"{cscProj}\"") != 0)
                 {
-                    FileName = "dotnet",
-                    Arguments = $"build -c Release \"{cscProj}\"",
-                };
-                proc = new Process() { StartInfo = startInfo };
-                proc.Start();
-                proc.WaitForExit();
-
-                if (proc.ExitCode != 0)
-                {
-                    return proc.ExitCode;
+                    return Failed;
                 }
 
                 return 0;
             };
+        }
+
+        private static int RunProcess(string fileName, string arguments = null)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = fileName
+            };
+
+            if (arguments != null)
+            {
+                psi.Arguments = arguments;
+            }
+
+            var proc = new Process() { StartInfo = psi };
+            proc.Start();
+            proc.WaitForExit();
+            return proc.ExitCode;
         }
 
         /// <summary>
