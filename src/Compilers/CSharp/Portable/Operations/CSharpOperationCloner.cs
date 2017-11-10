@@ -17,5 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new CSharpConversionExpression(Visit(operation.Operand), operation.GetConversion(), operation.IsTryCast, operation.IsChecked, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
+
+        public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, object argument)
+        {
+            var compoundAssignment = (BaseCSharpCompoundAssignmentOperation)operation;
+            return new CSharpCompoundAssignmentOperation(Visit(operation.Target), Visit(operation.Value), compoundAssignment.InConversionInternal, compoundAssignment.OutConversionInternal, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
     }
 }

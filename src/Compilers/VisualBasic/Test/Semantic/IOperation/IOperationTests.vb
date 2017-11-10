@@ -198,6 +198,8 @@ End Module
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x += y')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x += y')
+      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
       Right: 
@@ -225,6 +227,8 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += b')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignment, Type: B2, IsImplicit) (Syntax: 'a += b')
+      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: B2) (Syntax: 'a')
       Right: 

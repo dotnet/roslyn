@@ -412,6 +412,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Initializer, "Initializer");
+            if (!operation.IgnoredArguments.IsEmpty)
+            {
+                VisitArray(operation.IgnoredArguments, "IgnoredArguments", logElementCount: true);
+            }
         }
 
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
@@ -785,6 +789,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IInstanceReferenceOperation));
             LogCommonPropertiesAndNewLine(operation);
+
+            if (operation.IsImplicit)
+            {
+                if (operation.Parent is IMemberReferenceOperation memberReference && memberReference.Instance == operation)
+                {
+                    Assert.False(memberReference.Member.IsStatic);
+                }
+                else if (operation.Parent is IInvocationOperation invocation && invocation.Instance == operation)
+                {
+                    Assert.False(invocation.TargetMethod.IsStatic);
+                }
+            }
         }
 
         private void VisitMemberReferenceExpressionCommon(IMemberReferenceOperation operation)
@@ -1196,10 +1212,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitPropertyInitializer(IPropertyInitializerOperation operation)
         {
             LogString(nameof(IPropertyInitializerOperation));
-            LogSymbol(operation.InitializedProperty, header: " (Property");
-            LogString(")");
-            LogCommonPropertiesAndNewLine(operation);
 
+            if (operation.InitializedProperties.Length <= 1)
+            {
+                if (operation.InitializedProperties.Length == 1)
+                {
+                    LogSymbol(operation.InitializedProperties[0], header: " (Property");
+                    LogString(")");
+                }
+
+                LogCommonPropertiesAndNewLine(operation);
+            }
+            else
+            {
+                LogString($" ({operation.InitializedProperties.Length} initialized properties)");
+                LogCommonPropertiesAndNewLine(operation);
+
+                Indent();
+
+                int index = 1;
+                foreach (var property in operation.InitializedProperties)
+                {
+                    LogSymbol(property, header: $"Property_{index++}");
+                    LogNewLine();
+                }
+
+                Unindent();
+            }
+            
             base.VisitPropertyInitializer(operation);
         }
 
@@ -1281,6 +1321,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);
+            Indent();
+            LogConversion(operation.InConversion, "InConversion");
+            LogNewLine();
+            LogConversion(operation.OutConversion, "OutConversion");
+            LogNewLine();
+            Unindent();
 
             Visit(operation.Target, "Left");
             Visit(operation.Value, "Right");
