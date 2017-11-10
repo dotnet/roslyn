@@ -17,4 +17,4 @@ if (-not (Test-Path "$BinariesPath/CodeAnalysisRepro")) {
     [IO.Compression.ZipFile]::ExtractToDirectory($tmpFile, $BinariesPath)
 }
 
-dotnet run -c Release perf.csproj
+dotnet run -c Release CompilerPerfTests.csproj
