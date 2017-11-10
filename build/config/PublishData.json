@@ -7,6 +7,13 @@
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.5", "dev15.5p3" ]
         },
+        "post-dev15.5-contrib": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.6.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v3/index.json" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.6" ]
+        },
         "dev/jaredpar/fix-publish": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.6.*",
