@@ -12,7 +12,7 @@
             "version": "2.6.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v3/index.json" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.5" ]
+            "channels": [ "dev15.6" ]
         },
         "dev/jaredpar/fix-publish": {
             "nugetKind": "PerBuildPreRelease",
