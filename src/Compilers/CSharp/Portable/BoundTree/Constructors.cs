@@ -405,18 +405,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundParameter
     {
-        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, RangeVariableSymbol associatedRangeVariable = null, bool hasErrors = false)
-            : this(syntax, parameterSymbol, associatedRangeVariable, parameterSymbol.Type, hasErrors)
+        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, bool hasErrors = false)
+            : this(syntax, parameterSymbol, parameterSymbol.Type, hasErrors)
         {
         }
 
         public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol)
-            : this(syntax, parameterSymbol, associatedRangeVariable: null, type: parameterSymbol.Type)
-        {
-        }
-
-        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, parameterSymbol, associatedRangeVariable: null, type: type, hasErrors: hasErrors)
+            : this(syntax, parameterSymbol, type: parameterSymbol.Type)
         {
         }
     }

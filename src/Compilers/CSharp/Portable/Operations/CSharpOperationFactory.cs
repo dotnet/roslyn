@@ -240,8 +240,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.DelegateCreationExpression:
                     return CreateBoundDelegateCreationExpressionOperation((BoundDelegateCreationExpression)boundNode);
                 case BoundKind.RangeVariable:
-                    // We do not represent bound range variables in the operation tree, but expose it's value (reference to query lambda parameter).
-                    return Create(((BoundRangeVariable)boundNode).Value);
+                    return CreateBoundRangeVariableOperation((BoundRangeVariable)boundNode);
                 default:
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -459,8 +458,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundParameter.Syntax;
             ITypeSymbol type = boundParameter.Type;
             Optional<object> constantValue = ConvertToOptional(boundParameter.ConstantValue);
-            // We want to mark compiler generated parameter reference for range variables as explicit because we don't expose any operation nodes for range variables.
-            bool isImplicit = boundParameter.WasCompilerGenerated && boundParameter.AssociatedRangeVariable == null;
+            bool isImplicit = boundParameter.WasCompilerGenerated;
             return new ParameterReferenceExpression(parameter, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -1781,6 +1779,12 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = ConvertToOptional(boundQueryClause.ConstantValue);
             bool isImplicit = boundQueryClause.WasCompilerGenerated;
             return new LazyTranslatedQueryExpression(expression, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundRangeVariableOperation(BoundRangeVariable boundRangeVariable)
+        {
+            // We do not have operation nodes for the bound range variables, just it's value.
+            return Create(boundRangeVariable.Value);
         }
     }
 }

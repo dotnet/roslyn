@@ -1946,9 +1946,9 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                                               IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'z')
                                                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'z')
                                                   ReturnedValue: 
-                                                    IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'z')
+                                                    IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'z')
                                                       Instance Receiver: 
-                                                        IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Char x, System.String z>) (Syntax: 'z')
+                                                        IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'z')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2110,9 +2110,9 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                                     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'z')
                                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'z')
                                         ReturnedValue: 
-                                          IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'z')
+                                          IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'z')
                                             Instance Receiver: 
-                                              IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Char x, System.String z>) (Syntax: 'z')
+                                              IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'z')
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

@@ -1021,8 +1021,6 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ParameterSymbol" Type="ParameterSymbol"/>
-    <!-- If this is a compiler generated parameter reference created for a range variable access in query expression, then this contains the range variable -->
-    <Field Name="AssociatedRangeVariable" Type="RangeVariableSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundLabelStatement" Base="BoundStatement">
