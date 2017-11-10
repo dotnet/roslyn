@@ -38,7 +38,7 @@ namespace AnalyzerRunner
             LogFileName = logFileName;
         }
 
-        internal static Options TryCreate(string[] args)
+        internal static Options Create(string[] args)
         {
             string analyzerPath = null;
             string solutionPath = null;

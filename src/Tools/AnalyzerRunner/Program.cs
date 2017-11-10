@@ -31,7 +31,7 @@ namespace AnalyzerRunner
             Options options;
             try
             {
-                options = Options.TryCreate(args);
+                options = Options.Create(args);
             }
             catch (InvalidDataException)
             {
@@ -66,11 +66,7 @@ namespace AnalyzerRunner
 
                 foreach (var projectId in projectIds)
                 {
-                    var project = solution.GetProject(projectId);
-                    if (project.AnalyzerReferences.Any())
-                    {
-                        solution = project.WithAnalyzerReferences(ImmutableArray<AnalyzerReference>.Empty).Solution;
-                    }
+                    solution = solution.WithProjectAnalyzerReferences(projectId, ImmutableArray<AnalyzerReference>.Empty);
                 }
 
                 Console.WriteLine($"Loaded solution in {stopwatch.ElapsedMilliseconds}ms");
@@ -222,9 +218,7 @@ namespace AnalyzerRunner
         private static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzersFromFile(string path)
         {
             var analyzerReference = new AnalyzerFileReference(path, AssemblyLoader.Instance);
-            // TODO The tool support CSharp projects for now. It should support VB/FSharp as well
-            // https://github.com/dotnet/roslyn/issues/23108
-            var analyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
+            var analyzers = analyzerReference.GetAnalyzersForAllLanguages();
             return analyzers;
         }
 
@@ -323,7 +317,7 @@ namespace AnalyzerRunner
                 }
             }
 
-            foreach(var pair in telemetryInfoDictionary)
+            foreach (var pair in telemetryInfoDictionary)
             {
                 WriteTelemetry(pair.Key.GetType().Name, pair.Value);
             }
@@ -364,7 +358,7 @@ namespace AnalyzerRunner
         {
             Console.WriteLine("Usage: AnalyzerRunner <AnalyzerAssemblyOrFolder> <Solution> [options]");
             Console.WriteLine("Options:");
-            Console.WriteLine("/all                 Run all StyleCopAnalyzers analyzers, including ones that are disabled by default");
+            Console.WriteLine("/all                 Run all analyzers, including ones that are disabled by default");
             Console.WriteLine("/stats               Display statistics of the solution");
             Console.WriteLine("/a <analyzer name>   Enable analyzer with <analyzer name> (when this is specified, only analyzers specificed are enabled. Use: /a <name1> /a <name2>, etc.");
             Console.WriteLine("/concurrent          Executes analyzers in concurrent mode");
