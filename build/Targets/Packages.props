@@ -51,7 +51,7 @@
     <MicrosoftNetCompilersVersion>2.6.0-beta3-62227-02</MicrosoftNetCompilersVersion>
     <MicrosoftNetRoslynDiagnosticsVersion>2.6.0-beta1-62231-02</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
-    <MicrosoftNETCoreCompilersVersion>2.6.0-beta2-62211-02</MicrosoftNETCoreCompilersVersion>
+    <MicrosoftNETCoreCompilersVersion>2.6.0-beta3-62308-01</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
     <MicrosoftNETCoreAppVersion>2.0.0</MicrosoftNETCoreAppVersion>
     <MicrosoftNETCorePlatformsVersion>2.0.0</MicrosoftNETCorePlatformsVersion>

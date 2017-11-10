@@ -57,10 +57,10 @@
     <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/microsoft.csharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
 
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
-    <ToolsetCompilerPackageName Condition="'$(OS)' == 'Windows_NT'">Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPackageName Condition="'$(OS)' != 'Windows_NT'">Microsoft.NETCore.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPackageVersion Condition="'$(OS)' == 'Windows_NT'">$(MicrosoftNetCompilersVersion)</ToolsetCompilerPackageVersion>
-    <ToolsetCompilerPackageVersion Condition="'$(OS)' != 'Windows_NT'">$(MicrosoftNETCoreCompilersVersion)</ToolsetCompilerPackageVersion>
+    <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPackageVersion Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MicrosoftNetCompilersVersion)</ToolsetCompilerPackageVersion>
+    <ToolsetCompilerPackageVersion Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MicrosoftNETCoreCompilersVersion)</ToolsetCompilerPackageVersion>
     <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)/$(ToolsetCompilerPackageName.ToLower())/$(ToolsetCompilerPackageVersion)/build/$(ToolsetCompilerPackageName).props</ToolsetCompilerPropsFilePath>
     <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
 
