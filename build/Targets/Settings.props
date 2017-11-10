@@ -119,13 +119,9 @@
 
       Developer build:
        - Embed PDBs to be consistent with Jenkins builds.
-
-      Cross-platform (developer + Jenkins) build:
-       - Use Portable PDBs.
     -->
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
     <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">embedded</RoslynDebugType>
-    <RoslynDebugType Condition="'$(OS)' != 'Windows_NT'">portable</RoslynDebugType>
 
     <!-- 
       The source root path used for deterministic normalization of source paths.
