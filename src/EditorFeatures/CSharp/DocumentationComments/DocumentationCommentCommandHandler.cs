@@ -285,5 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         {
             get { return true; }
         }
+
+        internal override bool HasSkippedTrailingTrivia(SyntaxToken token) => token.TrailingTrivia.Any(t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
     }
 }

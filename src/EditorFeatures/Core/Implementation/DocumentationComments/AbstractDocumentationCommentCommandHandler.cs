@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         {
             // Find the documentation comment before the new line that was just pressed
             var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
-            if (!IsDocCommentNewLine(token))
+            if (!IsDocCommentNewLine(token) && HasSkippedTrailingTrivia(token))
             {
                 // See PressingEnter_InsertSlashes11 for an example of
                 // a case where multiple skipped tokens trivia appear at the same position.
@@ -389,6 +389,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             return true;
         }
+
+        internal abstract bool HasSkippedTrailingTrivia(SyntaxToken token);
 
         private bool InsertOnCommandInvoke(
             SyntaxTree syntaxTree,
