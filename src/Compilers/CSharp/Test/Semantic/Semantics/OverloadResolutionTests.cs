@@ -9514,12 +9514,6 @@ public static class Program
                     // (17,19): error CS1503: Argument 1: cannot convert from 'in byte' to 'in int'
                     //         Method(in x);
                     Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in byte", "in int").WithLocation(17, 19),
-                    // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int)' and 'Program.Method(int)'
-                    //         Method('Q');
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int)", "Program.Method(int)").WithLocation(18, 9),
-                    // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int)' and 'Program.Method(int)'
-                    //         Method(3);
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int)", "Program.Method(int)").WithLocation(19, 9),
                     // (20,26): error CS1510: A ref or out value must be an assignable variable
                     //         Method(valP: out 2);
                     Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(20, 26),
@@ -9613,12 +9607,6 @@ public class Program
                 // (27,18): error CS1503: Argument 1: cannot convert from 'in byte' to 'in int'
                 //         _ = p[in x];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in byte", "in int").WithLocation(27, 18),
-                // (28,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.this[in int]' and 'Program.this[int]'
-                //         _ = p['Q'];
-                Diagnostic(ErrorCode.ERR_AmbigCall, "p['Q']").WithArguments("Program.this[in int]", "Program.this[int]").WithLocation(28, 13),
-                // (29,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.this[in int]' and 'Program.this[int]'
-                //         _ = p[3];
-                Diagnostic(ErrorCode.ERR_AmbigCall, "p[3]").WithArguments("Program.this[in int]", "Program.this[int]").WithLocation(29, 13),
                 // (30,25): error CS1510: A ref or out value must be an assignable variable
                 //         _ = p[valP: out 2];
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(30, 25),
@@ -9743,6 +9731,95 @@ class Program
 in: 1
 params: 2
 in: 3");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_Methods()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void M(in int x) { Console.WriteLine(""in: "" + x); }
+    static void M(int x) { Console.WriteLine(""val: "" + x); }
+
+    static void Main()
+    {
+        int x = 1;
+        M(x);
+
+        x = 2;
+        M(in x);
+
+        M(3);
+    }
+}",
+                expectedOutput:
+@"val: 1
+in: 2
+val: 3");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_ExtensionMethods()
+        {
+            CompileAndVerify(@"
+using System;
+static class Extensions
+{
+    public static void M(this Program instance, in int x) { Console.WriteLine(""in: "" + x); }
+}
+class Program
+{
+    void M(int x) { Console.WriteLine(""val: "" + x); }
+
+    static void Main()
+    {
+        var instance = new Program();
+
+        int x = 1;
+        instance.M(x);
+
+        x = 2;
+        instance.M(in x);
+
+        instance.M(3);
+    }
+}",
+                additionalRefs: new[] { SystemCoreRef },
+                expectedOutput:
+@"val: 1
+in: 2
+val: 3");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_Indexers()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    public string this[int x] => ""val: "" + x;
+    public string this[in int x] => ""in: "" + x;
+    static void Main()
+    {
+        var instance = new Program();
+
+        int x = 1;
+        Console.WriteLine(instance[x]);
+
+        x = 2;
+        Console.WriteLine(instance[in x]);
+
+        Console.WriteLine(instance[3]);
+    }
+}",
+                additionalRefs: new[] { SystemCoreRef },
+                expectedOutput:
+@"val: 1
+in: 2
+val: 3");
         }
 
         [Fact]
