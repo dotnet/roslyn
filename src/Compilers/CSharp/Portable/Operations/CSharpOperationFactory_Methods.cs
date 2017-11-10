@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 value,
                 semanticModel: _semanticModel,
                 syntax: argument ?? value.Syntax,
-                type: value.Type,
                 constantValue: default,
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }

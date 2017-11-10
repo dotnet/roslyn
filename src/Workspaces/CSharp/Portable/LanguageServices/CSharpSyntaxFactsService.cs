@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -1758,5 +1757,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
             => nodes.FindInnermostCommonBlock();
+
+        public bool IsCastExpression(SyntaxNode node)
+            => node is CastExpressionSyntax;
+
+        public void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression)
+        {
+            var cast = (CastExpressionSyntax)node;
+            type = cast.Type;
+            expression = cast.Expression;
+        }
     }
 }

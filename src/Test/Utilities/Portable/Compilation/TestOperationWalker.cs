@@ -111,16 +111,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public override void VisitDoLoop(IDoLoopOperation operation)
-        {
-            var doLoopKind = operation.DoLoopKind;
-            WalkLoop(operation);
-
-            base.VisitDoLoop(operation);
-        }
-
         public override void VisitWhileLoop(IWhileLoopOperation operation)
         {
+            var conditionIsTop = operation.ConditionIsTop;
+            var conditionIsUntil = operation.ConditionIsUntil;
             WalkLoop(operation);
 
             base.VisitWhileLoop(operation);

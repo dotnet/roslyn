@@ -7,6 +7,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -408,6 +409,7 @@ class Base
             comp.Compilation.VerifyDiagnostics();
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(261047, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=261047&_a=edit")]
         public void MissingExpression()
@@ -428,6 +430,19 @@ class Test
                 //         yield return;
                 Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<YieldStatementSyntax>().First();
+
+            Assert.Equal("yield return;", node.ToString());
+
+            comp.VerifyOperationTree(node, expectedOperationTree:
+@"
+IReturnOperation (OperationKind.YieldReturn, Type: null, IsInvalid) (Syntax: 'yield return;')
+  ReturnedValue: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'yield return;')
+      Children(0)
+");
         }
 
         [Fact]
