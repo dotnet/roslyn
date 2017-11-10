@@ -198,11 +198,7 @@ End Module")
             var client = ServerUtil.CreateBuildClient(language);
             client.TimeoutOverride = Timeout.Infinite;
 
-#if NET461
-            var sdkDir = RuntimeEnvironment.GetRuntimeDirectory();
-#else
-            string sdkDir = null;
-#endif
+            var sdkDir = ServerUtil.DefaultSdkDirectory;
 
             var buildPaths = new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(CommonCompiler).Assembly.Location),
@@ -222,10 +218,11 @@ End Module")
 
         private static void RunCompilerOutput(TempFile file, string expectedOutput)
         {
-#if NET461
-            var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
-            Assert.Equal(expectedOutput.Trim(), result.Output.Trim());
-#endif
+            if (!CoreClrShim.IsRunningOnCoreClr)
+            {
+                var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
+                Assert.Equal(expectedOutput.Trim(), result.Output.Trim());
+            }
         }
 
         private static void VerifyResult((int ExitCode, string Output) result)

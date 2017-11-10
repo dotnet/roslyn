@@ -40,6 +40,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         protected static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
 
+        public static string GetSystemSdkDirectory()
+        {
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                return null;
+            }
+            else
+            {
+                return RuntimeEnvironment.GetRuntimeDirectory();
+            }
+        }
+
         /// <summary>
         /// Run a compilation through the compiler server and print the output
         /// to the console. If the compiler server fails, run the fallback
@@ -191,15 +203,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-#if NET46
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                // The native invoke ends up giving us both CoreRun and the exe file.
+                // We've decided to ignore backcompat for CoreCLR,
+                // and use the Main()-provided arguments
+                // https://github.com/dotnet/roslyn/issues/6677
+                return false;
+            }
+
             return true;
-#else
-            // (Not NET46 -> on CoreCLR)
-            // The native invoke ends up giving us both CoreRun and the exe file.
-            // Need to find a good way to remove the host as well as the EXE argument.
-            // https://github.com/dotnet/roslyn/issues/6677
-            return false;
-#endif
         }
 
         /// <summary>
