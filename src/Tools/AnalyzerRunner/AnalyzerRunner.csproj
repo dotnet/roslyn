@@ -11,20 +11,28 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="Microsoft.Build">
+      <Version>15.3.409</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Framework">
+      <Version>15.3.409</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Tasks.Core">
+      <Version>15.3.409</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis">
       <Version>2.6.0-beta1-62110-01</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Common">
       <Version>2.6.0-beta1-62110-01</Version>
     </PackageReference>
-
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
+      <Version>2.6.0-beta1-62110-01</Version>
+    </PackageReference>
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
 
   </ItemGroup>

@@ -7,13 +7,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -31,9 +28,14 @@ namespace AnalyzerRunner
     {
         public static async Task Main(string[] args)
         {
-            var options = Options.Create(args);
-            if (options == null)
+            Options options;
+            try
             {
+                options = Options.TryCreate(args);
+            }
+            catch (InvalidDataException)
+            {
+                PrintHelp();
                 return;
             }
 
@@ -45,14 +47,13 @@ namespace AnalyzerRunner
                     cts.Cancel();
                 };
 
-            var analyzerAssemblies = GetAnalyzerAssemblies(options.AnalyzerPath);
-            var analyzers = GetAllAnalyzers(analyzerAssemblies);
+            var analyzers = GetDiagnosticAnalyzers(options.AnalyzerPath);
             analyzers = FilterAnalyzers(analyzers, options).ToImmutableArray();
 
             if (analyzers.Length == 0)
             {
-                Utilities.WriteLine("No analyzers found", ConsoleColor.Red);
-                Utilities.PrintHelp();
+                WriteLine("No analyzers found", ConsoleColor.Red);
+                PrintHelp();
                 return;
             }
             var cancellationToken = cts.Token;
@@ -61,30 +62,29 @@ namespace AnalyzerRunner
             using (MSBuildWorkspace workspace = MSBuildWorkspace.Create())
             {
                 Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken).ConfigureAwait(false);
-                bool proceedLookingForAnalyzerReferences = true;
-                while (proceedLookingForAnalyzerReferences)
+                var projectIds = solution.ProjectIds;
+
+                foreach (var projectId in projectIds)
                 {
-                    proceedLookingForAnalyzerReferences = false;
-                    foreach (var project in solution.Projects)
+                    var project = solution.GetProject(projectId);
+                    if (project.AnalyzerReferences.Any())
                     {
-                        if (project.AnalyzerReferences.Any())
-                        {
-                            proceedLookingForAnalyzerReferences = true;
-                            solution = project.WithAnalyzerReferences(ImmutableArray<AnalyzerReference>.Empty).Solution;
-                        }
+                        solution = project.WithAnalyzerReferences(ImmutableArray<AnalyzerReference>.Empty).Solution;
                     }
                 }
 
                 Console.WriteLine($"Loaded solution in {stopwatch.ElapsedMilliseconds}ms");
 
-                if (options.Stats)
+                if (options.ShowStats)
                 {
-                    List<Project> csharpProjects = solution.Projects.Where(i => i.Language == LanguageNames.CSharp).ToList();
+                    // TODO The tool support CSharp projects for now. It should support VB/FSharp as well
+                    // https://github.com/dotnet/roslyn/issues/23108
+                    List<Project> csharpProjects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp).ToList();
 
                     Console.WriteLine("Number of projects:\t\t" + csharpProjects.Count);
                     Console.WriteLine("Number of documents:\t\t" + csharpProjects.Sum(x => x.DocumentIds.Count));
 
-                    var statistics = await GetAnalyzerStatisticsAsync(csharpProjects, cancellationToken).ConfigureAwait(true);
+                    var statistics = GetSolutionStatistics(csharpProjects, cancellationToken);
 
                     Console.WriteLine("Number of syntax nodes:\t\t" + statistics.NumberofNodes);
                     Console.WriteLine("Number of syntax tokens:\t" + statistics.NumberOfTokens);
@@ -92,14 +92,14 @@ namespace AnalyzerRunner
                 }
 
                 stopwatch.Restart();
-                var telemetryCollector = new TelemetryCollector();
-                var diagnostics = await GetAnalyzerDiagnosticsAsync(solution, options.SolutionPath, analyzers, options, telemetryCollector, cancellationToken).ConfigureAwait(true);
-                var allDiagnostics = diagnostics.Where(i=> i.Value != null && i.Value.Any()).SelectMany(i => i.Value).ToImmutableArray();
+
+                var analysisResult = await GetAnalysisResultAsync(solution, options.SolutionPath, analyzers, options, cancellationToken).ConfigureAwait(true);
+                var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectMany(pair => pair.Value.GetAllDiagnostics()).ToImmutableArray();
 
                 Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.ElapsedMilliseconds}ms");
-                telemetryCollector.WriteTelemetry();
+                WriteTelemetry(analysisResult);
 
-                foreach (var group in allDiagnostics.GroupBy(i => i.Id).OrderBy(i => i.Key, StringComparer.OrdinalIgnoreCase))
+                foreach (var group in allDiagnostics.GroupBy(diagnostic => diagnostic.Id).OrderBy(diagnosticGroup => diagnosticGroup.Key, StringComparer.OrdinalIgnoreCase))
                 {
                     Console.WriteLine($"  {group.Key}: {group.Count()} instances");
 
@@ -115,29 +115,19 @@ namespace AnalyzerRunner
 
                 if (!string.IsNullOrWhiteSpace(options.LogFileName))
                 {
-                    WriteDiagnosticResults(diagnostics.SelectMany(i => i.Value.Select(j => Tuple.Create(i.Key, j))).ToImmutableArray(), options.LogFileName);
-                }
-
-                if (options.CodeFixes)
-                {
-                    await TestCodeFixesAsync(stopwatch, solution, analyzerAssemblies, allDiagnostics, cancellationToken).ConfigureAwait(true);
-                }
-
-                if (options.FixAll)
-                {
-                    await TestFixAllAsync(stopwatch, solution, analyzerAssemblies, diagnostics, options.ApplyChanges, cancellationToken).ConfigureAwait(true);
+                    WriteDiagnosticResults(analysisResult.SelectMany(pair => pair.Value.GetAllDiagnostics().Select(j => Tuple.Create(pair.Key, j))).ToImmutableArray(), options.LogFileName);
                 }
             }
         }
-        
+
         private static void WriteDiagnosticResults(ImmutableArray<Tuple<ProjectId, Diagnostic>> diagnostics, string fileName)
         {
             var orderedDiagnostics =
                 diagnostics
-                .OrderBy(i => i.Item2.Id)
-                .ThenBy(i => i.Item2.Location.SourceTree?.FilePath, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(i => i.Item2.Location.SourceSpan.Start)
-                .ThenBy(i => i.Item2.Location.SourceSpan.End);
+                .OrderBy(tuple => tuple.Item2.Id)
+                .ThenBy(tuple => tuple.Item2.Location.SourceTree?.FilePath, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(tuple => tuple.Item2.Location.SourceSpan.Start)
+                .ThenBy(tuple => tuple.Item2.Location.SourceSpan.End);
 
             var uniqueLines = new HashSet<string>();
             StringBuilder completeOutput = new StringBuilder();
@@ -162,131 +152,23 @@ namespace AnalyzerRunner
             File.WriteAllText(uniqueFileName, uniqueOutput.ToString(), Encoding.UTF8);
         }
 
-        private static async Task TestFixAllAsync(Stopwatch stopwatch, Solution solution, IEnumerable<Assembly> analyzerAssemblies, ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic>> diagnostics, bool applyChanges, CancellationToken cancellationToken)
-        {
-            Console.WriteLine("Calculating fixes");
-
-            var codeFixers = GetAllCodeFixers(analyzerAssemblies).SelectMany(x => x.Value).Distinct();
-
-            var equivalenceGroups = new List<CodeFixEquivalenceGroup>();
-
-            foreach (var codeFixer in codeFixers)
-            {
-                equivalenceGroups.AddRange(await CodeFixEquivalenceGroup.CreateAsync(codeFixer, diagnostics, solution, cancellationToken).ConfigureAwait(true));
-            }
-
-            Console.WriteLine($"Found {equivalenceGroups.Count} equivalence groups.");
-            if (applyChanges && equivalenceGroups.Count > 1)
-            {
-                Console.WriteLine("/apply can only be used with a single equivalence group.");
-                return;
-            }
-
-            Console.WriteLine("Calculating changes");
-
-            foreach (var fix in equivalenceGroups)
-            {
-                try
-                {
-                    stopwatch.Restart();
-                    Console.WriteLine($"Calculating fix for {fix.CodeFixEquivalenceKey} using {fix.FixAllProvider} for {fix.NumberOfDiagnostics} instances.");
-                    var operations = await fix.GetOperationsAsync(cancellationToken).ConfigureAwait(true);
-                    if (applyChanges)
-                    {
-                        var applyOperations = operations.OfType<ApplyChangesOperation>().ToList();
-                        if (applyOperations.Count > 1)
-                        {
-                            Console.WriteLine("/apply can only apply a single code action operation.");
-                        }
-                        else if (applyOperations.Count == 0)
-                        {
-                            Console.WriteLine("No changes were found to apply.");
-                        }
-                        else
-                        {
-                            applyOperations[0].Apply(solution.Workspace, cancellationToken);
-                        }
-                    }
-
-                    Utilities.WriteLine($"Calculating changes completed in {stopwatch.ElapsedMilliseconds}ms. This is {fix.NumberOfDiagnostics / stopwatch.Elapsed.TotalSeconds:0.000} instances/second.", ConsoleColor.Yellow);
-                }
-                catch (Exception ex)
-                {
-                    // Report thrown exceptions
-                    Utilities.WriteLine($"The fix '{fix.CodeFixEquivalenceKey}' threw an exception after {stopwatch.ElapsedMilliseconds}ms:", ConsoleColor.Yellow);
-                    Utilities.WriteLine(ex.ToString(), ConsoleColor.Yellow);
-                }
-            }
-        }
-
-        private static async Task TestCodeFixesAsync(Stopwatch stopwatch, Solution solution, IEnumerable<Assembly> analyzerAssemblies, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            Console.WriteLine("Calculating fixes");
-
-            List<CodeAction> fixes = new List<CodeAction>();
-
-            var codeFixers = GetAllCodeFixers(analyzerAssemblies);
-
-            foreach (var item in diagnostics)
-            {
-                foreach (var codeFixer in codeFixers.GetValueOrDefault(item.Id, ImmutableList.Create<CodeFixProvider>()))
-                {
-                    fixes.AddRange(await GetFixesAsync(solution, codeFixer, item, cancellationToken).ConfigureAwait(false));
-                }
-            }
-
-            Console.WriteLine($"Found {fixes.Count} potential code fixes");
-
-            Console.WriteLine("Calculating changes");
-
-            stopwatch.Restart();
-
-            object lockObject = new object();
-
-            Parallel.ForEach(fixes, fix =>
-            {
-                try
-                {
-                    fix.GetOperationsAsync(cancellationToken).GetAwaiter().GetResult();
-                }
-                catch (Exception ex)
-                {
-                    // Report thrown exceptions
-                    lock (lockObject)
-                    {
-                        Utilities.WriteLine($"The fix '{fix.Title}' threw an exception:", ConsoleColor.Yellow);
-                        Utilities.WriteLine(ex.ToString(), ConsoleColor.Red);
-                    }
-                }
-            });
-
-            Console.WriteLine($"Calculating changes completed in {stopwatch.ElapsedMilliseconds}ms");
-        }
-
-        private static async Task<IEnumerable<CodeAction>> GetFixesAsync(Solution solution, CodeFixProvider codeFixProvider, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            List<CodeAction> codeActions = new List<CodeAction>();
-
-            await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(solution.GetDocument(diagnostic.Location.SourceTree), diagnostic, (a, d) => codeActions.Add(a), cancellationToken)).ConfigureAwait(false);
-
-            return codeActions;
-        }
-
-        private static Task<Statistic> GetAnalyzerStatisticsAsync(IEnumerable<Project> projects, CancellationToken cancellationToken)
+        private static Statistic GetSolutionStatistics(IEnumerable<Project> projects, CancellationToken cancellationToken)
         {
             ConcurrentBag<Statistic> sums = new ConcurrentBag<Statistic>();
 
-            Parallel.ForEach(projects.SelectMany(i => i.Documents), document =>
+            Parallel.ForEach(projects.SelectMany(project => project.Documents), document =>
             {
-                var documentStatistics = GetAnalyzerStatisticsAsync(document, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
+                var documentStatistics = GetSolutionStatisticsAsync(document, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
                 sums.Add(documentStatistics);
             });
 
             Statistic sum = sums.Aggregate(new Statistic(0, 0, 0), (currentResult, value) => currentResult + value);
-            return Task.FromResult(sum);
+            return sum;
         }
 
-        private static async Task<Statistic> GetAnalyzerStatisticsAsync(Document document, CancellationToken cancellationToken)
+        // TODO consider removing this and using GetAnalysisResultAsync
+        // https://github.com/dotnet/roslyn/issues/23108
+        private static async Task<Statistic> GetSolutionStatisticsAsync(Document document, CancellationToken cancellationToken)
         {
             SyntaxTree tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
@@ -309,113 +191,72 @@ namespace AnalyzerRunner
                 {
                     yield return analyzer;
                 }
-                else if (options.AnalyzerIds.Count == 0)
+                else if (options.AnalyzerNames.Count == 0)
                 {
-                    if (analyzer.SupportedDiagnostics.Any(i => i.IsEnabledByDefault))
+                    if (analyzer.SupportedDiagnostics.Any(diagnosticDescriptor => diagnosticDescriptor.IsEnabledByDefault))
                     {
                         yield return analyzer;
                     }
-
-                    continue;
                 }
-                else if (analyzer.SupportedDiagnostics.Any(y => options.AnalyzerIds.Contains(y.Id)))
+                else if (options.AnalyzerNames.Contains(analyzer.GetType().Name))
                 {
                     yield return analyzer;
                 }
             }
         }
 
-        private static ImmutableArray<Assembly> GetAnalyzerAssemblies(string path)
+        private static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string path)
         {
             if (File.Exists(path))
             {
-                return ImmutableArray.Create(Assembly.LoadFrom(path));
+                return GetDiagnosticAnalyzersFromFile(path);
             }
             else if (Directory.Exists(path))
             {
-                var builder = ImmutableArray.CreateBuilder<Assembly>();
-                foreach (var file in Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories))
-                {
-                    builder.Add(Assembly.LoadFrom(file));
-                }
-
-                return builder.ToImmutable();
+                return Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories).SelectMany(file => GetDiagnosticAnalyzersFromFile(file)).ToImmutableArray();
             }
 
-            Utilities.WriteLine($"Cannot load assembliy or assemblies from {path}.", ConsoleColor.Red);
-            return ImmutableArray<Assembly>.Empty;
+            throw new InvalidDataException($"Cannot find {path}.");
         }
 
-        private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+        private static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzersFromFile(string path)
         {
-            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
-            try
-            {
-                return assembly.GetTypes();
-            }
-            catch (ReflectionTypeLoadException e)
-            {
-                Console.WriteLine($"Failed to load all types from {assembly.FullName}. Will proceed with types loaded successfully.");
-                return e.Types.Where(t => t != null);
-            }
+            var analyzerReference = new AnalyzerFileReference(path, AssemblyLoader.Instance);
+            // TODO The tool support CSharp projects for now. It should support VB/FSharp as well
+            // https://github.com/dotnet/roslyn/issues/23108
+            var analyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
+            return analyzers;
         }
 
-        private static ImmutableArray<DiagnosticAnalyzer> GetAllAnalyzers(IEnumerable<Assembly> assemblies)
+        private static async Task<ImmutableDictionary<ProjectId, AnalysisResult>> GetAnalysisResultAsync(
+            Solution solution,
+            string solutionPath,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            Options options,
+            CancellationToken cancellationToken)
         {
-            var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            foreach (var diagnosticAnalyzer in GetAllSubclasses<DiagnosticAnalyzer>(assemblies))
-            {
-                analyzers.Add(diagnosticAnalyzer);
-            }
-
-            return analyzers.ToImmutable();
-        }
-
-        private static ImmutableDictionary<string, ImmutableList<CodeFixProvider>> GetAllCodeFixers(IEnumerable<Assembly> assemblies)
-        {
-            Dictionary<string, ImmutableList<CodeFixProvider>> providers = new Dictionary<string, ImmutableList<CodeFixProvider>>();
-            foreach (var codeFixProvider in GetAllSubclasses<CodeFixProvider>(assemblies))
-            {
-                foreach (var diagnosticId in codeFixProvider.FixableDiagnosticIds)
-                {
-                    providers.AddToInnerList(diagnosticId, codeFixProvider);
-                }
-            }
-
-            return providers.ToImmutableDictionary();
-        }
-
-        private static IEnumerable<T> GetAllSubclasses<T>(IEnumerable<Assembly> assemblies)
-        {
-            var returnType = typeof(T);
-            foreach (var assembly in assemblies)
-            {
-                foreach (var type in GetLoadableTypes(assembly))
-                {
-                    if (type.IsSubclassOf(returnType) && !type.IsAbstract)
-                    {
-                        yield return (T)Activator.CreateInstance(type);
-                    }
-                }
-            }
-        }
-
-        private static async Task<ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic>>> GetAnalyzerDiagnosticsAsync(Solution solution, string solutionPath, ImmutableArray<DiagnosticAnalyzer> analyzers, Options options, TelemetryCollector telemetryCollector, CancellationToken cancellationToken)
-        {
-            List<KeyValuePair<ProjectId, Task<ImmutableArray<Diagnostic>>>> projectDiagnosticTasks = new List<KeyValuePair<ProjectId, Task<ImmutableArray<Diagnostic>>>>();
+            List<KeyValuePair<ProjectId, Task<AnalysisResult>>> projectDiagnosticTasks = new List<KeyValuePair<ProjectId, Task<AnalysisResult>>>();
 
             // Make sure we analyze the projects in parallel
             foreach (var project in solution.Projects)
             {
+                // TODO The tool support CSharp projects for now. It should support VB/FSharp as well
+                // https://github.com/dotnet/roslyn/issues/23108
                 if (project.Language != LanguageNames.CSharp)
                 {
                     continue;
                 }
 
-                projectDiagnosticTasks.Add(new KeyValuePair<ProjectId, Task<ImmutableArray<Diagnostic>>>(project.Id, GetProjectAnalyzerDiagnosticsAsync(analyzers, project, options, telemetryCollector, cancellationToken)));
+                projectDiagnosticTasks.Add(new KeyValuePair<ProjectId, Task<AnalysisResult>>(
+                    project.Id,
+                    GetProjectAnalysisResultAsync(
+                        analyzers,
+                        project,
+                        options,
+                        cancellationToken)));
             }
 
-            ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic>>.Builder projectDiagnosticBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<Diagnostic>>();
+            ImmutableDictionary<ProjectId, AnalysisResult>.Builder projectDiagnosticBuilder = ImmutableDictionary.CreateBuilder<ProjectId, AnalysisResult>();
             foreach (var task in projectDiagnosticTasks)
             {
                 projectDiagnosticBuilder.Add(task.Key, await task.Value.ConfigureAwait(false));
@@ -425,56 +266,110 @@ namespace AnalyzerRunner
         }
 
         /// <summary>
-        /// Returns a list of all analyzer diagnostics inside the specific project. This is an asynchronous operation.
+        /// Returns a list of all analysis results inside the specific project. This is an asynchronous operation.
         /// </summary>
         /// <param name="analyzers">The list of analyzers that should be used</param>
-        /// <param name="project">The project that should be analyzed</param>
+        /// <param name="project">The project that should be analyzed
         /// <see langword="false"/> to use the behavior configured for the specified <paramref name="project"/>.</param>
         /// <param name="cancellationToken">The cancellation token that the task will observe.</param>
-        /// <returns>A list of diagnostics inside the project</returns>
-        private static async Task<ImmutableArray<Diagnostic>> GetProjectAnalyzerDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, Project project, Options analyzerOptionsInternal, TelemetryCollector telemetryCollector, CancellationToken cancellationToken)
+        /// <returns>A list of analysis results inside the project</returns>
+        private static async Task<AnalysisResult> GetProjectAnalysisResultAsync(
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            Project project,
+            Options analyzerOptionsInternal,
+            CancellationToken cancellationToken)
         {
-            Utilities.WriteLine($"Running analyzers for {project.Name}", ConsoleColor.Gray);
-            var supportedDiagnosticsSpecificOptions = new Dictionary<string, ReportDiagnostic>();
-
-            // Report exceptions during the analysis process as errors
-            supportedDiagnosticsSpecificOptions.Add("AD0001", ReportDiagnostic.Error);
+            WriteLine($"Running analyzers for {project.Name}", ConsoleColor.Gray);
 
             // update the project compilation options
-            var modifiedSpecificDiagnosticOptions = supportedDiagnosticsSpecificOptions.ToImmutableDictionary().SetItems(project.CompilationOptions.SpecificDiagnosticOptions);
+            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions.Add("AD0001", ReportDiagnostic.Error);
+            // Report exceptions during the analysis process as errors
             var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
             var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
 
             try
             {
                 Compilation compilation = await processedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var newCompilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(compilation.SyntaxTrees.Select(t => t.WithRootAndOptions(t.GetRoot(), t.Options.WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "IOperation") }))));
+                var newCompilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(compilation.SyntaxTrees);
 
-                CompilationWithAnalyzers compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(new AnalyzerOptions(ImmutableArray.Create<AdditionalText>()), null, analyzerOptionsInternal.ConcurrentAnalysis, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
-
-                var diagnostics = await FixAllContextHelper.GetAllDiagnosticsAsync(compilation, compilationWithAnalyzers, analyzers, project.Documents, true, cancellationToken).ConfigureAwait(false);
-
-                foreach (var analyzer in analyzers)
-                {
-                    var telemetry = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                    var analyzerName = analyzer.GetType().Name;
-
-                    if (!telemetryCollector.TryGetValue(analyzerName, out var telemetryInfoList))
-                    {
-                        telemetryInfoList = new List<AnalyzerTelemetryInfo>();
-                        telemetryCollector.Add(analyzerName, telemetryInfoList);
-                    }
-
-                    telemetryInfoList.Add(telemetry);
-                }
-
-                return diagnostics;
+                // TODO some analyzer require additionaltext, we need to think about how to support such analyzer.
+                // https://github.com/dotnet/roslyn/issues/23108
+                CompilationWithAnalyzers compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(new AnalyzerOptions(ImmutableArray.Create<AdditionalText>()), null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
+                var analystResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                return analystResult;
             }
             catch (Exception e)
             {
-                Utilities.WriteLine($"Failed to analyze {project.Name} with {e.ToString()}", ConsoleColor.Red);
-                return ImmutableArray<Diagnostic>.Empty;
+                WriteLine($"Failed to analyze {project.Name} with {e.ToString()}", ConsoleColor.Red);
+                return null;
             }
+        }
+
+        private static void WriteTelemetry(ImmutableDictionary<ProjectId, AnalysisResult> dictionary)
+        {
+            var telemetryInfoDictionary = new Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>();
+            foreach (var analysisResult in dictionary.Values)
+            {
+                foreach (var pair in analysisResult.AnalyzerTelemetryInfo)
+                {
+                    if (!telemetryInfoDictionary.TryGetValue(pair.Key, out var telemetry))
+                    {
+                        telemetryInfoDictionary.Add(pair.Key, pair.Value);
+                    }
+                    else
+                    {
+                        telemetry.Add(pair.Value);
+                    }
+                }
+            }
+
+            foreach(var pair in telemetryInfoDictionary)
+            {
+                WriteTelemetry(pair.Key.GetType().Name, pair.Value);
+            }
+        }
+
+        private static void WriteTelemetry(string analyzerName, AnalyzerTelemetryInfo telemetry)
+        {
+            WriteLine($"Statistics for {analyzerName}:", ConsoleColor.DarkCyan);
+            WriteLine($"Execution time (ms):            {telemetry.ExecutionTime.TotalMilliseconds}", ConsoleColor.White);
+
+            WriteLine($"Code Block Actions:             {telemetry.CodeBlockActionsCount}", ConsoleColor.White);
+            WriteLine($"Code Block Start Actions:       {telemetry.CodeBlockStartActionsCount}", ConsoleColor.White);
+            WriteLine($"Code Block End Actions:         {telemetry.CodeBlockEndActionsCount}", ConsoleColor.White);
+
+            WriteLine($"Compilation Actions:            {telemetry.CompilationActionsCount}", ConsoleColor.White);
+            WriteLine($"Compilation Start Actions:      {telemetry.CompilationStartActionsCount}", ConsoleColor.White);
+            WriteLine($"Compilation End Actions:        {telemetry.CompilationEndActionsCount}", ConsoleColor.White);
+
+            WriteLine($"Operation Actions:              {telemetry.OperationActionsCount}", ConsoleColor.White);
+            WriteLine($"Operation Block Actions:        {telemetry.OperationBlockActionsCount}", ConsoleColor.White);
+            WriteLine($"Operation Block Start Actions:  {telemetry.OperationBlockStartActionsCount}", ConsoleColor.White);
+            WriteLine($"Operation Block End Actions:    {telemetry.OperationBlockEndActionsCount}", ConsoleColor.White);
+
+            WriteLine($"Semantic Model Actions:         {telemetry.SemanticModelActionsCount}", ConsoleColor.White);
+            WriteLine($"Symbol Actions:                 {telemetry.SymbolActionsCount}", ConsoleColor.White);
+            WriteLine($"Syntax Node Actions:            {telemetry.SyntaxNodeActionsCount}", ConsoleColor.White);
+            WriteLine($"Syntax Tree Actions:            {telemetry.SyntaxTreeActionsCount}", ConsoleColor.White);
+        }
+
+        internal static void WriteLine(string text, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(text);
+            Console.ResetColor();
+        }
+
+        internal static void PrintHelp()
+        {
+            Console.WriteLine("Usage: AnalyzerRunner <AnalyzerAssemblyOrFolder> <Solution> [options]");
+            Console.WriteLine("Options:");
+            Console.WriteLine("/all                 Run all StyleCopAnalyzers analyzers, including ones that are disabled by default");
+            Console.WriteLine("/stats               Display statistics of the solution");
+            Console.WriteLine("/a <analyzer name>   Enable analyzer with <analyzer name> (when this is specified, only analyzers specificed are enabled. Use: /a <name1> /a <name2>, etc.");
+            Console.WriteLine("/concurrent          Executes analyzers in concurrent mode");
+            Console.WriteLine("/suppressed          Reports suppressed diagnostics");
+            Console.WriteLine("/log <logFile>       Write logs into the log file specified");
         }
     }
 }

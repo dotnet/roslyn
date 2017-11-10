@@ -1,75 +1,118 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
+using System.IO;
 
 namespace AnalyzerRunner
 {
     internal class Options
     {
-        public bool ConcurrentAnalysis;
-        public bool ReportSuppressedDiagnostics;
-        public HashSet<string> AnalyzerIds;
-        public bool Stats;
-        public string AnalyzerPath;
-        public string SolutionPath;
-        public bool UseAll;
-        public bool ApplyChanges;
-        public bool CodeFixes;
-        public bool FixAll;
-        public string LogFileName;
+        public readonly string AnalyzerPath;
+        public readonly string SolutionPath;
+        public readonly ImmutableHashSet<string> AnalyzerNames;
 
-        private Options() { }
+        public readonly bool RunConcurrent;
+        public readonly bool ReportSuppressedDiagnostics;
+        public readonly bool ShowStats;
+        public readonly bool UseAll;
+        public readonly string LogFileName;
 
-        internal static Options Create(string[] args)
+        public Options(
+            string analyzerPath,
+            string solutionPath,
+            ImmutableHashSet<string> analyzerIds,
+            bool runConcurrent,
+            bool reportSuppressedDiagnostics,
+            bool showStats,
+            bool useAll,
+            string logFileName)
         {
-            // A valid call must have at least one parameter (a solution file). Optionally it can include /all or /id:SAXXXX.
-            if (args.Length < 1)
-            {
-                Utilities.PrintHelp();
-                return null;
-            }
+            AnalyzerPath = analyzerPath;
+            SolutionPath = solutionPath;
+            AnalyzerNames = analyzerIds;
+            RunConcurrent = runConcurrent;
+            ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            ShowStats = showStats;
+            UseAll = useAll;
+            LogFileName = logFileName;
+        }
 
-            var requiredArguments = args.Where(i => !i.StartsWith("/", StringComparison.Ordinal)).ToArray();
-            if (requiredArguments.Length < 2)
-            {
-                Utilities.WriteLine("The application requires the following arguments: analyzer assembly path and solution path.", ConsoleColor.Red);
-                return null;
-            }
+        internal static Options TryCreate(string[] args)
+        {
+            string analyzerPath = null;
+            string solutionPath = null;
+            var builder = ImmutableHashSet.CreateBuilder<string>();
+            bool runConcurrent = false;
+            bool reportSuppressedDiagnostics = false;
+            bool showStats = false;
+            bool useAll = false;
+            string logFileName = null;
 
-            var options = new Options()
+            int i = 0;
+            while (i < args.Length)
             {
-                ApplyChanges = args.Contains("/apply"),
-                UseAll = args.Contains("/all"),
-                Stats = args.Contains("/stats"),
-                ConcurrentAnalysis = args.Contains("/concurrent"),
-                ReportSuppressedDiagnostics = args.Contains("/suppressed"),
-                AnalyzerPath = requiredArguments[0],
-                SolutionPath = requiredArguments[1],
-                CodeFixes = args.Contains("/codefixes"),
-                FixAll = args.Contains("/fixall"),
-            };
+                var arg = args[i++];
+                string ReadValue() => (i < args.Length) ? args[i++] : throw new InvalidDataException($"Missing value for option {arg}");
 
-            if (options.ApplyChanges)
-            {
-                if (!args.Contains("/fixall"))
+                switch (arg)
                 {
-                    Console.Error.WriteLine("Error: /apply can only be used with /fixall");
-                    return null;
+                    case "/all":
+                        useAll = true;
+                        break;
+                    case "/stats":
+                        showStats = true;
+                        break;
+                    case "/concurrent":
+                        runConcurrent = true;
+                        break;
+                    case "/suppressed":
+                        reportSuppressedDiagnostics = true;
+                        break;
+                    case "/a":
+                        builder.Add(ReadValue());
+                        break;
+                    case "/log":
+                        logFileName = ReadValue();
+                        break;
+                    default:
+                        if (analyzerPath == null)
+                        {
+                            analyzerPath = arg;
+                        }
+                        else if (solutionPath == null)
+                        {
+                            solutionPath = arg;
+                        }
+                        else
+                        {
+                            throw new InvalidDataException((arg.StartsWith("/", StringComparison.Ordinal) ?
+                             $"Unrecognized option {arg}" :
+                             $"Unrecognized parameter {arg}"));
+                        }
+                        break;
                 }
             }
 
-            string logArgument = args.FirstOrDefault(x => x.StartsWith("/log:"));
-            if (logArgument != null)
+            if (analyzerPath == null)
             {
-                options.LogFileName = logArgument.Substring(logArgument.IndexOf(':') + 1);
+                throw new InvalidDataException("Missing analyzer path");
             }
 
-            HashSet<string> ids = new HashSet<string>(args.Where(y => y.StartsWith("/id:", StringComparison.Ordinal)).Select(y => y.Substring(4)));
-            options.AnalyzerIds = ids;
+            if (solutionPath == null)
+            {
+                throw new InvalidDataException("Missing solution path");
+            }
 
-            return options;
+            return new Options(
+                analyzerPath,
+                solutionPath,
+                builder.ToImmutableHashSet(),
+                useAll,
+                showStats,
+                runConcurrent,
+                reportSuppressedDiagnostics,
+                logFileName);
         }
     }
 }
