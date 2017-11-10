@@ -432,7 +432,6 @@ namespace Microsoft.CodeAnalysis
         private bool ReportErrors(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
             => ReportErrors(diagnostics.ToReadOnly(), consoleOutput, errorLoggerOpt);
 
-
         /// <summary>
         /// Returns true if the diagnostic is an error that should be reported.
         /// </summary>
