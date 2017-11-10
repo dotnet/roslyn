@@ -2736,6 +2736,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+                Get
+                    Return ImmutableArray(Of Symbol).Empty
+                End Get
+            End Property
+
             Public ReadOnly Property LambdaSymbol As LambdaSymbol
                 Get
                     Return _lambdaSymbol
