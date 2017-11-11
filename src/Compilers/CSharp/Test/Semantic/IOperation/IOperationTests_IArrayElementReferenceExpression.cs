@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -735,11 +735,7 @@ IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression,
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0443: Syntax error; value expected
-                //         var a = /*<bind>*/args[0,]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(6, 34)
-            };
+            var expectedDiagnostics = new DiagnosticDescription[] {};
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

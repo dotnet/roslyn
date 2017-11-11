@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -317,11 +317,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1031: Type expected
-                //             /*<bind>*/d.GetValue<int,>()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(9, 38)
-            };
+            var expectedDiagnostics = new DiagnosticDescription[] {};
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
