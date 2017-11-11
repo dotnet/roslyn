@@ -54,6 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindConstantPattern(
                         (ConstantPatternSyntax)node, operandType, hasErrors, diagnostics, wasSwitchCase);
 
+                case SyntaxKind.DeconstructionPattern:
+                case SyntaxKind.PropertyPattern:
+                    // PROTOTYPE(patterns2): binding not yet supported for recursive pattern forms.
+                    diagnostics.Add(ErrorCode.ERR_BindToBogus, node.Location, "recursive pattern");
+                    return new BoundConstantPattern(node, BadExpression(node), ConstantValue.Null, hasErrors: true);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }

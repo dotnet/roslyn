@@ -5210,4 +5210,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
+  <data name="ERR_MissingPattern" xml:space="preserve">
+    <value>Pattern missing</value>
+  </data>
+  <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
+    <value>recursive patterns</value>
+  </data>
 </root>

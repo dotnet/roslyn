@@ -6416,6 +6416,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pattern missing.
+        /// </summary>
+        internal static string ERR_MissingPattern {
+            get {
+                return ResourceManager.GetString("ERR_MissingPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Quoted file name, single-line comment or end-of-line expected.
         /// </summary>
         internal static string ERR_MissingPPFile {
@@ -10625,6 +10634,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureReadOnlyStructs {
             get {
                 return ResourceManager.GetString("IDS_FeatureReadOnlyStructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to recursive patterns.
+        /// </summary>
+        internal static string IDS_FeatureRecursivePatterns {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRecursivePatterns", resourceCulture);
             }
         }
         

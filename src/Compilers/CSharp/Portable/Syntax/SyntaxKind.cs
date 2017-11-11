@@ -556,6 +556,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         WhenClause = 9013,
         DiscardDesignation = 9014,
 
+        PropertyPattern = 9020,
+        PropertySubpattern = 9021,
+        SubpatternElement = 9022,
+        DeconstructionPattern = 9023,
+
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
         // Please start with 9040 if you add more kinds below.
 
