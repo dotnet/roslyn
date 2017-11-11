@@ -2973,7 +2973,7 @@ Class C
     Public Property Bar()
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
     End Class
 End Namespace

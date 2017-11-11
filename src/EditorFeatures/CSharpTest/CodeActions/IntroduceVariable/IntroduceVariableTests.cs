@@ -4509,7 +4509,7 @@ class C
 
     [Example(V)]
     public string Bar { get; set; }
-}", ignoreTrivia: false);
+}");
         }
     }
 }
