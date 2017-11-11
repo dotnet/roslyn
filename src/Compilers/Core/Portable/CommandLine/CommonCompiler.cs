@@ -693,6 +693,7 @@ namespace Microsoft.CodeAnalysis
                     WithOutputNameOverride(outputName).
                     WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
 
+                // TODO(https://github.com/dotnet/roslyn/issues/19592):
                 // This feature flag is being maintained until our next major release to avoid unnecessary 
                 // compat breaks with customers.
                 if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
