@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, argumentRefKinds, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, argumentRefKinds, rewrittenArguments, actualArguments, refKinds, storesToTemps);
 
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var memberContainingType = fieldOrEvent.ContainingType;
 
-                // From the verifier prospective type parameters do not contain fields or methods.
+                // From the verifier perspective type parameters do not contain fields or methods.
                 // the instance must be "boxed" to access the field
                 // It makes sense to box receiver before storing into a temp - no need to box twice.
                 rewrittenReceiver = BoxReceiver(rewrittenReceiver, memberContainingType);
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         // Ref returning properties count as variables and do not undergo the transformation
-                        // that value returning propertues require.
+                        // that value returning properties require.
                         var propertyAccess = (BoundPropertyAccess)originalLHS;
                         if (propertyAccess.PropertySymbol.RefKind == RefKind.None)
                         {
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     {
                         // Ref returning indexers count as variables and do not undergo the transformation
-                        // that value returning propertues require.
+                        // that value returning properties require.
                         var indexerAccess = (BoundIndexerAccess)originalLHS;
                         if (indexerAccess.Indexer.RefKind == RefKind.None)
                         {
@@ -548,6 +548,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
+                    break;
+
+                case BoundKind.ConditionalOperator:
+                    Debug.Assert(((BoundConditionalOperator)originalLHS).IsByRef);
                     break;
 
                 case BoundKind.AssignmentOperator:

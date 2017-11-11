@@ -87,7 +87,7 @@ try
     }
 
     write-host "Verifying contents of Microsoft.CodeAnalysis.Compilers.vsix"
-    $vsixpath = join-path $binariesPath "Insertion\Microsoft.CodeAnalysis.Compilers.vsix"
+    $vsixpath = join-path $binariesPath "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsix"
     $msbuildroslynfiles =  [IO.Compression.ZipFile]::OpenRead($vsixpath).Entries |
         ?{ $_.FullName.StartsWith("Contents/MSBuild/15.0/Bin/Roslyn") } |
         %{ $_.Name } |

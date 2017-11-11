@@ -277,7 +277,7 @@ class TestFile
     {
         return obj is TestFile {|Rename:file|} && /*before*/ file /*after*/.i > 0;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]

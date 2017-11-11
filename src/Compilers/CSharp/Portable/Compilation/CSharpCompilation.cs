@@ -164,6 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
+        /// True when "peverify-compat" is set
+        /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
+        /// The code may be less efficient and may deviate from spec in corner cases.
+        /// The flag is only to be used if PEVerify pass is extremely important.
+        /// </summary>
+        internal bool FeaturePEVerifyCompatEnabled => Feature("peverify-compat") != null;
+
+        /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>
         public LanguageVersion LanguageVersion
@@ -565,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Are there any top-level return statments?
+            // Are there any top-level return statements?
             if (root.DescendantNodes(n => n is GlobalStatementSyntax || n is StatementSyntax || n is CompilationUnitSyntax).Any(n => n.IsKind(SyntaxKind.ReturnStatement)))
             {
                 return true;
@@ -1334,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false);
+            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
         }
 
         /// <summary>
@@ -1989,6 +1997,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private IEnumerable<Diagnostic> FreezeDeclarationDiagnostics()
         {
             _declarationDiagnosticsFrozen = true;
+
+            // Also freeze generated attribute flags by observing them
+            // symbols bound after getting the declaration diagnostics shouldn't need to modify the flags
+            _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+            _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
+
             var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
             return result;
         }
@@ -2187,15 +2201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (symbol.IsPartialDefinition())
-            {
-                MethodSymbol implementationPart = ((MethodSymbol)symbol).PartialImplementationPart;
-                if ((object)implementationPart != null)
-                {
-                    return implementationPart.IsDefinedInSourceTree(tree, span);
-                }
-            }
-
             if (symbol.Kind == SymbolKind.Method && symbol.IsImplicitlyDeclared && ((MethodSymbol)symbol).MethodKind == MethodKind.Constructor)
             {
                 // Include implicitly declared constructor if containing type is included
@@ -2315,7 +2320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (stage == CompilationStage.Declare || (stage > CompilationStage.Declare && includeEarlierStages))
             {
                 var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, cancellationToken);
-                Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
+                // re-enabling/fixing the below assert is tracked by https://github.com/dotnet/roslyn/issues/21020
+                // Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
                 builder.AddRange(declarationDiagnostics);
             }
 
@@ -3073,12 +3079,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sustainedLowLatency = GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
-        }
-
-        internal override bool IsIOperationFeatureEnabled()
-        {
-            var options = (CSharpParseOptions)this.SyntaxTrees.FirstOrDefault()?.Options;
-            return options?.IsFeatureEnabled(MessageID.IDS_FeatureIOperation) ?? false;
         }
 
         private class SymbolSearcher

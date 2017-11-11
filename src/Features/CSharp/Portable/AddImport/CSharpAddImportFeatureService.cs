@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     }
 
                     break;
+                case CS1955:
+                    break;
 
                 default:
                     return false;
@@ -159,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS0616:
                 case CS1580:
                 case CS1581:
+                case CS1955:
                     break;
 
                 case CS1574:
@@ -180,8 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         private static bool TryFindStandaloneType(SyntaxNode node, out SimpleNameSyntax nameNode)
         {
-            var qn = node as QualifiedNameSyntax;
-            if (qn != null)
+            if (node is QualifiedNameSyntax qn)
             {
                 node = GetLeftMostSimpleName(qn);
             }
@@ -195,8 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             while (qn != null)
             {
                 var left = qn.Left;
-                var simpleName = left as SimpleNameSyntax;
-                if (simpleName != null)
+                if (left is SimpleNameSyntax simpleName)
                 {
                     return simpleName;
                 }
@@ -526,14 +527,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         private NameSyntax AddOrReplaceAlias(
             NameSyntax nameSyntax, IdentifierNameSyntax alias)
         {
-            var simpleName = nameSyntax as SimpleNameSyntax;
-            if (simpleName != null)
+            if (nameSyntax is SimpleNameSyntax simpleName)
             {
                 return SyntaxFactory.AliasQualifiedName(alias, simpleName);
             }
 
-            var qualifiedName = nameSyntax as QualifiedNameSyntax;
-            if (qualifiedName != null)
+            if (nameSyntax is QualifiedNameSyntax qualifiedName)
             {
                 return qualifiedName.WithLeft(AddOrReplaceAlias(qualifiedName.Left, alias));
             }

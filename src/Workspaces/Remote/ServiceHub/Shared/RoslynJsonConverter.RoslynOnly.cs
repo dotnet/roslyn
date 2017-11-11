@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -24,12 +26,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Add(builder, new TodoCommentDescriptorJsonConverter());
             Add(builder, new TodoCommentJsonConverter());
-            Add(builder, new PackageSourceJsonConverter());
+            Add(builder, new DesignerAttributeResultJsonConverter());
 
+            Add(builder, new PackageSourceJsonConverter());
             Add(builder, new PackageWithTypeResultJsonConverter());
             Add(builder, new PackageWithAssemblyResultJsonConverter());
-            Add(builder, new ReferenceAssemblyWithTypeResultJsonConverter());
 
+            Add(builder, new ReferenceAssemblyWithTypeResultJsonConverter());
             Add(builder, new AddImportFixDataJsonConverter());
         }
 
@@ -92,6 +95,39 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName(nameof(TodoComment.Position));
                 writer.WriteValue(todoComment.Position);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class DesignerAttributeResultJsonConverter : BaseJsonConverter<DesignerAttributeResult>
+        {
+            protected override DesignerAttributeResult ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                var designerAttributeArgument = ReadProperty<string>(reader);
+                var containsErrors = ReadProperty<bool>(reader);
+                var notApplicable = ReadProperty<bool>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new DesignerAttributeResult(designerAttributeArgument, containsErrors, notApplicable);
+            }
+
+            protected override void WriteValue(JsonWriter writer, DesignerAttributeResult result, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(DesignerAttributeResult.DesignerAttributeArgument));
+                writer.WriteValue(result.DesignerAttributeArgument);
+
+                writer.WritePropertyName(nameof(DesignerAttributeResult.ContainsErrors));
+                writer.WriteValue(result.ContainsErrors);
+
+                writer.WritePropertyName(nameof(DesignerAttributeResult.NotApplicable));
+                writer.WriteValue(result.NotApplicable);
 
                 writer.WriteEndObject();
             }
@@ -165,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var typeName = ReadProperty<string>(reader);
                 var version = ReadProperty<string>(reader);
                 var rank = (int)ReadProperty<long>(reader);
-                var containingNamespaceNames = ReadProperty<ImmutableArray<string>>(serializer, reader);
+                var containingNamespaceNames = ReadProperty<IList<string>>(serializer, reader);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
@@ -237,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var assemblyName = ReadProperty<string>(reader);
                 var typeName = ReadProperty<string>(reader);
-                var containingNamespaceNames = ReadProperty<ImmutableArray<string>>(serializer, reader);
+                var containingNamespaceNames = ReadProperty<IList<string>>(serializer, reader);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
@@ -298,9 +334,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
                 var kind = (AddImportFixKind)ReadProperty<long>(reader);
-                var textChanges = ReadProperty<ImmutableArray<TextChange>>(serializer, reader);
+                var textChanges = ReadProperty<IList<TextChange>>(serializer, reader).ToImmutableArrayOrEmpty();
                 var title = ReadProperty<string>(reader);
-                var tags = ReadProperty<ImmutableArray<string>>(serializer, reader);
+                var tags = ReadProperty<IList<string>>(serializer, reader).ToImmutableArrayOrEmpty();
                 var priority = (CodeActionPriority)ReadProperty<long>(reader);
 
                 var projectReferenceToAdd = ReadProperty<ProjectId>(serializer, reader);
@@ -344,13 +380,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 writer.WriteValue((int)source.Kind);
 
                 writer.WritePropertyName(nameof(AddImportFixData.TextChanges));
-                serializer.Serialize(writer, source.TextChanges);
+                serializer.Serialize(writer, source.TextChanges ?? SpecializedCollections.EmptyList<TextChange>());
 
                 writer.WritePropertyName(nameof(AddImportFixData.Title));
                 writer.WriteValue(source.Title);
 
                 writer.WritePropertyName(nameof(AddImportFixData.Tags));
-                serializer.Serialize(writer, source.Tags.NullToEmpty());
+                serializer.Serialize(writer, source.Tags ?? SpecializedCollections.EmptyList<string>());
 
                 writer.WritePropertyName(nameof(AddImportFixData.Priority));
                 writer.WriteValue((int)source.Priority);

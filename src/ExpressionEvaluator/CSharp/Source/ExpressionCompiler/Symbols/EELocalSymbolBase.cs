@@ -76,5 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             return result;
         }
+
+        /// <summary>
+        /// EE Symbols have no source symbols associated with them.
+        /// They should be safe to escape for evaluation purposes.
+        /// </summary>
+        internal override uint ValEscapeScope => Binder.TopLevelScope;
+
+        /// <summary>
+        /// EE Symbols have no source symbols associated with them.
+        /// They should be safe to escape for evaluation purposes.
+        /// </summary>
+        internal override uint RefEscapeScope => Binder.TopLevelScope;
     }
 }

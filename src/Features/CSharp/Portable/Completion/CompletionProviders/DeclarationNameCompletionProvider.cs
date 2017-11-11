@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = completionContext.CancellationToken;
             var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
 
+            if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
+            {
+                return;
+            }
+
             var context = CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
             if (context.IsInNonUserCode)
             {
@@ -69,8 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            var type = UnwrapType(nameInfo.Type, semanticModel.Compilation);
-            var baseNames = NameGenerator.GetBaseNames(type);
+            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false);
+
+            var baseNames = NameGenerator.GetBaseNames(type, plural);
             return baseNames;
         }
 
@@ -144,33 +150,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return publicIcon;
         }
 
-        private ITypeSymbol UnwrapType(ITypeSymbol type, Compilation compilation)
+        private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural)
         {
+            if (type is IArrayTypeSymbol arrayType)
+            {
+                return UnwrapType(arrayType.ElementType, compilation, wasPlural: true);
+            }
+
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
                 var originalDefinition = namedType.OriginalDefinition;
-                switch (originalDefinition.SpecialType)
+                
+                var ienumerableOfT = namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
+                    t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+
+                if (ienumerableOfT != null)
                 {
-                    case SpecialType.System_Collections_Generic_IEnumerable_T:
-                    case SpecialType.System_Collections_Generic_IList_T:
-                    case SpecialType.System_Collections_Generic_ICollection_T:
-                    case SpecialType.System_Collections_Generic_IReadOnlyList_T:
-                    case SpecialType.System_Collections_Generic_IReadOnlyCollection_T:
-                    case SpecialType.System_Nullable_T:
-                        return UnwrapType(namedType.TypeArguments[0], compilation);
+                    return UnwrapType(ienumerableOfT.TypeArguments[0], compilation, wasPlural: true);
                 }
 
                 var taskOfTType = compilation.TaskOfTType();
                 var valueTaskType = compilation.ValueTaskOfTType();
 
                 if (originalDefinition == taskOfTType ||
-                    originalDefinition == valueTaskType)
+                    originalDefinition == valueTaskType ||
+                    originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
-                    return UnwrapType(namedType.TypeArguments[0], compilation);
+                    return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural);
                 }
             }
 
-            return type;
+            return (type, wasPlural);
         }
 
         private async Task<ImmutableArray<(string, SymbolKind)>> GetRecommendedNamesAsync(

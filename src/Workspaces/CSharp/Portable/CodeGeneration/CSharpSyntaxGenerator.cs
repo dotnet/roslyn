@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode AsUsingDirective(SyntaxNode node)
         {
-            var name = node as NameSyntax;
-            if (name != null)
+            if (node is NameSyntax name)
             {
                 return this.NamespaceImportDeclaration(name);
             }
@@ -121,17 +120,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
         }
 
-        private static SyntaxTokenList GetParameterModifiers(RefKind refKind)
+        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind)
         {
             switch (refKind)
             {
                 case RefKind.None:
-                default:
-                    return default;
+                    return new SyntaxTokenList();
                 case RefKind.Out:
                     return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword));
                 case RefKind.Ref:
                     return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword));
+                case RefKind.In:
+                    return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword));
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
+            }
+        }
+
+        internal static SyntaxToken GetArgumentModifiers(RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.None:
+                case RefKind.In:
+                    return default;
+                case RefKind.Out:
+                    return SyntaxFactory.Token(SyntaxKind.OutKeyword);
+                case RefKind.Ref:
+                    return SyntaxFactory.Token(SyntaxKind.RefKeyword);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
             }
         }
 
@@ -859,14 +877,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AttributeArgumentSyntax AsAttributeArgument(SyntaxNode node)
         {
-            var expr = node as ExpressionSyntax;
-            if (expr != null)
+            if (node is ExpressionSyntax expr)
             {
                 return SyntaxFactory.AttributeArgument(expr);
             }
 
-            var arg = node as ArgumentSyntax;
-            if (arg != null && arg.Expression != null)
+            if (node is ArgumentSyntax arg && arg.Expression != null)
             {
                 return SyntaxFactory.AttributeArgument(default, arg.NameColon, arg.Expression);
             }
@@ -901,8 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AttributeListSyntax AsAttributeList(SyntaxNode node)
         {
-            var attr = node as AttributeSyntax;
-            if (attr != null)
+            if (node is AttributeSyntax attr)
             {
                 return SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attr));
             }
@@ -1490,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return this.Isolate(declaration, d =>
             {
                 var tokens = GetModifierTokens(d);
-                GetAccessibilityAndModifiers(tokens, out var tmp, out var modifiers);
+                GetAccessibilityAndModifiers(tokens, out _, out var modifiers);
                 var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                 return SetModifierTokens(d, newTokens);
             });
@@ -1729,6 +1744,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     list = list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword))
                                .Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
                     break;
+                case Accessibility.ProtectedAndInternal:
+                    list = list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                               .Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    break;
                 case Accessibility.NotApplicable:
                     break;
             }
@@ -1783,10 +1802,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
             }
 
-            // partial must be last
+            // partial and ref must be last
             if (modifiers.IsPartial)
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+            }
+
+            if (modifiers.IsRef)
+            {
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
             }
 
             return list;
@@ -1806,7 +1830,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.PrivateKeyword:
-                        accessibility = Accessibility.Private;
+                        if (accessibility == Accessibility.Protected)
+                        {
+                            accessibility = Accessibility.ProtectedAndInternal;
+                        }
+                        else
+                        {
+                            accessibility = Accessibility.Private;
+                        }
                         break;
 
                     case SyntaxKind.InternalKeyword:
@@ -1822,11 +1853,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.ProtectedKeyword:
-                        if (accessibility == Accessibility.Internal)
+                        if (accessibility == Accessibility.Private)
+                        {
+                            accessibility = Accessibility.ProtectedAndInternal;
+                        }
+                        else if (accessibility == Accessibility.Internal)
                         {
                             accessibility = Accessibility.ProtectedOrInternal;
                         }
-                        else
+
                         {
                             accessibility = Accessibility.Protected;
                         }
@@ -1875,6 +1910,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                     case SyntaxKind.PartialKeyword:
                         modifiers = modifiers | DeclarationModifiers.Partial;
+                        break;
+
+                    case SyntaxKind.RefKeyword:
+                        modifiers = modifiers | DeclarationModifiers.Ref;
                         break;
                 }
             }
@@ -3558,8 +3597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static StatementSyntax AsStatement(SyntaxNode node)
         {
-            var expression = node as ExpressionSyntax;
-            if (expression != null)
+            if (node is ExpressionSyntax expression)
             {
                 return SyntaxFactory.ExpressionStatement(expression);
             }
@@ -3995,8 +4033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.Argument(
                 nameOpt == null ? null : SyntaxFactory.NameColon(nameOpt),
-                refKind == RefKind.Ref ? SyntaxFactory.Token(SyntaxKind.RefKeyword) :
-                refKind == RefKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default,
+                GetArgumentModifiers(refKind),
                 (ExpressionSyntax)expression);
         }
 

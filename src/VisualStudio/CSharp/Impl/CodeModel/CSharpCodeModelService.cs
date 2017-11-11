@@ -986,8 +986,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override bool IsValidExternalSymbol(ISymbol symbol)
         {
-            var methodSymbol = symbol as IMethodSymbol;
-            if (methodSymbol != null)
+            if (symbol is IMethodSymbol methodSymbol)
             {
                 if (methodSymbol.MethodKind == MethodKind.PropertyGet ||
                     methodSymbol.MethodKind == MethodKind.PropertySet ||
@@ -1038,6 +1037,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return EnvDTE.vsCMAccess.vsCMAccessProtected;
                 case Accessibility.ProtectedOrInternal:
                     return EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
+                case Accessibility.ProtectedAndInternal:
+                    // there is no appropriate mapping for private protected in EnvDTE.vsCMAccess
+                    // See https://github.com/dotnet/roslyn/issues/22406
+                    return EnvDTE.vsCMAccess.vsCMAccessProtected;
                 default:
                     throw Exceptions.ThrowEFail();
             }
@@ -1837,8 +1840,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override string GetImportAlias(SyntaxNode importNode)
         {
-            var usingDirective = importNode as UsingDirectiveSyntax;
-            if (usingDirective != null)
+            if (importNode is UsingDirectiveSyntax usingDirective)
             {
                 return usingDirective.Alias != null
                     ? usingDirective.Alias.Name.ToString()
@@ -1850,8 +1852,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override string GetImportNamespaceOrType(SyntaxNode importNode)
         {
-            var usingDirective = importNode as UsingDirectiveSyntax;
-            if (usingDirective != null)
+            if (importNode is UsingDirectiveSyntax usingDirective)
             {
                 return usingDirective.Name.ToString();
             }
@@ -1861,8 +1862,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override void GetImportParentAndName(SyntaxNode importNode, out SyntaxNode namespaceNode, out string name)
         {
-            var usingDirective = importNode as UsingDirectiveSyntax;
-            if (usingDirective != null)
+            if (importNode is UsingDirectiveSyntax usingDirective)
             {
                 namespaceNode = usingDirective.Parent.Kind() == SyntaxKind.CompilationUnit
                     ? null
@@ -1878,8 +1878,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override string GetParameterName(SyntaxNode node)
         {
-            var parameter = node as ParameterSyntax;
-            if (parameter != null)
+            if (node is ParameterSyntax parameter)
             {
                 return parameter.Identifier.ToString();
             }
@@ -1889,8 +1888,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override EnvDTE80.vsCMParameterKind GetParameterKind(SyntaxNode node)
         {
-            var parameter = node as ParameterSyntax;
-            if (parameter != null)
+            if (node is ParameterSyntax parameter)
             {
                 var kind = EnvDTE80.vsCMParameterKind.vsCMParameterKindNone;
 
@@ -2333,8 +2331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 flags |= ModifierFlags.Abstract;
 
                 // If this is a method, remove the body if it is empty.
-                var method = member as MethodDeclarationSyntax;
-                if (method != null)
+                if (member is MethodDeclarationSyntax method)
                 {
                     if (method.Body != null && method.Body.Statements.Count == 0)
                     {
@@ -2345,8 +2342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     // If this is a property, remove the bodies of the accessors if they are empty.
                     // Note that "empty" means that the bodies contain no statements or just a single return statement.
-                    var property = member as BasePropertyDeclarationSyntax;
-                    if (property != null && property.AccessorList != null)
+                    if (member is BasePropertyDeclarationSyntax property && property.AccessorList != null)
                     {
                         var updatedAccessors = new List<AccessorDeclarationSyntax>();
                         foreach (var accessor in property.AccessorList.Accessors)
@@ -2374,8 +2370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 flags &= ~ModifierFlags.Abstract;
 
                 // If this is a method, add a body.
-                var method = member as MethodDeclarationSyntax;
-                if (method != null)
+                if (member is MethodDeclarationSyntax method)
                 {
                     if (method.Body == null)
                     {
@@ -2387,8 +2382,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 else
                 {
                     // If this is a property, add bodies to the accessors if they don't have them.
-                    var property = member as BasePropertyDeclarationSyntax;
-                    if (property != null && property.AccessorList != null)
+                    if (member is BasePropertyDeclarationSyntax property && property.AccessorList != null)
                     {
                         var updatedAccessors = new List<AccessorDeclarationSyntax>();
                         foreach (var accessor in property.AccessorList.Accessors)

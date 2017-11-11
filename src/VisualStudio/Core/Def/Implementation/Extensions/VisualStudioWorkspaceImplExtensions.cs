@@ -49,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 
             if (uiObject != null)
             {
-                var imageListData = Microsoft.Internal.VisualStudio.PlatformUI.Utilities.GetObjectData(uiObject) as IVsUIWin32ImageList;
-                if (imageListData != null)
+                if (Microsoft.Internal.VisualStudio.PlatformUI.Utilities.GetObjectData(uiObject) is IVsUIWin32ImageList imageListData)
                 {
                     if (ErrorHandler.Succeeded(imageListData.GetHIMAGELIST(out var imageListInt)))
                     {

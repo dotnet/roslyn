@@ -40,10 +40,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return
-                    ((object)_containingType == null || _containingType.TypeKind != TypeKind.Struct) ? RefKind.None :
-                    ((object)_containingMethod != null && _containingMethod.MethodKind == MethodKind.Constructor) ? RefKind.Out :
-                    RefKind.Ref;
+                if (ContainingType?.TypeKind != TypeKind.Struct)
+                {
+                    return RefKind.None;
+                }
+
+                if (_containingMethod?.MethodKind == MethodKind.Constructor)
+                {
+                    return RefKind.Out;
+                }
+
+                if (ContainingType.IsReadOnly)
+                {
+                    return RefKind.In;
+                }
+
+                return RefKind.Ref;
             }
         }
 

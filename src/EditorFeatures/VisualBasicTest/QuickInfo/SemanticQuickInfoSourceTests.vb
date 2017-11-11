@@ -2089,5 +2089,73 @@ End Class
 ",
                  Documentation("String http://microsoft.com Nothing cat"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")>
+        Public Async Function TestGenericMethodInDocComment() As Task
+            Await TestWithImportsAsync(<Text><![CDATA[
+Public Class Test
+    Function F(Of T)() As T
+        F(Of T)()
+    End Function
+
+    ''' <summary>
+    ''' <see cref="F$$(Of T)()"/>
+    ''' </summary>
+    Public Sub S()
+    End Sub
+End Class
+                ]]></Text>.NormalizedValue,
+             MainDescription("Function Test.F(Of T)() As T"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        Public Async Function PropertyWithSameNameAsOtherType() As Task
+            Await TestAsync("
+Imports ConsoleApp3.ConsoleApp
+
+Module Program
+    Public B As A
+    Public A As B
+
+    Sub Main()
+        B = ConsoleApp.B.F$$()
+    End Sub
+End Module
+Namespace ConsoleApp
+    Class A
+    End Class
+
+    Class B
+        Public Shared Function F() As A
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+",
+            MainDescription("Function ConsoleApp.B.F() As ConsoleApp.A"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        Public Async Function PropertyWithSameNameAsOtherType2() As Task
+            Await TestAsync("
+Module Program
+    Public Bar As List(Of Bar)
+
+    Sub Main()
+        Tes$$t(Of Bar)()
+    End Sub
+
+    Sub Test(Of T)()
+    End Sub
+End Module
+
+Class Bar
+End Class
+",
+            MainDescription("Sub Program.Test(Of Bar)()"))
+        End Function
     End Class
 End Namespace

@@ -595,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MemberResolutionKind.ConstructedParameterFailedConstraintCheck:
                         case MemberResolutionKind.NoCorrespondingNamedParameter:
                         case MemberResolutionKind.UseSiteError:
+                        case MemberResolutionKind.BadNonTrailingNamedArgument:
                             return true;
                     }
                     break;
@@ -2256,7 +2257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Downgrade result to Neither if conversion used by the winner isn't actually valid method group conversion.
-                        // This is necessary to preserve compatibility, otherwise we might dismiss "worse", but trully applicable candidate
+                        // This is necessary to preserve compatibility, otherwise we might dismiss "worse", but truly applicable candidate
                         // based on a "better", but, in reality, erroneous one.
                         if (node?.Kind == BoundKind.MethodGroup)
                         {
@@ -2528,7 +2529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
                 ImmutableArray<RefKind> parameterRefKinds = member.GetParameterRefKinds();
-                if (parameterRefKinds.IsDefaultOrEmpty || !parameterRefKinds.Any(refKind => refKind == RefKind.Ref))
+                if (parameterRefKinds.IsDefaultOrEmpty)
                 {
                     return new EffectiveParameters(member.GetParameterTypes(), parameterRefKinds);
                 }
@@ -2574,10 +2575,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var paramRefKind = parameter.RefKind;
 
+            // 'None' argument is allowed to match 'In' parameter and should behave like 'None' for the purpose of overload resolution
+            if (argRefKind == RefKind.None && paramRefKind == RefKind.In)
+            {
+                return RefKind.None;
+            }
+
             // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
             // We must ignore the 'ref' on the parameter while determining the applicability of argument for the given method call.
             // During argument rewriting, we will replace the argument value with a temporary local and pass that local by reference.
-
             if (allowRefOmittedArguments && paramRefKind == RefKind.Ref && argRefKind == RefKind.None && !_binder.InAttributeArgument)
             {
                 hasAnyRefOmittedArgument = true;
@@ -2997,7 +3003,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int argumentPosition = 0; argumentPosition < paramCount; argumentPosition++)
             {
                 BoundExpression argument = arguments.Argument(argumentPosition);
-                RefKind argumentRefKind = arguments.RefKind(argumentPosition);
                 Conversion conversion;
 
                 if (isVararg && argumentPosition == paramCount - 1)
@@ -3016,8 +3021,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    RefKind argumentRefKind = arguments.RefKind(argumentPosition);
                     RefKind parameterRefKind = parameters.ParameterRefKinds.IsDefault ? RefKind.None : parameters.ParameterRefKinds[argumentPosition];
                     bool forExtensionMethodThisArg = arguments.IsExtensionMethodThisArgument(argumentPosition);
+
+                    if (forExtensionMethodThisArg)
+                    {
+                        Debug.Assert(argumentRefKind == RefKind.None);
+                        if (parameterRefKind == RefKind.Ref)
+                        {
+                            // For ref extension methods, we omit the "ref" modifier on the receiver arguments
+                            // Passing the parameter RefKind for finding the correct conversion.
+                            // For ref-readonly extension methods, argumentRefKind is always None.
+                            argumentRefKind = parameterRefKind;
+                        }
+                    }
 
                     conversion = CheckArgumentForApplicability(
                         candidate,
@@ -3097,9 +3115,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   exists from the argument to the type of the corresponding parameter, or
             // - for a ref or out parameter, the type of the argument is identical to the type of the corresponding parameter. 
 
-            // RefKind has to match unless the ref kind is None and argument expression is of the type dynamic. This is a bug in Dev11 which we also implement. 
-            // The spec is correct, this is not an intended behavior. We don't fix the bug to avoid a breaking change.
-            if (argRefKind != parRefKind && !(argRefKind == RefKind.None && argument.HasDynamicType()))
+            // RefKind has to match unless 
+            //   the ref kind is None and either:
+            //    1) parameter is an 'In'  or
+            //    2) argument expression is of the type dynamic. This is a bug in Dev11 which we also implement. 
+            //       The spec is correct, this is not an intended behavior. We don't fix the bug to avoid a breaking change.
+            if (!(argRefKind == parRefKind ||
+                 (argRefKind == RefKind.None && (parRefKind == RefKind.In || argument.HasDynamicType()))))
             {
                 return Conversion.NoConversion;
             }

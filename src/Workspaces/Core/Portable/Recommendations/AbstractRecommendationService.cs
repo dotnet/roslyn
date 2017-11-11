@@ -172,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                     }
                 }
 
-                var namespaceSymbol = symbol as INamespaceSymbol;
-                if (namespaceSymbol != null)
+                if (symbol is INamespaceSymbol namespaceSymbol)
                 {
                     return namespaceSymbol.ContainsAccessibleTypesOrNamespaces(_context.SemanticModel.Compilation.Assembly);
                 }

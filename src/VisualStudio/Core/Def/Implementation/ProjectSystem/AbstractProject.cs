@@ -30,6 +30,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
     {
@@ -1025,7 +1027,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 lock (_gate)
                 {
-                    _documents.Add(document.Id, document);
+                    // This condition ensures that if we throw an exception for either Add operation, the document will
+                    // not be added to either collection.
+                    if (!_documentMonikers.ContainsKey(document.Key.Moniker))
+                    {
+                        _documents.Add(document.Id, document);
+                    }
+
                     _documentMonikers.Add(document.Key.Moniker, document);
                 }
 

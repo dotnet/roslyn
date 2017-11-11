@@ -4369,8 +4369,8 @@ public partial class D { }
 public partial class E { }
 ";
 
-            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = Parse(source2, options: TestOptions.Regular);
+            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Latest));
+            var tree2 = Parse(source2, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
 
             // This scenario does not exist in dev11, but the diagnostics seem reasonable.
             CreateStandardCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(
@@ -6598,6 +6598,36 @@ class Cat { }
         private static Symbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
         {
             return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : (Symbol)symbol.OriginalDefinition).ToArray();
+        }
+
+        [Fact]
+        [WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")]
+        public void LookupOnCrefTypeParameter()
+        {
+            var source = @"
+class Test
+{
+    T F<T>()
+    {
+    }
+
+    /// <summary>
+    /// <see cref=""F{U}()""/>
+    /// </summary>
+    void S()
+    { }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var crefSyntax = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+            var name = ((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single();
+            Assert.Equal("U", name.ToString());
+            var typeParameter = (TypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
+            Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"));
         }
     }
 }

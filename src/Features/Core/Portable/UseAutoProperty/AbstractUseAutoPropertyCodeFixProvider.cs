@@ -221,8 +221,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             foreach (var symbol in symbols)
             {
-                var otherProperty = symbol as IPropertySymbol;
-                if (otherProperty != null)
+                if (symbol is IPropertySymbol otherProperty)
                 {
                     var mappedProperty = otherProperty.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IPropertySymbol;
                     if (property.Equals(mappedProperty))

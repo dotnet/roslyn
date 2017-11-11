@@ -25,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             [Protected] = CUShort(Accessibility.Protected)
             [Friend] = CUShort(Accessibility.Friend)
             ProtectedFriend = CUShort(Accessibility.ProtectedOrFriend)
+            PrivateProtected = CUShort(Accessibility.ProtectedAndFriend)
             [Public] = CUShort(Accessibility.Public)
             AccessibilityMask = &H7
 
@@ -188,7 +189,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Else
                 ' Nested types (including types in modules) can be any accessibility, and the default is public
-                If (modifiers And DeclarationModifiers.Private) <> 0 Then
+                If (modifiers And (DeclarationModifiers.Private Or DeclarationModifiers.Protected)) =
+                                      (DeclarationModifiers.Private Or DeclarationModifiers.Protected) Then
+                    flags = flags Or SourceTypeFlags.PrivateProtected
+                ElseIf (modifiers And DeclarationModifiers.Private) <> 0 Then
                     flags = flags Or SourceTypeFlags.Private
                 ElseIf (modifiers And (DeclarationModifiers.Protected Or DeclarationModifiers.Friend)) =
                                       (DeclarationModifiers.Protected Or DeclarationModifiers.Friend) Then

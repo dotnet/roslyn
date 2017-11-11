@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             private ExpressionSyntax SimplifyInvocation(InvocationExpressionSyntax invocation)
             {
                 var expression = invocation.Expression;
-                var memberAccess = expression as MemberAccessExpressionSyntax;
-                if (memberAccess != null)
+                if (expression is MemberAccessExpressionSyntax memberAccess)
                 {
                     var symbolMap = SemanticMap.From(_document.SemanticModel, memberAccess.Expression, _cancellationToken);
                     var anySideEffects = symbolMap.AllReferencedSymbols.Any(s =>

@@ -91,6 +91,52 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableType() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Dim f As Integer?
+    Sub M(C c)
+        Dim v = [||]If (c IsNot Nothing, c.f, Nothing)
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Dim f As Integer?
+    Sub M(C c)
+        Dim v = c?.f
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndObjectCast() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Dim f As Integer?
+    Sub M(C c)
+        Dim v = [||]If (DirectCast(c, Object) IsNot Nothing, c.f, Nothing)
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Dim f As Integer?
+    Sub M(C c)
+        Dim v = c?.f
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestRight_NotEquals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -248,6 +294,32 @@ Imports System
 Class C
     void M(object o1, object o2)
         Dim v1 = o1?.ToString(o2?.ToString())
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestNullable1() As Task
+            Await TestMissingAsync(
+"
+Imports System
+
+Class C
+    Function M(o As String) As Integer?
+        return [||]If (o Is Nothing, Nothing, o.Length)
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestNullable2() As Task
+            Await TestMissingAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As String)
+        Dim x = [||]If (o Is Nothing, Nothing, o.Length)
     End Sub
 End Class")
         End Function

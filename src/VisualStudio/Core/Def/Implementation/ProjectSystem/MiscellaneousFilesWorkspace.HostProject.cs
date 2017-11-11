@@ -10,6 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class MiscellaneousFilesWorkspace
     {
         private sealed class HostProject : IVisualStudioHostProject

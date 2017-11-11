@@ -51,14 +51,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Indicates whether or not the method returns by reference
+        /// Indicates whether or not the property returns by reference
         /// </summary>
-        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+        public bool ReturnsByRef { get { return this.RefKind == RefKind.Ref; } }
+
+        /// <summary>
+        /// Indicates whether or not the property returns a readonly reference
+        /// </summary>
+        public bool ReturnsByRefReadonly { get { return this.RefKind == RefKind.RefReadOnly ; } }
 
         /// <summary>
         /// Gets the ref kind of the property.
         /// </summary>
-        internal abstract RefKind RefKind { get; }
+        public abstract RefKind RefKind { get; }
 
         /// <summary>
         /// The type of the property. 
@@ -159,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// True if the property itself is excluded from code covarage instrumentation.
+        /// True if the property itself is excluded from code coverage instrumentation.
         /// True for source properties marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }

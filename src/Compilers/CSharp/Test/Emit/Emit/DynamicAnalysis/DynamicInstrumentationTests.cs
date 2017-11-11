@@ -2401,11 +2401,11 @@ class C
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C.M1");
-            AssertNotInstrumented(verifier, "C.<M1>g__L10_0");
+            AssertNotInstrumented(verifier, "C.<M1>g__L1|0_0");
             AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_1");
 
             AssertInstrumented(verifier, "C.M2");
-            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>g__L20"); // M2:L2
+            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>g__L2|0"); // M2:L2
             AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>b__1"); // M2:L2 lambda
         }
 
@@ -2468,13 +2468,13 @@ class C
 
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.set");
-            AssertNotInstrumented(verifier, "C.<get_P1>g__L11_0");
-            AssertNotInstrumented(verifier, "C.<set_P1>g__L22_0");
+            AssertNotInstrumented(verifier, "C.<get_P1>g__L1|1_0");
+            AssertNotInstrumented(verifier, "C.<set_P1>g__L2|2_0");
 
             AssertInstrumented(verifier, "C.P2.get");
             AssertInstrumented(verifier, "C.P2.set");
-            AssertInstrumented(verifier, "C.<get_P2>g__L34_0");
-            AssertInstrumented(verifier, "C.<set_P2>g__L45_0");
+            AssertInstrumented(verifier, "C.<get_P2>g__L3|4_0");
+            AssertInstrumented(verifier, "C.<set_P2>g__L4|5_0");
         }
 
         [Fact]

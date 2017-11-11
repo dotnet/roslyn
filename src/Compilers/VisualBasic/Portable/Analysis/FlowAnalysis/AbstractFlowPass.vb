@@ -2249,7 +2249,7 @@ EnteredRegion:
         End Function
 
         Private Function VisitAddRemoveHandlerStatement(node As BoundAddRemoveHandlerStatement) As BoundNode
-            ' from the data/control flow prospective AddRemoveHandler
+            ' from the data/control flow perspective AddRemoveHandler
             ' statement is just a trivial binary operator.
             VisitRvalue(node.EventAccess)
             VisitRvalue(node.Handler)

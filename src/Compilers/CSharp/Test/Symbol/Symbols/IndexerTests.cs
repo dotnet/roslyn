@@ -830,23 +830,32 @@ class Derived : Base
         this[q: 1, r: 2] = base[0]; //bad parameter names / no indexer
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, long]'
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]"),
+                //         c[0] = c[0, 0, 0]; //wrong number of arguments
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]").WithLocation(7, 9),
                 // (7,16): error CS1501: No overload for method 'this' takes 3 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "c[0, 0, 0]").WithArguments("this", "3"),
+                //         c[0] = c[0, 0, 0]; //wrong number of arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "c[0, 0, 0]").WithArguments("this", "3").WithLocation(7, 16),
                 // (8,11): error CS1503: Argument 1: cannot convert from 'bool' to 'int'
-                Diagnostic(ErrorCode.ERR_BadArgType, "true").WithArguments("1", "bool", "int"),
+                //         c[true, 1] = c[y: 1, x: long.MaxValue]; //wrong argument types
+                Diagnostic(ErrorCode.ERR_BadArgType, "true").WithArguments("1", "bool", "int").WithLocation(8, 11),
                 // (8,33): error CS1503: Argument 2: cannot convert from 'long' to 'int'
-                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("2", "long", "int"),
+                //         c[true, 1] = c[y: 1, x: long.MaxValue]; //wrong argument types
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("2", "long", "int").WithLocation(8, 33),
                 // (9,14): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
-                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x"),
-                // (9,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2"),
+                //         c[1, x: 1] = c[x: 1, 2]; //bad mix of named and positional
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(9, 14),
+                // (9,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c[1, x: 1] = c[x: 1, 2]; //bad mix of named and positional
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(9, 30),
                 // (10,14): error CS1739: The best overload for 'this' does not have a parameter named 'q'
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "q").WithArguments("this", "q"),
+                //         this[q: 1, r: 2] = base[0]; //bad parameter names / no indexer
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "q").WithArguments("this", "q").WithLocation(10, 14),
                 // (10,28): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[0]").WithArguments("object"));
+                //         this[q: 1, r: 2] = base[0]; //bad parameter names / no indexer
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[0]").WithArguments("object").WithLocation(10, 28)
+                );
         }
 
         [Fact]
@@ -2113,7 +2122,7 @@ class Program
             Assert.True(attribute.IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
 
             // Not emitted.
-            Assert.Equal(0, indexer.GetCustomAttributesToEmit(new ModuleCompilationState()).Count());
+            Assert.Equal(0, indexer.GetCustomAttributesToEmit(GetDefaultPEBuilder(compilation)).Count());
         }
 
         [WorkItem(545884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545884")]

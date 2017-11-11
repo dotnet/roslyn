@@ -30,10 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int statementIndex = 0;
 
                 //  explicit base constructor call
-                BoundExpression call = MethodCompiler.GenerateObjectConstructorInitializer(this, diagnostics);
+                Debug.Assert(ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
+                BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (call == null)
                 {
-                    // This may happen if Object..ctor is not found or is unaccessible
+                    // This may happen if Object..ctor is not found or is inaccessible
                     return;
                 }
                 statements[statementIndex++] = F.ExpressionStatement(call);

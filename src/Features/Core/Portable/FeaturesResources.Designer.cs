@@ -126,6 +126,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add argument name &apos;{0}&apos; (including trailing arguments).
+        /// </summary>
+        internal static string Add_argument_name_0_including_trailing_arguments {
+            get {
+                return ResourceManager.GetString("Add_argument_name_0_including_trailing_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add both.
         /// </summary>
         internal static string Add_both {
@@ -835,6 +844,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to full property.
+        /// </summary>
+        internal static string Convert_to_full_property {
+            get {
+                return ResourceManager.GetString("Convert_to_full_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to hex.
         /// </summary>
         internal static string Convert_to_hex {
@@ -887,6 +905,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Create_and_initialize_property_0 {
             get {
                 return ResourceManager.GetString("Create_and_initialize_property_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruct variable declaration.
+        /// </summary>
+        internal static string Deconstruct_variable_declaration {
+            get {
+                return ResourceManager.GetString("Deconstruct_variable_declaration", resourceCulture);
             }
         }
         
@@ -1657,6 +1684,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to indexer.
+        /// </summary>
+        internal static string indexer_ {
+            get {
+                return ResourceManager.GetString("indexer_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initialize field &apos;{0}&apos;.
         /// </summary>
         internal static string Initialize_field_0 {
@@ -1896,6 +1932,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string local_constant {
             get {
                 return ResourceManager.GetString("local_constant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local function.
+        /// </summary>
+        internal static string local_function {
+            get {
+                return ResourceManager.GetString("local_function", resourceCulture);
             }
         }
         
@@ -2919,6 +2964,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Switching between a lambda and a local function will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_c" +
+                        "ontinuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Take &apos;{0}&apos;.
         /// </summary>
         internal static string Take_0 {
@@ -3355,6 +3410,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use {0}.
+        /// </summary>
+        internal static string Use_0 {
+            get {
+                return ResourceManager.GetString("Use_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use auto property.
         /// </summary>
         internal static string Use_auto_property {
@@ -3568,6 +3632,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string User_Diagnostic_Analyzer_Failure {
             get {
                 return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
+        /// </summary>
+        internal static string Variable_declaration_can_be_deconstructed {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_readonly_references_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using readonly structs will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_readonly_structs_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_readonly_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using ref structs will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
