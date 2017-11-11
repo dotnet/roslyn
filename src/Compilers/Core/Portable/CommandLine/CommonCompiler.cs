@@ -643,7 +643,6 @@ namespace Microsoft.CodeAnalysis
             analyzerCts = null;
             reportAnalyzer = false;
             analyzerDriver = null;
-            AnalyzerManager analyzerManager = null;
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
@@ -657,17 +656,15 @@ namespace Microsoft.CodeAnalysis
             if (!analyzers.IsEmpty)
             {
                 analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                analyzerManager = new AnalyzerManager(analyzers);
                 analyzerExceptionDiagnostics = new DiagnosticBag();
-                Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                 var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
                     analyzers,
                     analyzerOptions,
-                    analyzerManager,
-                    addExceptionDiagnostic,
+                    new AnalyzerManager(analyzers),
+                    analyzerExceptionDiagnostics.Add,
                     Arguments.ReportAnalyzer,
                     out compilation,
                     analyzerCts.Token);
@@ -776,7 +773,7 @@ namespace Microsoft.CodeAnalysis
 
                             using (xmlStreamDisposerOpt)
                             {
-                                using (var win32ResourceStreamOpt = GetWin32Resources(Arguments, compilation, diagnostics))
+                                using (var win32ResourceStreamOpt = GetWin32Resources(MessageProvider, Arguments, compilation, diagnostics))
                                 {
                                     if (diagnostics.HasAnyErrors())
                                     {
@@ -1068,21 +1065,24 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected Stream GetWin32Resources(CommandLineArguments arguments, Compilation compilation, DiagnosticBag diagnostics)
-        {
-            return GetWin32ResourcesInternal(MessageProvider, arguments, compilation, diagnostics);
-        }
-
         // internal for testing
-        internal static Stream GetWin32ResourcesInternal(CommonMessageProvider messageProvider, CommandLineArguments arguments, Compilation compilation, out IEnumerable<DiagnosticInfo> errors)
+        internal static Stream GetWin32ResourcesInternal(
+            CommonMessageProvider messageProvider,
+            CommandLineArguments arguments,
+            Compilation compilation,
+            out IEnumerable<DiagnosticInfo> errors)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var stream = GetWin32ResourcesInternal(messageProvider, arguments, compilation, diagnostics);
+            var stream = GetWin32Resources(messageProvider, arguments, compilation, diagnostics);
             errors = diagnostics.ToReadOnlyAndFree().SelectAsArray(diag => new DiagnosticInfo(messageProvider, diag.IsWarningAsError, diag.Code, (object[])diag.Arguments));
             return stream;
         }
         
-        private static Stream GetWin32ResourcesInternal(CommonMessageProvider messageProvider, CommandLineArguments arguments, Compilation compilation, DiagnosticBag diagnostics)
+        private static Stream GetWin32Resources(
+            CommonMessageProvider messageProvider,
+            CommandLineArguments arguments,
+            Compilation compilation,
+            DiagnosticBag diagnostics)
         {
             if (arguments.Win32ResourceFile != null)
             {
