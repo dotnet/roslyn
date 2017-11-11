@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -17,6 +19,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ICompoundAssignmentOperation nullAssignment = null;
             Assert.Throws<ArgumentNullException>("compoundAssignment", () => nullAssignment.GetInConversion());
             Assert.Throws<ArgumentNullException>("compoundAssignment", () => nullAssignment.GetOutConversion());
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_GetConversionOnValidNode_IdentityConversion()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        int x = 1, y = 1;
+        /*<bind>*/x += y/*</bind>*/;
+    }
+}
+";
+
+            var syntaxTree = Parse(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            (IOperation operation, _) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
+            var compoundAssignment = (ICompoundAssignmentOperation)operation;
+
+            Assert.Equal(Conversion.Identity, compoundAssignment.GetInConversion());
+            Assert.Equal(Conversion.Identity, compoundAssignment.GetOutConversion());
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_GetConversionOnValidNode_InOutConversion()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        var c = new C();
+        var x = 1;
+        /*<bind>*/c += x/*</bind>*/;
+    }
+
+    public static implicit operator C(int i)
+    {
+        return null;
+    }
+
+    public static implicit operator int(C c)
+    {
+        return 0;
+    }
+}
+
+";
+
+            var syntaxTree = Parse(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            (IOperation operation, SyntaxNode node) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
+            var compoundAssignment = (ICompoundAssignmentOperation)operation;
+
+            var typeSymbol = (TypeSymbol)compilation.GetSymbolsWithName(sym => sym == "C", SymbolFilter.All).Single();
+            var implicitSymbols = typeSymbol.GetMembers("op_Implicit").Cast<MethodSymbol>();
+            var inSymbol = implicitSymbols.Where(sym => sym.ReturnType.SpecialType == SpecialType.System_Int32).Single();
+            var outSymbol = implicitSymbols.Where(sym => sym != inSymbol).Single();
+            var inConversion = new Conversion(ConversionKind.ImplicitUserDefined, inSymbol, false);
+            var outConversion = new Conversion(ConversionKind.ImplicitUserDefined, outSymbol, false);
+
+            Assert.Equal(inConversion, compoundAssignment.GetInConversion());
+            Assert.Equal(outConversion, compoundAssignment.GetOutConversion());
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

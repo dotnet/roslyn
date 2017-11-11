@@ -91,6 +91,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 DirectCast(Left, BoundFieldAccess).FieldSymbol.AssociatedSymbol.Kind = SymbolKind.Property AndAlso
                                 Type.IsVoidType()))
 
+            ' If LeftOnTheRightOpt is not nothing and this isn't a mid statement, then we assert the shape that IOperation is expecting
+            ' compound expressions to have
+            If LeftOnTheRightOpt IsNot Nothing Then
+                ' The right node is either a BoundUserDefinedBinaryOperator or a BoundBinaryOperator, or a conversion on top of them
+                Dim rightNode = Right
+
+                If rightNode.Kind = BoundKind.Conversion Then
+                    rightNode = DirectCast(rightNode, BoundConversion).Operand
+
+                    If rightNode.Kind = BoundKind.UserDefinedConversion Then
+                        rightNode = DirectCast(rightNode, BoundUserDefinedConversion).Operand
+                    End If
+                End If
+
+                If rightNode.Kind <> BoundKind.MidResult Then
+                    Debug.Assert(rightNode.Kind = BoundKind.BinaryOperator OrElse
+                             rightNode.Kind = BoundKind.UserDefinedBinaryOperator)
+
+                    Dim leftNode As BoundNode = Nothing
+                    If rightNode.Kind = BoundKind.BinaryOperator Then
+                        leftNode = DirectCast(rightNode, BoundBinaryOperator).Left
+                    Else
+                        Dim boundUserDefinedOperator = DirectCast(rightNode, BoundUserDefinedBinaryOperator)
+                        If boundUserDefinedOperator.UnderlyingExpression.Kind = BoundKind.Call Then
+                            leftNode = boundUserDefinedOperator.Left
+                        Else
+                            leftNode = TryCast(boundUserDefinedOperator.UnderlyingExpression, BoundBadExpression).ChildBoundNodes(0)
+                        End If
+                    End If
+
+                    ' The left node of the binary operation is either the same node as in LeftOnTheRightOpt, or is a conversion on top of that node
+                    If leftNode.Kind = BoundKind.Conversion Then
+                        leftNode = DirectCast(leftNode, BoundConversion).Operand
+
+                        If leftNode.Kind = BoundKind.UserDefinedConversion Then
+                            leftNode = DirectCast(leftNode, BoundUserDefinedConversion).Operand
+                        End If
+                    End If
+
+                    Debug.Assert(leftNode Is LeftOnTheRightOpt)
+                End If
+            End If
         End Sub
 
         Private Shared Function IsByRefPropertyGet(node As BoundExpression) As Boolean
