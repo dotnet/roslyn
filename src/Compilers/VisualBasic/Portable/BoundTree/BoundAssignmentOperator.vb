@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If boundUserDefinedOperator.UnderlyingExpression.Kind = BoundKind.Call Then
                             leftNode = boundUserDefinedOperator.Left
                         Else
-                            leftNode = TryCast(boundUserDefinedOperator.UnderlyingExpression, BoundBadExpression).ChildBoundNodes(0)
+                            leftNode = DirectCast(boundUserDefinedOperator.UnderlyingExpression, BoundBadExpression).ChildBoundNodes(0)
                         End If
                     End If
 
