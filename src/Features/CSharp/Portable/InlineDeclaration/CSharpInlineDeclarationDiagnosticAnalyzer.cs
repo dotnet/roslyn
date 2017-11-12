@@ -194,12 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // rewrite things.
             var outArgumentScope = GetOutArgumentScope(argumentExpression);
 
-            if (enclosingBlockOfLocalStatement != outArgumentScope &&
-                enclosingBlockOfLocalStatement.Parent.IsKind(SyntaxKind.LocalFunctionStatement, SyntaxKind.MethodDeclaration) &&
-                outArgumentScope.Parent.IsKind(SyntaxKind.LocalFunctionStatement))
+            if (enclosingBlockOfLocalStatement != outArgumentScope)
             {
-                if (HasTypeParameter(enclosingBlockOfLocalStatement.Parent, outLocalSymbol) &&
-                    HasTypeParameter(outArgumentScope.Parent, outLocalSymbol))
+                var localFunctionOrMethodDeclaration = enclosingBlockOfLocalStatement.AncestorsAndSelf().FirstOrDefault(node => node.IsKind(SyntaxKind.LocalFunctionStatement, SyntaxKind.MethodDeclaration));
+                var localFunctionStatement = outArgumentScope.AncestorsAndSelf().FirstOrDefault(node => node.IsKind(SyntaxKind.LocalFunctionStatement));
+
+                if (localFunctionOrMethodDeclaration != localFunctionStatement &&
+                    HasTypeParameterWithName(localFunctionOrMethodDeclaration, outLocalSymbol.Type.Name) &&
+                    HasTypeParameterWithName(localFunctionStatement, outLocalSymbol.Type.Name))
                 {
                     return;
                 }
@@ -445,22 +447,22 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return false;
         }
 
-        private static bool HasTypeParameter(SyntaxNode node, ILocalSymbol symbol)
+        private static bool HasTypeParameterWithName(SyntaxNode node, string name)
         {
-            SeparatedSyntaxList<TypeParameterSyntax> typeParameters;
+            SeparatedSyntaxList<TypeParameterSyntax>? typeParameters;
             switch (node)
             {
                 case MethodDeclarationSyntax methodDeclaration:
-                    typeParameters = methodDeclaration.TypeParameterList.Parameters;
+                    typeParameters = methodDeclaration.TypeParameterList?.Parameters;
                     break;
                 case LocalFunctionStatementSyntax localFunctionStatement:
-                    typeParameters = localFunctionStatement.TypeParameterList.Parameters;
+                    typeParameters = localFunctionStatement.TypeParameterList?.Parameters;
                     break;
                 default:
                     return false;
             }
 
-            return typeParameters.Any(x => x.Identifier.ValueText == symbol.Type.Name);
+            return typeParameters.HasValue && typeParameters.Value.Any(x => x.Identifier.ValueText == name);
         }
     }
 }
