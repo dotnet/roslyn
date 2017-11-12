@@ -1250,6 +1250,168 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
+        public async Task TestNotAvailableIfConvertedToSystemDelegate()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<object, string> [||]f = x => """";
+        M(f);
+    }
+
+    public static void M(Delegate expected) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
+        public async Task TestNotAvailableIfConvertedToSystemMulticastDelegate()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<object, string> [||]f = x => """";
+        M(f);
+    }
+
+    public static void M(MulticastDelegate expected) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
+        public async Task TestAvailableIfConvertedToCoContraVariantDelegate0()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<object, string> [||]f = x => """";
+        M(f);
+    }
+
+    public static void M(Func<object, string> expected) { }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string f(object x) => """";
+        M(f);
+    }
+
+    public static void M(Func<object, string> expected) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
+        public async Task TestAvailableIfConvertedToCoContraVariantDelegate1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<object, string> [||]f = x => """";
+        M(f);
+    }
+
+    public static void M(Func<string, object> expected) { }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string f(object x) => """";
+        M(f);
+    }
+
+    public static void M(Func<string, object> expected) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
+        public async Task TestAvailableIfConvertedToCoContraVariantDelegate2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<string, string> [||]f = x => """";
+        M(f);
+    }
+
+    public static void M(Func<string, object> expected) { }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string f(string x) => """";
+        M(f);
+    }
+
+    public static void M(Func<string, object> expected) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
+        public async Task TestAvailableIfConvertedToCoContraVariantDelegate3()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<object, object> [||]f = x => """";
+        M(f);
+    }
+
+    public static void M(Func<string, object> expected) { }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        object f(object x) => """";
+        M(f);
+    }
+
+    public static void M(Func<string, object> expected) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         [WorkItem(22672, "https://github.com/dotnet/roslyn/issues/22672")]
         public async Task TestMissingIfAdded()
         {
