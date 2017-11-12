@@ -196,8 +196,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             if (enclosingBlockOfLocalStatement != outArgumentScope)
             {
-                var localFunctionOrMethodDeclaration = enclosingBlockOfLocalStatement.AncestorsAndSelf().FirstOrDefault(node => node.IsKind(SyntaxKind.LocalFunctionStatement, SyntaxKind.MethodDeclaration));
-                var localFunctionStatement = outArgumentScope.AncestorsAndSelf().FirstOrDefault(node => node.IsKind(SyntaxKind.LocalFunctionStatement));
+                var localFunctionOrMethodDeclaration = enclosingBlockOfLocalStatement.AncestorsAndSelf()
+                    .FirstOrDefault(node => node.IsKind(SyntaxKind.LocalFunctionStatement, SyntaxKind.MethodDeclaration));
+                var localFunctionStatement = outArgumentScope.FirstAncestorOrSelf<LocalFunctionStatementSyntax>();
 
                 if (localFunctionOrMethodDeclaration != localFunctionStatement &&
                     HasTypeParameterWithName(localFunctionOrMethodDeclaration, outLocalSymbol.Type.Name) &&
