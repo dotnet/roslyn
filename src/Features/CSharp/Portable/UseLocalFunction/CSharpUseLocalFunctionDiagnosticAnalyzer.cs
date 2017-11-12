@@ -242,9 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         var convertedType = semanticModel.GetTypeInfo(nodeToCheck, cancellationToken).ConvertedType;
                         if (convertedType == null || !convertedType.IsDelegateType())
                         {
-                            // We're actually converting the delegate (i.e. to object).  Can't do this with a local function.
-                            // Note: passing a local function to something like Func<X,Y> is an identity conversion, so that
-                            // will still be allowed.
+                            // We can't change this anonymous function into a local function if it is
+                            // converted to a non-delegate type (i.e. converted to 'object' or 
+                            // 'System.Delegate'). Local functions are not convertible to these types.  
+                            // They're only convertible to other delegate types.
                             return false;
                         }
 
