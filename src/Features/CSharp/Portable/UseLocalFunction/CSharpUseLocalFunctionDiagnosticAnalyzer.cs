@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -45,9 +47,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
+        {
+            context.RegisterCompilationStartAction(compilationContext =>
+            {
+                var compilation = compilationContext.Compilation;
+                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
 
-        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
+                context.RegisterSyntaxNodeAction(
+                    ctx => SyntaxNodeAction(ctx, expressionTypeOpt), SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
+            });
+        }
+
+        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol expressionTypeOpt)
         {
             var options = syntaxContext.Options;
             var syntaxTree = syntaxContext.Node.SyntaxTree;
@@ -98,14 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (IsWrittenAfter(semanticModel, local, block, anonymousFunction, cancellationToken))
+            var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
+            if (!delegateType.IsDelegateType() ||
+                delegateType.DelegateInvokeMethod == null)
             {
                 return;
             }
 
-            var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
-            if (!delegateType.IsDelegateType() ||
-                delegateType.DelegateInvokeMethod == null)
+            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, cancellationToken))
             {
                 return;
             }
@@ -141,6 +152,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         additionalLocations));
                 }
             }
+        }
+
+        private bool CanReplaceAnonymousWithLocalFunction(
+            SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local,
+            BlockSyntax block, AnonymousFunctionExpressionSyntax anonymousFunction, CancellationToken cancellationToken)
+        {
+            // Check all the references to the anonymous function and disallow the conversion if
+            // they're used in certain ways.
+            var anonymousFunctionStart = anonymousFunction.SpanStart;
+            foreach (var descendentNode in block.DescendantNodes())
+            {
+                var descendentStart = descendentNode.Span.Start;
+                if (descendentStart <= anonymousFunctionStart)
+                {
+                    // This node is before the local declaration.  Can ignore it entirely as it could
+                    // not be an access to the local.
+                    continue;
+                }
+
+                if (descendentNode.IsKind(SyntaxKind.IdentifierName))
+                {
+                    var identifierName = (IdentifierNameSyntax)descendentNode;
+                    if (identifierName.Identifier.ValueText == local.Name &&
+                        local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
+                    {
+                        if (identifierName.IsWrittenTo())
+                        {
+                            // Can't change this to a local function if it is assigned to.
+                            return false;
+                        }
+
+                        var nodeToCheck = identifierName.WalkUpParentheses();
+                        if (nodeToCheck.Parent is BinaryExpressionSyntax)
+                        {
+                            // Can't change this if they're doing things like delegate addition with
+                            // the lambda.
+                            return false;
+                        }
+
+                        if (nodeToCheck.Parent is MemberAccessExpressionSyntax)
+                        {
+                            // They're doing something like "del.ToString()".  Can't do this with a
+                            // local function.
+                            return false;
+                        }
+
+                        var conversion = semanticModel.GetConversion(nodeToCheck, cancellationToken);
+                        if (!conversion.IsIdentity)
+                        {
+                            // We're actually converting the delegate (i.e. to object).  Can't do this with a local function.
+                            // Note: passing a local function to something like Func<X,Y> is an identity conversion, so that
+                            // will still be allowed.
+                            return false;
+                        }
+
+                        if (nodeToCheck.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
+                        {
+                            // Can't reference a local function inside an expression tree.
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
 
         private bool CheckForPattern(
@@ -181,36 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             localDeclaration = null;
-            return false;
-        }
-
-        private bool IsWrittenAfter(
-            SemanticModel semanticModel, ISymbol local, BlockSyntax block,
-            AnonymousFunctionExpressionSyntax anonymousFunction, CancellationToken cancellationToken)
-        {
-            var anonymousFunctionStart = anonymousFunction.SpanStart;
-            foreach (var descendentNode in block.DescendantNodes())
-            {
-                var descendentStart = descendentNode.Span.Start;
-                if (descendentStart <= anonymousFunctionStart)
-                {
-                    // This node is before the local declaration.  Can ignore it entirely as it could
-                    // not be an access to the local.
-                    continue;
-                }
-
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName))
-                {
-                    var identifierName = (IdentifierNameSyntax)descendentNode;
-                    if (identifierName.Identifier.ValueText == local.Name &&
-                        identifierName.IsWrittenTo() &&
-                        local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
-                    {
-                        return true;
-                    }
-                }
-            }
-
             return false;
         }
 
