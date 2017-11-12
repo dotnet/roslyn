@@ -436,6 +436,7 @@ Microsoft.CodeAnalysis.Operations.ITryOperation.Catches.get -> System.Collection
 Microsoft.CodeAnalysis.Operations.ITryOperation.Finally.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
 Microsoft.CodeAnalysis.Operations.ITupleOperation
 Microsoft.CodeAnalysis.Operations.ITupleOperation.Elements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
+Microsoft.CodeAnalysis.Operations.ITupleOperation.NaturalType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Operations.ITypeOfOperation
 Microsoft.CodeAnalysis.Operations.ITypeOfOperation.TypeOperand.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Operations.ITypeParameterObjectCreationOperation

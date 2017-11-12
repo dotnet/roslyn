@@ -25,6 +25,7 @@ class Class1
 ";
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, x + y)')
+  NaturalType: (System.Int32 x, System.Int32)
   Elements(2):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
@@ -78,6 +79,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+        NaturalType: (System.Int32 x, System.Int32 y)
         Elements(2):
             ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
             ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
