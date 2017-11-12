@@ -4488,5 +4488,28 @@ class C
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 2);
         }
+
+        [WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestInAttribute()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    public string Foo { get; set; }
+
+    [Example([|2+2|])]
+    public string Bar { get; set; }
+}",
+@"public class C
+{
+    private const int {|Rename:V|} = 2 + 2;
+
+    public string Foo { get; set; }
+
+    [Example(V)]
+    public string Bar { get; set; }
+}");
+        }
     }
 }
