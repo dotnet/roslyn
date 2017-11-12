@@ -139,6 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
                 if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
                 {
+                    issueSpan = candidateIssueSpan;
+                    return true;
                 }
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&

@@ -1990,6 +1990,35 @@ class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
+        public async Task DoSuggestForDeclarationExpressionIfItWouldNotChangeOverloadResolution2()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue(""key"", out [|int|] value);
+        return value;
+    }
+
+    public static bool TryGetValue(string key, out int value) => false;
+    public static bool TryGetValue(string key, out bool value, int x) => false;
+}", @"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue(""key"", out var value);
+        return value;
+    }
+
+    public static bool TryGetValue(string key, out int value) => false;
+    public static bool TryGetValue(string key, out bool value, int x) => false;
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
         public async Task DoNotSuggestForDeclarationExpressionIfItWouldChangeOverloadResolution()
         {
             await TestMissingInRegularAndScriptAsync(@"
