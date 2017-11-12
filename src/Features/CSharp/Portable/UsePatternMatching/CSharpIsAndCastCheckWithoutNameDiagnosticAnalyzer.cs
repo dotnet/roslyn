@@ -25,7 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    //
+    // disabled for preview 1 due to some perf issue. 
+    // we will re-enable it once the issue is addressed.
+    // https://devdiv.visualstudio.com/DevDiv/_workitems?id=504089&_a=edit&triage=true 
+    // [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // relate to the type the user is casting to, and it should not collisde with anything
             // in scope.
             var reservedNames = semanticModel.LookupSymbols(isExpression.SpanStart)
-                                             .Concat(GetExistingSymbols(semanticModel, container, cancellationToken))
+                                             .Concat(semanticModel.GetExistingSymbols(container, cancellationToken))
                                              .Select(s => s.Name)
                                              .ToSet();
 
@@ -151,15 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             return (matches, localName);
-        }
-
-        private static IEnumerable<ISymbol> GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
-        {
-            // Ignore an annonymous type property or tuple field.  It's ok if they have a name that 
-            // matches the name of the local we're introducing.
-            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
-                                .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
 
         private bool ReplacementCausesError(

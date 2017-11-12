@@ -40,6 +40,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
+      <Link>InternalUtilities\EncodedStringText.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>InternalUtilities\RelativePathResolver.cs</Link>
     </Compile>
@@ -66,6 +69,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs">
       <Link>InternalUtilities\DocumentationCommentXmlNames.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EncodingExtensions.cs">
+      <Link>InternalUtilities\EncodingExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs">
       <Link>InternalUtilities\EnumerableExtensions.cs</Link>
@@ -172,6 +178,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StackGuard.cs">
       <Link>InternalUtilities\StackGuard.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
+      <Link>InternalUtilities\StreamExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs">
       <Link>InternalUtilities\StringExtensions.cs</Link>
     </Compile>
@@ -211,7 +220,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Next" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Text" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
@@ -224,6 +232,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -232,7 +242,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient" />
@@ -243,7 +252,7 @@
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />
@@ -275,6 +284,8 @@
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" /> 
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" /> 
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>

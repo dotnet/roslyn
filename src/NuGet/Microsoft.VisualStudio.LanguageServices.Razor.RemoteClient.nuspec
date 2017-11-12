@@ -3,16 +3,20 @@
   <metadata>
     <id>Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient</id>
     <summary>
-      .NET Compiler Platform ("Roslyn") support for Visual Studio "15".
+      A private package for the Razor team to grant access to certain internal APIs.
     </summary>
     <description>
+      A private package for the Razor team to grant access to certain internal APIs.
+
       Supported Platforms:
         - .NET Framework 4.6
+
+      More details at https://aka.ms/roslyn-packages
 
       $commitPathMessage$
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="$version$" />
     </dependencies>
 
     <language>en-US</language>

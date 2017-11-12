@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool ignoreTrivia = false,
-            IDictionary<OptionKey, object> options = null)
+            int index = 0, IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
             foreach (var kvp in AllOptionsOff)
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
             return TestInRegularAndScriptAsync(
                 initialMarkup, expectedMarkup,
-                index: index, ignoreTrivia: ignoreTrivia, options: options);
+                index: index, options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -729,8 +728,7 @@ partial class Program
         throw new NotImplementedException();
     }
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -769,8 +767,7 @@ partial class Program : Goo
 
 #line hidden
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [WorkItem(545585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
@@ -989,7 +986,7 @@ class D : C
         }
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")]
@@ -1506,7 +1503,7 @@ namespace My
             throw new System.NotImplementedException();
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
@@ -1545,7 +1542,7 @@ sealed class D : B
 
         [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
         [WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestAutoProperties()
         {
             await TestInRegularAndScript1Async(
@@ -1574,6 +1571,117 @@ class C : AbstractClass
 }", parameters: new TestParameters(options: Option(
     ImplementTypeOptions.PropertyGenerationBehavior,
     ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestInWithMethod_Parameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class TestParent
+{
+    public abstract void Method(in int p);
+}
+public class [|Test|] : TestParent
+{
+}",
+@"abstract class TestParent
+{
+    public abstract void Method(in int p);
+}
+public class Test : TestParent
+{
+    public override void Method(in int p)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestRefReadOnlyWithMethod_ReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class TestParent
+{
+    public abstract ref readonly int Method();
+}
+public class [|Test|] : TestParent
+{
+}",
+@"abstract class TestParent
+{
+    public abstract ref readonly int Method();
+}
+public class Test : TestParent
+{
+    public override ref readonly int Method()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestRefReadOnlyWithProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class TestParent
+{
+    public abstract ref readonly int Property { get; }
+}
+public class [|Test|] : TestParent
+{
+}",
+@"abstract class TestParent
+{
+    public abstract ref readonly int Property { get; }
+}
+public class Test : TestParent
+{
+    public override ref readonly int Property => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestInWithIndexer_Parameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class TestParent
+{
+    public abstract int this[in int p] { set; }
+}
+public class [|Test|] : TestParent
+{
+}",
+@"abstract class TestParent
+{
+    public abstract int this[in int p] { set; }
+}
+public class Test : TestParent
+{
+    public override int this[in int p] { set => throw new System.NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestRefReadOnlyWithIndexer_ReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class TestParent
+{
+    public abstract ref readonly int this[int p] { get; }
+}
+public class [|Test|] : TestParent
+{
+}",
+@"abstract class TestParent
+{
+    public abstract ref readonly int this[int p] { get; }
+}
+public class Test : TestParent
+{
+    public override ref readonly int this[int p] => throw new System.NotImplementedException();
+}");
         }
     }
 }

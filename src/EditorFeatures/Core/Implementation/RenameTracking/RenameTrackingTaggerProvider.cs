@@ -172,10 +172,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 return isRenamableIdentifierTask.WaitAndGetResult(cancellationToken) != TriggerIdentifierKind.NotRenamable;
             }
-            catch (AggregateException e) when (e.InnerException is OperationCanceledException)
+            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken || cancellationToken == CancellationToken.None)
             {
                 // We passed in a different cancellationToken, so if there's a race and 
-                // isRenamableIdentifierTask was cancelled, we'll get an AggregateException
+                // isRenamableIdentifierTask was cancelled, we'll get a OperationCanceledException
                 return false;
             }
         }

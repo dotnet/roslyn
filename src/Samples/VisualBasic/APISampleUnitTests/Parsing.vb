@@ -36,6 +36,7 @@ End Class ' exact text round trip, including comments and whitespace
     <Fact>
     Sub SyntaxFactsMethods()
         Assert.Equal("Protected Friend", SyntaxFacts.GetText(Accessibility.ProtectedOrFriend))
+        Assert.Equal("Private Protected", SyntaxFacts.GetText(Accessibility.ProtectedAndFriend))
         Assert.Equal("Me", SyntaxFacts.GetText(SyntaxKind.MeKeyword))
         Assert.Equal(SyntaxKind.CharacterLiteralExpression, SyntaxFacts.GetLiteralExpression(SyntaxKind.CharacterLiteralToken))
         Assert.Equal(False, SyntaxFacts.IsPunctuation(SyntaxKind.StringLiteralToken))

@@ -6,10 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var snapshot = SubjectBuffer.CurrentSnapshot;
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
-                Func<Document> getFromDocument = () => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                Document getFromDocument() => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 InvokeCore(getFromDocument, progressTracker, cancellationToken);
             }
         }
@@ -164,10 +163,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // We'll now show progress as we apply the action.
                 progressTracker.Clear();
 
-                // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                EditHandler.ApplyAsync(Workspace, getFromDocument(),
-                    operations.ToImmutableArray(), CodeAction.Title,
-                    progressTracker, cancellationToken).Wait(cancellationToken);
+                using (Logger.LogBlock(
+                    FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                {
+                    // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
+                    EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                        operations.ToImmutableArray(), CodeAction.Title,
+                        progressTracker, cancellationToken).Wait(cancellationToken);
+                }
+            }
+        }
+
+        private void CreateLogProperties(Dictionary<string, object> map)
+        {
+            // set various correlation info
+            if (CodeAction is CodeFixes.FixSomeCodeAction fixSome)
+            {
+                // fix all correlation info
+                map[CodeFixes.FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
+                map[CodeFixes.FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
+            }
+
+            if (TryGetTelemetryId(out Guid telemetryId))
+            {
+                // Lightbulb correlation info
+                map["TelemetryId"] = telemetryId.ToString();
+            }
+
+            if (this is ITelemetryDiagnosticID<string> diagnosticId)
+            {
+                // save what it is actually fixing
+                map["DiagnosticId"] = diagnosticId.GetDiagnosticID();
             }
         }
 

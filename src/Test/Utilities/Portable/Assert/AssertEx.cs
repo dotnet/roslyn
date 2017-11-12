@@ -69,20 +69,17 @@ namespace Roslyn.Test.Utilities
                     return false;
                 }
 
-                var equatable = x as IEquatable<T>;
-                if (equatable != null)
+                if (x is IEquatable<T> equatable)
                 {
                     return equatable.Equals(y);
                 }
 
-                var comparableT = x as IComparable<T>;
-                if (comparableT != null)
+                if (x is IComparable<T> comparableT)
                 {
                     return comparableT.CompareTo(y) == 0;
                 }
 
-                var comparable = x as IComparable;
-                if (comparable != null)
+                if (x is IComparable comparable)
                 {
                     return comparable.CompareTo(y) == 0;
                 }
@@ -145,8 +142,8 @@ namespace Roslyn.Test.Utilities
                     AssertEqualityComparer<T>.Equals(expected, actual)))
                 {
                     Fail("Expected and actual were different.\r\n" +
-                         "Expected: " + expected + "\r\n" +
-                         "Actual:   " + actual + "\r\n" +
+                         "Expected:\r\n" + expected + "\r\n" +
+                         "Actual:\r\n" + actual + "\r\n" +
                          message);
                 }
             }
@@ -290,7 +287,11 @@ namespace Roslyn.Test.Utilities
         public static void SetEqual<T>(IEnumerable<T> actual, params T[] expected)
         {
             var expectedSet = new HashSet<T>(expected);
-            Assert.True(expectedSet.SetEquals(actual), string.Format("Expected: {0}\nActual: {1}", ToString(expected), ToString(actual)));
+            if (!expectedSet.SetEquals(actual))
+            {
+                // If they're not set equals, then they're not "regular" equals either.
+                Assert.Equal(expected, actual);
+            }
         }
 
         public static void None<T>(IEnumerable<T> actual, Func<T, bool> predicate)
@@ -339,12 +340,12 @@ namespace Roslyn.Test.Utilities
 
         public static void Fail(string message)
         {
-            Assert.False(true, message);
+            throw new Xunit.Sdk.XunitException(message);
         }
 
         public static void Fail(string format, params object[] args)
         {
-            Assert.False(true, string.Format(format, args));
+            throw new Xunit.Sdk.XunitException(string.Format(format, args));
         }
 
         public static void NotNull<T>(T @object, string message = null)
@@ -488,8 +489,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Differences:");
             message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, itemInspector, itemSeparator));
 
-            string link;
-            if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out link))
+            if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
                 message.AppendLine(link);
             }

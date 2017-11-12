@@ -239,6 +239,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is ForEachStatementSyntax
         End Function
 
+        Public Function IsDeconstructionAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeconstructionAssignment
+            Return False
+        End Function
+
+        Public Function IsDeconstructionForEachStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeconstructionForEachStatement
+            Return False
+        End Function
+
         Public Function IsLockStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLockStatement
             Return TypeOf node Is SyncLockStatementSyntax
         End Function
@@ -249,6 +257,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsReturnStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReturnStatement
             Return node.Kind() = SyntaxKind.ReturnStatement
+        End Function
+
+        Public Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatement
+            Return TypeOf node Is StatementSyntax
+        End Function
+
+        Public Function IsParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParameter
+            Return TypeOf node Is ParameterSyntax
+        End Function
+
+        Public Function IsVariableDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsVariableDeclarator
+            Return TypeOf node Is VariableDeclaratorSyntax
+        End Function
+
+        Public Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMethodBody
+            Return TypeOf node Is MethodBlockBaseSyntax
         End Function
 
         Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfReturnStatement
@@ -1662,6 +1686,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function ISyntaxFactsService_GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode Implements ISyntaxFactsService.GetNodeWithoutLeadingBlankLines
             Return MyBase.GetNodeWithoutLeadingBlankLines(node)
+        End Function
+
+        Public Function IsCastExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCastExpression
+            Return node.Kind = SyntaxKind.DirectCastExpression
+        End Function
+
+        Public Sub GetPartsOfCastExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef expression As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfCastExpression
+            Dim cast = DirectCast(node, DirectCastExpressionSyntax)
+            type = cast.Type
+            expression = cast.Expression
+        End Sub
+
+        Public Function GetDeconstructionReferenceLocation(node As SyntaxNode) As Location Implements ISyntaxFactsService.GetDeconstructionReferenceLocation
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

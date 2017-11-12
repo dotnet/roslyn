@@ -67,9 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public static IEnumerable<ISymbol> GetContainedSymbols(ISymbol symbol)
         {
-            INamedTypeSymbol namedType = symbol as INamedTypeSymbol;
 
-            if (namedType != null)
+            if (symbol is INamedTypeSymbol namedType)
             {
                 foreach (var member in namedType.GetMembers())
                 {
@@ -78,9 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         continue;
                     }
 
-                    var method = member as IMethodSymbol;
 
-                    if (method != null && method.AssociatedSymbol != null)
+                    if (member is IMethodSymbol method && method.AssociatedSymbol != null)
                     {
                         continue;
                     }

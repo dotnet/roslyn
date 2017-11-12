@@ -352,9 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
                         : null;
 
-                    if (symbols.Count() == 1)
+                    if (symbols.Length == 1)
                     {
-                        var symbol = symbols.Single();
+                        var symbol = symbols[0];
 
                         if (symbol.IsConstructor())
                         {
@@ -975,10 +975,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // Handle renaming of symbols used for foreach
             bool implicitReferencesMightConflict = renameSymbol.Kind == SymbolKind.Property &&
                                                 string.Compare(renameSymbol.Name, "Current", StringComparison.OrdinalIgnoreCase) == 0;
-            implicitReferencesMightConflict = implicitReferencesMightConflict ||
-                                                (renameSymbol.Kind == SymbolKind.Method &&
-                                                    (string.Compare(renameSymbol.Name, "MoveNext", StringComparison.OrdinalIgnoreCase) == 0 ||
-                                                    string.Compare(renameSymbol.Name, "GetEnumerator", StringComparison.OrdinalIgnoreCase) == 0));
+
+            implicitReferencesMightConflict =
+                implicitReferencesMightConflict ||
+                    (renameSymbol.Kind == SymbolKind.Method &&
+                        (string.Compare(renameSymbol.Name, WellKnownMemberNames.MoveNextMethodName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                        string.Compare(renameSymbol.Name, WellKnownMemberNames.GetEnumeratorMethodName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                        string.Compare(renameSymbol.Name, WellKnownMemberNames.DeconstructMethodName, StringComparison.OrdinalIgnoreCase) == 0));
 
             // TODO: handle Dispose for using statement and Add methods for collection initializers.
 
@@ -995,6 +998,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         {
                             case SyntaxKind.ForEachKeyword:
                                 return ImmutableArray.Create(((CommonForEachStatementSyntax)token.Parent).Expression.GetLocation());
+                        }
+
+                        if (token.Parent.IsInDeconstructionLeft(out var deconstructionLeft))
+                        {
+                            return ImmutableArray.Create(deconstructionLeft.GetLocation());
                         }
                     }
                 }

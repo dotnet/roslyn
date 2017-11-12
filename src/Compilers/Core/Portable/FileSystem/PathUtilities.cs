@@ -37,6 +37,10 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Removes trailing directory separator characters
         /// </summary>
+        /// <remarks>
+        /// This will trim the root directory separator:
+        /// "C:\" maps to "C:", and "/" maps to ""
+        /// </remarks>
         public static string TrimTrailingSeparators(string s)
         {
             int lastSeparator = s.Length;
@@ -51,6 +55,34 @@ namespace Roslyn.Utilities
             }
 
             return s;
+        }
+
+        /// <summary>
+        /// Ensures a trailing directory separator character
+        /// </summary>
+        public static string EnsureTrailingSeparator(string s)
+        {
+            if (s.Length == 0 || IsAnyDirectorySeparator(s[s.Length - 1]))
+            {
+                return s;
+            }
+
+            // Use the existing slashes in the path, if they're consistent
+            bool hasSlash = s.IndexOf('/') >= 0;
+            bool hasBackslash = s.IndexOf('\\') >= 0;
+            if (hasSlash && !hasBackslash)
+            {
+                return s + '/';
+            }
+            else if (!hasSlash && hasBackslash)
+            {
+                return s + '\\';
+            }
+            else
+            {
+                // If there are no slashes or they are inconsistent, use the current platform's slash.
+                return s + DirectorySeparatorChar;
+            }
         }
 
         public static string GetExtension(string path)
@@ -625,14 +657,16 @@ namespace Roslyn.Utilities
                 return filePath;
             }
 
-            // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
+            // find the first key in the path map that matches a prefix of the normalized path.
             // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
             foreach (var kv in pathMap)
             {
                 var oldPrefix = kv.Key;
                 if (!(oldPrefix?.Length > 0)) continue;
 
-                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal) && filePath.Length > oldPrefix.Length && IsAnyDirectorySeparator(filePath[oldPrefix.Length]))
+                // oldPrefix always ends with a path separator, so there's no need to check if it was a partial match
+                // e.g. for the map /goo=/bar and filename /goooo
+                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal))
                 {
                     var replacementPrefix = kv.Value;
 

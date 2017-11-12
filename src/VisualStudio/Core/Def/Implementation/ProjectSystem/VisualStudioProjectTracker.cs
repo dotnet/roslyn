@@ -875,8 +875,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         targetPathsToProjectPaths);
                 }
 
-                var referencedProjectContext = referencedProject as IWorkspaceProjectContext;
-                if (referencedProjectContext != null)
+                if (referencedProject is IWorkspaceProjectContext referencedProjectContext)
                 {
                     // TODO: Can we get the properties from corresponding metadata reference in
                     // commandLineArguments?

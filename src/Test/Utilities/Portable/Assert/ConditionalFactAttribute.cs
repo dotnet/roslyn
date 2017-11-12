@@ -77,7 +77,7 @@ namespace Roslyn.Test.Utilities
     public class WindowsOnly : ExecutionCondition
     {
         public override bool ShouldSkip => Path.DirectorySeparatorChar != '\\';
-        public override string SkipReason => "Test not supported on Mono";
+        public override string SkipReason => "Test not supported on Mac and Linux";
     }
 
     public class UnixLikeOnly : ExecutionCondition

@@ -321,6 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => expression.IsParentKind(SyntaxKind.RefExpression) ||
                (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
 
+        public static bool IsInInContext(this ExpressionSyntax expression)
+            => (expression?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
+
         public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
         {
             if (expression.IsRightSideOfDotOrArrow())
@@ -1133,8 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (boundSymbols.Length == 1)
             {
-                var boundAlias = boundSymbols[0] as IAliasSymbol;
-                if (boundAlias != null && aliasReplacement.Target.Equals(symbol))
+                if (boundSymbols[0] is IAliasSymbol boundAlias && aliasReplacement.Target.Equals(symbol))
                 {
                     return true;
                 }
@@ -1235,14 +1237,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static int GetNamespaceId(SyntaxNode container, NamespaceDeclarationSyntax target, ref int index)
         {
-            var compilation = container as CompilationUnitSyntax;
-            if (compilation != null)
+            if (container is CompilationUnitSyntax compilation)
             {
                 return GetNamespaceId(compilation.Members, target, ref index);
             }
 
-            var @namespace = container as NamespaceDeclarationSyntax;
-            if (@namespace != null)
+            if (container is NamespaceDeclarationSyntax @namespace)
             {
                 return GetNamespaceId(@namespace.Members, target, ref index);
             }
@@ -1884,8 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         if (containingType != null && !containingType.Equals(leftSymbol))
                         {
-                            var namedType = leftSymbol as INamedTypeSymbol;
-                            if (namedType != null)
+                            if (leftSymbol is INamedTypeSymbol namedType)
                             {
                                 if ((namedType.GetBaseTypes().Contains(containingType) &&
                                     !optionSet.GetOption(SimplificationOptions.AllowSimplificationToBaseType)) ||
@@ -2497,32 +2496,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SimpleNameSyntax GetRightmostName(this ExpressionSyntax node)
         {
-            var memberAccess = node as MemberAccessExpressionSyntax;
-            if (memberAccess != null && memberAccess.Name != null)
+            if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Name != null)
             {
                 return memberAccess.Name;
             }
 
-            var qualified = node as QualifiedNameSyntax;
-            if (qualified != null && qualified.Right != null)
+            if (node is QualifiedNameSyntax qualified && qualified.Right != null)
             {
                 return qualified.Right;
             }
 
-            var simple = node as SimpleNameSyntax;
-            if (simple != null)
+            if (node is SimpleNameSyntax simple)
             {
                 return simple;
             }
 
-            var conditional = node as ConditionalAccessExpressionSyntax;
-            if (conditional != null)
+            if (node is ConditionalAccessExpressionSyntax conditional)
             {
                 return conditional.WhenNotNull.GetRightmostName();
             }
 
-            var memberBinding = node as MemberBindingExpressionSyntax;
-            if (memberBinding != null)
+            if (node is MemberBindingExpressionSyntax memberBinding)
             {
                 return memberBinding.Name;
             }

@@ -2927,6 +2927,92 @@ print Goodbye, World"
 
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
+        Public Sub PathMapParser()
+            Dim parsedArgs = DefaultParse({"/pathmap:", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pathmap:").WithLocation(1, 1)
+            )
+            Assert.Equal(ImmutableArray.Create(Of KeyValuePair(Of String, String))(), parsedArgs.PathMap)
+
+            parsedArgs = DefaultParse({"/pathmap:K1=V1", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:C:\goo\=/", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("C:\goo\", "/"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:K1=V1,K2=V2", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K2\", "V2\"), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:,,,", "a.vb"}, _baseDirectory)
+            Assert.Equal(4, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(1).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(2).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(3).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:k=,=v", "a.vb"}, _baseDirectory)
+            Assert.Equal(2, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(1).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:k=v=bad", "a.vb"}, _baseDirectory)
+            Assert.Equal(1, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:""supporting spaces=is hard""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("supporting spaces\", "is hard\"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:""K 1=V 1"",""K 2=V 2""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:""K 1""=""V 1"",""K 2""=""V 2""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+        End Sub
+
+        ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
+        ' assembly that is ran cross-platform, but as no visual basic test assemblies are
+        ' run cross-platform, put this here in the hopes that this will eventually be ported.
+        <Theory>
+        <InlineData("C:\", "/", "C:\", "/")>
+        <InlineData("C:\temp\", "/temp/", "C:\temp", "/temp")>
+        <InlineData("C:\temp\", "/temp/", "C:\temp\", "/temp/")>
+        <InlineData("/", "C:\", "/", "C:\")>
+        <InlineData("/temp/", "C:\temp\", "/temp", "C:\temp")>
+        <InlineData("/temp/", "C:\temp\", "/temp/", "C:\temp\")>
+        Public Sub PathMapKeepsCrossPlatformRoot(expectedFrom As String, expectedTo As String, sourceFrom As String, sourceTo As String)
+            Dim pathmapArg = $"/pathmap:{sourceFrom}={sourceTo}"
+            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({pathmapArg, "a.cs"}, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), Nothing)
+            parsedArgs.Errors.Verify()
+            Dim expected = New KeyValuePair(Of String, String)(expectedFrom, expectedTo)
+            Assert.Equal(expected, parsedArgs.PathMap(0))
+        End Sub
+
+        <Fact>
+        Public Sub PathMapInconsistentSlashes()
+            Dim Parse = Function(args() As String) As VisualBasicCommandLineArguments
+                            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), Nothing)
+                            parsedArgs.Errors.Verify()
+                            Return parsedArgs
+                        End Function
+            Dim sep = PathUtilities.DirectorySeparatorChar
+            Assert.Equal(New KeyValuePair(Of String, String)("C:\temp/goo" + sep, "/temp\goo" + sep), Parse({"/pathmap:C:\temp/goo=/temp\goo", "a.cs"}).PathMap(0))
+            Assert.Equal(New KeyValuePair(Of String, String)("noslash" + sep, "withoutslash" + sep), Parse({"/pathmap:noslash=withoutslash", "a.cs"}).PathMap(0))
+            Dim doublemap = Parse({"/pathmap:/temp=/goo,/temp/=/bar", "a.cs"}).PathMap
+            Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/goo/"), doublemap(0))
+            Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/bar/"), doublemap(1))
+        End Sub
+
+        <CompilerTrait(CompilerFeature.Determinism)>
+        <Fact>
         Public Sub PathMapPdbDeterminism()
             Dim assertPdbEmit =
                 Sub(dir As TempDirectory, pePdbPath As String, extraArgs As String())
@@ -2989,6 +3075,18 @@ End Module
             Using dir As New DisposableDirectory(Temp)
                 Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
                 assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
+            End Using
+
+            ' Unix path map
+            Using dir As New DisposableDirectory(Temp)
+                Dim pdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, "/a.pdb", {$"/pathmap:{dir.Path}=/"})
+            End Using
+
+            ' Multi-specified path map with mixed slashes
+            Using dir As New DisposableDirectory(Temp)
+                Dim pdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, "/goo/a.pdb", {$"/pathmap:{dir.Path}=/goo,{dir.Path}{PathUtilities.DirectorySeparatorChar}=/bar"})
             End Using
         End Sub
 
@@ -8625,6 +8723,7 @@ End Module
         Public Sub MissingCompilerAssembly()
             Dim dir = Temp.CreateDirectory()
             Dim vbcPath = dir.CopyFile(GetType(Vbc).Assembly.Location).Path
+            dir.CopyFile(GetType(Compilation).Assembly.Location)
 
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
@@ -8634,7 +8733,6 @@ End Module
                 result.Output.Trim())
 
             ' Missing System.Collections.Immutable.dll.
-            dir.CopyFile(GetType(Compilation).Assembly.Location)
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
@@ -8642,6 +8740,31 @@ End Module
                 $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        <WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")>
+        Public Sub PdbPathNotEmittedWithoutPdb()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = MakeTrivialExe(directory:=dir.Path)
+            Dim args = {"/nologo", src, "/out:a.exe", "/debug-"}
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, args)
+            Dim exitCode = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim exePath = Path.Combine(dir.Path, "a.exe")
+            Assert.True(File.Exists(exePath))
+            Using peStream = File.OpenRead(exePath)
+                Using peReader = New PEReader(peStream)
+                    Dim debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory
+                    Assert.Equal(0, debugDirectory.Size)
+                    Assert.Equal(0, debugDirectory.RelativeVirtualAddress)
+                End Using
+            End Using
+        End Sub
+
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
             Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("

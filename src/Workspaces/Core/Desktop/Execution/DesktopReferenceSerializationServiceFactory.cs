@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 try
                 {
-                    byte[] value;
-                    if (!s_encodingCache.TryGetValue(encoding, out value))
+                    if (!s_encodingCache.TryGetValue(encoding, out var value))
                     {
                         // we don't have cache, cache it
                         var formatter = new BinaryFormatter();

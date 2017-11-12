@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared ReadOnly s_compilerId As New DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.VB)
 
+        Public Sub New()
+            MyBase.New(New VisualBasicFrameDecoder(), New VisualBasicLanguageInstructionDecoder())
+        End Sub
+
         Friend Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
             Get
                 Return DebuggerDiagnosticFormatter.Instance

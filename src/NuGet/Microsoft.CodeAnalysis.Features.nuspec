@@ -5,7 +5,13 @@
     <summary>
       .NET Compiler Platform ("Roslyn") support for creating editing experiences.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for creating editing experiences.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="$version$" />
     </dependencies>
@@ -20,8 +26,10 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\Features\Microsoft.CodeAnalysis.Features.dll" target="lib\netstandard1.3" />
     <file src="Dlls\Features\Microsoft.CodeAnalysis.Features.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Features\Microsoft.CodeAnalysis.Features.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

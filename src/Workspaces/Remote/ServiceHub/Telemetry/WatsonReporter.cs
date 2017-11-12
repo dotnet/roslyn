@@ -5,11 +5,17 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.CodeAnalysis.Remote.Telemetry
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal class WatsonReporter
     {
         private static TelemetrySession s_sessionOpt;
+
+        /// <summary>
+        /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
+        /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
+        /// </summary>
+        private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
 
         /// <summary>
         /// Set default telemetry session
@@ -40,6 +46,19 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void Report(string description, Exception exception)
         {
+            Report(description, exception, s_defaultCallback);
+        }
+
+        /// <summary>
+        /// Report Non-Fatal Watson
+        /// </summary>
+        /// <param name="description">any description you want to save with this watson report</param>
+        /// <param name="exception">Exception that triggered this non-fatal error</param>
+        /// <param name="callback">Callback to include extra data with the NFW. Note that we always collect
+        /// a dump of the current process, but this can be used to add further information or files to the
+        /// CAB.</param>
+        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
+        {
             // if given exception is non recoverable exception,
             // crash instead of NFW
             if (IsNonRecoverableException(exception))
@@ -53,11 +72,13 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                 exceptionObject: exception,
                 gatherEventDetails: arg =>
                 {
+                    // always add current processes dump
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
 
-                    // 0 means send watson, otherwise, cancel watson
-                    // we always send watson since dump itself can have valuable data
-                    return 0;
+                    // add extra bucket parameters to bucket better in NFW
+                    arg.SetExtraParameters(exception);
+
+                    return callback(arg);
                 });
         }
 

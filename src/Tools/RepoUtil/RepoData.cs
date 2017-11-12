@@ -58,8 +58,7 @@ namespace RepoUtil
         /// </summary>
         internal static RepoData Create(RepoConfig config, string sourcesDir, bool ignoreConflicts)
         {
-            List<NuGetPackageConflict> conflicts;
-            var repoData = Create(config, sourcesDir, out conflicts);
+            var repoData = Create(config, sourcesDir, out var conflicts);
             if (conflicts?.Count > 0 && !ignoreConflicts)
             {
                 throw new ConflictingPackagesException(conflicts);
@@ -100,8 +99,7 @@ namespace RepoUtil
                     // If this is the first time we've seen the package then record where it was found.  Need the source
                     // information to provide better error messages later.
                     var packageSource = new NuGetPackageSource(package, fileName);
-                    NuGetPackageSource originalSource;
-                    if (floatingPackageMap.TryGetValue(package.Name, out originalSource))
+                    if (floatingPackageMap.TryGetValue(package.Name, out var originalSource))
                     {
                         if (originalSource.NuGetPackage.Version != package.Version)
                         {

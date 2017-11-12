@@ -133,15 +133,30 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var conditionPartToCheck = conditionRightIsNull ? conditionLeft : conditionRight;
             var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
 
-            var whenPartMatch = GetWhenPartMatch(syntaxFacts, conditionPartToCheck, whenPartToCheck);
+            var semanticFacts = GetSemanticFactsService();
+            var semanticModel = context.SemanticModel;
+            var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionPartToCheck, whenPartToCheck);
             if (whenPartMatch == null)
             {
                 return;
             }
 
             // ?. is not available in expression-trees.  Disallow the fix in that case.
-            var semanticFacts = GetSemanticFactsService();
-            var semanticModel = context.SemanticModel;
+
+            var type = semanticModel.GetTypeInfo(conditionalExpression).Type;
+            if (type?.IsValueType == true)
+            {
+                if (!(type is INamedTypeSymbol namedType) || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
+                {
+                    // User has something like:  If(str is nothing, nothing, str.Length)
+                    // In this case, converting to str?.Length changes the type of this from
+                    // int to int?
+                    return;
+                }
+                // But for a nullable type, such as  If(c is nothing, nothing, c.nullable)
+                // converting to c?.nullable doesn't affect the type
+            }
+
             if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
             {
                 return;
@@ -167,8 +182,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         internal static SyntaxNode GetWhenPartMatch(
-            ISyntaxFactsService syntaxFacts, SyntaxNode expressionToMatch, SyntaxNode whenPart)
+            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, SemanticModel semanticModel, SyntaxNode expressionToMatch, SyntaxNode whenPart)
         {
+            expressionToMatch = RemoveObjectCastIfAny(syntaxFacts, semanticModel, expressionToMatch);
             var current = whenPart;
             while (true)
             {
@@ -189,6 +205,22 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                 current = unwrapped;
             }
+        }
+
+        private static SyntaxNode RemoveObjectCastIfAny(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (syntaxFacts.IsCastExpression(node))
+            {
+                syntaxFacts.GetPartsOfCastExpression(node, out var type, out var expression);
+                var typeSymbol = semanticModel.GetTypeInfo(type).Type;
+
+                if (typeSymbol?.SpecialType == SpecialType.System_Object)
+                {
+                    return expression;
+                }
+            }
+
+            return node;
         }
 
         private static SyntaxNode Unwrap(ISyntaxFactsService syntaxFacts, SyntaxNode node)

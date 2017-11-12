@@ -42,7 +42,7 @@ namespace Roslyn.Test.Utilities
                         }
                     }
 
-                    AssertEx.Fail($"Unexpected token.  Actual '{actualAll}' Expected '{expectedAll}'");
+                    AssertEx.Fail($"Unexpected token.  Actual '{actualAll}' Expected '{expectedAll}'\r\nActual:\r\n{actual}");
                 }
             }
 

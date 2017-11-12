@@ -10,6 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class DefinitionTreeItem : AbstractTreeItem
     {
         private readonly Workspace _workspace;

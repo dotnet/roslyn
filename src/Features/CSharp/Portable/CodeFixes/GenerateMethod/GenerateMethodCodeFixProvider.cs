@@ -68,16 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
         {
-            var invocation = node as InvocationExpressionSyntax;
-            if (invocation != null)
+            switch (node)
             {
-                return invocation.Expression.GetRightmostName();
-            }
-
-            var memberBindingExpression = node as MemberBindingExpressionSyntax;
-            if (memberBindingExpression != null)
-            {
-                return memberBindingExpression.Name;
+                case InvocationExpressionSyntax invocation:
+                    return invocation.Expression.GetRightmostName();
+                case MemberBindingExpressionSyntax memberBindingExpression:
+                    return memberBindingExpression.Name;
             }
 
             return node;

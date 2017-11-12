@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var tokens = await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(identifier, cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            Func<SyntaxToken, bool> tokensMatch = t => IdentifiersMatch(syntaxFacts, identifier, t);
+            bool tokensMatch(SyntaxToken t) => IdentifiersMatch(syntaxFacts, identifier, t);
 
             return await FindReferencesInTokensAsync(
                 document,
@@ -171,8 +171,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var nodeMatch = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
             findParentNode = findParentNode ?? (t => t.Parent);
-            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch =
-                (token, model) => nodeMatch(findParentNode(token), model);
+            (bool matched, CandidateReason reason) symbolsMatch(SyntaxToken token, SemanticModel model) 
+                => nodeMatch(findParentNode(token), model);
 
             return symbolsMatch;
         }
@@ -180,27 +180,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsNodeMatchFunction(
             ISymbol searchSymbol, Solution solution, CancellationToken cancellationToken)
         {
-            Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch =
-                (node, model) =>
+            (bool matched, CandidateReason reason) symbolsMatch(SyntaxNode node, SemanticModel model)
+            {
+                var symbolInfoToMatch = FindReferenceCache.GetSymbolInfo(model, node, cancellationToken);
+
+                var symbolToMatch = symbolInfoToMatch.Symbol;
+                var symbolToMatchCompilation = model.Compilation;
+
+                if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation, cancellationToken))
                 {
-                    var symbolInfoToMatch = FindReferenceCache.GetSymbolInfo(model, node, cancellationToken);
-
-                    var symbolToMatch = symbolInfoToMatch.Symbol;
-                    var symbolToMatchCompilation = model.Compilation;
-
-                    if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation, cancellationToken))
-                    {
-                        return (matched: true, CandidateReason.None);
-                    }
-                    else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(searchSymbol, s, solution, null, symbolToMatchCompilation, cancellationToken)))
-                    {
-                        return (matched: true, symbolInfoToMatch.CandidateReason);
-                    }
-                    else
-                    {
-                        return (matched: false, CandidateReason.None);
-                    }
-                };
+                    return (matched: true, CandidateReason.None);
+                }
+                else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(searchSymbol, s, solution, null, symbolToMatchCompilation, cancellationToken)))
+                {
+                    return (matched: true, symbolInfoToMatch.CandidateReason);
+                }
+                else
+                {
+                    return (matched: false, CandidateReason.None);
+                }
+            }
 
             return symbolsMatch;
         }
@@ -263,8 +262,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var directive = node.Parent;
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var aliasSymbol = semanticModel.GetDeclaredSymbol(directive, cancellationToken) as IAliasSymbol;
-                    if (aliasSymbol != null)
+                    if (semanticModel.GetDeclaredSymbol(directive, cancellationToken) is IAliasSymbol aliasSymbol)
                     {
                         return aliasSymbol;
                     }
@@ -434,6 +432,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 return ImmutableArray<ReferenceLocation>.Empty;
             }
+        }
+
+        protected async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDeconstructionAsync(
+            ISymbol symbol,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            if (!syntaxTreeInfo.ContainsDeconstruction)
+            {
+                return ImmutableArray<ReferenceLocation>.Empty;
+            }
+
+            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
+
+            var originalUnreducedSymbolDefinition = symbol.GetOriginalUnreducedDefinition();
+
+            foreach (var node in syntaxRoot.DescendantNodesAndSelf())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var deconstructMethods = semanticFacts.GetDeconstructionAssignmentMethods(semanticModel, node);
+                if (deconstructMethods.IsEmpty)
+                {
+                    // This was not a deconstruction assignment, it may still be a deconstruction foreach
+                    deconstructMethods = semanticFacts.GetDeconstructionForEachMethods(semanticModel, node);
+                }
+
+                if (deconstructMethods.Any(m => Matches(m, originalUnreducedSymbolDefinition)))
+                {
+                    var location = syntaxFacts.GetDeconstructionReferenceLocation(node);
+                    locations.Add(new ReferenceLocation(
+                        document, alias: null, location, isImplicit: true, isWrittenTo: false, CandidateReason.None));
+                }
+            }
+
+            return locations.ToImmutableAndFree();
         }
 
         private static bool Matches(ISymbol symbol1, ISymbol notNulloriginalUnreducedSymbol2)

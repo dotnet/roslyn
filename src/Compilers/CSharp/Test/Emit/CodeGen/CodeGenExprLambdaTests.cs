@@ -3650,9 +3650,6 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 81),
-                // (2,84): error CS1520: Method must have a return type
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
@@ -3662,9 +3659,12 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),
-                // (2,84): error CS0501: '<invalid-global-code>.Compile()' must declare a body because it is not marked abstract, extern, or partial
+                // (2,84): error CS1520: Method must have a return type
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()").WithLocation(2, 84)
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
+                // (2,84): error CS0501: '<invalid-global-code>.<invalid-global-code>()' must declare a body because it is not marked abstract, extern, or partial
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84)
     );
         }
 
@@ -3700,9 +3700,6 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 81),
-                // (2,84): error CS1520: Method must have a return type
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
@@ -3715,15 +3712,18 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),
-                // (2,84): error CS0501: '<invalid-global-code>.Compile()' must declare a body because it is not marked abstract, extern, or partial
+                // (2,84): error CS1520: Method must have a return type
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()").WithLocation(2, 84)
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
+                // (2,84): error CS0501: '<invalid-global-code>.<invalid-global-code>()' must declare a body because it is not marked abstract, extern, or partial
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84)
                 );
         }
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
         [Fact]
-        public void NSaliasSystemIsGlobal()
+        public void NSAliasSystemIsGlobal()
         {
             string source = @"
 using System = global;
@@ -3738,31 +3738,32 @@ class Test
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,58): error CS1547: Keyword 'void' cannot be used in this context
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 58),
                 // (8,105): error CS1010: Newline in constant
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_NewlineInConst, ""),
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(8, 105),
                 // (8,122): error CS1026: ) expected
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(8, 122),
                 // (8,122): error CS1026: ) expected
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(8, 122),
                 // (8,122): error CS1026: ) expected
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(8, 122),
                 // (8,122): error CS1002: ; expected
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 122),
                 // (2,16): error CS0246: The type or namespace name 'global' could not be found (are you missing a using directive or an assembly reference?)
                 // using System = global;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "global").WithArguments("global"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "global").WithArguments("global").WithLocation(2, 16),
                 // (8,11): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'System'
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>"),
+                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>").WithLocation(8, 11),
                 // (8,46): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'System'
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>"));
+                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>").WithLocation(8, 46)
+                );
         }
 
         [WorkItem(544586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544586")]

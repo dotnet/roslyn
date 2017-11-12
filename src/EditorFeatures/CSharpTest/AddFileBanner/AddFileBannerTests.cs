@@ -59,7 +59,7 @@ class Program2
 }
         </Document>
     </Project>
-</Workspace>", ignoreTrivia: false);
+</Workspace>");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)]
@@ -110,7 +110,7 @@ class Program2
 }
         </Document>
     </Project>
-</Workspace>", ignoreTrivia: false);
+</Workspace>");
         }
 
 

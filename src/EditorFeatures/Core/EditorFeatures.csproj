@@ -50,14 +50,15 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
+    <PackageReference Include="VS.ExternalAPIs.CodingConventions" Version="$(VSExternalAPIsCodingConventionsVersion)" />
+    <!-- The VS.ExternalAPIs.CodingConventions package isn't a "true" NuGet package and doesn't have the right lib folders. Manually reference the binary. -->
+    <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\$(VSExternalAPIsCodingConventionsVersion)\Microsoft.VisualStudio.CodingConventions.dll" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Next" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
@@ -105,6 +106,8 @@
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Microsoft.Test.Apex.VisualStudio" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" /> 
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" /> 
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>

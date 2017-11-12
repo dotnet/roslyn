@@ -222,6 +222,48 @@ class Buzz : IDisposable
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task DoNotFireForFixedWithChildFixed()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    unsafe static void Main()
+    {
+        [|fixed|] (int* p = null)
+        fixed (int* q = null)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task FireForFixedWithoutBraces()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    unsafe static void Main()
+    {
+        fixed (int* p = null)
+        [|fixed|] (int* q = null)
+            return;
+    }
+}",
+@"class Program
+{
+    unsafe static void Main()
+    {
+        fixed (int* p = null)
+        fixed (int* q = null)
+        {
+            return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfWithoutBraces()
         {
             await TestInRegularAndScriptAsync(
@@ -244,8 +286,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -273,8 +314,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -302,8 +342,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -329,8 +368,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -356,8 +394,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -383,8 +420,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -411,8 +447,7 @@ class Program
         }
         while (true);
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -455,8 +490,7 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-   ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -517,8 +551,7 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -547,8 +580,7 @@ class Program
             return;
         }
     }
-}",
-   ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -583,8 +615,7 @@ class Program
                 return;
             }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
     }
 }

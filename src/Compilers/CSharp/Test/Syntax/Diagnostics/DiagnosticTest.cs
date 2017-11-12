@@ -4,10 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -2516,6 +2519,44 @@ class Program
         // for the actual signing. However, we error on the key read, and can never
         // get to the third case (but there's still error handling if that changes)
 
+        #endregion
+
+        #region PathMap Linux Tests
+        // Like the above (CoreCLR Signing Tests), these aren't actually syntax tests, but this is in one of only two assemblies tested on linux
+
+        [Theory]
+        [InlineData("C:\\", "/", "C:\\", "/")]
+        [InlineData("C:\\temp\\", "/temp/", "C:\\temp", "/temp")]
+        [InlineData("C:\\temp\\", "/temp/", "C:\\temp\\", "/temp/")]
+        [InlineData("/", "C:\\", "/", "C:\\")]
+        [InlineData("/temp/", "C:\\temp\\", "/temp", "C:\\temp")]
+        [InlineData("/temp/", "C:\\temp\\", "/temp/", "C:\\temp\\")]
+        public void PathMapKeepsCrossPlatformRoot(string expectedFrom, string expectedTo, string sourceFrom, string sourceTo)
+        {
+            var pathmapArg = $"/pathmap:{sourceFrom}={sourceTo}";
+            var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { pathmapArg, "a.cs" }, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
+            parsedArgs.Errors.Verify();
+            var expected = new KeyValuePair<string, string>(expectedFrom, expectedTo);
+            Assert.Equal(expected, parsedArgs.PathMap[0]);
+        }
+
+        [Fact]
+        public void PathMapInconsistentSlashes()
+        {
+            CSharpCommandLineArguments parse(params string[] args)
+            {
+                var parsedArgs = CSharpCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                parsedArgs.Errors.Verify();
+                return parsedArgs;
+            }
+
+            var sep = PathUtilities.DirectorySeparatorChar;
+            Assert.Equal(new KeyValuePair<string, string>("C:\\temp/goo" + sep, "/temp\\goo" + sep), parse("/pathmap:C:\\temp/goo=/temp\\goo", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("noslash" + sep, "withoutslash" + sep), parse("/pathmap:noslash=withoutslash", "a.cs").PathMap[0]);
+            var doublemap = parse("/pathmap:/temp=/goo,/temp/=/bar", "a.cs").PathMap;
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "/goo/"), doublemap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "/bar/"), doublemap[1]);
+        }
         #endregion
     }
 }

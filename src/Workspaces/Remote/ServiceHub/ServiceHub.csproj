@@ -38,18 +38,20 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonExtensions.cs" Link="Telemetry\WatsonExtensions.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs">
       <Link>Telemetry\VSTelemetryCache.cs</Link>
     </Compile>
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs">
       <Link>Telemetry\VSTelemetryLogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\VisualStudio\Core\Next\Remote\JsonRpcMessageHandler.cs">
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcMessageHandler.cs">
       <Link>Shared\JsonRpcMessageHandler.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />

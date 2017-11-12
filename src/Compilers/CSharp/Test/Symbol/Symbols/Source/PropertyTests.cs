@@ -314,6 +314,23 @@ Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("
 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P").WithArguments("C.P").WithLocation(3, 20));
         }
 
+        [Fact]
+        public void AutoRefReadOnlyReturn()
+        {
+            var text = @"
+class C
+{
+    public ref readonly int P1 { get; set; }
+}";
+            var comp = CreateStandardCompilation(text).VerifyDiagnostics(
+                // (4,29): error CS8145: Auto-implemented properties cannot return by reference
+                //     public ref readonly int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithArguments("C.P1").WithLocation(4, 29),
+                // (4,39): error CS8147: Properties which return by reference cannot have set accessors
+                //     public ref readonly int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.P1.set").WithLocation(4, 39));
+        }
+
         [WorkItem(542745, "DevDiv")]
         [WorkItem(542745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542745")]
         [Fact()]
@@ -2859,7 +2876,8 @@ unsafe class Test
             CreateStandardCompilation(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
                 // (4,30): error CS1525: Invalid expression term 'stackalloc'
                 //     int* property { get; } = stackalloc int[256];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 30));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 30)
+                );
         }
         [Fact]
         public void RefPropertyWithoutGetter()
@@ -2895,7 +2913,7 @@ unsafe class Test
         }
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
-        public void LangVersioAndReadonlyAutoProperty()
+        public void LangVersionAndReadonlyAutoProperty()
         {
             var source = @"
 public class Class1

@@ -41,6 +41,24 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
+      <Link>Shared\ClientDirectStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
+      <Link>Shared\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.cs">
+      <Link>Shared\RoslynJsonConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.RoslynOnly.cs">
+      <Link>Shared\RoslynJsonConverter.RoslynOnly.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
+      <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
+      <Link>Shared\ServerDirectStream.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
@@ -76,20 +94,18 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
@@ -116,6 +132,8 @@
     <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
     <InternalsVisibleToTypeScript Include="CodeAnalysis" />
     <InternalsVisibleToTypeScript Include="StanCore" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" /> 
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" /> 
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
   </ItemGroup>
@@ -139,6 +157,7 @@
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="$(MicrosoftVisualStudioOLEInteropVersion)" />
@@ -175,6 +194,8 @@
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="RoslynDependencies.Microsoft.VisualStudio.Workspace" Version="$(RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
     <PackageReference Include="VSLangProj2" Version="$(VSLangProj2Version)" />
     <PackageReference Include="VSLangProj80" Version="$(VSLangProj80Version)" />
@@ -182,7 +203,7 @@
     <PackageReference Include="VsWebsite.Interop" Version="$(VsWebsiteInteropVersion)" />
     <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime" Version="$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)"/>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime" Version="$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
