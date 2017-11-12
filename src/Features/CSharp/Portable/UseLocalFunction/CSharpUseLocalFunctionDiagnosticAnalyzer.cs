@@ -154,9 +154,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
         }
 
+        private bool CheckForPattern(
+            SemanticModel semanticModel,
+            AnonymousFunctionExpressionSyntax anonymousFunction,
+            CancellationToken cancellationToken,
+            out LocalDeclarationStatementSyntax localDeclaration)
+        {
+            // Look for:
+            //
+            // Type t = <anonymous function>
+            // var t = (Type)(<anonymous function>)
+            //
+            // Type t = null;
+            // t = <anonymous function>
+            return CheckForSimpleLocalDeclarationPattern(semanticModel, anonymousFunction, cancellationToken, out localDeclaration) ||
+                   CheckForCastedLocalDeclarationPattern(semanticModel, anonymousFunction, cancellationToken, out localDeclaration) ||
+                   CheckForLocalDeclarationAndAssignment(semanticModel, anonymousFunction, cancellationToken, out localDeclaration);
+        }
+
+        private bool CheckForSimpleLocalDeclarationPattern(
+            SemanticModel semanticModel, 
+            AnonymousFunctionExpressionSyntax anonymousFunction,
+            CancellationToken cancellationToken,
+            out LocalDeclarationStatementSyntax localDeclaration)
+        {
+            // Type t = <anonymous function>
+            if (anonymousFunction.IsParentKind(SyntaxKind.EqualsValueClause) &&
+                anonymousFunction.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
+                anonymousFunction.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
+                anonymousFunction.Parent.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+            {
+                localDeclaration = (LocalDeclarationStatementSyntax)anonymousFunction.Parent.Parent.Parent.Parent;
+                if (!localDeclaration.Declaration.Type.IsVar)
+                {
+                    return true;
+                }
+            }
+
+            localDeclaration = null;
+            return false;
+        }
+
         private bool CanReplaceAnonymousWithLocalFunction(
-            SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local,
-            BlockSyntax block, AnonymousFunctionExpressionSyntax anonymousFunction, CancellationToken cancellationToken)
+            SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
+            AnonymousFunctionExpressionSyntax anonymousFunction, CancellationToken cancellationToken)
         {
             // Check all the references to the anonymous function and disallow the conversion if
             // they're used in certain ways.
@@ -217,47 +258,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             return true;
-        }
-
-        private bool CheckForPattern(
-            SemanticModel semanticModel,
-            AnonymousFunctionExpressionSyntax anonymousFunction,
-            CancellationToken cancellationToken,
-            out LocalDeclarationStatementSyntax localDeclaration)
-        {
-            // Look for:
-            //
-            // Type t = <anonymous function>
-            // var t = (Type)(<anonymous function>)
-            //
-            // Type t = null;
-            // t = <anonymous function>
-            return CheckForSimpleLocalDeclarationPattern(semanticModel, anonymousFunction, cancellationToken, out localDeclaration) ||
-                   CheckForCastedLocalDeclarationPattern(semanticModel, anonymousFunction, cancellationToken, out localDeclaration) ||
-                   CheckForLocalDeclarationAndAssignment(semanticModel, anonymousFunction, cancellationToken, out localDeclaration);
-        }
-
-        private bool CheckForSimpleLocalDeclarationPattern(
-            SemanticModel semanticModel, 
-            AnonymousFunctionExpressionSyntax anonymousFunction,
-            CancellationToken cancellationToken,
-            out LocalDeclarationStatementSyntax localDeclaration)
-        {
-            // Type t = <anonymous function>
-            if (anonymousFunction.IsParentKind(SyntaxKind.EqualsValueClause) &&
-                anonymousFunction.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                anonymousFunction.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                anonymousFunction.Parent.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
-            {
-                localDeclaration = (LocalDeclarationStatementSyntax)anonymousFunction.Parent.Parent.Parent.Parent;
-                if (!localDeclaration.Declaration.Type.IsVar)
-                {
-                    return true;
-                }
-            }
-
-            localDeclaration = null;
-            return false;
         }
 
         private bool CheckForCastedLocalDeclarationPattern(
