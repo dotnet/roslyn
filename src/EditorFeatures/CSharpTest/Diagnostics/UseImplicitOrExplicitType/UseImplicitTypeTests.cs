@@ -1960,5 +1960,51 @@ class C
     }
 }", options: ImplicitTypeEverywhere());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
+        public async Task DoSuggestForDeclarationExpressionIfItWouldNotChangeOverloadResolution()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue(""key"", out [|int|] value);
+        return value;
+    }
+
+    public static bool TryGetValue<T>(string key, out T value) => false;
+}", @"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue(""key"", out var value);
+        return value;
+    }
+
+    public static bool TryGetValue<T>(string key, out T value) => false;
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
+        public async Task DoNotSuggestForDeclarationExpressionIfItWouldChangeOverloadResolution()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue(""key"", out [|int|] value);
+        return value;
+    }
+
+    public static bool TryGetValue(string key, out object value) => false;
+
+    public static bool TryGetValue<T>(string key, out T value) => false;
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }
