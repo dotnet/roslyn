@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     decisions.Add(new BoundTypeDecision(syntax, type, input));
                 }
 
-                var evaluation = new BoundDagTypeEvaluation(syntax, type, type, input);
+                var evaluation = new BoundDagTypeEvaluation(syntax, type, input);
                 input = new BoundDagTemp(syntax, type, evaluation, 0);
                 decisions.Add(evaluation);
             }
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (recursive.DeconstructMethodOpt != null)
                 {
                     var method = recursive.DeconstructMethodOpt;
-                    var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, method, input);
+                    var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, input);
                     decisions.Add(evaluation);
                     int extensionExtra = method.IsStatic ? 1 : 0;
                     int count = Math.Min(method.ParameterCount - extensionExtra, recursive.Deconstruction.Length);
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pattern = recursive.Deconstruction[i];
                         var syntax = pattern.Syntax;
                         var field = elements[i];
-                        var evaluation = new BoundDagFieldEvaluation(syntax, field, field, input); // fetch the ItemN field
+                        var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
                         decisions.Add(evaluation);
                         var output = new BoundDagTemp(syntax, field.Type, evaluation, 0);
                         MakeDecisionsAndBindings(output, pattern, decisions, bindings, ref discardedUseSiteDiagnostics);
@@ -316,10 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (symbol)
                     {
                         case PropertySymbol property:
-                            evaluation = new BoundDagPropertyEvaluation(prop.pattern.Syntax, property, property, input);
+                            evaluation = new BoundDagPropertyEvaluation(prop.pattern.Syntax, property, input);
                             break;
                         case FieldSymbol field:
-                            evaluation = new BoundDagFieldEvaluation(prop.pattern.Syntax, field, field, input);
+                            evaluation = new BoundDagFieldEvaluation(prop.pattern.Syntax, field, input);
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
@@ -371,6 +371,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool Equals(BoundDagEvaluation other)
         {
             return other != (object)null && this.Kind == other.Kind && this.Input.Equals(other.Input) && this.Symbol == other.Symbol;
+        }
+        private Symbol Symbol
+        {
+            get
+            {
+                switch (this)
+                {
+                    case BoundDagFieldEvaluation e: return e.Field;
+                    case BoundDagPropertyEvaluation e: return e.Property;
+                    case BoundDagTypeEvaluation e: return e.Type;
+                    case BoundDagDeconstructEvaluation e: return e.DeconstructMethod;
+                    default: throw ExceptionUtilities.UnexpectedValue(this.Kind);
+                }
+            }
         }
         public override int GetHashCode()
         {

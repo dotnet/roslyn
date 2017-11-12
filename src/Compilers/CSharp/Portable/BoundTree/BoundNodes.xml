@@ -838,7 +838,7 @@
     <Field Name="Input" Type="BoundDagTemp"/>
   </AbstractNode>
   <Node Name="BoundDagTemp" Base="BoundNode">
-    <Field Name="Type" Type="TypeSymbol" Null="allow"/>
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
     <Field Name="Source" Type="BoundDagEvaluation" Null="allow"/>
     <Field Name="Index" Type="int"/>
   </Node>
@@ -855,7 +855,6 @@
   </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagDecision">
-    <Field Name="Symbol" Type="Symbol" Null="disallow"/>
   </AbstractNode>
   <Node Name="BoundDagDeconstructEvaluation" Base="BoundDagEvaluation">
     <Field Name="DeconstructMethod" Type="MethodSymbol" Null="disallow"/>
