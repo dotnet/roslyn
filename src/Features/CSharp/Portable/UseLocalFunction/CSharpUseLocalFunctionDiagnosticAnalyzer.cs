@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         }
 
                         var convertedType = semanticModel.GetTypeInfo(nodeToCheck, cancellationToken).ConvertedType;
-                        if (convertedType == null || !convertedType.IsDelegateType())
+                        if (!convertedType.IsDelegateType())
                         {
                             // We can't change this anonymous function into a local function if it is
                             // converted to a non-delegate type (i.e. converted to 'object' or 
