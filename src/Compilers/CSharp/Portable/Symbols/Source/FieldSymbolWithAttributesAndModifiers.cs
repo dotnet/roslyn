@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns a bag of applied custom attributes and data decoded from well-known attributes.
-        /// Returns null if there are no attributes applied on the symbol.
+        /// Returns an empty bag if there are no attributes applied on the symbol.
         /// </summary>
         /// <remarks>
         /// Forces binding and decoding of attributes.
@@ -108,23 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return (CommonFieldWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
-        }
-
-        /// <summary>
-        /// Returns data decoded from special early bound well-known attributes applied to the symbol or null if there are no applied attributes.
-        /// </summary>
-        /// <remarks>
-        /// Forces binding and decoding of attributes.
-        /// </remarks>
-        private CommonFieldEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
-        {
-            var attributesBag = _lazyCustomAttributesBag;
-            if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
-            {
-                attributesBag = this.GetAttributesBag();
-            }
-
-            return (CommonFieldEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
         internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
