@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
-                    return LanguageVersion.CSharp7_2; // TODO Rebase and use LanguageVersion.CSharp7_3 before merging
+                    return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.
                 case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check

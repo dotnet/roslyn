@@ -240,7 +240,7 @@ class Program
 #error version:[|7.3|]
 }",
                 LanguageVersion.Latest,
-                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
 
         [Fact]
