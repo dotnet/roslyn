@@ -4326,7 +4326,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.Skipped, options: TestOptions.ReleaseExe);
+", verify: Verification.Fails, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4459,7 +4459,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.Skipped, options: TestOptions.ReleaseExe);
+", verify: Verification.Fails, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -5140,7 +5140,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Skipped);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Fails);
 
             compilation.VerifyIL("Program.Main(string[])",
 @"
@@ -5226,7 +5226,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Skipped);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
 
             var expectedIL = @"
 {
@@ -5247,7 +5247,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
 
             // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
-            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Skipped, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }
@@ -10423,7 +10423,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -12223,7 +12223,7 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Skipped);
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12376,7 +12376,7 @@ struct MyManagedStruct
             return null;
         }
     }";
-            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Skipped);
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -15936,7 +15936,7 @@ class Test
     }
 }", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "330", verify: Verification.Skipped).VerifyIL("Test.Main", @"
+            CompileAndVerify(comp, expectedOutput: "330", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       49 (0x31)
   .maxstack  2
@@ -15988,7 +15988,7 @@ class Test
     }
 }", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "12345", verify: Verification.Skipped).VerifyIL("Test.Main", @"
+            CompileAndVerify(comp, expectedOutput: "12345", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       44 (0x2c)
   .maxstack  2
@@ -16049,7 +16049,7 @@ unsafe class Test
     }
 }", TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: Verification.Skipped);
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: Verification.Fails);
         }
 
         [Fact]
@@ -16071,7 +16071,7 @@ unsafe class Test
     }
 }", TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Skipped);
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
         }
     }
 }

@@ -3196,7 +3196,7 @@ BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, 
                 }, TestOptions.ReleaseDll)
 
             ' Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify:=Verification.Skipped).VerifyDiagnostics()
+            CompileAndVerify(compilation, verify:=Verification.Fails).VerifyDiagnostics()
 
             compilation = CreateCompilationWithMscorlibAndReferences(emptySource,
                 {

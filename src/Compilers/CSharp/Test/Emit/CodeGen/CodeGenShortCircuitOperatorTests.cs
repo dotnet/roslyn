@@ -7238,7 +7238,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", verify: Verification.Skipped);
+            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", verify: Verification.Fails);
 
             comp.VerifyIL("Program.Main", @"
 {

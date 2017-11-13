@@ -357,7 +357,7 @@ System.Console.Write("complete")
                 "s0.dll",
                 syntaxTree:=Parse(source0.Value, parseOptions),
                 references:=references)
-            Dim verifier = CompileAndVerify(s0, verify:=Verification.Skipped)
+            Dim verifier = CompileAndVerify(s0, verify:=Verification.Fails)
             Dim methodData = verifier.TestData.GetMethodData("Script.<Initialize>")
             Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
             methodData.VerifyIL(

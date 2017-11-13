@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: m =>
+            CompileAndVerify(comp, verify: Verification.Fails, symbolValidator: m =>
             {
                 var utf8 = new System.Text.UTF8Encoding(false, false);
                 Assert.Equal(utf8.GetString(utf8.GetBytes("\uD800")), m.ContainingAssembly.Identity.CultureName);
@@ -655,7 +655,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Skipped,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -684,7 +684,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Skipped,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -717,7 +717,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Skipped,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {

@@ -388,7 +388,7 @@ public class OKImpl : I
                 AssertEx.SetEqual(new[] { $"{RuntimeCorLibName.Name} {RuntimeCorLibName.Version.ToString(2)}", "RefLibV1 1.0", "Lib 2.0", "X 2.0" }, reader.DumpAssemblyReferences());
             },
             // PE verification would need .config file with Lib v1 -> Lib v2 binding redirect 
-            verify: Verification.Skipped);
+            verify: Verification.Fails);
         }
 
         [Fact]
@@ -1737,7 +1737,7 @@ public class C : I { }
                 var reader = pe.GetMetadataReader();
                 AssertEx.SetEqual(new[] { "mscorlib 4.0" }, reader.DumpAssemblyReferences());
             },
-            verify: Verification.Skipped);
+            verify: Verification.Passes);
         }
 
         [WorkItem(531537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531537")]

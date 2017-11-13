@@ -88,7 +88,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, verify: Verification.Skipped).VerifyIL("Program.M(out int)", @"
+            CompileAndVerifyRef(text, verify: Verification.Fails).VerifyIL("Program.M(out int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -115,7 +115,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, verify: Verification.Skipped).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerifyRef(text, verify: Verification.Fails).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  3
@@ -268,7 +268,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: Verification.Skipped);
+            var compilation = CompileAndVerifyRef(text, verify: Verification.Passes);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -460,7 +460,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: Verification.Skipped);
+            var compilation = CompileAndVerifyRef(text, verify: Verification.Passes);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
@@ -723,7 +723,7 @@ class Program2
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: Verification.Skipped);
+            var compilation = CompileAndVerifyRef(text, verify: Verification.Fails);
             compilation.VerifyIL("Program2.M(ref Program)", @"
 {
   // Code size        7 (0x7)
@@ -1601,7 +1601,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Skipped).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Fails).VerifyIL("Program.M()", @"
 {
   // Code size       26 (0x1a)
   .maxstack  5
@@ -1674,7 +1674,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Skipped).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Fails).VerifyIL("Program.M()", @"
 {
   // Code size       36 (0x24)
   .maxstack  5
@@ -1860,7 +1860,7 @@ struct Mutable : IDisposable
 }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "12", verify: Verification.Skipped)
+            CompileAndVerifyRef(text, expectedOutput: "12", verify: Verification.Fails)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      115 (0x73)
@@ -1958,7 +1958,7 @@ struct Mutable : IDisposable
 }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "1234", verify: Verification.Skipped)
+            CompileAndVerifyRef(text, expectedOutput: "1234", verify: Verification.Fails)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      129 (0x81)
@@ -2063,7 +2063,7 @@ class Goo : IGoo<Goo>
 }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "1True", verify: Verification.Skipped)
+            CompileAndVerifyRef(text, expectedOutput: "1True", verify: Verification.Fails)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size       84 (0x54)
@@ -2161,7 +2161,7 @@ class Goo : IGoo<Goo>
 }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: Verification.Skipped)
+            CompileAndVerifyRef(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: Verification.Fails)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      215 (0xd7)
@@ -2912,7 +2912,7 @@ public class C
 
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe);
 
-            var v = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "2");
+            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
 
             v.VerifyIL("C.F(ref dynamic)", @"
 {
@@ -3025,7 +3025,7 @@ public class C
 
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe);
 
-            var v = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "2");
+            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
         }
 
         [Fact]

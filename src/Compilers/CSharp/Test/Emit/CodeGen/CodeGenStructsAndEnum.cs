@@ -2066,7 +2066,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: "True");
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -2187,7 +2187,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: @"353
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
 353");
 
             compilation.VerifyIL("S.TestRO",

@@ -1532,7 +1532,7 @@ Public Class B
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Fails);
             var source2 =
 @"class C
 {
@@ -1555,7 +1555,7 @@ End Class";
         o = b.Q[2, 3];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, verify: Verification.Skipped);
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, verify: Verification.Fails);
             compilation3.VerifyIL("C.M(B)",
 @"{
   // Code size       33 (0x21)
@@ -2095,7 +2095,7 @@ Public Class A2
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Fails);
             var source2 =
 @"[A1(P = 1)] // Not ComImport
 class B
