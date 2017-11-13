@@ -2632,6 +2632,58 @@ class T
         }
 
         [Fact]
+        public void InParametersShouldHaveMetadataIn_NoPIA()
+        {
+            var comAssembly = CreateStandardCompilation(@"
+using System;
+using System.Runtime.InteropServices;
+[assembly: ImportedFromTypeLib(""test.dll"")]
+[assembly: Guid(""6681dcd6-9c3e-4c3a-b04a-aef3ee85c2cf"")]
+[ComImport()]
+[Guid(""6681dcd6-9c3e-4c3a-b04a-aef3ee85c2cf"")]
+public interface T
+{
+    void M(in int a, [In]in int b, [In]int c, int d);
+}");
+
+            CompileAndVerify(comAssembly, symbolValidator: module =>
+            {
+                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                Assert.Equal(4, parameters.Length);
+
+                Assert.True(parameters[0].IsMetadataIn);
+                Assert.True(parameters[1].IsMetadataIn);
+                Assert.True(parameters[2].IsMetadataIn);
+                Assert.False(parameters[3].IsMetadataIn);
+            });
+
+            var code = @"
+class User
+{
+    public void M(T obj)
+    {
+        obj.M(1, 2, 3, 4);
+    }
+}";
+
+
+            CompileAndVerify(
+                source: code,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                additionalRefs: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
+                symbolValidator: module =>
+                {
+                    var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                    Assert.Equal(4, parameters.Length);
+
+                    Assert.True(parameters[0].IsMetadataIn);
+                    Assert.True(parameters[1].IsMetadataIn);
+                    Assert.True(parameters[2].IsMetadataIn);
+                    Assert.False(parameters[3].IsMetadataIn);
+                });
+        }
+
+        [Fact]
         public void ExtendingInParametersFromParentWithoutInAttributeWorksWithoutErrors()
         {
             var reference = CompileIL(@"
@@ -2738,6 +2790,110 @@ Child called";
                 Assert.True(childParameters[2].IsMetadataIn);
                 Assert.False(childParameters[3].IsMetadataIn);
             });
+        }
+
+        [Fact]
+        public void GeneratingProxyForVirtualMethodInParentCopiesMetadataBitsCorrectly_OutAttribute()
+        {
+            var reference = CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+
+public class Parent
+{
+    public void M(out int a, [Out] int b) => throw null;
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var sourceParentParameters = module.GlobalNamespace.GetTypeMember("Parent").GetMethod("M").GetParameters();
+                Assert.Equal(2, sourceParentParameters.Length);
+
+                Assert.True(sourceParentParameters[0].IsMetadataOut);
+                Assert.True(sourceParentParameters[1].IsMetadataOut);
+            });
+
+            var source = @"
+using System.Runtime.InteropServices;
+
+public interface IParent
+{
+    void M(out int a, [Out] int b);
+}
+
+public class Child : Parent, IParent
+{
+}";
+
+            CompileAndVerify(
+                source: source,
+                additionalRefs: new[] { reference.EmitToImageReference() },
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var interfaceParameters = module.GlobalNamespace.GetTypeMember("IParent").GetMethod("M").GetParameters();
+                    Assert.Equal(2, interfaceParameters.Length);
+
+                    Assert.True(interfaceParameters[0].IsMetadataOut);
+                    Assert.True(interfaceParameters[1].IsMetadataOut);
+
+                    var proxyChildParameters = module.GlobalNamespace.GetTypeMember("Child").GetMethod("IParent.M").GetParameters();
+                    Assert.Equal(2, proxyChildParameters.Length);
+
+                    Assert.True(proxyChildParameters[0].IsMetadataOut);
+                    Assert.False(proxyChildParameters[1].IsMetadataOut); // User placed attributes are not copied.
+                });
+        }
+
+        [Fact]
+        public void GeneratingProxyForVirtualMethodInParentCopiesMetadataBitsCorrectly_InAttribute()
+        {
+            var reference = CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+
+public class Parent
+{
+    public void M(in int a, [In] int b) => throw null;
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var sourceParentParameters = module.GlobalNamespace.GetTypeMember("Parent").GetMethod("M").GetParameters();
+                Assert.Equal(2, sourceParentParameters.Length);
+
+                Assert.True(sourceParentParameters[0].IsMetadataIn);
+                Assert.True(sourceParentParameters[1].IsMetadataIn);
+            });
+
+            var source = @"
+using System.Runtime.InteropServices;
+
+public interface IParent
+{
+    void M(in int a, [In] int b);
+}
+
+public class Child : Parent, IParent
+{
+}";
+
+            CompileAndVerify(
+                source: source,
+                additionalRefs: new[] { reference.EmitToImageReference() },
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var interfaceParameters = module.GlobalNamespace.GetTypeMember("IParent").GetMethod("M").GetParameters();
+                    Assert.Equal(2, interfaceParameters.Length);
+
+                    Assert.True(interfaceParameters[0].IsMetadataIn);
+                    Assert.True(interfaceParameters[1].IsMetadataIn);
+
+                    var proxyChildParameters = module.GlobalNamespace.GetTypeMember("Child").GetMethod("IParent.M").GetParameters();
+                    Assert.Equal(2, proxyChildParameters.Length);
+
+                    Assert.True(proxyChildParameters[0].IsMetadataIn);
+                    Assert.False(proxyChildParameters[1].IsMetadataIn); // User placed attributes are not copied.
+                });
         }
     }
 }

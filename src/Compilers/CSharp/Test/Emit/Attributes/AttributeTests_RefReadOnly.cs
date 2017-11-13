@@ -2318,7 +2318,7 @@ public class Test
                 //     public static int operator + (in Test x, in Test y) => 0;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "in Test y").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 46));
         }
-        
+
         private void AssertReferencedIsReadOnlyAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
         {
             var attributeType = attributes.Single().AttributeClass;
