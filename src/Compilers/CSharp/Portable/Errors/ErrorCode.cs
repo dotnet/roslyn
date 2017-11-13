@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingArgument = 839,
         //ERR_AutoPropertiesMustHaveBothAccessors = 840,
         ERR_VariableUsedBeforeDeclaration = 841,
-        ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
+        //ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
         ERR_UnassignedThisAutoProperty = 843,
         ERR_VariableUsedBeforeDeclarationAndHidesField = 844,
         ERR_ExpressionTreeContainsBadCoalesce = 845,
@@ -1544,6 +1544,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 7.3
         ERR_FeatureNotAvailableInVersion7_3 = 8360,
+        WRN_AttributesOnBackingFieldsNotAvailable = 8361,
+        ERR_DoNotUseFixedBufferAttrOnProperty = 8362,
         #endregion diagnostics introduced for C# 7.3
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)

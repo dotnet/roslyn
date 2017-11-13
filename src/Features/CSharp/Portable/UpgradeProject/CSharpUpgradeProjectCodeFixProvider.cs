@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         private const string CS8320 = nameof(CS8320); // error CS8320: Feature is not available in C# 7.2. Please use language version X or greater.
         private const string CS1738 = nameof(CS1738); // error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
         private const string CS8360 = nameof(CS8360); // error CS8360: Feature is not available in C# 7.3. Please use language version X or greater.
+        private const string CS8361 = nameof(CS8361); // warning CS8361: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107, CS8302, CS8306, CS8314, CS8320, CS1738, CS8360);
+            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107, CS8302, CS8306, CS8314, CS8320, CS1738, CS8361);
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;

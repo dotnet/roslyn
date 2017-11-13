@@ -240,7 +240,22 @@ class Program
 #error version:[|7.3|]
 }",
                 LanguageVersion.Latest,
-                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest_TriggeredByAttributeOnBackingField()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class A : System.Attribute { }
+class Program
+{
+    [|[field: A]|]
+    int P { get; set; }
+}",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
 #endregion C# 7.3
 

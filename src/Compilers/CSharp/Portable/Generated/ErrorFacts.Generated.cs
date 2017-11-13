@@ -176,6 +176,7 @@
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_DefaultInSwitch:
                 case ErrorCode.WRN_UnreferencedLocalFunction:
+                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                     return true;
                 default:
                     return false;

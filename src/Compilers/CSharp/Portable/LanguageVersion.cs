@@ -336,5 +336,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return self >= MessageID.IDS_FeatureNonTrailingNamedArguments.RequiredVersion();
         }
+
+        internal static bool AllowAttributesOnBackingFields(this LanguageVersion self)
+        {
+            return self >= MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion();
+        }
     }
 }

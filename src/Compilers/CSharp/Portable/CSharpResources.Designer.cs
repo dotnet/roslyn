@@ -3509,6 +3509,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.FixedBuffer&apos; attribute on a property.
+        /// </summary>
+        internal static string ERR_DoNotUseFixedBufferAttrOnProperty {
+            get {
+                return ResourceManager.GetString("ERR_DoNotUseFixedBufferAttrOnProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type name &apos;{0}&apos; does not exist in the type &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_DottedTypeNameNotFoundInAgg {
@@ -4162,15 +4171,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExplicitInterfaceImplementationNotInterface {
             get {
                 return ResourceManager.GetString("ERR_ExplicitInterfaceImplementationNotInterface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit).
-        /// </summary>
-        internal static string ERR_ExplicitLayoutAndAutoImplementedProperty {
-            get {
-                return ResourceManager.GetString("ERR_ExplicitLayoutAndAutoImplementedProperty", resourceCulture);
             }
         }
         
@@ -6452,7 +6452,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute.
         /// </summary>
         internal static string ERR_MissingStructOffset {
             get {
@@ -11561,6 +11561,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_AttributeLocationOnBadDeclaration_Title {
             get {
                 return ResourceManager.GetString("WRN_AttributeLocationOnBadDeclaration_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater..
+        /// </summary>
+        internal static string WRN_AttributesOnBackingFieldsNotAvailable {
+            get {
+                return ResourceManager.GetString("WRN_AttributesOnBackingFieldsNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field-targeted attributes on auto-properties are not supported in this version of the language..
+        /// </summary>
+        internal static string WRN_AttributesOnBackingFieldsNotAvailable_Title {
+            get {
+                return ResourceManager.GetString("WRN_AttributesOnBackingFieldsNotAvailable_Title", resourceCulture);
             }
         }
         

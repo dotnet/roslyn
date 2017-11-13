@@ -247,6 +247,7 @@ class X
                         case ErrorCode.WRN_TupleLiteralNameMismatch:
                         case ErrorCode.WRN_Experimental:
                         case ErrorCode.WRN_DefaultInSwitch:
+                        case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
