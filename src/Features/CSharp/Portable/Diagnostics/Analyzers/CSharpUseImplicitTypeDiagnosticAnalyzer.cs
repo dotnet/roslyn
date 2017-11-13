@@ -170,16 +170,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 argument.Parent is ArgumentListSyntax argumentList &&
                 argumentList.Parent is InvocationExpressionSyntax invocationExpression)
             {
+                // If there was only one member in the group, and it was non-generic itself,
+                // then this change is safe to make without doing any complex analysis.  
+                // Multiple methods mean that switching to 'var' might remove information
+                // that affects overload resolution.  And if the method is generic, then 
+                // switching to 'var' may mean that inference might not work properly.
                 var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
-                if (memberGroup.Length == 1)
+                if (memberGroup.Length == 1 &&
+                    memberGroup[0].GetTypeParameters().IsEmpty)
                 {
-                    // Only one member found.  In most cases, converting the type to "var" will be
-                    // ok.  However, if the method is generic it may not be as inference may be 
-                    // involved.
-                    if (memberGroup[0].GetTypeParameters().IsEmpty)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
