@@ -194,18 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // rewrite things.
             var outArgumentScope = GetOutArgumentScope(argumentExpression);
 
-            if (enclosingBlockOfLocalStatement != outArgumentScope)
+            if (!outLocalSymbol.CanSafelyMoveLocalToBlock(enclosingBlockOfLocalStatement, outArgumentScope))
             {
-                var localFunctionOrMethodDeclaration = enclosingBlockOfLocalStatement.AncestorsAndSelf()
-                    .FirstOrDefault(node => node.IsKind(SyntaxKind.LocalFunctionStatement, SyntaxKind.MethodDeclaration));
-                var localFunctionStatement = outArgumentScope.FirstAncestorOrSelf<LocalFunctionStatementSyntax>();
-
-                if (localFunctionOrMethodDeclaration != localFunctionStatement &&
-                    HasTypeParameterWithName(localFunctionOrMethodDeclaration, outLocalSymbol.Type.Name) &&
-                    HasTypeParameterWithName(localFunctionStatement, outLocalSymbol.Type.Name))
-                {
-                    return;
-                }
+                return;
             }
 
             // Make sure that variable is not accessed outside of that scope.
@@ -446,24 +437,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // No accesses detected
             return false;
-        }
-
-        private static bool HasTypeParameterWithName(SyntaxNode node, string name)
-        {
-            SeparatedSyntaxList<TypeParameterSyntax>? typeParameters;
-            switch (node)
-            {
-                case MethodDeclarationSyntax methodDeclaration:
-                    typeParameters = methodDeclaration.TypeParameterList?.Parameters;
-                    break;
-                case LocalFunctionStatementSyntax localFunctionStatement:
-                    typeParameters = localFunctionStatement.TypeParameterList?.Parameters;
-                    break;
-                default:
-                    return false;
-            }
-
-            return typeParameters.HasValue && typeParameters.Value.Any(x => x.Identifier.ValueText == name);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 
@@ -57,40 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
         }
 
         protected override bool CanMoveToBlock(ILocalSymbol localSymbol, SyntaxNode currentBlock, SyntaxNode destinationBlock)
-        {
-            if (currentBlock != destinationBlock)
-            {
-                var localFunctionOrMethodDeclaration = currentBlock.AncestorsAndSelf()
-                    .FirstOrDefault(node => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration));
-                var localFunctionStatement = destinationBlock.FirstAncestorOrSelf<LocalFunctionStatementSyntax>();
-
-                if (localFunctionOrMethodDeclaration != localFunctionStatement &&
-                    HasTypeParameterWithName(localFunctionOrMethodDeclaration, localSymbol.Type.Name) &&
-                    HasTypeParameterWithName(localFunctionStatement, localSymbol.Type.Name))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-
-            bool HasTypeParameterWithName(SyntaxNode node, string name)
-            {
-                SeparatedSyntaxList<TypeParameterSyntax>? typeParameters;
-                switch (node)
-                {
-                    case MethodDeclarationSyntax methodDeclaration:
-                        typeParameters = methodDeclaration.TypeParameterList?.Parameters;
-                        break;
-                    case LocalFunctionStatementSyntax localFunctionStatement:
-                        typeParameters = localFunctionStatement.TypeParameterList?.Parameters;
-                        break;
-                    default:
-                        return false;
-                }
-
-                return typeParameters.HasValue && typeParameters.Value.Any(typeParameter => typeParameter.Identifier.ValueText == name);
-            }
-        }
+            => localSymbol.CanSafelyMoveLocalToBlock(currentBlock, destinationBlock);
     }
 }
