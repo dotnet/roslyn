@@ -84,8 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = this.DeclaringCompilation;
 
-            Debug.Assert(!this.ContainingType.IsImplicitlyDeclared);
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            // do not emit CompilerGenerated attributes for fields inside compiler generated types:
+            if (!this.ContainingType.IsImplicitlyDeclared)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
 
             // Dev11 doesn't synthesize this attribute, the debugger has a knowledge
             // of special name C# compiler uses for backing fields, which is not desirable.
