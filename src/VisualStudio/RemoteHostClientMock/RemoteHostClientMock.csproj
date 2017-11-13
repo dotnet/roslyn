@@ -19,7 +19,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetVsixContainerName>Roslyn.VisualStudio.RemoteHostClientMock.vsix</TargetVsixContainerName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>

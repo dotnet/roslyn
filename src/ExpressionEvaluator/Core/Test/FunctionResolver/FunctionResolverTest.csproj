@@ -11,7 +11,7 @@
     <AssemblyName>Roslyn.ExpressionEvaluator.FunctionResolver.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>

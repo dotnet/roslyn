@@ -11,7 +11,7 @@
     <RootNamespace>TreeTransformsVB</RootNamespace>
     <MyType>Console</MyType>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OptionStrict>Off</OptionStrict>
     <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>

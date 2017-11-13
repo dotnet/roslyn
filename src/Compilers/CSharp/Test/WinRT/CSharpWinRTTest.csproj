@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.WinRT.UnitTests</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

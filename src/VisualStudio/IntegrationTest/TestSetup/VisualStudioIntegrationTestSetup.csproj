@@ -9,7 +9,7 @@
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTest.Setup</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <Nonshipping>true</Nonshipping>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
