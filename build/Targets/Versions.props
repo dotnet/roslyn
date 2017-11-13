@@ -10,10 +10,10 @@
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
     <!-- PROTOTYPE(NullableReferenceTypes): Revert before merging to master. -->
-    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.6.1</RoslynAssemblyVersionBase>
+    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">42.42.42</RoslynAssemblyVersionBase>
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
     <!-- PROTOTYPE(NullableReferenceTypes): Revert before merging to master. -->
-    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.6.1</RoslynFileVersionBase>
+    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">42.42.42</RoslynFileVersionBase>
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
