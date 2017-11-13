@@ -1778,14 +1778,13 @@ class C
                 context.CompileAssignment("x", "Test(x is int i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       79 (0x4f)
+  // Code size       74 (0x4a)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
                 object V_2,
                 System.Guid V_3,
-                bool V_4,
-                object V_5)
+                int V_4)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""i""
@@ -1795,25 +1794,23 @@ class C
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldarg.0
-  IL_001f:  stloc.s    V_5
-  IL_0021:  ldstr      ""i""
-  IL_0026:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_002b:  ldloc.s    V_5
-  IL_002d:  isinst     ""int""
-  IL_0032:  ldnull
-  IL_0033:  cgt.un
-  IL_0035:  dup
-  IL_0036:  stloc.s    V_4
-  IL_0038:  brtrue.s   IL_003d
-  IL_003a:  ldc.i4.0
-  IL_003b:  br.s       IL_0044
-  IL_003d:  ldloc.s    V_5
-  IL_003f:  unbox.any  ""int""
-  IL_0044:  stind.i4
-  IL_0045:  ldloc.s    V_4
-  IL_0047:  call       ""object C.Test(bool)""
-  IL_004c:  starg.s    V_0
-  IL_004e:  ret
+  IL_001f:  brfalse.s  IL_0041
+  IL_0021:  ldarg.0
+  IL_0022:  isinst     ""int""
+  IL_0027:  brfalse.s  IL_0041
+  IL_0029:  ldarg.0
+  IL_002a:  unbox.any  ""int""
+  IL_002f:  stloc.s    V_4
+  IL_0031:  ldstr      ""i""
+  IL_0036:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  stind.i4
+  IL_003e:  ldc.i4.1
+  IL_003f:  br.s       IL_0042
+  IL_0041:  ldc.i4.0
+  IL_0042:  call       ""object C.Test(bool)""
+  IL_0047:  starg.s    V_0
+  IL_0049:  ret
 }");
             });
         }
