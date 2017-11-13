@@ -590,8 +590,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                    nestedConversion.Type <> nestedOperand.Type Then
                     ' Let's erase the nested conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
                     ' in Binder.ReclassifyTupleLiteral.
-                    ' We need to use conversion information from the nested conversion because that Is where the real conversion 
-                    ' information Is stored.
+                    ' We need to use conversion information from the nested conversion because that is where the real conversion 
+                    ' information is stored.
                     conversionOperandAndMethod = nestedConversionOperandAndMethod
                     conversion = CreateConversion(nestedConversion)
                     boundOperand = nestedOperand
