@@ -172,7 +172,15 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseDll);
+            var c = CompileAndVerify(text, options: TestOptions.ReleaseDll, symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>3__i0",
+                    "<>3__i1"
+                }, module.GetFieldNames("Program.<IEI>d__0"));
+            });
+
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -234,7 +242,16 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+
+            var c = CompileAndVerify(text, options: TestOptions.DebugDll, symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>3__i0",
+                    "<>3__i1",
+                    "<>4__this",
+                }, module.GetFieldNames("Program.<IEI>d__0"));
+            });
             c.VerifyPdb(@"
 <symbols>
   <files>
