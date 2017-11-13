@@ -338,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundKind.BreakStatement: return ((BoundBreakStatement)Branch).Label;
                         case BoundKind.ContinueStatement: return ((BoundContinueStatement)Branch).Label;
                         case BoundKind.PatternSwitchLabel: return ((BoundPatternSwitchLabel)Branch).Label;
+                        case BoundKind.Decision: return ((BoundDecision)Branch).Label;
                         default: return null;
                     }
                 }

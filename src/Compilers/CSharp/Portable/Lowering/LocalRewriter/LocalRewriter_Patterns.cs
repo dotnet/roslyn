@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private struct IsPatternTranslator : IDisposable
+        private struct IsPatternExpressionLocalRewriter : IDisposable
         {
             private readonly LocalRewriter _localRewriter;
             private readonly SyntheticBoundNodeFactory _factory;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly BoundExpression _loweredInput;
             private readonly BoundDagTemp _inputTemp;
 
-            public IsPatternTranslator(LocalRewriter localRewriter, BoundExpression loweredInput)
+            public IsPatternExpressionLocalRewriter(LocalRewriter localRewriter, BoundExpression loweredInput)
             {
                 this._localRewriter = localRewriter;
                 this._factory = localRewriter._factory;
@@ -93,9 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            /// <summary>
+            /// Translate the single decision into _sideEffectBuilder and _conjunctBuilder.
+            /// Returns true if no further decisions need to be translated (e.g. when producing a `false` conjunct).
+            /// </summary>
             private bool LowerDecisionCore(BoundDagDecision decision)
             {
-                void addConjunct(ref IsPatternTranslator self, BoundExpression expression)
+                void addConjunct(ref IsPatternExpressionLocalRewriter self, BoundExpression expression)
                 {
                     // PROTOTYPE(patterns2): could handle constant expressions more efficiently.
                     if (self._sideEffectBuilder.Count != 0)
@@ -156,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagFieldEvaluation f:
                         {
                             var field = f.Field;
+                            field = field.TupleUnderlyingField ?? field;
                             var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f, 0);
                             var output = _tempAllocator.GetTemp(outputTemp);
                             _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Field(input, field)));
@@ -164,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagPropertyEvaluation p:
                         {
                             var property = p.Property;
+                            property = property.TupleUnderlyingProperty ?? property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p, 0);
                             var output = _tempAllocator.GetTemp(outputTemp);
                             _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Property(input, property)));
@@ -234,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation)
             {
                 var decisionBuilder = new DecisionDagBuilder(compilation);
-                var inputTemp = decisionBuilder.LowerPattern(_loweredInput, pattern, out var decisions, out var bindings);
+                var inputTemp = decisionBuilder.TranslatePattern(_loweredInput, pattern, out var decisions, out var bindings);
                 Debug.Assert(inputTemp == _inputTemp);
 
                 // first, copy the input expression into the input temp
@@ -248,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // Even if subsequently unused (e.g. `GetValue() is _`), we assign to a temp to evaluate the side-effect
                     _sideEffectBuilder.Add(_factory.AssignmentExpression(_tempAllocator.GetTemp(inputTemp), _loweredInput));
                 }
 
@@ -265,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _conjunctBuilder.Add(_factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutable(), _factory.Literal(true)));
                     _sideEffectBuilder.Clear();
                 }
+
                 BoundExpression result = null;
                 foreach (var conjunct in _conjunctBuilder)
                 {
@@ -291,117 +299,126 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeTypeTestAndAssignment(BoundExpression loweredTarget, BoundExpression loweredInput, TypeSymbol type)
+        //private BoundExpression MakeTypeTestAndAssignment(BoundExpression loweredTarget, BoundExpression loweredInput, TypeSymbol type)
+        //{
+        //    Debug.Assert(type == loweredTarget.Type);
+
+        //    // If the match is impossible, we simply evaluate the input and yield false.
+        //    var matchConstantValue = MatchConstantValue(loweredInput, type, false);
+        //    if (matchConstantValue == false)
+        //    {
+        //        return _factory.MakeSequence(loweredInput, _factory.Literal(false));
+        //    }
+
+        //    // It is possible that the input value is already of the correct type, in which case the pattern
+        //    // is irrefutable, and we can just do the assignment and return true (or perform the null test).
+        //    if (matchConstantValue == true)
+        //    {
+        //        BoundExpression convertedInput;
+        //        if (loweredInput.Type.IsNullableType())
+        //        {
+        //            var getValueOrDefault = _factory.SpecialMethod(SpecialMember.System_Nullable_T_GetValueOrDefault).AsMember((NamedTypeSymbol)loweredInput.Type);
+        //            convertedInput = _factory.Convert(type, _factory.Call(loweredInput, getValueOrDefault));
+        //        }
+        //        else
+        //        {
+        //            convertedInput = _factory.Convert(type, loweredInput);
+        //        }
+        //        var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
+        //        return _factory.MakeSequence(assignment, _factory.Literal(true));
+        //    }
+
+        //    // a pattern match of the form "expression is Type identifier" is equivalent to
+        //    // an invocation of one of these helpers:
+        //    if (type.IsReferenceType)
+        //    {
+        //        // bool Is<T>(object e, out T t) where T : class // reference type
+        //        // {
+        //        //     t = e as T;
+        //        //     return t != null;
+        //        // }
+
+        //        return _factory.ObjectNotEqual(
+        //            _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
+        //            _factory.Null(type));
+        //    }
+        //    else // type parameter or value type
+        //    {
+        //        // bool Is<T>(this object i, out T o)
+        //        // {
+        //        //     // inefficient because it performs the type test twice, and also because it boxes the input.
+        //        //     bool s;
+        //        //     o = (s = i is T) ? (T)i : default(T);
+        //        //     return s;
+        //        // }
+
+        //        // Because a cast involving a type parameter is not necessarily a valid conversion (or, if it is, it might not
+        //        // be of a kind appropriate for pattern-matching), we use `object` as an intermediate type for the input expression.
+        //        var objectType = _factory.SpecialType(SpecialType.System_Object);
+        //        var s = _factory.SynthesizedLocal(_factory.SpecialType(SpecialType.System_Boolean), loweredTarget.Syntax);
+        //        var i = _factory.SynthesizedLocal(objectType, loweredTarget.Syntax); // we copy the input to avoid double evaluation
+        //        return _factory.Sequence(
+        //            ImmutableArray.Create(s, i),
+        //            ImmutableArray.Create<BoundExpression>(
+        //                _factory.AssignmentExpression(_factory.Local(i), _factory.Convert(objectType, loweredInput)),
+        //                _factory.AssignmentExpression(loweredTarget, _factory.Conditional(
+        //                    _factory.AssignmentExpression(_factory.Local(s), _factory.Is(_factory.Local(i), type)),
+        //                    _factory.Convert(type, _factory.Local(i)),
+        //                    _factory.Default(type), type))
+        //                ),
+        //            _factory.Local(s)
+        //            );
+        //    }
+        //}
+
+        private BoundExpression MakeEqual(BoundExpression loweredLiteral, BoundExpression input)
         {
-            Debug.Assert(type == loweredTarget.Type);
-
-            // If the match is impossible, we simply evaluate the input and yield false.
-            var matchConstantValue = MatchConstantValue(loweredInput, type, false);
-            if (matchConstantValue == false)
+            if (loweredLiteral.Type.SpecialType == SpecialType.System_Double && Double.IsNaN(loweredLiteral.ConstantValue.DoubleValue) ||
+                loweredLiteral.Type.SpecialType == SpecialType.System_Single && Single.IsNaN(loweredLiteral.ConstantValue.SingleValue))
             {
-                return _factory.MakeSequence(loweredInput, _factory.Literal(false));
-            }
-
-            // It is possible that the input value is already of the correct type, in which case the pattern
-            // is irrefutable, and we can just do the assignment and return true (or perform the null test).
-            if (matchConstantValue == true)
-            {
-                BoundExpression convertedInput;
-                if (loweredInput.Type.IsNullableType())
+                // NaN must be treated specially, as operator== and .Equals() disagree.
+                Debug.Assert(loweredLiteral.Type == input.Type);
+                var condition = _factory.InstanceCall(loweredLiteral, "Equals", input);
+                if (!condition.HasErrors && condition.Type.SpecialType != SpecialType.System_Boolean)
                 {
-                    var getValueOrDefault = _factory.SpecialMethod(SpecialMember.System_Nullable_T_GetValueOrDefault).AsMember((NamedTypeSymbol)loweredInput.Type);
-                    convertedInput = _factory.Convert(type, _factory.Call(loweredInput, getValueOrDefault));
+                    // Diagnose some kinds of broken core APIs
+                    var call = (BoundCall)condition;
+                    // '{1} {0}' has the wrong return type
+                    _factory.Diagnostics.Add(ErrorCode.ERR_BadRetType, loweredLiteral.Syntax.GetLocation(), call.Method, call.Type);
                 }
-                else
-                {
-                    convertedInput = _factory.Convert(type, loweredInput);
-                }
-                var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
-                return _factory.MakeSequence(assignment, _factory.Literal(true));
-            }
 
-            // a pattern match of the form "expression is Type identifier" is equivalent to
-            // an invocation of one of these helpers:
-            if (type.IsReferenceType)
-            {
-                // bool Is<T>(object e, out T t) where T : class // reference type
-                // {
-                //     t = e as T;
-                //     return t != null;
-                // }
-
-                return _factory.ObjectNotEqual(
-                    _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
-                    _factory.Null(type));
-            }
-            else // type parameter or value type
-            {
-                // bool Is<T>(this object i, out T o)
-                // {
-                //     // inefficient because it performs the type test twice, and also because it boxes the input.
-                //     bool s;
-                //     o = (s = i is T) ? (T)i : default(T);
-                //     return s;
-                // }
-
-                // Because a cast involving a type parameter is not necessarily a valid conversion (or, if it is, it might not
-                // be of a kind appropriate for pattern-matching), we use `object` as an intermediate type for the input expression.
-                var objectType = _factory.SpecialType(SpecialType.System_Object);
-                var s = _factory.SynthesizedLocal(_factory.SpecialType(SpecialType.System_Boolean), loweredTarget.Syntax);
-                var i = _factory.SynthesizedLocal(objectType, loweredTarget.Syntax); // we copy the input to avoid double evaluation
-                return _factory.Sequence(
-                    ImmutableArray.Create(s, i),
-                    ImmutableArray.Create<BoundExpression>(
-                        _factory.AssignmentExpression(_factory.Local(i), _factory.Convert(objectType, loweredInput)),
-                        _factory.AssignmentExpression(loweredTarget, _factory.Conditional(
-                            _factory.AssignmentExpression(_factory.Local(s), _factory.Is(_factory.Local(i), type)),
-                            _factory.Convert(type, _factory.Local(i)),
-                            _factory.Default(type), type))
-                        ),
-                    _factory.Local(s)
-                    );
-            }
-        }
-
-        private BoundExpression MakeEqual(BoundLiteral boundLiteral, BoundExpression input)
-        {
-            if (boundLiteral.Type.SpecialType == SpecialType.System_Double && Double.IsNaN(boundLiteral.ConstantValue.DoubleValue) ||
-                boundLiteral.Type.SpecialType == SpecialType.System_Single && Single.IsNaN(boundLiteral.ConstantValue.SingleValue))
-            {
-                // NaN must be treated specially, as operator== doesn't treat it as equal to anything, even itself.
-                Debug.Assert(boundLiteral.Type == input.Type);
-                return _factory.InstanceCall(boundLiteral, "Equals", input);
+                return condition;
             }
 
             var booleanType = _factory.SpecialType(SpecialType.System_Boolean);
             var intType = _factory.SpecialType(SpecialType.System_Int32);
-            switch (boundLiteral.Type.SpecialType)
+            switch (loweredLiteral.Type.SpecialType)
             {
                 case SpecialType.System_Boolean:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.BoolEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.BoolEqual, loweredLiteral, input, booleanType, method: null);
                 case SpecialType.System_Byte:
                 case SpecialType.System_Char:
                 case SpecialType.System_Int16:
                 case SpecialType.System_SByte:
                 case SpecialType.System_UInt16:
                     // PROTOTYPE(patterns2): need to check that this produces efficient code
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, _factory.Convert(intType, boundLiteral), _factory.Convert(intType, input), booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, _factory.Convert(intType, loweredLiteral), _factory.Convert(intType, input), booleanType, method: null);
                 case SpecialType.System_Decimal:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DecimalEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DecimalEqual, loweredLiteral, input, booleanType, method: null);
                 case SpecialType.System_Double:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DoubleEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DoubleEqual, loweredLiteral, input, booleanType, method: null);
                 case SpecialType.System_Int32:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, loweredLiteral, input, booleanType, method: null);
                 case SpecialType.System_Int64:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.LongEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.LongEqual, loweredLiteral, input, booleanType, method: null);
                 case SpecialType.System_Single:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.FloatEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.FloatEqual, loweredLiteral, input, booleanType, method: null);
                 case SpecialType.System_String:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.StringEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.StringEqual, loweredLiteral, input, booleanType, method: null);
                 case SpecialType.System_UInt32:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.UIntEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.UIntEqual, loweredLiteral, input, booleanType, method: null);
                 case SpecialType.System_UInt64:
-                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, boundLiteral, input, booleanType, method: null);
+                    return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, loweredLiteral, input, booleanType, method: null);
                 default:
                     // PROTOTYPE(patterns2): need more efficient code for enum test, e.g. `color is Color.Red`
                     // This is the (correct but inefficient) fallback for any type that isn't yet implemented (e.g. enums)
@@ -409,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.StaticCall(
                         systemObject,
                         "Equals",
-                        _factory.Convert(systemObject, boundLiteral),
+                        _factory.Convert(systemObject, loweredLiteral),
                         _factory.Convert(systemObject, input)
                         );
             }
@@ -417,9 +434,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            using (var x = new IsPatternTranslator(this, VisitExpression(node.Expression)))
+            var loweredExpression = VisitExpression(node.Expression);
+            var loweredPattern = LowerPattern(node.Pattern);
+            using (var x = new IsPatternExpressionLocalRewriter(this, loweredExpression))
             {
-                return x.LowerIsPattern(node.Pattern, this._compilation);
+                return x.LowerIsPattern(loweredPattern, this._compilation);
             }
         }
 
@@ -467,15 +486,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.RecursivePattern:
                     {
-                        throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                        var recur = (BoundRecursivePattern)pattern;
+                        return recur.Update(
+                            declaredType: recur.DeclaredType,
+                            inputType: recur.InputType,
+                            deconstructMethodOpt: recur.DeconstructMethodOpt,
+                            deconstruction: recur.Deconstruction.IsDefault ? recur.Deconstruction : recur.Deconstruction.SelectAsArray(p => LowerPattern(p)),
+                            propertiesOpt: recur.PropertiesOpt.IsDefault ? recur.PropertiesOpt : recur.PropertiesOpt.SelectAsArray(p => (p.symbol, LowerPattern(p.pattern))),
+                            variable: recur.Variable,
+                            variableAccess: VisitExpression(recur.VariableAccess));
                     }
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
                         return constantPattern.Update(VisitExpression(constantPattern.Value), constantPattern.ConstantValue);
                     }
+                case BoundKind.DiscardPattern:
+                    {
+                        return pattern;
+                    }
                 default:
-                    return pattern;
+                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
         }
 
@@ -575,115 +606,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         //            );
         //    }
         //}
-
-        private bool? MatchConstantValue(BoundExpression source, TypeSymbol targetType, bool requiredNullTest)
-        {
-            // use site diagnostics will already have been reported during binding.
-            HashSet<DiagnosticInfo> ignoredDiagnostics = null;
-            var sourceType = source.Type.IsDynamic() ? _compilation.GetSpecialType(SpecialType.System_Object) : source.Type;
-            var conversionKind = _compilation.Conversions.ClassifyConversionFromType(sourceType, targetType, ref ignoredDiagnostics).Kind;
-            var constantResult = Binder.GetIsOperatorConstantResult(sourceType, targetType, conversionKind, source.ConstantValue, requiredNullTest);
-            return
-                constantResult == ConstantValue.True ? true :
-                constantResult == ConstantValue.False ? false :
-                constantResult == null ? (bool?)null :
-                throw ExceptionUtilities.UnexpectedValue(constantResult);
-        }
-
-        BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
-        {
-            var type = loweredTarget.Type;
-            requiresNullTest = requiresNullTest && loweredInput.Type.CanContainNull();
-
-            // If the match is impossible, we simply evaluate the input and yield false.
-            var matchConstantValue = MatchConstantValue(loweredInput, type, false);
-            if (matchConstantValue == false)
-            {
-                return _factory.MakeSequence(loweredInput, _factory.Literal(false));
-            }
-
-            // It is possible that the input value is already of the correct type, in which case the pattern
-            // is irrefutable, and we can just do the assignment and return true (or perform the null test).
-            if (matchConstantValue == true)
-            {
-                requiresNullTest = requiresNullTest && MatchConstantValue(loweredInput, type, true) != true;
-                if (loweredInput.Type.IsNullableType())
-                {
-                    var getValueOrDefault = _factory.SpecialMethod(SpecialMember.System_Nullable_T_GetValueOrDefault).AsMember((NamedTypeSymbol)loweredInput.Type);
-                    if (requiresNullTest)
-                    {
-                        //bool Is<T>(T? input, out T output) where T : struct
-                        //{
-                        //    output = input.GetValueOrDefault();
-                        //    return input.HasValue;
-                        //}
-
-                        var input = _factory.SynthesizedLocal(loweredInput.Type, syntax); // we copy the input to avoid double evaluation
-                        var getHasValue = _factory.SpecialMethod(SpecialMember.System_Nullable_T_get_HasValue).AsMember((NamedTypeSymbol)loweredInput.Type);
-                        return _factory.MakeSequence(input,
-                            _factory.AssignmentExpression(_factory.Local(input), loweredInput),
-                            _factory.AssignmentExpression(loweredTarget, _factory.Convert(type, _factory.Call(_factory.Local(input), getValueOrDefault))),
-                            _factory.Call(_factory.Local(input), getHasValue)
-                            );
-                    }
-                    else
-                    {
-                        var convertedInput = _factory.Convert(type, _factory.Call(loweredInput, getValueOrDefault));
-                        var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
-                        return _factory.MakeSequence(assignment, _factory.Literal(true));
-                    }
-                }
-                else
-                {
-                    var convertedInput = _factory.Convert(type, loweredInput);
-                    var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
-                    return requiresNullTest
-                        ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
-                        : _factory.MakeSequence(assignment, _factory.Literal(true));
-                }
-            }
-
-            // a pattern match of the form "expression is Type identifier" is equivalent to
-            // an invocation of one of these helpers:
-            if (type.IsReferenceType)
-            {
-                // bool Is<T>(object e, out T t) where T : class // reference type
-                // {
-                //     t = e as T;
-                //     return t != null;
-                // }
-
-                return _factory.ObjectNotEqual(
-                    _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
-                    _factory.Null(type));
-            }
-            else // type parameter or value type
-            {
-                // bool Is<T>(this object i, out T o)
-                // {
-                //     // inefficient because it performs the type test twice, and also because it boxes the input.
-                //     bool s;
-                //     o = (s = i is T) ? (T)i : default(T);
-                //     return s;
-                // }
-
-                // Because a cast involving a type parameter is not necessarily a valid conversion (or, if it is, it might not
-                // be of a kind appropriate for pattern-matching), we use `object` as an intermediate type for the input expression.
-                var objectType = _factory.SpecialType(SpecialType.System_Object);
-                var s = _factory.SynthesizedLocal(_factory.SpecialType(SpecialType.System_Boolean), syntax);
-                var i = _factory.SynthesizedLocal(objectType, syntax); // we copy the input to avoid double evaluation
-                return _factory.Sequence(
-                    ImmutableArray.Create(s, i),
-                    ImmutableArray.Create<BoundExpression>(
-                        _factory.AssignmentExpression(_factory.Local(i), _factory.Convert(objectType, loweredInput)),
-                        _factory.AssignmentExpression(loweredTarget, _factory.Conditional(
-                            _factory.AssignmentExpression(_factory.Local(s), _factory.Is(_factory.Local(i), type)),
-                            _factory.Convert(type, _factory.Local(i)),
-                            _factory.Default(type), type))
-                        ),
-                    _factory.Local(s)
-                    );
-            }
-        }
     }
 }

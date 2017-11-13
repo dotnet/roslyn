@@ -800,17 +800,28 @@
     <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
 
-    <!-- A directed acyclic decision graph for the switch statement. It can be traversed
-    to determine if all labels are reachable, and if every input is handled. -->
-    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>
     <!-- A switch is considered complete if every value of the switch expression's
          type is handled by some switch label that is either not guarded by a when
          clause, or for which the when clause expression has the constant value true. -->
     <Field Name="IsComplete" Type="bool"/>
   </Node>
 
+  <Node Name="BoundPatternSwitchStatement2" Base="BoundStatement">
+    <Field Name="Expression" Type="BoundExpression"/>
+
+    <!-- Locals declared immediately within the switch block. -->
+    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
+    <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
+    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
+
+    <!-- A directed acyclic decision graph for the switch statement. It can be traversed
+    to determine if all labels are reachable, and if every input is handled. -->
+    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>
+  </Node>
+
   <AbstractNode Name="BoundDecisionDag" Base="BoundNode">
-    <Field Name="Label" Type="LabelSymbol"/>
   </AbstractNode>
   <!-- This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct. -->
   <Node Name="BoundEvaluationPoint" Base="BoundDecisionDag">
@@ -831,6 +842,7 @@
   </Node>
   <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
   <Node Name="BoundDecision" Base="BoundDecisionDag">
+    <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
   <AbstractNode Name="BoundDagDecision" Base="BoundNode">

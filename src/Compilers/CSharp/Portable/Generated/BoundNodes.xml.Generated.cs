@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         BreakStatement,
         ContinueStatement,
         PatternSwitchStatement,
+        PatternSwitchStatement2,
         EvaluationPoint,
         DecisionPoint,
         WhereClause,
@@ -2822,8 +2823,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPatternSwitchStatement : BoundStatement
     {
-        public BoundPatternSwitchStatement(SyntaxNode syntax, BoundExpression expression, bool someLabelAlwaysMatches, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, BoundDecisionDag decisionDag, bool isComplete, bool hasErrors = false)
-            : base(BoundKind.PatternSwitchStatement, syntax, hasErrors || expression.HasErrors() || switchSections.HasErrors() || defaultLabel.HasErrors() || decisionDag.HasErrors())
+        public BoundPatternSwitchStatement(SyntaxNode syntax, BoundExpression expression, bool someLabelAlwaysMatches, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, bool isComplete, bool hasErrors = false)
+            : base(BoundKind.PatternSwitchStatement, syntax, hasErrors || expression.HasErrors() || switchSections.HasErrors() || defaultLabel.HasErrors())
         {
 
             Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -2839,7 +2840,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.SwitchSections = switchSections;
             this.DefaultLabel = defaultLabel;
             this.BreakLabel = breakLabel;
-            this.DecisionDag = decisionDag;
             this.IsComplete = isComplete;
         }
 
@@ -2858,8 +2858,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public GeneratedLabelSymbol BreakLabel { get; }
 
-        public BoundDecisionDag DecisionDag { get; }
-
         public bool IsComplete { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
@@ -2867,11 +2865,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitPatternSwitchStatement(this);
         }
 
-        public BoundPatternSwitchStatement Update(BoundExpression expression, bool someLabelAlwaysMatches, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, BoundDecisionDag decisionDag, bool isComplete)
+        public BoundPatternSwitchStatement Update(BoundExpression expression, bool someLabelAlwaysMatches, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, bool isComplete)
         {
-            if (expression != this.Expression || someLabelAlwaysMatches != this.SomeLabelAlwaysMatches || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || defaultLabel != this.DefaultLabel || breakLabel != this.BreakLabel || decisionDag != this.DecisionDag || isComplete != this.IsComplete)
+            if (expression != this.Expression || someLabelAlwaysMatches != this.SomeLabelAlwaysMatches || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || defaultLabel != this.DefaultLabel || breakLabel != this.BreakLabel || isComplete != this.IsComplete)
             {
-                var result = new BoundPatternSwitchStatement(this.Syntax, expression, someLabelAlwaysMatches, innerLocals, innerLocalFunctions, switchSections, defaultLabel, breakLabel, decisionDag, isComplete, this.HasErrors);
+                var result = new BoundPatternSwitchStatement(this.Syntax, expression, someLabelAlwaysMatches, innerLocals, innerLocalFunctions, switchSections, defaultLabel, breakLabel, isComplete, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundPatternSwitchStatement2 : BoundStatement
+    {
+        public BoundPatternSwitchStatement2(SyntaxNode syntax, BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, BoundDecisionDag decisionDag, bool hasErrors = false)
+            : base(BoundKind.PatternSwitchStatement2, syntax, hasErrors || expression.HasErrors() || switchSections.HasErrors() || defaultLabel.HasErrors() || decisionDag.HasErrors())
+        {
+
+            Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!innerLocals.IsDefault, "Field 'innerLocals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!innerLocalFunctions.IsDefault, "Field 'innerLocalFunctions' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!switchSections.IsDefault, "Field 'switchSections' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(breakLabel != null, "Field 'breakLabel' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Expression = expression;
+            this.InnerLocals = innerLocals;
+            this.InnerLocalFunctions = innerLocalFunctions;
+            this.SwitchSections = switchSections;
+            this.DefaultLabel = defaultLabel;
+            this.BreakLabel = breakLabel;
+            this.DecisionDag = decisionDag;
+        }
+
+
+        public BoundExpression Expression { get; }
+
+        public ImmutableArray<LocalSymbol> InnerLocals { get; }
+
+        public ImmutableArray<LocalFunctionSymbol> InnerLocalFunctions { get; }
+
+        public ImmutableArray<BoundPatternSwitchSection> SwitchSections { get; }
+
+        public BoundPatternSwitchLabel DefaultLabel { get; }
+
+        public GeneratedLabelSymbol BreakLabel { get; }
+
+        public BoundDecisionDag DecisionDag { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitPatternSwitchStatement2(this);
+        }
+
+        public BoundPatternSwitchStatement2 Update(BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, BoundDecisionDag decisionDag)
+        {
+            if (expression != this.Expression || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || defaultLabel != this.DefaultLabel || breakLabel != this.BreakLabel || decisionDag != this.DecisionDag)
+            {
+                var result = new BoundPatternSwitchStatement2(this.Syntax, expression, innerLocals, innerLocalFunctions, switchSections, defaultLabel, breakLabel, decisionDag, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -2881,37 +2932,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundDecisionDag : BoundNode
     {
-        protected BoundDecisionDag(BoundKind kind, SyntaxNode syntax, LabelSymbol label, bool hasErrors)
+        protected BoundDecisionDag(BoundKind kind, SyntaxNode syntax, bool hasErrors)
             : base(kind, syntax, hasErrors)
         {
-
-            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.Label = label;
         }
 
-        protected BoundDecisionDag(BoundKind kind, SyntaxNode syntax, LabelSymbol label)
+        protected BoundDecisionDag(BoundKind kind, SyntaxNode syntax)
             : base(kind, syntax)
         {
-
-            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.Label = label;
         }
 
-
-        public LabelSymbol Label { get; }
     }
 
     internal sealed partial class BoundEvaluationPoint : BoundDecisionDag
     {
-        public BoundEvaluationPoint(SyntaxNode syntax, BoundDagEvaluation evaluation, BoundDecisionDag next, LabelSymbol label, bool hasErrors = false)
-            : base(BoundKind.EvaluationPoint, syntax, label, hasErrors || evaluation.HasErrors() || next.HasErrors())
+        public BoundEvaluationPoint(SyntaxNode syntax, BoundDagEvaluation evaluation, BoundDecisionDag next, bool hasErrors = false)
+            : base(BoundKind.EvaluationPoint, syntax, hasErrors || evaluation.HasErrors() || next.HasErrors())
         {
 
             Debug.Assert(evaluation != null, "Field 'evaluation' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(next != null, "Field 'next' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Evaluation = evaluation;
             this.Next = next;
@@ -2927,11 +2967,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitEvaluationPoint(this);
         }
 
-        public BoundEvaluationPoint Update(BoundDagEvaluation evaluation, BoundDecisionDag next, LabelSymbol label)
+        public BoundEvaluationPoint Update(BoundDagEvaluation evaluation, BoundDecisionDag next)
         {
-            if (evaluation != this.Evaluation || next != this.Next || label != this.Label)
+            if (evaluation != this.Evaluation || next != this.Next)
             {
-                var result = new BoundEvaluationPoint(this.Syntax, evaluation, next, label, this.HasErrors);
+                var result = new BoundEvaluationPoint(this.Syntax, evaluation, next, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -2941,14 +2981,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDecisionPoint : BoundDecisionDag
     {
-        public BoundDecisionPoint(SyntaxNode syntax, BoundDagDecision decision, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, LabelSymbol label, bool hasErrors = false)
-            : base(BoundKind.DecisionPoint, syntax, label, hasErrors || decision.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
+        public BoundDecisionPoint(SyntaxNode syntax, BoundDagDecision decision, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, bool hasErrors = false)
+            : base(BoundKind.DecisionPoint, syntax, hasErrors || decision.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
         {
 
             Debug.Assert(decision != null, "Field 'decision' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(whenTrue != null, "Field 'whenTrue' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(whenFalse != null, "Field 'whenFalse' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Decision = decision;
             this.WhenTrue = whenTrue;
@@ -2967,11 +3006,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDecisionPoint(this);
         }
 
-        public BoundDecisionPoint Update(BoundDagDecision decision, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, LabelSymbol label)
+        public BoundDecisionPoint Update(BoundDagDecision decision, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse)
         {
-            if (decision != this.Decision || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse || label != this.Label)
+            if (decision != this.Decision || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse)
             {
-                var result = new BoundDecisionPoint(this.Syntax, decision, whenTrue, whenFalse, label, this.HasErrors);
+                var result = new BoundDecisionPoint(this.Syntax, decision, whenTrue, whenFalse, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -2981,13 +3020,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundWhereClause : BoundDecisionDag
     {
-        public BoundWhereClause(SyntaxNode syntax, ImmutableArray<(BoundExpression,BoundDagTemp)> bindings, BoundExpression @where, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, LabelSymbol label, bool hasErrors = false)
-            : base(BoundKind.WhereClause, syntax, label, hasErrors || @where.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
+        public BoundWhereClause(SyntaxNode syntax, ImmutableArray<(BoundExpression,BoundDagTemp)> bindings, BoundExpression @where, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, bool hasErrors = false)
+            : base(BoundKind.WhereClause, syntax, hasErrors || @where.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
         {
 
             Debug.Assert(!bindings.IsDefault, "Field 'bindings' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(whenTrue != null, "Field 'whenTrue' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Bindings = bindings;
             this.Where = @where;
@@ -3009,11 +3047,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitWhereClause(this);
         }
 
-        public BoundWhereClause Update(ImmutableArray<(BoundExpression,BoundDagTemp)> bindings, BoundExpression @where, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, LabelSymbol label)
+        public BoundWhereClause Update(ImmutableArray<(BoundExpression,BoundDagTemp)> bindings, BoundExpression @where, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse)
         {
-            if (bindings != this.Bindings || @where != this.Where || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse || label != this.Label)
+            if (bindings != this.Bindings || @where != this.Where || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse)
             {
-                var result = new BoundWhereClause(this.Syntax, bindings, @where, whenTrue, whenFalse, label, this.HasErrors);
+                var result = new BoundWhereClause(this.Syntax, bindings, @where, whenTrue, whenFalse, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -3024,21 +3062,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundDecision : BoundDecisionDag
     {
         public BoundDecision(SyntaxNode syntax, LabelSymbol label, bool hasErrors)
-            : base(BoundKind.Decision, syntax, label, hasErrors)
+            : base(BoundKind.Decision, syntax, hasErrors)
         {
 
             Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.Label = label;
         }
 
         public BoundDecision(SyntaxNode syntax, LabelSymbol label)
-            : base(BoundKind.Decision, syntax, label)
+            : base(BoundKind.Decision, syntax)
         {
 
             Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.Label = label;
         }
 
+
+        public LabelSymbol Label { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
@@ -6814,6 +6856,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitContinueStatement(node as BoundContinueStatement, arg);
                 case BoundKind.PatternSwitchStatement: 
                     return VisitPatternSwitchStatement(node as BoundPatternSwitchStatement, arg);
+                case BoundKind.PatternSwitchStatement2: 
+                    return VisitPatternSwitchStatement2(node as BoundPatternSwitchStatement2, arg);
                 case BoundKind.EvaluationPoint: 
                     return VisitEvaluationPoint(node as BoundEvaluationPoint, arg);
                 case BoundKind.DecisionPoint: 
@@ -7283,6 +7327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitPatternSwitchStatement(BoundPatternSwitchStatement node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitPatternSwitchStatement2(BoundPatternSwitchStatement2 node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7939,6 +7987,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitPatternSwitchStatement2(BoundPatternSwitchStatement2 node)
         {
             return this.DefaultVisit(node);
         }
@@ -8663,6 +8715,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        {
+            this.Visit(node.Expression);
+            this.VisitList(node.SwitchSections);
+            this.Visit(node.DefaultLabel);
+            return null;
+        }
+        public override BoundNode VisitPatternSwitchStatement2(BoundPatternSwitchStatement2 node)
         {
             this.Visit(node.Expression);
             this.VisitList(node.SwitchSections);
@@ -9560,28 +9619,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundPatternSwitchSection> switchSections = (ImmutableArray<BoundPatternSwitchSection>)this.VisitList(node.SwitchSections);
             BoundPatternSwitchLabel defaultLabel = (BoundPatternSwitchLabel)this.Visit(node.DefaultLabel);
+            return node.Update(expression, node.SomeLabelAlwaysMatches, node.InnerLocals, node.InnerLocalFunctions, switchSections, defaultLabel, node.BreakLabel, node.IsComplete);
+        }
+        public override BoundNode VisitPatternSwitchStatement2(BoundPatternSwitchStatement2 node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundPatternSwitchSection> switchSections = (ImmutableArray<BoundPatternSwitchSection>)this.VisitList(node.SwitchSections);
+            BoundPatternSwitchLabel defaultLabel = (BoundPatternSwitchLabel)this.Visit(node.DefaultLabel);
             BoundDecisionDag decisionDag = (BoundDecisionDag)this.Visit(node.DecisionDag);
-            return node.Update(expression, node.SomeLabelAlwaysMatches, node.InnerLocals, node.InnerLocalFunctions, switchSections, defaultLabel, node.BreakLabel, decisionDag, node.IsComplete);
+            return node.Update(expression, node.InnerLocals, node.InnerLocalFunctions, switchSections, defaultLabel, node.BreakLabel, decisionDag);
         }
         public override BoundNode VisitEvaluationPoint(BoundEvaluationPoint node)
         {
             BoundDagEvaluation evaluation = (BoundDagEvaluation)this.Visit(node.Evaluation);
             BoundDecisionDag next = (BoundDecisionDag)this.Visit(node.Next);
-            return node.Update(evaluation, next, node.Label);
+            return node.Update(evaluation, next);
         }
         public override BoundNode VisitDecisionPoint(BoundDecisionPoint node)
         {
             BoundDagDecision decision = (BoundDagDecision)this.Visit(node.Decision);
             BoundDecisionDag whenTrue = (BoundDecisionDag)this.Visit(node.WhenTrue);
             BoundDecisionDag whenFalse = (BoundDecisionDag)this.Visit(node.WhenFalse);
-            return node.Update(decision, whenTrue, whenFalse, node.Label);
+            return node.Update(decision, whenTrue, whenFalse);
         }
         public override BoundNode VisitWhereClause(BoundWhereClause node)
         {
             BoundExpression @where = (BoundExpression)this.Visit(node.Where);
             BoundDecisionDag whenTrue = (BoundDecisionDag)this.Visit(node.WhenTrue);
             BoundDecisionDag whenFalse = (BoundDecisionDag)this.Visit(node.WhenFalse);
-            return node.Update(node.Bindings, @where, whenTrue, whenFalse, node.Label);
+            return node.Update(node.Bindings, @where, whenTrue, whenFalse);
         }
         public override BoundNode VisitDecision(BoundDecision node)
         {
@@ -10819,8 +10885,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("switchSections", null, from x in node.SwitchSections select Visit(x, null)),
                 new TreeDumperNode("defaultLabel", null, new TreeDumperNode[] { Visit(node.DefaultLabel, null) }),
                 new TreeDumperNode("breakLabel", node.BreakLabel, null),
-                new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
                 new TreeDumperNode("isComplete", node.IsComplete, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitPatternSwitchStatement2(BoundPatternSwitchStatement2 node, object arg)
+        {
+            return new TreeDumperNode("patternSwitchStatement2", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+                new TreeDumperNode("innerLocals", node.InnerLocals, null),
+                new TreeDumperNode("innerLocalFunctions", node.InnerLocalFunctions, null),
+                new TreeDumperNode("switchSections", null, from x in node.SwitchSections select Visit(x, null)),
+                new TreeDumperNode("defaultLabel", null, new TreeDumperNode[] { Visit(node.DefaultLabel, null) }),
+                new TreeDumperNode("breakLabel", node.BreakLabel, null),
+                new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) })
             }
             );
         }
@@ -10829,8 +10908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("evaluationPoint", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("evaluation", null, new TreeDumperNode[] { Visit(node.Evaluation, null) }),
-                new TreeDumperNode("next", null, new TreeDumperNode[] { Visit(node.Next, null) }),
-                new TreeDumperNode("label", node.Label, null)
+                new TreeDumperNode("next", null, new TreeDumperNode[] { Visit(node.Next, null) })
             }
             );
         }
@@ -10840,8 +10918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("decision", null, new TreeDumperNode[] { Visit(node.Decision, null) }),
                 new TreeDumperNode("whenTrue", null, new TreeDumperNode[] { Visit(node.WhenTrue, null) }),
-                new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) }),
-                new TreeDumperNode("label", node.Label, null)
+                new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) })
             }
             );
         }
@@ -10852,8 +10929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("bindings", node.Bindings, null),
                 new TreeDumperNode("@where", null, new TreeDumperNode[] { Visit(node.Where, null) }),
                 new TreeDumperNode("whenTrue", null, new TreeDumperNode[] { Visit(node.WhenTrue, null) }),
-                new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) }),
-                new TreeDumperNode("label", node.Label, null)
+                new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) })
             }
             );
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                    var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
-                    return
-                        parseOptions?.Features.ContainsKey("testV8SwitchBinder") == true ||
-                        HasPatternSwitchSyntax(SwitchSyntax) ||
-                        !SwitchGoverningType.IsValidV6SwitchGoverningType();
+                var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
+                return
+                    parseOptions?.Features.ContainsKey("testV8SwitchBinder") == true ||
+                    HasPatternSwitchSyntax(SwitchSyntax) ||
+                    !SwitchGoverningType.IsValidV6SwitchGoverningType();
             }
         }
 
@@ -48,24 +49,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundSwitchExpression = SwitchGoverningExpression;
             diagnostics.AddRange(SwitchGoverningDiagnostics);
 
-            BoundPatternSwitchLabel defaultLabel;
-            bool isComplete;
-            ImmutableArray<BoundPatternSwitchSection> switchSections =
-                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, out var someCaseMatches, diagnostics);
+            ImmutableArray<BoundPatternSwitchSection> switchSections = BindPatternSwitchSections(originalBinder, diagnostics, out var defaultLabel);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
-            BoundDecisionDag decisionDag = null; // we'll compute it later
-            return new BoundPatternSwitchStatement(
+            BoundDecisionDag decisionDag = new DecisionDagBuilder(this.Compilation).CreateDecisionDag(
+                syntax: node,
+                switchExpression: boundSwitchExpression,
+                switchSections: switchSections,
+                defaultLabel: defaultLabel?.Label ?? BreakLabel);
+            var hasErrors = CheckSwitchErrors(node, boundSwitchExpression, switchSections, decisionDag, diagnostics);
+            return new BoundPatternSwitchStatement2(
                 syntax: node,
                 expression: boundSwitchExpression,
-                someLabelAlwaysMatches: someCaseMatches,
                 innerLocals: locals,
                 innerLocalFunctions: functions,
                 switchSections: switchSections,
                 defaultLabel: defaultLabel,
                 breakLabel: this.BreakLabel,
                 decisionDag: decisionDag,
-                isComplete: isComplete);
+                hasErrors: hasErrors);
+        }
+
+        private bool CheckSwitchErrors(
+            SwitchStatementSyntax node,
+            BoundExpression boundSwitchExpression,
+            ImmutableArray<BoundPatternSwitchSection> switchSections,
+            BoundDecisionDag decisionDag,
+            DiagnosticBag diagnostics)
+        {
+            bool reported = false;
+            var reachableLabels = decisionDag.ReachableLabels;
+            foreach (var section in switchSections)
+            {
+                foreach (var label in section.SwitchLabels)
+                {
+                    if (!label.HasErrors && !reachableLabels.Contains(label.Label))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PatternIsSubsumed, label.Syntax.Location);
+                        reported = true;
+                    }
+                }
+            }
+
+            return reported;
         }
 
         /// <summary>
@@ -97,45 +123,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(
             Binder originalBinder,
-            out BoundPatternSwitchLabel defaultLabel,
-            out bool isComplete,
-            out bool someCaseMatches,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            out BoundPatternSwitchLabel defaultLabel)
         {
-            defaultLabel = null;
-
-            // someCaseMatches will be set to true if some single case label would handle all inputs
-            someCaseMatches = false;
-
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
-            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningType);
+            defaultLabel = null;
             foreach (var sectionSyntax in SwitchSyntax.Sections)
             {
-                var section = BindPatternSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, ref someCaseMatches, subsumption, diagnostics);
+                var section = BindPatternSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, diagnostics);
                 boundPatternSwitchSectionsBuilder.Add(section);
             }
 
-            isComplete = defaultLabel != null || subsumption.IsComplete || someCaseMatches;
             return boundPatternSwitchSectionsBuilder.ToImmutableAndFree();
         }
 
         /// <summary>
         /// Bind the pattern switch section, producing subsumption diagnostics.
         /// </summary>
-        /// <param name="node"/>
-        /// <param name="originalBinder"/>
-        /// <param name="defaultLabel">If a default label is found in this section, assigned that label</param>
-        /// <param name="someCaseMatches">If a case is found that would always match the input, set to true</param>
-        /// <param name="subsumption">A helper class that uses a decision tree to produce subsumption diagnostics.</param>
-        /// <param name="diagnostics"></param>
-        /// <returns></returns>
         private BoundPatternSwitchSection BindPatternSwitchSection(
             SwitchSectionSyntax node,
             Binder originalBinder,
             ref BoundPatternSwitchLabel defaultLabel,
-            ref bool someCaseMatches,
-            SubsumptionDiagnosticBuilder subsumption,
             DiagnosticBag diagnostics)
         {
             // Bind match section labels
@@ -210,10 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
-                        // Note that this is semantically last! The caller will place it in the decision tree
+                        // Note that this is semantically last! The caller will place it in the decision dag
                         // in the final position.
-                        defaultLabel = new BoundPatternSwitchLabel(node, label, pattern, null, isReachable, hasErrors);
-                        return defaultLabel;
+                        return defaultLabel = new BoundPatternSwitchLabel(node, label, pattern, null, isReachable, hasErrors);
                     }
 
                 case SyntaxKind.CasePatternSwitchLabel:
@@ -231,4 +239,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
+
+    partial class BoundPatternSwitchStatement2
+    {
+        public HashSet<LabelSymbol> ReachableLabels => this.DecisionDag.ReachableLabels;
+    }
+
+    partial class BoundDecisionDag
+    {
+        HashSet<LabelSymbol> _reachableLabels;
+        public HashSet<LabelSymbol> ReachableLabels
+        {
+            get
+            {
+                if (_reachableLabels == null)
+                {
+                    // compute the set of reachable labels
+                    var result = new HashSet<LabelSymbol>();
+                    processDag(this);
+                    _reachableLabels = result;
+
+                    // simulate the dispatch (setting pattern variables and jumping to labels) to
+                    // all reachable switch labels
+                    void processDag(BoundDecisionDag dag)
+                    {
+                        switch (dag)
+                        {
+                            case BoundEvaluationPoint x:
+                                processDag(x.Next);
+                                return;
+                            case BoundDecisionPoint x:
+                                processDag(x.WhenTrue);
+                                processDag(x.WhenFalse);
+                                return;
+                            case BoundWhereClause x:
+                                processDag(x.WhenTrue);
+                                processDag(x.WhenFalse);
+                                return;
+                            case BoundDecision x:
+                                result.Add(x.Label);
+                                return;
+                            case null:
+                                return;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(dag.Kind);
+                        }
+                    }
+                }
+
+                return _reachableLabels;
+            }
+        }
+    }
+
 }

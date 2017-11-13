@@ -5553,7 +5553,7 @@ M15a
     {
         switch (o)
         {
-            case 1.1F: break;
+            case 0f/0f: break;
         }
     }
 }
@@ -5584,7 +5584,7 @@ namespace System
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_BadRetType, @"switch (o)
         {
-            case 1.1F: break;
+            case 0f/0f: break;
         }").WithArguments("float.Equals(float)", "void").WithLocation(5, 9)
                 );
         }

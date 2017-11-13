@@ -54,10 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, out var someCaseMatches, diagnostics);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
-            BoundDecisionDag decisionDag = null; // not relevant to the C# 7 pattern binder
             return new BoundPatternSwitchStatement(
                 node, boundSwitchExpression, someCaseMatches,
-                locals, functions, switchSections, defaultLabel, this.BreakLabel, decisionDag, isComplete);
+                locals, functions, switchSections, defaultLabel, this.BreakLabel, isComplete);
         }
 
         /// <summary>
