@@ -16721,20 +16721,33 @@ class Program
         }
 
         [Fact]
-        public void InvalidThrowTerm()
+        public void InvalidThrowTerm_01()
         {
             var source =
 @"class C
 {
     static string F(string s) => s + throw new System.Exception();
 }";
-            var comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,38): error CS1525: Invalid expression term 'throw'
                 //     static string F(string s) => s + throw new System.Exception();
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new System.Exception()").WithArguments("throw").WithLocation(3, 38));
+        }
+
+        [Fact]
+        public void InvalidThrowTerm_02()
+        {
+            var source =
+@"class C
+{
+    static bool F(bool b) => b || throw new System.Exception();
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,35): error CS1525: Invalid expression term 'throw'
+                //     static bool F(bool b) => b || throw new System.Exception();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new System.Exception()").WithArguments("throw").WithLocation(3, 35));
         }
 
         [Fact]
@@ -16746,13 +16759,27 @@ class Program
 {
     static IEnumerator<T> M<T>() => default(T);
 }";
-            var comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (4,37): error CS0266: Cannot implicitly convert type 'T' to 'System.Collections.Generic.IEnumerator<T>'. An explicit conversion exists (are you missing a cast?)
                 //     static IEnumerator<T> M<T>() => default(T);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37));
+        }
+
+        [Fact]
+        public void BoxingConversion_DynamicCompoundAssignment()
+        {
+            var source =
+@"class C
+{
+    static void Add(object o, int value)
+    {
+        dynamic d = o;
+        d += value;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

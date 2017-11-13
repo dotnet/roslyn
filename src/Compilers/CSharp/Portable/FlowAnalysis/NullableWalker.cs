@@ -1472,7 +1472,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(sourceTypeOpt?.IsReferenceType != true);
                             return null;
                         }
 
@@ -2185,7 +2184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Visit(right);
 
-                Debug.Assert(IsConditionalState ? (this.StateWhenFalse.Reachable || this.StateWhenTrue.Reachable) : this.State.Reachable);
+                // State.Reachable may be false for invalid code
+                // such as `b || throw new Exception()`.
                 bool? rightIsNotNull = null;
 
                 if (IsConditionalState)
