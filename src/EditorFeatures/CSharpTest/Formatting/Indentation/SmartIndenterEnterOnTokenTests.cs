@@ -1299,7 +1299,7 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "PROTOTYPE(patterns2): need to implement indentation for recursive patterns")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task IndentPatternPropertyFirst()
         {
