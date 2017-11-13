@@ -173,9 +173,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
                 if (memberGroup.Length == 1)
                 {
-                    // Only one member found.  Don't do the expensive check, this change 
-                    // should be ok.
-                    return true;
+                    // Only one member found.  In most cases, converting the type to "var" will be
+                    // ok.  However, if the method is generic it may not be as inference may be 
+                    // involved.
+                    if (memberGroup[0].GetTypeParameters().IsEmpty)
+                    {
+                        return true;
+                    }
                 }
             }
 

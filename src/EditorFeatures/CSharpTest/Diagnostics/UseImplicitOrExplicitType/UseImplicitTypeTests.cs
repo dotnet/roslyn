@@ -1963,33 +1963,6 @@ class C
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
-        public async Task DoSuggestForDeclarationExpressionIfItWouldNotChangeOverloadResolution()
-        {
-            await TestInRegularAndScriptAsync(@"
-class Program
-{
-    static int Main(string[] args)
-    {
-        TryGetValue(""key"", out [|int|] value);
-        return value;
-    }
-
-    public static bool TryGetValue<T>(string key, out T value) => false;
-}", @"
-class Program
-{
-    static int Main(string[] args)
-    {
-        TryGetValue(""key"", out var value);
-        return value;
-    }
-
-    public static bool TryGetValue<T>(string key, out T value) => false;
-}", options: ImplicitTypeEverywhere());
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
-        [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
         public async Task DoSuggestForDeclarationExpressionIfItWouldNotChangeOverloadResolution2()
         {
             await TestInRegularAndScriptAsync(@"
@@ -2034,6 +2007,77 @@ class Program
 
     public static bool TryGetValue<T>(string key, out T value) => false;
 }", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
+        public async Task DoNotSuggestIfChangesGenericTypeInference()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue(""key"", out [|int|] value);
+        return value;
+    }
+
+    public static bool TryGetValue<T>(string key, out T value) => false;
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
+        public async Task SuggestIfDoesNotChangeGenericTypeInference1()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue<int>(""key"", out [|int|] value);
+        return value;
+    }
+
+    public static bool TryGetValue<T>(string key, out T value) => false;
+}", @"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue<int>(""key"", out var value);
+        return value;
+    }
+
+    public static bool TryGetValue<T>(string key, out T value) => false;
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23116, "https://github.com/dotnet/roslyn/issues/23116")]
+        public async Task SuggestIfDoesNotChangeGenericTypeInference2()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue(0, out [|int|] value);
+        return value;
+    }
+
+    public static bool TryGetValue<T>(T key, out T value) => false;
+}", @"
+class Program
+{
+    static int Main(string[] args)
+    {
+        TryGetValue(0, out var value);
+        return value;
+    }
+
+    public static bool TryGetValue<T>(T key, out T value) => false;
+}", options: ImplicitTypeEverywhere());
         }
     }
 }
