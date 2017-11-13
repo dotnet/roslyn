@@ -2020,9 +2020,9 @@ public class mine {
                 // (18,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
                 //         catch when (false) {}
                 Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(18, 9),
-                // (18,21): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (18,21): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch when (false) {}
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(18, 21));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(18, 21));
         }
 
         [Fact]

@@ -241,7 +241,9 @@ class X
                         case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
                         case ErrorCode.WRN_RefCultureMismatch:
                         case ErrorCode.WRN_ConflictingMachineAssembly:
-                        case ErrorCode.WRN_FilterIsConstant:
+                        case ErrorCode.WRN_FilterIsConstantFalse:
+                        case ErrorCode.WRN_FilterIsConstantTrue:
+                        case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                         case ErrorCode.WRN_AnalyzerCannotBeCreated:
                         case ErrorCode.WRN_NoAnalyzerInAssembly:
                         case ErrorCode.WRN_UnableToLoadAnalyzer:
