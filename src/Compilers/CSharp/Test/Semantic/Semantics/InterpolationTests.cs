@@ -1006,7 +1006,7 @@ class Program {
     }
 }";
             var comp = CreateCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            var compilation = CompileAndVerify(comp, verify: false);
+            var compilation = CompileAndVerify(comp, verify: Verification.Skipped);
             compilation.VerifyIL("System.Program.Main",
 @"{
   // Code size       35 (0x23)

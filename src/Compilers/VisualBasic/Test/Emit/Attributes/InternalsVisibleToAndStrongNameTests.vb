@@ -2001,7 +2001,7 @@ End Class
 ]]></file>
 </compilation>, {New VisualBasicCompilationReference(ca)}, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultProvider))
 
-        CompileAndVerify(cb, verify:=False).Diagnostics.Verify()
+        CompileAndVerify(cb, verify:=Verification.Skipped).Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")>

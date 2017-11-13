@@ -1472,7 +1472,7 @@ Public Class Goo(Of T)
 End Class
     </file>
 </compilation>,
-verify:=False,
+verify:=Verification.Skipped,
 expectedOutput:=<![CDATA[Initializing for System.Int64
 Initializing for System.Int32
 

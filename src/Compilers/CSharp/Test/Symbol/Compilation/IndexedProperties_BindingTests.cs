@@ -196,7 +196,7 @@ Public Class A
 End Class
 ";
 
-            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: true);
+            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: Verification.Passes);
             return reference;
         }
     }
