@@ -6,7 +6,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             => s_registerMethod.Invoke(context, new object[]
                {
                    new Action<OperationAnalysisContext>(AnalyzeOperation),
-                   ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodBindingExpression)
+                   ImmutableArray.Create(OperationKind.FieldReference, OperationKind.PropertyReference, OperationKind.MethodReference)
                });
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            var memberReference = (IMemberReferenceExpression)context.Operation;
+            var memberReference = (IMemberReferenceOperation)context.Operation;
 
             // this is a static reference so we don't care if it's qualified
             if (memberReference.Instance == null)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
-            if (memberReference.Instance.Kind != OperationKind.InstanceReferenceExpression)
+            if (memberReference.Instance.Kind != OperationKind.InstanceReference)
             {
                 return;
             }

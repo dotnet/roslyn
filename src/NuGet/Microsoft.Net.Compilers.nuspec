@@ -3,11 +3,18 @@
   <metadata>
     <id>Microsoft.Net.Compilers</id>
     <summary>
-    .Net Compilers package. Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
-
-    This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.6+ Full Framework.
+      .NET Compilers package.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      .NET Compilers package.
+      Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
+
+      This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.6+ Full Framework.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
@@ -31,15 +38,15 @@
     <file src="Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.dll" target="tools" />
     <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="tools" />
     <file src="Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.dll" target="tools" />
-    <file src="Exes\csc\csc.exe"  target="tools" />
-    <file src="Exes\csc\csc.exe.config"  target="tools" />
-    <file src="Exes\csc\csc.rsp"  target="tools" />
-    <file src="Exes\csi\csi.exe"  target="tools" />
-    <file src="Exes\csi\csi.exe.config"  target="tools" />
-    <file src="Exes\csi\csi.rsp"  target="tools" />
-    <file src="Exes\vbc\vbc.exe"  target="tools" />
-    <file src="Exes\vbc\vbc.exe.config"  target="tools" />
-    <file src="Exes\vbc\vbc.rsp"  target="tools" />
+    <file src="Exes\csc\net46\csc.exe"  target="tools" />
+    <file src="Exes\csc\net46\csc.exe.config"  target="tools" />
+    <file src="Exes\csc\net46\csc.rsp"  target="tools" />
+    <file src="Exes\csi\net46\csi.exe"  target="tools" />
+    <file src="Exes\csi\net46\csi.exe.config"  target="tools" />
+    <file src="Exes\csi\net46\csi.rsp"  target="tools" />
+    <file src="Exes\vbc\net46\vbc.exe"  target="tools" />
+    <file src="Exes\vbc\net46\vbc.exe.config"  target="tools" />
+    <file src="Exes\vbc\net46\vbc.rsp"  target="tools" />
     <file src="Exes\VBCSCompiler\net46\VBCSCompiler.exe" target="tools" />
     <file src="Exes\VBCSCompiler\net46\VBCSCompiler.exe.config" target="tools" />
     <file src="Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />

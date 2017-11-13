@@ -200,8 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
+            // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
 
-            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion)
+            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
+                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && valueBeforeConversion.Type == null))
             {
                 if (parameterType.IsNullableType())
                 {
@@ -561,6 +563,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {

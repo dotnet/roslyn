@@ -5,7 +5,13 @@
     <summary>
       CoreCLR-compatible versions of the C# and VB compilers.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      CoreCLR-compatible versions of the C# and VB compilers.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
@@ -30,7 +36,7 @@
   </metadata>
   <files>
     <file src="$emptyDirPath$/_._" target="ref/netcoreapp2.0" />
-    <file src="Exes/CscCore/csc.dll" target="runtimes/any/native" />
-    <file src="Exes/VbcCore/vbc.dll" target="runtimes/any/native" />
+    <file src="Exes/csc/netcoreapp2.0/csc.dll" target="runtimes/any/native" />
+    <file src="Exes/vbc/netcoreapp2.0/vbc.dll" target="runtimes/any/native" />
   </files>
 </package>

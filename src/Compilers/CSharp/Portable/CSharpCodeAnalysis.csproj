@@ -39,6 +39,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Syntax\Syntax.xml" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />

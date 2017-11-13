@@ -9597,6 +9597,32 @@ class C
             Assert.Equal("", result.Output.Trim());
         }
 
+        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
+        public void PdbPathNotEmittedWitoutPdb()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var source = @"class Program { static void Main() { } }";
+            var src = dir.CreateFile("a.cs").WriteAllText(source);
+            var args = new[] { "/nologo", "a.cs", "/out:a.exe", "/debug-" };
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var csc = new MockCSharpCompiler(null, dir.Path, args);
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            var exePath = Path.Combine(dir.Path, "a.exe");
+            Assert.True(File.Exists(exePath));
+            using (var peStream = File.OpenRead(exePath))
+            using (var peReader = new PEReader(peStream))
+            {
+                var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
+                Assert.Equal(0, debugDirectory.Size);
+                Assert.Equal(0, debugDirectory.RelativeVirtualAddress);
+            }
+        }
+
         public class QuotedArgumentTests
         {
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)

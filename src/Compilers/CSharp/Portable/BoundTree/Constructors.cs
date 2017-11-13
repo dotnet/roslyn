@@ -26,7 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), type, hasErrors)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: false, type: type, hasErrors: hasErrors)
+        {
+        }
+
+        public BoundFieldAccess(
+            SyntaxNode syntax,
+            BoundExpression receiver,
+            FieldSymbol fieldSymbol,
+            ConstantValue constantValueOpt,
+            LookupResultKind resultKind,
+            bool isDeclaration,
+            TypeSymbol type,
+            bool hasErrors = false)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: isDeclaration, type: type, hasErrors: hasErrors)
         {
         }
 
@@ -37,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol typeSymbol)
         {
-            return this.Update(receiver, fieldSymbol, constantValueOpt, resultKind, this.IsByValue, typeSymbol);
+            return this.Update(receiver, fieldSymbol, constantValueOpt, resultKind, this.IsByValue, this.IsDeclaration, typeSymbol);
         }
 
         private static bool NeedsByValueFieldAccess(BoundExpression receiver, FieldSymbol fieldSymbol)
@@ -506,8 +519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBlock
     {
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false): this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, statements, hasErrors)
-        { 
+        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false) : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, statements, hasErrors)
+        {
         }
 
         public static BoundBlock SynthesizedNoLocals(SyntaxNode syntax, BoundStatement statement)
@@ -539,6 +552,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt)
             : this(syntax, tryBlock, catchBlocks, finallyBlockOpt, preferFaultHandler: false, hasErrors: false)
+        {
+        }
+    }
+
+    internal partial class BoundDeclarationPattern
+    {
+        public BoundDeclarationPattern(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, bool isVar, bool hasErrors = false)
+            : this(syntax, localSymbol, localSymbol == null ? new BoundDiscardExpression(syntax, declaredType.Type) : (BoundExpression)new BoundLocal(syntax, localSymbol, null, declaredType.Type), declaredType, isVar, hasErrors)
         {
         }
     }

@@ -1469,6 +1469,39 @@ BC40000: 'Public Sub Bar()' is obsolete: 'hi'.
             compilation3.AssertTheseDiagnostics(expected2)
         End Sub
 
+        <Fact>
+        <WorkItem(22447, "https://github.com/dotnet/roslyn/issues/22447")>
+        Public Sub TestRefLikeType()
+            Dim csSource = <![CDATA[
+public ref struct S { }
+]]>
+
+            Dim csCompilation = CreateCSharpCompilation("Dll1", csSource.Value, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_2))
+            Dim ref = csCompilation.EmitToImageReference()
+
+            Dim vbSource =
+<compilation>
+    <file name="test.vb"><![CDATA[
+Module Program
+    Sub M(s As S)
+    End Sub
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim vbCompilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource, {ref})
+
+            vbCompilation.AssertTheseDiagnostics((<![CDATA[
+BC30668: 'S' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+    Sub M(s As S)
+               ~
+]]>))
+            vbCompilation.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "S").WithArguments("S", "Types with embedded references are not supported in this version of your compiler.").WithLocation(2, 16)
+                )
+        End Sub
+
         <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
         Public Sub Bug858839_1()
             Dim source1 =

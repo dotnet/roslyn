@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         actualTextBuilder.Append(Environment.NewLine);
                         AppendOperationTree(model, executableCodeBlock, actualTextBuilder, initialIndent: 2);
                     }
-                }               
+                }
 
                 actualTextBuilder.Append(Environment.NewLine);
             }
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IOperation operation = model.GetOperationInternal(node);
             if (operation != null)
             {
-                string operationTree = OperationTreeVerifier.GetOperationTree(operation, initialIndent);
+                string operationTree = OperationTreeVerifier.GetOperationTree(model.Compilation, operation, initialIndent);
                 actualTextBuilder.Append(operationTree);
             }
             else
@@ -251,5 +251,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static void ValidateIOperations(Func<Compilation> createCompilation)
+        {
+#if TEST_IOPERATION_INTERFACE
+            var compilation = createCompilation();
+
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+
+                foreach (var node in root.DescendantNodesAndSelf())
+                {
+                    var operation = semanticModel.GetOperationInternal(node);
+                    if (operation != null)
+                    {
+                        // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
+                        Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
+                    }
+                }
+            }
+#endif
+        }
     }
 }

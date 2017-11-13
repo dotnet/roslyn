@@ -260,13 +260,21 @@ unsafe struct S
 {
     fixed int F[G];
     fixed int G[1];
+    fixed int F1[(new S()).G];
 }
 ";
             // CONSIDER: Dev11 reports CS1666 (ERR_FixedBufferNotFixed), but that's no more helpful.
             CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     fixed int F1[(new S()).G];
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "(new S()).G").WithLocation(6, 18),
                 // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'S.G'
                 //     fixed int F[G];
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("S.G"));
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("S.G").WithLocation(4, 17),
+                // (4,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     fixed int F[G];
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "G").WithLocation(4, 17)
+                );
         }
 
         [Fact]
@@ -277,15 +285,23 @@ unsafe struct S
 unsafe struct S
 {
     fixed int F[F];
+    fixed int G[default(S).G];
 }
 ";
             // CONSIDER: Dev11 also reports CS0110 (ERR_CircConstValue), but Roslyn doesn't regard this as a cycle:
             // F has no initializer, so it has no constant value, so the constant value of F is "null" - not "the 
             // constant value of F" (i.e. cyclic).
             CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     fixed int G[default(S).G];
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "default(S).G").WithLocation(5, 17),
                 // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'S.F'
                 //     fixed int F[F];
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S.F"));
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S.F").WithLocation(4, 17),
+                // (4,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     fixed int F[F];
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "F").WithLocation(4, 17)
+                );
         }
 
         [Fact]

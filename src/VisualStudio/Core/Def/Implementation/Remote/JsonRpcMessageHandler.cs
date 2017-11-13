@@ -21,6 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             if (disposing)
             {
+                // note that this can cause double disposing of a stream if both are based on same stream.
+                // we can't check whether 2 are same because one of them could be wrapped stream such as bufferedstream which
+                // underneath points to same stream. 
                 ReceivingStream?.Dispose();
                 SendingStream?.Dispose();
             }

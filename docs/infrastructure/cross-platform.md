@@ -12,7 +12,7 @@ If you do not have a system-wide `dotnet` install, you can obtain one with `./bu
 
 ## Using the compiler
 
-After building, there will be a `csc` in the `Binaries/Debug/Exes/CscCore` directory.
+After building, there will be a `csc` in the `Binaries/Debug/Exes/csc/netcoreapp2.0` directory.
 
 ### Known issues when running `csc.exe`
 
