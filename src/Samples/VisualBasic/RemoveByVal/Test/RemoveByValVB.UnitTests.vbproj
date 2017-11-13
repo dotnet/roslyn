@@ -11,7 +11,7 @@
     <MyType>Windows</MyType>
     <OptionStrict>Off</OptionStrict>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>
     <WarningsAsErrors>41998,42004,42020,42021,42022,42026,42029,42031,42105,42106,42107,42353,42354,42355</WarningsAsErrors>

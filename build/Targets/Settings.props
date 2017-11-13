@@ -34,7 +34,8 @@
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynPortableTargetFrameworks>net461;netcoreapp2.0</RoslynPortableTargetFrameworks>
     <RoslynPortableTargetFrameworks46>net46;netcoreapp2.0</RoslynPortableTargetFrameworks46>
-    <RoslynPortableRuntimeIdentifiers>win7;win7-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
+    <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
+    <RoslynDesktopRuntimeIdentifiers>win</RoslynDesktopRuntimeIdentifiers>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
