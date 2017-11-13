@@ -236,7 +236,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Custom modifiers associated with local variable definition.
         /// </summary>
-        ImmutableArray<ICustomModifier> CustomModifiers
+        ImmutableArray<CustomModifier> CustomModifiers
         {
             get;
         }
@@ -718,18 +718,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
-        ImmutableArray<ICustomModifier> ReturnValueCustomModifiers
-        {
-            get;
-        }
+        ImmutableArray<CustomModifier> ReturnValueCustomModifiers { get; }
 
         /// <summary>
         /// Returns the list of custom modifiers, if any, associated with the ref modifier. 
         /// </summary>
-        ImmutableArray<ICustomModifier> RefCustomModifiers
-        {
-            get;
-        }
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// True if the return value is passed by reference (using a managed pointer).

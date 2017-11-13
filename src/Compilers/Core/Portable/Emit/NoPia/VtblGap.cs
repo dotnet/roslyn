@@ -236,14 +236,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
         }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        ImmutableArray<CustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
-            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        ImmutableArray<CustomModifier> Cci.ISignature.RefCustomModifiers
         {
-            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         bool Cci.ISignature.ReturnValueIsByRef

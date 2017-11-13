@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
             }
 
-            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+            ImmutableArray<CustomModifier> Cci.ISignature.ReturnValueCustomModifiers
             {
                 get
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+            ImmutableArray<CustomModifier> Cci.ISignature.RefCustomModifiers
             {
                 get
                 {

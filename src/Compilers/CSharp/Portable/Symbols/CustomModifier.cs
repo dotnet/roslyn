@@ -2,6 +2,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -57,6 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var modifier = (NamedTypeSymbol)customModifier.Modifier;
             return customModifier.IsOptional ? CreateOptional(modifier) : CreateRequired(modifier);
         }
+
+        internal override Cci.ITypeReference GetModifier(EmitContext context)
+            => ((PEModuleBuilder)context.Module).Translate(
+                    this.Modifier,
+                    (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
 
         private class OptionalCustomModifier : CSharpCustomModifier
         {

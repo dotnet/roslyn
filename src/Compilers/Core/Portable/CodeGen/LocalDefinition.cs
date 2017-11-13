@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
-            => ImmutableArray<Cci.ICustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> CustomModifiers
+            => ImmutableArray<CustomModifier>.Empty;
 
         public bool IsConstant
         {

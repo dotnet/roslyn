@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -31,12 +32,12 @@ namespace Microsoft.Cci
             get { return null; }
         }
 
-        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
+        public ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _containingMethod.RefCustomModifiers; }
         }
 
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
+        public ImmutableArray<CustomModifier> CustomModifiers
         {
             get { return _containingMethod.ReturnValueCustomModifiers; }
         }

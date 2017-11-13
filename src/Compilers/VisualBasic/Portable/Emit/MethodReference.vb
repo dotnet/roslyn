@@ -67,15 +67,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return moduleBeingBuilt.Translate(m_UnderlyingMethod.Parameters)
         End Function
 
-        Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.ReturnValueCustomModifiers
+        Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of CustomModifier) Implements Cci.ISignature.ReturnValueCustomModifiers
             Get
-                Return m_UnderlyingMethod.ReturnTypeCustomModifiers.As(Of Cci.ICustomModifier)
+                Return m_UnderlyingMethod.ReturnTypeCustomModifiers.As(Of CustomModifier)
             End Get
         End Property
 
-        Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.RefCustomModifiers
+        Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of CustomModifier) Implements Cci.ISignature.RefCustomModifiers
             Get
-                Return m_UnderlyingMethod.RefCustomModifiers.As(Of Cci.ICustomModifier)
+                Return m_UnderlyingMethod.RefCustomModifiers.As(Of CustomModifier)
             End Get
         End Property
 

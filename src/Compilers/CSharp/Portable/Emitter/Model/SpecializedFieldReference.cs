@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, customModifiers.As<Cci.ICustomModifier>());
+                return new Cci.ModifiedTypeReference(type, customModifiers);
             }
         }
 

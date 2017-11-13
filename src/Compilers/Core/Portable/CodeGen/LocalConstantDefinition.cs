@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsConstant => true;
 
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
-            => ImmutableArray<Cci.ICustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> CustomModifiers
+            => ImmutableArray<CustomModifier>.Empty;
 
         public bool IsModified => false;
 

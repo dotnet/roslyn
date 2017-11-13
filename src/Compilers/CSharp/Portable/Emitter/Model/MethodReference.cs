@@ -86,19 +86,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return moduleBeingBuilt.Translate(UnderlyingMethod.Parameters);
         }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        ImmutableArray<CustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
             get
             {
-                return UnderlyingMethod.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return UnderlyingMethod.ReturnTypeCustomModifiers;
             }
         }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        ImmutableArray<CustomModifier> Cci.ISignature.RefCustomModifiers
         {
             get
             {
-                return UnderlyingMethod.RefCustomModifiers.As<Cci.ICustomModifier>();
+                return UnderlyingMethod.RefCustomModifiers;
             }
         }
 

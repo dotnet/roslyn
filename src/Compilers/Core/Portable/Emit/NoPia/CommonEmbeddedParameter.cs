@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return Name; }
             }
 
-            ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
+            ImmutableArray<CustomModifier> Cci.IParameterTypeInformation.CustomModifiers
             {
                 get
                 {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
+            ImmutableArray<CustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
             {
                 get
                 {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -12,9 +13,9 @@ namespace Microsoft.Cci
     internal sealed class ModifiedTypeReference : IModifiedTypeReference
     {
         private readonly ITypeReference _modifiedType;
-        private readonly ImmutableArray<ICustomModifier> _customModifiers;
+        private readonly ImmutableArray<CustomModifier> _customModifiers;
 
-        public ModifiedTypeReference(ITypeReference modifiedType, ImmutableArray<ICustomModifier> customModifiers)
+        public ModifiedTypeReference(ITypeReference modifiedType, ImmutableArray<CustomModifier> customModifiers)
         {
             Debug.Assert(modifiedType != null);
             Debug.Assert(!customModifiers.IsDefault);
@@ -23,7 +24,7 @@ namespace Microsoft.Cci
             _customModifiers = customModifiers;
         }
 
-        ImmutableArray<ICustomModifier> IModifiedTypeReference.CustomModifiers
+        ImmutableArray<CustomModifier> IModifiedTypeReference.CustomModifiers
         {
             get
             {

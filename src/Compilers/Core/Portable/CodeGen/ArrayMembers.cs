@@ -247,11 +247,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return new ArrayMethodParameterInfo(index);
         }
 
-        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
-            => ImmutableArray<Cci.ICustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> RefCustomModifiers
+            => ImmutableArray<CustomModifier>.Empty;
 
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
-            => ImmutableArray<Cci.ICustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> CustomModifiers
+            => ImmutableArray<CustomModifier>.Empty;
 
         public bool IsByReference => false;
 
@@ -337,11 +337,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ushort ParameterCount => (ushort)_parameters.Length;
 
-        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
-            => ImmutableArray<Cci.ICustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> RefCustomModifiers
+            => ImmutableArray<CustomModifier>.Empty;
 
-        public ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers
-            => ImmutableArray<Cci.ICustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> ReturnValueCustomModifiers
+            => ImmutableArray<CustomModifier>.Empty;
 
         public Cci.ITypeReference GetContainingType(EmitContext context)
         {

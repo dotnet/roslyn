@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If customModifiers.Length = 0 Then
                 Return type
             Else
-                Return New ModifiedTypeReference(type, customModifiers.As(Of Cci.ICustomModifier))
+                Return New ModifiedTypeReference(type, customModifiers.As(Of CustomModifier))
             End If
         End Function
 
