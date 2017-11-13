@@ -10,7 +10,7 @@
     <RootNamespace>DevDivPackagesDebugger</RootNamespace>
     <AssemblyName>DevDivPackagesDebugger_DoNotUse</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win;win7</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

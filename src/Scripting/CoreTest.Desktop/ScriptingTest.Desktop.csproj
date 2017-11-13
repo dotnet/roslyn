@@ -11,7 +11,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">

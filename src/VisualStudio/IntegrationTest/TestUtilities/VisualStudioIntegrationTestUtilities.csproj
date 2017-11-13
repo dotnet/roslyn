@@ -9,7 +9,7 @@
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Utilities</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTest.Utilities</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />

@@ -10,7 +10,7 @@
     <RootNamespace>Roslyn.VisualStudio.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.CSharp.UnitTests</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">

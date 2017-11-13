@@ -21,7 +21,8 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <BaseNuGetRuntimeIdentifier>$(RoslynDesktopRuntimeIdentifiers)</BaseNuGetRuntimeIdentifier>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
     <TargetFrameworkProfile />
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>

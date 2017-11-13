@@ -34,8 +34,10 @@
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynPortableTargetFrameworks>net461;netcoreapp2.0</RoslynPortableTargetFrameworks>
     <RoslynPortableTargetFrameworks46>net46;netcoreapp2.0</RoslynPortableTargetFrameworks46>
-    <RoslynPortableRuntimeIdentifiers>win7;win7-x64</RoslynPortableRuntimeIdentifiers>
- 
+    <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
+    <RoslynDesktopRuntimeIdentifiers>win</RoslynDesktopRuntimeIdentifiers>
+    <UseSharedCompilation>true</UseSharedCompilation>
+
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <Features>strict, IOperation</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
@@ -106,16 +108,16 @@
 
     <!-- https://github.com/dotnet/roslyn/issues/21272 -->
     <GenerateResourceMSBuildRuntime Condition="'$(TargetFramework)' == 'netcoreapp2.0'">CurrentRuntime</GenerateResourceMSBuildRuntime>
-   
-    <!-- 
+
+    <!--
       Official build:
        - Build standalone Portable PDBs to reduce the size of the binaries.
        - Convert Portable PDBs to Windows PDBs and publish the converted PDBs to Symbol Store to allow WinDBG, 
          Watson and other tools to find symbol format they understand.
-        
+
       Jenkins build:
        - Embed PDBs to make it easier to debug Jenkins crash dumps.
-       
+
       Developer build:
        - Embed PDBs to be consistent with Jenkins builds.
     -->
@@ -141,8 +143,6 @@
 
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-    <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
-    <UseSharedCompilation>true</UseSharedCompilation>
 
     <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
          in the Dev15 environment.  -->
@@ -153,12 +153,6 @@
 
     <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
     <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>
-  </PropertyGroup>
-
-  <!-- Unix specific settings -->
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <RoslynDebugType>portable</RoslynDebugType>
-    <RoslynPortableRuntimeIdentifiers>linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
   </PropertyGroup>
 
   <!--

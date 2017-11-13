@@ -343,7 +343,7 @@ function Test-PerfRun() {
 function Test-XUnitCoreClr() { 
 
     $unitDir = Join-Path $configDir "UnitTests"
-    $runtimeIdentifier = "win7-x64"
+    $runtimeIdentifier = "win-x64"
     $tf = "netcoreapp2.0"
     $logDir = Join-Path $unitDir "xUnitResults"
     Create-Directory $logDir 

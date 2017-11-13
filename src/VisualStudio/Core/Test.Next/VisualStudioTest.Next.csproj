@@ -10,7 +10,7 @@
     <RootNamespace>Roslyn.VisualStudio.Next.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Next.UnitTests</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>

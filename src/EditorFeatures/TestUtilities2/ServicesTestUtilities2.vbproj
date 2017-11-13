@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Services.Test.Utilities2</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />

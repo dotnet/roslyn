@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.Editor.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.UnitTests</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">

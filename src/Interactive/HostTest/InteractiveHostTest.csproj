@@ -10,7 +10,7 @@
     <RootNamespace>Roslyn.InteractiveHost.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.InteractiveHost.UnitTests</AssemblyName>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">

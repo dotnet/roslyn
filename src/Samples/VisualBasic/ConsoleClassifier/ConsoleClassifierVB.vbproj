@@ -13,7 +13,7 @@
     <AssemblyName>ConsoleClassifier</AssemblyName>
     <MyType>Console</MyType>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
     <ScrubbedSamplePath>VisualBasic\ConsoleClassifier</ScrubbedSamplePath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OptionStrict>Off</OptionStrict>
