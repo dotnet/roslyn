@@ -19,7 +19,7 @@
     <RootNamespace>Roslyn.Samples.CodeAction.AddOrRemoveRefOutModifier</RootNamespace>
     <AssemblyName>Roslyn.Samples.CodeAction.AddOrRemoveRefOutModifier</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynDesktopRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <UseCodeBase>true</UseCodeBase>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>

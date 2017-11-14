@@ -35,7 +35,8 @@
     <RoslynPortableTargetFrameworks>net461;netcoreapp2.0</RoslynPortableTargetFrameworks>
     <RoslynPortableTargetFrameworks46>net46;netcoreapp2.0</RoslynPortableTargetFrameworks46>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
-    <RoslynDesktopRuntimeIdentifiers>win</RoslynDesktopRuntimeIdentifiers>
+    <RoslynDesktopRuntimeIdentifier>win</RoslynDesktopRuntimeIdentifier>
+    <RoslynDesktopRuntimeIdentifierX86>win-x86</RoslynDesktopRuntimeIdentifierX86>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
