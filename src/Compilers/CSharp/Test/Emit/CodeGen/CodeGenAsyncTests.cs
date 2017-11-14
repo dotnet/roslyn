@@ -5015,5 +5015,51 @@ public class C {
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]
+        public void CaptureAssignedInOuterFinally()
+        {
+            var source = @"
+
+using System;
+using System.Threading.Tasks;
+
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            Test().Wait();
+            System.Console.WriteLine(""success"");
+        }
+
+        public static async Task Test()
+        {
+            // declaring variable before try/finally and nulling it in finally cause NRE in try's body
+            var obj = new Object();
+
+            try
+            {
+                for(int i = 0; i < 3; i++)
+                {
+                    // NRE on second iteration
+                    obj.ToString();
+                    await Task.Yield();
+                }
+            }
+            finally
+            {
+                obj = null;
+            }
+        }
+    }
+";
+            var expectedOutput = @"success";
+
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
