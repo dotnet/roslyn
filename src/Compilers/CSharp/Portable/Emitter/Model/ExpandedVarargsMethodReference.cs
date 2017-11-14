@@ -97,12 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _underlyingMethod.GetParameters(context);
         }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        ImmutableArray<CustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
             get { return _underlyingMethod.ReturnValueCustomModifiers; }
         }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        ImmutableArray<CustomModifier> Cci.ISignature.RefCustomModifiers
         {
             get { return _underlyingMethod.RefCustomModifiers; }
         }

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
+        public ImmutableArray<CustomModifier> CustomModifiers
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

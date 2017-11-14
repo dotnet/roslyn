@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Cci
 {
@@ -30,7 +31,7 @@ namespace Microsoft.Cci
 
         protected abstract void RecordAssemblyReference(IAssemblyReference assemblyReference);
 
-        public override void Visit(ICustomModifier customModifier)
+        public override void Visit(CustomModifier customModifier)
         {
             this.typeReferenceNeedsToken = true;
             this.Visit(customModifier.GetModifier(Context));

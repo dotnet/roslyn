@@ -71,23 +71,6 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// Modifies the set of allowed values for a type, or the semantics of operations allowed on those values. 
-    /// Custom modifiers are not associated directly with types, but rather with typed storage locations for values.
-    /// </summary>
-    internal interface ICustomModifier
-    {
-        /// <summary>
-        /// If true, a language may use the modified storage location without being aware of the meaning of the modification.
-        /// </summary>
-        bool IsOptional { get; }
-
-        /// <summary>
-        /// A type used as a tag that indicates which type of modification applies to the storage location.
-        /// </summary>
-        ITypeReference GetModifier(EmitContext context);
-    }
-
-    /// <summary>
     /// Information that describes a method or property parameter, but does not include all the information in a IParameterDefinition.
     /// </summary>
     internal interface IParameterTypeInformation : IParameterListEntry
@@ -95,7 +78,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The list of custom modifiers, if any, associated with the parameter type. 
         /// </summary>
-        ImmutableArray<ICustomModifier> CustomModifiers
+        ImmutableArray<CustomModifier> CustomModifiers
         {
             get;
         }
@@ -103,7 +86,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The list of custom modifiers, if any, associated with the ref modifier. 
         /// </summary>
-        ImmutableArray<ICustomModifier> RefCustomModifiers
+        ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get;
         }
@@ -361,7 +344,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns the list of custom modifiers associated with the type reference.
         /// </summary>
-        ImmutableArray<ICustomModifier> CustomModifiers { get; }
+        ImmutableArray<CustomModifier> CustomModifiers { get; }
 
         /// <summary>
         /// An unmodified type reference.

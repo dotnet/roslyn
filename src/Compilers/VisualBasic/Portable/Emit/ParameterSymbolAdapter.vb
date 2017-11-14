@@ -12,15 +12,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IParameterTypeInformation
         Implements IParameterDefinition
 
-        Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements IParameterTypeInformation.CustomModifiers
+        Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of CustomModifier) Implements IParameterTypeInformation.CustomModifiers
             Get
-                Return Me.CustomModifiers.As(Of Cci.ICustomModifier)
+                Return Me.CustomModifiers.As(Of CustomModifier)
             End Get
         End Property
 
-        Private ReadOnly Property IParameterTypeInformationRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements IParameterTypeInformation.RefCustomModifiers
+        Private ReadOnly Property IParameterTypeInformationRefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IParameterTypeInformation.RefCustomModifiers
             Get
-                Return Me.RefCustomModifiers.As(Of Cci.ICustomModifier)
+                Return Me.RefCustomModifiers.As(Of CustomModifier)
             End Get
         End Property
 

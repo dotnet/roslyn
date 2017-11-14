@@ -167,15 +167,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return StaticCast(Of Cci.IParameterTypeInformation).From(Me.Parameters)
         End Function
 
-        Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.ReturnValueCustomModifiers
+        Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of CustomModifier) Implements Cci.ISignature.ReturnValueCustomModifiers
             Get
-                Return Me.ReturnTypeCustomModifiers.As(Of Cci.ICustomModifier)
+                Return Me.ReturnTypeCustomModifiers.As(Of CustomModifier)
             End Get
         End Property
 
-        Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.RefCustomModifiers
+        Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of CustomModifier) Implements Cci.ISignature.RefCustomModifiers
             Get
-                Return Me.RefCustomModifiers.As(Of Cci.ICustomModifier)
+                Return Me.RefCustomModifiers.As(Of CustomModifier)
             End Get
         End Property
 

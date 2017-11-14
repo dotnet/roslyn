@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If customModifiers.Length = 0 Then
                 Return type
             Else
-                Return New Cci.ModifiedTypeReference(type, customModifiers.As(Of Cci.ICustomModifier))
+                Return New Cci.ModifiedTypeReference(type, customModifiers.As(Of CustomModifier))
             End If
         End Function
 

@@ -3996,7 +3996,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeCustomModifiers(CustomModifiersEncoder encoder, ImmutableArray<ICustomModifier> modifiers)
+        private void SerializeCustomModifiers(CustomModifiersEncoder encoder, ImmutableArray<CustomModifier> modifiers)
         {
             foreach (var modifier in modifiers)
             {
