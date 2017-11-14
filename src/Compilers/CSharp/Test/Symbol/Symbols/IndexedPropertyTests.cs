@@ -1555,7 +1555,7 @@ End Class";
         o = b.Q[2, 3];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, verify: Verification.Fails);
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, verify: Verification.Skipped);
             compilation3.VerifyIL("C.M(B)",
 @"{
   // Code size       33 (0x21)

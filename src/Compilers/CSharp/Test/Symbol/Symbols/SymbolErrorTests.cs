@@ -6929,7 +6929,7 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation(modSource,
                 new List<MetadataReference>()
@@ -7000,7 +7000,7 @@ extern alias FT1;
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("",
                 new List<MetadataReference>()
