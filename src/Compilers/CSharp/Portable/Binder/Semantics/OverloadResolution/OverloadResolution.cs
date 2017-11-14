@@ -1866,8 +1866,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // If an ambiguity exists between 'by-val' and 'in' parameter, choose the 'by-val' one.
-            // Except if it was params. Subsequent betterness analysis will always prefer the non-params one.
+            // If an ambiguity exists between 'by-val' and 'in' parameter, choose the 'by-val' one, except if it was params,
+            // for later betterness analysis will decide on whether the expanded/non-expanded form can be used, or if it is ambiguous.
             if (!p1.IsParams && p1.RefKind == RefKind.None && p2.RefKind == RefKind.In)
             {
                 return BetterResult.Left;

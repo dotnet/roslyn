@@ -9734,6 +9734,72 @@ in: 3");
         }
 
         [Fact]
+        public void PassingInArgumentsOverloadedOnInParams_Array()
+        {
+            var code = @"
+using System;
+class Program
+{
+    void M(in int[] p) { Console.WriteLine(""in: "" + p.Length); }
+    void M(params int[] p) { Console.WriteLine(""params: "" + p.Length); }
+
+    static void Main()
+    {
+        var p = new Program();
+
+        p.M();
+        p.M(1);
+        p.M(1, 2);
+
+        var x = new int[] { };
+        p.M(in x);
+
+        x = new int[] { 1 };
+        p.M(in x);
+
+        x = new int[] { 1, 2 };
+        p.M(in x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput:
+@"params: 0
+params: 1
+params: 2
+in: 0
+in: 1
+in: 2");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInParams_Array_Error()
+        {
+            var code = @"
+class Program
+{
+    void M(in int[] p) { }
+    void M(params int[] p) { }
+
+    static void Main()
+    {
+        var p = new Program();
+        p.M(new int[] { });
+
+        var x = new int[] { };
+        p.M(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (10,11): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(in int[])' and 'Program.M(params int[])'
+                //         p.M(new int[] { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(in int[])", "Program.M(params int[])").WithLocation(10, 11),
+                // (13,11): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(in int[])' and 'Program.M(params int[])'
+                //         p.M(x);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(in int[])", "Program.M(params int[])").WithLocation(13, 11));
+        }
+
+        [Fact]
         public void PassingArgumentsToOverloadsOfByValAndInParameters_Methods()
         {
             CompileAndVerify(@"
