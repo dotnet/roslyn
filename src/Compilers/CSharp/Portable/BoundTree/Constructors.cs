@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol)
-            : this(syntax, parameterSymbol, type: parameterSymbol.Type)
+            : this(syntax, parameterSymbol, parameterSymbol.Type)
         {
         }
     }
