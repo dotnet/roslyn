@@ -2,6 +2,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -163,6 +164,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
                 Return _typeSymbol
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
             End Get
         End Property
 

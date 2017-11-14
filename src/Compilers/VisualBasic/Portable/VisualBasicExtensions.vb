@@ -1415,6 +1415,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        ''' conversion is applied before the operator is applied to the result of this conversion and <see cref="IAssignmentOperation.Value"/>.
+        ''' </summary>
+        ''' <remarks>
+        ''' This compound assignment must have been created from Visual Basic code.
+        ''' </remarks>
+        <Extension>
+        Public Function GetInConversion(compoundAssignment As ICompoundAssignmentOperation) As Conversion
+            If compoundAssignment Is Nothing Then
+                Throw New ArgumentNullException(NameOf(compoundAssignment))
+            End If
+
+            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
+            If basicCompoundOperation IsNot Nothing Then
+                Return basicCompoundOperation.InConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
+                                                          NameOf(compoundAssignment)),
+                                            NameOf(compoundAssignment))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        ''' conversion is applied after the operator is applied, before the result is assigned to <see cref="IAssignmentOperation.Target"/>.
+        ''' </summary>
+        ''' <remarks>
+        ''' This compound assignment must have been created from Visual Basic code.
+        ''' </remarks>
+        <Extension>
+        Public Function GetOutConversion(compoundAssignment As ICompoundAssignmentOperation) As Conversion
+            If compoundAssignment Is Nothing Then
+                Throw New ArgumentNullException(NameOf(compoundAssignment))
+            End If
+
+            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
+            If basicCompoundOperation IsNot Nothing Then
+                Return basicCompoundOperation.OutConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
+                                                          NameOf(compoundAssignment)),
+                                            NameOf(compoundAssignment))
+            End If
+        End Function
+
         <Extension>
         Public Function GetSpeculativeConversion(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As Conversion
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)

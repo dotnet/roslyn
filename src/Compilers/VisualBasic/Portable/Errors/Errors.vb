@@ -2012,7 +2012,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_DigitSeparators
         FEATURE_BinaryLiterals
         FEATURE_Tuples
-        FEATURE_IOperation
         FEATURE_LeadingDigitSeparator
         FEATURE_PrivateProtected
     End Enum

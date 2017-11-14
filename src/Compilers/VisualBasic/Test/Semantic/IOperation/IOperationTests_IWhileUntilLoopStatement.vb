@@ -29,20 +29,20 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... While i < 4')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... While i < 4')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 4')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-  IgnoredCondition: 
-    null
   Body: 
     IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... While i < 4')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'sum += ids(i)')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'sum += ids(i)')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: sum (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'sum')
             Right: 
@@ -54,10 +54,14 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of DoLoopBlockSyntax)(source, expectedOperationTree)
@@ -77,7 +81,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDoLoopOperation (DoLoopKind: DoUntilTopLoop) (LoopKind.Do) (OperationKind.Loop, Type: null) (Syntax: 'Do Until X  ... Loop')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: True) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do Until X  ... Loop')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'X < 0')
       Left: 
@@ -86,8 +90,6 @@ IDoLoopOperation (DoLoopKind: DoUntilTopLoop) (LoopKind.Do) (OperationKind.Loop,
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-  IgnoredCondition: 
-    null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do Until X  ... Loop')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'X = X - 1')
@@ -105,6 +107,8 @@ IDoLoopOperation (DoLoopKind: DoUntilTopLoop) (LoopKind.Do) (OperationKind.Loop,
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -131,7 +135,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While condi ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While condi ... End While')
   Condition: 
     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
@@ -171,6 +175,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
         WhenFalse: 
           null
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -197,7 +203,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 5 ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 5 ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
@@ -209,6 +215,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'sum += i')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'sum += i')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: sum (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'sum')
             Right: 
@@ -216,10 +224,14 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -245,7 +257,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
@@ -299,6 +311,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "While-loop statement") (Syntax: '"While-loop statement"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -323,7 +337,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
@@ -375,6 +389,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "While-loop statement") (Syntax: '"While-loop statement"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -401,7 +417,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While (Inli ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While (Inli ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(InlineAssi ... alue)) >= 0')
       Left: 
@@ -450,10 +466,14 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'value -= 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'value -= 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'value')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -473,7 +493,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While numbe ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While numbe ... End While')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'number')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -481,6 +501,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
         ILocalReferenceOperation: number (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'number')
   Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While numbe ... End While')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -507,7 +529,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
@@ -535,10 +557,14 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'number += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'number += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -566,7 +592,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
@@ -592,6 +618,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'number += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'number += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
             Right: 
@@ -602,6 +630,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return number')
         ReturnedValue: 
           IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -626,7 +656,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'While 'BIND ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'While 'BIND ... End While')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
@@ -667,6 +697,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
         WhenFalse: 
           null
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -688,13 +720,15 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While (cond ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While (cond ... End While')
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(condition)')
       Operand: 
         ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While (cond ... End While')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -719,7 +753,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i <=  ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i <=  ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: 
@@ -731,6 +765,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -757,6 +793,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -785,7 +823,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While IsTru ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While IsTru ... End While')
   Condition: 
     IInvocationOperation (Function ContinueTest.IsTrue(i As System.Int32) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'IsTrue(i)')
       Instance Receiver: 
@@ -800,6 +838,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -814,6 +854,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -840,7 +882,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 1 ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 1 ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
@@ -853,6 +895,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -866,7 +910,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While j < 1 ... End While')
+      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While j < 1 ... End While')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
@@ -878,6 +922,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j += 1')
               Expression: 
                 ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j += 1')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
@@ -892,6 +938,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IgnoredCondition: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(i)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
@@ -902,6 +950,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -929,7 +979,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 1 ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 1 ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
@@ -942,6 +992,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -955,7 +1007,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While j < 1 ... End While')
+      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While j < 1 ... End While')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
@@ -967,6 +1019,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j += 1')
               Expression: 
                 ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j += 1')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
@@ -992,6 +1046,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IgnoredCondition: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(i)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
@@ -1002,6 +1058,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -1022,7 +1080,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While Syste ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While Syste ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'System.Thre ... ment(i) < 5')
       Left: 
@@ -1048,6 +1106,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -1069,7 +1129,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i > 0 ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i > 0 ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
       Left: 
@@ -1081,10 +1141,14 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
           ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -1106,7 +1170,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While b = b ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While b = b ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: True) (Syntax: 'b = b')
       Left: 
@@ -1118,6 +1182,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return b')
         ReturnedValue: 
           ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean, Constant: True) (Syntax: 'b')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -1143,7 +1209,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'While Syste ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'While Syste ... End While')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'System.Math ...  x + 1) > 0')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1204,6 +1270,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
                 Arguments(0)
                 Initializer: 
                   null
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -1229,14 +1297,12 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDoLoopOperation (DoLoopKind: DoWhileTopLoop) (LoopKind.Do) (OperationKind.Loop, Type: null) (Syntax: 'Do While G( ... Loop')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do While G( ... Loop')
   Condition: 
     IInvocationOperation ( Function C.G() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'G()')
       Instance Receiver: 
         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'G')
       Arguments(0)
-  IgnoredCondition: 
-    null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do While G( ... Loop')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(1)')
@@ -1249,6 +1315,8 @@ IDoLoopOperation (DoLoopKind: DoWhileTopLoop) (LoopKind.Do) (OperationKind.Loop,
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of DoLoopBlockSyntax)(source, expectedOperationTree)
@@ -1274,14 +1342,12 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... p While G()')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... p While G()')
   Condition: 
     IInvocationOperation ( Function C.G() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'G()')
       Instance Receiver: 
         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'G')
       Arguments(0)
-  IgnoredCondition: 
-    null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... p While G()')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(1)')
@@ -1294,6 +1360,8 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of DoLoopBlockSyntax)(source, expectedOperationTree)
@@ -1313,7 +1381,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDoLoopOperation (DoLoopKind: DoUntilBottomLoop) (LoopKind.Do) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... Until X < 0')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: True) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... Until X < 0')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'X < 0')
       Left: 
@@ -1322,8 +1390,6 @@ IDoLoopOperation (DoLoopKind: DoUntilBottomLoop) (LoopKind.Do) (OperationKind.Lo
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-  IgnoredCondition: 
-    null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... Until X < 0')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'X = X - 1')
@@ -1341,6 +1407,8 @@ IDoLoopOperation (DoLoopKind: DoUntilBottomLoop) (LoopKind.Do) (OperationKind.Lo
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredCondition: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1369,7 +1437,7 @@ End Module
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While Not b ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While Not b ... End While')
   Condition: 
     IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, Type: System.Boolean) (Syntax: 'Not breakLoop')
       Operand: 
@@ -1400,6 +1468,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               ILocalReferenceOperation: breakLoop (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'breakLoop')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+  IgnoredCondition: 
+    null
 ]]>.Value
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -1418,15 +1488,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDoLoopOperation (DoLoopKind: None) (LoopKind.Do) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
-      Left: 
-        IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
-      Right: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-  IgnoredCondition: 
-    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 0')
       Left: 
         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -1444,6 +1508,12 @@ IDoLoopOperation (DoLoopKind: None) (LoopKind.Do) (OperationKind.Loop, Type: nul
                   IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredCondition: 
+    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 0')
+      Left: 
+        IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+      Right: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

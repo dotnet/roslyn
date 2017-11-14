@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, object argument)
         {
-            return new VariableDeclarator(operation.Symbol, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclarator(operation.Symbol, Visit(operation.Initializer), VisitArray(operation.IgnoredArguments), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
@@ -84,14 +84,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DefaultCaseClause(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitDoLoop(IDoLoopOperation operation, object argument)
-        {
-            return new DoLoopStatement(operation.DoLoopKind, Visit(operation.Condition), Visit(operation.Body), Visit(operation.IgnoredCondition), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitWhileLoop(IWhileLoopOperation operation, object argument)
         {
-            return new WhileLoopStatement(Visit(operation.Condition), Visit(operation.Body), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new WhileLoopStatement(Visit(operation.Condition), Visit(operation.Body), Visit(operation.IgnoredCondition), operation.Locals, operation.ConditionIsTop, operation.ConditionIsUntil, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForLoop(IForLoopOperation operation, object argument)
@@ -357,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, object argument)
         {
-            return new PropertyInitializer(operation.InitializedProperty, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new PropertyInitializer(operation.InitializedProperties, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, object argument)
@@ -372,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
         {
-            return new ArrayInitializer(VisitArray(operation.ElementValues), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ArrayInitializer(VisitArray(operation.ElementValues), ((Operation)operation).SemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSimpleAssignment(ISimpleAssignmentOperation operation, object argument)
@@ -388,11 +383,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, object argument)
         {
             return new DeclarationExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, object argument)
-        {
-            return new CompoundAssignmentExpression(operation.OperatorKind, operation.IsLifted, operation.IsChecked, Visit(operation.Target), Visit(operation.Value), operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, object argument)
