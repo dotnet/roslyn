@@ -108,6 +108,63 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub CreateCompilationWithKeyFile()
+            Dim source = "
+Public Class C
+    Public Shared Sub Main()
+    End Sub
+End Class"
+
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source)
+
+            Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keyfile:key.snk"})
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+
+            Assert.True(TypeOf comp.Options.StrongNameProvider Is PortableStrongNameProvider)
+        End Sub
+
+        <Fact>
+        Public Sub CreateCompilationWithCryptoContainer()
+            Dim source = "
+Public Class C
+    Public Shared Sub Main()
+    End Sub
+End Class"
+
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source)
+
+            Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keycontainer:aaa"})
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+
+            Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
+        End Sub
+
+        <Fact>
+        Public Sub CreateCompilationWithStrongNameFallbackCommand()
+            Dim source = "
+Public Class C
+    Public Shared Sub Main()
+    End Sub
+End Class"
+
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source)
+
+            Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/features:UseLegacyStrongNameProvider"})
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+
+            Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
+        End Sub
+
+        <Fact>
         Public Sub ParseQuotedMainTypeAndRootnamespace()
             'These options are always unquoted when parsed in VisualBasicCommandLineParser.Parse.
 

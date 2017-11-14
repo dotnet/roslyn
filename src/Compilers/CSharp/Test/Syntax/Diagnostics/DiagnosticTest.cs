@@ -2493,8 +2493,9 @@ class Program
             var snkPath = snk.Path;
 
             const string source = "";
+            var options = TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath);
 
-            var ca = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath));
+            var ca = CreateStandardCompilation(source, options: options);
 
             ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 // error CS7027: Error signing output with public key from file '{temp path}' -- Assembly signing not supported.

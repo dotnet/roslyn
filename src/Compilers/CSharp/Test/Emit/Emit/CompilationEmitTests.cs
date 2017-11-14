@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -1529,7 +1530,7 @@ comp => comp.VerifyDiagnostics(
         {
             var signedDllOptions = TestOptions.ReleaseDll.
                  WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                 WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+                 WithStrongNameProvider(s_defaultDesktopProvider);
 
             var comp = CreateStandardCompilation("public class C{}", options: signedDllOptions);
 
@@ -1549,7 +1550,7 @@ comp => comp.VerifyDiagnostics(
             var signedDllOptions = TestOptions.ReleaseDll
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile)
                 .WithDelaySign(true)
-                .WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+                .WithStrongNameProvider(s_defaultDesktopProvider);
 
             var comp = CreateStandardCompilation("public class C{}", options: signedDllOptions);
 

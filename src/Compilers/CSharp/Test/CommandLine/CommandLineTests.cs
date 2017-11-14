@@ -188,7 +188,7 @@ a.cs
                 { prependBasePath(@"a.rsp"), @"
 ""@subdir\b.rsp""
 /r:..\v4.0.30319\System.dll
-/r:.\System.Data.dll 
+/r:.\System.Data.dll
 a.cs @""..\c.rsp"" @\d.rsp
 /libpaths:..\goo;../bar;""a b""
 "
@@ -1050,7 +1050,7 @@ d.cs
                 Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
 
             parsedArgs = DefaultParse(new[] { "/target:xyz"}, _baseDirectory);
-            parsedArgs.Errors.Verify(    
+            parsedArgs.Errors.Verify(
                 // error CS2019: Invalid target type for /target: must specify 'exe', 'winexe', 'library', or 'module'
                 Diagnostic(ErrorCode.FTL_InvalidTarget).WithLocation(1, 1),
                 // warning CS2008: No source files specified.
@@ -1059,7 +1059,7 @@ d.cs
                 Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
 
             parsedArgs = DefaultParse(new[] { "/T+"}, _baseDirectory);
-            parsedArgs.Errors.Verify(    
+            parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/T+'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/T+").WithLocation(1, 1),
                 // warning CS2008: No source files specified.
@@ -1619,7 +1619,7 @@ d.cs
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.False(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat);
-       
+
             parsedArgs = DefaultParse(new[] { "/debug:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "debug"));
 
@@ -1924,7 +1924,7 @@ d.cs
             // embed.cs: large enough to compress, has #line directives
             const string embed_cs =
 @"///////////////////////////////////////////////////////////////////////////////
-class Program { 
+class Program {
     static void Main() {
 #line 1 ""embed.xyz""
         System.Console.WriteLine(""Hello, World"");
@@ -1940,7 +1940,7 @@ class Program {
 @"class C
 {
 }";
-            // target of #line 
+            // target of #line
             const string embed_xyz =
 @"print Hello, World
 
@@ -4869,7 +4869,7 @@ public class CS1698_a {}
             // Roslyn no longer generates a warning for this...since this was only a warning, we're not really
             // saving anyone...does not provide high value to implement...
 
-            // warning CS1698: Circular assembly reference 'CS1698a, Version=2.0.0.0, Culture=neutral,PublicKeyToken = 9e9d6755e7bb4c10' 
+            // warning CS1698: Circular assembly reference 'CS1698a, Version=2.0.0.0, Culture=neutral,PublicKeyToken = 9e9d6755e7bb4c10'
             // does not match the output assembly name 'CS1698a, Version = 3.0.0.0, Culture = neutral, PublicKeyToken = 9e9d6755e7bb4c10'.
             // Try adding a reference to 'CS1698a, Version = 2.0.0.0, Culture = neutral, PublicKeyToken = 9e9d6755e7bb4c10' or changing the output assembly name to match.
             parsedArgs.Errors.Verify();
@@ -4902,7 +4902,7 @@ public class CS1698_a {}
         public void Bug15538()
         {
             // Several Jenkins VMs are still running with local systems permissions.  This suite won't run properly
-            // in that environment.  Removing this check is being tracked by issue #79.  
+            // in that environment.  Removing this check is being tracked by issue #79.
             using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
             {
                 if (identity.IsSystem)
@@ -4941,16 +4941,16 @@ public class CS1698_a {}
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
 // <Area> ExternAlias - command line alias</Area>
-// <Title> 
+// <Title>
 // negative test cases: empty file name ("""")
 // </Title>
 // <Description>
 // </Description>
-// <RelatedBugs></RelatedBugs> 
+// <RelatedBugs></RelatedBugs>
 
 //<Expects Status=error>CS1680:.*myAlias=</Expects>
 
-// <Code> 
+// <Code>
 class myClass
 {
     static int Main()
@@ -4967,7 +4967,7 @@ class myClass
 ").Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp
             var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
@@ -4983,16 +4983,16 @@ class myClass
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
 // <Area> ExternAlias - command line alias</Area>
-// <Title> 
+// <Title>
 // negative test cases: empty file name ("""")
 // </Title>
 // <Description>
 // </Description>
-// <RelatedBugs></RelatedBugs> 
+// <RelatedBugs></RelatedBugs>
 
 //<Expects Status=error>CS1680:.*myAlias=</Expects>
 
-// <Code> 
+// <Code>
 class myClass
 {
     static int Main()
@@ -5009,7 +5009,7 @@ class myClass
 ").Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp
             var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
@@ -5051,7 +5051,7 @@ class myClass
 ").Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp
             var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -5092,7 +5092,7 @@ class myClass
 ").Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp
             var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
@@ -5631,7 +5631,7 @@ public class C
 
             // The case with /warnaserror and /nowarn:1 (expect success)
             // Note that even though the command line option has a warning, it is not going to become an error
-            // in order to avoid the halt of compilation. 
+            // in order to avoid the halt of compilation.
             exitCode = GetExitCode(source, "c.cs", new[] { "/warnaserror", "/nowarn:1" });
             Assert.Equal(0, exitCode);
         }
@@ -5827,6 +5827,72 @@ public class C
         }
 
         [Fact]
+        public void CreateCompilationWithKeyFile()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyfile:key.snk", });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+
+            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(PortableStrongNameProvider));
+        }
+
+        [Fact]
+        public void CreateCompilationWithKeyContainer()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keycontainer:bbb", });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+
+            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
+        }
+
+        [Fact]
+        public void CreateCompilationFallbackCommand()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyFile:key.snk", "/features:UseLegacyStrongNameProvider" });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+
+            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
+        }
+
+        [Fact]
         public void CreateCompilation_MainAndTargetIncompatibilities()
         {
             string source = @"
@@ -5901,8 +5967,8 @@ public class C
                                 0x61, // a
                                 0x73, // s
                                 0x73, // s
-                                0x20, // 
-                                0xd0, 0x96, // Utf-8 Cyrillic character 
+                                0x20, //
+                                0xd0, 0x96, // Utf-8 Cyrillic character
                                 0x7b, // {
                                 0x7d, // }
                             };
@@ -6683,9 +6749,9 @@ class C {} ");
             src.WriteAllText(
 @"
 /// <summary>ABC</summary>
-class C {} 
+class C {}
 /// <summary>XYZ</summary>
-class E {} 
+class E {}
 ");
 
             var xml = dir.CreateFile("a.xml");
@@ -6717,7 +6783,7 @@ class E {}
             src.WriteAllText(
 @"
 /// <summary>ABC</summary>
-class C {} 
+class C {}
 ");
 
             output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /t:library /doc:\"{1}\" {0}", src.ToString(), xml.ToString()), startFolder: dir.ToString());
@@ -6909,7 +6975,7 @@ public class C
 using global = A; // CS0440
 class A
 {
-static void Main() { 
+static void Main() {
 #pragma warning suppress 440
 }
 }").Path;
@@ -6939,17 +7005,17 @@ static void Main() {
         public void TestNoWarnParseDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
-class Test 
+class Test
 {
- static void Main() 
+ static void Main()
  {
   //Generates warning CS1522: Empty switch block
   switch (1)   { }
 
   //Generates warning CS0642: Possible mistaken empty statement
-  while (false) ; 
+  while (false) ;
   {  }
- } 
+ }
 }
 ").Path;
 
@@ -7101,7 +7167,7 @@ class Program
 class " + new string('a', 10000) + @"
 {
     public static void Main()
-    { 
+    {
     }
 }");
             var source2 = dir.CreateFile("program2.cs").WriteAllText(@"
@@ -7178,7 +7244,7 @@ class Program3
 
         /// <summary>
         /// When the output file is open with <see cref="FileShare.Read"/> | <see cref="FileShare.Delete"/>
-        /// the compiler should delete the file to unblock build while allowing the reader to continue 
+        /// the compiler should delete the file to unblock build while allowing the reader to continue
         /// reading the previous snapshot of the file content.
         /// 
         /// On Windows we can read the original data directly from the stream without creating a memory map. 
@@ -7216,7 +7282,7 @@ class Program3
         }
 
         /// <summary>
-        /// On Linux/Mac <see cref="FileShare.Delete"/> on its own doesn't do anything. 
+        /// On Linux/Mac <see cref="FileShare.Delete"/> on its own doesn't do anything.
         /// We need to create the actual memory map. This works on Windows as well.
         /// </summary>
         [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal)), WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
@@ -7245,11 +7311,11 @@ class Program3
 Microsoft (R) Visual C# Compiler version {s_compilerVersion} ({s_compilerShortCommitHash })
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
-            // reading original content from the memory map: 
+            // reading original content from the memory map:
             Assert.Equal(mvid, ReadMvid(new MemoryStream(imageDll.GetContent().ToArray())));
             Assert.Equal(mvid, ReadMvid(new MemoryStream(imagePdb.GetContent().ToArray())));
-            
-            // reading original content directly from the streams: 
+
+            // reading original content directly from the streams:
             fsDll.Position = 0;
             fsPdb.Position = 0;
             Assert.Equal(mvid, ReadMvid(fsDll));
@@ -8063,7 +8129,7 @@ using System.Diagnostics; // Unused.
         public void ReservedDeviceNameAsFileName2()
         {
             string filePath = Temp.CreateFile().WriteAllText(@"class C {}").Path;
-            // make sure reserved device names don't 
+            // make sure reserved device names don't
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/r:com2.dll", "/target:library", "/preferreduilang:en", filePath });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
@@ -9266,17 +9332,17 @@ using System.Collections.Generic;
 namespace N
 {
     using I4 = System.Int32;
-    
+
     class Program
     {
-        public static IEnumerable<int> F() 
+        public static IEnumerable<int> F()
         {
-            I4 x = 1; 
+            I4 x = 1;
             yield return 1;
             yield return x;
         }
 
-        public static void Main(string[] args) 
+        public static void Main(string[] args)
         {
             dynamic x = 1;
             const int a = 1;
@@ -9466,7 +9532,7 @@ class C
 
     /// <summary>Private Class Field</summary>
     private int field;
-    
+
     /// <summary>Private Struct</summary>
     private struct S
     {
@@ -9589,7 +9655,7 @@ class C
         {
             var dir = Temp.CreateDirectory();
             var cscDir = Path.GetDirectoryName(s_CSharpCompilerExecutable);
-            
+
             // copy csc and dependencies except for DSRN:
             foreach (var filePath in Directory.EnumerateFiles(cscDir))
             {
@@ -9623,7 +9689,7 @@ class C
             result = ProcessUtilities.Run(
                 cscCopy,
                 arguments + " /deterministic",
-                workingDirectory: dir.Path, 
+                workingDirectory: dir.Path,
                 additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
 
             Assert.Equal("", result.Output.Trim());
