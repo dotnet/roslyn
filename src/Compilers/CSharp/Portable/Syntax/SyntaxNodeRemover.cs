@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             var residualTrivia = remover.ResidualTrivia;
 
-            if (residualTrivia.Count > 0)
+            if (result != null && residualTrivia.Count > 0)
             {
                 result = result.WithTrailingTrivia(result.GetTrailingTrivia().Concat(residualTrivia));
             }
@@ -95,17 +95,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (requiresNewLine)
                 {
-                    this.AddEndOfLine();
+                    this.AddEndOfLine(trivia);
                 }
 
                 _residualTrivia.Add(trivia);
             }
+            
+            private void AddEndOfLine(params SyntaxTriviaList[] lists)
+            {
+                if ((_options & SyntaxRemoveOptions.UseOriginalEndOfLine) != 0)
+                {
+                    // We will be forced to use the default end of line when removing the last node
+                    // in the document with KeepEndOfLine option, where SingleLineCommentTrivia is located
+                    // inside the node trailing trivia.
+                    // e.g. Removing class B from "class A {} class B {} // comment"
+                    this.AddEndOfLine(GetEndOfLine(lists) ?? SyntaxFactory.CarriageReturnLineFeed);
+                }
+                else
+                {
+                    this.AddEndOfLine(SyntaxFactory.CarriageReturnLineFeed);
+                }
+            }
 
-            private void AddEndOfLine()
+            private void AddEndOfLine(SyntaxTrivia eolTrivia)
             {
                 if (_residualTrivia.Count == 0 || !IsEndOfLine(_residualTrivia[_residualTrivia.Count - 1]))
                 {
-                    _residualTrivia.Add(SyntaxFactory.CarriageReturnLineFeed);
+                    _residualTrivia.Add(eolTrivia);
                 }
             }
 
@@ -119,6 +135,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return trivia.Kind() == SyntaxKind.EndOfLineTrivia
                     || trivia.Kind() == SyntaxKind.SingleLineCommentTrivia
                     || trivia.IsDirective;
+            }
+
+            /// <summary>
+            /// Returns the first end of line found in any of the <see cref="SyntaxTriviaList"/> lists.
+            /// </summary>
+            private static SyntaxTrivia? GetEndOfLine(params SyntaxTriviaList[] lists)
+            {
+                foreach (var list in lists)
+                {
+                    foreach (var trivia in list)
+                    {
+                        if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                        {
+                            return trivia;
+                        }
+                        if (trivia.IsDirective && trivia.GetStructure() is DirectiveTriviaSyntax directiveTrivia)
+                        {
+                            return directiveTrivia.EndOfDirectiveToken.TrailingTrivia
+                                .FirstOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
+                        }
+                    }
+                }
+                return null;
             }
 
             private static bool HasEndOfLine(SyntaxTriviaList list)
@@ -273,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && HasEndOfLine(node.GetLeadingTrivia()))
                 {
-                    this.AddEndOfLine();
+                    this.AddEndOfLine(node.GetLeadingTrivia());
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
@@ -288,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && HasEndOfLine(node.GetTrailingTrivia()))
                 {
-                    this.AddEndOfLine();
+                    this.AddEndOfLine(node.GetTrailingTrivia());
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
@@ -310,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         HasEndOfLine(token.TrailingTrivia) ||
                         HasEndOfLine(node.GetLeadingTrivia())))
                 {
-                    this.AddEndOfLine();
+                    this.AddEndOfLine(token.LeadingTrivia, token.TrailingTrivia, node.GetLeadingTrivia());
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
@@ -327,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && HasEndOfLine(node.GetTrailingTrivia()))
                 {
-                    this.AddEndOfLine();
+                    this.AddEndOfLine(node.GetTrailingTrivia());
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
@@ -345,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && HasEndOfLine(node.GetLeadingTrivia()))
                 {
-                    this.AddEndOfLine();
+                    this.AddEndOfLine(node.GetLeadingTrivia());
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
@@ -366,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         HasEndOfLine(token.LeadingTrivia) ||
                         HasEndOfLine(token.TrailingTrivia)))
                 {
-                    this.AddEndOfLine();
+                    this.AddEndOfLine(node.GetTrailingTrivia(), token.LeadingTrivia, token.TrailingTrivia);
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
