@@ -7210,7 +7210,7 @@ initializing for System.String
 String
 ";
             // Although we accept this nasty code, it will not verify.
-            CompileAndVerify(text, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(text, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -12838,7 +12838,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B
 {

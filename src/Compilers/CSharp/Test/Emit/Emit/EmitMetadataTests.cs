@@ -194,7 +194,7 @@ public class Test : Class2
         {
             CompileAndVerify(
                 "public class C { }",
-                verify: false,
+                verify: Verification.Fails,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 

@@ -1689,7 +1689,7 @@ End Class
 "
             ' The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
             Dim compilation = CompilationUtils.CreateCompilation({Parse(source), Parse(corlib)})
-            Dim verifier = CompileAndVerify(compilation, verify:=False)
+            Dim verifier = CompileAndVerify(compilation, verify:=Verification.Fails)
             verifier.VerifyDiagnostics()
         End Sub
 

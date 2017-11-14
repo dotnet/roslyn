@@ -2365,7 +2365,7 @@ internal class B
                 assemblyName: "Bug769840_B",
                 references: new[] { new CSharpCompilationReference(ca) });
 
-            CompileAndVerify(cb, verify: false).Diagnostics.Verify();
+            CompileAndVerify(cb, verify: Verification.Fails).Diagnostics.Verify();
         }
 
         [Fact, WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")]

@@ -6893,7 +6893,7 @@ class C
     static ref int var(int a, int b) { return ref i; }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "42", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "42", verify: Verification.Passes);
             comp.VerifyDiagnostics();
         }
 
@@ -6918,7 +6918,7 @@ class Program
             compilation.VerifyDiagnostics();
 
             // PEVerify fails with ref return https://github.com/dotnet/roslyn/issues/12285
-            CompileAndVerify(compilation, expectedOutput: "10", verify: false);
+            CompileAndVerify(compilation, expectedOutput: "10", verify: Verification.Fails);
         }
 
         [Fact]

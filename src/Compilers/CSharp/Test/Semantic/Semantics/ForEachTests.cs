@@ -2960,7 +2960,7 @@ namespace System.Collections
 }";
 
             var comp = CreateCompilation(text, new[] { reference1 });
-            CompileAndVerify(comp, verify: false).
+            CompileAndVerify(comp, verify: Verification.Fails).
             VerifyIL("C.M", @"
 {
   // Code size       28 (0x1c)
