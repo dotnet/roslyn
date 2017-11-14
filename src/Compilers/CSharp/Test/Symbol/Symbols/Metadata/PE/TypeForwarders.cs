@@ -1559,7 +1559,7 @@ public class CF1
         {
             var folder = Temp.CreateDirectory();
             var comp0 = CreateStandardCompilation(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
-            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: Verification.Fails).EmittedAssemblyData);
+            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: Verification.Skipped).EmittedAssemblyData);
             var ref0 = asm0.GetReference();
 
             var comp1 = CreateStandardCompilation(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");

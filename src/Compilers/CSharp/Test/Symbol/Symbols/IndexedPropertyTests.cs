@@ -1532,7 +1532,7 @@ Public Class B
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Fails);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
             var source2 =
 @"class C
 {
@@ -2095,7 +2095,7 @@ Public Class A2
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Fails);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
             var source2 =
 @"[A1(P = 1)] // Not ComImport
 class B

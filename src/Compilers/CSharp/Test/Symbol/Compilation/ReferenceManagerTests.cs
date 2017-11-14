@@ -387,8 +387,8 @@ public class OKImpl : I
                 // Dev11 adds "Lib 1.0" to the references, we don't (see DevDiv #15580)
                 AssertEx.SetEqual(new[] { $"{RuntimeCorLibName.Name} {RuntimeCorLibName.Version.ToString(2)}", "RefLibV1 1.0", "Lib 2.0", "X 2.0" }, reader.DumpAssemblyReferences());
             },
-            // PE verification would need .config file with Lib v1 -> Lib v2 binding redirect 
-            verify: Verification.Fails);
+            // PE verification fails on some platforms. Would need .config file with Lib v1 -> Lib v2 binding redirect
+            verify: Verification.Skipped);
         }
 
         [Fact]

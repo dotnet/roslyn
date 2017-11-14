@@ -6919,8 +6919,8 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            // Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify: Verification.Fails).VerifyDiagnostics();
+            // Exported types in .Net modules cause PEVerify to fail on some platforms.
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
                 new List<MetadataReference>()
@@ -17457,7 +17457,7 @@ public class B : A
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).
                            VerifyDiagnostics(
     // (8,17): warning CS0824: Constructor 'B.B()' is marked external
     //   public extern B();
