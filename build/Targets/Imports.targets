@@ -140,8 +140,8 @@
             <PublicKey>$(RoslynInternalKey)</PublicKey>
             <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
           </PropertyGroup>
-          <!-- Real-signing is not currently supported cross-platform -->
-          <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+          <!-- Real-signing is only supported cross-platform in the boostrap toolset -->
+          <PropertyGroup Condition="'$(OS)' != 'Windows_NT' AND '$(BootstrapBuildPath)' == ''">
               <PublicSign>true</PublicSign>
           </PropertyGroup>
         </Otherwise>
