@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         protected static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
 
+        /// <summary>
+        /// Returns the directory that contains mscorlib, or null when running on CoreCLR.
+        /// </summary>
         public static string GetSystemSdkDirectory()
         {
             if (CoreClrShim.IsRunningOnCoreClr)
