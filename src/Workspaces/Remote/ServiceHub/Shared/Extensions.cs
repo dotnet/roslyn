@@ -246,11 +246,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static void ReportServiceHubNFW(this Exception exception, string message)
         {
-            if (exception == null)
-            {
-                return;
-            }
-
             WatsonReporter.Report(message, exception, ReportDetailServiceHubLogs);
         }
 

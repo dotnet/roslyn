@@ -417,7 +417,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 s_timeoutReported = true;
 
                 // report service hub logs along with dump
-                (new Exception("RequestServiceAsync Timeout")).ReportServiceHubNFW("RequestServiceAsync Timeout");
+                CodeAnalysis.Remote.Extensions.ReportServiceHubNFW(exception: null, message: "RequestServiceAsync Timeout");
             }
         }
 

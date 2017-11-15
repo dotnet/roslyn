@@ -66,6 +66,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 CodeAnalysis.FailFast.OnFatalException(exception);
             }
 
+            if (!exception.ShouldReport())
+            {
+                return;
+            }
+
             SessionOpt?.PostFault(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
