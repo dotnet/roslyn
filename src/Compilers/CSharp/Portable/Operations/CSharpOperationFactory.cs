@@ -237,6 +237,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundQueryClauseOperation((BoundQueryClause)boundNode);
                 case BoundKind.DelegateCreationExpression:
                     return CreateBoundDelegateCreationExpressionOperation((BoundDelegateCreationExpression)boundNode);
+                case BoundKind.RangeVariable:
+                    return CreateBoundRangeVariableOperation((BoundRangeVariable)boundNode);
                 default:
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -1822,6 +1824,12 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = ConvertToOptional(boundQueryClause.ConstantValue);
             bool isImplicit = boundQueryClause.WasCompilerGenerated;
             return new LazyTranslatedQueryExpression(expression, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundRangeVariableOperation(BoundRangeVariable boundRangeVariable)
+        {
+            // We do not have operation nodes for the bound range variables, just it's value.
+            return Create(boundRangeVariable.Value);
         }
     }
 }

@@ -177,7 +177,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IPropertyReferenceOperation: System.String Customer.Name { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'cust.Name')
                           Instance Receiver: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'cust')
+                            IParameterReferenceOperation: cust (OperationKind.ParameterReference, Type: Customer) (Syntax: 'cust')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
