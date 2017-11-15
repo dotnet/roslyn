@@ -1470,6 +1470,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return true;
                             }
                         }
+                        else if (sourceTypeOpt?.IsReferenceType == true)
+                        {
+                            return true;
+                        }
                         else
                         {
                             return null;
