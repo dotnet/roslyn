@@ -64,10 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // to execute the finally block before occurring.  Also, we do not handle branches
                 // *into* the finally block.
                 SetState(finallyState);
-                var tryAndCatchPending = SavePending();
                 var unsetInFinally = AllBitsSet();
                 VisitFinallyBlock(node.FinallyBlockOpt, ref unsetInFinally);
-                foreach (var pend in tryAndCatchPending.PendingBranches)
+                
+                // all the branches that are still pending must have been introduced in try/finally 
+                // with exception of YieldReturn, the branches logically go through finally
+                // so we must Union/Intersect finally state as appropriate
+                foreach (var pend in PendingBranches)
                 {
                     if (pend.Branch == null) continue; // a tracked exception
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
@@ -77,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                RestorePending(tryAndCatchPending);
                 UnionWith(ref endState, ref this.State);
                 if (trackUnassignments) IntersectWith(ref endState, ref unsetInFinally);
             }
@@ -87,13 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected virtual void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
+        protected virtual void VisitTryBlock(BoundBlock tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
+            var oldPending = SavePending();
             VisitStatement(tryBlock);
+            RestorePending(oldPending);
         }
 
         protected virtual void VisitCatchBlock(BoundCatchBlock catchBlock, ref TLocalState finallyState)
         {
+            var oldPending = SavePending();
             if (catchBlock.ExceptionSourceOpt != null)
             {
                 VisitLvalue(catchBlock.ExceptionSourceOpt);
@@ -106,11 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitStatement(catchBlock.Body);
+            RestorePending(oldPending);
         }
 
-        protected virtual void VisitFinallyBlock(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
+        protected virtual void VisitFinallyBlock(BoundBlock finallyBlock, ref TLocalState unsetInFinally)
         {
+            var oldPending = SavePending();
             VisitStatement(finallyBlock); // this should generate no pending branches
+            RestorePending(oldPending);
         }
     }
 }

@@ -4889,10 +4889,13 @@ class C
                 VerifyDiagnostics(
                 // (9,26): error CS0157: Control cannot leave the body of a finally clause
                 //         finally { i = 3; goto lab1; }// invalid
-                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "goto"),
+                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "goto").WithLocation(9, 26),
+                // (10,5): warning CS0162: Unreachable code detected
+                //     lab1:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "lab1").WithLocation(10, 5),
                 // (6,13): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         int i = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i")
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 13)
                 );
         }
 

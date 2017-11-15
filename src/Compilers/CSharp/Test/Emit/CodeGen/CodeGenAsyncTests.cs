@@ -5021,8 +5021,8 @@ public class C {
         {
             var source = @"
 
-using System;
-using System.Threading.Tasks;
+    using System;
+    using System.Threading.Tasks;
 
     public class Program
     {

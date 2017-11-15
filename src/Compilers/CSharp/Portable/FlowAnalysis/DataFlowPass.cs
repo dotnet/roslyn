@@ -2034,7 +2034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #region TryStatements
         private OptionalState _tryState;
 
-        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
+        protected override void VisitTryBlock(BoundBlock tryBlock, BoundTryStatement node, ref LocalState tryState)
         {
             if (trackUnassignments)
             {
@@ -2098,7 +2098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState unsetInFinally)
+        protected override void VisitFinallyBlock(BoundBlock finallyBlock, ref LocalState unsetInFinally)
         {
             if (trackUnassignments)
             {
