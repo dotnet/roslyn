@@ -1222,10 +1222,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             worse.Free();
         }
 
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out ParameterSymbol parameter)
+        // Return the parameter type corresponding to the given argument index.
+        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        {
+            RefKind discarded;
+            return GetParameterType(argIndex, result, parameters, out discarded);
+        }
+
+        // Return the parameter type corresponding to the given argument index.
+        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out RefKind refKind)
         {
             int paramIndex = result.ParameterFromArgument(argIndex);
-            parameter = parameters[paramIndex];
+            ParameterSymbol parameter = parameters[paramIndex];
+            refKind = parameter.RefKind;
 
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
                 parameter.IsParams && parameter.Type.IsSZArray())
@@ -1263,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return BetterFunctionMember(m1, m2, arguments, hasAnyRefOmittedArguments: hasAnyRefOmittedArgument1, useSiteDiagnostics: ref useSiteDiagnostics);
+                return BetterFunctionMember(m1, m2, arguments, considerRefKinds: hasAnyRefOmittedArgument1, useSiteDiagnostics: ref useSiteDiagnostics);
             }
         }
 
@@ -1271,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> m1,
             MemberResolutionResult<TMember> m2,
             ArrayBuilder<BoundExpression> arguments,
-            bool hasAnyRefOmittedArguments,
+            bool considerRefKinds,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
@@ -1314,20 +1323,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out ParameterSymbol parameter1);
-                var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out ParameterSymbol parameter2);
+                RefKind refKind1, refKind2;
+                var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
+                var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
 
                 bool okToDowngradeToNeither;
                 BetterResult r;
 
                 r = BetterConversionFromExpression(arguments[i],
-                                                   parameter1,
                                                    type1,
                                                    m1.Result.ConversionForArg(i),
-                                                   parameter2,
+                                                   refKind1,
                                                    type2,
                                                    m2.Result.ConversionForArg(i),
-                                                   hasAnyRefOmittedArguments,
+                                                   refKind2,
+                                                   considerRefKinds,
                                                    ref useSiteDiagnostics,
                                                    out okToDowngradeToNeither);
 
@@ -1444,8 +1454,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out ParameterSymbol parameter1);
-                    var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out ParameterSymbol parameter2);
+                    RefKind refKind1, refKind2;
+                    var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
+                    var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
 
                     var type1Normalized = type1.NormalizeTaskTypes(Compilation);
                     var type2Normalized = type2.NormalizeTaskTypes(Compilation);
@@ -1597,8 +1608,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                uninst1.Add(GetParameterType(i, m1.Result, m1Original, out _));
-                uninst2.Add(GetParameterType(i, m2.Result, m2Original, out _));
+                uninst1.Add(GetParameterType(i, m1.Result, m1Original));
+                uninst2.Add(GetParameterType(i, m2.Result, m2Original));
             }
 
             result = MoreSpecificType(uninst1, uninst2, ref useSiteDiagnostics);
@@ -1613,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: Otherwise if one member is a non-lifted operator and  the other is a lifted
             // operator, the non-lifted one is better.
 
-            // The penultimate rule: Position in interactive submission chain. The last definition wins.
+            // Otherwise: Position in interactive submission chain. The last definition wins.
             if (m1.Member.ContainingType.TypeKind == TypeKind.Submission && m2.Member.ContainingType.TypeKind == TypeKind.Submission)
             {
                 // script class is always defined in source:
@@ -1633,12 +1644,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Finally, if one has fewer custom modifiers, that is better
+            // Otherwise, if one has fewer custom modifiers, that is better
             int m1ModifierCount = m1.LeastOverriddenMember.CustomModifierCount();
             int m2ModifierCount = m2.LeastOverriddenMember.CustomModifierCount();
             if (m1ModifierCount != m2ModifierCount)
             {
                 return (m1ModifierCount < m2ModifierCount) ? BetterResult.Left : BetterResult.Right;
+            }
+
+            // Otherwise, prefer methods with 'val' parameters over 'in' parameters.
+            Debug.Assert(m1Original.Length == m2Original.Length, "Unequal parameters counts are handled in an earlier stage");
+            for (i = 0; i < m1Original.Length; i++)
+            {
+                var p1 = m1Original[i];
+                var p2 = m2Original[i];
+
+                if (p1.RefKind == RefKind.None && p2.RefKind == RefKind.In)
+                {
+                    return BetterResult.Left;
+                }
+                else if (p2.RefKind == RefKind.None && p1.RefKind == RefKind.In)
+                {
+                    return BetterResult.Right;
+                }
             }
 
             // Otherwise, neither function member is better.
@@ -1816,19 +1844,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Determine whether t1 or t2 is a better conversion target from node, possibly considering parameter ref kinds.
         private BetterResult BetterConversionFromExpression(
             BoundExpression node,
-            ParameterSymbol p1,
             TypeSymbol t1,
             Conversion conv1,
-            ParameterSymbol p2,
+            RefKind refKind1,
             TypeSymbol t2,
             Conversion conv2,
-            bool hasAnyRefOmittedArguments,
+            RefKind refKind2,
+            bool considerRefKinds,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             out bool okToDowngradeToNeither)
         {
             okToDowngradeToNeither = false;
 
-            if (hasAnyRefOmittedArguments)
+            if (considerRefKinds)
             {
                 // We may need to consider the ref kinds of the parameters while determining the better conversion from the given expression to the respective parameter types.
                 // This is needed for the omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method within a COM imported type.
@@ -1846,12 +1874,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    gets considered while classifying conversions between parameter types when computing better conversion target in the native compiler.
                 // NOTE:    Roslyn correctly follows the specification and ref kinds are not considered while classifying conversions between types, see method BetterConversionTarget.
 
-                Debug.Assert(p1.RefKind == RefKind.None || p1.RefKind == RefKind.Ref);
-                Debug.Assert(p2.RefKind == RefKind.None || p2.RefKind == RefKind.Ref);
+                Debug.Assert(refKind1 == RefKind.None || refKind1 == RefKind.Ref);
+                Debug.Assert(refKind2 == RefKind.None || refKind2 == RefKind.Ref);
 
-                if (p1.RefKind != p2.RefKind)
+                if (refKind1 != refKind2)
                 {
-                    if (p1.RefKind == RefKind.None)
+                    if (refKind1 == RefKind.None)
                     {
                         return conv1.Kind == ConversionKind.Identity ? BetterResult.Left : BetterResult.Neither;
                     }
@@ -1860,21 +1888,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return conv2.Kind == ConversionKind.Identity ? BetterResult.Right : BetterResult.Neither;
                     }
                 }
-                else if (p1.RefKind == RefKind.Ref)
+                else if (refKind1 == RefKind.Ref)
                 {
                     return BetterResult.Neither;
                 }
-            }
-
-            // If an ambiguity exists between 'by-val' and 'in' parameter, choose the 'by-val' one, except if it was params,
-            // for later betterness analysis will decide on whether the expanded/non-expanded form can be used, or if it is ambiguous.
-            if (!p1.IsParams && p1.RefKind == RefKind.None && p2.RefKind == RefKind.In)
-            {
-                return BetterResult.Left;
-            }
-            else if (!p2.IsParams && p2.RefKind == RefKind.None && p1.RefKind == RefKind.In)
-            {
-                return BetterResult.Right;
             }
 
             return BetterConversionFromExpression(node, t1, conv1, t2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither);

@@ -9658,49 +9658,21 @@ public static class Program
 
     public static void Main()
     {
-        int x = 5;
-        Method(in x);
-        Method(valP: 3);
+        Method();
+        Method(valP: 1);
         Method(inP: 2);
+
+        int x = 3;
+        Method(in x);
     }
 }";
 
             CompileAndVerify(code, expectedOutput: @"
-in: 5
-val: 3
+val: 0
+val: 1
 in: 2
+in: 3
 ");
-        }
-
-        [Fact]
-        public void PassingInArgumentsOverloadedOnInErrOptionalParametersAmbiguous()
-        {
-            var code = @"
-public static class Program
-{
-    public static void Method(in int inP = 0)
-    {
-        System.Console.WriteLine(""in: "" + inP);
-    }
-
-    public static void Method(int valP = 0)
-    {
-        System.Console.WriteLine(""val: "" + valP);
-    }
-
-    public static void Main()
-    {
-        int x = 0;
-
-        Method();       // Should be an error
-        Method(in x);   // Should be OK
-    }
-}";
-
-            CreateStandardCompilation(code).VerifyDiagnostics(
-                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int)' and 'Program.Method(int)'
-                //         Method();       // Should be an error
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int)", "Program.Method(int)").WithLocation(18, 9));
         }
 
         [Fact]
@@ -9752,13 +9724,14 @@ class Program
         p.M(1, 2);
 
         var x = new int[] { };
+        p.M(x);
         p.M(in x);
+        p.M(new int[] { });
 
         x = new int[] { 1 };
+        p.M(x);
         p.M(in x);
-
-        x = new int[] { 1, 2 };
-        p.M(in x);
+        p.M(new int[] { 1 });
     }
 }";
 
@@ -9766,37 +9739,12 @@ class Program
 @"params: 0
 params: 1
 params: 2
+params: 0
 in: 0
+params: 0
+params: 1
 in: 1
-in: 2");
-        }
-
-        [Fact]
-        public void PassingInArgumentsOverloadedOnInParams_Array_Error()
-        {
-            var code = @"
-class Program
-{
-    void M(in int[] p) { }
-    void M(params int[] p) { }
-
-    static void Main()
-    {
-        var p = new Program();
-        p.M(new int[] { });
-
-        var x = new int[] { };
-        p.M(x);
-    }
-}";
-
-            CreateStandardCompilation(code).VerifyDiagnostics(
-                // (10,11): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(in int[])' and 'Program.M(params int[])'
-                //         p.M(new int[] { });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(in int[])", "Program.M(params int[])").WithLocation(10, 11),
-                // (13,11): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(in int[])' and 'Program.M(params int[])'
-                //         p.M(x);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(in int[])", "Program.M(params int[])").WithLocation(13, 11));
+params: 1");
         }
 
         [Fact]
@@ -9886,6 +9834,64 @@ class Program
 @"val: 1
 in: 2
 val: 3");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_In()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void M(in byte x) { Console.WriteLine(""in: "" + x); }
+    static void M(int x) { Console.WriteLine(""val: "" + x); }
+
+    static void Main()
+    {
+        int intX = 1;
+        byte byteX = 1;
+
+        M(intX);
+        M(byteX);
+
+        M((int)2);
+        M((byte)2);
+    }
+}",
+                expectedOutput:
+@"val: 1
+in: 1
+val: 2
+in: 2");
+        }
+
+        [Fact]
+        public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_Val()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void M(byte x) { Console.WriteLine(""val: "" + x); }
+    static void M(in int x) { Console.WriteLine(""in: "" + x); }
+
+    static void Main()
+    {
+        int intX = 1;
+        byte byteX = 1;
+
+        M(intX);
+        M(byteX);
+
+        M((int)2);
+        M((byte)2);
+    }
+}",
+                expectedOutput:
+@"in: 1
+val: 1
+in: 2
+val: 2");
         }
 
         [Fact]
