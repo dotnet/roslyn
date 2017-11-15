@@ -208,8 +208,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ExpressionStatement:
                     return CreateBoundExpressionStatementOperation((BoundExpressionStatement)boundNode);
                 case BoundKind.TupleLiteral:
+                    return CreateBoundTupleLiteralOperation((BoundTupleLiteral)boundNode);
                 case BoundKind.ConvertedTupleLiteral:
-                    return CreateBoundTupleExpressionOperation((BoundTupleExpression)boundNode);
+                    return CreateBoundConvertedTupleLiteralOperation((BoundConvertedTupleLiteral)boundNode);
                 case BoundKind.InterpolatedString:
                     return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
                 case BoundKind.StringInsert:
@@ -745,13 +746,14 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
             bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode;
+            BoundExpression boundOperand = boundConversion.Operand;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
                 // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
                 // hide the resolved method.
                 Lazy<IOperation> target = new Lazy<IOperation>(() =>
-                        CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand,
+                        CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundOperand,
                                                                     boundConversion.SymbolOpt,
                                                                     boundConversion.SuppressVirtualCalls));
                 SyntaxNode syntax = boundConversion.Syntax;
@@ -773,27 +775,66 @@ namespace Microsoft.CodeAnalysis.Operations
                     // Semantic model has a special case here that we match: if the underlying syntax is missing, don't create a conversion expression,
                     // and instead directly return the operand, which will be a BoundBadExpression. When we generate a node for the BoundBadExpression,
                     // the resulting IOperation will also have a null Type.
-                    Debug.Assert(boundConversion.Operand.Kind == BoundKind.BadExpression ||
-                                 ((boundConversion.Operand as BoundLambda)?.Body.Statements.SingleOrDefault() as BoundReturnStatement)?.
+                    Debug.Assert(boundOperand.Kind == BoundKind.BadExpression ||
+                                 ((boundOperand as BoundLambda)?.Body.Statements.SingleOrDefault() as BoundReturnStatement)?.
                                      ExpressionOpt?.Kind == BoundKind.BadExpression);
-                    return Create(boundConversion.Operand);
+                    return Create(boundOperand);
                 }
 
-                Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
+                Lazy<IOperation> operand = null;
+                Conversion conversion = boundConversion.Conversion;
+
+                if (boundOperand.Syntax == boundConversion.Syntax)
+                {
+                    if (boundOperand.Kind == BoundKind.ConvertedTupleLiteral && boundOperand.Type == boundConversion.Type)
+                    {
+                        // Erase this conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
+                        // in Binder.CreateTupleLiteralConversion
+                        return Create(boundOperand);
+                    }
+                    else 
+                    {
+                        // Make this conversion implicit
+                        isImplicit = true;
+                    }
+                }
+
+                if (boundConversion.ExplicitCastInCode && conversion.IsIdentity && boundOperand.Kind == BoundKind.Conversion)
+                {
+                    var nestedConversion = (BoundConversion)boundOperand;
+                    BoundExpression nestedOperand = nestedConversion.Operand;
+
+                    if (nestedConversion.Syntax == nestedOperand.Syntax && nestedConversion.ExplicitCastInCode &&
+                        nestedOperand.Kind == BoundKind.ConvertedTupleLiteral &&
+                        nestedConversion.Type != nestedOperand.Type)
+                    {
+                        // Let's erase the nested conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
+                        // in Binder.CreateTupleLiteralConversion.
+                        // We need to use conversion information from the nested conversion because that is where the real conversion 
+                        // information is stored.
+                        conversion = nestedConversion.Conversion;
+                        operand = new Lazy<IOperation>(() => Create(nestedOperand));
+                    }
+                }
+
+                if (operand == null)
+                {
+                    operand = new Lazy<IOperation>(() => Create(boundOperand));
+                }
+
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
 
                 // If this is a lambda or method group conversion to a delegate type, we return a delegate creation instead of a conversion
-                if ((boundConversion.Operand.Kind == BoundKind.Lambda ||
-                     boundConversion.Operand.Kind == BoundKind.UnboundLambda ||
-                     boundConversion.Operand.Kind == BoundKind.MethodGroup) &&
+                if ((boundOperand.Kind == BoundKind.Lambda ||
+                     boundOperand.Kind == BoundKind.UnboundLambda ||
+                     boundOperand.Kind == BoundKind.MethodGroup) &&
                     boundConversion.Type.IsDelegateType())
                 {
                     return new LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
                 else
                 {
-                    Conversion conversion = boundConversion.Conversion;
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                     bool isChecked = conversion.IsNumeric && boundConversion.Checked;
@@ -1632,7 +1673,17 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IOperation CreateBoundTupleExpressionOperation(BoundTupleExpression boundTupleExpression)
+        private IOperation CreateBoundTupleLiteralOperation(BoundTupleLiteral boundTupleLiteral)
+        {
+            return CreateTupleOperation(boundTupleLiteral, boundTupleLiteral.Type);
+        }
+
+        private IOperation CreateBoundConvertedTupleLiteralOperation(BoundConvertedTupleLiteral boundConvertedTupleLiteral)
+        {
+            return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.NaturalTypeOpt);
+        }
+
+        private IOperation CreateTupleOperation(BoundTupleExpression boundTupleExpression, ITypeSymbol naturalType)
         {
             Lazy<ImmutableArray<IOperation>> elements = new Lazy<ImmutableArray<IOperation>>(() => boundTupleExpression.Arguments.SelectAsArray(element => Create(element)));
             SyntaxNode syntax = boundTupleExpression.Syntax;
@@ -1642,11 +1693,11 @@ namespace Microsoft.CodeAnalysis.Operations
             if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 var tupleSyntax = declarationExpressionSyntax.Designation;
-                Lazy<IOperation> tupleExpression = new Lazy<IOperation>(() => new LazyTupleExpression(elements, _semanticModel, tupleSyntax, type, constantValue, isImplicit));
+                Lazy<IOperation> tupleExpression = new Lazy<IOperation>(() => new LazyTupleExpression(elements, _semanticModel, tupleSyntax, type, naturalType, constantValue, isImplicit));
                 return new LazyDeclarationExpression(tupleExpression, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
             }
 
-            return new LazyTupleExpression(elements, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyTupleExpression(elements, _semanticModel, syntax, type, naturalType, constantValue, isImplicit);
         }
 
         private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)

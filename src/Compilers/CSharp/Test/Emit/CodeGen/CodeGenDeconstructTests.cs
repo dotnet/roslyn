@@ -7544,6 +7544,7 @@ class C
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructionWarnsForSelfAssignment_WithExplicitTupleConversion()
         {
@@ -7567,6 +7568,32 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
+
+            Assert.Equal("((int, int))(y, b)", node.ToString());
+
+            comp.VerifyOperationTree(node, expectedOperationTree:
+@"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.Int32)) (Syntax: '((int, int))(y, b)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 y, System.Int32 b)) (Syntax: '(y, b)')
+      NaturalType: (System.Int32 y, System.Byte b)
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'y')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IFieldReferenceOperation: System.Int32 C.y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'y')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'b')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IFieldReferenceOperation: System.Byte C.b (OperationKind.FieldReference, Type: System.Byte) (Syntax: 'b')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'b')");
         }
 
         [Fact]
@@ -7746,6 +7773,7 @@ class D
             CompileAndVerify(source, expectedOutput: @"Convert Convert2 1", additionalRefs: s_valueTupleRefs);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
         public void TupleCastInDeconstruction3()
         {
@@ -7766,9 +7794,38 @@ class D
     public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
     public D() { System.Console.Write(""D ""); }
 }";
-            CompileAndVerify(source, expectedOutput: @"C Convert D Convert2 A B", additionalRefs: s_valueTupleRefs);
+            var compilation = CompileAndVerify(source, expectedOutput: @"C Convert D Convert2 A B", additionalRefs: s_valueTupleRefs).Compilation;
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
+
+            Assert.Equal("((byte, byte))(new C(), new D())", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Byte, System.Byte)) (Syntax: '((byte, byt ... ), new D())')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.Byte, System.Byte)) (Syntax: '(new C(), new D())')
+      NaturalType: (C, D)
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Byte C.op_Explicit(C c)) (OperationKind.Conversion, Type: System.Byte, IsImplicit) (Syntax: 'new C()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Byte C.op_Explicit(C c))
+            Operand: 
+              IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                Arguments(0)
+                Initializer: 
+                  null
+          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Byte D.op_Explicit(D c)) (OperationKind.Conversion, Type: System.Byte, IsImplicit) (Syntax: 'new D()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Byte D.op_Explicit(D c))
+            Operand: 
+              IObjectCreationOperation (Constructor: D..ctor()) (OperationKind.ObjectCreation, Type: D) (Syntax: 'new D()')
+                Arguments(0)
+                Initializer: 
+                  null
+");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
         public void TupleCastInDeconstruction4()
         {
@@ -7781,7 +7838,52 @@ class C
         System.Console.Write($""{a}"");
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"1", additionalRefs: s_valueTupleRefs);
+            var compilation = CompileAndVerify(source, expectedOutput: @"1", additionalRefs: s_valueTupleRefs).Compilation;
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ElementAt(1);
+
+            Assert.Equal("((int, int))(1L, 2L)", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.Int32)) (Syntax: '((int, int))(1L, 2L)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1L, 2L)')
+      NaturalType: (System.Int64, System.Int64)
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1L')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 1) (Syntax: '1L')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '2L')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 2) (Syntax: '2L')
+");
+
+            Assert.Equal("((short, short))((int, int))(1L, 2L)", node.Parent.ToString());
+
+            compilation.VerifyOperationTree(node.Parent, expectedOperationTree:
+@"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.Int16)) (Syntax: '((short, sh ... t))(1L, 2L)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.Int32)) (Syntax: '((int, int))(1L, 2L)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1L, 2L)')
+          NaturalType: (System.Int64, System.Int64)
+          Elements(2):
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1L')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 1) (Syntax: '1L')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '2L')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 2) (Syntax: '2L')
+");
         }
 
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]

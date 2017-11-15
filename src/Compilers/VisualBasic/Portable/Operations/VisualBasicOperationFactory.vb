@@ -198,9 +198,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return CreateBoundAddHandlerStatementOperation(DirectCast(boundNode, BoundAddHandlerStatement))
                 Case BoundKind.RemoveHandlerStatement
                     Return CreateBoundRemoveHandlerStatementOperation(DirectCast(boundNode, BoundRemoveHandlerStatement))
-                Case BoundKind.TupleLiteral,
-                     BoundKind.ConvertedTupleLiteral
-                    Return CreateBoundTupleExpressionOperation(DirectCast(boundNode, BoundTupleExpression))
+                Case BoundKind.TupleLiteral
+                    Return CreateBoundTupleLiteralOperation(DirectCast(boundNode, BoundTupleLiteral))
+                Case BoundKind.ConvertedTupleLiteral
+                    Return CreateBoundConvertedTupleLiteralOperation(DirectCast(boundNode, BoundConvertedTupleLiteral))
                 Case BoundKind.InterpolatedStringExpression
                     Return CreateBoundInterpolatedStringExpressionOperation(DirectCast(boundNode, BoundInterpolatedStringExpression))
                 Case BoundKind.Interpolation
@@ -565,7 +566,40 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated OrElse Not boundConversion.ExplicitCastInCode
 
             Dim conversionOperandAndMethod = GetConversionInfo(boundConversion)
-            Dim conversionInformation = CreateConversionOperand(conversionOperandAndMethod.Operand, boundConversion.ConversionKind, boundConversion.Syntax, boundConversion.Type)
+            Dim boundOperand As BoundExpression = conversionOperandAndMethod.Operand
+            Dim conversion As Conversion = CreateConversion(boundConversion)
+
+            If boundOperand.Syntax Is boundConversion.Syntax Then
+                If boundOperand.Kind = BoundKind.ConvertedTupleLiteral AndAlso boundOperand.Type = boundConversion.Type Then
+                    ' Erase this conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
+                    ' in Binder.ReclassifyTupleLiteral
+                    Return Create(boundOperand)
+                Else
+                    ' Make this conversion implicit
+                    isImplicit = True
+                End If
+            End If
+
+            If boundConversion.ExplicitCastInCode AndAlso conversion.IsIdentity AndAlso
+               boundOperand.Kind = BoundKind.Conversion Then
+                Dim nestedConversion = DirectCast(boundOperand, BoundConversion)
+                Dim nestedConversionOperandAndMethod As (Operand As BoundExpression, Method As MethodSymbol) = GetConversionInfo(nestedConversion)
+                Dim nestedOperand As BoundExpression = nestedConversionOperandAndMethod.Operand
+
+                If nestedConversion.Syntax Is nestedOperand.Syntax AndAlso nestedConversion.ExplicitCastInCode AndAlso
+                   nestedOperand.Kind = BoundKind.ConvertedTupleLiteral AndAlso
+                   nestedConversion.Type <> nestedOperand.Type Then
+                    ' Let's erase the nested conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
+                    ' in Binder.ReclassifyTupleLiteral.
+                    ' We need to use conversion information from the nested conversion because that is where the real conversion 
+                    ' information is stored.
+                    conversionOperandAndMethod = nestedConversionOperandAndMethod
+                    conversion = CreateConversion(nestedConversion)
+                    boundOperand = nestedOperand
+                End If
+            End If
+
+            Dim conversionInformation = CreateConversionOperand(boundOperand, conversion.Kind, boundConversion.Syntax, boundConversion.Type)
             Dim methodSymbol As MethodSymbol = conversionOperandAndMethod.Method
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
             Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
@@ -576,7 +610,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
 
-            Dim conversion As Conversion = CreateConversion(boundConversion)
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
             Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
@@ -1411,13 +1444,21 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundTupleExpressionOperation(boundTupleExpression As BoundTupleExpression) As ITupleOperation
+        Private Function CreateBoundTupleLiteralOperation(boundTupleLiteral As BoundTupleLiteral) As ITupleOperation
+            Return CreateTupleOperation(boundTupleLiteral, boundTupleLiteral.Type)
+        End Function
+
+        Private Function CreateBoundConvertedTupleLiteralOperation(boundConvertedTupleLiteral As BoundConvertedTupleLiteral) As ITupleOperation
+            Return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.NaturalTypeOpt)
+        End Function
+
+        Private Function CreateTupleOperation(boundTupleExpression As BoundTupleExpression, naturalType As ITypeSymbol) As ITupleOperation
             Dim elements As New Lazy(Of ImmutableArray(Of IOperation))(Function() boundTupleExpression.Arguments.SelectAsArray(Function(element) Create(element)))
             Dim syntax As SyntaxNode = boundTupleExpression.Syntax
             Dim type As ITypeSymbol = boundTupleExpression.Type
             Dim constantValue As [Optional](Of Object) = Nothing
             Dim isImplicit As Boolean = boundTupleExpression.WasCompilerGenerated
-            Return New LazyTupleExpression(elements, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyTupleExpression(elements, _semanticModel, syntax, type, naturalType, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringOperation

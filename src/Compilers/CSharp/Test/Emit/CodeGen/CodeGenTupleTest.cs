@@ -7555,6 +7555,18 @@ class C
             Assert.Equal("(System.Int16 c, System.String d)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(node).Kind);
 
+            ExpressionSyntax element;
+
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("System.String", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
+
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d)?)(e: 1, f: ""hello"")
             Assert.Equal("(System.Int16 c, System.String d)?", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
@@ -7647,6 +7659,18 @@ class C
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
+
+            ExpressionSyntax element;
+
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("System.String", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -7780,6 +7804,18 @@ class C
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int32 c, System.String d)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(node).Kind);
+
+            ExpressionSyntax element;
+
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("System.String", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((int c, string d)?)(e: 1, f: ""hello"")
@@ -7946,6 +7982,18 @@ class C
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
+
+            ExpressionSyntax element;
+            
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("System.String", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -8117,6 +8165,18 @@ class C
             Assert.Equal("(System.Int32 e, C.C1 f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
+
+            ExpressionSyntax element;
+
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("C.C1", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitUserDefined, model.GetConversion(element).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: null)

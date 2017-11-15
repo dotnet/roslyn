@@ -4825,10 +4825,18 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseTupleExpression : Operation, ITupleOperation
     {
-        protected BaseTupleExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseTupleExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Tuple, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            NaturalType = naturalType;
         }
+
+        /// <summary>
+        /// Natural type of the tuple, or null if tuple doesn't have a natural type.
+        /// Natural type can be different from <see cref="IOperation.Type"/> depending on the
+        /// conversion context, in which the tuple is used. 
+        /// </summary>
+        public ITypeSymbol NaturalType { get; }
 
         protected abstract ImmutableArray<IOperation> ElementsImpl { get; }
         public override IEnumerable<IOperation> Children
@@ -4863,8 +4871,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class TupleExpression : BaseTupleExpression, ITupleOperation
     {
-        public TupleExpression(ImmutableArray<IOperation> elements, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public TupleExpression(ImmutableArray<IOperation> elements, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
         {
             ElementsImpl = elements;
         }
@@ -4879,8 +4887,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyElements;
 
-        public LazyTupleExpression(Lazy<ImmutableArray<IOperation>> elements, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyTupleExpression(Lazy<ImmutableArray<IOperation>> elements, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
         {
             _lazyElements = elements;
         }
