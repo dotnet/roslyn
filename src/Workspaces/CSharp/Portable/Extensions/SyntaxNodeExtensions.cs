@@ -718,35 +718,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsEmbeddedStatementOwner(this SyntaxNode node)
         {
-            return
-                   node is DoStatementSyntax ||
-                   node is ElseClauseSyntax ||
-                   node is FixedStatementSyntax ||
-                   node is CommonForEachStatementSyntax ||
-                   node is ForStatementSyntax ||
-                   node is IfStatementSyntax ||
-                   node is LabeledStatementSyntax ||
-                   node is LockStatementSyntax ||
-                   node is UsingStatementSyntax ||
-                   node is WhileStatementSyntax;
+            if (node != null)
+            {
+                switch (node.Kind())
+                {
+                    case SyntaxKind.DoStatement:
+                    case SyntaxKind.ElseClause:
+                    case SyntaxKind.FixedStatement:
+                    case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.ForEachVariableStatement:
+                    case SyntaxKind.ForStatement:
+                    case SyntaxKind.IfStatement:
+                    case SyntaxKind.LabeledStatement:
+                    case SyntaxKind.LockStatement:
+                    case SyntaxKind.UsingStatement:
+                    case SyntaxKind.WhileStatement:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         public static StatementSyntax GetEmbeddedStatement(this SyntaxNode node)
         {
-            switch (node)
-            { 
-                case DoStatementSyntax n: return n.Statement;
-                case ElseClauseSyntax n: return n.Statement;
-                case FixedStatementSyntax n: return n.Statement;
-                case CommonForEachStatementSyntax n: return n.Statement;
-                case ForStatementSyntax n: return n.Statement;
-                case IfStatementSyntax n: return n.Statement;
-                case LabeledStatementSyntax n: return n.Statement;
-                case LockStatementSyntax n: return n.Statement;
-                case UsingStatementSyntax n: return n.Statement;
-                case WhileStatementSyntax n: return n.Statement;
-                default: return null;
+            if (node != null)
+            {
+                switch (node.Kind())
+                {
+                    case SyntaxKind.DoStatement:
+                        return ((DoStatementSyntax)node).Statement;
+                    case SyntaxKind.ElseClause:
+                        return ((ElseClauseSyntax)node).Statement;
+                    case SyntaxKind.FixedStatement:
+                        return ((FixedStatementSyntax)node).Statement;
+                    case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.ForEachVariableStatement:
+                        return ((CommonForEachStatementSyntax)node).Statement;
+                    case SyntaxKind.ForStatement:
+                        return ((ForStatementSyntax)node).Statement;
+                    case SyntaxKind.IfStatement:
+                        return ((IfStatementSyntax)node).Statement;
+                    case SyntaxKind.LabeledStatement:
+                        return ((LabeledStatementSyntax)node).Statement;
+                    case SyntaxKind.LockStatement:
+                        return ((LockStatementSyntax)node).Statement;
+                    case SyntaxKind.UsingStatement:
+                        return ((UsingStatementSyntax)node).Statement;
+                    case SyntaxKind.WhileStatement:
+                        return ((WhileStatementSyntax)node).Statement;
+                }
             }
+
+            return null;
         }
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode member)
