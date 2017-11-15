@@ -3,10 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -250,16 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The non-synthesized accessors are on the property/event itself.
                 MethodSymbol owningMethod = ContainingSymbol as MethodSymbol;
                 return (object)owningMethod != null && owningMethod.IsAccessor();
-            }
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (this.RefKind == RefKind.In)
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
 
