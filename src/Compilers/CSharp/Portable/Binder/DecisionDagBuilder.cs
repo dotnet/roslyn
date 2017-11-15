@@ -627,53 +627,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.WhereClause = WhereClause;
             this.CaseLabel = CaseLabel;
         }
-
-        /// <summary>
-        /// How many decisions remain until this pattern is matched?
-        /// </summary>
-        public int DecisionCount
-        {
-            get
-            {
-                int count = 0;
-                foreach (var d in Decisions)
-                {
-                    switch (d)
-                    {
-                        case BoundDagEvaluation _:
-                            break;
-                        case BoundDagDecision _:
-                            count++;
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(d.Kind);
-                    }
-                }
-
-                return count;
-            }
-        }
-
-        public BoundDagDecision FirstDecision
-        {
-            get
-            {
-                foreach (var d in Decisions)
-                {
-                    switch (d)
-                    {
-                        case BoundDagEvaluation _:
-                            break;
-                        case BoundDagDecision _:
-                            return d;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(d.Kind);
-                    }
-                }
-
-                throw new ArgumentException("there is no first decision");
-            }
-        }
     }
 
     partial class BoundDagEvaluation
