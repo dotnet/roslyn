@@ -209,6 +209,15 @@
   <data name="UseLocalizableStringsInDescriptorDescription" xml:space="preserve">
     <value>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</value>
   </data>
+  <data name="ProvideHelpUriInDescriptorMessage" xml:space="preserve">
+    <value>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</value>
+  </data>
+  <data name="ProvideHelpUriInDescriptorTitle" xml:space="preserve">
+    <value>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</value>
+  </data>
+  <data name="ProvideHelpUriInDescriptorDescription" xml:space="preserve">
+    <value>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</value>
+  </data>
   <data name="DoNotStorePerCompilationDataOntoFieldsMessage" xml:space="preserve">
     <value>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</value>
   </data>
