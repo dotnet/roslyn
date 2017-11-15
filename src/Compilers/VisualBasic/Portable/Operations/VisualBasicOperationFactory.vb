@@ -874,6 +874,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As IDynamicMemberReferenceOperation
+            Debug.Assert(boundLateMemberAccess.ReceiverOpt Is Nothing OrElse boundLateMemberAccess.ReceiverOpt.Kind <> BoundKind.TypeExpression)
+
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLateMemberAccess.ReceiverOpt))
             Dim memberName As String = boundLateMemberAccess.NameOpt
             Dim typeArguments As ImmutableArray(Of ITypeSymbol) = ImmutableArray(Of ITypeSymbol).Empty

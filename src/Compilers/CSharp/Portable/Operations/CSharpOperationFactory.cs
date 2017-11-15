@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private IDynamicMemberReferenceOperation CreateBoundDynamicMemberAccessOperation(
-            BoundExpression receiver,
+            BoundExpression receiverOpt,
             ImmutableArray<TypeSymbol> typeArgumentsOpt,
             string memberName,
             SyntaxNode syntaxNode,
@@ -686,13 +686,16 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue value,
             bool isImplicit)
         {
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(receiver));
+            Lazy<IOperation> instance = receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression ? 
+                                            OperationFactory.NullOperation :
+                                            new Lazy<IOperation>(() => Create(receiverOpt));
+
             ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
             if (!typeArgumentsOpt.IsDefault)
             {
                 typeArguments = ImmutableArray<ITypeSymbol>.CastUp(typeArgumentsOpt);
             }
-            ITypeSymbol containingType = null;
+            ITypeSymbol containingType = receiverOpt?.Kind == BoundKind.TypeExpression ? receiverOpt.Type : null;
             Optional<object> constantValue = ConvertToOptional(value);
             return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue, isImplicit);
         }
