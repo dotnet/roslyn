@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FixedBufferTooManyDimensions = 7092,
         ERR_CantReadConfigFile = 7093,
         ERR_BadAwaitInCatchFilter = 7094,
-        WRN_FilterIsConstant = 7095,
+        WRN_FilterIsConstantTrue = 7095,
         ERR_EncNoPIAReference = 7096,
         //ERR_EncNoDynamicOperation = 7097,   // dynamic operations are now allowed
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
@@ -1541,11 +1541,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
+        ERR_AttributeCtorInParameter = 8358,
+
+        #region diagnostics for FilterIsConstant warning message fix
+        WRN_FilterIsConstantFalse = 8359,
+        WRN_FilterIsConstantFalseRedundantTryCatch = 8360,
+        #endregion diagnostics for FilterIsConstant warning message fix
 
         #region diagnostics introduced for C# 7.3
-        ERR_FeatureNotAvailableInVersion7_3 = 8360,
-        WRN_AttributesOnBackingFieldsNotAvailable = 8361,
-        ERR_DoNotUseFixedBufferAttrOnProperty = 8362,
+        ERR_FeatureNotAvailableInVersion7_3 = 8370,
+        WRN_AttributesOnBackingFieldsNotAvailable = 8371,
+        ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
         #endregion diagnostics introduced for C# 7.3
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
@@ -7,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# property initializer with equals value clause.
-    ///  (2) VB property initializer with equals value clause or AsNew clause.
+    ///  (2) VB property initializer with equals value clause or AsNew clause. Multiple properties can be initialized with 'WithEvents' declaration with AsNew clause in VB.
     /// </para>
     /// </summary>
     /// <remarks>
@@ -17,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IPropertyInitializerOperation : ISymbolInitializerOperation
     {
         /// <summary>
-        /// Set method used to initialize the property.
+        /// Initialized properties. There can be multiple properties for Visual Basic 'WithEvents' declaration with AsNew clause.
         /// </summary>
-        IPropertySymbol InitializedProperty { get; }
+        ImmutableArray<IPropertySymbol> InitializedProperties { get; }
     }
 }
 

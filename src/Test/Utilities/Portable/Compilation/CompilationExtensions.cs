@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 foreach (var node in root.DescendantNodesAndSelf())
                 {
-                    var operation = semanticModel.GetOperationInternal(node);
+                    var operation = semanticModel.GetOperation(node);
                     if (operation != null)
                     {
                         // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
@@ -308,6 +308,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             Assert.True(argument.Descendants().All(n => n.IsImplicit), $"Explicit node in default argument value ({argument.Syntax.RawKind}): {argument.Syntax.ToString()}");
                         }
+                    }
+
+                    // Make sure that all static member references or invocations of static methods do not have implicit IInstanceReferenceOperations
+                    // as their receivers
+                    if (operation is IMemberReferenceOperation memberReference &&
+                        memberReference.Member.IsStatic &&
+                        memberReference.Instance is IInstanceReferenceOperation)
+                    {
+                        Assert.False(memberReference.Instance.IsImplicit, $"Implicit {nameof(IInstanceReferenceOperation)} on {operation.Syntax}");
+                    }
+                    else if (operation is IInvocationOperation invocation &&
+                             invocation.TargetMethod.IsStatic &&
+                             invocation.Instance is IInstanceReferenceOperation)
+                    {
+                        Assert.False(invocation.IsImplicit, $"Implicit {nameof(IInstanceReferenceOperation)} on {operation.Syntax}");
                     }
                 }
             }

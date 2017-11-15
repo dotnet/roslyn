@@ -759,11 +759,11 @@
   <data name="ERR_UnreachableCatch" xml:space="preserve">
     <value>A previous catch clause already catches all exceptions of this or of a super type ('{0}')</value>
   </data>
-  <data name="WRN_FilterIsConstant" xml:space="preserve">
-    <value>Filter expression is a constant, consider removing the filter</value>
+  <data name="WRN_FilterIsConstantTrue" xml:space="preserve">
+    <value>Filter expression is a constant 'true', consider removing the filter</value>
   </data>
-  <data name="WRN_FilterIsConstant_Title" xml:space="preserve">
-    <value>Filter expression is a constant</value>
+  <data name="WRN_FilterIsConstantTrue_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'true'</value>
   </data>
   <data name="ERR_ReturnExpected" xml:space="preserve">
     <value>'{0}': not all code paths return a value</value>
@@ -1358,6 +1358,9 @@
   </data>
   <data name="ERR_RefReturnThis" xml:space="preserve">
     <value>Cannot return 'this' by reference.</value>
+  </data>
+  <data name="ERR_AttributeCtorInParameter" xml:space="preserve">
+    <value>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
     <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</value>
@@ -5225,5 +5228,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_OutAttrOnInParam" xml:space="preserve">
     <value>An in parameter cannot have the Out attribute.</value>
+  </data>
+  <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
+    <value>{0} is not a valid C# compound assignment operation</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
+    <value>Filter expression is a constant 'false', consider removing the catch clause</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalse_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'false'</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalseRedundantTryCatch" xml:space="preserve">
+    <value>Filter expression is a constant 'false', consider removing the try-catch block</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalseRedundantTryCatch_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'false'. </value>
   </data>
 </root>

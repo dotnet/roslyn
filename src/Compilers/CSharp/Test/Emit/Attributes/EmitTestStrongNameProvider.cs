@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             private StrongNameProvider _underlyingProvider;
 
             public Exception ThrownException;
+
+            internal override SigningCapability Capability => SigningCapability.SignsStream;
 
             public StrongNameProviderWithBadInputStream(StrongNameProvider underlyingProvider)
             {
@@ -39,13 +42,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider) =>
                 _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, messageProvider);
 
-            internal override void SignAssembly(StrongNameKeys keys, Stream inputStream, Stream outputStream) =>
-                _underlyingProvider.SignAssembly(keys, inputStream, outputStream);
+            internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream) =>
+                _underlyingProvider.SignStream(keys, inputStream, outputStream);
         }
 
         private class TestDesktopStrongNameProvider : DesktopStrongNameProvider
         {
-            private readonly Func<string, byte[]> m_readAllBytes;
+            private class TestStrongNameFileSystem : StrongNameFileSystem
+            {
+                private readonly Func<string, byte[]> _readAllBytes = null;
+
+                internal TestStrongNameFileSystem(Func<string, byte[]> readAllBytes = null)
+                {
+                    _readAllBytes = readAllBytes;
+                }
+
+                internal override byte[] ReadAllBytes(string fullPath)
+                {
+                    if (_readAllBytes != null)
+                    {
+                        return _readAllBytes(fullPath);
+                    }
+                    else
+                    {
+                        return base.ReadAllBytes(fullPath);
+                    }
+                }
+            }
+
 
             internal delegate void ReadKeysFromContainerDelegate(
                 string keyContainer,
@@ -55,15 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public TestDesktopStrongNameProvider(
                 Func<string, byte[]> readAllBytes = null,
-                ReadKeysFromContainerDelegate readKeysFromContainer = null)
+                ReadKeysFromContainerDelegate readKeysFromContainer = null) : base(ImmutableArray<string>.Empty, null, new TestStrongNameFileSystem(readAllBytes))
             {
-                m_readAllBytes = readAllBytes;
                 m_readKeysFromContainer = readKeysFromContainer;
             }
-
-            internal override byte[] ReadAllBytes(string fullPath) =>
-                m_readAllBytes != null ? m_readAllBytes(fullPath)
-                                       : base.ReadAllBytes(fullPath);
 
             internal override void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
             {
@@ -129,13 +148,12 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var testProvider = new StrongNameProviderWithBadInputStream(s_defaultProvider);
+            var testProvider = new StrongNameProviderWithBadInputStream(s_defaultDesktopProvider);
             var options = TestOptions.DebugExe
                 .WithStrongNameProvider(testProvider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var comp = CreateStandardCompilation(src,
-                options: options);
+            var comp = CreateStandardCompilation(src, options: options);
 
             comp.Emit(new MemoryStream()).Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.

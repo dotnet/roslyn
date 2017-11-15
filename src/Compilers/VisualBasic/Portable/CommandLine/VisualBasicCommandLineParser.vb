@@ -1068,11 +1068,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "pathmap"
                             ' "/pathmap:K1=V1,K2=V2..."
-                            If value = Nothing Then
+                            Dim unquoted = RemoveQuotesAndSlashes(value)
+                            If unquoted = Nothing Then
                                 Exit Select
                             End If
 
-                            pathMap = pathMap.Concat(ParsePathMap(value, diagnostics))
+                            pathMap = pathMap.Concat(ParsePathMap(unquoted, diagnostics))
                             Continue For
 
                         Case "reportanalyzer"

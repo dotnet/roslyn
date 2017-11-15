@@ -159,6 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
             }
 
+            if (attributeConstructor?.Parameters.Any(p => p.RefKind == RefKind.In) == true)
+            {
+                Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            }
+
             var constructorArguments = analyzedArguments.ConstructorArguments;
             ImmutableArray<BoundExpression> boundConstructorArguments = constructorArguments.Arguments.ToImmutableAndFree();
             ImmutableArray<string> boundConstructorArgumentNamesOpt = constructorArguments.GetNames();

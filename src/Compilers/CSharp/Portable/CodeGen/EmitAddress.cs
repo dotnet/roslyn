@@ -69,8 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return EmitFieldAddress((BoundFieldAccess)expression, addressKind);
 
                 case BoundKind.ArrayAccess:
-                    //arrays are covariant, but elements can be written to.
-                    //the flag tells that we do not intend to use the address for writing.
+                    if (!HasHome(expression, addressKind))
+                    {
+                        goto default;
+                    }
+
                     EmitArrayElementAddress((BoundArrayAccess)expression, addressKind);
                     break;
 
@@ -126,13 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return temp;
 
                 case BoundKind.ConditionalOperator:
-                    var conditional = (BoundConditionalOperator)expression;
-                    if (!HasHome(conditional, addressKind))
+                    if (!HasHome(expression, addressKind))
                     {
                         goto default;
                     }
 
-                    EmitConditionalOperatorAddress(conditional, addressKind);
+                    EmitConditionalOperatorAddress((BoundConditionalOperator)expression, addressKind);
                     break;
 
                 case BoundKind.AssignmentOperator:
@@ -350,6 +352,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (expression.Kind)
             {
                 case BoundKind.ArrayAccess:
+                    if (addressKind == AddressKind.ReadOnly && 
+                        !expression.Type.IsValueType &&
+                        EnablePEVerifyCompat())
+                    {
+                        // due to array covariance getting a reference may throw ArrayTypeMismatch when element is not a struct, 
+                        // passing "readonly." prefix would prevent that, but it is unverifiable, so will make a copy in compat case
+                        return false;
+                    }
+
+                    return true;
+
                 case BoundKind.BaseReference:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.RefValueOperator:
@@ -520,11 +533,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitExpression(arrayAccess.Expression, used: true);
             EmitArrayIndices(arrayAccess.Indices);
 
-            if (addressKind == AddressKind.Constrained)
+            if (ShouldEmitReadOnlyPrefix(arrayAccess, addressKind))
             {
-                Debug.Assert(arrayAccess.Type.TypeKind == TypeKind.TypeParameter,
-                    ".readonly is only needed when element type is a type param");
-
                 _builder.EmitOpCode(ILOpCode.Readonly);
             }
 
@@ -539,6 +549,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitArrayElementAddress(Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type),
                                                 arrayAccess.Syntax, _diagnostics);
             }
+        }
+
+        private bool ShouldEmitReadOnlyPrefix(BoundArrayAccess arrayAccess, AddressKind addressKind)
+        {
+            if (addressKind == AddressKind.Constrained)
+            {
+                Debug.Assert(arrayAccess.Type.TypeKind == TypeKind.TypeParameter, "constrained call should only be used with type parameter types");
+                return true;
+            }
+
+            if (!IsReadOnly(addressKind))
+            {
+                return false;
+            }
+
+            // no benefits to value types
+            return !arrayAccess.Type.IsValueType;
         }
 
         /// <summary>

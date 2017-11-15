@@ -1997,15 +1997,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim placeholder As BoundCompoundAssignmentTargetPlaceholder = Nothing
 
-            If Not isError Then
-                placeholder = New BoundCompoundAssignmentTargetPlaceholder(left.Syntax, targetType).MakeCompilerGenerated()
-                right = BindBinaryOperator(node, placeholder, right, operatorTokenKind, operatorKind, isOperandOfConditionalBranch:=False, diagnostics:=diagnostics)
-                right.SetWasCompilerGenerated()
-                right = ApplyImplicitConversion(node, targetType, right, diagnostics)
-            Else
-                ' Try to reclassify 'right' if we still can.
-                right = MakeRValueAndIgnoreDiagnostics(right)
+            If isError Then
+                ' Suppress all additional diagnostics. This ensures that we still generate the appropriate tree shape
+                ' even in error scenarios
+                diagnostics = New DiagnosticBag()
             End If
+
+            placeholder = New BoundCompoundAssignmentTargetPlaceholder(left.Syntax, targetType).MakeCompilerGenerated()
+            right = BindBinaryOperator(node, placeholder, right, operatorTokenKind, operatorKind, isOperandOfConditionalBranch:=False, diagnostics:=diagnostics)
+            right.SetWasCompilerGenerated()
+            right = ApplyImplicitConversion(node, targetType, right, diagnostics)
 
             left = left.SetGetSetAccessKindIfAppropriate()
 

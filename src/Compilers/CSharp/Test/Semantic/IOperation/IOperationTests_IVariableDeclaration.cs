@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -513,6 +515,160 @@ IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (S
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArguments_WithInitializer()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10] = 1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x[10] = 1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredArguments(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         int /*<bind>*/x[10] = 1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[10]").WithLocation(6, 24),
+                // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int /*<bind>*/x[10] = 1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "10").WithLocation(6, 25),
+                // CS0219: The variable 'x' is assigned but its value is never used
+                //         int /*<bind>*/x[10] = 1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 23)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArguments_NoInitializer()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x[10]')
+  Initializer: 
+    null
+  IgnoredArguments(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         int /*<bind>*/x[10]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[10]").WithLocation(6, 24),
+                // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int /*<bind>*/x[10]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "10").WithLocation(6, 25),
+                // CS0168: The variable 'x' is declared but never used
+                //         int /*<bind>*/x[10]/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 23)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArgumentsWithInitializer_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10] = 1/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            var declarator = (IVariableDeclaratorOperation)operation;
+            Assert.Equal(2, declarator.Children.Count());
+            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
+            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(1).Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArguments_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10]/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            var declarator = (IVariableDeclaratorOperation)operation;
+            Assert.Equal(1, declarator.Children.Count());
+            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_WithInitializer_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x = 1/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            var declarator = (IVariableDeclaratorOperation)operation;
+            Assert.Equal(1, declarator.Children.Count());
+            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(0).Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_NoChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            Assert.Empty(operation.Children);
         }
 
         #endregion

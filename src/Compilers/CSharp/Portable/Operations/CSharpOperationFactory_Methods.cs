@@ -77,28 +77,37 @@ namespace Microsoft.CodeAnalysis.Operations
                 initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, initializerIsImplicit);
             }
 
+            ImmutableArray<IOperation> ignoredArguments = boundLocalDeclaration.ArgumentsOpt.IsDefault ?
+                                                            ImmutableArray<IOperation>.Empty :
+                                                            boundLocalDeclaration.ArgumentsOpt.SelectAsArray(arg => Create(arg));
             ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol;
             SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default;
             bool isImplicit = false;
 
-            return new VariableDeclarator(symbol, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new VariableDeclarator(symbol, initializer, ignoredArguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
         {
-            return new VariableDeclarator(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
+            return new VariableDeclarator(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }
 
-        private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)
+        private Lazy<IOperation> CreateReceiverOperation(BoundNode instance, ISymbol symbol)
         {
-            if (boundCall.Method == null || boundCall.Method.IsStatic)
+            if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
-                return null;
+                return OperationFactory.NullOperation;
             }
 
-            return Create(boundCall.ReceiverOpt);
+            // Static members cannot have an implicit this receiver
+            if (symbol != null && symbol.IsStatic && instance.WasCompilerGenerated && instance.Kind == BoundKind.ThisReference)
+            {
+                return OperationFactory.NullOperation;
+            }
+
+            return new Lazy<IOperation>(() => Create(instance));
         }
 
         private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
@@ -110,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Operations
             //  2. the constant value of BoundEventAccess is always null.
             //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
             IEventSymbol @event = boundEventAssignmentOperator.Event;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+            Lazy<IOperation> instance = CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt, @event);
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
@@ -158,10 +167,10 @@ namespace Microsoft.CodeAnalysis.Operations
                       {
                           ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance();
 
-                          if (receiverOpt != null 
-                             && (!receiverOpt.WasCompilerGenerated 
-                                 || (receiverOpt.Kind != BoundKind.ThisReference 
-                                    && receiverOpt.Kind != BoundKind.BaseReference 
+                          if (receiverOpt != null
+                             && (!receiverOpt.WasCompilerGenerated
+                                 || (receiverOpt.Kind != BoundKind.ThisReference
+                                    && receiverOpt.Kind != BoundKind.BaseReference
                                     && receiverOpt.Kind != BoundKind.ImplicitReceiver)))
                           {
                               builder.Add(Create(receiverOpt));

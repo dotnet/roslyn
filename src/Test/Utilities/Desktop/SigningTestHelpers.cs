@@ -12,6 +12,12 @@ namespace Roslyn.Test.Utilities
 {
     internal static class SigningTestHelpers
     {
+        public static readonly StrongNameProvider s_defaultDesktopProvider =
+            new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
+
+        public static readonly StrongNameProvider s_defaultPortableProvider =
+            new PortableStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
+
         // these are virtual paths that don't exist on disk
         internal static string KeyPairFile = @"R:\__Test__\KeyPair_" + Guid.NewGuid() + ".snk";
         internal static string PublicKeyFile = @"R:\__Test__\PublicKey_" + Guid.NewGuid() + ".snk";
@@ -26,13 +32,18 @@ namespace Roslyn.Test.Utilities
 
         internal static readonly ImmutableArray<byte> PublicKey = ImmutableArray.Create(TestResources.General.snPublicKey);
 
+        internal static object s_keyInstalledLock = new object();
+
         // Modifies machine wide state.
         internal unsafe static void InstallKey()
         {
-            if (!s_keyInstalled)
+            lock (s_keyInstalledLock)
             {
-                InstallKey(TestResources.General.snKey, TestContainerName);
-                s_keyInstalled = true;
+                if (!s_keyInstalled)
+                {
+                    InstallKey(TestResources.General.snKey, TestContainerName);
+                    s_keyInstalled = true;
+                }
             }
         }
 
@@ -55,16 +66,14 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        internal sealed class VirtualizedStrongNameProvider : DesktopStrongNameProvider
+        internal sealed class VirtualizedStrongNameFileSystem : StrongNameFileSystem
         {
-            public VirtualizedStrongNameProvider(ImmutableArray<string> searchPaths = default(ImmutableArray<string>), string tempPath = null)
-                : base(searchPaths, tempPath)
-            {
-            }
-
             private static bool PathEquals(string left, string right)
             {
-                return string.Equals(FileUtilities.NormalizeAbsolutePath(left), FileUtilities.NormalizeAbsolutePath(right), StringComparison.OrdinalIgnoreCase);
+                return string.Equals(
+                    FileUtilities.NormalizeAbsolutePath(left),
+                    FileUtilities.NormalizeAbsolutePath(right),
+                    StringComparison.OrdinalIgnoreCase);
             }
 
             internal override bool FileExists(string fullPath)

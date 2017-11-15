@@ -330,7 +330,7 @@ class C
 ";
             // Desired: the delegate is generated, no error is reported.
             // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: false).VerifyIL("C.F", @"
+            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
 {
   // Code size      189 (0xbd)
   .maxstack  13

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 additionalRefs: additionalRefs,
                 expectedOutput: isWin8 ? expectedOutput : null,
-                verify: isWin8);
+                verify: isWin8 ? Verification.Passes : Verification.Fails);
         }
 
     }

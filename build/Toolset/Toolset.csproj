@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>Toolset_DoNetUse</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7;linux;osx</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynCrossPlatformRuntimeIdentifiers)</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
