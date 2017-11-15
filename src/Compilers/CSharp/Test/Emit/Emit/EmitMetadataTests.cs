@@ -2553,15 +2553,15 @@ public class C
             CompileAndVerify(text,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 sourceSymbolValidator: module =>
-            {
-                var parameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
-                Assert.Equal(4, parameters.Length);
+                {
+                    var parameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
+                    Assert.Equal(4, parameters.Length);
 
-                Assert.True(parameters[0].IsMetadataIn);
-                Assert.True(parameters[1].IsMetadataIn);
-                Assert.True(parameters[2].IsMetadataIn);
-                Assert.False(parameters[3].IsMetadataIn);
-            },
+                    Assert.True(parameters[0].IsMetadataIn);
+                    Assert.True(parameters[1].IsMetadataIn);
+                    Assert.True(parameters[2].IsMetadataIn);
+                    Assert.False(parameters[3].IsMetadataIn);
+                },
                 symbolValidator: module =>
                 {
                     var delegateParameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
