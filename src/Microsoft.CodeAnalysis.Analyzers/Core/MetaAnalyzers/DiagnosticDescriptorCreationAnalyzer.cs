@@ -4,31 +4,42 @@ using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
-    public abstract class DiagnosticDescriptorCreationAnalyzer<TClassDeclarationSyntax, TObjectCreationExpressionSyntax, TLanguageKindEnum> : DiagnosticAnalyzer
-        where TClassDeclarationSyntax : SyntaxNode
-        where TObjectCreationExpressionSyntax : SyntaxNode
-        where TLanguageKindEnum : struct
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class DiagnosticDescriptorCreationAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private const string HelpLinkUriParameterName = "helpLinkUri";
+        private static readonly LocalizableString s_localizableUseLocalizableStringsTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableUseLocalizableStringsMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableUseLocalizableStringsDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableProvideHelpUriTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableProvideHelpUriMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableProvideHelpUriDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            s_localizableUseLocalizableStringsTitle,
+            s_localizableUseLocalizableStringsMessage,
             AnalyzerDiagnosticCategory.AnalyzerLocalization,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: false,
-            description: s_localizableDescription,
+            description: s_localizableUseLocalizableStringsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseLocalizableStringsInDescriptorRule);
+        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new DiagnosticDescriptor(
+            DiagnosticIds.ProvideHelpUriInDescriptorRuleId,
+            s_localizableProvideHelpUriTitle,
+            s_localizableProvideHelpUriMessage,
+            AnalyzerDiagnosticCategory.AnalyzerLocalization,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            isEnabledByDefault: false,
+            description: s_localizableProvideHelpUriDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
 
-        protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseLocalizableStringsInDescriptorRule, ProvideHelpUriInDescriptorRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -43,50 +54,54 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                CompilationAnalyzer analyzer = GetAnalyzer(compilationContext.Compilation, diagnosticDescriptorType);
-                if (analyzer == null)
+                compilationContext.RegisterOperationAction(operationAnalysisContext =>
                 {
-                    return;
-                }
+                    var objectCreation = ((IFieldInitializerOperation)operationAnalysisContext.Operation).Value as IObjectCreationOperation;
+                    if (objectCreation == null)
+                    {
+                        return;
+                    }
 
-                compilationContext.RegisterSyntaxNodeAction(c => analyzer.AnalyzeObjectCreation(c), SyntaxKindsOfInterest);
+                    var ctor = objectCreation.Constructor;
+                    if (ctor == null ||
+                        !diagnosticDescriptorType.Equals(ctor.ContainingType) ||
+                        !diagnosticDescriptorType.InstanceConstructors.Any(c => c.Equals(ctor)))
+                    {
+                        return;
+                    }
+
+                    AnalyzeTitle(operationAnalysisContext, objectCreation);
+                    AnalyzeHelpLinkUri(operationAnalysisContext, objectCreation);
+                }, OperationKind.FieldInitializer);
             });
         }
 
-        protected abstract CompilationAnalyzer GetAnalyzer(Compilation compilation, INamedTypeSymbol diagnosticDescriptorType);
-
-        protected abstract class CompilationAnalyzer
+        private static void AnalyzeTitle(OperationAnalysisContext operationAnalysisContext, IObjectCreationOperation objectCreation)
         {
-            private readonly INamedTypeSymbol _diagnosticDescriptorType;
-
-            protected CompilationAnalyzer(INamedTypeSymbol diagnosticDescriptorType)
+            IParameterSymbol title = objectCreation.Constructor.Parameters.Where(p => p.Name == "title").FirstOrDefault();
+            if (title != null &&
+                title.Type != null &&
+                title.Type.SpecialType == SpecialType.System_String)
             {
-                _diagnosticDescriptorType = diagnosticDescriptorType;
+                Diagnostic diagnostic = Diagnostic.Create(UseLocalizableStringsInDescriptorRule, objectCreation.Syntax.GetLocation(), DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
+                operationAnalysisContext.ReportDiagnostic(diagnostic);
             }
+        }
 
-            protected abstract SyntaxNode GetObjectCreationType(TObjectCreationExpressionSyntax objectCreation);
-
-            public void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeHelpLinkUri(OperationAnalysisContext operationAnalysisContext, IObjectCreationOperation objectCreation)
+        {
+            // Find the matching argument for helpLinkUri
+            foreach (var argument in objectCreation.Arguments)
             {
-                var objectCreation = (TObjectCreationExpressionSyntax)context.Node;
-                ISymbol symbol = context.SemanticModel.GetSymbolInfo(objectCreation).Symbol;
-                if (symbol == null ||
-                    symbol.Kind != SymbolKind.Method ||
-                    !_diagnosticDescriptorType.Equals(symbol.ContainingType) ||
-                    !_diagnosticDescriptorType.InstanceConstructors.Any(c => c.Equals(symbol)))
+                if (argument.Parameter.Name.Equals(HelpLinkUriParameterName, System.StringComparison.OrdinalIgnoreCase))
                 {
-                    return;
-                }
+                    if (argument.Value.ConstantValue.HasValue && argument.Value.ConstantValue.Value == null)
+                    {
+                        Diagnostic diagnostic = Diagnostic.Create(ProvideHelpUriInDescriptorRule, argument.Syntax.GetLocation());
+                        operationAnalysisContext.ReportDiagnostic(diagnostic);
+                    }
 
-                var method = (IMethodSymbol)symbol;
-                IParameterSymbol title = method.Parameters.Where(p => p.Name == "title").FirstOrDefault();
-                if (title != null &&
-                    title.Type != null &&
-                    title.Type.SpecialType == SpecialType.System_String)
-                {
-                    SyntaxNode typeName = GetObjectCreationType(objectCreation);
-                    Diagnostic diagnostic = Diagnostic.Create(UseLocalizableStringsInDescriptorRule, typeName.GetLocation(), DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
-                    context.ReportDiagnostic(diagnostic);
+                    return;
                 }
             }
         }
