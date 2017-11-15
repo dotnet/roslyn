@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             conversion = Conversion.Deconstruction;
 
             // Figure out the deconstruct method (if one is required) and determine the types we get from the RHS at this level
-            var deconstructInfo = default(DeconstructionInfo);
+            var deconstructMethod = default(DeconstructMethodInfo);
             if (type.IsTupleType)
             {
                 // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                deconstructInfo = new DeconstructionInfo(deconstructInvocation, inputPlaceholder, outPlaceholders);
+                deconstructMethod = new DeconstructMethodInfo(deconstructInvocation, inputPlaceholder, outPlaceholders);
 
                 tupleOrDeconstructedTypes = outPlaceholders.SelectAsArray(p => p.Type);
                 SetInferredTypes(variables, tupleOrDeconstructedTypes, diagnostics);
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions.Add(nestedConversion);
             }
 
-            conversion = new Conversion(ConversionKind.Deconstruction, deconstructInfo, nestedConversions.ToImmutableAndFree());
+            conversion = new Conversion(ConversionKind.Deconstruction, deconstructMethod, nestedConversions.ToImmutableAndFree());
 
             return !hasErrors;
         }

@@ -215,4 +215,12 @@
     <value>Naming Style;Name Styles;Naming Rule;Naming Conventions</value>
     <comment>C# Naming Style options page keywords</comment>
   </data>
+  <data name="116" xml:space="preserve">
+    <value>C# Tools</value>
+    <comment>Help &gt; About</comment>
+  </data>
+  <data name="117" xml:space="preserve">
+    <value>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</value>
+    <comment>Help &gt; About</comment>
+  </data>
 </root>

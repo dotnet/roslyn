@@ -2357,7 +2357,7 @@ public partial class A : I
                     SystemCoreRef_v4_0_30319_17929,
                     _eventLibRef,
                 },
-                verify: OSVersion.IsWin8);
+                verify: OSVersion.IsWin8 ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyDiagnostics(
     // (6,42): warning CS0067: The event 'A.d2' is never used

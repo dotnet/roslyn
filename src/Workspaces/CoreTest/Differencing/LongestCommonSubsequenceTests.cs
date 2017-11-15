@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.0);
+            Assert.Equal(0.0, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 1.0);
+            Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
         }
 
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
+            Assert.Equal(0.5, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
+            Assert.Equal(0.5, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.4);
+            Assert.Equal(0.4, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 1.0);
+            Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.75);
+            Assert.Equal(0.75, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
+            Assert.Equal(0.5, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.4);
+            Assert.Equal(0.4, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 1.0);
+            Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.75);
+            Assert.Equal(0.75, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.6);
+            Assert.Equal(0.6, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.4);
+            Assert.Equal(0.4, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.556, 3);
+            Assert.Equal(0.556, lcs.ComputeDistance(str1, str2), precision: 3);
         }
 
         [Fact]
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.6);
+            Assert.Equal(0.6, lcs.ComputeDistance(str1, str2));
         }
 
         [Fact]
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.429, 3);
+            Assert.Equal(0.429, lcs.ComputeDistance(str1, str2), precision: 3);
         }
 
         [Fact]
@@ -305,7 +305,39 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
+            Assert.Equal(0.5, lcs.ComputeDistance(str1, str2));
+        }
+
+        [Fact]
+        public void LongString()
+        {
+            var s = "A";
+
+            var x9 = new string('x', 9);
+            var x10 = new string('x', 10);
+            var x99 = new string('x', 99);
+            var x100 = new string('x', 100);
+            var x1000 = new string('x', 1000);
+
+            var y1000 = new string('y', 1000);
+
+            var sx9 = s + x9;
+            var sx99 = s + x99;
+            var sx1000 = s + new string('x', 1000);
+            var sx100000000 = s + new string('x', 100000000);
+            
+            Assert.Equal(0.900, lcs.ComputeDistance(s, sx9), precision: 3);
+            Assert.Equal(0.990, lcs.ComputeDistance(s, sx99), precision: 3);
+            Assert.Equal(1.000, lcs.ComputeDistance(s, sx1000), precision: 3);
+            Assert.Equal(1.000, lcs.ComputeDistance(s, sx100000000), precision: 3);
+
+            Assert.Equal(0.900, lcs.ComputeDistance(sx9, s), precision: 3);
+            Assert.Equal(0.990, lcs.ComputeDistance(sx99, s), precision: 3);
+            Assert.Equal(1.000, lcs.ComputeDistance(sx1000, s), precision: 3);
+            Assert.Equal(1.000, lcs.ComputeDistance(sx100000000, s), precision: 3);
+
+            Assert.Equal(1.000, lcs.ComputeDistance(x10 + y1000, x10), precision: 3);
+            Assert.Equal(0.5, lcs.ComputeDistance(x1000 + y1000, x1000), precision: 3);
         }
     }
 }

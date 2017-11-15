@@ -48,7 +48,7 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
 
         Return CompileAndVerify(
@@ -80,7 +80,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True) As CompilationVerifier
+        Optional verify As Verification = Verification.Passes) As CompilationVerifier
 
         Return MyBase.CompileAndVerify(
             compilation,
@@ -108,7 +108,7 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True) As CompilationVerifier
+        Optional verify As Verification = Verification.Passes) As CompilationVerifier
 
         Return CompileAndVerify(
             compilation,
@@ -139,7 +139,7 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True,
+        Optional verify As Verification = Verification.Passes,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
 
@@ -177,7 +177,7 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
 
         If options Is Nothing Then
@@ -218,7 +218,7 @@ Public MustInherit Class BasicTestBase
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
         Optional assemblyName As String = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
 
         If options Is Nothing Then
@@ -255,7 +255,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
         Return Me.CompileAndVerify(
             source,
@@ -270,7 +270,7 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             parseOptions,
-            verify:=OSVersion.IsWin8)
+            verify:=If(OSVersion.IsWin8, verify, Verification.Skipped))
     End Function
 
     Friend Shadows Function CompileAndVerifyOnWin8Only(
@@ -286,7 +286,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
         Return CompileAndVerifyOnWin8Only(
             source,
@@ -315,7 +315,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True,
+        Optional verify As Verification = Verification.Passes,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
         Return CompileAndVerify(
@@ -329,7 +329,7 @@ Public MustInherit Class BasicTestBase
             expectedSignatures:=expectedSignatures,
             options:=options,
             parseOptions:=parseOptions,
-            verify:=OSVersion.IsWin8 AndAlso verify,
+            verify:=If(OSVersion.IsWin8, verify, Verification.Skipped),
             useLatestFramework:=useLatestFramework)
     End Function
 

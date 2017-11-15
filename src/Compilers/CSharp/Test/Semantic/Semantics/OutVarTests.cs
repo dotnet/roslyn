@@ -1070,18 +1070,11 @@ public class Cls
 
         private static void AssertTypeFromOperation(SemanticModel model, TypeSymbol expectedType, DeclarationExpressionSyntax decl)
         {
-            // see https://github.com/dotnet/roslyn/issues/22175 for more detail.
+            // see https://github.com/dotnet/roslyn/issues/23006 and https://github.com/dotnet/roslyn/issues/23007 for more detail
 
             // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
             // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
             // error recovery mode
-            var variableDeclarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
-            if (variableDeclarator?.ArgumentList?.FullSpan.Contains(decl.Span) == true)
-            {
-                // node in argument list is error case which operation doesn't support
-                return;
-            }
-
             var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
             if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
                 foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)

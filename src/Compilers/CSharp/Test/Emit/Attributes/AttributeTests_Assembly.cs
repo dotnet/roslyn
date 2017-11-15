@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(comp, verify: false, symbolValidator: m =>
+            CompileAndVerify(comp, verify: Verification.Fails, symbolValidator: m =>
             {
                 var utf8 = new System.Text.UTF8Encoding(false, false);
                 Assert.Equal(utf8.GetString(utf8.GetBytes("\uD800")), m.ContainingAssembly.Identity.CultureName);
@@ -370,7 +370,7 @@ public class en_US
 
             compilation = CreateStandardCompilation("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "20");
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics(
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics(
     // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
@@ -432,7 +432,7 @@ public class en_US
                     Assert.Equal(2, ((PEModuleSymbol)m).GetReferencedAssemblySymbols().Length);
                     Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()[1].ToTestDisplayString());
                 },
-                verify: false).VerifyDiagnostics();
+                verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation(
 @"
@@ -453,7 +453,7 @@ public class neutral
 
             compilation = CreateStandardCompilation("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "60");
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics(
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics(
     // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
@@ -655,7 +655,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: false,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -684,7 +684,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: false,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -717,7 +717,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: false,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {

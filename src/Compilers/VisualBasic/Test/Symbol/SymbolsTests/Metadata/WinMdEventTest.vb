@@ -846,7 +846,7 @@ End Class
 }
                     </output>
 
-            CompileAndVerify(compilation, verify:=OSVersion.IsWin8).VerifyIL("abcdef.goo", expectedIL.Value())
+            CompileAndVerify(compilation, verify:=If(OSVersion.IsWin8, Verification.Passes, Verification.Skipped)).VerifyIL("abcdef.goo", expectedIL.Value())
         End Sub
 
         <Fact>

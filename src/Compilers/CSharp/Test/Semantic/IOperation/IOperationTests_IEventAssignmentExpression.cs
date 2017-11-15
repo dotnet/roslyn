@@ -309,7 +309,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
   Event Reference: 
     IEventReferenceOperation: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
       Instance Receiver: 
-        null
+        ILocalReferenceOperation: t (OperationKind.LocalReference, Type: Test, IsInvalid) (Syntax: 't')
   Handler: 
     IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
       Target: 
@@ -359,7 +359,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
   Event Reference: 
     IEventReferenceOperation: event System.EventHandler Test.MyEvent (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: 'Test.MyEvent')
       Instance Receiver: 
-        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Test')
+        null
   Handler: 
     IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
       Target: 

@@ -245,6 +245,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node is ForEachStatementSyntax;
         }
 
+        public bool IsDeconstructionForEachStatement(SyntaxNode node)
+            => node is ForEachVariableStatementSyntax;
+
+        public bool IsDeconstructionAssignment(SyntaxNode node)
+            => node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction();
+
+        public Location GetDeconstructionReferenceLocation(SyntaxNode node)
+        {
+            var tree = node.SyntaxTree;
+            switch (node)
+            {
+                case AssignmentExpressionSyntax assignment:
+                    return assignment.Left.GetLocation();
+
+                case ForEachVariableStatementSyntax @foreach:
+                    return @foreach.Variable.GetLocation();
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
+            }
+        }
+
         public bool IsLockStatement(SyntaxNode node)
         {
             return node is LockStatementSyntax;

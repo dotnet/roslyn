@@ -113,9 +113,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Protected Overrides Function IsInAutoPropertyInitializer(expression As ExpressionSyntax) As Boolean
             Dim propertyStatement = expression.GetAncestorOrThis(Of PropertyStatementSyntax)()
+            Dim equalsValueStatement = expression.GetAncestorOrThis(Of EqualsValueSyntax)
+
             If propertyStatement IsNot Nothing Then
                 Return expression.GetAncestorsOrThis(Of AsClauseSyntax).Contains(propertyStatement.AsClause) OrElse
-                    expression.GetAncestorOrThis(Of EqualsValueSyntax).Contains(propertyStatement.Initializer)
+                    (equalsValueStatement IsNot Nothing AndAlso equalsValueStatement.Contains(propertyStatement.Initializer))
             End If
 
             Return False

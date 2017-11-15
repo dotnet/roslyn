@@ -164,11 +164,11 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         /// <summary>
         /// Returns a distance [0..1] of the specified sequences.
-        /// The smaller distance the more of their elements match.
+        /// The smaller distance the more similar the sequences are.
         /// </summary>
         /// <summary>
         /// Returns a distance [0..1] of the specified sequences.
-        /// The smaller distance the more of their elements match.
+        /// The smaller distance the more similar the sequences are.
         /// </summary>
         protected double ComputeDistance(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
@@ -177,6 +177,15 @@ namespace Microsoft.CodeAnalysis.Differencing
             if (oldLength == 0 || newLength == 0)
             {
                 return (oldLength == newLength) ? 0.0 : 1.0;
+            }
+
+            // If the sequences differ significantly in size their distance will be very close to 1.0 
+            // (even if one is a strict subsequence of the other).
+            // Avoid running an expensive LCS algorithm on such sequences.
+            double lenghtRatio = (oldLength > newLength) ? oldLength / newLength : newLength / oldLength;
+            if (lenghtRatio > 100)
+            {
+                return 1.0;
             }
 
             int lcsLength = 0;

@@ -2646,12 +2646,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
             {
-                Error(diagnostics, ErrorCode.WRN_FilterIsConstant, filter.FilterExpression);
+                // Depending on whether the filter constant is true or false, and whether there are other catch clauses,
+                // we suggest different actions
+                var errorCode = boundFilter.ConstantValue.BooleanValue
+                    ? ErrorCode.WRN_FilterIsConstantTrue
+                    : (filter.Parent.Parent is TryStatementSyntax s && s.Catches.Count == 1 && s.Finally == null)
+                        ? ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch
+                        : ErrorCode.WRN_FilterIsConstantFalse;
+
+                // Since the expression is a constant, the name can be retrieved from the first token
+                Error(diagnostics, errorCode, filter.FilterExpression);                
             }
 
             return boundFilter;
         }
-
 
         // Report an extra error on the return if we are in a lambda conversion.
         private void ReportCantConvertLambdaReturn(SyntaxNode syntax, DiagnosticBag diagnostics)

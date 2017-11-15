@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
                 options: FileOptions.None);
         }
 
-        internal EmbeddedText TryReadEmbeddedFileContent(string filePath, IList<Diagnostic> diagnostics)
+        internal EmbeddedText TryReadEmbeddedFileContent(string filePath, DiagnosticBag diagnostics)
         {
             try
             {
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ImmutableArray<EmbeddedText> AcquireEmbeddedTexts(Compilation compilation, IList<Diagnostic> diagnostics)
+        private ImmutableArray<EmbeddedText> AcquireEmbeddedTexts(Compilation compilation, DiagnosticBag diagnostics)
         {
             if (Arguments.EmbeddedFiles.IsEmpty)
             {
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     text = TryReadEmbeddedFileContent(path, diagnostics);
-                    Debug.Assert(text != null || diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error));
+                    Debug.Assert(text != null || diagnostics.HasAnyErrors());
                 }
 
                 // We can safely add nulls because result will be ignored if any error is produced.
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxTree tree,
             SourceReferenceResolver resolver,
             OrderedSet<string> embeddedFiles,
-            IList<Diagnostic> diagnostics);
+            DiagnosticBag diagnostics);
 
         private static IReadOnlySet<string> GetEmbeddedSourcePaths(CommandLineArguments arguments)
         {
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-        public bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
+        internal bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
@@ -429,6 +429,9 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
+        private bool ReportErrors(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
+            => ReportErrors(diagnostics.ToReadOnly(), consoleOutput, errorLoggerOpt);
+
         /// <summary>
         /// Returns true if the diagnostic is an error that should be reported.
         /// </summary>
@@ -449,17 +452,26 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
+            var diagnostics = DiagnosticBag.GetInstance();
             var errorLog = OpenFile(Arguments.ErrorLogPath,
-                                    consoleOutput,
+                                    diagnostics,
                                     FileMode.Create,
                                     FileAccess.Write,
                                     FileShare.ReadWrite | FileShare.Delete);
+
+            StreamErrorLogger logger;
             if (errorLog == null)
             {
-                return null;
+                Debug.Assert(diagnostics.HasAnyErrors());
+                logger = null;
+            }
+            else
+            {
+                logger = new StreamErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
             }
 
-            return new StreamErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
+            ReportErrors(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger);
+            return logger;
         }
 
         /// <summary>
@@ -559,304 +571,342 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
-            var diagnostics = new List<Diagnostic>();
+            var diagnostics = DiagnosticBag.GetInstance();
+
             ImmutableArray<EmbeddedText> embeddedTexts = AcquireEmbeddedTexts(compilation, diagnostics);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
                 return Failed;
             }
 
-            bool reportAnalyzer = false;
-            CancellationTokenSource analyzerCts = null;
-            AnalyzerManager analyzerManager = null;
-            AnalyzerDriver analyzerDriver = null;
+            CompileAndEmit(
+                touchedFilesLogger,
+                ref compilation,
+                analyzers,
+                additionalTextFiles,
+                embeddedTexts,
+                diagnostics,
+                cancellationToken,
+                out CancellationTokenSource analyzerCts,
+                out bool reportAnalyzer,
+                out var analyzerDriver);
+
+            // At this point analyzers are already complete in which case this is a no-op.  Or they are 
+            // still running because the compilation failed before all of the compilation events were 
+            // raised.  In the latter case the driver, and all its associated state, will be waiting around 
+            // for events that are never coming.  Cancel now and let the clean up process begin.
+            if (analyzerCts != null)
+            {
+                analyzerCts.Cancel();
+            }
+
+            var exitCode = ReportErrors(diagnostics, consoleOutput, errorLogger)
+                ? Failed
+                : Succeeded;
+
+            // The act of reporting errors can cause more errors to appear in
+            // additional files due to forcing all additional files to fetch text
+            foreach (var additionalFile in additionalTextFiles)
+            {
+                if (ReportErrors(additionalFile.Diagnostics, consoleOutput, errorLogger))
+                {
+                    exitCode = Failed;
+                }
+            }
+
+            diagnostics.Free();
+            if (reportAnalyzer)
+            {
+                ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
+            }
+
+            return exitCode;
+        }
+
+        /// <summary>
+        /// Perform all the work associated with actual compilation
+        /// (parsing, binding, compile, emit), resulting in diagnostics
+        /// and analyzer output.
+        /// </summary>
+        private void CompileAndEmit(
+            TouchedFileLogger touchedFilesLogger,
+            ref Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<AdditionalTextFile> additionalTextFiles,
+            ImmutableArray<EmbeddedText> embeddedTexts,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken,
+            out CancellationTokenSource analyzerCts,
+            out bool reportAnalyzer,
+            out AnalyzerDriver analyzerDriver)
+        {
+            analyzerCts = null;
+            reportAnalyzer = false;
+            analyzerDriver = null;
+
+            // Print the diagnostics produced during the parsing stage and exit if there were any errors.
+            compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
+            if (diagnostics.HasAnyErrors())
+            {
+                return;
+            }
+
+            DiagnosticBag analyzerExceptionDiagnostics = null;
+
+            if (!analyzers.IsEmpty)
+            {
+                analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                analyzerExceptionDiagnostics = new DiagnosticBag();
+                var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
+
+                analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
+                    compilation,
+                    analyzers,
+                    analyzerOptions,
+                    new AnalyzerManager(analyzers),
+                    analyzerExceptionDiagnostics.Add,
+                    Arguments.ReportAnalyzer,
+                    out compilation,
+                    analyzerCts.Token);
+                reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
+            }
+
+            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
+            if (diagnostics.HasAnyErrors())
+            {
+                return;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string outputName = GetOutputFileName(compilation, cancellationToken);
+            var finalPeFilePath = Path.Combine(Arguments.OutputDirectory, outputName);
+            var finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalPeFilePath, ".pdb");
+            var finalXmlFilePath = Arguments.DocumentationPath;
+
+            NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
 
             try
             {
-                // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-                if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
+                // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
+                var emitOptions = Arguments.EmitOptions.
+                    WithOutputNameOverride(outputName).
+                    WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
+
+                // TODO(https://github.com/dotnet/roslyn/issues/19592):
+                // This feature flag is being maintained until our next major release to avoid unnecessary 
+                // compat breaks with customers.
+                if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
                 {
-                    return Failed;
+                    emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
                 }
 
-                ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
-
-                if (!analyzers.IsEmpty)
+                if (Arguments.SourceLink != null)
                 {
-                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerManager = new AnalyzerManager(analyzers);
-                    analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-                    Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
-                    var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
+                    var sourceLinkStreamOpt = OpenFile(
+                        Arguments.SourceLink,
+                        diagnostics,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.Read);
 
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
-                    reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
-                }
-
-                if (ReportErrors(compilation.GetDeclarationDiagnostics(), consoleOutput, errorLogger))
-                {
-                    return Failed;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string outputName = GetOutputFileName(compilation, cancellationToken);
-                var finalPeFilePath = Path.Combine(Arguments.OutputDirectory, outputName);
-                var finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalPeFilePath, ".pdb");
-                var finalXmlFilePath = Arguments.DocumentationPath;
-
-                var diagnosticBag = DiagnosticBag.GetInstance();
-                NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
-
-                try
-                {
-                    // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
-                    var emitOptions = Arguments.EmitOptions.
-                        WithOutputNameOverride(outputName).
-                        WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
-
-                    // This feature flag is being maintained until our next major release to avoid unnecessary 
-                    // compat breaks with customers.
-                    if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
+                    if (sourceLinkStreamOpt != null)
                     {
-                        emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
-                    }
-
-                    if (Arguments.SourceLink != null)
-                    {
-                        var sourceLinkStreamOpt = OpenFile(
+                        sourceLinkStreamDisposerOpt = new NoThrowStreamDisposer(
+                            sourceLinkStreamOpt,
                             Arguments.SourceLink,
-                            consoleOutput,
-                            FileMode.Open,
-                            FileAccess.Read,
-                            FileShare.Read);
-
-                        if (sourceLinkStreamOpt != null)
-                        {
-                            sourceLinkStreamDisposerOpt = new NoThrowStreamDisposer(
-                                sourceLinkStreamOpt,
-                                Arguments.SourceLink,
-                                consoleOutput,
-                                MessageProvider);
-                        }
+                            diagnostics,
+                            MessageProvider);
                     }
+                }
 
-                    var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
-                        diagnosticBag,
-                        Arguments.ManifestResources,
-                        emitOptions,
-                        debugEntryPoint: null,
-                        sourceLinkStream: sourceLinkStreamDisposerOpt?.Stream,
-                        embeddedTexts: embeddedTexts,
-                        testData: null,
-                        cancellationToken: cancellationToken);
+                var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
+                    diagnostics,
+                    Arguments.ManifestResources,
+                    emitOptions,
+                    debugEntryPoint: null,
+                    sourceLinkStream: sourceLinkStreamDisposerOpt?.Stream,
+                    embeddedTexts: embeddedTexts,
+                    testData: null,
+                    cancellationToken: cancellationToken);
 
-                    if (moduleBeingBuilt != null)
+                if (moduleBeingBuilt != null)
+                {
+                    bool success;
+
+                    try
                     {
-                        bool success;
-
-                        try
-                        {
-                            success = compilation.CompileMethods(
-                                moduleBeingBuilt,
-                                Arguments.EmitPdb,
-                                emitOptions.EmitMetadataOnly,
-                                emitOptions.EmitTestCoverageData,
-                                diagnosticBag,
-                                filterOpt: null,
-                                cancellationToken: cancellationToken);
-
-                            if (success)
-                            {
-                                // NOTE: as native compiler does, we generate the documentation file
-                                // NOTE: 'in place', replacing the contents of the file if it exists
-                                NoThrowStreamDisposer xmlStreamDisposerOpt = null;
-
-                                if (finalXmlFilePath != null)
-                                {
-                                    var xmlStreamOpt = OpenFile(finalXmlFilePath,
-                                                                consoleOutput,
-                                                                FileMode.OpenOrCreate,
-                                                                FileAccess.Write,
-                                                                FileShare.ReadWrite | FileShare.Delete);
-
-                                    if (xmlStreamOpt == null)
-                                    {
-                                        return Failed;
-                                    }
-
-                                    xmlStreamOpt.SetLength(0);
-                                    xmlStreamDisposerOpt = new NoThrowStreamDisposer(
-                                        xmlStreamOpt,
-                                        finalXmlFilePath,
-                                        consoleOutput,
-                                        MessageProvider);
-                                }
-
-                                using (xmlStreamDisposerOpt)
-                                {
-                                    IEnumerable<DiagnosticInfo> errors;
-                                    using (var win32ResourceStreamOpt = GetWin32Resources(Arguments, compilation, out errors))
-                                    {
-                                        if (ReportErrors(errors, consoleOutput, errorLogger))
-                                        {
-                                            return Failed;
-                                        }
-
-                                        success = compilation.GenerateResourcesAndDocumentationComments(
-                                            moduleBeingBuilt,
-                                            xmlStreamDisposerOpt?.Stream,
-                                            win32ResourceStreamOpt,
-                                            emitOptions.OutputNameOverride,
-                                            diagnosticBag,
-                                            cancellationToken);
-                                    }
-                                }
-
-                                if (xmlStreamDisposerOpt?.HasFailedToDispose == true)
-                                {
-                                    return Failed;
-                                }
-
-                                // only report unused usings if we have success.
-                                if (success)
-                                {
-                                    compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
-                                }
-                            }
-
-                            compilation.CompleteTrees(null);
-
-                            if (analyzerDriver != null)
-                            {
-                                // GetDiagnosticsAsync is called after ReportUnusedImports
-                                // since that method calls EventQueue.TryComplete. Without
-                                // TryComplete, we may miss diagnostics.
-                                var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
-                                diagnosticBag.AddRange(hostDiagnostics);
-                                if (hostDiagnostics.Any(IsReportedError))
-                                {
-                                    success = false;
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            moduleBeingBuilt.CompilationFinished();
-                        }
+                        success = compilation.CompileMethods(
+                            moduleBeingBuilt,
+                            Arguments.EmitPdb,
+                            emitOptions.EmitMetadataOnly,
+                            emitOptions.EmitTestCoverageData,
+                            diagnostics,
+                            filterOpt: null,
+                            cancellationToken: cancellationToken);
 
                         if (success)
                         {
-                            bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
+                            // NOTE: as native compiler does, we generate the documentation file
+                            // NOTE: 'in place', replacing the contents of the file if it exists
+                            NoThrowStreamDisposer xmlStreamDisposerOpt = null;
 
-                            var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
-                            var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
-
-                            string finalRefPeFilePath = Arguments.OutputRefFilePath;
-                            var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
-
-                            try
+                            if (finalXmlFilePath != null)
                             {
-                                success = compilation.SerializeToPeStream(
-                                    moduleBeingBuilt,
-                                    peStreamProvider,
-                                    refPeStreamProviderOpt,
-                                    pdbStreamProviderOpt,
-                                    testSymWriterFactory: null,
-                                    diagnostics: diagnosticBag,
-                                    metadataOnly: emitOptions.EmitMetadataOnly,
-                                    includePrivateMembers: emitOptions.IncludePrivateMembers,
-                                    emitTestCoverageData: emitOptions.EmitTestCoverageData,
-                                    pePdbFilePath: emitOptions.PdbFilePath,
-                                    cancellationToken: cancellationToken);
-                            }
-                            finally
-                            {
-                                peStreamProvider.Close(diagnosticBag);
-                                refPeStreamProviderOpt?.Close(diagnosticBag);
-                                pdbStreamProviderOpt?.Close(diagnosticBag);
+                                var xmlStreamOpt = OpenFile(finalXmlFilePath,
+                                                            diagnostics,
+                                                            FileMode.OpenOrCreate,
+                                                            FileAccess.Write,
+                                                            FileShare.ReadWrite | FileShare.Delete);
+
+                                if (xmlStreamOpt == null)
+                                {
+                                    return;
+                                }
+
+                                xmlStreamOpt.SetLength(0);
+                                xmlStreamDisposerOpt = new NoThrowStreamDisposer(
+                                    xmlStreamOpt,
+                                    finalXmlFilePath,
+                                    diagnostics,
+                                    MessageProvider);
                             }
 
-                            if (success && touchedFilesLogger != null)
+                            using (xmlStreamDisposerOpt)
                             {
-                                if (pdbStreamProviderOpt != null)
+                                using (var win32ResourceStreamOpt = GetWin32Resources(MessageProvider, Arguments, compilation, diagnostics))
                                 {
-                                    touchedFilesLogger.AddWritten(finalPdbFilePath);
+                                    if (diagnostics.HasAnyErrors())
+                                    {
+                                        return;
+                                    }
+
+                                    success = compilation.GenerateResourcesAndDocumentationComments(
+                                        moduleBeingBuilt,
+                                        xmlStreamDisposerOpt?.Stream,
+                                        win32ResourceStreamOpt,
+                                        emitOptions.OutputNameOverride,
+                                        diagnostics,
+                                        cancellationToken);
                                 }
-                                if (refPeStreamProviderOpt != null)
-                                {
-                                    touchedFilesLogger.AddWritten(finalRefPeFilePath);
-                                }
-                                touchedFilesLogger.AddWritten(finalPeFilePath);
+                            }
+
+                            if (xmlStreamDisposerOpt?.HasFailedToDispose == true)
+                            {
+                                return;
+                            }
+
+                            // only report unused usings if we have success.
+                            if (success)
+                            {
+                                compilation.ReportUnusedImports(null, diagnostics, cancellationToken);
+                            }
+                        }
+
+                        compilation.CompleteTrees(null);
+
+                        if (analyzerDriver != null)
+                        {
+                            // GetDiagnosticsAsync is called after ReportUnusedImports
+                            // since that method calls EventQueue.TryComplete. Without
+                            // TryComplete, we may miss diagnostics.
+                            var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
+                            diagnostics.AddRange(hostDiagnostics);
+                            if (hostDiagnostics.Any(IsReportedError))
+                            {
+                                success = false;
                             }
                         }
                     }
-
-                    var compileAndEmitDiagnostics = diagnosticBag.ToReadOnly();
-                    if (ReportErrors(compileAndEmitDiagnostics, consoleOutput, errorLogger))
+                    finally
                     {
-                        return Failed;
+                        moduleBeingBuilt.CompilationFinished();
+                    }
+
+                    if (success)
+                    {
+                        bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
+
+                        var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
+                        var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
+
+                        string finalRefPeFilePath = Arguments.OutputRefFilePath;
+                        var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
+
+                        RSAParameters? privateKeyOpt = null;
+                        if (compilation.Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !compilation.Options.PublicSign)
+                        {
+                            privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
+                        }
+
+                        success = compilation.SerializeToPeStream(
+                            moduleBeingBuilt,
+                            peStreamProvider,
+                            refPeStreamProviderOpt,
+                            pdbStreamProviderOpt,
+                            testSymWriterFactory: null,
+                            diagnostics: diagnostics,
+                            metadataOnly: emitOptions.EmitMetadataOnly,
+                            includePrivateMembers: emitOptions.IncludePrivateMembers,
+                            emitTestCoverageData: emitOptions.EmitTestCoverageData,
+                            pePdbFilePath: emitOptions.PdbFilePath,
+                            privateKeyOpt: privateKeyOpt,
+                            cancellationToken: cancellationToken);
+
+                        peStreamProvider.Close(diagnostics);
+                        refPeStreamProviderOpt?.Close(diagnostics);
+                        pdbStreamProviderOpt?.Close(diagnostics);
+
+                        if (success && touchedFilesLogger != null)
+                        {
+                            if (pdbStreamProviderOpt != null)
+                            {
+                                touchedFilesLogger.AddWritten(finalPdbFilePath);
+                            }
+                            if (refPeStreamProviderOpt != null)
+                            {
+                                touchedFilesLogger.AddWritten(finalRefPeFilePath);
+                            }
+                            touchedFilesLogger.AddWritten(finalPeFilePath);
+                        }
                     }
                 }
-                finally
-                {
-                    diagnosticBag.Free();
-                    sourceLinkStreamDisposerOpt?.Dispose();
-                }
 
-                if (sourceLinkStreamDisposerOpt?.HasFailedToDispose == true)
+                if (diagnostics.HasAnyErrors())
                 {
-                    return Failed;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (analyzerExceptionDiagnostics != null && ReportErrors(analyzerExceptionDiagnostics, consoleOutput, errorLogger))
-                {
-                    return Failed;
-                }
-
-                bool errorsReadingAdditionalFiles = false;
-                foreach (var additionalFile in additionalTextFiles)
-                {
-                    if (ReportErrors(additionalFile.Diagnostics, consoleOutput, errorLogger))
-                    {
-                        errorsReadingAdditionalFiles = true;
-                    }
-                }
-
-                if (errorsReadingAdditionalFiles)
-                {
-                    return Failed;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-                if (!WriteTouchedFiles(consoleOutput, touchedFilesLogger, finalXmlFilePath))
-                {
-                    return Failed;
+                    return;
                 }
             }
             finally
             {
-                // At this point analyzers are already complete in which case this is a no-op.  Or they are 
-                // still running because the compilation failed before all of the compilation events were 
-                // raised.  In the latter case the driver, and all its associated state, will be waiting around 
-                // for events that are never coming.  Cancel now and let the clean up process begin.
-                if (analyzerCts != null)
-                {
-                    analyzerCts.Cancel();
+                sourceLinkStreamDisposerOpt?.Dispose();
+            }
 
-                    if (reportAnalyzer)
-                    {
-                        ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
-                    }
+            if (sourceLinkStreamDisposerOpt?.HasFailedToDispose == true)
+            {
+                return;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (analyzerExceptionDiagnostics != null)
+            {
+                diagnostics.AddRange(analyzerExceptionDiagnostics);
+                if (analyzerExceptionDiagnostics.HasAnyErrors())
+                {
+                    return;
                 }
             }
 
-            return Succeeded;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!WriteTouchedFiles(diagnostics, touchedFilesLogger, finalXmlFilePath))
+            {
+                return;
+            }
         }
 
-        private bool WriteTouchedFiles(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, string finalXmlFilePath)
+        private bool WriteTouchedFiles(DiagnosticBag diagnostics, TouchedFileLogger touchedFilesLogger, string finalXmlFilePath)
         {
             if (Arguments.TouchedFilesPath != null)
             {
@@ -870,8 +920,8 @@ namespace Microsoft.CodeAnalysis
                 string readFilesPath = Arguments.TouchedFilesPath + ".read";
                 string writtenFilesPath = Arguments.TouchedFilesPath + ".write";
 
-                var readStream = OpenFile(readFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
-                var writtenStream = OpenFile(writtenFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+                var readStream = OpenFile(readFilesPath, diagnostics, mode: FileMode.OpenOrCreate);
+                var writtenStream = OpenFile(writtenFilesPath, diagnostics, mode: FileMode.OpenOrCreate);
 
                 if (readStream == null || writtenStream == null)
                 {
@@ -896,7 +946,7 @@ namespace Microsoft.CodeAnalysis
                 catch (Exception e)
                 {
                     Debug.Assert(filePath != null);
-                    MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
+                    MessageProvider.ReportStreamWriteException(e, filePath, diagnostics);
                     return false;
                 }
             }
@@ -1007,7 +1057,7 @@ namespace Microsoft.CodeAnalysis
 
         private Stream OpenFile(
             string filePath,
-            TextWriter consoleOutput,
+            DiagnosticBag diagnostics,
             FileMode mode = FileMode.Open,
             FileAccess access = FileAccess.ReadWrite,
             FileShare share = FileShare.None)
@@ -1018,42 +1068,46 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e)
             {
-                MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
+                MessageProvider.ReportStreamWriteException(e, filePath, diagnostics);
                 return null;
             }
         }
 
-        protected Stream GetWin32Resources(CommandLineArguments arguments, Compilation compilation, out IEnumerable<DiagnosticInfo> errors)
-        {
-            return GetWin32ResourcesInternal(MessageProvider, arguments, compilation, out errors);
-        }
-
         // internal for testing
-        internal static Stream GetWin32ResourcesInternal(CommonMessageProvider messageProvider, CommandLineArguments arguments, Compilation compilation, out IEnumerable<DiagnosticInfo> errors)
+        internal static Stream GetWin32ResourcesInternal(
+            CommonMessageProvider messageProvider,
+            CommandLineArguments arguments,
+            Compilation compilation,
+            out IEnumerable<DiagnosticInfo> errors)
         {
-            List<DiagnosticInfo> errorList = new List<DiagnosticInfo>();
-            errors = errorList;
-
+            var diagnostics = DiagnosticBag.GetInstance();
+            var stream = GetWin32Resources(messageProvider, arguments, compilation, diagnostics);
+            errors = diagnostics.ToReadOnlyAndFree().SelectAsArray(diag => new DiagnosticInfo(messageProvider, diag.IsWarningAsError, diag.Code, (object[])diag.Arguments));
+            return stream;
+        }
+        
+        private static Stream GetWin32Resources(
+            CommonMessageProvider messageProvider,
+            CommandLineArguments arguments,
+            Compilation compilation,
+            DiagnosticBag diagnostics)
+        {
             if (arguments.Win32ResourceFile != null)
             {
-                return OpenStream(messageProvider, arguments.Win32ResourceFile, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Resource, errorList);
+                return OpenStream(messageProvider, arguments.Win32ResourceFile, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Resource, diagnostics);
             }
 
-            using (Stream manifestStream = OpenManifestStream(messageProvider, compilation.Options.OutputKind, arguments, errorList))
+            using (Stream manifestStream = OpenManifestStream(messageProvider, compilation.Options.OutputKind, arguments, diagnostics))
             {
-                using (Stream iconStream = OpenStream(messageProvider, arguments.Win32Icon, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Icon, errorList))
+                using (Stream iconStream = OpenStream(messageProvider, arguments.Win32Icon, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Icon, diagnostics))
                 {
                     try
                     {
                         return compilation.CreateDefaultWin32Resources(true, arguments.NoWin32Manifest, manifestStream, iconStream);
                     }
-                    catch (ResourceException ex)
+                    catch (Exception ex)
                     {
-                        errorList.Add(new DiagnosticInfo(messageProvider, messageProvider.ERR_ErrorBuildingWin32Resource, ex.Message));
-                    }
-                    catch (OverflowException ex)
-                    {
-                        errorList.Add(new DiagnosticInfo(messageProvider, messageProvider.ERR_ErrorBuildingWin32Resource, ex.Message));
+                        diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_ErrorBuildingWin32Resource, Location.None, ex.Message));
                     }
                 }
             }
@@ -1061,21 +1115,21 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        private static Stream OpenManifestStream(CommonMessageProvider messageProvider, OutputKind outputKind, CommandLineArguments arguments, List<DiagnosticInfo> errorList)
+        private static Stream OpenManifestStream(CommonMessageProvider messageProvider, OutputKind outputKind, CommandLineArguments arguments, DiagnosticBag diagnostics)
         {
             return outputKind.IsNetModule()
                 ? null
-                : OpenStream(messageProvider, arguments.Win32Manifest, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Manifest, errorList);
+                : OpenStream(messageProvider, arguments.Win32Manifest, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Manifest, diagnostics);
         }
 
-        private static Stream OpenStream(CommonMessageProvider messageProvider, string path, string baseDirectory, int errorCode, IList<DiagnosticInfo> errors)
+        private static Stream OpenStream(CommonMessageProvider messageProvider, string path, string baseDirectory, int errorCode, DiagnosticBag diagnostics)
         {
             if (path == null)
             {
                 return null;
             }
 
-            string fullPath = ResolveRelativePath(messageProvider, path, baseDirectory, errors);
+            string fullPath = ResolveRelativePath(messageProvider, path, baseDirectory, diagnostics);
             if (fullPath == null)
             {
                 return null;
@@ -1087,18 +1141,18 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception ex)
             {
-                errors.Add(new DiagnosticInfo(messageProvider, errorCode, fullPath, ex.Message));
+                diagnostics.Add(messageProvider.CreateDiagnostic(errorCode, Location.None, fullPath, ex.Message));
             }
 
             return null;
         }
 
-        private static string ResolveRelativePath(CommonMessageProvider messageProvider, string path, string baseDirectory, IList<DiagnosticInfo> errors)
+        private static string ResolveRelativePath(CommonMessageProvider messageProvider, string path, string baseDirectory, DiagnosticBag diagnostics)
         {
             string fullPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
             if (fullPath == null)
             {
-                errors.Add(new DiagnosticInfo(messageProvider, messageProvider.FTL_InputFileNameTooLong, path));
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InputFileNameTooLong, Location.None, path));
             }
 
             return fullPath;

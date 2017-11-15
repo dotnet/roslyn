@@ -205,15 +205,17 @@ namespace Microsoft.CodeAnalysis
                     errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
                     continue;
                 }
-                var from = PathUtilities.TrimTrailingSeparators(kv[0]);
-                var to = PathUtilities.TrimTrailingSeparators(kv[1]);
+                var from = kv[0];
+                var to = kv[1];
 
-                if (from.Length == 0 || (to.Length == 0 && kv[1] != "/"))
+                if (from.Length == 0 || to.Length == 0)
                 {
                     errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
                 }
                 else
                 {
+                    from = PathUtilities.EnsureTrailingSeparator(from);
+                    to = PathUtilities.EnsureTrailingSeparator(to);
                     pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
                 }
             }

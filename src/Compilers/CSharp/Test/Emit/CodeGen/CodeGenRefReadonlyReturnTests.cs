@@ -55,7 +55,7 @@ class C
 }";
 
             // WithPEVerifyCompatFeature should not cause us to get a ref of a temp in ref assignments
-            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: false);
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
             comp.VerifyIL("C.M", @"
 {
   // Code size       59 (0x3b)
@@ -80,7 +80,7 @@ class C
   IL_003a:  ret
 }");
 
-            comp = CompileAndVerify(source, verify: false);
+            comp = CompileAndVerify(source, verify: Verification.Fails);
             comp.VerifyIL("C.M", @"
 {
   // Code size       59 (0x3b)
@@ -287,7 +287,7 @@ class C
         ref readonly int rp = ref p;
         return ref rp;
     }
-}", verify: false);
+}", verify: Verification.Fails);
             comp.VerifyIL("C.M", @"
 {
   // Code size        2 (0x2)
@@ -751,7 +751,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false);
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes);
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -829,7 +829,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false);
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -861,7 +861,7 @@ class Program
 }");
 
             // WithPEVerifyCompatFeature should not cause us to get a ref of a temp in ref returns
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: false);
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
             comp.VerifyIL("Program.Test", @"
 {
   // Code size       57 (0x39)
@@ -1169,7 +1169,7 @@ class Test
         int x = 5;
         x.M();
     }
-}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+}", additionalRefs: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -1198,7 +1198,7 @@ class Test
     {
         x.M();
     }
-}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+}", additionalRefs: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       13 (0xd)
   .maxstack  1
@@ -1225,7 +1225,7 @@ class Test
     {
         x.M().M().M();
     }
-}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+}", additionalRefs: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       23 (0x17)
   .maxstack  1
@@ -1253,7 +1253,7 @@ class Test
     {
         5.M();
     }
-}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+}", additionalRefs: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -1282,7 +1282,7 @@ class Test
         int x = 5;
         x.M();
     }
-}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+}", additionalRefs: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -1311,7 +1311,7 @@ class Test
     {
         x.M();
     }
-}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+}", additionalRefs: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       13 (0xd)
   .maxstack  1
@@ -1338,7 +1338,7 @@ class Test
     {
         x.M().M().M();
     }
-}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+}", additionalRefs: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       23 (0x17)
   .maxstack  1
@@ -1366,7 +1366,7 @@ class Program
         System.Console.Write(""-"");
         System.Console.Write(M(""provided""));
     }
-}", verify: false, expectedOutput: "optional-provided");
+}", verify: Verification.Fails, expectedOutput: "optional-provided");
         }
     }
 }
