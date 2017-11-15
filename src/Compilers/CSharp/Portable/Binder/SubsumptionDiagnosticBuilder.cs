@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // For the purpose of computing subsumption, we ignore the input expression's constant
             // value. Therefore we create a fake expression here that doesn't contain the value.
-            var placeholderExpression = new BoundDup(syntax, RefKind.None, switchGoverningType);
+            var placeholderExpression = new BoundImplicitReceiver(syntax, switchGoverningType);
             _subsumptionTree = CreateEmptyDecisionTree(placeholderExpression);
         }
 
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 throw ExceptionUtilities.UnexpectedValue(decisionTree.Kind);
                         }
                     }
-                case BoundKind.WildcardPattern:
+                case BoundKind.DiscardPattern:
                     // because we always handle `default:` last, and that is the only way to get a wildcard pattern,
                     // we should never need to see if it subsumes something else.
                     throw ExceptionUtilities.UnexpectedValue(decisionTree.Kind);

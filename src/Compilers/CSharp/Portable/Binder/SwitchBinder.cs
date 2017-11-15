@@ -40,8 +40,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false ||
                  parseOptions?.Features.ContainsKey("testV7SwitchBinder") != false ||
                  switchSyntax.HasErrors && HasPatternSwitchSyntax(switchSyntax))
-                ? new PatternSwitchBinder(next, switchSyntax)
+                ? ( HasRecursivePatternSwitchSyntax(switchSyntax)
+                        ? new PatternSwitchBinder2(next, switchSyntax)
+                        : (SwitchBinder)new PatternSwitchBinder(next, switchSyntax))
                 : new SwitchBinder(next, switchSyntax);
+        }
+
+        private static bool HasRecursivePatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
+        {
+            foreach (var section in switchSyntax.Sections)
+            {
+                foreach (var label in section.Labels)
+                {
+                    if (label is CasePatternSwitchLabelSyntax s)
+                    {
+                        switch (s.Pattern.Kind())
+                        {
+                            case SyntaxKind.DeconstructionPattern:
+                            case SyntaxKind.PropertyPattern:
+                            case SyntaxKind.DiscardPattern:
+                                return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         internal static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
@@ -242,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
                         var pattern = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag, wasSwitchCase: true);
+                            matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag);
                         break;
 
                     default:

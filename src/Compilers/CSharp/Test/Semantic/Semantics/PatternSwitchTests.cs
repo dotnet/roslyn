@@ -1569,186 +1569,177 @@ class Program
                 // (39,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int64, System.Int64) d").WithArguments("recursive patterns", "patterns2").WithLocation(39, 18),
+                // (43,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             if (o is (int, int)) {}
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int)").WithArguments("recursive patterns", "patterns2").WithLocation(43, 22),
                 // (43,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 23),
                 // (43,28): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 28),
+                // (44,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int x, int y)").WithArguments("recursive patterns", "patterns2").WithLocation(44, 22),
+                // (45,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) z").WithArguments("recursive patterns", "patterns2").WithLocation(45, 22),
                 // (45,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 23),
                 // (45,28): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 28),
-                // (45,33): error CS1026: ) expected
+                // (45,35): error CS1525: Invalid expression term ')'
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "z").WithLocation(45, 33),
-                // (45,34): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(45, 35),
+                // (45,35): error CS1002: ; expected
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(45, 34),
-                // (45,34): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(45, 35),
+                // (45,35): error CS1513: } expected
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 34),
-                // (46,37): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 35),
+                // (46,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "c").WithLocation(46, 37),
-                // (46,38): error CS1002: ; expected
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(46, 38),
-                // (46,38): error CS1513: } expected
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(46, 38),
-                // (51,51): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int a, int b) c").WithArguments("recursive patterns", "patterns2").WithLocation(46, 22),
+                // (49,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             if (o is (System.Int32, System.Int32)) {}
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32, System.Int32)").WithArguments("recursive patterns", "patterns2").WithLocation(49, 22),
+                // (50,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32 x, System.Int32 y)").WithArguments("recursive patterns", "patterns2").WithLocation(50, 22),
+                // (51,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "z").WithLocation(51, 51),
-                // (51,52): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32, System.Int32) z").WithArguments("recursive patterns", "patterns2").WithLocation(51, 22),
+                // (51,53): error CS1525: Invalid expression term ')'
                 //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(51, 52),
-                // (51,52): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(51, 53),
+                // (51,53): error CS1002: ; expected
                 //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 52),
-                // (52,55): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(51, 53),
+                // (51,53): error CS1513: } expected
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 53),
+                // (52,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "c").WithLocation(52, 55),
-                // (52,56): error CS1002: ; expected
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(52, 56),
-                // (52,56): error CS1513: } expected
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(52, 56),
-                // (21,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32 a, System.Int32 b) c").WithArguments("recursive patterns", "patterns2").WithLocation(52, 22),
+                // (21,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int):
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(int, int)").WithArguments("recursive pattern").WithLocation(21, 18),
-                // (22,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(21, 18),
+                // (21,19): error CS0150: A constant value is expected
+                //             case (int, int):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(21, 19),
+                // (21,24): error CS0150: A constant value is expected
+                //             case (int, int):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(21, 24),
+                // (22,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(int x, int y)").WithArguments("recursive pattern").WithLocation(22, 18),
-                // (23,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("object", "2").WithLocation(22, 18),
+                // (23,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(int, int) z").WithArguments("recursive pattern").WithLocation(23, 18),
-                // (24,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int) z").WithArguments("object", "2").WithLocation(23, 18),
+                // (23,19): error CS0150: A constant value is expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(23, 19),
+                // (23,24): error CS0150: A constant value is expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(23, 24),
+                // (24,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(int a, int b) c").WithArguments("recursive pattern").WithLocation(24, 18),
-                // (25,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b) c").WithArguments("object", "2").WithLocation(24, 18),
+                // (25,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(long, long) d").WithArguments("recursive pattern").WithLocation(25, 18),
-                // (30,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(long, long) d").WithArguments("object", "2").WithLocation(25, 18),
+                // (25,19): error CS0150: A constant value is expected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "long").WithLocation(25, 19),
+                // (25,25): error CS0150: A constant value is expected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "long").WithLocation(25, 25),
+                // (30,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(int, int) z").WithArguments("recursive pattern").WithLocation(30, 18),
-                // (32,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int) z").WithArguments("object", "2").WithLocation(30, 18),
+                // (30,19): error CS0150: A constant value is expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(30, 19),
+                // (30,24): error CS0150: A constant value is expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(30, 24),
+                // (32,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(long, long) d").WithArguments("recursive pattern").WithLocation(32, 18),
-                // (37,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(long, long) d").WithArguments("object", "2").WithLocation(32, 18),
+                // (32,19): error CS0150: A constant value is expected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "long").WithLocation(32, 19),
+                // (32,25): error CS0150: A constant value is expected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "long").WithLocation(32, 25),
+                // (37,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(System.Int32, System.Int32) z").WithArguments("recursive pattern").WithLocation(37, 18),
-                // (39,18): error CS0570: 'recursive pattern' is not supported by the language
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32) z").WithArguments("object", "2").WithLocation(37, 18),
+                // (37,19): error CS0119: 'int' is a type, which is not valid in the given context
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 19),
+                // (37,33): error CS0119: 'int' is a type, which is not valid in the given context
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 33),
+                // (39,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(System.Int64, System.Int64) d").WithArguments("recursive pattern").WithLocation(39, 18),
-                // (43,22): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int64, System.Int64) d").WithArguments("object", "2").WithLocation(39, 18),
+                // (39,19): error CS0119: 'long' is a type, which is not valid in the given context
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 19),
+                // (39,33): error CS0119: 'long' is a type, which is not valid in the given context
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 33),
+                // (43,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int, int)) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(43, 22),
-                // (44,23): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(43, 22),
+                // (43,23): error CS0150: A constant value is expected
+                //             if (o is (int, int)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(43, 23),
+                // (43,28): error CS0150: A constant value is expected
+                //             if (o is (int, int)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(43, 28),
+                // (44,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(44, 23),
-                // (44,30): error CS8185: A declaration is not allowed in this context.
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(44, 30),
-                // (44,22): error CS0150: A constant value is expected
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int x, int y)").WithLocation(44, 22),
-                // (45,22): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("object", "2").WithLocation(44, 22),
+                // (45,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(45, 22),
-                // (45,33): error CS0103: The name 'z' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int) z").WithArguments("object", "2").WithLocation(45, 22),
+                // (45,23): error CS0150: A constant value is expected
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(45, 33),
-                // (46,23): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(45, 23),
+                // (45,28): error CS0150: A constant value is expected
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(45, 28),
+                // (46,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(46, 23),
-                // (46,30): error CS8185: A declaration is not allowed in this context.
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(46, 30),
-                // (46,22): error CS0150: A constant value is expected
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(46, 22),
-                // (46,37): error CS0103: The name 'c' does not exist in the current context
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(46, 37),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b) c").WithArguments("object", "2").WithLocation(46, 22),
+                // (49,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //             if (o is (System.Int32, System.Int32)) {}
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(49, 22),
                 // (49,23): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 23),
                 // (49,37): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 37),
-                // (50,23): error CS8185: A declaration is not allowed in this context.
+                // (50,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 x").WithLocation(50, 23),
-                // (50,39): error CS8185: A declaration is not allowed in this context.
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 y").WithLocation(50, 39),
-                // (50,22): error CS0150: A constant value is expected
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.Int32 x, System.Int32 y)").WithLocation(50, 22),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 x, System.Int32 y)").WithArguments("object", "2").WithLocation(50, 22),
+                // (51,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32) z").WithArguments("object", "2").WithLocation(51, 22),
                 // (51,23): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 23),
                 // (51,37): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 37),
-                // (51,51): error CS0103: The name 'z' does not exist in the current context
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(51, 51),
-                // (52,23): error CS8185: A declaration is not allowed in this context.
+                // (52,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 a").WithLocation(52, 23),
-                // (52,39): error CS8185: A declaration is not allowed in this context.
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 b").WithLocation(52, 39),
-                // (52,22): error CS0150: A constant value is expected
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.Int32 a, System.Int32 b)").WithLocation(52, 22),
-                // (52,55): error CS0103: The name 'c' does not exist in the current context
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(52, 55),
-                // (26,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(26, 17),
-                // (31,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(31, 17),
-                // (33,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(33, 17),
-                // (38,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(38, 17),
-                // (40,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(40, 17),
-                // (44,23): error CS0165: Use of unassigned local variable 'x'
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(44, 23),
-                // (44,30): error CS0165: Use of unassigned local variable 'y'
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(44, 30),
-                // (46,23): error CS0165: Use of unassigned local variable 'a'
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(46, 23),
-                // (46,30): error CS0165: Use of unassigned local variable 'b'
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int b").WithArguments("b").WithLocation(46, 30),
-                // (50,23): error CS0165: Use of unassigned local variable 'x'
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 x").WithArguments("x").WithLocation(50, 23),
-                // (50,39): error CS0165: Use of unassigned local variable 'y'
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 y").WithArguments("y").WithLocation(50, 39),
-                // (52,23): error CS0165: Use of unassigned local variable 'a'
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 a").WithArguments("a").WithLocation(52, 23),
-                // (52,39): error CS0165: Use of unassigned local variable 'b'
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 b").WithArguments("b").WithLocation(52, 39)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 a, System.Int32 b) c").WithArguments("object", "2").WithLocation(52, 22)
                 );
         }
 

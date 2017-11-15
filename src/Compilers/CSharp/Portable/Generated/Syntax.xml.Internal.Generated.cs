@@ -10730,6 +10730,114 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
   }
 
+  internal sealed partial class DiscardPatternSyntax : PatternSyntax
+  {
+    internal readonly SyntaxToken underscoreToken;
+
+    internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(underscoreToken);
+        this.underscoreToken = underscoreToken;
+    }
+
+
+    internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(underscoreToken);
+        this.underscoreToken = underscoreToken;
+    }
+
+
+    internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken)
+        : base(kind)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(underscoreToken);
+        this.underscoreToken = underscoreToken;
+    }
+
+    public SyntaxToken UnderscoreToken { get { return this.underscoreToken; } }
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.underscoreToken;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+    {
+      return new CSharp.Syntax.DiscardPatternSyntax(this, parent, position);
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitDiscardPattern(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitDiscardPattern(this);
+    }
+
+    public DiscardPatternSyntax Update(SyntaxToken underscoreToken)
+    {
+        if (underscoreToken != this.UnderscoreToken)
+        {
+            var newNode = SyntaxFactory.DiscardPattern(underscoreToken);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+    {
+         return new DiscardPatternSyntax(this.Kind, this.underscoreToken, diagnostics, GetAnnotations());
+    }
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+    {
+         return new DiscardPatternSyntax(this.Kind, this.underscoreToken, GetDiagnostics(), annotations);
+    }
+
+    internal DiscardPatternSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 1;
+      var underscoreToken = (SyntaxToken)reader.ReadValue();
+      if (underscoreToken != null)
+      {
+         AdjustFlagsAndWidth(underscoreToken);
+         this.underscoreToken = underscoreToken;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.underscoreToken);
+    }
+
+    static DiscardPatternSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(DiscardPatternSyntax), r => new DiscardPatternSyntax(r));
+    }
+  }
+
   internal sealed partial class DeclarationPatternSyntax : PatternSyntax
   {
     internal readonly TypeSyntax type;
@@ -15974,7 +16082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// The variable(s) of the loop. In correct code this is a tuple
     /// literal, declaration expression with a tuple designator, or
-    /// a wildcard syntax in the form of a simple identifier. In broken
+    /// a discard syntax in the form of a simple identifier. In broken
     /// code it could be something else.
     /// </summary>
     public ExpressionSyntax Variable { get { return this.variable; } }
@@ -34642,6 +34750,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return this.DefaultVisit(node);
     }
 
+    public virtual TResult VisitDiscardPattern(DiscardPatternSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node)
     {
       return this.DefaultVisit(node);
@@ -35682,6 +35795,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public virtual void VisitWhenClause(WhenClauseSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    public virtual void VisitDiscardPattern(DiscardPatternSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -36934,6 +37052,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var whenKeyword = (SyntaxToken)this.Visit(node.WhenKeyword);
       var condition = (ExpressionSyntax)this.Visit(node.Condition);
       return node.Update(whenKeyword, condition);
+    }
+
+    public override CSharpSyntaxNode VisitDiscardPattern(DiscardPatternSyntax node)
+    {
+      var underscoreToken = (SyntaxToken)this.Visit(node.UnderscoreToken);
+      return node.Update(underscoreToken);
     }
 
     public override CSharpSyntaxNode VisitDeclarationPattern(DeclarationPatternSyntax node)
@@ -40598,6 +40722,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       if (cached != null) return (WhenClauseSyntax)cached;
 
       var result = new WhenClauseSyntax(SyntaxKind.WhenClause, whenKeyword, condition, this.context);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
+    {
+#if DEBUG
+      if (underscoreToken == null)
+        throw new ArgumentNullException(nameof(underscoreToken));
+      switch (underscoreToken.Kind)
+      {
+        case SyntaxKind.IdentifierToken:
+          break;
+        default:
+          throw new ArgumentException("underscoreToken");
+      }
+#endif
+
+      int hash;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.DiscardPattern, underscoreToken, this.context, out hash);
+      if (cached != null) return (DiscardPatternSyntax)cached;
+
+      var result = new DiscardPatternSyntax(SyntaxKind.DiscardPattern, underscoreToken, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -47633,6 +47784,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
+    public static DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
+    {
+#if DEBUG
+      if (underscoreToken == null)
+        throw new ArgumentNullException(nameof(underscoreToken));
+      switch (underscoreToken.Kind)
+      {
+        case SyntaxKind.IdentifierToken:
+          break;
+        default:
+          throw new ArgumentException("underscoreToken");
+      }
+#endif
+
+      int hash;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DiscardPattern, underscoreToken, out hash);
+      if (cached != null) return (DiscardPatternSyntax)cached;
+
+      var result = new DiscardPatternSyntax(SyntaxKind.DiscardPattern, underscoreToken);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
     public static DeclarationPatternSyntax DeclarationPattern(TypeSyntax type, VariableDesignationSyntax designation)
     {
 #if DEBUG
@@ -52283,6 +52461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
            typeof(IsPatternExpressionSyntax),
            typeof(ThrowExpressionSyntax),
            typeof(WhenClauseSyntax),
+           typeof(DiscardPatternSyntax),
            typeof(DeclarationPatternSyntax),
            typeof(DeconstructionPatternSyntax),
            typeof(SubpatternElementSyntax),

@@ -17,6 +17,10 @@ Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax.WithOpenParenTo
 Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax.WithPropertySubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax propertySubpattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax.WithSubPatterns(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax> subPatterns) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax.UnderscoreToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken underscoreToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax.WithUnderscoreToken(Microsoft.CodeAnalysis.SyntaxToken underscoreToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.AddPropertySubpatternSubPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Designation.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax
@@ -45,15 +49,19 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax.Update(Microsoft.Co
 Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax.WithNameColon(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax.WithPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeconstructionPattern = 9023 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.DiscardPattern = 9024 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.PropertyPattern = 9020 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.PropertySubpattern = 9021 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubpatternElement = 9022 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitPropertySubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -64,6 +72,7 @@ static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetConversion(this Microso
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax> subPatterns, Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax propertySubpattern, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax> subPatterns, Microsoft.CodeAnalysis.SyntaxToken closeParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax propertySubpattern, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionPattern(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax> subPatterns = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DiscardPattern(Microsoft.CodeAnalysis.SyntaxToken underscoreToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertyPattern() -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax propertySubpattern, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertySubpattern(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax> subPatterns = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax
@@ -72,10 +81,12 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysi
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitPropertySubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeconstructionPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionPatternSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitPropertySubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertySubpatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubpatternElement(Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternElementSyntax node) -> TResult

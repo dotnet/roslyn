@@ -5906,6 +5906,12 @@ class C
                 // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         bool b = 3 is int _;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is int _").WithArguments("pattern matching", "7.0").WithLocation(8, 18),
+                // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case _: // not a discard
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case _:").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
+                // (11,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case _: // not a discard
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18),
                 // (16,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case int _:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7.0").WithLocation(16, 13),
@@ -5918,15 +5924,9 @@ class C
                 // (6,10): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(6, 10),
-                // (11,18): error CS0103: The name '_' does not exist in the current context
-                //             case _: // not a discard
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
                 // (21,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         M(out _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(21, 15),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(21, 15)
                 );
         }
 
