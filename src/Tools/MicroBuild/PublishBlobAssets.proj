@@ -1,7 +1,5 @@
 <Project>
 
-  <Import Project="..\..\..\build\Targets\Settings.props" />
-
   <PropertyGroup>
     <PublishOverwrite Condition="'$(PublishOverwrite)' == ''">false</PublishOverwrite>
   </PropertyGroup>

@@ -34,7 +34,7 @@ try {
         exit 1
     }
 
-    Exec-Console $msbuild "/p:ConfigDir=$configDir /p:ExpectedFeedUrl=$blobFeedUrl /p:AccountKey=$blobFeedKey"
+    Exec-Console $msbuild "/p:ConfigDir=$configDir /p:ExpectedFeedUrl=$blobFeedUrl /p:AccountKey=$blobFeedKey /p:OutputPath=$configDir"
 }
 catch {
     Write-Host $_
