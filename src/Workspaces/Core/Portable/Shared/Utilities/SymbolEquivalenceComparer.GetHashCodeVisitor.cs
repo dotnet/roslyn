@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 currentHash =
-                    Hash.Combine(IsPartialMethodImplementationPart(x),
-                    Hash.Combine(IsPartialMethodDefinitionPart(x),
+                    Hash.Combine(x.IsPartialMethodImplementationPart(),
+                    Hash.Combine(x.IsPartialMethodDefinitionPart(),
                     Hash.Combine(x.IsDefinition,
                     Hash.Combine(IsConstructedFromSelf(x),
                     Hash.Combine(x.Arity,

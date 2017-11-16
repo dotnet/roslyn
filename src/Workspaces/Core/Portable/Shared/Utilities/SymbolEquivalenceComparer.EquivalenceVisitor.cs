@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         return HaveSameLocation(x, y);
                     }
 
-                    if (IsPartialMethodDefinitionPart(x) != IsPartialMethodDefinitionPart(y) ||
-                        IsPartialMethodImplementationPart(x) != IsPartialMethodImplementationPart(y) ||
+                    if (x.IsPartialMethodDefinitionPart() != y.IsPartialMethodDefinitionPart() ||
+                        x.IsPartialMethodImplementationPart() != y.IsPartialMethodImplementationPart() ||
                         x.IsDefinition != y.IsDefinition ||
                         IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                         x.Arity != y.Arity ||

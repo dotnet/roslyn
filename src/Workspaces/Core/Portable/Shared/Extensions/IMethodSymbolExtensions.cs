@@ -109,6 +109,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 parameters);
         }
 
+        public static bool IsPartialMethodDefinitionPart(this IMethodSymbol symbol)
+        {
+            return symbol.PartialImplementationPart != null;
+        }
+
+        public static bool IsPartialMethodImplementationPart(this IMethodSymbol symbol)
+        {
+            return symbol.PartialDefinitionPart != null;
+        }
+
         private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             IList<string> newNames,
