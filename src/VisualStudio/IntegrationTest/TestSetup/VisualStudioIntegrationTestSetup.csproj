@@ -74,6 +74,11 @@
     <ProjectReference Include="..\TestUtilities\VisualStudioIntegrationTestUtilities.csproj">
       <Name>VisualStudioIntegrationTestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <!-- https://github.com/dotnet/sdk/issues/433 -->
+      <AdditionalProperties>TargetFramework=net461</AdditionalProperties>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Diagnostics.Runtime.dll" />

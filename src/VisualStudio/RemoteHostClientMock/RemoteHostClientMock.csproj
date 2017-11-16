@@ -38,6 +38,11 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <!-- https://github.com/dotnet/sdk/issues/433 -->
+      <AdditionalProperties>TargetFramework=net461</AdditionalProperties>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Nerdbank.FullDuplexStream" />
