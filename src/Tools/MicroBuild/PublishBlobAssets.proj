@@ -1,5 +1,7 @@
 <Project>
 
+  <Import Include="..\..\build\Targets\Versions.props" />
+
   <PropertyGroup>
     <PublishOverwrite Condition="'$(PublishOverwrite)' == ''">false</PublishOverwrite>
   </PropertyGroup>
@@ -8,7 +10,7 @@
   This is for the internal orchestrated build scenarios and will likely never be run on a
   developer's machine.  The official build definition builds this file directly.
   -->
-  <Import Project="$(NuGetPackageRoot)\Microsoft.DotNet.Build.Tasks.Feed\$(MicrosoftDotNetBuildTasksFeed)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
+  <Import Project="$(NuGetPackageRoot)\Microsoft.DotNet.Build.Tasks.Feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
 
   <ItemGroup>
     <ItemsToPush Include="$(OutputPath)\NuGet\**\*.nupkg" />
