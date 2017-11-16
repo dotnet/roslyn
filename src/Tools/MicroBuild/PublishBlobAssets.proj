@@ -1,6 +1,7 @@
 <Project>
 
-  <Import Include="..\..\build\Targets\Versions.props" />
+  <Import Project="..\..\..\build\Targets\Versions.props" />
+  <Import Project="..\..\..\build\Targets\Packages.props" />
 
   <PropertyGroup>
     <PublishOverwrite Condition="'$(PublishOverwrite)' == ''">false</PublishOverwrite>
