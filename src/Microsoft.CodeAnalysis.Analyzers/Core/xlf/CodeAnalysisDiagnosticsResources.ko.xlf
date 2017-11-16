@@ -227,6 +227,21 @@
         <target state="new">Do not ignore values returned by methods on immutable objects.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorMessage">
+        <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
+        <target state="new">Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorTitle">
+        <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
+        <target state="new">Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorDescription">
+        <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
+        <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

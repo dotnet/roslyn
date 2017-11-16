@@ -171,7 +171,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
 
     private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext context)
     {
-        context.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
         context.RegisterOperationBlockEndAction(null);
     }
 }";
@@ -270,7 +270,7 @@ Class MyAnalyzer(Of T As Structure)
     End Sub
 
     Private Shared Sub AnalyzeOperationBlockStart(context As OperationBlockStartAnalysisContext)
-        context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+        context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
         context.RegisterOperationBlockEndAction(Nothing)
     End Sub
 End Class
