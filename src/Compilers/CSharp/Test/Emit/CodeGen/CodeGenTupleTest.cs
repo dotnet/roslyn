@@ -2086,7 +2086,7 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", verify: Verification.Mscorlib, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2200,7 +2200,7 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"{42, 42}", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"{42, 42}", verify: Verification.Mscorlib, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2341,7 +2341,7 @@ namespace System
     }
 }
 ";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", verify: Verification.Mscorlib, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2483,7 +2483,7 @@ namespace System
     }
 }
 ";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", verify: Verification.Mscorlib, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2625,7 +2625,7 @@ namespace System
     }
 }
 ";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", verify: Verification.Mscorlib, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
         }
 
@@ -2743,7 +2743,7 @@ namespace System
 " + tupleattributes_cs;
 
             var comp = CompileAndVerify(source,
-                additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput:
+                additionalRefs: new[] { MscorlibRef_v46 }, verify: Verification.Mscorlib, expectedOutput:
 @"System.Action`1[System.Int32]
 1
 True
@@ -2786,7 +2786,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
-            CompileAndVerify(source, expectedOutput: @"42", additionalRefs: new[] { MscorlibRef_v46 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: @"42", additionalRefs: new[] { MscorlibRef_v46 }, verify: Verification.Mscorlib, options: TestOptions.ReleaseExe);
         }
 
         [Fact]
@@ -20294,7 +20294,7 @@ class C
     }
 " + trivial2uple + tupleattributes_cs;
 
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"5", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"5", verify: Verification.Mscorlib, options: TestOptions.ReleaseExe);
 
             // NOTE: !!! There should be NO IL local for  " (long a, int b) v1 " , it should be captured instead
             // NOTE: !!! There should be an IL local for  " (byte x, int y) v2 " , it should not be captured 

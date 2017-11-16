@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(comp, verify: Verification.Fails, symbolValidator: m =>
+            CompileAndVerify(comp, verify: Verification.InvalidLocale, symbolValidator: m =>
             {
                 var utf8 = new System.Text.UTF8Encoding(false, false);
                 Assert.Equal(utf8.GetString(utf8.GetBytes("\uD800")), m.ContainingAssembly.Identity.CultureName);
@@ -542,6 +542,7 @@ class Program
 
             CompileAndVerify(compilation,
                 manifestResources: hash_resources,
+                verify: Verification.NetModule,
                 validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
@@ -570,6 +571,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
+                verify: Verification.NetModule,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -599,6 +601,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
+                verify: Verification.NetModule,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -628,6 +631,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
+                verify: Verification.NetModule,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -655,7 +659,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Fails,
+            CompileAndVerify(compilation, verify: Verification.Skipped,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -684,7 +688,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Fails,
+            CompileAndVerify(compilation, verify: Verification.Skipped,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -717,7 +721,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Fails,
+            CompileAndVerify(compilation, verify: Verification.Skipped,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -758,6 +762,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module_Comp.EmitToImageReference() });
 
             CompileAndVerify(compilation,
+                verify: Verification.NetModule,
                 validator: (peAssembly) =>
                 {
                     var peReader = peAssembly.ManifestModule.GetMetadataReader();
@@ -1766,7 +1771,7 @@ public class C { }
 
             var assembly = CreateStandardCompilation(assemblySrc, new[] { module.EmitToImageReference() }, assemblyName: "C");
 
-            CompileAndVerify(assembly, symbolValidator: moduleSymbol =>
+            CompileAndVerify(assembly, verify: Verification.NetModule, symbolValidator: moduleSymbol =>
             {
                 var attrs = moduleSymbol.ContainingAssembly.GetAttributes().Select(a => a.ToString()).ToArray();
                 AssertEx.SetEqual(new[]
@@ -2048,7 +2053,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
                                                               {
                                                                   var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2080,7 +2085,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2110,7 +2115,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2142,7 +2147,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2167,7 +2172,7 @@ public class C { }
 
             Assert.Equal(2, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
             {
                 // var list = new ArrayBuilder<AttributeData>();
                 var asm = m.ContainingAssembly;

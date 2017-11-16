@@ -4720,7 +4720,7 @@ public class Program
                 ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
                 ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
                 );
-            CompileAndVerify(comp3, expectedOutput: "Hello, world!");
+            CompileAndVerify(comp3, expectedOutput: "Hello, world!", verify: Verification.NetModule);
         }
 
         [Fact]
@@ -4763,7 +4763,7 @@ public class Program
 
             var comp3 = CreateStandardCompilation(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
             comp3.VerifyDiagnostics();
-            CompileAndVerify(comp3, expectedOutput: "Hello, world!");
+            CompileAndVerify(comp3, expectedOutput: "Hello, world!", verify: Verification.NetModule);
         }
 
         /// <summary>

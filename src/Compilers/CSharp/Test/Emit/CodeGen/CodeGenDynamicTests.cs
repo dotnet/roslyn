@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             bool allowUnsafe = false,
             [CallerFilePath]string callerPath = null,
             [CallerLineNumber]int callerLine = 0,
-            CSharpParseOptions parseOptions = null)
+            CSharpParseOptions parseOptions = null,
+            Verification verify = Verification.Passes)
         {
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
             var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
 
-            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation);
-            var optimizedVerifier = CompileAndVerify(optimizedCompilation);
+            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
+            var optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
 
             // check what IL we emit exactly:
             if (expectedUnoptimizedIL != null)
@@ -9550,7 +9551,7 @@ public class C
   IL_0066:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref int, object)""
   IL_006b:  ret
 }
-");
+", verify: Verification.TypedReference);
         }
 
         [Fact]

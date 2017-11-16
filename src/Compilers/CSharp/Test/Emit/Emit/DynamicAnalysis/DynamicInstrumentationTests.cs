@@ -1855,7 +1855,7 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, verify: Verification.Mscorlib);
             verifier.VerifyDiagnostics();
         }
 
@@ -1943,7 +1943,7 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, verify: Verification.NetModule);
             verifier.VerifyDiagnostics();
         }
 
@@ -3211,9 +3211,12 @@ True
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null, Verification verify = Verification.Passes)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, 
+                options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), 
+                emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)),
+                verify: verify);
         }
 
         private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)

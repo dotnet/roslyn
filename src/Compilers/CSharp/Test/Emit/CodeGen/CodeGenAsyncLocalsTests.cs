@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, verify: verify);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)
@@ -71,7 +71,7 @@ class Test
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
         }
 
         [Fact]
@@ -143,8 +143,8 @@ namespace ConsoleApplication1
             var expected = @"
 a
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected);
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected, verify: Verification.Mscorlib);
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected, verify: Verification.Mscorlib);
 
         }
 
@@ -176,7 +176,7 @@ class Test
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
         }
 
         [Fact]
@@ -210,7 +210,7 @@ class Test
             var expected = @"
 21
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
         }
 
         [Fact]
@@ -231,7 +231,8 @@ class C
         y = 1;
     }
 }";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Mscorlib,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -244,7 +245,8 @@ class C
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Mscorlib,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -283,7 +285,8 @@ class C
         lock (this) { }
     }
 }";
-            CompileAndVerify(source, s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, s_asyncRefs, verify: Verification.Mscorlib,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -301,7 +304,8 @@ class C
                 }, module.GetFieldNames("C.<M>d__3"));
             });
 
-            var vd = CompileAndVerify(source, s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var vd = CompileAndVerify(source, s_asyncRefs, verify: Verification.Mscorlib,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -403,7 +407,7 @@ class Driver
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expected, verify: Verification.Mscorlib);
         }
 
         [Fact]
@@ -442,7 +446,7 @@ class Driver
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expected, verify: Verification.Mscorlib);
         }
 
         [Fact]
@@ -469,7 +473,7 @@ class Test
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected, references: new[] { CSharpRef });
+            CompileAndVerify(source, expectedOutput: expected, references: new[] { CSharpRef }, verify: Verification.Mscorlib);
         }
 
         [Fact]
@@ -502,7 +506,7 @@ class Test
             var expected = @"
 42
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: expected);
+            var verifier = CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
 
             verifier.VerifyIL("C.<F>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -633,7 +637,7 @@ class Test
             var expected = @"
 42
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: expected);
+            var verifier = CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
 
             verifier.VerifyIL("C.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -916,7 +920,7 @@ class Test
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
         }
 
         [Fact]
@@ -984,7 +988,7 @@ class Test<U>
         foreach (var x in GetEnum<U>()) await F(5);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
+            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll, verify: Verification.Mscorlib);
 
             var actual = GetFieldLoadsAndStores(c, "Test<U>.<M>d__2<S, T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 
@@ -1142,7 +1146,7 @@ class Test
         foreach (var x in GetObjectEnum()) await F(2);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
+            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll, verify: Verification.Mscorlib);
 
             var actual = GetFieldLoadsAndStores(c, "Test.<M>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 
@@ -1239,7 +1243,8 @@ public class C
         var b8 = await Task.FromResult(default(Tuple<long, long, long>));
     }
 }";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Mscorlib,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {

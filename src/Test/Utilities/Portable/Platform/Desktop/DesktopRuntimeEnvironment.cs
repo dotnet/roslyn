@@ -290,23 +290,30 @@ namespace Roslyn.Test.Utilities.Desktop
             return GetEmitData().AllModuleData;
         }
 
-        public void PeVerify()
+        public void IlVerify()
         {
-#if NET46 || NET461
             var emitData = GetEmitData();
-
-            // Verify with ILVerify
-            var x = new ILVerify.Verifier();
-
-            foreach (var module in emitData.AllModuleData)
-            {
-                x.AddModule(module.Image);
-            }
+            var verifier = ILVerify.InMemoryVerifier.Create();
 
             var builder = PooledStringBuilder.GetInstance();
             try
             {
-                bool success = x.VerifyModules(new[] { emitData.MainModule.SimpleName }, builder); // TODO using SimpleName instead of FullName
+                foreach (var module in emitData.AllModuleData)
+                {
+                    if (module.Kind == OutputKind.NetModule)
+                    {
+                        throw new IlVerifyException("JCOUV Module", module.SimpleName);
+                    }
+
+                    if (!verifier.AddModule(module.Image, builder))
+                    {
+                        string message = builder.ToStringAndFree();
+                        builder = null;
+                        throw new IlVerifyException(message, emitData.MainModule.SimpleName);
+                    }
+                }
+
+                bool success = verifier.VerifyModule(emitData.MainModule.SimpleName, builder); // TODO using SimpleName instead of FullName
                 if (!success)
                 {
                     string message = builder.ToStringAndFree();
@@ -318,8 +325,11 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 builder?.Free();
             }
-#endif
-            // Verify with PEVerify
+        }
+
+        public void PeVerify()
+        {
+            var emitData = GetEmitData();
             try
             {
                 emitData.RuntimeData.PeverifyRequested = true;

@@ -1830,7 +1830,7 @@ class C
         }
     }
 }";
-            var v = CompileAndVerify(src, LatestVbReferences, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(src, LatestVbReferences, options: TestOptions.DebugDll, verify: Verification.Mscorlib);
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>

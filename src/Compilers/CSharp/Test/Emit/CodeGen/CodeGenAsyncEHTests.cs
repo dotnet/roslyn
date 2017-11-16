@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Mscorlib)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, verify: verify);
         }
 
         [Fact]
@@ -936,7 +936,8 @@ class Test
             var expected = @"
 2
 ";
-            var v = CompileAndVerify(source, s_asyncRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
+            var v = CompileAndVerify(source, s_asyncRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                verify: Verification.Mscorlib, expectedOutput: expected, symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {

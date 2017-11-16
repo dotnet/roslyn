@@ -8714,7 +8714,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes).VerifyDiagnostics();
         }
 
         [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
@@ -8728,7 +8728,7 @@ class C
     unsafe int* p = (int*)2;
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyDiagnostics(
                 // (4,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -8745,7 +8745,7 @@ class C
     int x = 1;
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyDiagnostics(
                 // (5,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));

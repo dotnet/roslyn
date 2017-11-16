@@ -22,11 +22,36 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    [Flags]
     public enum Verification
     {
-        Passes = 0,
-        Fails,
-        Skipped
+        Skipped = 0,
+
+        PassesPeVerify = 1 << 0,
+        PassesIlVerify = 1 << 1,
+        FailsPeVerify = 1 << 2,
+        FailsIlVerify = 1 << 3,
+
+        Passes = PassesPeVerify | PassesIlVerify,
+        Fails = FailsPeVerify | FailsIlVerify,
+
+        NetModule = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support netmodules yet
+        IVT = PassesPeVerify | FailsIlVerify, // ILVerify doesn't handle IVT properly (issue with spaces). See https://github.com/dotnet/corert/issues/4938
+        FullNames = PassesPeVerify, // ILVerify uses simple names instead of full names
+        NoPia = PassesPeVerify | FailsIlVerify, // ILVerify doesn't do NoPia unification
+        Mscorlib = PassesPeVerify | FailsIlVerify, // ILVerify doesn't use mscorlib from runtime, but that passed from test, which lacks some types
+        TypedReference = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support TypedReference
+        InvalidProgramVararg = PassesPeVerify | FailsIlVerify, // ILVerify complains about InvalidProgramVararg
+        MissingMethod = PassesPeVerify | FailsIlVerify, // ILVerify complains about MissingMethod
+        ClassLoadGeneral = PassesPeVerify | FailsIlVerify, // ILVerify complains about ClassLoadGeneral
+
+        InvalidLocale = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about invalid locale string
+        UnableToResolveToken = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about "unable to resolve token"
+        TypeLoadFailed = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain type load failed
+        TypeDevNotNil = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: TypeDef for Object class extends token=0x01000005 which is not nil.
+        UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: Unexpected type on the stack.
+        ClassLayout = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: ClassLayout has parent TypeDef token=0x0200000f marked AutoLayout.
+        BadName = FailsPeVerify | PassesIlVerify, // PEVerify complains about: Assembly name contains leading spaces or path or extension.
     }
 
     /// <summary>
@@ -135,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 // Unsafe code might not verify, so don't try.
                 var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
-                // verify = (csharpOptions == null || !csharpOptions.AllowUnsafe) ? Verification.Passes : Verification.Skipped;
+                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe) ? Verification.Passes : Verification.Skipped;
             }
 
             if (sourceSymbolValidator != null)

@@ -174,7 +174,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
+            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.NetModule, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -210,7 +210,7 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, verify: Verification.NetModule, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 

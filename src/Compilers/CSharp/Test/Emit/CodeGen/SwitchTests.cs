@@ -4197,7 +4197,7 @@ class Program
                 references: new[] { AacorlibRef });
 
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            var verifier = CompileAndVerify(comp, verify: Verification.TypeLoadFailed);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)

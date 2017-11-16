@@ -6296,7 +6296,7 @@ class X: Attribute
 {
 }
 ";
-            CompileAndVerify(source5, additionalRefs: new[] { comp1, comp2 });
+            CompileAndVerify(source5, additionalRefs: new[] { comp1, comp2 }, verify: Verification.ClassLoadGeneral);
 
             // Multiple from PE, multiple from Source
             var source6 = @"

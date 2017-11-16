@@ -348,6 +348,7 @@ namespace Roslyn.Test.Utilities
         ImmutableArray<Diagnostic> GetDiagnostics();
         SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName);
         IList<ModuleData> GetAllModuleData();
+        void IlVerify();
         void PeVerify();
         string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true);
         void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput);
