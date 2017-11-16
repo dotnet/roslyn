@@ -245,10 +245,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitFinallyBlock(BoundBlock finallyBlock, ref LocalState endState)
+        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
+        {
+            if (node.CatchBlocks.IsEmpty)
+            {
+                base.VisitTryBlock(tryBlock, node, ref tryState);
+                return;
+            }
+
+            var oldPending = SavePending(); // we do not support branches into a try block
+            base.VisitTryBlock(tryBlock, node, ref tryState);
+            RestorePending(oldPending);
+        }
+
+        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        {
+            var oldPending = SavePending(); // we do not support branches into a catch block
+            base.VisitCatchBlock(catchBlock, ref finallyState);
+            RestorePending(oldPending);
+        }
+
+        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState endState)
         {
             var oldPending1 = SavePending(); // we do not support branches into a finally block
+            var oldPending2 = SavePending(); // track only the branches out of the finally block
             base.VisitFinallyBlock(finallyBlock, ref endState);
+            RestorePending(oldPending2); // resolve branches that remain within the finally block
             foreach (var branch in PendingBranches)
             {
                 if (branch.Branch == null) continue; // a tracked exception

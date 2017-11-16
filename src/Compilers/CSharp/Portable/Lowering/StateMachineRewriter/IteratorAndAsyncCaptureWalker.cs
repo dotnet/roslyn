@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitFinallyBlock(BoundBlock finallyBlock, ref LocalState unsetInFinally)
+        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState unsetInFinally)
         {
             if (_seenYieldInCurrentTry)
             {

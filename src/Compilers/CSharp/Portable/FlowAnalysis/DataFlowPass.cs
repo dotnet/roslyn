@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _unsafeAddressTakenVariables.Keys.ToArray();
         }
 
-#region Tracking reads/writes of variables for warnings
+        #region Tracking reads/writes of variables for warnings
 
         protected virtual void NoteRead(
             Symbol variable,
@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#endregion Tracking reads/writes of variables for warnings
+        #endregion Tracking reads/writes of variables for warnings
 
         /// <summary>
         /// Locals are given slots when their declarations are encountered.  We only need give slots
@@ -1458,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#region Visitors
+        #region Visitors
 
         public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
@@ -2031,10 +2031,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#region TryStatements
+        #region TryStatements
         private OptionalState _tryState;
 
-        protected override void VisitTryBlock(BoundBlock tryBlock, BoundTryStatement node, ref LocalState tryState)
+        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
         {
             if (trackUnassignments)
             {
@@ -2098,7 +2098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitFinallyBlock(BoundBlock finallyBlock, ref LocalState unsetInFinally)
+        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState unsetInFinally)
         {
             if (trackUnassignments)
             {
@@ -2122,7 +2122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#endregion TryStatements
+        #endregion TryStatements
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
@@ -2221,7 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#endregion Visitors
+        #endregion Visitors
 
         protected override string Dump(LocalState state)
         {

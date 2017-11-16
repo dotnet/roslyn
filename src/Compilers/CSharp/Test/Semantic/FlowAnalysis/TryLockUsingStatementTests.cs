@@ -256,7 +256,7 @@ public class TryCatchFinally
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
             Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
             Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
