@@ -143,36 +143,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [DebuggerHidden]
         public static bool ReportWithoutCrash(Exception exception)
         {
-            SetCallstackIfEmpty(exception);
-
             Report(exception, s_nonFatalHandler);
             return true;
-        }
-
-        public static void SetCallstackIfEmpty(Exception exception)
-        {
-            // There have been cases where a new, unthrown exception has been passed to this method.
-            // In these cases the exception won't have a stack trace, which isn't very helpful. We
-            // throw and catch the exception here as that will result in a stack trace that is
-            // better than nothing.
-            if (exception.StackTrace != null)
-            {
-                return;
-            }
-
-            try
-            {
-                ThrowForCallstack(exception);
-            }
-            catch
-            {
-                // Empty; we just need the exception to have a stack trace.
-            }
-        }
-
-        private static void ThrowForCallstack(Exception exception)
-        {
-            throw exception;
         }
 
         private static void Report(Exception exception, Action<Exception> handler)

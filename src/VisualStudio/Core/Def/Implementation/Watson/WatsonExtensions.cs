@@ -10,16 +10,24 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     internal static class WatsonExtensions
     {
         // NFW API let caller to customize watson report to make them better bucketed by
-        // putting custom string in reserved slots. normally those 2 slots will be empty.
+        // putting custom string in reserved slots. normally those 3 slots will be empty.
         private const int Reserved1 = 8;
         private const int Reserved2 = 7;
+        private const int Reserved3 = 9;
 
         /// <summary>
         /// This sets extra watson bucket parameters to make bucketting better
         /// in non fatal watson report
         /// </summary>
-        public static void SetExtraParameters(this IFaultUtility fault, Exception exception)
+        public static void SetExtraParameters(this IFaultUtility fault, Exception exception, bool emptyCallstack)
         {
+            if (emptyCallstack)
+            {
+                // if exception we got started with empty callstack, put runtime
+                // callstack in one of reserved slot for better bucketting
+                fault.SetBucketParameter(Reserved3, Environment.StackTrace);
+            }
+
             switch (exception)
             {
                 case RemoteInvocationException remote:
@@ -115,6 +123,29 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 #endif
 
             s_lastExceptionReported = currentException;
+
+            return true;
+        }
+
+        public static bool SetCallstackIfEmpty(this Exception exception)
+        {
+            // There have been cases where a new, unthrown exception has been passed to this method.
+            // In these cases the exception won't have a stack trace, which isn't very helpful. We
+            // throw and catch the exception here as that will result in a stack trace that is
+            // better than nothing.
+            if (exception.StackTrace != null)
+            {
+                return false;
+            }
+
+            try
+            {
+                throw exception;
+            }
+            catch
+            {
+                // Empty; we just need the exception to have a stack trace.
+            }
 
             return true;
         }
