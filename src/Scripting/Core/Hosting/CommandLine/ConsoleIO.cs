@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             In = input;
         }
 
-        public void SetForegroundColor(ConsoleColor consoleColor) => Console.ForegroundColor = consoleColor;
+        public virtual void SetForegroundColor(ConsoleColor consoleColor) => Console.ForegroundColor = consoleColor;
 
         public virtual void ResetColor() => Console.ResetColor();
     }
