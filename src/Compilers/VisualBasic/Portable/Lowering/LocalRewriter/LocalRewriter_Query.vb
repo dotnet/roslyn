@@ -158,7 +158,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim propertyDefName As String = propertyDef.Name
 
                 If propertyDefName.StartsWith("$"c, StringComparison.Ordinal) AndAlso
-                   (propertyDefName.Equals(StringConstants.It) OrElse propertyDefName.Equals(StringConstants.It1) OrElse propertyDefName.Equals(StringConstants.It2)) Then
+                   (propertyDefName.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
+                   propertyDefName.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
+                   propertyDefName.Equals(StringConstants.It2, StringComparison.Ordinal)) Then
                     ' Nested compound variable.
                     PopulateRangeVariableMapForAnonymousType(syntax, getCallOrPropertyAccess.MakeCompilerGenerated(), rangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
                 Else
