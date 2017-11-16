@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.RemoteControl;
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             {
                 try
                 {
-                    var title = string.Format(WorkspaceDesktopResources.Downloading_IntelliSense_index_for_0, _source);
+                    var title = string.Format(EditorFeaturesWpfResources.Downloading_IntelliSense_index_for_0, _source);
                     await _service._progressService.OnDownloadFullDatabaseStartedAsync(title).ConfigureAwait(false);
 
                     var (succeeded, delay) = await DownloadFullDatabaseWorkerAsync().ConfigureAwait(false);
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     else
                     {
                         await _service._progressService.OnDownloadFullDatabaseFailedAsync(
-                            WorkspaceDesktopResources.Downloading_index_failed).ConfigureAwait(false);
+                            EditorFeaturesWpfResources.Downloading_index_failed).ConfigureAwait(false);
                     }
 
                     return delay;
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 catch (Exception e)
                 {
                     var message = string.Format(
-                        WorkspaceDesktopResources.Downloading_index_failed_0,
+                        EditorFeaturesWpfResources.Downloading_index_failed_0,
                         "\r\n" + e.ToString());
                     await _service._progressService.OnDownloadFullDatabaseFailedAsync(message).ConfigureAwait(false);
                     throw;

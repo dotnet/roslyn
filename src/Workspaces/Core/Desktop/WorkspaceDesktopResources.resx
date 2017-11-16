@@ -117,15 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Downloading_index_failed" xml:space="preserve">
-    <value>Downloading index failed</value>
-  </data>
-  <data name="Downloading_index_failed_0" xml:space="preserve">
-    <value>Downloading index failed:{0}</value>
-  </data>
-  <data name="Downloading_IntelliSense_index_for_0" xml:space="preserve">
-    <value>Downloading IntelliSense index for {0}</value>
-  </data>
   <data name="Invalid_assembly_name" xml:space="preserve">
     <value>Invalid assembly name</value>
   </data>
