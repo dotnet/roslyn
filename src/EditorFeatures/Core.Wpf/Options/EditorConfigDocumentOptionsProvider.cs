@@ -13,9 +13,8 @@ using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    // NOTE: this type depends on Dev15 assemblies, which is why the type is in EditorFeatures.Next. But, that library
-    // is rehostable and once we move .editorconfig support fully through the system, it should be moved to Workspaces
-    // or perhaps even lower.
+    // NOTE: this type depends Microsoft.VisualStudio.CodingConventions, so for now it's living in EditorFeatures.Wpf as that assembly
+    // isn't yet available outside of Visual Studio.
     internal sealed partial class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
     {
         private readonly object _gate = new object();
