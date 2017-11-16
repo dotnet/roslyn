@@ -3954,7 +3954,7 @@ class B : A
     }
 }
 ";
-            Action<ModuleSymbol> validator = module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromMetadata => module =>
             {
                 var globalNamespace = module.GlobalNamespace;
 
@@ -3981,10 +3981,13 @@ class B : A
                 Assert.Equal(ConstantValue.Null, parameterB.ExplicitDefaultConstantValue);
                 Assert.False(parameterB.IsOptional, "ParameterArray param cannot be optional");
 
-                WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
+                if (isFromMetadata)
+                {
+                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
+                };
             };
 
-            var verifier = CompileAndVerify(source, symbolValidator: validator, expectedOutput: @"System.Int32[]");
+            var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
         }
 
         [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]

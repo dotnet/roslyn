@@ -900,7 +900,7 @@ namespace N
                         "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "User2", // argument value (@"User2")
                 });
-        });
+            });
         }
 
         [Fact]

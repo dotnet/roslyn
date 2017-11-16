@@ -194,9 +194,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
+            var emittedMetadata = verifier.GetMetadata();
+
             if (assemblyValidator != null)
             {
-                var emittedMetadata = verifier.GetMetadata();
                 Assert.Equal(MetadataImageKind.Assembly, emittedMetadata.Kind);
 
                 var assembly = ((AssemblyMetadata)emittedMetadata).GetAssembly();
@@ -205,7 +206,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (symbolValidator != null)
             {
-                var emittedMetadata = verifier.GetMetadata();
                 var reference = emittedMetadata.Kind == MetadataImageKind.Assembly
                     ? ((AssemblyMetadata)emittedMetadata).GetReference()
                     : ((ModuleMetadata)emittedMetadata).GetReference();
@@ -232,9 +232,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
-            // We're dual-purposing emitters here.  In this context, it
-            // tells the validator the version of Emit that is calling it. 
-            RunValidators(verifier, assemblyValidator, symbolValidator);
+            if (assemblyValidator != null || symbolValidator != null)
+            {
+                // We're dual-purposing emitters here.  In this context, it
+                // tells the validator the version of Emit that is calling it. 
+                RunValidators(verifier, assemblyValidator, symbolValidator);
+            }
 
             return verifier;
         }

@@ -1233,30 +1233,45 @@ class C : B<string>
 {
 }
 ";
-            Action<ModuleSymbol> validator = module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
                 var classA = module.GlobalNamespace.GetTypeMember("A");
                 var p = classA.GetProperty("P");
-                VerifyAutoProperty(p);
+                VerifyAutoProperty(p, isFromSource);
                 var q = classA.GetProperty("Q");
-                VerifyAutoProperty(q);
+                VerifyAutoProperty(q, isFromSource);
 
                 var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
                 p = classC.BaseType.GetProperty("P");
-                VerifyAutoProperty(p);
+                VerifyAutoProperty(p, isFromSource);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
             };
 
-            CompileAndVerify(source, symbolValidator: validator, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(
+                source,
+                sourceSymbolValidator: validator(true),
+                symbolValidator: validator(false),
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
         }
 
-        private static void VerifyAutoProperty(PropertySymbol property)
+        private static void VerifyAutoProperty(PropertySymbol property, bool isFromSource)
         {
-            var backingField = property.ContainingType.GetField(GeneratedNames.MakeBackingFieldName(property.Name));
-            var attribute = backingField.GetAttributes().Single();
-            Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attribute.AttributeClass.ToTestDisplayString());
-            Assert.Empty(attribute.AttributeConstructor.Parameters);
+            if (isFromSource)
+            {
+                if (property is SourcePropertySymbol sourceProperty)
+                {
+                    Assert.True(sourceProperty.IsAutoProperty);
+                }
+            }
+            else
+            {
+                var backingField = property.ContainingType.GetField(GeneratedNames.MakeBackingFieldName(property.Name));
+                var attribute = backingField.GetAttributes().Single();
+
+                Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attribute.AttributeClass.ToTestDisplayString());
+                Assert.Empty(attribute.AttributeConstructor.Parameters);
+            }
 
             VerifyAutoPropertyAccessor(property, property.GetMethod);
             VerifyAutoPropertyAccessor(property, property.SetMethod);
@@ -1269,6 +1284,7 @@ class C : B<string>
                 var method = property.ContainingType.GetMembers(accessor.Name).Single();
                 Assert.Equal(method, accessor);
                 Assert.Equal(accessor.AssociatedSymbol, property);
+                Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be false for auto property accessors");
             }
         }
 

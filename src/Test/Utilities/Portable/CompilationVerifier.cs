@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var dummy = _compilation
                 .RemoveAllSyntaxTrees()
-                .WithReferences(_compilation.References.Concat(new[] { metadataReference }))
+                .AddReferences(metadataReference)
                 .WithAssemblyName("Dummy")
                 .WithOptions(_compilation.Options.WithMetadataImportOptions(importOptions));
 

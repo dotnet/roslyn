@@ -119,22 +119,23 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             private DynamicAttributeValidator(ModuleSymbol module)
             {
                 _module = module;
+                var globalNamespace = module.GlobalNamespace;
 
-                _base0Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Base0");
-                _base1Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Base1");
-                _base2Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Base2");
-                _derivedClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-                _outerClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
+                _base0Class = globalNamespace.GetMember<NamedTypeSymbol>("Base0");
+                _base1Class = globalNamespace.GetMember<NamedTypeSymbol>("Base1");
+                _base2Class = globalNamespace.GetMember<NamedTypeSymbol>("Base2");
+                _derivedClass = globalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                _outerClass = globalNamespace.GetMember<NamedTypeSymbol>("Outer");
                 _innerClass = _outerClass.GetTypeMember("Inner");
                 _innerInnerClass = _innerClass.GetTypeMember("InnerInner");
-                _outer2Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer2");
+                _outer2Class = globalNamespace.GetMember<NamedTypeSymbol>("Outer2");
                 _inner2Class = _outer2Class.GetTypeMember("Inner2");
                 _innerInner2Class = _inner2Class.GetTypeMember("InnerInner2");
-                _outer3Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer3");
+                _outer3Class = globalNamespace.GetMember<NamedTypeSymbol>("Outer3");
                 _inner3Class = _outer3Class.GetTypeMember("Inner3");
-                _unsafeClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("UnsafeClass");
-                _structType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Struct");
-                _synthesizedMyDelegateType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("MyDelegate");
+                _unsafeClass = globalNamespace.GetMember<NamedTypeSymbol>("UnsafeClass");
+                _structType = globalNamespace.GetMember<NamedTypeSymbol>("Struct");
+                _synthesizedMyDelegateType = globalNamespace.GetMember<NamedTypeSymbol>("MyDelegate");
 
                 _expectedTransformFlags = null;
             }

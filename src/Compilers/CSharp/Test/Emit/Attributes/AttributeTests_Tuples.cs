@@ -301,11 +301,13 @@ class C
 
             private TupleAttributeValidator(ModuleSymbol module)
             {
-                _base0Class = module.GlobalNamespace.GetTypeMember("Base0");
-                _base1Class = module.GlobalNamespace.GetTypeMember("Base1");
-                _base2Class = module.GlobalNamespace.GetTypeMember("Base2");
-                _outerClass = module.GlobalNamespace.GetTypeMember("Outer");
-                _derivedClass = module.GlobalNamespace.GetTypeMember("Derived");
+                var globalNs = module.GlobalNamespace;
+
+                _base0Class = globalNs.GetTypeMember("Base0");
+                _base1Class = globalNs.GetTypeMember("Base1");
+                _base2Class = globalNs.GetTypeMember("Base2");
+                _outerClass = globalNs.GetTypeMember("Outer");
+                _derivedClass = globalNs.GetTypeMember("Derived");
             }
 
             internal static void ValidateTupleAttributes(ModuleSymbol module)

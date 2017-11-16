@@ -3761,7 +3761,7 @@ class C
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
             compilation.VerifyDiagnostics();
 
-            CompileAndVerify(compilation, verify: false, symbolValidator: module =>
+            CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
             {
                 //no assembly => no decl security row
                 ValidateDeclSecurity(module);
@@ -5003,13 +5003,13 @@ public class DerivingClass<T> : BaseClass<T>
         }
 
         [Fact]
-        public void CompileAndVerifyModuleInlucesAllModules()
+        public void CompileAndVerifyModuleIncludesAllModules()
         {
             // Before this change, CompileAndVerify() didn't include other modules when testing a PEModule.
             // Verify that symbols from other modules are accessible as well.
 
-            var modRef = ModuleMetadata.CreateFromImage(CreateStandardCompilation("public class A { }", options: TestOptions.ReleaseModule, assemblyName: "refMod").EmitToArray());
-            var comp = CreateStandardCompilation("public class B : A { }", references: new[] { modRef.GetReference() }, assemblyName: "sourceMod");
+            var modRef = CreateStandardCompilation("public class A { }", options: TestOptions.ReleaseModule, assemblyName: "refMod").EmitToImageReference();
+            var comp = CreateStandardCompilation("public class B : A { }", references: new[] { modRef }, assemblyName: "sourceMod");
 
             CompileAndVerify(comp, symbolValidator: module =>
             {

@@ -1145,7 +1145,7 @@ class C
     }
 }";
 
-            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            Func<bool, Action<ModuleSymbol>> symbolValidator = isFromMetadata => moduleSymbol =>
             {
                 var type = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var paramAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ParamAttribute");
@@ -1164,8 +1164,11 @@ class C
                 Assert.Equal("p2", parameters[1].Name);
                 Assert.Equal(1, parameters[1].GetAttributes(paramAttrType).Count());
 
-                // verify ParamArrayAttribute on p2
-                VerifyParamArrayAttribute(parameters[1]);
+                if (isFromMetadata)
+                {
+                    // verify ParamArrayAttribute on p2
+                    VerifyParamArrayAttribute(parameters[1]);
+                }
 
                 // Delegate Constructor: Doesn't have any parameter attributes
                 var ctor = (MethodSymbol)delegateType.GetMember(".ctor");
@@ -1185,11 +1188,14 @@ class C
                 Assert.Equal(0, parameters[2].GetAttributes(paramAttrType).Count());
                 Assert.Equal(0, parameters[3].GetAttributes(paramAttrType).Count());
 
-                // verify no ParamArrayAttribute on p2
-                VerifyParamArrayAttribute(parameters[1], expected: false);
+                if (isFromMetadata)
+                {
+                    // verify no ParamArrayAttribute on p2
+                    VerifyParamArrayAttribute(parameters[1], expected: false);
+                }
             };
 
-            CompileAndVerify(source, symbolValidator: symbolValidator);
+            CompileAndVerify(source, sourceSymbolValidator: symbolValidator(false), symbolValidator: symbolValidator(true));
         }
 
         [Fact]

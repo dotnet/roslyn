@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     /// <summary>
     /// NYI: PEVerify currently fails for netmodules with error: "The module X was expected to contain an assembly manifest".
-    /// TODO: Verification was disabled for net modules for now. Add it back once module support has been added.
+    /// Verification was disabled for net modules for now. Add it back once module support has been added.
+    /// See tests having verify: !outputKind.IsNetModule()
+    /// https://github.com/dotnet/roslyn/issues/23475
     /// </summary>
     public class AttributeTests_Synthesized: WellKnownAttributesTestBase
     {

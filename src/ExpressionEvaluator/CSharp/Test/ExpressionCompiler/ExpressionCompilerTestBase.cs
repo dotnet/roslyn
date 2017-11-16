@@ -390,14 +390,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             var module = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module;
 
-            var typeHandle = module
-                .GroupTypesByNamespaceOrThrow(StringComparer.Ordinal)
-                .SelectMany(group => group)
-                .Single(handle => module.GetTypeDefNameOrThrow(handle) == method.ContainingType.Name);
+            var typeName = method.ContainingType.Name;
+            var typeHandle = module.MetadataReader.TypeDefinitions
+                .Single(handle => module.GetTypeDefNameOrThrow(handle) == typeName);
 
+            var methodName = method.Name;
             var methodHandle = module
                 .GetMethodsOfTypeOrThrow(typeHandle)
-                .Single(handle => module.GetMethodDefNameOrThrow(handle) == method.Name);
+                .Single(handle => module.GetMethodDefNameOrThrow(handle) == methodName);
 
             var returnParamHandle = module.GetParametersOfMethodOrThrow(methodHandle).FirstOrDefault();
 

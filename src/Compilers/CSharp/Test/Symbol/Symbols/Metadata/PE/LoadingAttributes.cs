@@ -1446,6 +1446,33 @@ class Class2 : Class1
                 Assert.Empty(parameters.Last().GetAttributes());
                 Assert.Equal(parameters.Last().ExplicitDefaultValue, new DateTime(2013, 1, 1));
             });
+
+            // Switch order of API calls
+
+            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            {
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType;
+                Assert.Equal("Class1", class1.ToTestDisplayString());
+
+                var field1 = class1.GetField("d1");
+
+                Assert.Equal(field1.ConstantValue, -7m);
+                Assert.Empty(field1.GetAttributes());
+
+                var field2 = class1.GetField("d2");
+
+                Assert.Null(field2.ConstantValue);
+                Assert.Equal(2, field2.GetAttributes().Length);
+
+                var parameters = class1.GetMethod("M1").GetParameters();
+                Assert.Equal(2, parameters.Count());
+
+                Assert.Equal(parameters.First().ExplicitDefaultValue, -7m);
+                Assert.Empty(parameters.First().GetAttributes());
+
+                Assert.Equal(parameters.Last().ExplicitDefaultValue, new DateTime(2013, 1, 1));
+                Assert.Empty(parameters.Last().GetAttributes());
+            });
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
