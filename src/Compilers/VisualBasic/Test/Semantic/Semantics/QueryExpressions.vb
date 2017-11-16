@@ -14713,7 +14713,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(23223, "https://github.com/dotnet/roslyn/issues/23223")>
-        Public Sub DuplicateRangeVariableName_IOperation()
+        Public Sub DuplicateRangeVariableName_IOperation_01()
             Dim source = <![CDATA[
 Option Strict Off
 Imports System
@@ -14777,6 +14777,63 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
 BC30978: Range variable 'implicit' hides a variable in an enclosing block or a range variable previously defined in the query expression.
         Dim q As Object = From implicit In New Integer() {1, 2, 3} Let implicit = "1" Select implicit 'BIND:"From implicit In New Integer() {1, 2, 3} Let implicit = "1" Select implicit"
                                                                        ~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23223, "https://github.com/dotnet/roslyn/issues/23223")>
+        Public Sub DuplicateRangeVariableName_IOperation_02()
+            Dim source = <![CDATA[
+Option Strict Off
+Imports System
+Imports System.Linq
+
+Module Module1
+    Sub Main()
+        Dim a = New Integer() {1, 2, 3}
+        Dim q As Object = From x In a Join x In a On x Equals 1 'BIND:"From x In a Join x In a On x Equals 1"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'From x In a ...  x Equals 1')
+  Expression: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Join x In a ...  x Equals 1')
+      Children(5):
+          IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Join x In a ...  x Equals 1')
+            Children(1):
+                ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'a')
+          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'a')
+          IAnonymousFunctionOperation (Symbol: Function (x As System.Int32) As ?) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                ReturnedValue: 
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'x')
+                    Children(1):
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+          IAnonymousFunctionOperation (Symbol: Function ($168 As System.Int32) As ?) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: '1')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '1')
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '1')
+                ReturnedValue: 
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: '1')
+                    Children(1):
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IAnonymousFunctionOperation (Symbol: Function (x As System.Int32, $168 As System.Int32) As <anonymous type: Key x As System.Int32, Key $168 As System.Int32>) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: 'Join x In a ...  x Equals 1')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Join x In a ...  x Equals 1')
+              IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'Join x In a ...  x Equals 1')
+                ReturnedValue: 
+                  IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key $168 As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'Join x In a ...  x Equals 1')
+                    Initializers(2):
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                        IParameterReferenceOperation: $168 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'x')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36600: Range variable 'x' is already declared.
+        Dim q As Object = From x In a Join x In a On x Equals 1 'BIND:"From x In a Join x In a On x Equals 1"
+                                           ~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)

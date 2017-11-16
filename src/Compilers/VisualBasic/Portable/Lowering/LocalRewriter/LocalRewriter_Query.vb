@@ -99,14 +99,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        False,
                                                        parameter.Type)
 
-                    If isReservedName AndAlso Not String.Equals(parameterName, StringConstants.Group, StringComparison.Ordinal) Then
+                    If isReservedName AndAlso IsCompoundVariableName(parameterName) Then
                         If parameter.Type.IsErrorType() Then
                             ' Skip adding variables to the range variable map and bail out for error case.
                             Return
                         Else
                             ' Compound variable.
                             ' Each range variable is an Anonymous Type property.
-                            Debug.Assert(parameterName.Equals(StringConstants.It) OrElse parameterName.Equals(StringConstants.It1) OrElse parameterName.Equals(StringConstants.It2))
                             PopulateRangeVariableMapForAnonymousType(node.Syntax, paramRef.MakeCompilerGenerated(), nodeRangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
                         End If
                     Else
@@ -158,9 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim propertyDefName As String = propertyDef.Name
 
                 If propertyDefName.StartsWith("$"c, StringComparison.Ordinal) AndAlso
-                   (propertyDefName.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
-                   propertyDefName.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
-                   propertyDefName.Equals(StringConstants.It2, StringComparison.Ordinal)) Then
+                   IsCompoundVariableName(propertyDefName) Then
                     ' Nested compound variable.
                     PopulateRangeVariableMapForAnonymousType(syntax, getCallOrPropertyAccess.MakeCompilerGenerated(), rangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
                 Else
@@ -170,6 +167,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
         End Sub
+
+        Private Shared Function IsCompoundVariableName(name As String) As Boolean
+            Return name.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
+                   name.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
+                   name.Equals(StringConstants.It2, StringComparison.Ordinal)
+        End Function
 
         Friend Shared Function CreateReturnStatementForQueryLambdaBody(
             rewrittenBody As BoundExpression,
