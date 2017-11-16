@@ -2,6 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
+    <!--
+      PackageId is used by Restore. If we set it to Text.Analyzers,
+      Restore would conclude that there is a cyclic dependency between us and the Text.Analyzers nuget package.
+    -->
+    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj" />
