@@ -14713,7 +14713,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(23223, "https://github.com/dotnet/roslyn/issues/23223")>
-        Public Sub DiplicateRangeVariableName_IOperation()
+        Public Sub DuplicateRangeVariableName_IOperation()
             Dim source = <![CDATA[
 Option Strict Off
 Imports System
