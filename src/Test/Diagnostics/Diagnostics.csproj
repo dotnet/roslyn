@@ -14,7 +14,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
