@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// CAB.</param>
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
+            FatalError.SetCallstackIfEmpty(exception);
+
             // if given exception is non recoverable exception,
             // crash instead of NFW
             if (IsNonRecoverableException(exception))

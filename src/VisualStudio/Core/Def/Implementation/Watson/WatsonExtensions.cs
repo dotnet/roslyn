@@ -18,14 +18,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// This sets extra watson bucket parameters to make bucketting better
         /// in non fatal watson report
         /// </summary>
-        public static void SetExtraParameters(this IFaultUtility fault, Exception exceptionOpt)
+        public static void SetExtraParameters(this IFaultUtility fault, Exception exception)
         {
-            if (exceptionOpt == null)
-            {
-                return;
-            }
-
-            switch (exceptionOpt)
+            switch (exception)
             {
                 case RemoteInvocationException remote:
                     fault.SetBucketParameter(Reserved1, remote.GetParameterString());
@@ -50,12 +45,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         return;
                     }
                 default:
-                    if (exceptionOpt.InnerException == null)
+                    if (exception.InnerException == null)
                     {
                         return;
                     }
 
-                    fault.SetBucketParameter(Reserved1, exceptionOpt.InnerException.GetParameterString());
+                    fault.SetBucketParameter(Reserved1, exception.InnerException.GetParameterString());
                     return;
             }
         }
@@ -101,13 +96,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public static bool ShouldReport(this Exception exception)
         {
-            // exception can be null. if NFW is called with null exception, it will use runtime callstack
-            // rather than callstack from the exception when it reports NFW
-            if (exception == null)
-            {
-                return true;
-            }
-
             // this is a poor man's check whether we are called for same issues repeatedly
             // one of problem of NFW compared to FW is that since we don't crash at an issue, same issue
             // might happen repeatedly. especially in short amount of time. reporting all those issues

@@ -30,42 +30,36 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
-        public static void Report(string title)
+        /// <param name="exception">Exception that triggered this non-fatal error</param>
+        public static void Report(Exception exception)
         {
-            Report(title, exceptionOpt: null);
-        }
-
-        /// <summary>
-        /// Report Non-Fatal Watson
-        /// </summary>
-        /// <param name="exceptionOpt">Exception that triggered this non-fatal error</param>
-        public static void Report(Exception exceptionOpt)
-        {
-            Report("Roslyn NonFatal Watson", exceptionOpt);
+            Report("Roslyn NonFatal Watson", exception);
         }
 
         /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="description">any description you want to save with this watson report</param>
-        /// <param name="exceptionOpt">Exception that triggered this non-fatal error</param>
-        public static void Report(string description, Exception exceptionOpt)
+        /// <param name="exception">Exception that triggered this non-fatal error</param>
+        public static void Report(string description, Exception exception)
         {
-            Report(description, exceptionOpt, s_defaultCallback);
+            Report(description, exception, s_defaultCallback);
         }
 
         /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="description">any description you want to save with this watson report</param>
-        /// <param name="exceptionOpt">Exception that triggered this non-fatal error</param>
+        /// <param name="exception">Exception that triggered this non-fatal error</param>
         /// <param name="callback">Callback to include extra data with the NFW. Note that we always collect
         /// a dump of the current process, but this can be used to add further information or files to the
         /// CAB.</param>
-        public static void Report(string description, Exception exceptionOpt, Func<IFaultUtility, int> callback)
+        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
+            FatalError.SetCallstackIfEmpty(exception);
+
             if (!WatsonDisabled.s_reportWatson ||
-                !exceptionOpt.ShouldReport())
+                !exception.ShouldReport())
             {
                 return;
             }
@@ -73,19 +67,19 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             TelemetryService.DefaultSession.PostFault(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
-                exceptionObject: exceptionOpt,
+                exceptionObject: exception,
                 gatherEventDetails: arg =>
                 {
                     // always add current processes dump
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
 
                     // add extra bucket parameters to bucket better in NFW
-                    arg.SetExtraParameters(exceptionOpt);
+                    arg.SetExtraParameters(exception);
 
                     return callback(arg);
                 });
 
-            if (exceptionOpt is OutOfMemoryException)
+            if (exception is OutOfMemoryException)
             {
                 // Once we've encountered one OOM we're likely to see more. There will probably be other
                 // failures as a direct result of the OOM, as well. These aren't helpful so we should just
