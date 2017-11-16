@@ -13,8 +13,8 @@
     <ScriptArgs Condition="'$(PB_SkipTests)' != 'true'">$(ScriptArgs) -testDesktop</ScriptArgs>
     <ScriptArgs Condition="'$(PB_SignType)' == 'real'">$(ScriptArgs) -signType "real"</ScriptArgs>
     <ScriptArgs Condition="'$(PB_SignType)' == 'test'">$(ScriptArgs) -signType "test"</ScriptArgs>
-    <ScriptArgs Condition="'$(PB_PublishType') == 'vsts'">$(ScriptArgs) -publishType "vsts"</ScriptArgs>
-    <ScriptArgs Condition="'$(PB_PublishType') == 'blob'">$(ScriptArgs) -publishType "blob"</ScriptArgs>
+    <ScriptArgs Condition="'$(PB_PublishType)' == 'vsts'">$(ScriptArgs) -publishType "vsts"</ScriptArgs>
+    <ScriptArgs Condition="'$(PB_PublishType)' == 'blob'">$(ScriptArgs) -publishType "blob"</ScriptArgs>
     <ScriptArgs Condition="'$(PB_PublishBlobFeedUrl)' != ''">$(ScriptArgs) -blobFeedUrl $(PB_PublishBlobFeedUrl) -blobFeedKey $(PB_PublishBlobFeedKey)</ScriptArgs>
   </PropertyGroup>
 
