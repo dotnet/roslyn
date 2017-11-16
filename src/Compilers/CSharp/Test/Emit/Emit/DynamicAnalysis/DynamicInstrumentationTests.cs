@@ -1943,7 +1943,7 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, verify: Verification.NetModule);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, verify: Verification.MissingMethod);
             verifier.VerifyDiagnostics();
         }
 

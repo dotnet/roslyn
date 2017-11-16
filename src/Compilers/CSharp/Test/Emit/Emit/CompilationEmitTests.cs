@@ -4492,7 +4492,7 @@ public interface IUsePlatform
         {
             var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify(comp, verify: Verification.Fails);
+            CompileAndVerify(comp, verify: Verification.BadFormat);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }
@@ -4720,7 +4720,7 @@ public class Program
                 ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
                 ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
                 );
-            CompileAndVerify(comp3, expectedOutput: "Hello, world!", verify: Verification.NetModule);
+            CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
 
         [Fact]
@@ -4763,7 +4763,7 @@ public class Program
 
             var comp3 = CreateStandardCompilation(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
             comp3.VerifyDiagnostics();
-            CompileAndVerify(comp3, expectedOutput: "Hello, world!", verify: Verification.NetModule);
+            CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
 
         /// <summary>

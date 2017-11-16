@@ -259,7 +259,7 @@ public class B
 
             var compilationOK = CreateStandardCompilation(source, new MetadataReference[] { moduleMetadata.GetReference(filePath: @"R:\A\B\ModuleNameMismatch.netmodule") });
 
-            CompileAndVerify(compilationOK, verify: Verification.NetModule);
+            CompileAndVerify(compilationOK);
 
             var compilationError = CreateStandardCompilation(source, new MetadataReference[] { moduleMetadata.GetReference(filePath: @"R:\A\B\ModuleNameMismatch.mod") });
 

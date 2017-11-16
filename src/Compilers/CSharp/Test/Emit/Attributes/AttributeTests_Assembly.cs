@@ -542,7 +542,6 @@ class Program
 
             CompileAndVerify(compilation,
                 manifestResources: hash_resources,
-                verify: Verification.NetModule,
                 validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
@@ -571,7 +570,6 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.NetModule,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -601,7 +599,6 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.NetModule,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -631,7 +628,6 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.NetModule,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -762,7 +758,6 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module_Comp.EmitToImageReference() });
 
             CompileAndVerify(compilation,
-                verify: Verification.NetModule,
                 validator: (peAssembly) =>
                 {
                     var peReader = peAssembly.ManifestModule.GetMetadataReader();
@@ -1771,7 +1766,7 @@ public class C { }
 
             var assembly = CreateStandardCompilation(assemblySrc, new[] { module.EmitToImageReference() }, assemblyName: "C");
 
-            CompileAndVerify(assembly, verify: Verification.NetModule, symbolValidator: moduleSymbol =>
+            CompileAndVerify(assembly, symbolValidator: moduleSymbol =>
             {
                 var attrs = moduleSymbol.ContainingAssembly.GetAttributes().Select(a => a.ToString()).ToArray();
                 AssertEx.SetEqual(new[]
@@ -2053,7 +2048,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
                                                               {
                                                                   var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2085,7 +2080,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2115,7 +2110,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2147,7 +2142,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2172,7 +2167,7 @@ public class C { }
 
             Assert.Equal(2, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, verify: Verification.NetModule, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
                 // var list = new ArrayBuilder<AttributeData>();
                 var asm = m.ContainingAssembly;

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -294,17 +295,12 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             var emitData = GetEmitData();
             var verifier = ILVerify.InMemoryVerifier.Create();
-
             var builder = PooledStringBuilder.GetInstance();
+
             try
             {
                 foreach (var module in emitData.AllModuleData)
                 {
-                    if (module.Kind == OutputKind.NetModule)
-                    {
-                        throw new IlVerifyException("JCOUV Module", module.SimpleName);
-                    }
-
                     if (!verifier.AddModule(module.Image, builder))
                     {
                         string message = builder.ToStringAndFree();
@@ -319,6 +315,10 @@ namespace Roslyn.Test.Utilities.Desktop
                     string message = builder.ToStringAndFree();
                     builder = null;
                     throw new IlVerifyException(message, emitData.MainModule.SimpleName);
+                }
+                else
+                {
+                    Debug.Assert(builder.Length == 0);
                 }
             }
             finally
