@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings,
             ref HashSet<DiagnosticInfo> discardedUseSiteDiagnostics)
         {
-            Debug.Assert(input.Type == recursive.InputType);
+            Debug.Assert(input.Type.IsErrorType() || input.Type == recursive.InputType);
             NullCheck(input, recursive.Syntax, decisions);
             if (recursive.DeclaredType != null && recursive.DeclaredType.Type != input.Type)
             {
@@ -338,7 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             evaluation = new BoundDagFieldEvaluation(prop.pattern.Syntax, field, input);
                             break;
                         default:
-                            throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+                            Debug.Assert(prop.pattern.HasAnyErrors);
+                            continue;
                     }
                     decisions.Add(evaluation);
                     var output = new BoundDagTemp(prop.pattern.Syntax, prop.symbol.GetTypeOrReturnType(), evaluation, 0);

@@ -283,43 +283,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitPatternSwitchBlock2(BoundPatternSwitchStatement2 node)
         {
-            var reachableLabels = node.ReachableLabels;
             var initialState = State.Clone();
 
-            // simulate dispatch to only the reachable labels
+            // PROTOTYPE(patterns2): when the input is a constant, we should simulate dispatch to see if
+            // a particular case is the only reachable one. We will need a spec for reachability to justify it.
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
                 {
-                    if (reachableLabels.Contains(label.Label))
-                    {
-                        SetState(initialState.Clone());
-                        VisitPattern(null, label.Pattern);
-                        SetState(StateWhenTrue);
-                        if (label.Guard != null)
-                        {
-                            VisitCondition(label.Guard);
-                            SetState(StateWhenTrue);
-                        }
-                        _pendingBranches.Add(new PendingBranch(label, this.State));
-                    }
-                }
-            }
-
-            // PROTOTYPE(patterns2): we should always consider the default label reachable for flow analysis purposes
-            // unless there was a single case that would match every input. How to do that with these data structures?
-            if (node.DefaultLabel != null)
-            {
-                //if (node.SomeLabelAlwaysMatches)
-                //{
-                //    SetUnreachable();
-                //}
-                //else
-                //{
+                    // We treat all labels as reachable, even if they are subsumed or erroneous.
                     SetState(initialState.Clone());
-                //}
-
-                _pendingBranches.Add(new PendingBranch(node.DefaultLabel, this.State));
+                    VisitPattern(null, label.Pattern);
+                    SetState(StateWhenTrue);
+                    if (label.Guard != null)
+                    {
+                        VisitCondition(label.Guard);
+                        SetState(StateWhenTrue);
+                    }
+                    _pendingBranches.Add(new PendingBranch(label, this.State));
+                }
             }
 
             // visit switch sections

@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LabelSymbol label = labelsByNode[labelSyntax];
                 BoundPatternSwitchLabel boundLabel = BindPatternSwitchSectionLabel(sectionBinder, labelSyntax, label, ref defaultLabel, diagnostics);
-                bool isNotSubsumed = subsumption.AddLabel(boundLabel, diagnostics);
+                bool isNotSubsumed = subsumption.AddLabel(boundLabel, diagnostics) || boundLabel.HasErrors;
                 bool guardAlwaysSatisfied = boundLabel.Guard == null || boundLabel.Guard.ConstantValue == ConstantValue.True;
 
                 // patternMatches is true if the input expression is unconditionally matched by the pattern, false if it never matches, null otherwise.
