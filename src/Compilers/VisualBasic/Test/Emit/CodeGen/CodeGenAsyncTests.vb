@@ -9145,6 +9145,46 @@ False
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
+
+        <Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")>
+        Public Sub CaptureAssignedInOuterFinally()
+            Dim source = <compilation name="Async">
+                             <file name="a.vb">
+imports System.Threading.Tasks
+imports System
+
+Module Module1
+
+    Sub Main()
+        Test().Wait()
+        System.Console.WriteLine("success")
+    End Sub
+
+    Async Function Test() As Task
+        Dim obj = New Object()
+
+        Try
+            For i = 0 To 3
+                ' NRE on second iteration
+                obj.ToString()
+                Await Task.Yield()
+            Next
+
+        Finally
+            obj = Nothing
+        End Try
+    End Function
+End Module
+
+                             </file>
+                         </compilation>
+
+            Dim expectedOutput = "success"
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
     End Class
 End Namespace
 
