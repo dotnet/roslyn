@@ -156,8 +156,9 @@ namespace Roslyn.Test.Utilities
             switch (token.Kind)
             {
                 case HandleKind.TypeReference:
-                    var typeRef = reader.GetTypeReference((TypeReferenceHandle)token);
-                    return typeRef.Name;
+                    return reader.GetTypeReference((TypeReferenceHandle)token).Name;
+                case HandleKind.TypeDefinition:
+                    return reader.GetTypeDefinition((TypeDefinitionHandle)token).Name;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(token.Kind);
             }
@@ -170,6 +171,25 @@ namespace Roslyn.Test.Utilities
                 var attribute = reader.GetCustomAttribute(handle);
                 yield return new CustomAttributeRow(attribute.Parent, attribute.Constructor);
             }
+        }
+
+        public static string GetCustomAttributeName(this MetadataReader reader, CustomAttributeRow row)
+        {
+            EntityHandle parent;
+            var token = row.ConstructorToken;
+            switch (token.Kind)
+            {
+                case HandleKind.MemberReference:
+                    parent = reader.GetMemberReference((MemberReferenceHandle)token).Parent;
+                    break;
+                case HandleKind.MethodDefinition:
+                    parent = reader.GetMethodDefinition((MethodDefinitionHandle)token).GetDeclaringType();
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(token.Kind);
+            }
+            var strHandle = reader.GetName(parent);
+            return reader.GetString(strHandle);
         }
 
         public static bool IsIncluded(this ImmutableArray<byte> metadata, string str)
