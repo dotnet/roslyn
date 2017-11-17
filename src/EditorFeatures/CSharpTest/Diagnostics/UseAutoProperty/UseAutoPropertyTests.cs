@@ -996,7 +996,7 @@ partial class Class
     int P { get; }
 
     int Q { get; }
-}");
+}", fixAllActionEquivalenceKey: FeaturesResources.Use_auto_property);
         }
     }
 }
