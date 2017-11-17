@@ -14,10 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void M()
+    int M()
     {
         string a;
-        int[] b;
         {|FixAllInDocument:var|} x = o as string;
         if (x != null)
         {
@@ -32,14 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
 
-        if ((b = o as int[]) != null)
-        {
-        }
+        var c = o as string;
+        var d = c != null ? 1 : 0;
+
+        var e = o as string;
+        return e != null ? 1 : 0;
     }
 }",
 @"class C
 {
-    void M()
+    int M()
     {
         if (o is string x)
         {
@@ -53,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
 
-        if (o is int[] b)
-        {
-        }
+        var d = o is string c ? 1 : 0;
+
+        return o is string e ? 1 : 0;
     }
 }");
         }
