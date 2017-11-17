@@ -268,20 +268,54 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
 
-            // Fade out the field/variable we are going to remove.
-            var diagnostic1 = Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, nodeToFade.GetLocation());
-            context.ReportDiagnostic(diagnostic1);
+            var optionSet = context.Options.GetDocumentOptionSetAsync(
+                result.FieldDeclaration.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            // Always offer the conversion if possible.  But only let the user know (by 
+            // fading/suggestions/squiggles) if their option is set to see this.
+
+            var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, propertyDeclaration.Language);
+            if (option.Value)
+            {
+                // Fade out the field/variable we are going to remove.
+                var diagnostic1 = Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, nodeToFade.GetLocation());
+                context.ReportDiagnostic(diagnostic1);
+            }
 
             // Now add diagnostics to both the field and the property saying we can convert it to 
             // an auto property.  For each diagnostic store both location so we can easily retrieve
             // them when performing the code fix.
-            IEnumerable<Location> additionalLocations = new Location[] { propertyDeclaration.GetLocation(), variableDeclarator.GetLocation() };
+            var additionalLocations = ImmutableArray.Create(
+                propertyDeclaration.GetLocation(), variableDeclarator.GetLocation());
 
-            var diagnostic2 = Diagnostic.Create(HiddenDescriptor, propertyDeclaration.GetLocation(), additionalLocations);
+            var diagnostic2 = Diagnostic.Create(HiddenDescriptor, propertyDeclaration.GetLocation(),
+                additionalLocations: additionalLocations);
             context.ReportDiagnostic(diagnostic2);
 
-            var diagnostic3 = Diagnostic.Create(HiddenDescriptor, nodeToFade.GetLocation(), additionalLocations);
+            // Place the appropriate marker on the field depending on the user option.
+            var diagnostic3 = Diagnostic.Create(
+                GetFieldDescriptor(option), nodeToFade.GetLocation(),
+                additionalLocations: additionalLocations);
             context.ReportDiagnostic(diagnostic3);
+        }
+
+        private DiagnosticDescriptor GetFieldDescriptor(CodeStyleOption<bool> styleOption)
+        {
+            if (styleOption.Value)
+            {
+                switch (styleOption.Notification.Value)
+                {
+                    case DiagnosticSeverity.Error: return ErrorDescriptor;
+                    case DiagnosticSeverity.Warning: return WarningDescriptor;
+                    case DiagnosticSeverity.Info: return InfoDescriptor;
+                }
+            }
+
+            return HiddenDescriptor;
         }
 
         protected virtual bool IsEligibleHeuristic(IFieldSymbol field, TPropertyDeclaration propertyDeclaration, Compilation compilation, CancellationToken cancellationToken)

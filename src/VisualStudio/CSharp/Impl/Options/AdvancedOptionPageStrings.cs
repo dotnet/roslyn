@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.When_generating_properties;
 
         public static string Option_prefer_auto_properties
-            => ServicesVSResources.prefer_auto_properties;
+            => ServicesVSResources.prefer_auto_properties_2;
 
         public static string Option_prefer_throwing_properties
             => ServicesVSResources.prefer_throwing_properties;

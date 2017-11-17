@@ -551,6 +551,29 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferAutoProperties = $@"
+using System;
+
+class Customer
+{{
+//[
+    // {ServicesVSResources.Prefer_colon}
+    public int Age {{ get; }}
+
+    // {ServicesVSResources.Over_colon}
+    private int age;
+
+    public int Age
+    {{
+        get
+        {{
+            return age;
+        }}
+    }}
+//]
+}}
+";
+
         private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
 using System;
 
@@ -808,6 +831,7 @@ class List<T>
 
             // Code block
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.Prefer_auto_properties_1, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
 
             // Expression preferences
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));

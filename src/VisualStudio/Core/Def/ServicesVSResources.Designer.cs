@@ -1568,11 +1568,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer auto properties.
+        /// </summary>
+        internal static string Prefer_auto_properties_1 {
+            get {
+                return ResourceManager.GetString("Prefer_auto_properties_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to prefer auto properties.
         /// </summary>
-        internal static string prefer_auto_properties {
+        internal static string prefer_auto_properties_2 {
             get {
-                return ResourceManager.GetString("prefer_auto_properties", resourceCulture);
+                return ResourceManager.GetString("prefer_auto_properties_2", resourceCulture);
             }
         }
         
