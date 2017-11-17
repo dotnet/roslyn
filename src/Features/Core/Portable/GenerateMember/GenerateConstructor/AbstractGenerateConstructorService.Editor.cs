@@ -23,6 +23,38 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
         internal abstract IMethodSymbol GetDelegatingConstructor(State state, SemanticDocument document, int argumentCount, INamedTypeSymbol namedType, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken);
 
+        protected abstract IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
+
+        protected abstract IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken);
+
+        protected bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken = default)
+        {
+            var currentConstructor = GetCurrentConstructor(document.SemanticModel, state.Token, cancellationToken);
+            if (currentConstructor.Equals(delegatedConstructor))
+            {
+                return false;
+            }
+
+            // We need ensure that delegating constructor won't cause circular dependency.
+            // The chain of dependency can not exceed the number for constructors
+            var constructorsCount = delegatedConstructor.ContainingType.Constructors.Count(c => !c.IsStaticConstructor());
+            for (var i = 0; i < constructorsCount; i++)
+            {
+                delegatedConstructor = GetDelegatedConstructor(document.SemanticModel, delegatedConstructor, cancellationToken);
+                if (delegatedConstructor == null)
+                {
+                    return true;
+                }
+
+                if (delegatedConstructor.Equals(currentConstructor))
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
         private partial class Editor
         {
             private readonly TService _service;
