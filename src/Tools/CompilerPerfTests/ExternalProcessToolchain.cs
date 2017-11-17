@@ -29,13 +29,6 @@ namespace Perf
         }
 
         public bool IsSupported(Benchmark benchmark, ILogger logger, IResolver resolver)
-        {
-            if (!(benchmark is ExternalProcessBenchmark))
-            {
-                return false;
-            }
-
-            return true;
-        }
+            => benchmark is ExternalProcessBenchmark;
     }
 }
