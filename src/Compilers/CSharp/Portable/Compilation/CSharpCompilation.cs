@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Are there any top-level return statments?
+            // Are there any top-level return statements?
             if (root.DescendantNodes(n => n is GlobalStatementSyntax || n is StatementSyntax || n is CompilationUnitSyntax).Any(n => n.IsKind(SyntaxKind.ReturnStatement)))
             {
                 return true;
@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false);
+            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
         }
 
         /// <summary>
@@ -1998,10 +1998,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _declarationDiagnosticsFrozen = true;
 
-            // Also freeze generated attribute flags by observing them
-            // symbols bound after getting the declaration diagnostics shouldn't need to modify the flags
-            _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
-            _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
+            // Also freeze generated attribute flags.
+            // Symbols bound after getting the declaration
+            // diagnostics shouldn't need to modify the flags.
+            _needsGeneratedAttributes_IsFrozen = true;
 
             var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
             return result;
@@ -2075,6 +2075,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, CancellationToken cancellationToken)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            GetDiagnostics(stage, includeEarlierStages, diagnostics, cancellationToken);
+            return diagnostics.ToReadOnlyAndFree();
+        }
+
+        internal override void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
         {
             var builder = DiagnosticBag.GetInstance();
 
@@ -2153,9 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
-            var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder);
-            return result.ToReadOnlyAndFree<Diagnostic>();
+            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder);
         }
 
         private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>> locationFilterOpt = null)

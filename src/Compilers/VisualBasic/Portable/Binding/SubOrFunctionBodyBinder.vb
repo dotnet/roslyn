@@ -48,6 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
+            End Get
+        End Property
+
         Public MustOverride Overrides Function GetLocalForFunctionValue() As LocalSymbol
 
         Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,

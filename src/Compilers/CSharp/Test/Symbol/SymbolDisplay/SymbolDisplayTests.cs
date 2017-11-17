@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -5964,6 +5965,344 @@ class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName, // c
                 SymbolDisplayPartKind.Punctuation); // )
+        }
+
+        [Fact]
+        public void LocalVariable_01()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+        x++;
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateStandardCompilation(srcTree);
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var declarator = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)),
+                "int x",
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Assert.False(local.IsRef);
+            Assert.Equal(RefKind.None, local.RefKind);
+        }
+
+        [Fact]
+        public void LocalVariable_02()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M(int y)
+    {
+        ref int x = y;
+        x++;
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateStandardCompilation(srcTree);
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var declarator = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)),
+                "ref int x",
+                SymbolDisplayPartKind.Keyword, //ref
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "int x",
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Assert.True(local.IsRef);
+            Assert.Equal(RefKind.Ref, local.RefKind);
+        }
+
+        [Fact]
+        public void LocalVariable_03()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M(int y)
+    {
+        ref readonly int x = y;
+        x++;
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateStandardCompilation(srcTree);
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var declarator = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)),
+                "ref readonly int x",
+                SymbolDisplayPartKind.Keyword, //ref
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, //readonly
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "int x",
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Assert.True(local.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, local.RefKind);
+        }
+
+        [Fact]
+        [WorkItem(22507, "https://github.com/dotnet/roslyn/issues/22507")]
+        public void EdgeCasesForEnumFieldComparer()
+        {
+            // A bad comparer could cause sorting the enum fields
+            // to throw an exception due to inconsistency. See Repro22507
+            // for an example of this problem.
+
+            var lhs = new EnumField("E1", 0);
+            var rhs = new EnumField("E2", 0x1000_0000_0000_0000);
+
+            // This is a "reverse" comparer, so if lhs < rhs, return
+            // value should be > 0
+            // If the comparer subtracts and converts, result will be zero since
+            // the bottom 32 bits are zero
+            Assert.InRange(EnumField.Comparer.Compare(lhs, rhs), 1, int.MaxValue);
+
+            lhs = new EnumField("E1", 0);
+            rhs = new EnumField("E2", 0x1000_0000_0000_0001);
+            Assert.InRange(EnumField.Comparer.Compare(lhs, rhs), 1, int.MaxValue);
+
+            lhs = new EnumField("E1", 0x1000_0000_0000_000);
+            rhs = new EnumField("E2", 0);
+            Assert.InRange(EnumField.Comparer.Compare(lhs, rhs), int.MinValue, -1);
+
+            lhs = new EnumField("E1", 0);
+            rhs = new EnumField("E2", 0x1000_0000_8000_0000);
+            Assert.InRange(EnumField.Comparer.Compare(lhs, rhs), 1, int.MaxValue);
+        }
+
+        [Fact]
+        [WorkItem(22507, "https://github.com/dotnet/roslyn/issues/22507")]
+        public void Repro22507()
+        {
+            var text = @"
+using System;
+
+[Flags]
+enum E : long
+{
+    A = 0x0,
+    B = 0x400,
+    C = 0x100000,
+    D = 0x200000,
+    E = 0x2000000,
+    F = 0x4000000,
+    G = 0x8000000,
+    H = 0x40000000,
+    I = 0x80000000,
+    J = 0x20000000000,
+    K = 0x40000000000,
+    L = 0x4000000000000,
+    M = 0x8000000000000,
+    N = 0x10000000000000,
+    O = 0x20000000000000,
+    P = 0x40000000000000,
+    Q = 0x2000000000000000,
+}
+";
+            TestSymbolDescription(
+                text,
+                g => g.GetTypeMembers("E").Single().GetField("A"),
+                SymbolDisplayFormat.MinimallyQualifiedFormat
+                    .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue),
+                "E.A = 0",
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral);
+        }
+
+
+        [Fact]
+        public void TestRefStructs()
+        {
+            var source = @"
+ref struct X { }
+namespace Nested
+{
+    ref struct Y { }
+}
+";
+
+            var comp = CreateStandardCompilation(source).VerifyDiagnostics();
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+
+            var declarations = semanticModel.SyntaxTree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.StructDeclaration).Cast<BaseTypeDeclarationSyntax>().ToArray();
+            Assert.Equal(2, declarations.Length);
+
+            var format = SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            Verify(semanticModel.GetDeclaredSymbol(declarations[0]).ToDisplayParts(format),
+                "ref struct X",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName);
+
+            Verify(semanticModel.GetDeclaredSymbol(declarations[1]).ToDisplayParts(format),
+                "ref struct Nested.Y",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName);
+        }
+
+        [Fact]
+        public void TestReadOnlyStructs()
+        {
+            var source = @"
+readonly struct X { }
+namespace Nested
+{
+    readonly struct Y { }
+}
+";
+
+            var comp = CreateStandardCompilation(source).VerifyDiagnostics();
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+
+            var declarations = semanticModel.SyntaxTree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.StructDeclaration).Cast<BaseTypeDeclarationSyntax>().ToArray();
+            Assert.Equal(2, declarations.Length);
+
+            var format = SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            Verify(semanticModel.GetDeclaredSymbol(declarations[0]).ToDisplayParts(format),
+                "readonly struct X",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName);
+
+            Verify(semanticModel.GetDeclaredSymbol(declarations[1]).ToDisplayParts(format),
+                "readonly struct Nested.Y",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName);
+        }
+
+        [Fact]
+        public void TestReadOnlyRefStructs()
+        {
+            var source = @"
+readonly ref struct X { }
+namespace Nested
+{
+    readonly ref struct Y { }
+}
+";
+
+            var comp = CreateStandardCompilation(source).VerifyDiagnostics();
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+
+            var declarations = semanticModel.SyntaxTree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.StructDeclaration).Cast<BaseTypeDeclarationSyntax>().ToArray();
+            Assert.Equal(2, declarations.Length);
+
+            var format = SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            Verify(semanticModel.GetDeclaredSymbol(declarations[0]).ToDisplayParts(format),
+                "readonly ref struct X",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName);
+
+            Verify(semanticModel.GetDeclaredSymbol(declarations[1]).ToDisplayParts(format),
+                "readonly ref struct Nested.Y",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName);
+        }
+
+        [Fact]
+        public void TestPassingVBSymbolsToStructSymbolDisplay()
+        {
+            var source = @"
+Structure X
+End Structure";
+
+            var comp = CreateVisualBasicCompilation(source).VerifyDiagnostics();
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+
+            var structure = semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.RawKind == (int)VisualBasic.SyntaxKind.StructureStatement);
+            var format = SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            Verify(SymbolDisplay.ToDisplayParts(semanticModel.GetDeclaredSymbol(structure), format),
+                "struct X",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName);
         }
     }
 }

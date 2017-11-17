@@ -187,16 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerAccess = (BoundIndexerAccess)expr;
                         if (valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef)
                         {
-                            expr = indexerAccess.Update(indexerAccess.ReceiverOpt,
-                               indexerAccess.Indexer,
-                               indexerAccess.Arguments,
-                               indexerAccess.ArgumentNamesOpt,
-                               indexerAccess.ArgumentRefKindsOpt,
-                               indexerAccess.Expanded,
-                               indexerAccess.ArgsToParamsOpt,
-                               indexerAccess.BinderOpt,
-                               useSetterForDefaultArgumentGeneration: true,
-                               type: indexerAccess.Type);
+                            expr = indexerAccess.Update(useSetterForDefaultArgumentGeneration: true);
                         }
                     }
                     break;
@@ -1015,7 +1006,7 @@ moreArguments:
             ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
-            //                                                    its val escape is ExternalScope                   (does not affect overal result)
+            //                                                    its val escape is ExternalScope                   (does not affect overall result)
             if (unmatchedInParameter != null && isRefEscape)
             {
                 return scopeOfTheContainingExpression;
@@ -1130,7 +1121,7 @@ moreArguments:
             ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
-            //                                                    its val escape is ExternalScope                   (does not affect overal result)
+            //                                                    its val escape is ExternalScope                   (does not affect overall result)
             if (unmatchedInParameter != null && isRefEscape)
             {
                 Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedInParameter.Name);
@@ -1644,7 +1635,7 @@ moreArguments:
 
                     // byval parameters can escape to method's top level.
                     // others can be escape further, unless they are ref-like.
-                    // NOTE: "method" here means nearst containing method, lambda or nested method
+                    // NOTE: "method" here means nearest containing method, lambda or nested method
                     return parameter.RefKind == RefKind.None || parameter.Type?.IsByRefLikeType == true ?
                         Binder.TopLevelScope :
                         Binder.ExternalScope;

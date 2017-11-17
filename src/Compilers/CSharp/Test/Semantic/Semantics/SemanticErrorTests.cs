@@ -5280,7 +5280,165 @@ class Program
         }
 
         [Fact]
-        public void CS7095WRN_FilterIsConstant1()
+        public void CS8359WRN_FilterIsConstantFalse_NonBoolean()
+        {
+            // Non-boolean constant filters are not considered for WRN_FilterIsConstant warnings. 
+
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (1) { }
+        catch (B) when (0) { }
+        catch (B) when (""false"") { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         catch (A) when (1) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool").WithLocation(11, 25),
+                // (12,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         catch (B) when (0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(12, 25),
+                // (13,25): error CS0029: Cannot implicitly convert type 'string' to 'bool'
+                //         catch (B) when ("false") { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""false""").WithArguments("string", "bool").WithLocation(13, 25),
+                // (14,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(14, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse1()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
+                // (12,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse2()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when ((1+1)!=2) { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "(1+1)!=2").WithLocation(11, 25),
+                // (12,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse3()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+        finally { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS8360WRN_FilterIsConstantRedundantTryCatch1()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS8360WRN_FilterIsConstantRedundantTryCatch2()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when ((1+1)!=2) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "(1+1)!=2").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS7095WRN_FilterIsConstantTrue1()
         {
             var text = @"
 using System;
@@ -5298,13 +5456,13 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,23): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (11,25): warning CS7095: Filter expression is a constant 'true', consider removing the filter
                 //         catch (A) when (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(11, 25));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(11, 25));
         }
 
         [Fact]
-        public void CS7095WRN_FilterIsConstant2()
+        public void CS7095WRN_FilterIsConstantTrue2()
         {
             var text = @"
 using System;
@@ -5322,12 +5480,34 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (10,19): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (10,19): warning CS7095: Filter expression is a constant 'true', consider removing the filter
                 //         catch when (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 21),
-                // (12,19): warning CS7095: Filter expression is a constant, consider removing the filter
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 21),
+                // (12,19): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch when (false) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(12, 21));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 21));
+        }
+
+        [Fact]
+        public void CS7095WRN_FilterIsConstantTrue3()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch when ((1+1)==2) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (10,19): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         catch when (true) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "(1+1)==2").WithLocation(10, 21));
         }
 
         [Fact]
@@ -5352,9 +5532,9 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (11,25): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
     //         catch (A) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
     // (13,13): warning CS0162: Unreachable code detected
     //             Console.WriteLine(1); 
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 13)
@@ -5385,9 +5565,9 @@ class Program
             // is to make conditional compilation easier. Such scenario doesn't apply to filters.
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (10,33): warning CS7105: Filter expression is a constant 'false', consider removing the try-catch block
     //         catch (Exception) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 33),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 33),
     // (12,13): warning CS0162: Unreachable code detected
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(12, 13)
@@ -5418,9 +5598,9 @@ class Program
             // is to make conditional compilation easier. Such scenario doesn't apply to filters.
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (10,33): warning CS7095: Filter expression is a constant 'true', consider removing the filter
     //         catch (Exception) when (true) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 33),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 33),
     // (12,31): error CS0165: Use of unassigned local variable 'x'
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 31)
@@ -6872,6 +7052,7 @@ public class MyClass
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_PtrExpected, Line = 15, Column = 7 } });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0196ERR_PtrIndexSingle()
         {
@@ -6887,10 +7068,27 @@ unsafe public class MyClass
       // j = i[1];
    }
 }";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,11): error CS0196: A pointer must be indexed by only one value
                 //       j = i[1,2];   // CS0196
                 Diagnostic(ErrorCode.ERR_PtrIndexSingle, "i[1,2]"));
+
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
+
+            Assert.Equal("i[1,2]", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1,2]')
+  Children(2):
+      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'i')
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1,2]')
+        Children(2):
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+");
         }
 
         [Fact]
@@ -7012,7 +7210,7 @@ initializing for System.String
 String
 ";
             // Although we accept this nasty code, it will not verify.
-            CompileAndVerify(text, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(text, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -12484,6 +12682,8 @@ class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(23004, "https://github.com/dotnet/roslyn/issues/23004")]
         public void CS0856ERR_IndexedPropertyRequiresParams01()
         {
             var source1 =
@@ -12522,6 +12722,19 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "i.R").WithArguments("I.R").WithLocation(8, 9),
                 // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'I.R[int, int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.R[1]").WithArguments("y", "I.R[int, int, int]").WithLocation(9, 9));
+
+            var tree = compilation2.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
+
+            Assert.Equal("i.R[1]", node.ToString());
+
+            compilation2.VerifyOperationTree(node, expectedOperationTree:
+@"
+IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid) (Syntax: 'i.R[1]')
+  Children(2):
+      IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: I, IsInvalid) (Syntax: 'i')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+");
         }
 
         [Fact]
@@ -12625,7 +12838,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B
 {
@@ -22918,6 +23131,8 @@ class Program
 
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(23009, "https://github.com/dotnet/roslyn/issues/23009")]
         public void ConditionalElementAccess001()
         {
             var text = @"
@@ -22947,7 +23162,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -22970,8 +23185,23 @@ class Program
     //         var x5 = null?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "<null>").WithLocation(24, 22)
     );
-        }
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().First();
 
+            Assert.Equal("base?.ToString()", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'base?.ToString()')
+  Operation: 
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'base')
+  WhenNotNull: 
+    IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
+      Instance Receiver: 
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'base')
+      Arguments(0)
+");
+        }
 
         [Fact]
         [WorkItem(976765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]
@@ -23444,6 +23674,30 @@ class Program
                 // (6,9): error CS8209: A value of type 'void' may not be assigned.
                 //         _ = M();
                 Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(22880, "https://github.com/dotnet/roslyn/issues/22880")]
+        public void AttributeCtorInParam()
+        {
+            var text = @"
+[A(1)]
+class A : System.Attribute {
+  A(in int x) { }
+}
+
+[B()]
+class B : System.Attribute {
+  B(in int x = 1) { }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (7,2): error CS8355: Cannot use attribute constructor 'B.B(in int)' because it is has 'in' parameters.
+                // [B()]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2),
+                // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
+                // [A(1)]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
                 );
         }
     }

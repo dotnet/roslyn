@@ -192,6 +192,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 _compiler.ReportErrors(e.Diagnostics, _console.Error, errorLogger);
                 return CommonCompiler.Failed;
             }
+            catch (Exception e)
+            {
+                DisplayException(e);
+                return e.HResult;
+            }
         }
 
         private void RunInteractiveLoop(ScriptOptions options, string initialScriptCodeOpt, CancellationToken cancellationToken)

@@ -51,6 +51,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ContainingNamespaceOrType As NamespaceOrTypeSymbol
             Get
                 Return _substitutedSourceMethod.ContainingNamespaceOrType

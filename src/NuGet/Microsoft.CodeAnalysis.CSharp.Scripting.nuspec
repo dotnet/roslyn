@@ -27,8 +27,10 @@
     </dependencies>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="lib\netstandard1.3" />
     <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

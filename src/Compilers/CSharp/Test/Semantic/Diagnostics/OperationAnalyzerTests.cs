@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1882,6 +1883,34 @@ class C
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new TrueFalseUnaryOperationTestAnalyzer() }, null, null, false,
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x && y").WithLocation(29, 13),
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(30, 18));
+        }
+
+        [Fact]
+        public void TestOperationBlockAnalyzer_EmptyMethodBody()
+        {
+            const string source = @"
+class C
+{
+    public void M()
+    {
+    }
+
+    public void M2(int i)
+    {
+    }
+
+    public void M3(int i = 0)
+    {
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OperationBlockAnalyzer() }, null, null, false,
+                Diagnostic("ID", "M2").WithArguments("M2", "Block").WithLocation(8, 17),
+                Diagnostic("ID", "M").WithArguments("M", "Block").WithLocation(4, 17),
+                Diagnostic("ID", "M3").WithArguments("M3", "ParameterInitializer").WithLocation(12, 17),
+                Diagnostic("ID", "M3").WithArguments("M3", "Block").WithLocation(12, 17));
         }
     }
 }

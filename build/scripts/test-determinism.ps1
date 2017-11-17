@@ -16,7 +16,7 @@ $script:skipList = @()
 [string]$script:errorDirLeft = ""
 [string]$script:errorDirRight = ""
 
-function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$restore = $false, [string]$logFile = $null) {
+function Run-Build([string]$rootDir, [switch]$restore = $false, [string]$logFile = $null) {
     Push-Location $rootDir
     try {
 
@@ -29,7 +29,7 @@ function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$resto
             Restore-Project -fileName "Roslyn.sln" -nuget (Ensure-NuGet) -msbuildDir (Split-Path -parent $msbuild)
         }
 
-        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption Roslyn.sln"
+        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false Roslyn.sln"
         if ($logFile -ne $null) {
             $logFile = Join-Path $binariesDir $logFile
             $args += " /bl:$logFile"
@@ -117,8 +117,8 @@ function Test-MapContents($dataMap) {
     }
 }
 
-function Test-Build([string]$rootDir, $dataMap, [string]$pathMapBuildOption, [string]$logFile, [switch]$restore = $false) {
-    Run-Build $rootDir $pathMapBuildOption -logFile $logFile -restore:$restore
+function Test-Build([string]$rootDir, $dataMap, [string]$logFile, [switch]$restore = $false) {
+    Run-Build $rootDir -logFile $logFile -restore:$restore
 
     $errorList = @()
     $allGood = $true
@@ -191,8 +191,7 @@ function Run-Test() {
     $altRootDir = Join-Path "$repoDir\Binaries" "q"
     Remove-Item -re -fo $altRootDir -ErrorAction SilentlyContinue
     & robocopy $repoDir $altRootDir /E /XD $binariesDir /XD ".git" /njh /njs /ndl /nc /ns /np /nfl
-    $pathMapBuildOption = "/p:PathMap=`"$altRootDir=$repoDir`""
-    Test-Build -rootDir $altRootDir -dataMap $dataMap -pathMapBuildOption $pathMapBuildOption -logFile "test2.binlog" -restore
+    Test-Build -rootDir $altRootDir -dataMap $dataMap -logFile "test2.binlog" -restore
 }
 
 try {

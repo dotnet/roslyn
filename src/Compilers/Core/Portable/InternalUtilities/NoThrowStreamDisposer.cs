@@ -17,7 +17,7 @@ namespace Roslyn.Utilities
     {
         private bool? _failed; // Nullable to assert that this is only checked after dispose
         private readonly string _filePath;
-        private readonly TextWriter _writer;
+        private readonly DiagnosticBag _diagnostics;
         private readonly CommonMessageProvider _messageProvider;
 
         /// <summary>
@@ -40,13 +40,13 @@ namespace Roslyn.Utilities
         public NoThrowStreamDisposer(
             Stream stream,
             string filePath,
-            TextWriter writer,
+            DiagnosticBag diagnostics,
             CommonMessageProvider messageProvider)
         {
             Stream = stream;
             _failed = null;
             _filePath = filePath;
-            _writer = writer;
+            _diagnostics = diagnostics;
             _messageProvider = messageProvider;
         }
 
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
             }
             catch (Exception e)
             {
-                _messageProvider.ReportStreamWriteException(e, _filePath, _writer);
+                _messageProvider.ReportStreamWriteException(e, _filePath, _diagnostics);
                 // Record if any exceptions are thrown during dispose
                 _failed = true;
             }

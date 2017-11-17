@@ -6919,8 +6919,8 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            // Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            // Exported types in .Net modules cause PEVerify to fail on some platforms.
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
                 new List<MetadataReference>()
@@ -6929,7 +6929,7 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation(modSource,
                 new List<MetadataReference>()
@@ -7000,7 +7000,7 @@ extern alias FT1;
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("",
                 new List<MetadataReference>()
@@ -17457,7 +17457,7 @@ public class B : A
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, verify: false).
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).
                            VerifyDiagnostics(
     // (8,17): warning CS0824: Constructor 'B.B()' is marked external
     //   public extern B();
@@ -19976,7 +19976,7 @@ namespace UserSpace
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
-        public void MultipleForwardsThatChainResultinTheSameAssemblyShouldStillProduceAnError()
+        public void MultipleForwardsThatChainResultInTheSameAssemblyShouldStillProduceAnError()
         {
             // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
             // in assembly C. Now if assembly C is replaced with assembly C2, that forwards the type to both D and E, and D fowards it to E,

@@ -1,39 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     internal static class OperationFactory
     {
-        public static IVariableDeclarationOperation CreateVariableDeclaration(ILocalSymbol variable, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax)
-        {
-            return CreateVariableDeclaration(ImmutableArray.Create(variable), initializer, semanticModel, syntax);
-        }
-
-        public static VariableDeclaration CreateVariableDeclaration(ImmutableArray<ILocalSymbol> variables, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax)
-        {
-            return new VariableDeclaration(
-                variables,
-                initializer,
-                semanticModel,
-                syntax,
-                type: null,
-                constantValue: default(Optional<object>),
-                isImplicit: false); // variable declaration is always explicit
-        }
-
         public static IVariableInitializerOperation CreateVariableInitializer(SyntaxNode syntax, IOperation initializerValue, SemanticModel semanticModel, bool isImplicit)
         {
             return new VariableInitializer(initializerValue, semanticModel, syntax, type: null, constantValue: default, isImplicit: isImplicit);
         }
 
-        public static IConditionalOperation CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
+        public static IConditionalOperation CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, bool isRef, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
             return new ConditionalOperation(
                 condition,
                 whenTrue,
                 whenFalse,
+                isRef,
                 semanticModel,
                 syntax,
                 resultType,
@@ -41,28 +26,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit);
         }
 
-        public static IExpressionStatementOperation CreateSimpleAssignmentExpressionStatement(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
+        public static IExpressionStatementOperation CreateSimpleAssignmentExpressionStatement(IOperation target, bool isRef, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            var expression = new SimpleAssignmentExpression(target, value, semanticModel, syntax, target.Type, default(Optional<object>), isImplicit);
-            return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
-        }
-
-        public static IExpressionStatementOperation CreateCompoundAssignmentExpressionStatement(
-            IOperation target, IOperation value, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
-        {
-            var expression = new CompoundAssignmentExpression(
-                     operatorKind,
-                     isLifted,
-                     isChecked,
-                     target,
-                     value,
-                     operatorMethod,
-                     semanticModel,
-                     syntax,
-                     target.Type,
-                     default(Optional<object>),
-                     isImplicit);
-
+            var expression = new SimpleAssignmentExpression(target, isRef, value, semanticModel, syntax, target.Type, default(Optional<object>), isImplicit);
             return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
 
@@ -95,5 +61,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new InvalidOperation(children, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
+
+        public static Lazy<IOperation> NullOperation { get; } = new Lazy<IOperation>(() => null);
+        public static Lazy<IVariableInitializerOperation> NullInitializer { get; } = new Lazy<IVariableInitializerOperation>(() => null);
     }
 }

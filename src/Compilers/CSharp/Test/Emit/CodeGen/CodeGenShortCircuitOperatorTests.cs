@@ -7238,7 +7238,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", verify: false);
+            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", verify: Verification.Fails);
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -7263,7 +7263,7 @@ class Program
   IL_002b:  ret
 }");
 
-            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true);
+            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
 
             comp.VerifyIL("Program.Main", @"
 {

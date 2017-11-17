@@ -11272,7 +11272,7 @@ Class C
 End Class
     ]]></file>
 </compilation>)
-            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=False)
+            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=Verification.Passes)
         End Sub
 
         <Fact()>

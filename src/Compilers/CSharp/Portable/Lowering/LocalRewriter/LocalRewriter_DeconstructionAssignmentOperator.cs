@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The left represents a tree of L-values. The structure of right can be missing parts of the tree on the left.
-        /// The conversion holds nested conversisons and deconstruction information, which matches the tree from the left,
+        /// The conversion holds nested conversions and deconstruction information, which matches the tree from the left,
         /// and it provides the information to fill in the missing parts of the tree from the right and convert it to
         /// the tree from the left.
         ///
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return EvaluateSideEffectingArgumentToTemp(evalConversion, effects, ref temps);
         }
 
-        private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructionInfo deconstruction, BoundExpression target,
+        private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructMethodInfo deconstruction, BoundExpression target,
             ArrayBuilder<BoundExpression> effects, ref ArrayBuilder<LocalSymbol> temps)
         {
             AddPlaceholderReplacement(deconstruction.InputPlaceholder, target);

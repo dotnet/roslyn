@@ -599,7 +599,7 @@ namespace System.Collections
 
 
             //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
-            CompileAndVerify(comp, verify: false).
+            CompileAndVerify(comp, verify: Verification.Skipped).
                 VerifyIL("int.CompareTo(int)", @"
 {
   // Code size       16 (0x10)
@@ -739,7 +739,7 @@ namespace System
             //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
-            CompileAndVerify(comp, verify: false).
+            CompileAndVerify(comp, verify: Verification.Fails).
                 VerifyIL("program.Main()",
 @"
 {
@@ -867,7 +867,7 @@ namespace System
             //           but see the bug see VSW #396011, JIT needs references when loading
             //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
-            CompileAndVerify(comp, verify: false).
+            CompileAndVerify(comp, verify: Verification.Fails).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)

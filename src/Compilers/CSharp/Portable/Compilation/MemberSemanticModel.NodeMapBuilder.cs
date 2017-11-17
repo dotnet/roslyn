@@ -246,6 +246,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode VisitRangeVariable(BoundRangeVariable node)
+            {
+                return null;
+            }
+
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable;

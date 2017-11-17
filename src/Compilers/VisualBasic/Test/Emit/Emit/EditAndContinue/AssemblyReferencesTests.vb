@@ -347,7 +347,7 @@ End Class
 
         <Fact>
         <WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")>
-        Public Sub CurrentComplationVersionWildcards()
+        Public Sub CurrentCompilationVersionWildcards()
             Dim source0 = MarkedSource("
 Imports System
 <Assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")>
@@ -442,7 +442,7 @@ End Class")
             Dim compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(New DateTime(2016, 1, 1, 1, 0, 20)))
             Dim compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(New DateTime(2016, 1, 1, 1, 0, 30)))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Passes)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
             Dim reader0 = md0.MetadataReader
 

@@ -222,6 +222,48 @@ class Buzz : IDisposable
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task DoNotFireForFixedWithChildFixed()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    unsafe static void Main()
+    {
+        [|fixed|] (int* p = null)
+        fixed (int* q = null)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task FireForFixedWithoutBraces()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    unsafe static void Main()
+    {
+        fixed (int* p = null)
+        [|fixed|] (int* q = null)
+            return;
+    }
+}",
+@"class Program
+{
+    unsafe static void Main()
+    {
+        fixed (int* p = null)
+        fixed (int* q = null)
+        {
+            return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfWithoutBraces()
         {
             await TestInRegularAndScriptAsync(

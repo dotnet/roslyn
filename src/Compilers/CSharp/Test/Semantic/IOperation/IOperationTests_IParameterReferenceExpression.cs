@@ -25,6 +25,7 @@ class Class1
 ";
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, x + y)')
+  NaturalType: (System.Int32 x, System.Int32)
   Elements(2):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
@@ -78,6 +79,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+        NaturalType: (System.Int32 x, System.Int32 y)
         Elements(2):
             ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
             ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -159,14 +161,14 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
       Instance Receiver: 
         null
       Arguments(2):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'from cust in customers')
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IParameterReferenceOperation: customers (OperationKind.ParameterReference, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<Customer, System.String>, IsImplicit) (Syntax: 'cust.Name')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'cust.Name')
             IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<Customer, System.String>, IsImplicit) (Syntax: 'cust.Name')
               Target: 
                 IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'cust.Name')
@@ -175,7 +177,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IPropertyReferenceOperation: System.String Customer.Name { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'cust.Name')
                           Instance Receiver: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'cust')
+                            IParameterReferenceOperation: cust (OperationKind.ParameterReference, Type: Customer) (Syntax: 'cust')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -476,8 +478,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'p = array')
-  Variables: Local_1: System.Int32* p
+IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = array')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= array')
       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'array')
@@ -576,8 +577,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'y = d[x]')
-  Variables: Local_1: dynamic y
+IVariableDeclaratorOperation (Symbol: dynamic y) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y = d[x]')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= d[x]')
       IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: 'd[x]')
@@ -782,7 +782,7 @@ internal class Class
 IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new A ... (nameof(x))')
   IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException) (Syntax: 'new Argumen ... (nameof(x))')
     Arguments(1):
-        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: System.String) (Syntax: 'nameof(x)')
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null) (Syntax: 'nameof(x)')
           INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1042,7 +1042,9 @@ ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<T> Itera
     IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... rn element;')
       Locals: Local_1: T element
       LoopControlVariable: 
-        ILocalReferenceOperation: element (IsDeclaration: True) (OperationKind.LocalReference, Type: T, Constant: null, IsImplicit) (Syntax: 'foreach (va ... rn element;')
+        IVariableDeclaratorOperation (Symbol: T element) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+          Initializer: 
+            null
       Collection: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<T>, IsImplicit) (Syntax: 'source')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1055,7 +1057,7 @@ ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<T> Itera
               Instance Receiver: 
                 IParameterReferenceOperation: predicate (OperationKind.ParameterReference, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: T) (Syntax: 'element')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: null) (Syntax: 'element')
                     ILocalReferenceOperation: element (OperationKind.LocalReference, Type: T) (Syntax: 'element')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <PlatformTarget>x86</PlatformTarget>
-    <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifierX86)</RuntimeIdentifier>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.IntegrationTests</AssemblyName>

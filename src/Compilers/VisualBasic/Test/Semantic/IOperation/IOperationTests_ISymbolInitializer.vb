@@ -168,7 +168,7 @@ IFieldInitializerOperation (Field: C.x As System.Object) (OperationKind.FieldIni
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17813"), WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub MultipleFieldInitializers()
             Dim source = <![CDATA[
 Class C
@@ -176,15 +176,104 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (2 initialized fields) (OperationKind.FieldInitializer)  (Syntax: 'As New Object')
+IFieldInitializerOperation (2 initialized fields) (OperationKind.FieldInitializer, Type: null) (Syntax: 'As New Object')
   Field_1: C.x As System.Object
   Field_2: C.y As System.Object
-  IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'New Object')
+  IObjectCreationOperation (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'New Object')
+    Arguments(0)
+    Initializer: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub SingleFieldInitializerErrorCase()
+            Dim source = <![CDATA[
+Class C1
+    Dim x, y As Object = Me'BIND:"= Me"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (2 initialized fields) (OperationKind.FieldInitializer, Type: null, IsInvalid) (Syntax: '= Me')
+  Field_1: C1.x As System.Object
+  Field_2: C1.y As System.Object
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Me')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+    Dim x, y As Object = Me'BIND:"= Me"
+        ~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub MultipleWithEventsInitializers()
+            Dim source = <![CDATA[
+Class C1
+    Public Sub New(c As C1)
+    End Sub
+
+    WithEvents e, f As New C1(Me)'BIND:"As New C1(Me)"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IPropertyInitializerOperation (2 initialized properties) (OperationKind.PropertyInitializer, Type: null) (Syntax: 'As New C1(Me)')
+  Property_1: WithEvents C1.e As C1
+  Property_2: WithEvents C1.f As C1
+  IObjectCreationOperation (Constructor: Sub C1..ctor(c As C1)) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1(Me)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: 'Me')
+          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'Me')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub SingleWithEventsInitializersErrorCase()
+            Dim source = <![CDATA[
+Class C1
+    Public Sub New(c As C1)
+    End Sub
+    WithEvents e, f As C1 = Me'BIND:"= Me"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IPropertyInitializerOperation (2 initialized properties) (OperationKind.PropertyInitializer, Type: null, IsInvalid) (Syntax: '= Me')
+  Property_1: WithEvents C1.e As C1
+  Property_2: WithEvents C1.f As C1
+  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+    WithEvents e, f As C1 = Me'BIND:"= Me"
+               ~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -199,7 +288,7 @@ Class C
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
   IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
     Left: 

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.SigningTestHelpers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1555,6 +1556,7 @@ End Module
             ]]>)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub SimpleTupleTargetTyped003()
 
@@ -1590,6 +1592,30 @@ End Module
   IL_001b:  ret
 }
 ]]>)
+            Dim compilation = verifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of CTypeExpressionSyntax)().Single()
+
+            Assert.Equal("CType((Nothing, 1),(String, Byte))", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.Byte)) (Syntax: 'CType((Noth ... ing, Byte))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.String, System.Byte)) (Syntax: '(Nothing, 1)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 1, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value)
         End Sub
 
         <Fact>
@@ -1672,6 +1698,7 @@ End Module
 ]]>)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub SimpleTupleTargetTyped006()
 
@@ -1712,8 +1739,34 @@ End Module
   IL_001f:  ret
 }
 ]]>)
+
+            Dim compilation = verifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of DirectCastExpressionSyntax)().Single()
+
+            Assert.Equal("DirectCast((Nothing, i),(String, byte))", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.Byte)) (Syntax: 'DirectCast( ... ing, byte))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.String, i As System.Byte)) (Syntax: '(Nothing, i)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, IsImplicit) (Syntax: 'i')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+]]>.Value)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub SimpleTupleTargetTyped007()
 
@@ -1754,6 +1807,35 @@ End Module
   IL_001f:  ret
 }
 ]]>)
+            Dim compilation = verifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of TryCastExpressionSyntax)().Single()
+
+            Assert.Equal("TryCast((Nothing, i),(String, byte))", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.Byte)) (Syntax: 'TryCast((No ... ing, byte))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.String, i As System.Byte)) (Syntax: '(Nothing, i)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, IsImplicit) (Syntax: 'i')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+]]>.Value)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim typeInfo = model.GetTypeInfo(node.Expression)
+            Assert.Null(typeInfo.Type)
+            Assert.Equal("(System.String, i As System.Byte)", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(node.Expression).Kind)
         End Sub
 
         <Fact>
@@ -6556,7 +6638,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TupleUnsupportedInUsingStatment()
+        Public Sub TupleUnsupportedInUsingStatement()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -6639,9 +6721,9 @@ End Module
 <%= s_trivial2uple %></file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(source1, additionalRefs:={MscorlibRef_v46})
+            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(source1, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp1")
             comp1.AssertNoDiagnostics()
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={MscorlibRef_v46})
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp2")
             comp2.AssertNoDiagnostics()
 
             Dim source =
@@ -6667,7 +6749,7 @@ BC30521: Overload resolution failed because no accessible 'Extension' is most sp
     Extension method 'Public Sub Extension(y As (Integer, Integer))' defined in 'M2': Not most specific.
         x.Extension((1, 1))
           ~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
+BC37305: Predefined type 'ValueTuple(Of ,)' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
         x.Extension((1, 1))
                     ~~~~~~
 </errors>)
@@ -7983,6 +8065,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Strin
 
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub TupleCTypeNullableConversionWithTypelessTuple()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -8013,6 +8096,27 @@ End Class
             Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
 
+            Dim [ctype] = tree.GetRoot().DescendantNodes().OfType(Of CTypeExpressionSyntax)().Single()
+
+            Assert.Equal("CType((1, Nothing), (Integer, String)?)", [ctype].ToString())
+
+            comp.VerifyOperationTree([ctype], expectedOperationTree:=
+            <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of (System.Int32, System.String))) (Syntax: 'CType((1, N ... , String)?)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String)) (Syntax: '(1, Nothing)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value)
         End Sub
 
         <Fact>
@@ -18570,7 +18674,7 @@ BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, V
         Public Sub ValueTupleBase_AssemblyUnification()
             Dim signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray(Of String).Empty))
+                WithStrongNameProvider(s_defaultDesktopProvider)
             Dim comp0v1 = CreateCompilationWithMscorlib(
 <compilation name="A">
     <file name="a.vb"><![CDATA[
