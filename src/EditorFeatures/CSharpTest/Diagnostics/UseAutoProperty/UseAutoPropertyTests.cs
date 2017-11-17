@@ -964,6 +964,8 @@ partial class Class
 }");
         }
 
+        [WorkItem(23215, "https://github.com/dotnet/roslyn/issues/23215")]
+        [WorkItem(23216, "https://github.com/dotnet/roslyn/issues/23216")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFixAllInDocument()
         {
