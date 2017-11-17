@@ -46,15 +46,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             {
                 AnalyzeMembers(context, namespaceDeclaration.Members, analysisResults);
             }
-
-            // If we have a class or struct, recurse inwards.
-            if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
+            else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration))
             {
+                // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
             }
-
-            if (member is PropertyDeclarationSyntax propertyDeclaration)
+            else if (member.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDeclaration))
             {
                 AnalyzeProperty(context, propertyDeclaration, analysisResults);
             }
