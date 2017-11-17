@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
     [Shared]
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseAutoPropertyCodeFixProvider))]
-    internal class UseAutoPropertyCodeFixProvider : AbstractUseAutoPropertyCodeFixProvider<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider))]
+    internal class CSharpUseAutoPropertyCodeFixProvider : AbstractUseAutoPropertyCodeFixProvider<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
         {
