@@ -4637,6 +4637,36 @@ public class Program
         }
 
         [Fact]
+        public void ArrayOfPointerInPattern()
+        {
+            // pointer types are not supported in patterns but they are supported as base type of an array.
+            var source =
+@"
+public class Program
+{
+    public static unsafe void Main()
+    {
+        object x = new int*[10];
+        if (x is int*[]) { }
+        if (x is int****[]) { }
+
+        switch (x)
+        {
+            case int*[] t:
+            System.Console.WriteLine(true);
+            break;
+            case int****[] t2:
+            break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "True");
+        }
+
+        [Fact]
         public void ColorColorConstantPattern()
         {
             var source =
