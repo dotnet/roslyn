@@ -2,6 +2,8 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
     Public Class UseAutoPropertyTests
@@ -9,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
-                Return (New CSharp.UseAutoProperty.UseAutoPropertyAnalyzer(), New CSharp.UseAutoProperty.UseAutoPropertyCodeFixProvider())
+                Return (New CSharpUseAutoPropertyAnalyzer(), New CSharpUseAutoPropertyCodeFixProvider())
             ElseIf language = LanguageNames.VisualBasic Then
-                Return (New VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer(), New VisualBasic.UseAutoProperty.UseAutoPropertyCodeFixProvider())
+                Return (New VisualBasicUseAutoPropertyAnalyzer(), New VisualBasicUseAutoPropertyCodeFixProvider())
             Else
                 Throw New Exception()
             End If
