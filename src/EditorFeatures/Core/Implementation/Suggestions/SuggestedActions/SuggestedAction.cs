@@ -251,8 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     foreach (var service in SourceProvider.ImageMonikerServices)
                     {
-                        if (service.Value.TryGetImageMoniker(tags, out var moniker) &&
-                            !moniker.IsNullImage())
+                        if (service.Value.TryGetImageMoniker(tags, out var moniker) && !moniker.Equals(default(ImageMoniker)))
                         {
                             return moniker;
                         }
