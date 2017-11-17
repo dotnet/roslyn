@@ -8,6 +8,11 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation
 {
+    internal static class UseNullPropagationConstants
+    {
+        public const string WhenPartIsNullable = nameof(WhenPartIsNullable);
+    }
+
     internal abstract class AbstractUseNullPropagationDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
@@ -137,6 +142,15 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             // ?. is not available in expression-trees.  Disallow the fix in that case.
             var semanticFacts = GetSemanticFactsService();
             var semanticModel = context.SemanticModel;
+
+            if (semanticModel.GetTypeInfo(conditionalExpression).Type?.IsValueType == true)
+            {
+                // User has something like:  If(str is nothing, nothing, str.Length)
+                // In this case, converting to str?.Length changes the type of this from
+                // int to int?
+                return;
+            }
+
             if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
             {
                 return;
@@ -147,10 +161,18 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 conditionPartToCheck.GetLocation(),
                 whenPartToCheck.GetLocation());
 
+            var properties = ImmutableDictionary<string, string>.Empty;
+            var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+            if (whenPartIsNullable)
+            {
+                properties = properties.Add(UseNullPropagationConstants.WhenPartIsNullable, "");
+            }
+
             context.ReportDiagnostic(Diagnostic.Create(
                 this.GetDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
-                locations));
+                locations,
+                properties));
         }
 
         internal static SyntaxNode GetWhenPartMatch(

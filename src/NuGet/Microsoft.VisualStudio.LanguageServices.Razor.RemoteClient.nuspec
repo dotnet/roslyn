@@ -2,14 +2,21 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient</id>
+    <summary>
+      A private package for the Razor team to grant access to certain internal APIs.
+    </summary>
     <description>
-      .NET Compiler Platform ("Roslyn") support for Visual Studio "15".
+      A private package for the Razor team to grant access to certain internal APIs.
 
-Supported Platforms:
-- .NET Framework 4.6
+      Supported Platforms:
+        - .NET Framework 4.6
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="$version$" />
     </dependencies>
 
     <language>en-US</language>

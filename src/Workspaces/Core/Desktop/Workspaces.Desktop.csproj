@@ -1,16 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{2E87FA96-50BB-4607-8676-46521599F998}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces.Desktop</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="File References">
@@ -22,116 +21,31 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
-      <Link>InternalUtilities\EncodedStringText.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
-      <Link>InternalUtilities\StreamExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EncodingExtensions.cs">
-      <Link>InternalUtilities\EncodingExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\CoreClrShim.cs">
-      <Link>InternalUtilities\CoreClrShim.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
-      <Link>InternalUtilities\FileKey.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngineFactory.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DelayService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.IOService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.PatchService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.RemoteControlService.cs" />
-    <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
-    <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
-    <Compile Include="Options\ExportOptionAttribute.cs" />
-    <Compile Include="Log\EtwLogger.cs" />
-    <Compile Include="Log\RoslynEventSource.cs" />
-    <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
-    <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
-    <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
-    <Compile Include="SymbolSearch\IDelayService.cs" />
-    <Compile Include="SymbolSearch\IIOService.cs" />
-    <Compile Include="SymbolSearch\IPatchService.cs" />
-    <Compile Include="SymbolSearch\IRemoteControlService.cs" />
-    <Compile Include="SymbolSearch\Patching\Delta.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.Update.cs" />
-    <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
-    <Compile Include="WorkspaceDesktopResources.Designer.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
+      <Link>InternalUtilities\FileKey.cs</Link>
+    </Compile>
+    <Compile Update="WorkspaceDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>WorkspaceDesktopResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Workspace\CommandLineProject.cs" />
-    <Compile Include="Workspace\Esent\EsentLogger.cs" />
-    <Compile Include="Workspace\Esent\EsentPersistentStorage.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.AbstractTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.AbstractTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.DocumentTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.DocumentTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.IdentifierLocationTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.IdentifierLocationTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.IdentifierTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.NameTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.OpenSession.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.Pool.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.ProjectDocumentTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.ProjectTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.ProjectTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.SolutionTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.SolutionTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.StringNameTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.TableKinds.cs" />
-    <Compile Include="Workspace\FileTextLoader.cs" />
-    <Compile Include="Workspace\Host\Documentation\DocumentationProviderServiceFactory.cs" />
-    <Compile Include="Workspace\Host\Mef\DesktopMefHostServices.cs" />
-    <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />
-    <Compile Include="Workspace\Host\SimpleAnalyzerAssemblyLoaderService.cs" />
-    <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
-    <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedFiles.cs" />
-    <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />
-    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
-    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoaderFactory.cs" />
-    <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFile.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileExtensionAttribute.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileInfo.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileReference.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectTypeGuidAttribute.cs" />
-    <Compile Include="Workspace\MSBuild\SolutionFile\LineScanner.cs" />
-    <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
-    <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
-    <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
-    <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoaderFactory.cs" />
-    <Compile Include="Workspace\MSBuild\MSBuildProjectLoader.cs" />
-    <Compile Include="Workspace\SolutionSize\SolutionSizeTracker.cs" />
-    <Compile Include="Workspace\Storage\PersistenceStorageServiceFactory.cs" />
-    <Compile Include="Workspace\Storage\PersistentStorageService.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient" />
@@ -170,22 +84,15 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\Portable\Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="WorkspaceDesktopResources.resx">
+    <EmbeddedResource Update="WorkspaceDesktopResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>WorkspaceDesktopResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>

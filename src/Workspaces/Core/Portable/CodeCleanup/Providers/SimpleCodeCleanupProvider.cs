@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -14,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     /// </summary>
     internal class SimpleCodeCleanupProvider : ICodeCleanupProvider
     {
-        private readonly Func<Document, IEnumerable<TextSpan>, CancellationToken, Task<Document>> _documentDelegatee;
-        private readonly Func<SyntaxNode, IEnumerable<TextSpan>, Workspace, CancellationToken, SyntaxNode> _syntaxDelegatee;
+        private readonly Func<Document, ImmutableArray<TextSpan>, CancellationToken, Task<Document>> _documentDelegatee;
+        private readonly Func<SyntaxNode, ImmutableArray<TextSpan>, Workspace, CancellationToken, SyntaxNode> _syntaxDelegatee;
 
         public SimpleCodeCleanupProvider(string name,
-            Func<Document, IEnumerable<TextSpan>, CancellationToken, Task<Document>> documentDelegatee = null,
-            Func<SyntaxNode, IEnumerable<TextSpan>, Workspace, CancellationToken, SyntaxNode> syntaxDelegatee = null)
+            Func<Document, ImmutableArray<TextSpan>, CancellationToken, Task<Document>> documentDelegatee = null,
+            Func<SyntaxNode, ImmutableArray<TextSpan>, Workspace, CancellationToken, SyntaxNode> syntaxDelegatee = null)
         {
             Contract.Requires(documentDelegatee != null || syntaxDelegatee != null);
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         public string Name { get; }
 
-        public async Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             if (_documentDelegatee != null)
             {
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             return document;
         }
 
-        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
+        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
             if (_syntaxDelegatee != null)
             {

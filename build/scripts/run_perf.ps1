@@ -12,12 +12,16 @@ if ( -not $? )
     exit 1
 }
 
-Invoke-WebRequest -Uri http://dotnetci.blob.core.windows.net/roslyn-perf/cpc.zip -OutFile cpc.zip
+Invoke-WebRequest -Uri http://dotnetci.blob.core.windows.net/roslyn-perf/cpc.zip -OutFile cpc.zip -UseBasicParsing
 [Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
 [IO.Compression.ZipFile]::ExtractToDirectory('cpc.zip', $CPCLocation)
 
-./cibuild.cmd /testPerfRun /release
-if ($LASTEXITCODE -ne 0)
+./build/scripts/cibuild.cmd -release -testPerfRun
+
+if ( -not $? )
 {
-    exit $LASTEXITCODE
+    echo "perf run failed"
+    exit 1
 }
+
+./build/scripts/cleanup_perf.ps1 $CPCLocation -ShouldArchive

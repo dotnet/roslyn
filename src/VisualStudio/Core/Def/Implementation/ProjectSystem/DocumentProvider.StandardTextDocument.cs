@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
@@ -228,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     var oldSnapshot = buffer.CurrentSnapshot;
                     var oldText = oldSnapshot.AsText();
                     var changes = newText.GetTextChanges(oldText);
-                    if (Workspace.TryGetWorkspace(oldText.Container, out var workspace))
+                    if (CodeAnalysis.Workspace.TryGetWorkspace(oldText.Container, out var workspace))
                     {
                         var undoService = workspace.Services.GetService<ISourceTextUndoService>();
                         undoService.BeginUndoTransaction(oldSnapshot);
@@ -238,8 +239,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
                     }
-
-                    edit.Apply();
+                    
+                    edit.ApplyAndLogExceptions();
                 }
             }
 

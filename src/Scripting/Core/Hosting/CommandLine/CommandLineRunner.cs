@@ -108,8 +108,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
+
+            // only emit symbols for non-interactive mode,
+            var emitDebugInformation = !_compiler.Arguments.InteractiveMode;
+
             var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
-            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos);
+            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
             if (_compiler.ReportErrors(errors, _console.Error, errorLogger))
@@ -126,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             else
             {
-                return RunScript(scriptOptions, code.ToString(), errorLogger, cancellationToken);
+                return RunScript(scriptOptions, code, errorLogger, cancellationToken);
             }
         }
 
-        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics)
+        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation)
         {
             var touchedFilesLoggerOpt = (arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
@@ -150,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
                 sourceResolver: sourceResolver,
-                emitDebugInformation: false,
+                emitDebugInformation: emitDebugInformation,
                 fileEncoding: null);
         }
 
@@ -173,15 +177,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty, loggerOpt);
         }
 
-        private int RunScript(ScriptOptions options, string code, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        private int RunScript(ScriptOptions options, SourceText code, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            var script = Script.CreateInitialScript<int>(_scriptCompiler, SourceText.From(code), options, globals.GetType(), assemblyLoaderOpt: null);
+            var script = Script.CreateInitialScript<int>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
-                return script.RunAsync(globals, cancellationToken).Result.ReturnValue;
+                return script.RunAsync(globals, cancellationToken).GetAwaiter().GetResult().ReturnValue;
             }
             catch (CompilationErrorException e)
             {
@@ -344,14 +348,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _console.Out.WriteLine();
         }
 
-        private void DisplayDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        private void DisplayDiagnostics(ImmutableArray<Diagnostic> diagnostics)
         {
             const int MaxDisplayCount = 5;
 
-            var errorsAndWarnings = diagnostics.ToArray();
-
             // by severity, then by location
-            var ordered = errorsAndWarnings.OrderBy((d1, d2) =>
+            var ordered = diagnostics.OrderBy((d1, d2) =>
             {
                 int delta = (int)d2.Severity - (int)d1.Severity;
                 return (delta != 0) ? delta : d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start;
@@ -365,9 +367,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     _console.Error.WriteLine(diagnostic.ToString());
                 }
 
-                if (errorsAndWarnings.Length > MaxDisplayCount)
+                if (diagnostics.Length > MaxDisplayCount)
                 {
-                    int notShown = errorsAndWarnings.Length - MaxDisplayCount;
+                    int notShown = diagnostics.Length - MaxDisplayCount;
                     _console.ForegroundColor = ConsoleColor.DarkRed;
                     _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }

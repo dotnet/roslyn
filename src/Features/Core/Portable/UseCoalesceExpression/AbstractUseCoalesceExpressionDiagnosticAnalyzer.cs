@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -8,6 +7,9 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
+    /// <summary>
+    /// Looks for code of the form "x == null ? y : x" and offers to convert it to "x ?? y";
+    /// </summary>
     internal abstract class AbstractUseCoalesceExpressionDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
@@ -95,9 +97,27 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             if (!syntaxFacts.AreEquivalent(
-                    conditionRightIsNull ? conditionLeftLow : conditionRightLow, 
+                    conditionRightIsNull ? conditionLeftLow : conditionRightLow,
                     isEquals ? whenFalseNodeLow : whenTrueNodeLow))
             {
+                return;
+            }
+
+            var semanticModel = context.SemanticModel;
+            var conditionType = semanticModel.GetTypeInfo(
+                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, context.CancellationToken).Type;
+            if (conditionType != null &&
+                !conditionType.IsReferenceType)
+            {
+                // Note: it is intentional that we do not support nullable types here.  If you have:
+                //
+                //  int? x;
+                //  var z = x == null ? y : x;
+                //  
+                // then that's not the same as:   x ?? y.   ?? will unwrap the nullable, producing a 
+                // int and not an int? like we have in the above code.  
+                //
+                // Note: we could look for:  x == null ? y : x.Value, and simplify that in the future.
                 return;
             }
 

@@ -2,7 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis</id>
-    <summary>.NET Compiler Platform ("Roslyn").</summary>
+    <summary>
+      .NET Compiler Platform ("Roslyn").
+    </summary>
     <description>
       .NET Compiler Platform ("Roslyn").
 
@@ -12,6 +14,10 @@
         - "Microsoft.CodeAnalysis.Compilers" (both compilers)       
         - "Microsoft.CodeAnalysis.CSharp" (only the C# compiler)      
         - "Microsoft.CodeAnalysis.VisualBasic (only the VB compiler)
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="[$version$]" />
@@ -28,6 +34,6 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="$thirdPartyNoticesPath$" target="" />
+    <file src="$additionalFilesPath$/ThirdPartyNotices.rtf" target="" />
   </files>
 </package>

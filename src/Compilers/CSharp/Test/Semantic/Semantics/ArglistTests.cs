@@ -207,7 +207,7 @@ public struct C
 
             // UNDONE: Test what happens when __makereffing a volatile field, readonly field, etc.
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
     // (8,30): error CS1601: Cannot make reference to variable of type 'TypedReference'
     //         TypedReference tr2 = __makeref(tr1); // CS1601
@@ -254,7 +254,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,20): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref r;
@@ -284,7 +284,7 @@ public struct C
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -337,7 +337,7 @@ public struct C
 }";
 
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
 // (6,25): error CS0037: Cannot convert null to 'System.TypedReference' because it is a non-nullable value type
 //         System.Type t = __reftype(null);
@@ -499,7 +499,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (5,26): error CS1669: __arglist is not valid in this context
                 //     static void N(params __arglist) {}
@@ -562,7 +562,7 @@ class error
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,24): error CS1669: __arglist is not valid in this context
                 // 		Action a = delegate (__arglist) { };
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist"));
@@ -785,7 +785,7 @@ static class C
             // CS0246: The type or namespace name 'Main' could not be found
             // The native compiler behavior seems better here; we might consider fixing Roslyn to match.
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
 // (9,17): error CS0029: Cannot implicitly convert type 'int' to 'System.TypedReference'
 //         int b = __refvalue(123, int);
@@ -917,7 +917,7 @@ public struct C
         {
             var text = @"public class C { public void M() { var t = __makeref(delegate); } }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
             var clss = root.Members[0] as ClassDeclarationSyntax;
@@ -942,7 +942,7 @@ class A
     public void M4(__arglist, int x, __arglist) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1028,7 +1028,7 @@ class A
     public int operator /(__arglist, A a, __arglist) { return 0; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1060,7 +1060,7 @@ class A
     public explicit operator A(__arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1080,7 +1080,7 @@ class A
     public explicit operator A(int x, __arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1100,7 +1100,7 @@ class A
     public explicit operator A(__arglist, A a) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1120,7 +1120,7 @@ class A
     public explicit operator A(__arglist, A a, __arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1140,7 +1140,7 @@ class A
     public A(__arglist) { }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(0, constructor.ParameterCount); //doesn't use syntax
@@ -1158,7 +1158,7 @@ class A
     public A(int x, __arglist) { }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
@@ -1177,7 +1177,7 @@ class A
     public A(__arglist, int x) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
@@ -1195,7 +1195,7 @@ class A
     public A(__arglist, int x, __arglist) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
@@ -1213,7 +1213,7 @@ class A
     public int this[__arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(0, indexer.ParameterCount); //doesn't use syntax
@@ -1239,7 +1239,7 @@ class A
     public int this[int x, __arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
@@ -1265,7 +1265,7 @@ class A
     public int this[__arglist, int x] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
@@ -1291,7 +1291,7 @@ class A
     public int this[__arglist, int x, __arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
@@ -1314,7 +1314,7 @@ class A
 using System;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         RuntimeArgumentHandle rah = default(RuntimeArgumentHandle);
         ArgIterator ai = default(ArgIterator);
@@ -1331,7 +1331,7 @@ class C
         tr.GetHashCode();   // no error: virtual, overridden on TypedReference
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
 // (11,9): error CS0029: Cannot implicitly convert type 'System.RuntimeArgumentHandle' to 'object'
 //         rah.GetType(); // not virtual
@@ -1412,7 +1412,7 @@ class E
         D.M(null, null, __arglist());
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (26,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'A.A(object, __arglist)'
                 //         new A(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A").WithArguments("__arglist", "A.A(object, __arglist)").WithLocation(26, 13),
@@ -1490,7 +1490,7 @@ using System.Threading;
 
 namespace ConsoleApplication21
 {
-    public unsafe class FooBar : IDisposable
+    public unsafe class GooBar : IDisposable
     {
         public void Dispose()
         {
@@ -1504,10 +1504,10 @@ namespace ConsoleApplication21
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-    // (12,44): error CS7036: There is no argument given that corresponds to the required formal parameter 'context' of 'FooBar.AllocateNativeOverlapped(IOCompletionCallback, object, byte[])'
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+    // (12,44): error CS7036: There is no argument given that corresponds to the required formal parameter 'context' of 'GooBar.AllocateNativeOverlapped(IOCompletionCallback, object, byte[])'
     //             NativeOverlapped* overlapped = AllocateNativeOverlapped(() => { });
-    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.FooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.GooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
 );
         }
 
@@ -1528,7 +1528,7 @@ public class SpecialCases
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
     // (8,17): error CS0111: Type 'SpecialCases' already defines a member called 'ArgListMethod' with the same parameter types
     //     public void ArgListMethod(__arglist)
     Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "ArgListMethod").WithArguments("ArgListMethod", "SpecialCases").WithLocation(8, 17),

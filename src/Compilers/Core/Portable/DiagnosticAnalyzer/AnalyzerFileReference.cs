@@ -127,80 +127,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Adds the <see cref="ImmutableDictionary{TKey, TValue}"/> of <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> 
-        /// for all languages defined in this assembly reference.
-        /// </summary>
-        internal void AddAnalyzers(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Builder builder)
-        {
-            _diagnosticAnalyzers.AddExtensions(builder);
-        }
-
-        /// <summary>
         /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> defined in this assembly reference of given <paramref name="language"/>.
         /// </summary>
         internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language)
         {
             _diagnosticAnalyzers.AddExtensions(builder, language);
-        }
-
-        private IEnumerable<DiagnosticAnalyzer> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)
-        {
-            var languageSpecificAnalyzerTypeNames = GetLanguageSpecificAnalyzerTypeNames(analyzerTypeNameMap, language);
-            return this.GetAnalyzersForTypeNames(analyzerAssembly, languageSpecificAnalyzerTypeNames, ref reportedError);
-        }
-
-        private static IEnumerable<string> GetLanguageSpecificAnalyzerTypeNames(ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string language)
-        {
-            ImmutableHashSet<string> analyzerTypeNames;
-            if (analyzerTypeNameMap.TryGetValue(language, out analyzerTypeNames))
-            {
-                return analyzerTypeNames;
-            }
-            return SpecializedCollections.EmptyEnumerable<string>();
-        }
-
-        private IEnumerable<DiagnosticAnalyzer> GetAnalyzersForTypeNames(Assembly analyzerAssembly, IEnumerable<string> analyzerTypeNames, ref bool reportedError)
-        {
-            var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-
-            // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
-            foreach (var typeName in analyzerTypeNames)
-            {
-                Type type;
-                try
-                {
-                    // TODO: Once we move to CoreCLR we should just call GetType(typeName, throwOnError: true, ignoreCase: false) directly.
-                    // For now we fall back to reflection shim in order to report good error message (type load exception).
-                    type = analyzerAssembly.GetType(typeName, throwOnError: true, ignoreCase: false);
-                }
-                catch (Exception e)
-                {
-                    AnalyzerLoadFailed?.Invoke(this, CreateAnalyzerFailedArgs(e, typeName));
-                    reportedError = true;
-                    continue;
-                }
-
-                Debug.Assert(type != null);
-
-                DiagnosticAnalyzer analyzer;
-                try
-                {
-                    analyzer = Activator.CreateInstance(type) as DiagnosticAnalyzer;
-                }
-                catch (Exception e)
-                {
-                    AnalyzerLoadFailed?.Invoke(this, CreateAnalyzerFailedArgs(e, typeName));
-                    reportedError = true;
-                    continue;
-                }
-
-                if (analyzer != null)
-                {
-                    analyzers.Add(analyzer);
-                }
-            }
-
-            return analyzers.ToImmutable();
         }
 
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string typeNameOpt = null)
@@ -405,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var reportedError = false;
 
                 // Add language specific analyzers.
-                foreach (var language in analyzerTypeNameMap.Keys)
+                foreach (var (language, _) in analyzerTypeNameMap)
                 {
                     if (language == null)
                     {

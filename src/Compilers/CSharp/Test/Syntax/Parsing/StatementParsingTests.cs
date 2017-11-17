@@ -6,14 +6,43 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class StatementParsingTests
+    public class StatementParsingTests : ParsingTests
     {
+        public StatementParsingTests(ITestOutputHelper output) : base(output) { }
+
         private StatementSyntax ParseStatement(string text, int offset = 0, ParseOptions options = null)
         {
             return SyntaxFactory.ParseStatement(text, offset, options);
+        }
+
+        [Fact]
+        [WorkItem(17458, "https://github.com/dotnet/roslyn/issues/17458")]
+        public void ParsePrivate()
+        {
+            UsingStatement("private",
+                // (1,1): error CS1073: Unexpected token 'private'
+                // private
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("private").WithLocation(1, 1),
+                // (1,1): error CS1525: Invalid expression term 'private'
+                // private
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "private").WithArguments("private").WithLocation(1, 1),
+                // (1,1): error CS1002: ; expected
+                // private
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "private").WithLocation(1, 1)
+                );
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -234,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
+        [Fact]
         public void TestLocalDeclarationStatementWithNamedTuple()
         {
             var text = "(T x, (U k, V l, W m) y) a;";
@@ -2659,6 +2689,38 @@ class Program
                 // (9,10): error CS1513: } expected
                 //         }
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 10));
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunEmbeddedStatementNotFollowedBySemicolon()
+        {
+            var text = @"if (true)
+System.Console.WriteLine(true)";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.IfStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(1, statement.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, statement.Errors()[0].Code);
+        }
+
+        [WorkItem(266237, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=266237")]
+        [Fact]
+        public void NullExceptionInLabeledStatement()
+        {
+            UsingStatement(@"{ label: public",
+                // (1,1): error CS1073: Unexpected token 'public'
+                // { label: public
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "{ label: ").WithArguments("public").WithLocation(1, 1),
+                // (1,10): error CS1002: ; expected
+                // { label: public
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(1, 10),
+                // (1,10): error CS1513: } expected
+                // { label: public
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
+                );
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker

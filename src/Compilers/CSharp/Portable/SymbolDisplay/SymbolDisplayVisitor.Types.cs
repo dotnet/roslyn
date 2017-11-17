@@ -174,6 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         AddRefIfRequired();
                     }
+                    else if (invokeMethod.ReturnsByRefReadonly)
+                    {
+                        AddRefReadonlyIfRequired();
+                    }
 
                     if (invokeMethod.ReturnsVoid)
                     {
@@ -380,6 +384,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CanUseTupleTypeName(INamedTypeSymbol tupleSymbol)
         {
             INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
+
+            if (currentUnderlying.Arity == 1)
+            {
+                return false;
+            }
 
             while (currentUnderlying.Arity == TupleTypeSymbol.RestPosition)
             {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             {
                 var currentUsings = new List<UsingDirectiveSyntax>(usings);
 
-                finalTrivia = default(SyntaxTriviaList);
+                finalTrivia = default;
                 for (int i = 0; i < usings.Count; i++)
                 {
                     if (usingsToRemove.Contains(usings[i]))

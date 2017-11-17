@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -105,14 +107,15 @@ namespace System
             }
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void TypeSymbolFromReflectionType()
         {
             var c = CSharpCompilation.Create("TypeSymbolFromReflectionType",
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree("class C { }") },
                 references: new[] {
                     MscorlibRef,
-                    MetadataReference.CreateFromImage(File.ReadAllBytes(typeof(TypeTests).Assembly.Location))
+                    MetadataReference.CreateFromImage(File.ReadAllBytes(
+                        CorLightup.Desktop.GetAssemblyLocation(typeof(TypeTests).GetTypeInfo().Assembly)))
                 });
 
             var intSym = c.Assembly.GetTypeByReflectionType(typeof(int), includeReferences: true);

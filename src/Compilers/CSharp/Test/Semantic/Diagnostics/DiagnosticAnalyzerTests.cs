@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -892,7 +893,7 @@ public class B
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
             var source2 = @"class C2 { void M() { int i = 0; i++; } }";
-            var compilation = CreateCompilationWithMscorlib45(source1, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateCompilationWithMscorlib45(source1);
             var anotherCompilation = CreateCompilationWithMscorlib45(source2);
             var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
 
@@ -913,6 +914,31 @@ public class B
                             .WithLocation(1, 1)
                     );
             }
+        }
+
+        [Fact]
+        public void TestReportingDiagnosticWithInvalidSpan()
+        {
+            var source1 = @"class C1 { void M() { int i = 0; i++; } }";
+            var compilation = CreateCompilationWithMscorlib45(source1);
+            var treeInAnotherCompilation = compilation.SyntaxTrees.Single();
+
+            var badSpan = new Text.TextSpan(100000, 10000);
+
+            string message = new ArgumentException(
+                string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, AnalyzerWithInvalidDiagnosticSpan.Descriptor.Id, badSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+
+            compilation.VerifyDiagnostics();
+
+            var analyzer = new AnalyzerWithInvalidDiagnosticSpan(badSpan);
+            var analyzers = new DiagnosticAnalyzer[] { analyzer };
+            compilation
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                    expected:
+                    Diagnostic("AD0001")
+                        .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticSpan", "System.ArgumentException", message)
+                        .WithLocation(1, 1)
+                );
         }
 
         [Fact, WorkItem(13120, "https://github.com/dotnet/roslyn/issues/13120")]
@@ -1046,14 +1072,14 @@ namespace ConsoleApplication1
         public void TestNamespaceDeclarationAnalyzer()
         {
             var source = @"
-namespace Foo.Bar.FooBar { }
+namespace Goo.Bar.GooBar { }
 ";
             var analyzers = new DiagnosticAnalyzer[] { new CSharpNamespaceDeclarationAnalyzer() };
 
             // Verify, no duplicate diagnostics on qualified name.
             CreateCompilationWithMscorlib45(source)
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Foo.Bar.FooBar { }").WithLocation(2, 1));
+                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Goo.Bar.GooBar { }").WithLocation(2, 1));
         }
 
         [Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")]
@@ -1608,8 +1634,8 @@ class C
         {
             var source = @"namespace N1.N2 { }";
 
-            var metadataReference = CreateCompilationWithMscorlib(source).ToMetadataReference();
-            var compilation = CreateCompilationWithMscorlib(source, new[] { metadataReference });
+            var metadataReference = CreateStandardCompilation(source).ToMetadataReference();
+            var compilation = CreateStandardCompilation(source, new[] { metadataReference });
             compilation.VerifyDiagnostics();
 
             // Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.
@@ -1902,7 +1928,7 @@ public class RegularClass
             var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
-            
+
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.None) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
@@ -1964,39 +1990,39 @@ public class Class
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, TestOptions.RegularWithIOperationFeature, "Source.cs");
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var syntaxKinds = ImmutableArray.Create(SyntaxKind.VariableDeclaration);
-            var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclaration);
+            var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclarator);
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.None, syntaxKinds, operationKinds) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0;").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0;").WithArguments("Operation: MixMethod").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze, syntaxKinds, operationKinds) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0;").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0;").WithArguments("Operation: MixMethod").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var hiddenVar = 0,Node: var mixMethodHiddenVar = 0,Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: HiddenMethod,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics, syntaxKinds, operationKinds) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var hiddenVar = 0").WithArguments("Node: var hiddenVar = 0").WithLocation(10, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var hiddenVar = 0;").WithArguments("Operation: HiddenMethod").WithLocation(10, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "hiddenVar = 0").WithArguments("Operation: HiddenMethod").WithLocation(10, 13),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0;").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodHiddenVar = 0").WithArguments("Node: var mixMethodHiddenVar = 0").WithLocation(24, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodHiddenVar = 0;").WithArguments("Operation: MixMethod").WithLocation(24, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0;").WithArguments("Operation: MixMethod").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodHiddenVar = 0").WithArguments("Operation: MixMethod").WithLocation(24, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var hiddenVar = 0,Node: var mixMethodHiddenVar = 0,Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: HiddenMethod,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
         }
 

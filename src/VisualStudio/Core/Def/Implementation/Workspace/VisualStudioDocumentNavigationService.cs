@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -26,6 +26,8 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class VisualStudioDocumentNavigationService : ForegroundThreadAffinitizedObject, IDocumentNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
@@ -275,7 +277,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (options.GetOption(NavigationOptions.PreferProvisionalTab))
                 {
-                    using (NewDocumentStateScope ndss = new NewDocumentStateScope(__VSNEWDOCUMENTSTATE.NDS_Provisional, VSConstants.NewDocumentStateReason.Navigation))
+                    // If we're just opening the provisional tab, then do not "activate" the document
+                    // (i.e. don't give it focus).  This way if a user is just arrowing through a set 
+                    // of FindAllReferences results, they don't have their cursor placed into the document.
+                    var state = __VSNEWDOCUMENTSTATE.NDS_Provisional | __VSNEWDOCUMENTSTATE.NDS_NoActivate;
+                    using (var scope = new NewDocumentStateScope(state, VSConstants.NewDocumentStateReason.Navigation))
                     {
                         workspace.OpenDocument(documentId);
                     }

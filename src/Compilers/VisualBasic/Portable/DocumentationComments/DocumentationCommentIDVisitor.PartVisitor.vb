@@ -127,6 +127,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitNamedType(symbol As NamedTypeSymbol, builder As StringBuilder) As Object
+                If symbol.IsTupleType Then
+                    Return VisitNamedType(DirectCast(symbol, TupleTypeSymbol).UnderlyingNamedType, builder)
+                End If
+
                 If symbol.ContainingSymbol IsNot Nothing AndAlso symbol.ContainingSymbol.Name.Length <> 0 Then
                     Visit(symbol.ContainingSymbol, builder)
                     builder.Append("."c)

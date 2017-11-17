@@ -933,7 +933,7 @@ class C {
     static void Main()
     {
         int x = 0;
-        Foo(ref 
+        Goo(ref 
 /*<bind>*/
 x
 /*</bind>*/
@@ -941,7 +941,7 @@ x
         System.Console.WriteLine(x);
     }
 
-    static void Foo(ref int x) { }
+    static void Goo(ref int x) { }
 }
 ");
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
@@ -1729,14 +1729,14 @@ public class MemberInitializerTest
         public void TestObjectInitializerExpression_NestedObjectInitializer()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
-public class Foo
+public class Goo
 {
     public int z;
 }
 public class MemberInitializerTest
 {   
     public int x;
-    public Foo y { get; set; }
+    public Goo y { get; set; }
 
     public static void Main()
     {
@@ -1763,7 +1763,7 @@ public class MemberInitializerTest
         public void TestObjectInitializerExpression_VariableCaptured()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
-public class Foo
+public class Goo
 {
     public delegate int D();
     public D z;
@@ -1771,7 +1771,7 @@ public class Foo
 public class MemberInitializerTest
 {   
     public int x;
-    public Foo y { get; set; }
+    public Goo y { get; set; }
 
     public static void Main()
     {
@@ -2335,7 +2335,7 @@ class C {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
 
-    static void Foo()
+    static void Goo()
     {
         int i, j;
 /*<bind>*/
@@ -2370,7 +2370,7 @@ class C {
         [Fact]
         public void NullArgsToAnalyzeControlFlowStatements()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C
 {
     static void Main()
@@ -2401,7 +2401,7 @@ using System;
 public class Test
 {
     public delegate int D();
-    public void foo(ref D d)
+    public void goo(ref D d)
     {
 /*<bind>*/
         d = { return 10;};
@@ -3252,11 +3252,11 @@ class C {
     {
         int x = 1, y = 1;
 /*<bind>*/
-        Foo(x);
+        Goo(x);
 /*</bind>*/
     }
 
-    static void Foo(int x) { }
+    static void Goo(int x) { }
 }
 ");
             var controlFlowAnalysisResults = analysisResults.Item1;
@@ -3284,12 +3284,12 @@ class C {
     {
         int x = 1, y = 1;
 /*<bind>*/
-        Foo(x = y, y = 2);
+        Goo(x = y, y = 2);
 /*</bind>*/
         int z = x + y;
     }
 
-    static void Foo(int x, int y) { }
+    static void Goo(int x, int y) { }
 }
 ");
             var controlFlowAnalysisResults = analysisResults.Item1;
@@ -3696,7 +3696,7 @@ public class A
         public void BlockSyntaxInAttributeDecl()
         {
             {
-                var compilation = CreateCompilationWithMscorlib(@"
+                var compilation = CreateStandardCompilation(@"
 [Attribute(delegate.Class)] 
 public class C {
   public static int Main () {
@@ -3754,6 +3754,27 @@ class C
             Assert.Equal("p1, p2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("p1, p2, local_1, non_nullable, ret", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("this, p1, p2, local_0, non_nullable", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+
+        [WorkItem(17971, "https://github.com/dotnet/roslyn/issues/17971")]
+        [Fact]
+        public void VariablesDeclaredInBrokenForeach()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+struct S
+{
+    static void Main(string[] args)
+    {
+/*<bind>*/
+        Console.WriteLine(1);
+        foreach ()
+        Console.WriteLine(2);
+/*</bind>*/
+    }
+}
+");
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
         }
 
         #endregion
@@ -4818,7 +4839,7 @@ public class MyClass : BaseClass
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -4887,7 +4908,7 @@ class Test
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 public class Derived
 {
-    public void Foo(int x = /*<bind>*/ 2 /*</bind>*/)
+    public void Goo(int x = /*<bind>*/ 2 /*</bind>*/)
     {
     }
 }
@@ -4964,7 +4985,7 @@ class Program
             var source =
 @"class C
 {
-    void Foo(string[] args)
+    void Goo(string[] args)
     {
         foreach (var s in args)
         {
@@ -5038,7 +5059,7 @@ public class ExportedSymbol
     }
     static object P { get; set; }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5060,7 +5081,7 @@ public class ExportedSymbol
         this.value = null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0170: Use of possibly unassigned field 'value'
                 //         S.Equals(value , value);
@@ -5150,7 +5171,14 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
+            Assert.Equal(null, GetSymbolNamesJoined(results.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.WrittenOutside));
         }
 
         [Fact]
@@ -5170,7 +5198,14 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
+            Assert.Equal(null, GetSymbolNamesJoined(results.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.WrittenOutside));
         }
 
         [Fact]
@@ -5185,11 +5220,18 @@ class C
         void Local() { }
 
         /*<bind>*/
-        Action = Local;
+        Action a = Local;
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
+            Assert.Equal(null, GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.WrittenOutside));
         }
 
         [Fact]
@@ -5208,7 +5250,14 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
+            Assert.Equal(null, GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.WrittenOutside));
         }
 
         [Fact]
@@ -5232,7 +5281,14 @@ class C
 
     int M(int i) => i;
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
+            Assert.Equal(null, GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("x", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.WrittenOutside));
         }
 
         [Fact]
@@ -5259,7 +5315,14 @@ class C
 
     int M(int i) => i;
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
+            Assert.Equal(null, GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("x", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenOutside));
         }
 
         [Fact]
@@ -5278,7 +5341,14 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
+            Assert.Equal(null, GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.WrittenOutside));
         }
 
         [Fact]
@@ -5302,7 +5372,211 @@ class C
     int M(int i) => i;
 }");
             Assert.True(results.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.WrittenOutside));
         }
+
+        [Fact]
+        public void LocalFuncCapture1()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+public static class SomeClass
+{
+    private static void Repro( int arg )
+    {
+        /*<bind>*/int localValue = arg;/*</bind>*/
+
+        int LocalCapture() => arg;
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Equal("arg", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("arg", GetSymbolNamesJoined(results.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("localValue", GetSymbolNamesJoined(results.AlwaysAssigned));
+            Assert.Equal("arg", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("arg", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("arg", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("localValue", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.UnsafeAddressTaken));
+        }
+
+        [Fact]
+        public void LocalFuncCapture2()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M()
+    {
+        int x;
+        Local();
+        /*<bind>*/int y = x;/*</bind>*/
+
+        int Local() { x = 0; }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("x", GetSymbolNamesJoined(results.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(results.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("y", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.UnsafeAddressTaken));
+        }
+
+        [Fact]
+        public void LocalFuncCapture3()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M()
+    {
+        int x;
+        /*<bind>*/int y = x;/*</bind>*/
+        Local();
+
+        int Local() => x;
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("x", GetSymbolNamesJoined(results.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(results.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("y", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.UnsafeAddressTaken));
+        }
+
+        [Fact]
+        public void LocalFuncCapture4()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M()
+    {
+        int x, y = 0;
+        /*<bind>*/x = y;/*</bind>*/
+        Local();
+
+        int Local() => x;
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("y", GetSymbolNamesJoined(results.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("x", GetSymbolNamesJoined(results.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("y", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("this, y", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.UnsafeAddressTaken));
+        }
+
+        [Fact]
+        public void LocalFuncCapture5()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    int x = 0;
+
+    void M()
+    {
+        /*<bind>*/
+        int L(int a) => x;
+        /*</bind>*/
+        L();
+    }
+}");
+            Assert.Equal("this", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("this", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("this", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("this", GetSymbolNamesJoined(results.WrittenOutside));
+        }
+
+        [Fact]
+        public void LocalFuncCapture6()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M(int x)
+    {
+        int y;
+        int z;
+        void Local()
+        {
+            /*<bind>*/
+            x++;
+            y = 0;
+            y++;
+            /*</bind>*/
+        }
+        Local();
+    }
+}");
+            Assert.Equal("x, y", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(results.VariablesDeclared));
+            // TODO(https://github.com/dotnet/roslyn/issues/14214): This is wrong.
+            // Both x and y should flow out.
+            Assert.Equal("y", GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("x, y", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(results.AlwaysAssigned));
+        }
+
+        [Fact]
+        public void LocalFuncCapture7()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M()
+    {
+        int x;
+        void L()
+        {
+            /*<bind>*/
+            int y = 0;
+            y++;
+            x = 0;
+            /*</bind>*/
+        }
+        x++;
+    }
+}");
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("y", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(results.AlwaysAssigned));
+        }
+
         #endregion
     }
 }

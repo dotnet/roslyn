@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -137,58 +138,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool EarlyDecodeDeprecatedOrObsoleteAttribute(
+        internal static bool EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(
             ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments,
             out CSharpAttributeData attributeData,
             out ObsoleteAttributeData obsoleteData)
         {
+            var type = arguments.AttributeType;
+            var syntax = arguments.AttributeSyntax;
+
+            ObsoleteAttributeKind kind;
+            if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ObsoleteAttribute))
+            {
+                kind = ObsoleteAttributeKind.Obsolete;
+            }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.DeprecatedAttribute))
+            {
+                kind = ObsoleteAttributeKind.Deprecated;
+            }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ExperimentalAttribute))
+            {
+                kind = ObsoleteAttributeKind.Experimental;
+            }
+            else
+            {
+                obsoleteData = null;
+                attributeData = null;
+                return false;
+            }
+
             bool hasAnyDiagnostics;
-
-            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ObsoleteAttribute))
+            attributeData = arguments.Binder.GetAttribute(syntax, type, out hasAnyDiagnostics);
+            if (!attributeData.HasErrors)
             {
-                attributeData = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!attributeData.HasErrors)
+                obsoleteData = attributeData.DecodeObsoleteAttribute(kind);
+                if (hasAnyDiagnostics)
                 {
-                    obsoleteData = attributeData.DecodeObsoleteAttribute();
-                    if (hasAnyDiagnostics)
-                    {
-                        attributeData = null;
-                    }
-                }
-                else
-                {
-                    obsoleteData = null;
                     attributeData = null;
                 }
-
-                return true;
             }
-
-            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.DeprecatedAttribute))
+            else
             {
-                attributeData = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!attributeData.HasErrors)
-                {
-                    obsoleteData = attributeData.DecodeDeprecatedAttribute();
-                    if (hasAnyDiagnostics)
-                    {
-                        attributeData = null;
-                    }
-                }
-                else
-                {
-                    obsoleteData = null;
-                    attributeData = null;
-                }
-
-                return true;
+                obsoleteData = null;
+                attributeData = null;
             }
-
-            obsoleteData = null;
-            attributeData = null;
-            return false;
+            return true;
         }
-
 
         /// <summary>
         /// This method is called by the binder when it is finished binding a set of attributes on the symbol so that

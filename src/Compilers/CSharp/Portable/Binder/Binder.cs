@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leastOverriddenSymbol.GetAttributes();
             }
 
-            ThreeState reportedOnOverridden = ReportDiagnosticsIfObsoleteInternal(diagnostics, leastOverriddenSymbol, node, containingMember, location);
+            var diagnosticKind = ReportDiagnosticsIfObsoleteInternal(diagnostics, leastOverriddenSymbol, node, containingMember, location);
 
             // CONSIDER: In place of hasBaseReceiver, dev11 also accepts cases where symbol.ContainingType is a "simple type" (e.g. int)
             // or a special by-ref type (e.g. ArgumentHandle).  These cases are probably more important for other checks performed by
@@ -540,74 +541,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the overridden member was not definitely obsolete and this is a (non-virtual) base member
             // access, then check the overriding symbol as well.
-            if (reportedOnOverridden != ThreeState.True && checkOverridingSymbol)
+            switch (diagnosticKind)
             {
-                Debug.Assert(reportedOnOverridden != ThreeState.Unknown, "We forced attribute binding above.");
-
-                ReportDiagnosticsIfObsoleteInternal(diagnostics, symbol, node, containingMember, location);
+                case ObsoleteDiagnosticKind.NotObsolete:
+                case ObsoleteDiagnosticKind.Lazy:
+                    if (checkOverridingSymbol)
+                    {
+                        Debug.Assert(diagnosticKind != ObsoleteDiagnosticKind.Lazy, "We forced attribute binding above.");
+                        ReportDiagnosticsIfObsoleteInternal(diagnostics, symbol, node, containingMember, location);
+                    }
+                    break;
             }
         }
 
-        /// <returns>
-        /// True if the symbol is definitely obsolete.
-        /// False if the symbol is definitely not obsolete.
-        /// Unknown if the symbol may be obsolete.
-        /// 
-        /// NOTE: The return value reflects obsolete-ness, not whether or not the diagnostic was reported.
-        /// </returns>
-        internal static ThreeState ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
+        internal static ObsoleteDiagnosticKind ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
         {
             Debug.Assert(diagnostics != null);
 
-            if (symbol.ObsoleteState == ThreeState.False)
+            var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, containingMember);
+
+            DiagnosticInfo info = null;
+            switch (kind)
             {
-                return ThreeState.False;
+                case ObsoleteDiagnosticKind.Diagnostic:
+                    info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, location);
+                    break;
+                case ObsoleteDiagnosticKind.Lazy:
+                case ObsoleteDiagnosticKind.LazyPotentiallySuppressed:
+                    info = new LazyObsoleteDiagnosticInfo(symbol, containingMember, location);
+                    break;
             }
 
-            var data = symbol.ObsoleteAttributeData;
-            if (data == null)
+            if (info != null)
             {
-                // Obsolete attribute has errors.
-                return ThreeState.False;
+                diagnostics.Add(info, node.GetLocation());
             }
 
-            // If we haven't cracked attributes on the symbol at all or we haven't
-            // cracked attribute arguments enough to be able to report diagnostics for
-            // ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
-            // later stage.
-            if (symbol.ObsoleteState == ThreeState.Unknown)
-            {
-                diagnostics.Add(new LazyObsoleteDiagnosticInfo(symbol, containingMember, location), node.GetLocation());
-                return ThreeState.Unknown;
-            }
-
-            // After this point, always return True.
-
-            var inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(containingMember);
-
-            // If we are in a context that is already obsolete, there is no point reporting
-            // more obsolete diagnostics.
-            if (inObsoleteContext == ThreeState.True)
-            {
-                return ThreeState.True;
-            }
-            // If the context is unknown, then store the symbol so that we can do this check at a
-            // later stage
-            else if (inObsoleteContext == ThreeState.Unknown)
-            {
-                diagnostics.Add(new LazyObsoleteDiagnosticInfo(symbol, containingMember, location), node.GetLocation());
-                return ThreeState.True;
-            }
-
-            // We have all the information we need to report diagnostics right now. So do it.
-            var diagInfo = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, location);
-            if (diagInfo != null)
-            {
-                diagnostics.Add(diagInfo, node.GetLocation());
-                return ThreeState.True;
-            }
-
-            return ThreeState.True;
+            return kind;
         }
 
         internal static bool IsSymbolAccessibleConditional(
@@ -642,70 +612,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
-        }
-
-        /// <summary>
-        /// Expression lvalue and rvalue requirements.
-        /// </summary>
-        internal enum BindValueKind : byte
-        {
-            /// <summary>
-            /// Expression is the RHS of an assignment operation.
-            /// </summary>
-            /// <remarks>
-            /// The following are rvalues: values, variables, null literals, properties
-            /// and indexers with getters, events. The following are not rvalues:
-            /// namespaces, types, method groups, anonymous functions.
-            /// </remarks>
-            RValue,
-
-            /// <summary>
-            /// Expression is the RHS of an assignment operation
-            /// and may be a method group.
-            /// </summary>
-            RValueOrMethodGroup,
-
-            /// <summary>
-            /// Expression is the LHS of a simple assignment operation.
-            /// </summary>
-            Assignment,
-
-            /// <summary>
-            /// Expression is the operand of an increment
-            /// or decrement operation.
-            /// </summary>
-            IncrementDecrement,
-
-            /// <summary>
-            /// Expression is the LHS of a compound assignment
-            /// operation (such as +=).
-            /// </summary>
-            CompoundAssignment,
-
-            /// <summary>
-            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
-            /// </summary>
-            RefOrOut,
-
-            /// <summary>
-            /// Expression is the operand of an address-of operation (&amp;).
-            /// </summary>
-            AddressOf,
-
-            /// <summary>
-            /// Expression is the receiver of a fixed buffer field access
-            /// </summary>
-            FixedReceiver,
-
-            /// <summary>
-            /// Expression is assigned by reference.
-            /// </summary>
-            RefAssign,
-
-            /// <summary>
-            /// Expression is returned by reference.
-            /// </summary>
-            RefReturn,
         }
 
         /// <summary>

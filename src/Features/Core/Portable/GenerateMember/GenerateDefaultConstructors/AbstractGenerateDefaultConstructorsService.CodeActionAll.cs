@@ -1,8 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 {
@@ -15,15 +13,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 Document document,
                 State state,
                 IList<IMethodSymbol> constructors)
-                : base(service, document, state, GetConstructors(state, constructors), FeaturesResources.Generate_all)
+                : base(service, document, state, constructors, FeaturesResources.Generate_all)
             {
-            }
-
-            private static IList<IMethodSymbol> GetConstructors(State state, IList<IMethodSymbol> constructors)
-            {
-                return state.UnimplementedDefaultConstructor != null
-                    ? new[] { state.UnimplementedDefaultConstructor }.Concat(constructors).ToList()
-                    : constructors;
             }
         }
     }

@@ -1,54 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.EditorFeatures</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
-      <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
-      <Name>CSharpFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
-      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
-      <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Text\TextEditorFeatures.csproj">
-      <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
-      <Name>TextEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\EditorFeatures.csproj">
-      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\Text\TextEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\Core\EditorFeatures.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -64,97 +36,11 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutomaticCompletion\AutomaticLineEnderCommandHandler.cs" />
-    <Compile Include="AutomaticCompletion\CSharpBraceCompletionSessionProvider.cs" />
-    <Compile Include="AutomaticCompletion\Sessions\CurlyBraceCompletionSession.cs" />
-    <Compile Include="AutomaticCompletion\Sessions\BracketCompletionSession.cs" />
-    <Compile Include="AutomaticCompletion\Sessions\CharLiteralCompletionSession.cs" />
-    <Compile Include="AutomaticCompletion\Sessions\InterpolatedStringCompletionSession.cs" />
-    <Compile Include="AutomaticCompletion\Sessions\InterpolationCompletionSession.cs" />
-    <Compile Include="AutomaticCompletion\Sessions\LessAndGreaterThanCompletionSession.cs" />
-    <Compile Include="AutomaticCompletion\Sessions\ParenthesisCompletionSession.cs" />
-    <Compile Include="AutomaticCompletion\Sessions\StringLiteralCompletionSession.cs" />
-    <Compile Include="BlockCommentEditing\BlockCommentEditingCommandHandler.cs" />
-    <Compile Include="BraceMatching\AbstractCSharpBraceMatcher.cs" />
-    <Compile Include="BraceMatching\LessThanGreaterThanBraceMatcher.cs" />
-    <Compile Include="BraceMatching\OpenCloseBraceBraceMatcher.cs" />
-    <Compile Include="BraceMatching\OpenCloseBracketBraceMatcher.cs" />
-    <Compile Include="BraceMatching\OpenCloseParenBraceMatcher.cs" />
-    <Compile Include="BraceMatching\CSharpDirectiveTriviaBraceMatcher.cs" />
-    <Compile Include="BraceMatching\StringLiteralBraceMatcher.cs" />
-    <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
-    <Compile Include="ChangeSignature\CSharpChangeSignatureCommandHandler.cs" />
-    <Compile Include="Classification\CSharpEditorClassificationService.cs" />
-    <Compile Include="CommentSelection\CSharpCommentUncommentService.cs" />
-    <Compile Include="ContentType\ContentTypeDefinitions.cs" />
-    <Compile Include="CSharpEditorResources.Designer.cs">
+    <Compile Update="CSharpEditorResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpEditorResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="DocumentationComments\DocumentationCommentCommandHandler.cs" />
-    <Compile Include="DocumentationComments\XmlTagCompletionCommandHandler.cs" />
-    <Compile Include="EncapsulateField\EncapsulateFieldCommandHandler.cs" />
-    <Compile Include="EndConstruct\CSharpEndConstructGenerationService.cs" />
-    <Compile Include="EventHookup\EventHookupCommandHandler.cs" />
-    <Compile Include="EventHookup\EventHookupCommandHandler_SessionCancellingCommands.cs" />
-    <Compile Include="EventHookup\EventHookupCommandHandler_ShadowedCommands.cs" />
-    <Compile Include="EventHookup\EventHookupCommandHandler_TabKeyCommand.cs" />
-    <Compile Include="EventHookup\EventHookupCommandHandler_TypeCharCommand.cs" />
-    <Compile Include="EventHookup\EventHookupQuickInfoSource.cs" />
-    <Compile Include="EventHookup\EventHookupQuickInfoSourceProvider.cs" />
-    <Compile Include="EventHookup\EventHookupSessionManager.cs" />
-    <Compile Include="EventHookup\EventHookupSessionManager_EventHookupSession.cs" />
-    <Compile Include="EventHookup\IHACK_EventHookupDismissalOnBufferChangePreventerService.cs" />
-    <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.cs" />
-    <Compile Include="ExtractMethod\ExtractMethodCommandHandler.cs" />
-    <Compile Include="FindReferences\CSharpFindReferencesService.cs" />
-    <Compile Include="FindUsages\CSharpFindUsagesService.cs" />
-    <Compile Include="Formatting\CSharpEditorFormattingService.cs" />
-    <Compile Include="Formatting\Indentation\CSharpIndentationService.cs" />
-    <Compile Include="Formatting\Indentation\CSharpIndentationService.Indenter.cs" />
-    <Compile Include="Formatting\Indentation\SmartTokenFormatter.cs" />
-    <Compile Include="Formatting\Indentation\SmartTokenFormatterCommandHandler.cs" />
-    <Compile Include="Formatting\Indentation\WhitespaceExtensions.cs" />
-    <Compile Include="Formatting\CSharpEditorFormattingService.PasteFormattingRule.cs" />
-    <Compile Include="GoToDefinition\CSharpGoToDefinitionService.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\AbstractAsyncHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\AsyncAnonymousMethodHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\AsyncMethodHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\AsyncParenthesizedLambdaHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\AsyncSimpleLambdaHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\AwaitHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\CheckedExpressionHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\CheckedStatementHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\ConditionalPreprocessorHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\IfStatementHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\LockStatementHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\LoopHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\RegionHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\ReturnStatementHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\SwitchStatementHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\TryStatementHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\UnsafeStatementHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\UsingStatementHighlighter.cs" />
-    <Compile Include="Highlighting\KeywordHighlighters\YieldStatementHighlighter.cs" />
-    <Compile Include="HighlightReferences\CSharpDocumentHighlightsService.cs" />
-    <Compile Include="InlineRename\CSharpEditorInlineRenameService.cs" />
-    <Compile Include="LanguageServices\CSharpContentTypeLanguageService.cs" />
-    <Compile Include="LineSeparators\CSharpLineSeparatorService.cs" />
-    <Compile Include="NavigationBar\CSharpNavigationBarItemService.cs" />
-    <Compile Include="QuickInfo\SemanticQuickInfoProvider.cs" />
-    <Compile Include="QuickInfo\SyntacticQuickInfoProvider.cs" />
-    <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.cs" />
-    <Compile Include="RenameTracking\CSharpRenameTrackingCodeFixProvider.cs" />
-    <Compile Include="RenameTracking\CSharpRenameTrackingLanguageHeuristicsService.cs" />
-    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.cs" />
-    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.InterpolatedStringSplitter.cs" />
-    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.SimpleStringSplitter.cs" />
-    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.StringSplitter.cs" />
-    <Compile Include="SplitStringLiteral\SplitStringLiteralOptions.cs" />
-    <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.cs" />
-    <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.cs" />
-    <Compile Include="UseAutoProperty\UseAutoPropertyCodeFixProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -164,19 +50,19 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CSharpEditorResources.resx">
+    <EmbeddedResource Update="CSharpEditorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CSharpEditorResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

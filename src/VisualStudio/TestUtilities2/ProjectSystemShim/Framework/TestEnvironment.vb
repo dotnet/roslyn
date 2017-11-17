@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -29,6 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _projectTracker As VisualStudioProjectTracker
         Private ReadOnly _serviceProvider As MockServiceProvider
         Private ReadOnly _workspace As TestWorkspace
+        Private ReadOnly _projectFilePaths As New List(Of String)
 
         Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
             ' As a policy, if anything goes wrong don't use exception filters, just throw exceptions for the
@@ -74,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Get
         End Property
 
-        Public ReadOnly Property Workspace As Workspace
+        Public ReadOnly Property Workspace As Microsoft.CodeAnalysis.Workspace
             Get
                 Return _workspace
             End Get
@@ -85,12 +87,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 project.Disconnect()
             Next
 
+            _projectTracker.OnAfterCloseSolution()
             _workspace.Dispose()
-            _projectTracker.Dispose()
+
+            For Each filePath In _projectFilePaths
+                File.Delete(filePath)
+            Next
         End Sub
 
+        Private Function CreateProjectFile(projectName As String) As String
+            Dim dir = Path.Combine(Path.GetTempPath, Guid.NewGuid().ToString("N"))
+            Directory.CreateDirectory(dir)
+            Dim result = Path.Combine(dir, projectName + ".vbproj")
+            File.WriteAllText(result, "<Project></Project>")
+            _projectFilePaths.Add(result)
+            Return result
+        End Function
+
         Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectCapabilities As String) As IVsHierarchy
-            Return New MockHierarchy(projectName, projectBinPath, projectCapabilities)
+            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectCapabilities)
         End Function
 
         Public Function GetUpdatedCompilationOptionOfSingleProject() As CompilationOptions

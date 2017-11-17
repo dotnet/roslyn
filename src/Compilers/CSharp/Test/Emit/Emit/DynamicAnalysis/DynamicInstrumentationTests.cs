@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
@@ -26,6 +27,7 @@ public class Program
     }
 }
 ";
+
             string expectedOutput = @"Flushing
 Method 1
 File 1
@@ -47,8 +49,28 @@ True
 True
 True
 True
+True
+True
 ";
-            string expectedCreatePayloadIL = @"{
+
+            string expectedCreatePayloadForMethodsSpanningSingleFileIL = @"{
+  // Code size       21 (0x15)
+  .maxstack  6
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.1
+  IL_0003:  newarr     ""int""
+  IL_0008:  dup
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldarg.2
+  IL_000b:  stelem.i4
+  IL_000c:  ldarg.3
+  IL_000d:  ldarg.s    V_4
+  IL_000f:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int[], ref bool[], int)""
+  IL_0014:  ret
+}";
+
+            string expectedCreatePayloadForMethodsSpanningMultipleFilesIL = @"{
   // Code size       87 (0x57)
   .maxstack  3
   IL_0000:  ldsfld     ""System.Guid Microsoft.CodeAnalysis.Runtime.Instrumentation._mvid""
@@ -59,8 +81,8 @@ True
   IL_000f:  newarr     ""bool[]""
   IL_0014:  stsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
   IL_0019:  ldc.i4.s   100
-  IL_001b:  newarr     ""int""
-  IL_0020:  stsfld     ""int[] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
+  IL_001b:  newarr     ""int[]""
+  IL_0020:  stsfld     ""int[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
   IL_0025:  ldarg.0
   IL_0026:  stsfld     ""System.Guid Microsoft.CodeAnalysis.Runtime.Instrumentation._mvid""
   IL_002b:  ldarg.3
@@ -74,10 +96,10 @@ True
   IL_0041:  ldarg.3
   IL_0042:  ldind.ref
   IL_0043:  stelem.ref
-  IL_0044:  ldsfld     ""int[] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
+  IL_0044:  ldsfld     ""int[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
   IL_0049:  ldarg.1
   IL_004a:  ldarg.2
-  IL_004b:  stelem.i4
+  IL_004b:  stelem.ref
   IL_004c:  ldarg.3
   IL_004d:  ldind.ref
   IL_004e:  ret
@@ -88,12 +110,13 @@ True
 }";
 
             string expectedFlushPayloadIL = @"{
-  // Code size      247 (0xf7)
+  // Code size      288 (0x120)
   .maxstack  5
   .locals init (bool[] V_0,
                 int V_1, //i
                 bool[] V_2, //payload
-                int V_3) //j
+                int V_3, //j
+                int V_4) //j
   IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
   IL_0005:  ldtoken    ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()""
   IL_000a:  ldelem.ref
@@ -106,7 +129,7 @@ True
   IL_001e:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
   IL_0023:  ldtoken    ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()""
   IL_0028:  ldelema    ""bool[]""
-  IL_002d:  ldc.i4.s   14
+  IL_002d:  ldc.i4.s   16
   IL_002f:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
   IL_0034:  stloc.0
   IL_0035:  ldloc.0
@@ -136,7 +159,7 @@ True
   IL_005a:  stelem.i1
   IL_005b:  ldc.i4.0
   IL_005c:  stloc.1
-  IL_005d:  br         IL_00e9
+  IL_005d:  br         IL_0112
   IL_0062:  ldloc.0
   IL_0063:  ldc.i4.6
   IL_0064:  ldc.i4.1
@@ -146,84 +169,110 @@ True
   IL_006c:  ldelem.ref
   IL_006d:  stloc.2
   IL_006e:  ldloc.0
-  IL_006f:  ldc.i4.s   13
+  IL_006f:  ldc.i4.s   15
   IL_0071:  ldc.i4.1
   IL_0072:  stelem.i1
   IL_0073:  ldloc.2
-  IL_0074:  brfalse.s  IL_00e1
-  IL_0076:  ldloc.0
-  IL_0077:  ldc.i4.7
-  IL_0078:  ldc.i4.1
-  IL_0079:  stelem.i1
-  IL_007a:  ldstr      ""Method ""
-  IL_007f:  ldloca.s   V_1
-  IL_0081:  call       ""string int.ToString()""
-  IL_0086:  call       ""string string.Concat(string, string)""
-  IL_008b:  call       ""void System.Console.WriteLine(string)""
-  IL_0090:  ldloc.0
-  IL_0091:  ldc.i4.8
-  IL_0092:  ldc.i4.1
-  IL_0093:  stelem.i1
-  IL_0094:  ldstr      ""File ""
-  IL_0099:  ldsfld     ""int[] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
-  IL_009e:  ldloc.1
-  IL_009f:  ldelema    ""int""
-  IL_00a4:  call       ""string int.ToString()""
-  IL_00a9:  call       ""string string.Concat(string, string)""
-  IL_00ae:  call       ""void System.Console.WriteLine(string)""
-  IL_00b3:  ldloc.0
-  IL_00b4:  ldc.i4.s   9
-  IL_00b6:  ldc.i4.1
-  IL_00b7:  stelem.i1
-  IL_00b8:  ldc.i4.0
-  IL_00b9:  stloc.3
-  IL_00ba:  br.s       IL_00db
-  IL_00bc:  ldloc.0
-  IL_00bd:  ldc.i4.s   11
-  IL_00bf:  ldc.i4.1
-  IL_00c0:  stelem.i1
-  IL_00c1:  ldloc.2
-  IL_00c2:  ldloc.3
-  IL_00c3:  ldelem.u1
-  IL_00c4:  call       ""void System.Console.WriteLine(bool)""
-  IL_00c9:  ldloc.0
-  IL_00ca:  ldc.i4.s   12
-  IL_00cc:  ldc.i4.1
-  IL_00cd:  stelem.i1
-  IL_00ce:  ldloc.2
-  IL_00cf:  ldloc.3
-  IL_00d0:  ldc.i4.0
-  IL_00d1:  stelem.i1
-  IL_00d2:  ldloc.0
-  IL_00d3:  ldc.i4.s   10
-  IL_00d5:  ldc.i4.1
-  IL_00d6:  stelem.i1
-  IL_00d7:  ldloc.3
-  IL_00d8:  ldc.i4.1
-  IL_00d9:  add
-  IL_00da:  stloc.3
-  IL_00db:  ldloc.3
-  IL_00dc:  ldloc.2
-  IL_00dd:  ldlen
-  IL_00de:  conv.i4
-  IL_00df:  blt.s      IL_00bc
-  IL_00e1:  ldloc.0
-  IL_00e2:  ldc.i4.5
+  IL_0074:  brfalse    IL_010a
+  IL_0079:  ldloc.0
+  IL_007a:  ldc.i4.7
+  IL_007b:  ldc.i4.1
+  IL_007c:  stelem.i1
+  IL_007d:  ldstr      ""Method ""
+  IL_0082:  ldloca.s   V_1
+  IL_0084:  call       ""string int.ToString()""
+  IL_0089:  call       ""string string.Concat(string, string)""
+  IL_008e:  call       ""void System.Console.WriteLine(string)""
+  IL_0093:  ldloc.0
+  IL_0094:  ldc.i4.8
+  IL_0095:  ldc.i4.1
+  IL_0096:  stelem.i1
+  IL_0097:  ldc.i4.0
+  IL_0098:  stloc.3
+  IL_0099:  br.s       IL_00ca
+  IL_009b:  ldloc.0
+  IL_009c:  ldc.i4.s   10
+  IL_009e:  ldc.i4.1
+  IL_009f:  stelem.i1
+  IL_00a0:  ldstr      ""File ""
+  IL_00a5:  ldsfld     ""int[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
+  IL_00aa:  ldloc.1
+  IL_00ab:  ldelem.ref
+  IL_00ac:  ldloc.3
+  IL_00ad:  ldelema    ""int""
+  IL_00b2:  call       ""string int.ToString()""
+  IL_00b7:  call       ""string string.Concat(string, string)""
+  IL_00bc:  call       ""void System.Console.WriteLine(string)""
+  IL_00c1:  ldloc.0
+  IL_00c2:  ldc.i4.s   9
+  IL_00c4:  ldc.i4.1
+  IL_00c5:  stelem.i1
+  IL_00c6:  ldloc.3
+  IL_00c7:  ldc.i4.1
+  IL_00c8:  add
+  IL_00c9:  stloc.3
+  IL_00ca:  ldloc.3
+  IL_00cb:  ldsfld     ""int[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
+  IL_00d0:  ldloc.1
+  IL_00d1:  ldelem.ref
+  IL_00d2:  ldlen
+  IL_00d3:  conv.i4
+  IL_00d4:  blt.s      IL_009b
+  IL_00d6:  ldloc.0
+  IL_00d7:  ldc.i4.s   11
+  IL_00d9:  ldc.i4.1
+  IL_00da:  stelem.i1
+  IL_00db:  ldc.i4.0
+  IL_00dc:  stloc.s    V_4
+  IL_00de:  br.s       IL_0103
+  IL_00e0:  ldloc.0
+  IL_00e1:  ldc.i4.s   13
   IL_00e3:  ldc.i4.1
   IL_00e4:  stelem.i1
-  IL_00e5:  ldloc.1
-  IL_00e6:  ldc.i4.1
-  IL_00e7:  add
-  IL_00e8:  stloc.1
-  IL_00e9:  ldloc.1
-  IL_00ea:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
-  IL_00ef:  ldlen
-  IL_00f0:  conv.i4
-  IL_00f1:  blt        IL_0062
-  IL_00f6:  ret
+  IL_00e5:  ldloc.2
+  IL_00e6:  ldloc.s    V_4
+  IL_00e8:  ldelem.u1
+  IL_00e9:  call       ""void System.Console.WriteLine(bool)""
+  IL_00ee:  ldloc.0
+  IL_00ef:  ldc.i4.s   14
+  IL_00f1:  ldc.i4.1
+  IL_00f2:  stelem.i1
+  IL_00f3:  ldloc.2
+  IL_00f4:  ldloc.s    V_4
+  IL_00f6:  ldc.i4.0
+  IL_00f7:  stelem.i1
+  IL_00f8:  ldloc.0
+  IL_00f9:  ldc.i4.s   12
+  IL_00fb:  ldc.i4.1
+  IL_00fc:  stelem.i1
+  IL_00fd:  ldloc.s    V_4
+  IL_00ff:  ldc.i4.1
+  IL_0100:  add
+  IL_0101:  stloc.s    V_4
+  IL_0103:  ldloc.s    V_4
+  IL_0105:  ldloc.2
+  IL_0106:  ldlen
+  IL_0107:  conv.i4
+  IL_0108:  blt.s      IL_00e0
+  IL_010a:  ldloc.0
+  IL_010b:  ldc.i4.5
+  IL_010c:  ldc.i4.1
+  IL_010d:  stelem.i1
+  IL_010e:  ldloc.1
+  IL_010f:  ldc.i4.1
+  IL_0110:  add
+  IL_0111:  stloc.1
+  IL_0112:  ldloc.1
+  IL_0113:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
+  IL_0118:  ldlen
+  IL_0119:  conv.i4
+  IL_011a:  blt        IL_0062
+  IL_011f:  ret
 }";
+
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
-            verifier.VerifyIL("Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload", expectedCreatePayloadIL);
+            verifier.VerifyIL("Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)", expectedCreatePayloadForMethodsSpanningSingleFileIL);
+            verifier.VerifyIL("Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int[], ref bool[], int)", expectedCreatePayloadForMethodsSpanningMultipleFilesIL);
             verifier.VerifyIL("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload", expectedFlushPayloadIL);
             verifier.VerifyDiagnostics();
         }
@@ -244,7 +293,7 @@ public class Program
 
     static void TestMain()
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
@@ -284,7 +333,7 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 Flushing
 Method 1
@@ -333,6 +382,8 @@ File 1
 True
 True
 False
+True
+True
 True
 True
 True
@@ -498,6 +549,8 @@ File 1
 True
 True
 False
+True
+True
 True
 True
 True
@@ -684,6 +737,8 @@ public class Program
                 .True()
                 .True()
                 .True()
+                .True()
+                .True()
                 .True();
 
             CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.ReleaseExe);
@@ -793,6 +848,8 @@ True
 True
 True
 True
+True
+True
 ";
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
@@ -884,6 +941,8 @@ public class D
                 .True()
                 .True()
                 .True()
+                .True()
+                .True()
                 .True();
 
             CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.ReleaseExe);
@@ -954,6 +1013,8 @@ File 5
 True
 True
 False
+True
+True
 True
 True
 True
@@ -1062,6 +1123,8 @@ True
 True
 True
 True
+True
+True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
@@ -1147,6 +1210,8 @@ File 1
 True
 True
 False
+True
+True
 True
 True
 True
@@ -1345,6 +1410,8 @@ True
 True
 True
 True
+True
+True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
@@ -1437,6 +1504,8 @@ True
 True
 True
 True
+True
+True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
@@ -1501,6 +1570,8 @@ File 1
 True
 True
 False
+True
+True
 True
 True
 True
@@ -1599,6 +1670,8 @@ True
 True
 True
 True
+True
+True
 ";
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
         }
@@ -1662,6 +1735,8 @@ File 1
 True
 True
 False
+True
+True
 True
 True
 True
@@ -1776,6 +1851,8 @@ True
 True
 True
 True
+True
+True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
@@ -1798,17 +1875,17 @@ public class Program
 
     static void TestMain()                                                  // Method 2
     {
-        foreach (var i in Foo())
+        foreach (var i in Goo())
         {    
             Console.WriteLine(i);
         }  
-        foreach (var i in Foo())
+        foreach (var i in Goo())
         {    
             Console.WriteLine(i);
         }
     }
 
-    public static System.Collections.Generic.IEnumerable<int> Foo()
+    public static System.Collections.Generic.IEnumerable<int> Goo()
     {
         for (int i = 0; i < 5; ++i)
         {
@@ -1851,6 +1928,8 @@ File 1
 True
 True
 False
+True
+True
 True
 True
 True
@@ -1973,6 +2052,8 @@ True
 True
 True
 True
+True
+True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
@@ -2046,6 +2127,8 @@ File 1
 True
 True
 False
+True
+True
 True
 True
 True
@@ -2169,6 +2252,8 @@ File 1
 True
 True
 False
+True
+True
 True
 True
 True
@@ -2316,11 +2401,11 @@ class C
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C.M1");
-            AssertNotInstrumented(verifier, "C.<M1>g__L10_0");
+            AssertNotInstrumented(verifier, "C.<M1>g__L1|0_0");
             AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_1");
 
             AssertInstrumented(verifier, "C.M2");
-            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>g__L20"); // M2:L2
+            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>g__L2|0"); // M2:L2
             AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>b__1"); // M2:L2 lambda
         }
 
@@ -2380,16 +2465,16 @@ class C
 }
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
-            
+
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.set");
-            AssertNotInstrumented(verifier, "C.<get_P1>g__L11_0");
-            AssertNotInstrumented(verifier, "C.<set_P1>g__L22_0");
+            AssertNotInstrumented(verifier, "C.<get_P1>g__L1|1_0");
+            AssertNotInstrumented(verifier, "C.<set_P1>g__L2|2_0");
 
             AssertInstrumented(verifier, "C.P2.get");
             AssertInstrumented(verifier, "C.P2.set");
-            AssertInstrumented(verifier, "C.<get_P2>g__L34_0");
-            AssertInstrumented(verifier, "C.<set_P2>g__L45_0");
+            AssertInstrumented(verifier, "C.<get_P2>g__L3|4_0");
+            AssertInstrumented(verifier, "C.<set_P2>g__L4|5_0");
         }
 
         [Fact]
@@ -2526,7 +2611,7 @@ class C
 }
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
-            
+
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.set");
             AssertNotInstrumented(verifier, "C.E1.add");
@@ -2565,7 +2650,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateCompilationWithMscorlib(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -2602,7 +2687,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateCompilationWithMscorlib(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -2610,6 +2695,506 @@ class D
 
             AssertInstrumented(verifier, "C.M");
             AssertInstrumented(verifier, "D.M");
+        }
+
+        [Fact]
+        public void TestPartialMethodsWithImplementation()
+        {
+            var source = @"
+using System;
+
+public partial class Class1<T>
+{
+    partial void Method1<U>(int x);
+    public void Method2(int x) 
+    {
+        Console.WriteLine($""Method2: x = {x}"");
+        Method1<T>(x);
+    }
+}
+
+public partial class Class1<T>
+{
+    partial void Method1<U>(int x)
+    {
+        Console.WriteLine($""Method1: x = {x}"");
+        if (x > 0)
+        {
+             Console.WriteLine(""Method1: x > 0"");
+             Method1<U>(0);
+        }
+        else if (x < 0)
+        {
+            Console.WriteLine(""Method1: x < 0"");
+        }
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+        Console.WriteLine(""Test"");
+        var c = new Class1<int>();
+        c.Method2(1);
+    }
+}
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, "partial void Method1<U>(int x)")
+                .True(@"Console.WriteLine($""Method1: x = {x}"");")
+                .True(@"Console.WriteLine(""Method1: x > 0"");")
+                .True("Method1<U>(0);")
+                .False(@"Console.WriteLine(""Method1: x < 0"");")
+                .True("x < 0)")
+                .True("x > 0)");
+            checker.Method(2, 1, "public void Method2(int x)")
+                .True(@"Console.WriteLine($""Method2: x = {x}"");")
+                .True("Method1<T>(x);");
+            checker.Method(3, 1, ".ctor()", expectBodySpan: false);
+            checker.Method(4, 1, "public static void Main(string[] args)")
+                .True("Test();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(5, 1, "static void Test()")
+                .True(@"Console.WriteLine(""Test"");")
+                .True("var c = new Class1<int>();")
+                .True("c.Method2(1);");
+            checker.Method(8, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+Method2: x = 1
+Method1: x = 1
+Method1: x > 0
+Method1: x = 0
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestPartialMethodsWithoutImplementation()
+        {
+            var source = @"
+using System;
+
+public partial class Class1<T>
+{
+    partial void Method1<U>(int x);
+    public void Method2(int x) 
+    {
+        Console.WriteLine($""Method2: x = {x}"");
+        Method1<T>(x);
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+        Console.WriteLine(""Test"");
+        var c = new Class1<int>();
+        c.Method2(1);
+    }
+}
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, "public void Method2(int x)")
+                .True(@"Console.WriteLine($""Method2: x = {x}"");");
+            checker.Method(2, 1, ".ctor()", expectBodySpan: false);
+            checker.Method(3, 1, "public static void Main(string[] args)")
+                .True("Test();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(4, 1, "static void Test()")
+                .True(@"Console.WriteLine(""Test"");")
+                .True("var c = new Class1<int>();")
+                .True("c.Method2(1);");
+            checker.Method(7, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+Method2: x = 1
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSynthesizedConstructorWithSpansInMultipleFilesCoverage()
+        {
+            var source1 = @"
+using System;
+
+public partial class Class1<T>
+{
+    private int x = 1;
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+        Console.WriteLine(""Test"");
+        var c = new Class1<int>();
+        c.Method1(1);
+    }
+}
+" + InstrumentationHelperSource;
+
+            var source2 = @"
+public partial class Class1<T>
+{
+    private int y = 2;
+}
+
+public partial class Class1<T>
+{
+    private int z = 3;
+}";
+
+            var source3 = @"
+using System;
+
+public partial class Class1<T>
+{
+    private Action<int> a = i =>
+        {
+            Console.WriteLine(i);
+        };
+
+    public void Method1(int i)
+    {
+        a(i);
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+    }
+}";
+
+            var sources = new[] {
+                (Name: "b.cs", Content: source1),
+                (Name: "c.cs", Content: source2),
+                (Name: "a.cs", Content: source3)
+            };
+
+            var expectedOutput = @"Test
+1
+1
+2
+3
+Flushing
+Method 1
+File 1
+True
+True
+True
+True
+True
+Method 2
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 3
+File 2
+True
+True
+True
+Method 4
+File 2
+True
+True
+True
+True
+Method 7
+File 2
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            var verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSynthesizedStaticConstructorWithSpansInMultipleFilesCoverage()
+        {
+            var source1 = @"
+using System;
+
+public partial class Class1<T>
+{
+    private static int x = 1;
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+        Console.WriteLine(""Test"");
+        var c = new Class1<int>();
+        Class1<int>.Method1(1);
+    }
+}
+" + InstrumentationHelperSource;
+
+            var source2 = @"
+public partial class Class1<T>
+{
+    private static int y = 2;
+}
+
+public partial class Class1<T>
+{
+    private static int z = 3;
+}";
+
+            var source3 = @"
+using System;
+
+public partial class Class1<T>
+{
+    private static Action<int> a = i =>
+        {
+            Console.WriteLine(i);
+        };
+
+    public static void Method1(int i)
+    {
+        a(i);
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+    }
+}";
+
+            var sources = new[] {
+                (Name: "b.cs", Content: source1),
+                (Name: "c.cs", Content: source2),
+                (Name: "a.cs", Content: source3)
+            };
+
+            var expectedOutput = @"Test
+1
+1
+2
+3
+Flushing
+Method 1
+File 1
+True
+True
+True
+True
+True
+Method 2
+File 2
+Method 3
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 4
+File 2
+True
+True
+True
+Method 5
+File 2
+True
+True
+True
+True
+Method 8
+File 2
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            var verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestLineDirectiveCoverage()
+        {
+            var source = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+#line 300 ""File2.cs""
+        Console.WriteLine(""Start"");
+#line hidden
+        Console.WriteLine(""Hidden"");
+#line default
+        Console.WriteLine(""Visible"");
+#line 400 ""File3.cs""
+        Console.WriteLine(""End"");
+    }
+}
+" + InstrumentationHelperSource;
+
+            var expectedOutput = @"Start
+Hidden
+Visible
+End
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 5
+File 3
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
         }
 
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
@@ -2629,6 +3214,20 @@ class D
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null)
         {
             return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+        }
+
+        private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)
+        {
+            var trees = ArrayBuilder<SyntaxTree>.GetInstance();
+            foreach (var source in sources)
+            {
+                // The trees must be assigned unique file names in order for instrumentation to work correctly.
+                trees.Add(Parse(source.Content, filename: source.Path));
+            }
+
+            var compilation = CreateStandardCompilation(trees, s_refs, (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
+            trees.Free();
+            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
         private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, ValueTupleRef, SystemRuntimeFacadeRef };

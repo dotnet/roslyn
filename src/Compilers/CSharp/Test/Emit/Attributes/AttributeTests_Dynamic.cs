@@ -586,7 +586,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void CS1980ERR_DynamicAttributeMissing()
         {
-            var comp = CreateCompilationWithMscorlib(s_dynamicTestSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateStandardCompilation(s_dynamicTestSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,31): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Outer<T> : Base1<dynamic>
@@ -1063,14 +1063,14 @@ namespace System
         }
     }
 }";
-            var customRef = CreateCompilationWithMscorlib(customDynamicAttrSource).ToMetadataReference();
+            var customRef = CreateStandardCompilation(customDynamicAttrSource).ToMetadataReference();
 
             var source = @"
 public class C<T>
 {
     public C<dynamic> field2;   // Uses missing ctor ""DynamicAttribute(bool[] transformFlags)"", generates CS1980
 }";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { customRef });
+            var comp = CreateStandardCompilation(source, references: new[] { customRef });
             comp.VerifyDiagnostics(
                 // (4,14): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public C<dynamic> field2;   // Uses missing ctor "DynamicAttribute(bool[] transformFlags)", generates CS1980
@@ -1082,7 +1082,7 @@ public class C<T>
     public dynamic field1;      // Uses available ctor ""DynamicAttribute()"", No CS1980 in native compiler.
 }";
             // Bug 531108-Won't Fix
-            comp = CreateCompilationWithMscorlib(source, references: new[] { customRef });
+            comp = CreateStandardCompilation(source, references: new[] { customRef });
             comp.VerifyDiagnostics(
                 // (4,12): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public dynamic field1;      // Uses available ctor "DynamicAttribute()", No CS1980 in native compiler.
@@ -1177,7 +1177,7 @@ using System.Collections.Generic;
  
 class C
 {
-    static IEnumerable<dynamic> Foo()
+    static IEnumerable<dynamic> Goo()
     {
         yield break;
     }
@@ -1186,7 +1186,7 @@ class C
             CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var iterator = c.GetMember<NamedTypeSymbol>("<Foo>d__0");
+                var iterator = c.GetMember<NamedTypeSymbol>("<Goo>d__0");
                 var getEnumerator = iterator.GetMethod("System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator");
                 var attrs = getEnumerator.GetAttributes();
 

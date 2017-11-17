@@ -1,17 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -34,9 +30,9 @@ class Program
 {
 }$$
 ");
-
-            VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, "File2.cs");
-            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "File2.cs");
+            var project = new ProjectUtils.Project(ProjectName); ;
+            VisualStudio.SolutionExplorer.AddFile(project, "File2.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "File2.cs");
 
             SetUpEditor(@"
 class SomeOtherClass
@@ -48,12 +44,12 @@ class SomeOtherClass
 }
 ");
 
-            SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
             const string programReferencesCaption = "'Program' references";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
@@ -78,7 +74,9 @@ class SomeOtherClass
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
-            SetUpEditor(@"
+            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            {
+                SetUpEditor(@"
 class Program
 {
     static void Main()
@@ -89,18 +87,18 @@ class Program
 }
 ");
 
-            SendKeys(Shift(VirtualKey.F12));
+                VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            const string localReferencesCaption = "'local' references";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
+                const string localReferencesCaption = "'local' references";
+                var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
+                var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+                Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
-            Assert.Collection(
-                results,
-                new Action<Reference>[]
-                {
+                Assert.Collection(
+                    results,
+                    new Action<Reference>[]
+                    {
                     reference =>
                     {
                         Assert.Equal(expected: "int local = 1;", actual: reference.Code);
@@ -113,7 +111,10 @@ class Program
                         Assert.Equal(expected: 6, actual: reference.Line);
                         Assert.Equal(expected: 26, actual: reference.Column);
                     }
-                });
+                    });
+
+                telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -129,12 +130,12 @@ class Program
 }
 ");
 
-            SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
             const string findReferencesCaption = "'\"1\"' references";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(findReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(findReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: findReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(

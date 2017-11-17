@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -25,17 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     {
         private readonly ICompletionBroker _completionBroker;
         private readonly IGlyphService _glyphService;
-        private readonly ImmutableArray<Lazy<ICompletionSetFactory, VisualStudioVersionMetadata>> _completionSetFactories;
 
         [ImportingConstructor]
         public CompletionPresenter(
             ICompletionBroker completionBroker,
-            IGlyphService glyphService,
-            [ImportMany] IEnumerable<Lazy<ICompletionSetFactory, VisualStudioVersionMetadata>> completionSetFactories)
+            IGlyphService glyphService)
         {
             _completionBroker = completionBroker;
             _glyphService = glyphService;
-            _completionSetFactories = completionSetFactories.AsImmutableOrEmpty();
         }
 
         ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(
@@ -45,12 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-            var completionSetFactory = document != null && NeedsDev15CompletionSetFactory(document.Project.Solution.Options, document.Project.Language)
-                ? VersionSelector.SelectHighest(_completionSetFactories)
-                : VersionSelector.SelectVersion(_completionSetFactories, VisualStudioVersion.Dev14);
-
             return new CompletionPresenterSession(
-                completionSetFactory, _completionBroker, _glyphService, textView, subjectBuffer);
+                _completionBroker, _glyphService, textView, subjectBuffer);
         }
 
         private bool NeedsDev15CompletionSetFactory(OptionSet options, string language)

@@ -1,4 +1,4 @@
-namespace Roslyn.DebuggerVisualizers.UI
+﻿namespace Roslyn.DebuggerVisualizers.UI
 {
     partial class TextViewer
     {

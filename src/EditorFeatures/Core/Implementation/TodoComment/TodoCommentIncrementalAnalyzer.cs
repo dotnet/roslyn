@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
         }
 
-        private async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
+        private async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<ITodoCommentService>();
             if (service == null)

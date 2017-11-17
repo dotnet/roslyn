@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -118,13 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (!hasCustomTypeInfoPayload)
             {
-                return new BoundDefaultOperator(syntax, guidConstructor.ContainingType);
+                return new BoundDefaultExpression(syntax, guidConstructor.ContainingType);
             }
 
             var value = ConstantValue.Create(CustomTypeInfo.PayloadTypeId.ToString());
             return new BoundObjectCreationExpression(
                 syntax,
                 guidConstructor,
+                null,
                 new BoundLiteral(syntax, value, guidConstructor.ContainingType));
         }
 

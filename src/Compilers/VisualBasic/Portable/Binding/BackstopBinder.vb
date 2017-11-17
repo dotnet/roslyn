@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -56,6 +57,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides ReadOnly Property ContainingMember As Symbol
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
             Get
                 Throw ExceptionUtilities.Unreachable
             End Get

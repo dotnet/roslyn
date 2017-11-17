@@ -139,14 +139,14 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var snapshotService = workspace.Services.GetService<ISolutionSynchronizationService>();
+                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
                 var assetBuilder = new CustomAssetBuilder(workspace);
 
                 var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
                 snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
 
-                var client = await workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(CancellationToken.None);
-                await client.RunOnRemoteHostAsync(
+                var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
@@ -157,8 +157,11 @@ End Class";
                 var project = workspace.CurrentSolution.Projects.First();
 
                 var executor = (ICodeAnalysisDiagnosticAnalyzerExecutor)new DiagnosticAnalyzerExecutor(new MyUpdateSource(workspace)).CreateService(workspace.Services);
-                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
-                var result = await executor.AnalyzeAsync(analyzerDriver, project, CancellationToken.None);
+                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
+                var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
                 var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
 
@@ -175,8 +178,11 @@ End Class";
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
 
-            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
-            var result = await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken);
+            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
+            var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -26,8 +26,8 @@ End Module",
 Imports System.Threading.Tasks
 Module Program
     Async Sub TestAsync()
-        Await Task.Delay(1)
-    End Sub
+        Await Task.Delay(1) 
+ End Sub
 End Module",
                 index:=1)
         End Function
@@ -46,8 +46,8 @@ End Module",
 Imports System.Threading.Tasks
 Module Program
     Public Shared Async Sub TestAsync()
-        Await Task.Delay(1)
-    End Sub
+        Await Task.Delay(1) 
+ End Sub
 End Module",
                 index:=1)
         End Function
@@ -66,10 +66,9 @@ Module Program
 Imports System.Threading.Tasks
 Module Program
     Async Function TestAsync() As Task(Of Integer)
-        Await Task.Delay(1)
+        Await Task.Delay(1) 
  Function Sub
- End Module"
-                )
+ End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
@@ -86,7 +85,7 @@ Module Program
 Imports System.Threading.Tasks
 Module Program
     Public Shared Async Function TestAsync() As Task(Of Integer)
-        Await Task.Delay(1)
+        Await Task.Delay(1) 
  Function Sub
  End Module"
                 )
@@ -147,7 +146,7 @@ Module Program
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrtAsync() As Task
+Async Function rtrtAsync() As Task
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -164,7 +163,7 @@ Module Program
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Sub rtrtAsync()
+Async Sub rtrtAsync()
         Await Nothing
     End Sub
 </ModuleDeclaration>
@@ -181,8 +180,8 @@ Module Program
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrtAsync() As Threading.Tasks.Task
-        Await Nothing
+Async Function rtrtAsync() As Threading.Tasks.Task
+    Await Nothing
     End Function
 </ModuleDeclaration>
             Await TestAsync(initial, expected)
@@ -198,7 +197,7 @@ Module Program
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrtAsync() As Task
+Async Function rtrtAsync() As Task
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -215,7 +214,7 @@ Module Program
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrtAsync() As Task(Of Integer)
+Async Function rtrtAsync() As Task(Of Integer)
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -232,8 +231,8 @@ Module Program
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrtAsync() As Threading.Tasks.Task(Of Integer)
-        Await Nothing
+Async Function rtrtAsync() As Threading.Tasks.Task(Of Integer)
+    Await Nothing
     End Function
 </ModuleDeclaration>
             Await TestAsync(initial, expected)
@@ -387,7 +386,27 @@ Module Module1
     End Function
 End Module
 </File>
-            Await TestAsync(initial, expected, ignoreTrivia:=False)
+            Await TestAsync(initial, expected)
+        End Function
+
+        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        Public Async Function TestWithMissingParameterList() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Sub Test ' Comment
+        [|Await Task.Delay(1)|]
+    End Sub
+End Module",
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Async Function TestAsync As Task ' Comment
+        Await Task.Delay(1)
+    End Function
+End Module")
         End Function
     End Class
 End Namespace

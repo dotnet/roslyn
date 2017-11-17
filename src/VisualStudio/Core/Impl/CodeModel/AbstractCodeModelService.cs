@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -75,23 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         protected string GetNewLineCharacter(SourceText text)
         {
             return _editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
-        }
-
-        protected int GetTabSize(SourceText text)
-        {
-            var snapshot = text.FindCorrespondingEditorTextSnapshot();
-            return GetTabSize(snapshot);
-        }
-
-        protected int GetTabSize(ITextSnapshot snapshot)
-        {
-            if (snapshot == null)
-            {
-                throw new ArgumentNullException(nameof(snapshot));
-            }
-
-            var textBuffer = snapshot.TextBuffer;
-            return _editorOptionsFactoryService.GetOptions(textBuffer).GetTabSize();
         }
 
         protected SyntaxToken GetTokenWithoutAnnotation(SyntaxToken current, Func<SyntaxToken, SyntaxToken> nextTokenGetter)
@@ -336,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract bool IsOptionNode(SyntaxNode node);
         public abstract bool IsImportNode(SyntaxNode node);
 
-        public ISymbol ResolveSymbol(Workspace workspace, ProjectId projectId, SymbolKey symbolId)
+        public ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId)
         {
             var project = workspace.CurrentSolution.GetProject(projectId);
 
@@ -552,14 +535,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract string GetExternalSymbolName(ISymbol symbol);
         public abstract string GetExternalSymbolFullName(ISymbol symbol);
 
-        public VirtualTreePoint? GetStartPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
         {
-            return _nodeLocator.GetStartPoint(node, part);
+            return _nodeLocator.GetStartPoint(node, options, part);
         }
 
-        public VirtualTreePoint? GetEndPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetEndPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
         {
-            return _nodeLocator.GetEndPoint(node, part);
+            return _nodeLocator.GetEndPoint(node, options, part);
         }
 
         public abstract EnvDTE.vsCMAccess GetAccess(ISymbol symbol);

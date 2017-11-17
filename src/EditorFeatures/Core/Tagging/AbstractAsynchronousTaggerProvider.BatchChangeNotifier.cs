@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -25,14 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private class BatchChangeNotifier : ForegroundThreadAffinitizedObject
         {
             private readonly ITextBuffer _subjectBuffer;
-
-            /// <summary>
-            /// If we get more than this many differences, then we just issue it as a single change
-            /// notification.  The number has been completely made up without any data to support it.
-            /// 
-            /// Internal for testing purposes.
-            /// </summary>
-            internal const int CoalesceDifferenceCount = 10;
 
             /// <summary>
             /// The worker we use to do work on the appropriate background or foreground thread.
@@ -66,19 +57,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public bool IsPaused { get; private set; }
             private int _lastPausedTime;
 
-            private readonly Action<SnapshotSpan> _reportChangedSpan;
+            private readonly Action<NormalizedSnapshotSpanCollection> _notifyEditorNow;
 
             public BatchChangeNotifier(
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener listener,
                 IForegroundNotificationService notificationService,
-                Action<SnapshotSpan> reportChangedSpan)
+                Action<NormalizedSnapshotSpanCollection> notifyEditorNow)
             {
-                Contract.ThrowIfNull(reportChangedSpan);
+                Contract.ThrowIfNull(notifyEditorNow);
                 _subjectBuffer = subjectBuffer;
                 _listener = listener;
                 _notificationService = notificationService;
-                _reportChangedSpan = reportChangedSpan;
+                _notifyEditorNow = notifyEditorNow;
             }
 
             public void Pause()
@@ -188,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         var snapshot = snapshotAndSpans.Key;
                         var normalizedSpans = snapshotAndSpans.Value;
 
-                        this.NotifyEditorNow(normalizedSpans);
+                        _notifyEditorNow(normalizedSpans);
                     }
                 }
 
@@ -198,44 +189,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // reset paused time
                 _lastPausedTime = Environment.TickCount;
-            }
-
-            private void NotifyEditorNow(NormalizedSnapshotSpanCollection normalizedSpans)
-            {
-                this.AssertIsForeground();
-
-                using (Logger.LogBlock(FunctionId.Tagger_BatchChangeNotifier_NotifyEditorNow, CancellationToken.None))
-                {
-                    if (normalizedSpans.Count == 0)
-                    {
-                        return;
-                    }
-
-                    normalizedSpans = CoalesceSpans(normalizedSpans);
-
-                    // Don't use linq here.  It's a hotspot.
-                    foreach (var span in normalizedSpans)
-                    {
-                        _reportChangedSpan(span);
-                    }
-                }
-            }
-
-            internal static NormalizedSnapshotSpanCollection CoalesceSpans(NormalizedSnapshotSpanCollection normalizedSpans)
-            {
-                var snapshot = normalizedSpans.First().Snapshot;
-
-                // Coalesce the spans if there are a lot of them.
-                if (normalizedSpans.Count > CoalesceDifferenceCount)
-                {
-                    // Spans are normalized.  So to find the whole span we just go from the
-                    // start of the first span to the end of the last span.
-                    normalizedSpans = new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(
-                        normalizedSpans.First().Start,
-                        normalizedSpans.Last().End));
-                }
-
-                return normalizedSpans;
             }
         }
     }

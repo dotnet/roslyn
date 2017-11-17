@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             string source = @"
 /*<span>*/extern alias A;/*</span>*/
-/*<span>*/using Z = Foo.Bar;/*</span>*/
+/*<span>*/using Z = Goo.Bar;/*</span>*/
 
 [assembly: /*<span>*/A(1,2,3,4)/*</span>*/, /*<span>*/B/*</span>*/]
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     
 }
 ";
-            TestSpans(source, kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
+            TestSpans(source, kind => TopSyntaxComparer.HasLabel(kind));
         }
 
         [Fact]
@@ -190,7 +190,7 @@ class C
         /*<span>*/switch (expr)/*</span>*/ { case 1: break; };
         switch (expr) { case 1: /*<span>*/goto case 1;/*</span>*/ };
         switch (expr) { case 1: /*<span>*/goto case default;/*</span>*/ };
-        /*<span>*/label/*</span>*/: Foo();
+        /*<span>*/label/*</span>*/: Goo();
         /*<span>*/checked/*</span>*/ { };
         /*<span>*/unchecked/*</span>*/ { };
         /*<span>*/unsafe/*</span>*/ { };
@@ -227,7 +227,7 @@ class C
         public void ErrorSpansAllKinds()
         {
             TestErrorSpansAllKinds(StatementSyntaxComparer.IgnoreLabeledChild);
-            TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
+            TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind));
         }
 
         [Fact]
@@ -496,8 +496,8 @@ class C
             }
         }
 
-        [Fact]
-        public async Task AnalyzeDocumentAsync_SemanticError_Change()
+        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
             string source1 = @"
 class C
@@ -516,6 +516,46 @@ class C
     {
         System.Console.WriteLine(2);
         Bar(); // semantic error
+    }
+}
+";
+            var analyzer = new CSharpEditAndContinueAnalyzer();
+
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
+            {
+                var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
+                var oldSolution = workspace.CurrentSolution;
+                var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+
+                var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
+                var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken));
+
+                Assert.True(result.HasChanges);
+
+                // no declaration errors (error in method body is only reported when emitting):
+                Assert.False(result.HasChangesAndErrors);
+                Assert.False(result.HasChangesAndCompilationErrors);
+            }
+        }
+
+        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
+        {
+            string source1 = @"
+class C
+{
+    public static void Main(Bar x)
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+            string source2 = @"
+class C
+{
+    public static void Main(Bar x)
+    {
+        System.Console.WriteLine(2);
     }
 }
 ";
@@ -566,7 +606,7 @@ namespace N
                 var project = workspace.CurrentSolution.Projects.Single();
                 var newDocId = DocumentId.CreateNewId(project.Id);
                 var oldSolution = workspace.CurrentSolution;
-                var newSolution = oldSolution.AddDocument(newDocId, "foo.cs", SourceText.From(source2));
+                var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2));
 
                 workspace.TryApplyChanges(newSolution);
 
@@ -616,7 +656,7 @@ namespace N
                 var project = workspace.CurrentSolution.Projects.Single();
                 var newDocId = DocumentId.CreateNewId(project.Id);
                 var oldSolution = workspace.CurrentSolution;
-                var newSolution = oldSolution.AddDocument(newDocId, "foo.cs", SourceText.From(source2));
+                var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2));
 
                 workspace.TryApplyChanges(newSolution);
 

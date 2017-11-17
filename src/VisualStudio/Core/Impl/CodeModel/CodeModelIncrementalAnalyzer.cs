@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _notificationService = notificationService;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (visualStudioWorkspace == null)
@@ -69,31 +69,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             public void FireEvents(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var project = _workspace.DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-                if (project == null)
+                _notificationService.RegisterNotification(() =>
                 {
-                    return;
-                }
+                    var project = _workspace.DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
+                    if (project == null)
+                    {
+                        return false;
+                    }
 
-                var codeModelProvider = project as IProjectCodeModelProvider;
-                if (codeModelProvider == null)
-                {
-                    return;
-                }
+                    var codeModelProvider = project as IProjectCodeModelProvider;
+                    if (codeModelProvider == null)
+                    {
+                        return false;
+                    }
 
-                var filename = _workspace.GetFilePath(documentId);
-                if (filename == null)
-                {
-                    return;
-                }
+                    var filename = _workspace.GetFilePath(documentId);
+                    if (filename == null)
+                    {
+                        return false;
+                    }
 
-                if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
-                {
-                    return;
-                }
+                    if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
+                    {
+                        return false;
+                    }
 
-                var codeModel = fileCodeModelHandle.Object;
-                _notificationService.RegisterNotification(() => codeModel.FireEvents(), _listener.BeginAsyncOperation("CodeModelEvent"), cancellationToken);
+                    var codeModel = fileCodeModelHandle.Object;
+                    return codeModel.FireEvents();
+                },
+                _listener.BeginAsyncOperation("CodeModelEvent"),
+                cancellationToken);
             }
 
             #region unused

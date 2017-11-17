@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -35,23 +36,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend ReadOnly Compilation As VisualBasicCompilation
 
         Private ReadOnly _currentFrame As MethodSymbol
+        Private ReadOnly _currentSourceMethod As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
-        Private ReadOnly _inScopeHoistedLocals As InScopeHoistedLocals
+        Private ReadOnly _inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer)
         Private ReadOnly _methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
 
         Private Sub New(
             methodContextReuseConstraints As MethodContextReuseConstraints?,
             compilation As VisualBasicCompilation,
             currentFrame As MethodSymbol,
+            currentSourceMethod As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
-            inScopeHoistedLocals As InScopeHoistedLocals,
+            inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer),
             methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol))
 
             Me.MethodContextReuseConstraints = methodContextReuseConstraints
             Me.Compilation = compilation
             _currentFrame = currentFrame
+            _currentSourceMethod = currentSourceMethod
             _locals = locals
-            _inScopeHoistedLocals = inScopeHoistedLocals
+            _inScopeHoistedLocalSlots = inScopeHoistedLocalSlots
             _methodDebugInfo = methodDebugInfo
         End Sub
 
@@ -95,8 +99,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Nothing,
                 compilation,
                 currentFrame,
+                Nothing,
                 locals:=Nothing,
-                inScopeHoistedLocals:=Nothing,
+                inScopeHoistedLocalSlots:=Nothing,
                 methodDebugInfo:=MethodDebugInfo(Of TypeSymbol, LocalSymbol).None)
         End Function
 
@@ -183,6 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             localSignatureToken As Integer) As EvaluationContext
 
             Dim methodHandle = CType(MetadataTokens.Handle(methodToken), MethodDefinitionHandle)
+            Dim currentSourceMethod = compilation.GetSourceMethod(moduleVersionId, methodHandle)
             Dim localSignatureHandle = If(localSignatureToken <> 0, CType(MetadataTokens.Handle(localSignatureToken), StandaloneSignatureHandle), Nothing)
 
             Dim currentFrame = compilation.GetMethod(moduleVersionId, methodHandle)
@@ -192,48 +198,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle)
 
-            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader3)
             Dim debugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
 
             If IsDteeEntryPoint(currentFrame) Then
                 debugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
             Else
+                Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader3)
                 debugInfo = MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, ilOffset, isVisualBasicMethod:=True)
             End If
 
+            Dim reuseSpan = debugInfo.ReuseSpan
+
+            Dim inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer)
+            If debugInfo.HoistedLocalScopeRecords.IsDefault Then
+                inScopeHoistedLocalSlots = GetInScopeHoistedLocalSlots(debugInfo.LocalVariableNames)
+            Else
+                inScopeHoistedLocalSlots = debugInfo.GetInScopeHoistedLocalIndices(ilOffset, reuseSpan)
+            End If
+
+            Dim localNames = debugInfo.LocalVariableNames.WhereAsArray(
+                Function(name) name Is Nothing OrElse Not name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal))
+
             Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
-            Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
-            Dim localNames = GetActualLocalNames(debugInfo.LocalVariableNames, inScopeHoistedLocalNames)
             MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing, debugInfo.TupleLocalMap)
-            Dim inScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
 
             GetStaticLocals(localsBuilder, currentFrame, methodHandle, metadataDecoder)
             localsBuilder.AddRange(debugInfo.LocalConstants)
 
             Return New EvaluationContext(
-                New MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, debugInfo.ReuseSpan),
+                New MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, reuseSpan),
                 compilation,
                 currentFrame,
+                currentSourceMethod,
                 localsBuilder.ToImmutableAndFree(),
-                inScopeHoistedLocals,
+                inScopeHoistedLocalSlots,
                 debugInfo)
         End Function
 
-        Private Shared Function GetActualLocalNames(allLocalNames As ImmutableArray(Of String), <Out> ByRef inScopeHoistedLocalNames As ImmutableHashSet(Of String)) As ImmutableArray(Of String)
-            Dim localNames = ArrayBuilder(Of String).GetInstance()
-            Dim inScopeHoistedLocalsBuilder As ImmutableHashSet(Of String).Builder = Nothing
+        Private Shared Function GetInScopeHoistedLocalSlots(allLocalNames As ImmutableArray(Of String)) As ImmutableSortedSet(Of Integer)
+            Dim builder = ArrayBuilder(Of Integer).GetInstance()
             For Each localName In allLocalNames
-                If localName IsNot Nothing AndAlso localName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
-                    If inScopeHoistedLocalsBuilder Is Nothing Then
-                        inScopeHoistedLocalsBuilder = ImmutableHashSet.CreateBuilder(Of String)()
-                    End If
-                    inScopeHoistedLocalsBuilder.Add(localName)
-                Else
-                    localNames.Add(localName)
+                Dim hoistedLocalName As String = Nothing
+                Dim hoistedLocalSlot As Integer = 0
+                If localName IsNot Nothing AndAlso GeneratedNames.TryParseStateMachineHoistedUserVariableName(localName, hoistedLocalName, hoistedLocalSlot) Then
+                    builder.Add(hoistedLocalSlot)
                 End If
             Next
-            inScopeHoistedLocalNames = If(inScopeHoistedLocalsBuilder Is Nothing, ImmutableHashSet(Of String).Empty, inScopeHoistedLocalsBuilder.ToImmutable())
-            Return localNames.ToImmutableAndFree()
+
+            Dim result = builder.ToImmutableSortedSet()
+            builder.Free()
+            Return result
         End Function
 
         ''' <summary>
@@ -355,8 +369,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return New CompilationContext(
                 Compilation,
                 _currentFrame,
+                _currentSourceMethod,
                 _locals,
-                _inScopeHoistedLocals,
+                _inScopeHoistedLocalSlots,
                 _methodDebugInfo,
                 withSyntax)
         End Function
@@ -392,14 +407,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Using stream As New MemoryStream()
                 Cci.PeWriter.WritePeToStream(
-                        New EmitContext(moduleBuilder, Nothing, diagnostics),
+                        New EmitContext(moduleBuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
+                        emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -439,14 +455,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Using stream As New MemoryStream()
                 Cci.PeWriter.WritePeToStream(
-                        New EmitContext(modulebuilder, Nothing, diagnostics),
+                        New EmitContext(modulebuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
+                        emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -487,14 +504,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then
                 Using stream As New MemoryStream()
                     Cci.PeWriter.WritePeToStream(
-                        New EmitContext(modulebuilder, Nothing, diagnostics),
+                        New EmitContext(modulebuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
+                        emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
 
                     If Not diagnostics.HasAnyErrors() Then

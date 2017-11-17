@@ -400,9 +400,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return item;
         }
 
-        private Dictionary<CompletionProvider, int> GetCompletionProviderToIndex(IEnumerable<CompletionProvider> completionProviders)
+        private static Dictionary<CompletionProvider, int> GetCompletionProviderToIndex(ImmutableArray<CompletionProvider> completionProviders)
         {
-            var result = new Dictionary<CompletionProvider, int>();
+            var result = new Dictionary<CompletionProvider, int>(completionProviders.Length);
 
             int i = 0;
             foreach (var completionProvider in completionProviders)
@@ -450,17 +450,12 @@ namespace Microsoft.CodeAnalysis.Completion
             return context;
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
         {
             var provider = GetProvider(item);
-            if (provider != null)
-            {
-                return provider.GetDescriptionAsync(document, item, cancellationToken);
-            }
-            else
-            {
-                return Task.FromResult(CompletionDescription.Empty);
-            }
+            return provider != null
+                ? provider.GetDescriptionAsync(document, item, cancellationToken)
+                : Task.FromResult(CompletionDescription.Empty);
         }
 
         public override bool ShouldTriggerCompletion(

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,10 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
@@ -90,21 +89,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
-            // While we're not technically doing anything async here, we need to let the 
+            // While we're not technically doing anything async here, we need to let the
             // integration test harness know that it should not proceed until all this
             // work is done.  Otherwise it might ask to do some work before we finish.
             // That can happen because although we're on the UI thread, we may do things
             // that end up causing VS to pump the messages that the test harness enqueues
-            // to the UI thread as well.  
+            // to the UI thread as well.
             using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
             {
-                // WaitIndicator cannot be used with async/await. Even though we call async methods 
+                // WaitIndicator cannot be used with async/await. Even though we call async methods
                 // later in this call chain, do not await them.
                 SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
                 {
                     using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitContext.CancellationToken))
                     {
                         InnerInvoke(waitContext.ProgressTracker, linkedSource.Token);
+                        foreach (var actionCallback in SourceProvider.ActionCallbacks)
+                        {
+                            actionCallback.Value.OnSuggestedActionExecuted(this);
+                        }
                     }
                 });
             }
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var snapshot = SubjectBuffer.CurrentSnapshot;
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
-                Func<Document> getFromDocument = () => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                Document getFromDocument() => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 InvokeCore(getFromDocument, progressTracker, cancellationToken);
             }
         }
@@ -160,10 +163,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // We'll now show progress as we apply the action.
                 progressTracker.Clear();
 
-                // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                EditHandler.ApplyAsync(Workspace, getFromDocument(),
-                    operations.ToImmutableArray(), CodeAction.Title,
-                    progressTracker, cancellationToken).Wait(cancellationToken);
+                using (Logger.LogBlock(
+                    FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                {
+                    // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
+                    EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                        operations.ToImmutableArray(), CodeAction.Title,
+                        progressTracker, cancellationToken).Wait(cancellationToken);
+                }
+            }
+        }
+
+        private void CreateLogProperties(Dictionary<string, object> map)
+        {
+            // set various correlation info
+            if (CodeAction is CodeFixes.FixSomeCodeAction fixSome)
+            {
+                // fix all correlation info
+                map[CodeFixes.FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
+                map[CodeFixes.FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
+            }
+
+            if (TryGetTelemetryId(out Guid telemetryId))
+            {
+                // Lightbulb correlation info
+                map["TelemetryId"] = telemetryId.ToString();
+            }
+
+            if (this is ITelemetryDiagnosticID<string> diagnosticId)
+            {
+                // save what it is actually fixing
+                map["DiagnosticId"] = diagnosticId.GetDiagnosticID();
             }
         }
 
@@ -229,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
-                return default(ImageMoniker);
+                return default;
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -9,10 +9,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return CSharpVSResources.Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere; }
         }
 
-        public static string Option_ClosedFileDiagnostics
-        {
-            get { return CSharpVSResources.Enable_full_solution_analysis; }
-        }
+        public static string Option_Analysis
+            => ServicesVSResources.Analysis;
+
+        public static string Option_Enable_full_solution_analysis
+            => ServicesVSResources.Enable_full_solution_analysis;
+
+        public static string Option_Perform_editor_feature_analysis_in_external_process
+            => ServicesVSResources.Perform_editor_feature_analysis_in_external_process;
 
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
@@ -61,6 +65,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_at_the_end
             => ServicesVSResources.at_the_end;
+
+        public static string Option_When_generating_properties
+            => ServicesVSResources.When_generating_properties;
+
+        public static string Option_prefer_auto_properties
+            => ServicesVSResources.prefer_auto_properties_2;
+
+        public static string Option_prefer_throwing_properties
+            => ServicesVSResources.prefer_throwing_properties;
 
         public static string Option_GenerateXmlDocCommentsForTripleSlash
         {
@@ -121,15 +134,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_guides_for_code_level_constructs
             => ServicesVSResources.Show_guides_for_code_level_constructs;
 
+        public static string Option_Fading
+            => ServicesVSResources.Fading;
+
+        public static string Option_Fade_out_unused_usings
+            => CSharpVSResources.Fade_out_unused_usings;
+
+        public static string Option_Fade_out_unreachable_code
+            => ServicesVSResources.Fade_out_unreachable_code;
+
         public static string Option_Performance
         {
             get { return CSharpVSResources.Performance; }
         }
 
         public static string Option_PlaceSystemNamespaceFirst
-        {
-            get { return CSharpVSResources.Place_System_directives_first_when_sorting_usings; }
-        }
+            => CSharpVSResources.Place_System_directives_first_when_sorting_usings;
+
+        public static string Option_SeparateImportGroups
+            => CSharpVSResources.Separate_using_directive_groups;
 
         public static string Option_Using_Directives =>
             CSharpVSResources.Using_Directives;
@@ -139,5 +162,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Suggest_usings_for_types_in_NuGet_packages =>
             CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
+
+        public static string Option_Report_invalid_placeholders_in_string_dot_format_calls =>
+            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls; 
     }
 }

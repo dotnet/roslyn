@@ -2,6 +2,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
@@ -14,7 +15,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
-    ''' A ImportAliasesBinder provides lookup for looking up import aliases (A = Foo.Bar),
+    ''' A ImportAliasesBinder provides lookup for looking up import aliases (A = Goo.Bar),
     ''' either at file level or project level.
     ''' </summary>
     Friend Class ImportAliasesBinder
@@ -73,6 +74,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
                 Return Me.Compilation.SourceModule
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
             End Get
         End Property
     End Class

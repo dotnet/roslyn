@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Simplification
             Document document,
             ImmutableArray<TextSpan> spans,
             OptionSet optionSet = null,
-            ImmutableArray<AbstractReducer> reducers = default(ImmutableArray<AbstractReducer>), 
-            CancellationToken cancellationToken = default(CancellationToken))
+            ImmutableArray<AbstractReducer> reducers = default, 
+            CancellationToken cancellationToken = default)
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
             {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
 
-            Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans = (nodeOrToken) =>
+            bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken) =>
                 !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             Document document,
             SyntaxNode root,
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
-            IEnumerable<AbstractReducer> reducers,
+            ImmutableArray<AbstractReducer> reducers,
             OptionSet optionSet,
             SemanticModel semanticModel,
             ConcurrentDictionary<SyntaxNode, SyntaxNode> reducedNodesMap,
@@ -178,89 +178,92 @@ namespace Microsoft.CodeAnalysis.Simplification
             {
                 var nodeOrTokenToReduce = nodesAndTokensToReduce[i];
                 simplifyTasks[i] = Task.Run(async () =>
-            {
-                var nodeOrToken = nodeOrTokenToReduce.OriginalNodeOrToken;
-                var simplifyAllDescendants = nodeOrTokenToReduce.SimplifyAllDescendants;
-                var semanticModelForReduce = semanticModel;
-                var currentNodeOrToken = nodeOrTokenToReduce.NodeOrToken;
-                var isNode = nodeOrToken.IsNode;
-
-                foreach (var reducer in reducers)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    var nodeOrToken = nodeOrTokenToReduce.OriginalNodeOrToken;
+                    var simplifyAllDescendants = nodeOrTokenToReduce.SimplifyAllDescendants;
+                    var semanticModelForReduce = semanticModel;
+                    var currentNodeOrToken = nodeOrTokenToReduce.NodeOrToken;
+                    var isNode = nodeOrToken.IsNode;
 
-                    var rewriter = reducer.CreateExpressionRewriter(optionSet, cancellationToken);
-
-                    do
+                    foreach (var reducer in reducers)
                     {
-                        if (currentNodeOrToken.SyntaxTree != semanticModelForReduce.SyntaxTree)
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        using (var rewriter = reducer.GetOrCreateRewriter())
                         {
-                            // currentNodeOrToken was simplified either by a previous reducer or
-                            // a previous iteration of the current reducer.
-                            // Create a speculative semantic model for the simplified node for semantic queries.
+                            rewriter.Initialize(document.Project.ParseOptions, optionSet, cancellationToken);
 
-                            // Certain node kinds (expressions/statements) require non-null parent nodes during simplification.
-                            // However, the reduced nodes haven't been parented yet, so do the required parenting using the original node's parent.
-                            if (currentNodeOrToken.Parent == null &&
-                                nodeOrToken.Parent != null &&
-                                (currentNodeOrToken.IsToken ||
-                                currentNodeOrToken.AsNode() is TExpressionSyntax ||
-                                currentNodeOrToken.AsNode() is TStatementSyntax ||
-                                currentNodeOrToken.AsNode() is TCrefSyntax))
+                            do
                             {
-                                var annotation = new SyntaxAnnotation();
-                                currentNodeOrToken = currentNodeOrToken.WithAdditionalAnnotations(annotation);
-
-                                var replacedParent = isNode ?
-                                    nodeOrToken.Parent.ReplaceNode(nodeOrToken.AsNode(), currentNodeOrToken.AsNode()) :
-                                    nodeOrToken.Parent.ReplaceToken(nodeOrToken.AsToken(), currentNodeOrToken.AsToken());
-
-                                currentNodeOrToken = replacedParent
-                                    .ChildNodesAndTokens()
-                                    .Single((c) => c.HasAnnotation(annotation));
-                            }
-
-                            if (isNode)
-                            {
-                                var currentNode = currentNodeOrToken.AsNode();
-                                if (this.CanNodeBeSimplifiedWithoutSpeculation(nodeOrToken.AsNode()))
+                                if (currentNodeOrToken.SyntaxTree != semanticModelForReduce.SyntaxTree)
                                 {
-                                    // Since this node cannot be speculated, we are replacing the Document with the changes and get a new SemanticModel
-                                    SyntaxAnnotation marker = new SyntaxAnnotation();
-                                    var newRoot = root.ReplaceNode(nodeOrToken.AsNode(), currentNode.WithAdditionalAnnotations(marker));
-                                    var newDocument = document.WithSyntaxRoot(newRoot);
-                                    semanticModelForReduce = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                                    newRoot = await semanticModelForReduce.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                                    currentNodeOrToken = newRoot.DescendantNodes().Single((c) => c.HasAnnotation(marker));
+                                    // currentNodeOrToken was simplified either by a previous reducer or
+                                    // a previous iteration of the current reducer.
+                                    // Create a speculative semantic model for the simplified node for semantic queries.
+
+                                    // Certain node kinds (expressions/statements) require non-null parent nodes during simplification.
+                                    // However, the reduced nodes haven't been parented yet, so do the required parenting using the original node's parent.
+                                    if (currentNodeOrToken.Parent == null &&
+                                        nodeOrToken.Parent != null &&
+                                        (currentNodeOrToken.IsToken ||
+                                        currentNodeOrToken.AsNode() is TExpressionSyntax ||
+                                        currentNodeOrToken.AsNode() is TStatementSyntax ||
+                                        currentNodeOrToken.AsNode() is TCrefSyntax))
+                                    {
+                                        var annotation = new SyntaxAnnotation();
+                                        currentNodeOrToken = currentNodeOrToken.WithAdditionalAnnotations(annotation);
+
+                                        var replacedParent = isNode ?
+                                            nodeOrToken.Parent.ReplaceNode(nodeOrToken.AsNode(), currentNodeOrToken.AsNode()) :
+                                            nodeOrToken.Parent.ReplaceToken(nodeOrToken.AsToken(), currentNodeOrToken.AsToken());
+
+                                        currentNodeOrToken = replacedParent
+                                            .ChildNodesAndTokens()
+                                            .Single(c => c.HasAnnotation(annotation));
+                                    }
+
+                                    if (isNode)
+                                    {
+                                        var currentNode = currentNodeOrToken.AsNode();
+                                        if (this.CanNodeBeSimplifiedWithoutSpeculation(nodeOrToken.AsNode()))
+                                        {
+                                            // Since this node cannot be speculated, we are replacing the Document with the changes and get a new SemanticModel
+                                            var marker = new SyntaxAnnotation();
+                                            var newRoot = root.ReplaceNode(nodeOrToken.AsNode(), currentNode.WithAdditionalAnnotations(marker));
+                                            var newDocument = document.WithSyntaxRoot(newRoot);
+                                            semanticModelForReduce = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                                            newRoot = await semanticModelForReduce.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                                            currentNodeOrToken = newRoot.DescendantNodes().Single(c => c.HasAnnotation(marker));
+                                        }
+                                        else
+                                        {
+                                            // Create speculative semantic model for simplified node.
+                                            semanticModelForReduce = GetSpeculativeSemanticModel(ref currentNode, semanticModel, nodeOrToken.AsNode());
+                                            currentNodeOrToken = currentNode;
+                                        }
+                                    }
                                 }
-                                else
-                                {
-                                    // Create speculative semantic model for simplified node.
-                                    semanticModelForReduce = GetSpeculativeSemanticModel(ref currentNode, semanticModel, nodeOrToken.AsNode());
-                                    currentNodeOrToken = currentNode;
-                                }
+
+                                // Reduce the current node or token.
+                                currentNodeOrToken = rewriter.VisitNodeOrToken(currentNodeOrToken, semanticModelForReduce, simplifyAllDescendants);
                             }
+                            while (rewriter.HasMoreWork);
                         }
+                    }
 
-                        // Reduce the current node or token.
-                        currentNodeOrToken = rewriter.VisitNodeOrToken(currentNodeOrToken, semanticModelForReduce, simplifyAllDescendants);
-                    }
-                    while (rewriter.HasMoreWork);
-                }
-
-                // If nodeOrToken was simplified, add it to the appropriate dictionary of replaced nodes/tokens.
-                if (currentNodeOrToken != nodeOrToken)
-                {
-                    if (isNode)
+                    // If nodeOrToken was simplified, add it to the appropriate dictionary of replaced nodes/tokens.
+                    if (currentNodeOrToken != nodeOrToken)
                     {
-                        reducedNodesMap[nodeOrToken.AsNode()] = currentNodeOrToken.AsNode();
+                        if (isNode)
+                        {
+                            reducedNodesMap[nodeOrToken.AsNode()] = currentNodeOrToken.AsNode();
+                        }
+                        else
+                        {
+                            reducedTokensMap[nodeOrToken.AsToken()] = currentNodeOrToken.AsToken();
+                        }
                     }
-                    else
-                    {
-                        reducedTokensMap[nodeOrToken.AsToken()] = currentNodeOrToken.AsToken();
-                    }
-                }
-            }, cancellationToken);
+                }, cancellationToken);
             }
 
             return Task.WhenAll(simplifyTasks);

@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly DesignerAttributeState _state;
         private readonly IAsynchronousOperationListener _listener;
 
+        // cache whether a project is cps project or not
+        private readonly ConcurrentDictionary<ProjectId, bool> _cpsProjects;
+
         /// <summary>
         /// cache designer from UI thread
         /// 
@@ -46,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             Contract.ThrowIfNull(_serviceProvider);
 
             _notificationService = notificationService;
+            _cpsProjects = new ConcurrentDictionary<ProjectId, bool>(concurrencyLevel: 2, capacity: 10);
 
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DesignerAttribute);
             _state = new DesignerAttributeState();
@@ -73,16 +78,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+            if (await IsCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false))
+            {
+                return;
+            }
+
             // use tree version so that things like compiler option changes are considered
             var textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
             var projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-            var semanticVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
             var existingData = await _state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
             if (existingData != null)
             {
                 // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
-                if (CheckVersions(document, textVersion, projectVersion, semanticVersion, existingData))
+                if (CheckVersions(document, textVersion, projectVersion, existingData))
                 {
                     RegisterDesignerAttribute(document, existingData.DesignerAttributeArgument);
                     return;
@@ -99,11 +108,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             // we checked all types in the document, but couldn't find designer attribute, but we can't say this document doesn't have designer attribute
             // if the document also contains some errors.
             var designerAttributeArgumentOpt = result.ContainsErrors ? new Optional<string>() : new Optional<string>(result.DesignerAttributeArgument);
-            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, semanticVersion, designerAttributeArgumentOpt, cancellationToken).ConfigureAwait(false);
+            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, projectVersion, designerAttributeArgumentOpt, cancellationToken).ConfigureAwait(false);
+        }
+
+        public void RemoveDocument(DocumentId documentId)
+        {
+            _state.Remove(documentId);
+        }
+
+        public void RemoveProject(ProjectId projectId)
+        {
+            _cpsProjects.TryRemove(projectId, out _);
         }
 
         private async Task<DesignerAttributeResult> ScanDesignerAttributesOnRemoteHostIfPossibleAsync(Document document, CancellationToken cancellationToken)
         {
+            // No remote host support, use inproc service
             var service = document.GetLanguageService<IDesignerAttributeService>();
             if (service == null)
             {
@@ -113,13 +133,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        private bool CheckVersions(
-            Document document, VersionStamp textVersion, VersionStamp dependentProjectVersion, VersionStamp dependentSemanticVersion, Data existingData)
+        private async Task<bool> IsCpsProjectAsync(Project project, CancellationToken cancellationToken)
+        {
+            if (_cpsProjects.TryGetValue(project.Id, out var value))
+            {
+                return value;
+            }
+
+            // CPS projects do not support designer attributes.  So we just skip these projects entirely.
+            var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
+            var cps = await Task.Factory.StartNew(() => vsWorkspace?.IsCPSProject(project) == true, cancellationToken, TaskCreationOptions.None, this.ForegroundTaskScheduler).ConfigureAwait(false);
+            _cpsProjects.TryAdd(project.Id, cps);
+
+            // project is either cps or not. it doesn't change for same project
+            return cps;
+        }
+
+        private bool CheckVersions(Document document, VersionStamp textVersion, VersionStamp semanticVersion, Data existingData)
         {
             // first check full version to see whether we can reuse data in same session, if we can't, check timestamp only version to see whether
             // we can use it cross-session.
             return document.CanReusePersistedTextVersion(textVersion, existingData.TextVersion) &&
-                   document.Project.CanReusePersistedDependentSemanticVersion(dependentProjectVersion, dependentSemanticVersion, existingData.SemanticVersion);
+                   document.Project.CanReusePersistedDependentProjectVersion(semanticVersion, existingData.SemanticVersion);
         }
 
         private async Task RegisterDesignerAttributeAndSaveStateAsync(
@@ -140,6 +175,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private void RegisterDesignerAttribute(Document document, string designerAttributeArgument)
         {
+            if (!_state.Update(document.Id, designerAttributeArgument))
+            {
+                // value is not updated, meaning we are trying to report same value as before.
+                // we don't need to do anything. 
+                //
+                // I kept this since existing code had this, but since we check what platform has before
+                // reporting it, this might be redundant.
+                return;
+            }
+
             var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
             if (workspace == null)
             {
@@ -204,11 +249,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return _dotNotAccessDirectlyDesigner;
         }
 
-        public void RemoveDocument(DocumentId documentId)
-        {
-            _state.Remove(documentId);
-        }
-
         private class Data
         {
             public readonly VersionStamp TextVersion;
@@ -247,10 +287,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
-        }
-
-        public void RemoveProject(ProjectId projectId)
-        {
         }
         #endregion
     }

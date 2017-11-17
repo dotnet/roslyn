@@ -9,8 +9,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : CompilingTestBase
+    public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void NoInitializers()
         {
@@ -22,7 +23,7 @@ class C
     int P1 { get; }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             var tree = compilation.SyntaxTrees.Single();
             var nodes = tree.GetRoot().DescendantNodes().Where(n => n is VariableDeclarationSyntax || n is PropertyDeclarationSyntax).ToArray();
@@ -31,256 +32,400 @@ class C
             var semanticModel = compilation.GetSemanticModel(tree);
             foreach (var node in nodes)
             {
-                Assert.Null(semanticModel.GetOperationInternal(node));
+                Assert.Null(semanticModel.GetOperation(node));
             }
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-        public void ConstantInitializers()
+        public void ConstantInitializers_StaticField()
         {
-            var source = @"
+            string source = @"
 class C
 {
-    static int s1 = 1;
-    int i1 = 1, i2 = 2;
-    int P1 { get; } = 1;
-    void M(int p1 = 0, params int[] p2 = null) { }
-}";
+    static int s1 /*<bind>*/= 1/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static int s1 /*<bind>*/= 1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16)
+            };
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
-
-            var tree = compilation.SyntaxTrees.Single();
-            var nodes = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().ToArray();
-            Assert.Equal(6, nodes.Length);
-
-            compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
-
-            compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
-
-            compilation.VerifyOperationTree(nodes[2], expectedOperationTree:
-@"IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)");
-
-            compilation.VerifyOperationTree(nodes[3], expectedOperationTree:
-@"IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
-
-            compilation.VerifyOperationTree(nodes[4], expectedOperationTree:
-@"IParameterInitializer (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializerAtDeclaration)
-  ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)");
-
-            compilation.VerifyOperationTree(nodes[5], expectedOperationTree:
-@"IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializerAtDeclaration)
-  IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null)
-    ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null)");
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-        public void ExpressionInitializers()
+        public void ConstantInitializers_InstanceField()
         {
-            var source = @"
+            string source = @"
 class C
 {
-    static int s1 = 1 + F();
-    int i1 = 1 + F();
-    int P1 { get; }= 1 + F();
+    int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Int32 C.i2) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 2')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0414: The field 'C.i2' is assigned but its value is never used
+                //     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(4, 17),
+                // CS0414: The field 'C.i1' is assigned but its value is never used
+                //     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(4, 9)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ConstantInitializers_Property()
+        {
+            string source = @"
+class C
+{
+    int P1 { get; } /*<bind>*/= 1/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IPropertyInitializerOperation (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= 1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ConstantInitializers_DefaultValueParameter()
+        {
+            string source = @"
+class C
+{
+    void M(int p1 /*<bind>*/= 0/*</bind>*/, params int[] p2 = null) { }
+}
+";
+            string expectedOperationTree = @"
+IParameterInitializerOperation (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= 0')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1751: Cannot specify a default value for a parameter array
+                //     void M(int p1 /*<bind>*/= 0/*</bind>*/, params int[] p2 = null) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(4, 45)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ConstantInitializers_DefaultValueParamsArray()
+        {
+            string source = @"
+class C
+{
+    void M(int p1 = 0, params int[] p2 /*<bind>*/= null/*</bind>*/) { }
+}
+";
+            string expectedOperationTree = @"
+IParameterInitializerOperation (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= null')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1751: Cannot specify a default value for a parameter array
+                //     void M(int p1 = 0, params int[] p2 /*<bind>*/= null/*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(4, 24)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ExpressionInitializers_StaticField()
+        {
+            string source = @"
+class C
+{
+    static int s1 /*<bind>*/= 1 + F()/*</bind>*/;
 
     static int F() { return 1; }
-}";
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+    Left: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Right: 
+      IInvocationOperation (System.Int32 C.F()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
-
-            var tree = compilation.SyntaxTrees.Single();
-            var nodes = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().ToArray();
-            Assert.Equal(3, nodes.Length);
-
-            compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration)
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-    Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32)");
-
-            compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializerAtDeclaration)
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-    Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32)");
-
-            compilation.VerifyOperationTree(nodes[2], expectedOperationTree:
-@"IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializerAtDeclaration)
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-    Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32)");
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-        public void PartialClasses()
+        public void ExpressionInitializers_InstanceField()
         {
-            var source = @"
+            string source = @"
+class C
+{
+    static int s1 /*<bind>*/= 1 + F()/*</bind>*/;
+    int i1 = 1 + F();
+    int P1 { get; } = 1 + F();
+
+    static int F() { return 1; }
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+    Left: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Right: 
+      IInvocationOperation (System.Int32 C.F()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ExpressionInitializers_Property()
+        {
+            string source = @"
+class C
+{
+    int i1 /*<bind>*/= 1 + F()/*</bind>*/;
+
+    static int F() { return 1; }
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Int32 C.i1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+    Left: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Right: 
+      IInvocationOperation (System.Int32 C.F()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void PartialClasses_StaticField()
+        {
+            string source = @"
+partial class C
+{
+    static int s1 /*<bind>*/= 1/*</bind>*/;
+    int i1 = 1;
+}
+
+partial class C
+{
+    static int s2 = 2;
+    int i2 = 2;
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0414: The field 'C.i1' is assigned but its value is never used
+                //     int i1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(5, 9),
+                // CS0414: The field 'C.s2' is assigned but its value is never used
+                //     static int s2 = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s2").WithArguments("C.s2").WithLocation(10, 16),
+                // CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static int s1 /*<bind>*/= 1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16),
+                // CS0414: The field 'C.i2' is assigned but its value is never used
+                //     int i2 = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(11, 9)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void PartialClasses_InstanceField()
+        {
+            string source = @"
 partial class C
 {
     static int s1 = 1;
     int i1 = 1;
 }
+
 partial class C
 {
     static int s2 = 2;
-    int i2 = 2;
-}";
-
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
-
-            var tree = compilation.SyntaxTrees.Single();
-            var nodes = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().ToArray();
-            Assert.Equal(4, nodes.Length);
-
-            compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
-
-            compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
-            compilation.VerifyOperationTree(nodes[2], expectedOperationTree:
- @"IFieldInitializer (Field: System.Int32 C.s2) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)");
-
-            compilation.VerifyOperationTree(nodes[3], expectedOperationTree:
-@"IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)");
-        }
-
-        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-        public void Events()
-        {
-            var source = @"
-class C
-{
-    static event System.Action e = MakeAction(1);
-    event System.Action f = MakeAction(2);
-
-    static System.Action MakeAction(int x) { return null; }
-}";
-
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
-
-
-            var tree = compilation.SyntaxTrees.Single();
-            var nodes = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().ToArray();
-            Assert.Equal(2, nodes.Length);
-
-            compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializerAtDeclaration)
-  IInvocationExpression (static System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action)
-    IArgument (Matching Parameter: x) (OperationKind.Argument)
-      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
-
-            compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializerAtDeclaration)
-  IInvocationExpression (static System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action)
-    IArgument (Matching Parameter: x) (OperationKind.Argument)
-      ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)");
-        }
-
-        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-        public void MemberInitializerCSharp()
-        {
-            const string source = @"
-struct B
-{
-    public bool Field;
-}
-
-class F
-{
-    public int Field;
-    public string Property1 { set; get; }
-    public B Property2 { set; get; }
-}
-
-class C
-{
-    public void M1()
-    {   
-        var x1 = new F();
-        var x2 = new F() { Field = 2 };
-        var x3 = new F() { Property1 = """" };
-        var x4 = new F() { Property1 = """", Field = 2 };
-        var x5 = new F() { Property2 = new B { Field = true } };
-
-        var e1 = new F() { Property2 = 1 };
-        var e2 = new F() { """" };      
-    }
+    int i2 /*<bind>*/= 2/*</bind>*/;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Int32 C.i2) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 2')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0414: The field 'C.s2' is assigned but its value is never used
+                //     static int s2 = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s2").WithArguments("C.s2").WithLocation(10, 16),
+                // CS0414: The field 'C.i2' is assigned but its value is never used
+                //     int i2 /*<bind>*/= 2/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(11, 9),
+                // CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static int s1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16),
+                // CS0414: The field 'C.i1' is assigned but its value is never used
+                //     int i1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(5, 9)
+            };
 
-            compilation.VerifyDiagnostics(
-                      // (24,42): error CS0029: Cannot implicitly convert type 'int' to 'B'
-                      //         var e1 = new F() { Property2 = 1 };
-                      Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "B"),
-                      // (25,28): error CS1922: Cannot initialize type 'F' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-                      //         var e2 = new F() { "" };      
-                      Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, @"{ """" }").WithArguments("F").WithLocation(25, 26));
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-            var tree = compilation.SyntaxTrees.Single();
-            var nodes = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(v => v.Initializer).Where(n => n != null).ToArray();
-            Assert.Equal(7, nodes.Length);
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void Events_StaticField()
+        {
+            string source = @"
+class C
+{
+    static event System.Action e /*<bind>*/= MakeAction(1)/*</bind>*/;
 
-            compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: F x1 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-");
+    static System.Action MakeAction(int x) { return null; }
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Action C.e) (OperationKind.FieldInitializer, Type: null) (Syntax: '= MakeAction(1)')
+  IInvocationOperation (System.Action C.MakeAction(System.Int32 x)) (OperationKind.Invocation, Type: System.Action) (Syntax: 'MakeAction(1)')
+    Instance Receiver: 
+      null
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: F x2 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-        Member Initializers: IFieldInitializer (Field: System.Int32 F.Field) (OperationKind.FieldInitializerInCreation)
-            ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)");
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-            compilation.VerifyOperationTree(nodes[2], expectedOperationTree:
-@"IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: F x3 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-        Member Initializers: IPropertyInitializer (Property: System.String F.Property1 { get; set; }) (OperationKind.PropertyInitializerInCreation)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )");
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void Events_InstanceField()
+        {
+            string source = @"
+class C
+{
+    event System.Action f /*<bind>*/= MakeAction(2)/*</bind>*/;
 
-            compilation.VerifyOperationTree(nodes[3], expectedOperationTree:
-@"IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: F x4 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-        Member Initializers: IPropertyInitializer (Property: System.String F.Property1 { get; set; }) (OperationKind.PropertyInitializerInCreation)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-          IFieldInitializer (Field: System.Int32 F.Field) (OperationKind.FieldInitializerInCreation)
-            ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)");
+    static System.Action MakeAction(int x) { return null; }
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Action C.f) (OperationKind.FieldInitializer, Type: null) (Syntax: '= MakeAction(2)')
+  IInvocationOperation (System.Action C.MakeAction(System.Int32 x)) (OperationKind.Invocation, Type: System.Action) (Syntax: 'MakeAction(2)')
+    Instance Receiver: 
+      null
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            compilation.VerifyOperationTree(nodes[4], expectedOperationTree:
-@"IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: F x5 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-        Member Initializers: IPropertyInitializer (Property: B F.Property2 { get; set; }) (OperationKind.PropertyInitializerInCreation)
-            IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B)
-              Member Initializers: IFieldInitializer (Field: System.Boolean B.Field) (OperationKind.FieldInitializerInCreation)
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)");
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-            compilation.VerifyOperationTree(nodes[5], expectedOperationTree:
-@"IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: F e1 (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid)
-        Member Initializers: IPropertyInitializer (Property: B F.Property2 { get; set; }) (OperationKind.PropertyInitializerInCreation, IsInvalid)
-            IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: B, IsInvalid)
-              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void FieldInitializer_ConstantConversions_01()
+        {
+            string source = @"
+class C
+{
+    private float f /*<bind>*/= 0.0/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Single C.f) (OperationKind.FieldInitializer, Type: null, IsInvalid) (Syntax: '= 0.0')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (4,33): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
+                //     private float f /*<bind>*/= 0.0/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "0.0").WithArguments("F", "float").WithLocation(4, 33),
+                // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used
+                //     private float f /*<bind>*/= 0.0/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 19)
+            };
 
-            compilation.VerifyOperationTree(nodes[6], expectedOperationTree:
-@"IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: F e2 (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid)");
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void FieldInitializer_ConstantConversions_02()
+        {
+            string source = @"
+class C
+{
+    private float f /*<bind>*/= 0/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializerOperation (Field: System.Single C.f) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 0')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Single, Constant: 0, IsImplicit) (Syntax: '0')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used
+                //     private float f /*<bind>*/= 0/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

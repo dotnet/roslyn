@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text, options);
+            return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
         }
 
         [Fact]
@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.Members.Count);
             Assert.NotNull(cs.CloseBraceToken);
 
-            CreateCompilationWithMscorlib(text).GetDeclarationDiagnostics().Verify(
+            CreateStandardCompilation(text).GetDeclarationDiagnostics().Verify(
                 // (1,9): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a where b : c { }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 9));
@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "class a { void M() where b : c { } }";
 
-            CreateCompilationWithMscorlib(text).GetDeclarationDiagnostics().Verify(
+            CreateStandardCompilation(text).GetDeclarationDiagnostics().Verify(
                 // (1,20): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a { void M() where b : c { } }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 20));
@@ -1993,6 +1993,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestDelegateWithRefReadonlyReturnType()
+        {
+            var text = "delegate ref readonly a b();";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
+            var ds = (DelegateDeclarationSyntax)file.Members[0];
+            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotNull(ds.ReturnType);
+            Assert.Equal("ref readonly a", ds.ReturnType.ToString());
+            Assert.NotNull(ds.Identifier);
+            Assert.Equal("b", ds.Identifier.ToString());
+            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
+            Assert.Equal(0, ds.ParameterList.Parameters.Count);
+            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
         [Fact]
         public void TestDelegateWithBuiltInReturnTypes()
         {
@@ -2013,7 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDelegateWithBuiltInReturnType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestDelegateWithBuiltInReturnType(SyntaxKind builtInType)
+        private void TestDelegateWithBuiltInReturnType(SyntaxKind builtInType)
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate " + typeText + " b();";
@@ -2059,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDelegateWithBuiltInParameterType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestDelegateWithBuiltInParameterType(SyntaxKind builtInType)
+        private void TestDelegateWithBuiltInParameterType(SyntaxKind builtInType)
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate a b(" + typeText + " c);";
@@ -2482,10 +2510,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
         }
 
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestClassMethodWithRefReadonlyReturn()
+        {
+            var text = "class a { ref readonly b X() { } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ms.AttributeLists.Count);
+            Assert.NotNull(ms.ReturnType);
+            Assert.Equal("ref readonly b", ms.ReturnType.ToString());
+            Assert.NotNull(ms.Identifier);
+            Assert.Equal("X", ms.Identifier.ToString());
+            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
+            Assert.Equal(0, ms.ParameterList.Parameters.Count);
+            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
+            Assert.Equal(0, ms.ConstraintClauses.Count);
+            Assert.NotNull(ms.Body);
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+        }
+
+        [Fact]
         public void TestClassMethodWithRef()
         {
             var text = "class a { ref }";
             var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(1, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.IncompleteMember, cs.Members[0].Kind());
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestClassMethodWithRefReadonly()
+        {
+            var text = "class a { ref readonly }";
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2876,7 +2981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestClassMethodWithBuiltInReturnType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassMethodWithBuiltInReturnType(SyntaxKind type)
+        private void TestClassMethodWithBuiltInReturnType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " M() { } }";
@@ -2941,7 +3046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestClassMethodWithBuiltInParameterType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassMethodWithBuiltInParameterType(SyntaxKind type)
+        private void TestClassMethodWithBuiltInParameterType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { b X(" + typeText + " c) { } }";
@@ -3299,7 +3404,7 @@ class Class1<T>{
             TestClassFieldWithBuiltInType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassFieldWithBuiltInType(SyntaxKind type)
+        private void TestClassFieldWithBuiltInType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c; }";
@@ -3854,6 +3959,61 @@ class Class1<T>{
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestClassPropertyWithRefReadonlyReturn()
+        {
+            var text = "class a { ref readonly b c { get; set; } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
+            var ps = (PropertyDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.AttributeLists.Count);
+            Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.Type);
+            Assert.Equal("ref readonly b", ps.Type.ToString());
+            Assert.NotNull(ps.Identifier);
+            Assert.Equal("c", ps.Identifier.ToString());
+
+            Assert.NotNull(ps.AccessorList.OpenBraceToken);
+            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.Equal(2, ps.AccessorList.Accessors.Count);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[0].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[1].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+        }
+
         [Fact]
         public void TestClassPropertyWithBuiltInTypes()
         {
@@ -3873,7 +4033,7 @@ class Class1<T>{
             TestClassPropertyWithBuiltInType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassPropertyWithBuiltInType(SyntaxKind type)
+        private void TestClassPropertyWithBuiltInType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c { get; set; } }";
@@ -4065,7 +4225,7 @@ class Class1<T>{
             TestClassEventWithValue(SyntaxKind.RemoveAccessorDeclaration, SyntaxKind.RemoveKeyword, SyntaxKind.IdentifierToken);
         }
 
-        public void TestClassPropertyWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
+        private void TestClassPropertyWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             bool isEvent = accessorKeyword == SyntaxKind.AddKeyword || accessorKeyword == SyntaxKind.RemoveKeyword;
             var text = "class a { " + (isEvent ? "event" : string.Empty) + " b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
@@ -4122,7 +4282,7 @@ class Class1<T>{
             Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.Kind());
         }
 
-        public void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
+        private void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             var text = "class a { event b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
             var file = this.ParseFile(text);
@@ -4742,6 +4902,74 @@ class Class1<T>{
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact]
+        public void TestClassIndexerWithRefReadonlyReturn()
+        {
+            var text = "class a { ref readonly b this[c d] { get; set; } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind());
+            var ps = (IndexerDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.AttributeLists.Count);
+            Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.Type);
+            Assert.Equal("ref readonly b", ps.Type.ToString());
+            Assert.NotNull(ps.ThisKeyword);
+            Assert.Equal("this", ps.ThisKeyword.ToString());
+
+            Assert.NotNull(ps.ParameterList); // used with indexer property
+            Assert.NotNull(ps.ParameterList.OpenBracketToken);
+            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
+            Assert.NotNull(ps.ParameterList.CloseBracketToken);
+            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
+            Assert.Equal(1, ps.ParameterList.Parameters.Count);
+            Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
+            Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
+            Assert.NotNull(ps.ParameterList.Parameters[0].Type);
+            Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
+            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
+
+            Assert.NotNull(ps.AccessorList.OpenBraceToken);
+            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.Equal(2, ps.AccessorList.Accessors.Count);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[0].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[1].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+        }
+
         [Fact]
         public void TestClassIndexerWithMultipleParameters()
         {
@@ -5189,39 +5417,66 @@ class Class1<T>{
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.AliasQualifiedName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedAliasedName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<B> { }";
             file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<,> { }";
             file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames1()
+        {
+            var text = @"namespace A::B { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7000: Unexpected use of an aliased name
+                // namespace A::B { }
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "A::B").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames2()
+        {
+            var text = @"namespace A<B> { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7002: Unexpected use of a generic name
+                // namespace A<B> { }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<B>").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames3()
+        {
+            var text = @"namespace A<,> { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7002: Unexpected use of a generic name
+                // namespace A<,> { }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<,>").WithLocation(1, 11));
         }
 
         [WorkItem(537690, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537690")]
@@ -5240,6 +5495,64 @@ class Program {
             var file = this.ParseFile(text);
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[0].Code);
+        }
+
+        [Fact]
+        public void TestPartialPartial()
+        {
+            var text = @"
+partial class PartialPartial
+{
+    int i = 1;
+    partial partial void PM();
+    partial partial void PM()
+    {
+        i = 0;
+    }
+    static int Main()
+    {
+        PartialPartial t = new PartialPartial();
+        t.PM();
+        return t.i;
+    }
+}
+";
+            // These errors aren't great.  Ideally we can improve things in the future.
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (5,13): error CS1525: Invalid expression term 'partial'
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 13),
+                // (5,13): error CS1002: ; expected
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 13),
+                // (6,13): error CS1525: Invalid expression term 'partial'
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(6, 13),
+                // (6,13): error CS1002: ; expected
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(6, 13),
+                // (6,13): error CS0102: The type 'PartialPartial' already contains a definition for ''
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("PartialPartial", "").WithLocation(6, 13),
+                // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
+                // (6,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void TestPartialEnum()
+        {
+            var text = @"partial enum E{}";
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E{}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E{}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
 
         [WorkItem(539120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539120")]
@@ -5275,7 +5588,7 @@ class C {
             Assert.NotNull(file);
             Assert.Equal(0, file.Errors().Length);
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (5,28): error CS1065: Default values are not valid in this context.
                 //      F f = delegate (int x = 0) { };
                 Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 28));
@@ -5397,8 +5710,14 @@ class C
    void M(__arglist, int j)  {}
 }";
 
-            TestError(text1, ErrorCode.ERR_ParamsLast);
-            TestError(text2, ErrorCode.ERR_VarargsLast);
+            CreateStandardCompilation(text1).VerifyDiagnostics(
+                // (4,11): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //    void M(params int[] i, int j)  {}
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] i").WithLocation(4, 11));
+            CreateStandardCompilation(text2).VerifyDiagnostics(
+                // (4,11): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                //    void M(__arglist, int j)  {}
+                Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(4, 11));
         }
 
         [Fact]
@@ -5565,7 +5884,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
+            var file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5586,7 +5905,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
+            var file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5741,14 +6060,13 @@ class C
             }
         }
 
-
         [Fact]
         public void ParseOutVar()
         {
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         M(out var x);
     }
@@ -5766,7 +6084,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -5810,6 +6128,206 @@ class C
                         }
                     }
                     N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList1()
+        {
+            var tree = UsingTree(@"
+class C<T> : where
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList2()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList3()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T :
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.SimpleBaseType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList4()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T : X
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.SimpleBaseType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

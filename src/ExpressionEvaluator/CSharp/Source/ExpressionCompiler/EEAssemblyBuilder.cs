@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -123,8 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 id: LocalDebugId.None,
                 pdbAttributes: LocalVariableAttributes.None,
                 constraints: constraints,
-                dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
-                tupleElementNames: ImmutableArray<TypedConstant>.Empty);
+                dynamicTransformFlags: ImmutableArray<bool>.Empty,
+                tupleElementNames: ImmutableArray<string>.Empty);
         }
 
         private sealed class SlotAllocator : VariableSlotAllocator
@@ -149,8 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 LocalDebugId id,
                 LocalVariableAttributes pdbAttributes,
                 LocalSlotConstraints constraints,
-                ImmutableArray<TypedConstant> dynamicTransformFlags,
-                ImmutableArray<TypedConstant> tupleElementNames)
+                ImmutableArray<bool> dynamicTransformFlags,
+                ImmutableArray<string> tupleElementNames)
             {
                 var local = symbol as EELocalSymbol;
                 if ((object)local == null)

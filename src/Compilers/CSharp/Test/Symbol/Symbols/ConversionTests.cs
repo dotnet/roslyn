@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -293,7 +293,7 @@ class C
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var compilation = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var compilation = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             compilation.VerifyDiagnostics(
                 // (4,11): warning CS0169: The field 'C.a' is never used
                 //     int[] a;
@@ -341,7 +341,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
             Assert.Equal(ConversionKind.Identity, tuple.Item2.ClassifyConversion(tuple.Item1, comp.GetSpecialType(SpecialType.System_Boolean)).Kind);
         }
@@ -442,7 +442,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var diagnostics = compilation.GetDiagnostics();
             Assert.NotEmpty(diagnostics);
         }
@@ -462,7 +462,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var diagnostics = compilation.GetDiagnostics();
             Assert.Empty(diagnostics);
         }
@@ -485,7 +485,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -508,7 +508,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var diagnostics = compilation.GetDiagnostics();
             Assert.NotEmpty(diagnostics);
         }
@@ -530,7 +530,7 @@ public class Driver
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var diagnostics = compilation.GetDiagnostics();
             Assert.NotEmpty(diagnostics);
         }
@@ -553,7 +553,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(542540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542540")]
@@ -563,16 +563,16 @@ class Program
             var source = @"
 class C
 {
-    static void foo(int x = 0) //overload resolution picks this method, but the parameter count doesn't match
+    static void goo(int x = 0) //overload resolution picks this method, but the parameter count doesn't match
     {
-        System.Action a = foo;
+        System.Action a = goo;
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,27): error CS0123: No overload for 'foo' matches delegate 'System.Action'
-                //         System.Action a = foo;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "foo").WithArguments("foo", "System.Action"));
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,27): error CS0123: No overload for 'goo' matches delegate 'System.Action'
+                //         System.Action a = goo;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.Action"));
         }
 
         [WorkItem(543119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543119")]
@@ -584,14 +584,14 @@ class C
 {
     public class Program
     {
-        short? Foo()
+        short? Goo()
         {
             short? s = 2;
             return s;
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(543450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543450")]
@@ -609,7 +609,7 @@ class Program
         x <<= y;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -640,7 +640,7 @@ class Test
         A a = b;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (23,15): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
         }
@@ -673,7 +673,7 @@ class Test
         A a = (A)b;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (23,15): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(A)b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
         }
@@ -706,7 +706,7 @@ class C
         A a = b;
      }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (23,15): error CS0457: Ambiguous user defined conversions 'B<A>.implicit operator A(B<A>)' and 'A.implicit operator A(B<A>)' when converting from 'B<A>' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B<A>.implicit operator A(B<A>)", "A.implicit operator A(B<A>)", "B<A>", "A"));
         }
@@ -739,7 +739,7 @@ class Test
         A a = (A)b;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (23,15): error CS0457: Ambiguous user defined conversions 'B.explicit operator A(B)' and 'A.explicit operator A(B)' when converting from 'B' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(A)b").WithArguments("B.explicit operator A(B)", "A.explicit operator A(B)", "B", "A"));
         }
@@ -772,7 +772,7 @@ class Test
         A a = b;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (23,15): error CS0266: Cannot implicitly convert type 'B' to 'A'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b").WithArguments("B", "A"));
         }
@@ -806,7 +806,7 @@ class Test
     }
 }";
             // As in Dev10, we prefer the implicit conversion.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -837,10 +837,28 @@ class Test
         A a = (A)b;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (23,15): error CS0457: Ambiguous user defined conversions 'B.explicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         A a = (A)b;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(A)b").WithArguments("B.explicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
+        }
+
+        [Fact]
+        public void NoImplicitConversionsDefaultParameter_01()
+        {
+            var source = @"
+class C
+{
+    void Goo(float x = 0.0)
+    {
+
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (4,20): error CS1750: A value of type 'double' cannot be used as a default parameter because there are no standard conversions to type 'float'
+                //     void Goo(float x = 0.0)
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("double", "float").WithLocation(4, 20)
+                );
         }
 
         [Fact]
@@ -857,12 +875,12 @@ public class A
 
 class C
 {
-    void Foo(int x = default(A))
+    void Goo(int x = default(A))
     {
 
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,18): error CS1750: A value of type 'A' cannot be used as a default parameter because there are no standard conversions to type 'int'
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("A", "int"));
         }
@@ -881,12 +899,12 @@ public class A
 
 class C
 {
-    void Foo(A x = default(int))
+    void Goo(A x = default(int))
     {
 
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,16): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'A'
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("int", "A"));
         }
@@ -908,12 +926,12 @@ class A
 
 class C
 {
-    void Foo(Base b = default(A))
+    void Goo(Base b = default(A))
     {
 
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (15,19): error CS1750: A value of type 'A' cannot be used as a default parameter because there are no standard conversions to type 'Base'
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "b").WithArguments("A", "Base"));
         }
@@ -951,7 +969,7 @@ class C
         Console.WriteLine(b is A);
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (27,27): warning CS0184: The given expression is never of the provided ('B') type
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "a is B").WithArguments("B"),
                 // (28,27): warning CS0184: The given expression is never of the provided ('A') type
@@ -991,7 +1009,7 @@ class C
         Console.WriteLine(b as A);
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (27,27): error CS0039: Cannot convert type 'A' to 'B' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "a as B").WithArguments("A", "B"),
                 // (28,27): error CS0039: Cannot convert type 'B' to 'A' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
@@ -1017,7 +1035,7 @@ class Convertible
         throw null;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "new Convertible()"));
         }
@@ -1046,7 +1064,7 @@ class Convertible
         throw null;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "Convertible"));
         }
@@ -1083,7 +1101,7 @@ class Exception2 : System.Exception
         throw null;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1108,7 +1126,7 @@ class Convertible
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
                 //             case default(Convertible): return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18),
@@ -1141,7 +1159,7 @@ class Convertible
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case c: return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18),
@@ -1200,7 +1218,7 @@ class C
         var b = (C)1000M;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,17): error CS0031: Constant value '1000M' cannot be converted to a 'byte'
                 //         var b = (C)1000M;
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000M").WithArguments("1000M", "byte")
@@ -1416,7 +1434,7 @@ public class Test {
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (126,12): error CS0457: Ambiguous user defined conversions 'H1<A>.implicit operator G1<A>(H1<A>)' and 'H0.implicit operator G0(H0)' when converting from 'H1<A>' to 'G0'
     //         F0(h1a);
     Diagnostic(ErrorCode.ERR_AmbigUDConv, "h1a").WithArguments("H1<A>.implicit operator G1<A>(H1<A>)", "H0.implicit operator G0(H0)", "H1<A>", "G0"),
@@ -1621,8 +1639,9 @@ public struct S
             CompileAndVerify(source, expectedOutput: @"1ttt");
         }
 
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(545471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545471")]
-        [ClrOnlyFact]
+        [WorkItem(18446, "https://github.com/dotnet/roslyn/issues/18446")]
         public void CheckedConversionsInExpressionTrees()
         {
             var source = @"
@@ -1692,7 +1711,7 @@ class C<T>
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS0457: Ambiguous user defined conversions 'C<int>.explicit operator C<int>(int)' and 'C<int>.implicit operator C<int>(int)' when converting from 'int' to 'C<int>'
                 //         C<int> x1 = (C<int>)1; // Expression to type
@@ -1774,7 +1793,7 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -1808,7 +1827,7 @@ public struct C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -1983,6 +2002,390 @@ public class Test
                 // (60,17): error CS0029: Cannot implicitly convert type 'int' to 'R'
                 //             r = 0; //CS0029
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "R"));
+        }
+
+        [Fact]
+        public void BoxingConversionsForThisArgument()
+        {
+            var source =
+@"static class E
+{
+    internal static void F(this object o)
+    {
+        System.Console.WriteLine(o);
+    }
+}
+class C
+{
+    static void Main()
+    {
+        1.F();
+        'c'.F();
+        ""s"".F();
+        (1, (2, 3)).F();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"1
+c
+s
+(1, (2, 3))");
+        }
+
+        [Fact]
+        public void SkipNumericConversionsForThisArgument()
+        {
+            var source =
+@"static class E
+{
+    internal static void F(this long l) { }
+    internal static void G(this (long, long) t) { }
+    internal static void H(this (object, object) t) { }
+}
+class C
+{
+    static void Main()
+    {
+        int i = 1;
+        var t = (i, i);
+        E.F(i);
+        i.F();
+        E.G(t);
+        t.G();
+        E.H(t);
+        t.H();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (14,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'E.F(long)' requires a receiver of type 'long'
+                //         i.F();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("int", "F", "E.F(long)", "long").WithLocation(14, 9),
+                // (16,9): error CS1929: '(int, int)' does not contain a definition for 'G' and the best extension method overload 'E.G((long, long))' requires a receiver of type '(long, long)'
+                //         t.G();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "t").WithArguments("(int, int)", "G", "E.G((long, long))", "(long, long)").WithLocation(16, 9));
+        }
+
+        [Fact]
+        public void SkipNullableConversionsForThisArgument()
+        {
+            var source =
+@"static class E
+{
+    internal static void F(this int? i) { }
+    internal static void G(this (int, int)? t) { }
+}
+class C
+{
+    static void Main()
+    {
+        int i = 1;
+        var t = (i, i);
+        E.F(i);
+        i.F();
+        E.F((int?)i);
+        ((int?)i).F();
+        E.G(t);
+        t.G();
+        E.G(((int, int)?)t);
+        (((int, int)?)t).G();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (13,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'E.F(int?)' requires a receiver of type 'int?'
+                //         i.F();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("int", "F", "E.F(int?)", "int?").WithLocation(13, 9),
+                // (17,9): error CS1929: '(int, int)' does not contain a definition for 'G' and the best extension method overload 'E.G((int, int)?)' requires a receiver of type '(int, int)?'
+                //         t.G();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "t").WithArguments("(int, int)", "G", "E.G((int, int)?)", "(int, int)?").WithLocation(17, 9));
+        }
+
+        [Fact]
+        public void SkipEnumerationConversionsForThisArgument()
+        {
+            var source =
+@"enum E
+{
+}
+static class C
+{
+    static void F(this E e) { }
+    static void G(this E? e) { }
+    static void H(this (E, E?) t) { }
+    static void Main()
+    {
+        const E e = default(E);
+        F(e);
+        e.F();
+        F(0);
+        0.F();
+        G(e);
+        e.G();
+        G((E?)e);
+        ((E?)e).G();
+        G(0);
+        0.G();
+        H((e, e));
+        (e, e).H();
+        H((e, (E?)e));
+        (e, (E?)e).H();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (15,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'C.F(E)' requires a receiver of type 'E'
+                //         0.F();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "0").WithArguments("int", "F", "C.F(E)", "E").WithLocation(15, 9),
+                // (17,9): error CS1929: 'E' does not contain a definition for 'G' and the best extension method overload 'C.G(E?)' requires a receiver of type 'E?'
+                //         e.G();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "e").WithArguments("E", "G", "C.G(E?)", "E?").WithLocation(17, 9),
+                // (21,9): error CS1929: 'int' does not contain a definition for 'G' and the best extension method overload 'C.G(E?)' requires a receiver of type 'E?'
+                //         0.G();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "0").WithArguments("int", "G", "C.G(E?)", "E?").WithLocation(21, 9),
+                // (23,9): error CS1929: '(E, E)' does not contain a definition for 'H' and the best extension method overload 'C.H((E, E?))' requires a receiver of type '(E, E?)'
+                //         (e, e).H();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(e, e)").WithArguments("(E, E)", "H", "C.H((E, E?))", "(E, E?)").WithLocation(23, 9));
+        }
+
+        [Fact]
+        public void SkipConstantExpressionConversionsForThisArgument()
+        {
+            var source =
+@"static class C
+{
+    static void S08(this sbyte arg) { }
+    static void S16(this short arg) { }
+    static void S32(this int arg) { }
+    static void S64(this long arg) { }
+    static void U08(this byte arg) { }
+    static void U16(this ushort arg) { }
+    static void U32(this uint arg) { }
+    static void U64(this ulong arg) { }
+    static void Main()
+    {
+        S08(1);
+        S16(2);
+        S32(3);
+        S64(4);
+        U08(5);
+        U16(6);
+        U32(7);
+        U64(8);
+        1.S08();
+        2.S16();
+        3.S32();
+        4.S64();
+        5.U08();
+        6.U16();
+        7.U32();
+        8.U64();
+        S64(9L);
+        U64(10L);
+        9L.S64();
+        10L.U64();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (21,9): error CS1929: 'int' does not contain a definition for 'S08' and the best extension method overload 'C.S08(sbyte)' requires a receiver of type 'sbyte'
+                //         1.S08();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "1").WithArguments("int", "S08", "C.S08(sbyte)", "sbyte").WithLocation(21, 9),
+                // (22,9): error CS1929: 'int' does not contain a definition for 'S16' and the best extension method overload 'C.S16(short)' requires a receiver of type 'short'
+                //         2.S16();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "2").WithArguments("int", "S16", "C.S16(short)", "short").WithLocation(22, 9),
+                // (24,9): error CS1929: 'int' does not contain a definition for 'S64' and the best extension method overload 'C.S64(long)' requires a receiver of type 'long'
+                //         4.S64();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "4").WithArguments("int", "S64", "C.S64(long)", "long").WithLocation(24, 9),
+                // (25,9): error CS1929: 'int' does not contain a definition for 'U08' and the best extension method overload 'C.U08(byte)' requires a receiver of type 'byte'
+                //         5.U08();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "5").WithArguments("int", "U08", "C.U08(byte)", "byte").WithLocation(25, 9),
+                // (26,9): error CS1929: 'int' does not contain a definition for 'U16' and the best extension method overload 'C.U16(ushort)' requires a receiver of type 'ushort'
+                //         6.U16();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "6").WithArguments("int", "U16", "C.U16(ushort)", "ushort").WithLocation(26, 9),
+                // (27,9): error CS1929: 'int' does not contain a definition for 'U32' and the best extension method overload 'C.U32(uint)' requires a receiver of type 'uint'
+                //         7.U32();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "7").WithArguments("int", "U32", "C.U32(uint)", "uint").WithLocation(27, 9),
+                // (28,9): error CS1929: 'int' does not contain a definition for 'U64' and the best extension method overload 'C.U64(ulong)' requires a receiver of type 'ulong'
+                //         8.U64();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "8").WithArguments("int", "U64", "C.U64(ulong)", "ulong").WithLocation(28, 9),
+                // (32,9): error CS1929: 'long' does not contain a definition for 'U64' and the best extension method overload 'C.U64(ulong)' requires a receiver of type 'ulong'
+                //         10L.U64();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "10L").WithArguments("long", "U64", "C.U64(ulong)", "ulong").WithLocation(32, 9));
+        }
+
+        [Fact]
+        public void SkipConstantExpressionNullableConversionsForThisArgument()
+        {
+            var source =
+@"static class C
+{
+    static void S08(this sbyte? arg) { }
+    static void S16(this short? arg) { }
+    static void S32(this int? arg) { }
+    static void S64(this long? arg) { }
+    static void U08(this byte? arg) { }
+    static void U16(this ushort? arg) { }
+    static void U32(this uint? arg) { }
+    static void U64(this ulong? arg) { }
+    static void Main()
+    {
+        S08(1);
+        S16(2);
+        S32(3);
+        S64(4);
+        U08(5);
+        U16(6);
+        U32(7);
+        U64(8);
+        1.S08();
+        2.S16();
+        3.S32();
+        4.S64();
+        5.U08();
+        6.U16();
+        7.U32();
+        8.U64();
+        S64(9L);
+        U64(10L);
+        9L.S64();
+        10L.U64();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (21,9): error CS1929: 'int' does not contain a definition for 'S08' and the best extension method overload 'C.S08(sbyte?)' requires a receiver of type 'sbyte?'
+                //         1.S08();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "1").WithArguments("int", "S08", "C.S08(sbyte?)", "sbyte?").WithLocation(21, 9),
+                // (22,9): error CS1929: 'int' does not contain a definition for 'S16' and the best extension method overload 'C.S16(short?)' requires a receiver of type 'short?'
+                //         2.S16();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "2").WithArguments("int", "S16", "C.S16(short?)", "short?").WithLocation(22, 9),
+                // (23,9): error CS1929: 'int' does not contain a definition for 'S32' and the best extension method overload 'C.S32(int?)' requires a receiver of type 'int?'
+                //         3.S32();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "3").WithArguments("int", "S32", "C.S32(int?)", "int?").WithLocation(23, 9),
+                // (24,9): error CS1929: 'int' does not contain a definition for 'S64' and the best extension method overload 'C.S64(long?)' requires a receiver of type 'long?'
+                //         4.S64();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "4").WithArguments("int", "S64", "C.S64(long?)", "long?").WithLocation(24, 9),
+                // (25,9): error CS1929: 'int' does not contain a definition for 'U08' and the best extension method overload 'C.U08(byte?)' requires a receiver of type 'byte?'
+                //         5.U08();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "5").WithArguments("int", "U08", "C.U08(byte?)", "byte?").WithLocation(25, 9),
+                // (26,9): error CS1929: 'int' does not contain a definition for 'U16' and the best extension method overload 'C.U16(ushort?)' requires a receiver of type 'ushort?'
+                //         6.U16();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "6").WithArguments("int", "U16", "C.U16(ushort?)", "ushort?").WithLocation(26, 9),
+                // (27,9): error CS1929: 'int' does not contain a definition for 'U32' and the best extension method overload 'C.U32(uint?)' requires a receiver of type 'uint?'
+                //         7.U32();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "7").WithArguments("int", "U32", "C.U32(uint?)", "uint?").WithLocation(27, 9),
+                // (28,9): error CS1929: 'int' does not contain a definition for 'U64' and the best extension method overload 'C.U64(ulong?)' requires a receiver of type 'ulong?'
+                //         8.U64();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "8").WithArguments("int", "U64", "C.U64(ulong?)", "ulong?").WithLocation(28, 9),
+                // (31,9): error CS1929: 'long' does not contain a definition for 'S64' and the best extension method overload 'C.S64(long?)' requires a receiver of type 'long?'
+                //         9L.S64();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "9L").WithArguments("long", "S64", "C.S64(long?)", "long?").WithLocation(31, 9),
+                // (32,9): error CS1929: 'long' does not contain a definition for 'U64' and the best extension method overload 'C.U64(ulong?)' requires a receiver of type 'ulong?'
+                //         10L.U64();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "10L").WithArguments("long", "U64", "C.U64(ulong?)", "ulong?").WithLocation(32, 9));
+        }
+
+        [Fact]
+        [WorkItem(434957, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=434957")]
+        public void SkipUserDefinedConversionsForThisArgument()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator B(A a) => null;
+    public static implicit operator S(A a) => default(S);
+}
+class B
+{
+}
+struct S
+{
+}
+static class E
+{
+    internal static void F(this B b) { }
+    internal static void G(this S? s) { }
+}
+class C
+{
+    static void Main()
+    {
+        var a = new A();
+        var s = default(S);
+        E.F(a);
+        a.F();
+        E.G(s);
+        s.G();
+        E.G(a);
+        a.G();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (24,9): error CS1929: 'A' does not contain a definition for 'F' and the best extension method overload 'E.F(B)' requires a receiver of type 'B'
+                //         a.F();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("A", "F", "E.F(B)", "B"),
+                // (26,9): error CS1929: 'S' does not contain a definition for 'G' and the best extension method overload 'E.G(S?)' requires a receiver of type 'S?'
+                //         s.G();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "s").WithArguments("S", "G", "E.G(S?)", "S?").WithLocation(26, 9),
+                // (28,9): error CS1929: 'A' does not contain a definition for 'G' and the best extension method overload 'E.G(S?)' requires a receiver of type 'S?'
+                //         a.G();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("A", "G", "E.G(S?)", "S?"));
+        }
+
+        [Fact]
+        [WorkItem(434957, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=434957")]
+        public void SkipUserDefinedConversionsForThisArgument_TupleElements()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator B(A a) => null;
+    public static implicit operator S(A a) => default(S);
+}
+class B
+{
+}
+struct S
+{
+}
+static class E
+{
+    internal static void F(this (B, B) t) { }
+    internal static void G(this (B, B)? t) { }
+    internal static void H(this (S, S?) t) { }
+}
+class C
+{
+    static void Main()
+    {
+        var a = new A();
+        var b = new B();
+        var s = default(S);
+        E.F((a, b));
+        (a, b).F();
+        E.G((b, a));
+        (b, a).G();
+        E.H((s, s));
+        (s, s).H();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (26,9): error CS1929: '(A, B)' does not contain a definition for 'F' and the best extension method overload 'E.F((B, B))' requires a receiver of type '(B, B)'
+                //         (a, b).F();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(a, b)").WithArguments("(A, B)", "F", "E.F((B, B))", "(B, B)").WithLocation(26, 9),
+                // (28,9): error CS1929: '(B, A)' does not contain a definition for 'G' and the best extension method overload 'E.G((B, B)?)' requires a receiver of type '(B, B)?'
+                //         (b, a).G();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(b, a)").WithArguments("(B, A)", "G", "E.G((B, B)?)", "(B, B)?").WithLocation(28, 9),
+                // (30,9): error CS1929: '(S, S)' does not contain a definition for 'H' and the best extension method overload 'E.H((S, S?))' requires a receiver of type '(S, S?)'
+                //         (s, s).H();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(s, s)").WithArguments("(S, S)", "H", "E.H((S, S?))", "(S, S?)").WithLocation(30, 9));
         }
 
         #endregion

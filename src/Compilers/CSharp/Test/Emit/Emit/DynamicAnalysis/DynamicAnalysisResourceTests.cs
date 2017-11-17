@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -20,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Runtime
     public static class Instrumentation
     {
         public static bool[] CreatePayload(System.Guid mvid, int methodToken, int fileIndex, ref bool[] payload, int payloadLength)
+        {
+            return payload;
+        }
+
+        public static bool[] CreatePayload(System.Guid mvid, int methodToken, int[] fileIndices, ref bool[] payload, int payloadLength)
         {
             return payload;
         }
@@ -61,16 +67,16 @@ public class C
         [Fact]
         public void TestSpansPresentInResource()
         {
-            var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
-       
+
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' FF-9A-1F-F4-03-A5-A1-F7-8D-CD-00-15-67-0E-BA-F7-23-9D-3F-0F (SHA1)");
+                @"'C:\myproject\doc1.cs' 44-3F-7C-A1-EF-CA-A8-16-40-D2-09-4F-3E-52-7C-44-8D-22-C8-02 (SHA1)");
 
-            Assert.Equal(12, reader.Methods.Length);
+            Assert.Equal(13, reader.Methods.Length);
 
             string[] sourceLines = ExampleSource.Split('\n');
 
@@ -205,16 +211,16 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' 89-73-A7-64-40-88-BA-0A-21-33-05-5D-E7-22-9B-74-1C-6A-2C-DC (SHA1)");
+                @"'C:\myproject\doc1.cs' 6A-DC-C0-8A-16-CB-7C-A5-99-8B-2E-0C-3C-81-69-2C-B2-10-EE-F1 (SHA1)");
 
-            Assert.Equal(5, reader.Methods.Length);
+            Assert.Equal(6, reader.Methods.Length);
 
             string[] sourceLines = source.Split('\n');
 
@@ -325,16 +331,16 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' 45-00-3A-4C-F3-AC-01-6A-D2-57-35-E5-43-5E-BD-DB-98-AF-FD-41 (SHA1)");
+                @"'C:\myproject\doc1.cs' A3-08-94-55-7C-64-8D-C7-61-7A-11-0B-4B-68-2C-3B-51-C3-C4-58 (SHA1)");
 
-            Assert.Equal(14, reader.Methods.Length);
+            Assert.Equal(15, reader.Methods.Length);
 
             string[] sourceLines = source.Split('\n');
 
@@ -343,7 +349,7 @@ public class C
                 new SpanResult(10, 8, 10, 15, "Fred()"));
 
             VerifySpans(reader, reader.Methods[1], sourceLines,
-                new SpanResult(14,4,16,5, "static void Fred()"));
+                new SpanResult(14, 4, 16, 5, "static void Fred()"));
 
             VerifySpans(reader, reader.Methods[2], sourceLines,
                 new SpanResult(18, 4, 21, 5, "static C()"),
@@ -419,7 +425,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -466,7 +472,7 @@ public class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -497,7 +503,7 @@ public class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -537,7 +543,7 @@ public class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef});
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -605,7 +611,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -686,7 +692,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -705,7 +711,7 @@ public class C
             VerifySpans(reader, reader.Methods[2], sourceLines,
                new SpanResult(15, 4, 15, 28, "static int Init() => 33"),
                new SpanResult(15, 25, 15, 27, "33"));
-            
+
             VerifySpans(reader, reader.Methods[5], sourceLines,                     // Synthesized instance constructor
                 new SpanResult(17, 13, 17, 19, "Init()"),
                 new SpanResult(18, 13, 18, 24, "Init() + 12"),
@@ -767,7 +773,7 @@ partial struct E
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -861,7 +867,7 @@ public class D
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -894,7 +900,7 @@ public class D
         [Fact]
         public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
         {
-            var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateStandardCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default);
 
             var peReader = new PEReader(peImage);

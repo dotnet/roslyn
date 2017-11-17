@@ -44,27 +44,27 @@ public class Vec
 }
 ";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int i1 = 0b001010; // binary literals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7").WithLocation(7, 18),
-                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7.0").WithLocation(7, 18),
+                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int i2 = 23_554; // digit separators
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7").WithLocation(8, 18),
-                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7.0").WithLocation(8, 18),
+                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int f() => 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7").WithLocation(12, 13),
-                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(12, 13),
+                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(13, 9),
-                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
+                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(13, 22),
-                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 22),
+                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         string s = o is string k ? k : null; // pattern matching
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7").WithLocation(14, 20),
-                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7.0").WithLocation(14, 20),
+                // (12,13): warning CS8321: The local function 'f' is declared but never used
                 //         int f() => 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
@@ -72,9 +72,9 @@ public class Vec
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
-                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                // (12,13): warning CS8321: The local function 'f' is declared but never used
                 //         int f() => 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(12, 13)
                 );
         }
 
@@ -154,7 +154,7 @@ public class X
     public static void Main()
     {
         Test<string>(1);
-        Test<int>(""foo"");
+        Test<int>(""goo"");
         Test<int>(1);
         Test<int>(1.2);
         Test<double>(1.2);
@@ -177,7 +177,7 @@ public class X
             {
                 var expectedOutput =
 @"expression 1 is not String
-expression foo is not Int32
+expression goo is not Int32
 expression 1 is Int32 1
 expression 1.2 is not Int32
 expression 1.2 is Double 1.2
@@ -553,7 +553,7 @@ public struct X
 {
     public static void Main()
     {
-        var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X(), new Exception(""boo"") };
+        var oa = new object[] { 1, 10, 20L, 1.2, ""goo"", true, null, new X(), new Exception(""boo"") };
         foreach (var o in oa)
         {
             switch (o)
@@ -593,7 +593,7 @@ public struct X
 int 10
 long 20
 double 1.2
-class String foo
+class String goo
 struct Boolean True
 null
 struct X X
@@ -2795,7 +2795,7 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
 
@@ -3084,7 +3084,7 @@ a:      Test1(2 is var x1);
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (6,1): warning CS0164: This label has not been referenced
@@ -3131,7 +3131,7 @@ a:          Test2(2 is var x1, x1);
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -3198,7 +3198,7 @@ public class X
         Console.WriteLine(1L is int.MaxValue); // OK, but false
         Console.WriteLine(1 is int.MaxValue); // false
         Console.WriteLine(int.MaxValue is int.MaxValue); // true
-        Console.WriteLine(""foo"" is System.String); // true
+        Console.WriteLine(""goo"" is System.String); // true
         Console.WriteLine(Int32.MaxValue is Int32.MaxValue); // true
         Console.WriteLine(new int[] {1, 2} is int[] a); // true
         object o = null;
@@ -3218,7 +3218,11 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (11,27): warning CS0183: The given expression is always of the provided ('string') type
+                //         Console.WriteLine("goo" is System.String); // true
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27)
+                );
             CompileAndVerify(compilation, expectedOutput:
 @"True
 False
@@ -3265,7 +3269,13 @@ public class X
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 Console.WriteLine("string");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(10, 17),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Console.WriteLine("string[]");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
                 );
             // If we support switching on System.Type as proposed, the expectation would be
             // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
@@ -3398,9 +3408,9 @@ other 6");
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
-                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case 1 when true:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7.0").WithLocation(7, 13)
                 );
         }
 
@@ -3511,7 +3521,7 @@ unsafe struct S
     fixed int F2[3 is var x2 ? 3 : 3, x2];
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -3588,6 +3598,7 @@ unsafe struct S
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
         public void MethodGroupAsExpressionInIsPatternBrokenCode()
         {
@@ -3603,7 +3614,7 @@ unsafe struct S
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (7,29): error CS1525: Invalid expression term ')'
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 29),
@@ -3617,6 +3628,27 @@ unsafe struct S
                 //             if (object.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "object.Equals is()").WithLocation(8, 17)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().First();
+
+            Assert.Equal("o.Equals is()", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
+  Expression: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
+      Children(1):
+          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
+            Children(1):
+                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+  Pattern: 
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '()')
+      Value: 
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
+");
         }
 
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
@@ -3750,7 +3782,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3772,7 +3804,7 @@ public class TestClass
 }");
 
             // RELEASE
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3809,7 +3841,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3832,7 +3864,7 @@ public class TestClass
 
             
             // RELEASE
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3861,7 +3893,7 @@ class Program
 {
     public static void Main(string[] args)
     {
-        foreach (var s in new[] { ""0123"", ""foo"" })
+        foreach (var s in new[] { ""0123"", ""goo"" })
         {
             Console.Write(s + "" "");
             try
@@ -3886,7 +3918,7 @@ class Program
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"0123 123
-foo throws");
+goo throws");
         }
 
         [Fact]
@@ -3974,7 +4006,7 @@ class Program
         {
             try
             {
-                var used = (await Foo(i))?.ToString() ?? throw await Bar(i);
+                var used = (await Goo(i))?.ToString() ?? throw await Bar(i);
             }
             catch (Exception ex)
             {
@@ -3982,7 +4014,7 @@ class Program
             }
         }
     }
-    static async Task<object> Foo(int i)
+    static async Task<object> Goo(int i)
     {
         await Task.Yield();
         return (i == 1) ? i : (object)null;
@@ -4103,12 +4135,12 @@ class B
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7").WithLocation(15, 27),
-                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7.0").WithLocation(15, 27),
+                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(One + 2 is 3); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7").WithLocation(16, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27)
                 );
             var expectedOutput =
 @"5
@@ -4258,15 +4290,15 @@ True";
 
 public class C
 {
-    public string[] Foo2(out string x) { x = """"; return null; }
-    public string[] Foo3(bool b) { return null; }
+    public string[] Goo2(out string x) { x = """"; return null; }
+    public string[] Goo3(bool b) { return null; }
 
-    public string[] Foo5(string u) { return null; }
+    public string[] Goo5(string u) { return null; }
     
     public void Test()
     {
-        var t1 = Foo2(out var x1).Concat(Foo5(x1));
-        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+        var t1 = Goo2(out var x1).Concat(Goo5(x1));
+        var t2 = Goo3(t1 is var x2).Concat(Goo5(x2.First()));
     }
 }
 ";
@@ -4491,6 +4523,7 @@ unsafe public class Typ
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
+                // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 22),
                 // (13,31): error CS1525: Invalid expression term 'int'
@@ -4531,7 +4564,16 @@ unsafe public class Typ
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(15, 31),
                 // (15,36): error CS0103: The name 'f' does not exist in the current context
                 //             switch (e) { case Typ* f: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36),
+                // (13,39): warning CS0162: Unreachable code detected
+                //             switch (a) { case int* b: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 39),
+                // (14,39): warning CS0162: Unreachable code detected
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 39),
+                // (15,39): warning CS0162: Unreachable code detected
+                //             switch (e) { case Typ* f: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 39)
                 );
         }
 
@@ -4644,7 +4686,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         System.Console.Write(null is Missing x);
@@ -4655,7 +4697,7 @@ class C
                 // (7,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(null is Missing);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(7, 38),
-                // (8,16): error CS8119: The switch expression must be a value; found <null>.
+                // (8,16): error CS8119: The switch expression must be a value; found '<null>'.
                 //         switch(null)
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(8, 16),
                 // (10,18): error CS0103: The name 'Missing' does not exist in the current context
@@ -4663,7 +4705,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
                 // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //             case Missing y:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -4689,7 +4734,7 @@ public class Program46
     private static object M() => null;
 }";
             CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+                // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (10,18): error CS0150: A constant value is expected
@@ -4697,7 +4742,10 @@ public class Program46
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
                 // (11,18): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -4781,9 +4829,12 @@ public class Program1717
                 // (10,18): error CS0266: Cannot implicitly convert type 'double' to 'int?'. An explicit conversion exists (are you missing a cast?)
                 //             case double.NaN:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.NaN").WithArguments("double", "int?").WithLocation(10, 18),
-                // (13,18): error CS8121: An expression of type int? cannot be handled by a pattern of type string.
+                // (13,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'string'.
                 //             case string _:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -5137,6 +5188,45 @@ public class Program
 1
 2
 3");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TypeParameterSubsumption05()
+        {
+            var program = @"
+public class Program
+{
+    static void M<T, U>(T t, U u) where T : U
+    {
+        switch(""test"")
+        {
+            case U uu:
+                break;
+            case T tt: // Produces a diagnostic about subsumption/unreachability
+                break;
+        }
+    }
+}
+";
+            CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (8,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'U' in C# 7.0. Please use language version 7.1 or greater.
+                //             case U uu:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "U").WithArguments("string", "U", "7.0", "7.1").WithLocation(8, 18),
+                // (10,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T tt: // Produces a diagnostic about subsumption/unreachability
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
+            CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case T tt: // Produces a diagnostic about subsumption/unreachability
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "T tt").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
         }
 
         [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
@@ -5546,9 +5636,9 @@ namespace System
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
+                // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(9, 13)
                 );
         }
 
@@ -5591,33 +5681,6 @@ namespace System
                 //             case int _:
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int _").WithLocation(19, 18)
                 );
-        }
-
-        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
-        public void DoubleEvaluation01()
-        {
-            var source =
-@"using System;
-public class C
-{
-    public static void Main()
-    {
-        if (TryGet() is int index)
-        {
-            Console.WriteLine(index);
-        }
-    }
-
-    public static int? TryGet()
-    {
-        Console.WriteLine(""eval"");
-        return null;
-    }
-}";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
-            var expectedOutput = @"eval";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -5673,6 +5736,672 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
             var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_01()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M(new Derived());
+        M(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Derived b0);
+        switch (x)
+        {
+            case Derived b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
+                //         Console.Write(x is Derived b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
+                //             case Derived b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(16, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_02()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Derived>(new Derived());
+        M<Derived>(new Base());
+    }
+    public static void M<T>(Base x)
+    {
+        Console.Write(x is T b0);
+        switch (x)
+        {
+            case T b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //         Console.Write(x is T b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1")
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_03()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived<T> : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Derived<Base>());
+        M<Base>(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Derived<T> b0);
+        switch (x)
+        {
+            case Derived<T> b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
+                //         Console.Write(x is Derived<T> b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
+                //             case Derived<T> b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(16, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_04()
+        {
+            var source =
+@"using System;
+public class Base { }
+class Container<T>
+{
+    public class Derived : Base { }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Container<Base>.Derived());
+        M<Base>(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Container<T>.Derived b0);
+        switch (x)
+        {
+            case Container<T>.Derived b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
+                //         Console.Write(x is Container<T>.Derived b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(16, 28),
+                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
+                //             case Container<T>.Derived b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(19, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_05()
+        {
+            var source =
+@"using System;
+public class Base { }
+class Container<T>
+{
+    public class Derived : Base { }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Container<Base>.Derived[1]);
+        M<Base>(new Base[1]);
+    }
+    public static void M<T>(T[] x) where T: Base
+    {
+        Console.Write(x is Container<T>.Derived[] b0);
+        switch (x)
+        {
+            case Container<T>.Derived[] b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
+                //         Console.Write(x is Container<T>.Derived[] b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(16, 28),
+                // (19,18): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
+                //             case Container<T>.Derived[] b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(19, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(19151, "https://github.com/dotnet/roslyn/issues/19151")]
+        public void RefutablePatterns()
+        {
+            var source =
+@"public class Program
+{
+    public static void Main(string[] args)
+    {
+        if (null as string is string) { }
+        if (null as string is string s1) { }
+        const string s = null;
+        if (s is string) { }
+        if (s is string s2) { }
+        if (""goo"" is string s3) { }
+    }
+    void M1(int? i)
+    {
+        if (i is long) { }
+        if (i is long l) { }
+        switch (b) { case long m: break; }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(8, 13),
+                // (9,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string s2) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string s2").WithArguments("string").WithLocation(9, 13),
+                // (14,13): warning CS0184: The given expression is never of the provided ('long') type
+                //         if (i is long) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(14, 13),
+                // (15,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'long'.
+                //         if (i is long l) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(15, 18),
+                // (16,17): error CS0103: The name 'b' does not exist in the current context
+                //         switch (b) { case long m: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17),
+                // (16,35): warning CS0162: Unreachable code detected
+                //         switch (b) { case long m: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(16, 35)
+                );
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void GenericDynamicIsObject()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    static void Main(string[] args)
+    {
+        M<dynamic>(new object());
+        M<dynamic>(null);
+        M<dynamic>(""xyzzy"");
+    }
+    static void M<T>(object x)
+    {
+        switch (x)
+        {
+            case T t:
+                Console.Write(""T"");
+                break;
+            case null:
+                Console.Write(""n"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void MatchNullableTypeParameter()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    static void Main(string[] args)
+    {
+        M<int>(1);
+        M<int>(null);
+        M<float>(3.14F);
+    }
+    static void M<T>(T? x) where T : struct
+    {
+        switch (x)
+        {
+            case T t:
+                Console.Write(""T"");
+                break;
+            case null:
+                Console.Write(""n"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void MatchRecursiveGenerics()
+        {
+            var program =
+@"using System;
+class Packet { }
+class Packet<U> : Packet { }
+public class C {
+    static void Main()
+    {
+        Console.Write(M<Packet>(null));
+        Console.Write(M<Packet>(new Packet<Packet>()));
+        Console.Write(M<Packet>(new Packet<int>()));
+        Console.Write(M<Packet<int>>(new Packet<int>()));
+    }
+    static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
+}";
+            CreateStandardCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (12,52): error CS8314: An expression of type 'T' cannot be handled by a pattern of type 'Packet<T>' in C# 7.0. Please use language version 7.1 or greater.
+                //     static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Packet<T>").WithArguments("T", "Packet<T>", "7.0", "7.1").WithLocation(12, 52)
+                );
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"FalseTrueFalseFalse");
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void MatchRestrictedTypes_Fail()
+        {
+            
+            var program =
+@"using System;
+unsafe public class C {
+    static bool M(TypedReference x, int* p, ref int z)
+    {
+        var n1 = x is TypedReference x0; // ok
+        var p1 = p is int* p0;           // syntax error 1
+        var r1 = z is ref int z0;        // syntax error 2
+
+        var b1 = x is object o1;         // not allowed 1
+        var b2 = p is object o2;         // not allowed 2
+        var b3 = z is object o3;         // ok
+
+        return b1 && b2 && b3;
+    }
+}";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (6,23): error CS1525: Invalid expression term 'int'
+                //         var p1 = p is int* p0;           // syntax error 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
+                // (7,23): error CS1525: Invalid expression term 'ref'
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(7, 23),
+                // (7,23): error CS1002: ; expected
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23),
+                // (6,28): error CS0103: The name 'p0' does not exist in the current context
+                //         var p1 = p is int* p0;           // syntax error 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p0").WithArguments("p0").WithLocation(6, 28),
+                // (7,31): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "z0").WithLocation(7, 31),
+                // (9,23): error CS8121: An expression of type 'TypedReference' cannot be handled by a pattern of type 'object'.
+                //         var b1 = x is object o1;         // not allowed 1
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.TypedReference", "object").WithLocation(9, 23),
+                // (10,23): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         var b2 = p is object o2;         // not allowed 2
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "object o2").WithLocation(10, 23),
+                // (7,31): warning CS0168: The variable 'z0' is declared but never used
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "z0").WithArguments("z0").WithLocation(7, 31)
+                );
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void MatchRestrictedTypes_Success()
+        {
+            var program =
+@"using System;
+using System.Reflection;
+unsafe public class C {
+    public int Value;
+
+    static void Main()
+    {
+        C a = new C { Value = 12 };
+        FieldInfo info = typeof(C).GetField(""Value"");
+        TypedReference reference = __makeref(a);
+        if (!(reference is TypedReference reference0)) throw new Exception(""TypedReference"");
+        info.SetValueDirect(reference0, 34);
+        if (a.Value != 34) throw new Exception(""SetValueDirect"");
+
+        int z = 56;
+        if (CopyRefInt(ref z) != 56) throw new Exception(""ref z"");
+
+        Console.WriteLine(""ok"");
+    }
+
+    static int CopyRefInt(ref int z)
+    {
+        if (!(z is int z0)) throw new Exception(""CopyRefInt"");
+        return z0;
+    }
+}";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: "ok");
+        }
+
+        [Fact]
+        [WorkItem(406203, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=406203")]
+        [WorkItem(406205, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=406205")]
+        public void DoubleEvaluation()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main(string[] args)
+    {
+        {
+            int? a = 0;
+            if (a++ is int b)
+            {
+                Console.WriteLine(b);
+            }
+            Console.WriteLine(a);
+        }
+        {
+            int? a = 0;
+            if (++a is int b)
+            {
+                Console.WriteLine(b);
+            }
+            Console.WriteLine(a);
+        }
+        {
+            if (Func() is int b)
+            {
+                Console.WriteLine(b);
+            }
+        }
+    }
+    public static int? Func()
+    {
+        Console.WriteLine(""Func called"");
+        return 2;
+    }
+}
+";
+            var expectedOutput = @"0
+1
+1
+1
+Func called
+2";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_01()
+        {
+            // though silly, it is not forbidden to test a void value's type
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.Write(""Hello"") is object) {}
+    }
+}
+";
+            var expectedOutput = @"Hello";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         if (Console.Write("Hello") is object) {}
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, @"Console.Write(""Hello"") is object").WithArguments("object").WithLocation(6, 13)
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var o = Console.WriteLine(""world!"") as object;
+        if (o != null) throw null;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS0039: Cannot convert type 'void' to 'object' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         var o = Console.WriteLine("world!") as object;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"Console.WriteLine(""world!"") as object").WithArguments("void", "object").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        M<object>();
+    }
+    static void M<T>() where T : class
+    {
+        var o = Console.WriteLine(""Hello"") as T;
+        if (o != null) throw null;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (10,17): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         var o = Console.WriteLine("Hello") as T;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"Console.WriteLine(""Hello"") as T").WithArguments("void", "T").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.WriteLine(""Hello"") is var x) { }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
+                //         if (Console.WriteLine("Hello") is var x) { }
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_05()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.WriteLine(""Hello"") is var _) {}
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
+                //         if (Console.WriteLine("Hello") is var _) {}
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInSwitch()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        switch (Console.WriteLine(""Hello""))
+        {
+            default:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS8119: The switch expression must be a value; found 'void'.
+                //         switch (Console.WriteLine("Hello"))
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 17)
+                );
+        }
+
+        [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
+        public void TestNullInInPattern()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const string s = null;
+        if (s is string) {} else { Console.Write(""Hello ""); }
+        if (s is string t) {} else { Console.WriteLine(""World""); }
+    }
+}
+";
+            var expectedOutput = @"Hello World";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string) {} else { Console.Write("Hello "); }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(7, 13),
+                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string t) {} else { Console.WriteLine("World"); }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string t").WithArguments("string").WithLocation(8, 13)
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

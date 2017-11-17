@@ -1,13 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
+          BeforeTargets="CoreCompile"
+          Condition="'@(ReferencePathWithRefAssemblies)' == ''">
+    <!-- Common targets should populate this item from dev15.3, but this file
+         may be used (via NuGet package) on earlier MSBuilds. If the
+         adjusted-for-reference-assemblies item is not populated, just use
+         the older item's contents. -->
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Include="@(ReferencePath)" />
+    </ItemGroup>
+  </Target>
+
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile);
                   @(_CoreCompileResourceInputs);
                   $(ApplicationIcon);
                   $(AssemblyOriginatorKeyFile);
-                  @(ReferencePath);
+                  @(ReferencePathWithRefAssemblies);
                   @(CompiledLicenseFile);
                   @(LinkResource);
                   @(EmbeddedDocumentation);
@@ -19,6 +31,7 @@
                   @(EmbeddedFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
+                   @(IntermediateRefAssembly);
                    @(_DebugSymbolsIntermediatePath);
                    $(NonExistentFile);
                    @(CustomAdditionalCompileOutputs)"
@@ -37,9 +50,9 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
-      <ReferencePath>
+      <ReferencePathWithRefAssemblies>
         <EmbedInteropTypes />
-      </ReferencePath>
+      </ReferencePathWithRefAssemblies>
     </ItemGroup>
 
     <PropertyGroup>
@@ -110,16 +123,18 @@
          Deterministic="$(Deterministic)"
          PublicSign="$(PublicSign)"
          OutputAssembly="@(IntermediateAssembly)"
+         OutputRefAssembly="@(IntermediateRefAssembly)"
          PdbFile="$(PdbFile)"
          Platform="$(PlatformTarget)"
          Prefer32Bit="$(Prefer32Bit)"
          PreferredUILang="$(PreferredUILang)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
-         References="@(ReferencePath)"
+         References="@(ReferencePathWithRefAssemblies)"
          ReportAnalyzer="$(ReportAnalyzer)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
          ResponseFiles="$(CompilerResponseFile)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
+         SharedCompilationId="$(SharedCompilationId)"
          SkipCompilerExecution="$(SkipCompilerExecution)"
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"

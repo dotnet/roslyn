@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using VSLangProj;
@@ -59,9 +60,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        public string DirectoryName => Path.GetDirectoryName(FileName);
+        public void AddMetadataReference(string assemblyName, string projectName)
+        {
+            var project = GetProject(projectName);
+            var vsproject = ((VSProject)project.Object);
+            vsproject.References.Add(assemblyName);
+        }
 
-        public string FileName
+        public void RemoveMetadataReference(string assemblyName, string projectName)
+        {
+            var project = GetProject(projectName);
+            var reference = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
+            reference.Remove();
+        }
+
+        public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
+
+        public string SolutionFileFullPath
         {
             get
             {
@@ -88,7 +103,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 CloseSolution(saveExistingSolutionIfExists);
             }
 
-            var solutionPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            string solutionPath = IntegrationHelper.CreateTemporaryPath();
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
 
             dte.Solution.Create(solutionPath, solutionName);
@@ -104,6 +119,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 .Where(x => x.SourceProject == null)
                 .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
             return references;
+        }
+
+        public void RenameFile(string projectName, string oldFileName, string newFileName)
+        {
+            var projectItem = GetProjectItem(projectName, oldFileName);
+
+            projectItem.Name = newFileName;
+        }
+
+        public void EditProjectFile(string projectName)
+        {
+            var solutionExplorer = ((DTE2)GetDTE()).ToolWindows.SolutionExplorer;
+            solutionExplorer.Parent.Activate();
+            var rootHierarchyItems = solutionExplorer.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
+            var solution = rootHierarchyItems.First();
+            var solutionHierarchyItems = solution.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
+            var project = solutionHierarchyItems.Where(x => x.Name == projectName).FirstOrDefault();
+            if (project == null)
+            {
+                throw new ArgumentException($"Could not find project file, current hierarchy items '{string.Join(", ", rootHierarchyItems.Select(x => x.Name))}'");
+            }
+            project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            ExecuteCommand("Project.EditProjectFile");
         }
 
         public string[] GetProjectReferences(string projectName)
@@ -171,6 +209,66 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ((VSProject)project.Object).References.AddProject(projectToReference);
         }
 
+        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
+        {
+            var project = GetProject(projectName);
+            ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
+        }
+
+        public void AddPackageReference(string projectName, string packageName, string version)
+        {
+            var project = GetProject(projectName);
+
+            if (project is IVsBrowseObjectContext browseObjectContext)
+            {
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
+
+                var result = threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
+                    return await configuredProject.Services.PackageReferences.AddAsync(packageName, version).ConfigureAwait(false);
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(AddPackageReference)}' is not supported in project '{projectName}'.");
+            }
+        }
+
+        public void RemovePackageReference(string projectName, string packageName)
+        {
+            var project = GetProject(projectName);
+
+            if (project is IVsBrowseObjectContext browseObjectContext)
+            {
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
+
+                threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
+                    await configuredProject.Services.PackageReferences.RemoveAsync(packageName).ConfigureAwait(false);
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(RemovePackageReference)}' is not supported in project '{projectName}'.");
+            }
+        }
+
+        public void RemoveProjectReference(string projectName, string projectReferenceName)
+        {
+            var project = GetProject(projectName);
+            var vsproject = (VSProject)project.Object;
+            var references = vsproject.References.Cast<Reference>();
+            var reference = references.Where(x => x.ContainingProject != null && x.Name == projectReferenceName).FirstOrDefault();
+            if (reference == null)
+            {
+                var projectReference = references.Where(x => x.ContainingProject != null).Select(x => x.Name);
+                throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
+            }
+            reference.Remove();
+        }
+
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
         {
             var dte = GetDTE();
@@ -179,7 +277,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 CloseSolution(saveExistingSolutionIfExists);
             }
-
             dte.Solution.Open(path);
 
             _solution = (EnvDTE80.Solution2)dte.Solution;
@@ -230,38 +327,42 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void CleanUpOpenSolution()
-        {
-            var dte = GetDTE();
-            dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
-
-            if (dte.Solution != null)
+            => InvokeOnUIThread(() =>
             {
-                var directoriesToDelete = new List<string>();
+                var dte = GetDTE();
+                dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
 
-                // Save the full path to each project in the solution. This is so we can
-                // cleanup any folders after the solution is closed.
-                foreach (EnvDTE.Project project in dte.Solution.Projects)
+                if (dte.Solution != null)
                 {
-                    directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                    var directoriesToDelete = new List<string>();
+
+                    // Save the full path to each project in the solution. This is so we can
+                    // cleanup any folders after the solution is closed.
+                    foreach (EnvDTE.Project project in dte.Solution.Projects)
+                    {
+                        if (!string.IsNullOrEmpty(project.FullName))
+                        {
+                            directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                        }
+                    }
+
+                    // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
+                    // The solution might be zero-impact and thus has no name, so deal with that
+                    var solutionFullName = dte.Solution.FullName;
+
+                    if (!string.IsNullOrEmpty(solutionFullName))
+                    {
+                        directoriesToDelete.Add(Path.GetDirectoryName(solutionFullName));
+                    }
+
+                    dte.Solution.Close(SaveFirst: false);
+
+                    foreach (var directoryToDelete in directoriesToDelete)
+                    {
+                        IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
+                    }
                 }
-
-                // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
-                // The solution might be zero-impact and thus has no name, so deal with that
-                var solutionFullName = dte.Solution.FullName;
-
-                if (!string.IsNullOrEmpty(solutionFullName))
-                {
-                    directoriesToDelete.Add(Path.GetDirectoryName(solutionFullName));
-                }
-
-                dte.Solution.Close(SaveFirst: false);
-
-                foreach (var directoryToDelete in directoriesToDelete)
-                {
-                    IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
-                }
-            }
-        }
+            });
 
         private EnvDTE.Project GetProject(string nameOrFileName)
             => _solution.Projects.OfType<EnvDTE.Project>().First(p
@@ -358,9 +459,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (open)
             {
-                projectItem.Open();
+                OpenFile(projectName, fileName);
             }
         }
+
+        /// <summary>
+        /// Adds a new standalone file to the Miscellaneous Files workspace.
+        /// </summary>
+        /// <param name="fileName">The name of the file to add.</param>
+        public void AddStandaloneFile(string fileName)
+        {
+            string itemTemplate;
+
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            switch (extension)
+            {
+                case ".cs":
+                    itemTemplate = @"General\Visual C# Class";
+                    break;
+                case ".csx":
+                    itemTemplate = @"Script\Visual C# Script";
+                    break;
+                case ".vb":
+                    itemTemplate = @"General\Visual Basic Class";
+                    break;
+                case ".txt":
+                    itemTemplate = @"General\Text File";
+                    break;
+                default:
+                    throw new NotSupportedException($"File type '{extension}' is not yet supported.");
+            }
+
+            GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
+        }
+            
 
         public void SetFileContents(string projectName, string relativeFilePath, string contents)
         {
@@ -382,81 +514,206 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void BuildSolution(bool waitForBuildToFinish)
         {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            buildOutputWindowPane.Clear();
+            ExecuteCommand(WellKnownCommandNames.Build_BuildSolution);
+            WaitForBuildToFinish(buildOutputWindowPane);
+        }
+
+        public void ClearBuildOutputWindowPane()
+        {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            buildOutputWindowPane.Clear();
+        }
+
+        public void WaitForBuildToFinish()
+        {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            WaitForBuildToFinish(buildOutputWindowPane);
+        }
+
+        private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
+        {
             var dte = (DTE2)GetDTE();
             var outputWindow = dte.ToolWindows.OutputWindow;
+            return outputWindow.OutputWindowPanes.Item("Build");
+        }
 
-            var buildOutputWindowPane = outputWindow.OutputWindowPanes.Item("Build");
-            buildOutputWindowPane.Clear();
-
-            ExecuteCommand("Build.BuildSolution");
-
-            if (waitForBuildToFinish)
+        private void WaitForBuildToFinish(EnvDTE.OutputWindowPane buildOutputWindowPane)
+        {
+            var buildManager = GetGlobalService<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
+            using (var semaphore = new SemaphoreSlim(1))
+            using (var solutionEvents = new UpdateSolutionEvents(buildManager))
             {
-                var textDocument = buildOutputWindowPane.TextDocument;
-                var textDocumentSelection = textDocument.Selection;
-
-                var buildFinishedRegex = new Regex(@"^========== Build: \d+ succeeded, \d+ failed, \d+ up-to-date, \d+ skipped ==========$", RegexOptions.Compiled);
-
-                do
+                semaphore.Wait();
+                void @event(bool succeeded, bool modified, bool canceled) => semaphore.Release();
+                solutionEvents.OnUpdateSolutionDone += @event;
+                try
                 {
-                    Thread.Yield();
-
-                    try
-                    {
-                        textDocumentSelection.GotoLine(textDocument.EndPoint.Line - 1, Select: true);
-                    }
-                    catch (ArgumentException)
-                    {
-                        // Its possible that the window will still be initializing, clearing,
-                        // etc... We should ignore those errors and just try again
-                    }
+                    semaphore.Wait();
                 }
-                while (!buildFinishedRegex.IsMatch(textDocumentSelection.Text));
+                finally
+                {
+                    solutionEvents.OnUpdateSolutionDone -= @event;
+                }
             }
         }
 
-        public int GetErrorListErrorCount()
+        internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
         {
-            var dte = (DTE2)GetDTE();
-            var errorList = dte.ToolWindows.ErrorList;
+            private uint cookie;
+            private IVsSolutionBuildManager2 solutionBuildManager;
 
-            var errorItems = errorList.ErrorItems;
-            var errorItemsCount = errorItems.Count;
+            internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
+            internal delegate void UpdateSolutionBeginEvent(ref bool cancel);
+            internal delegate void UpdateSolutionStartUpdateEvent(ref bool cancel);
+            internal delegate void UpdateProjectConfigDoneEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig, int success);
+            internal delegate void UpdateProjectConfigBeginEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig);
 
-            var errorCount = 0;
+            public event UpdateSolutionDoneEvent OnUpdateSolutionDone;
+            public event UpdateSolutionBeginEvent OnUpdateSolutionBegin;
+            public event UpdateSolutionStartUpdateEvent OnUpdateSolutionStartUpdate;
+            public event Action OnActiveProjectConfigurationChange;
+            public event Action OnUpdateSolutionCancel;
+            public event UpdateProjectConfigDoneEvent OnUpdateProjectConfigDone;
+            public event UpdateProjectConfigBeginEvent OnUpdateProjectConfigBegin;
 
-            try
+            internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
             {
-                for (var index = 1; index <= errorItemsCount; index++)
+                this.solutionBuildManager = solutionBuildManager;
+                var hresult = solutionBuildManager.AdviseUpdateSolutionEvents(this, out cookie);
+                if (hresult != 0)
                 {
-                    var errorItem = errorItems.Item(index);
+                    System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
+                }
+            }
 
-                    if (errorItem.ErrorLevel == vsBuildErrorLevel.vsBuildErrorLevelHigh)
+            int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionBegin?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+            {
+                OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                return UpdateSolution_StartUpdate(ref pfCancelUpdate);
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Cancel()
+            {
+                OnUpdateSolutionCancel?.Invoke();
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                return OnActiveProjectCfgChange(pIVsHierarchy);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Begin(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionBegin?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+            {
+                OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                return UpdateSolution_StartUpdate(ref pfCancelUpdate);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Cancel()
+            {
+                OnUpdateSolutionCancel?.Invoke();
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                return OnActiveProjectCfgChange(pIVsHierarchy);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
+            {
+                OnUpdateProjectConfigBegin?.Invoke(pHierProj, pCfgProj);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
+            {
+                OnUpdateProjectConfigDone?.Invoke(pHierProj, pCfgProj, fSuccess);
+                return 0;
+            }
+
+            private int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionStartUpdate?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            private int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                OnActiveProjectConfigurationChange?.Invoke();
+                return 0;
+            }
+
+            void IDisposable.Dispose()
+            {
+                OnUpdateSolutionDone = null;
+                OnUpdateSolutionBegin = null;
+                OnUpdateSolutionStartUpdate = null;
+                OnActiveProjectConfigurationChange = null;
+                OnUpdateSolutionCancel = null;
+                OnUpdateProjectConfigDone = null;
+                OnUpdateProjectConfigBegin = null;
+
+                if (cookie != 0)
+                {
+                    var tempCookie = cookie;
+                    cookie = 0;
+                    var hresult = solutionBuildManager.UnadviseUpdateSolutionEvents(tempCookie);
+                    if (hresult != 0)
                     {
-                        errorCount += 1;
+                        System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
                     }
                 }
             }
-            catch (IndexOutOfRangeException)
-            {
-                // It is entirely possible that the items in the error list are modified
-                // after we start iterating, in which case we want to try again.
-                return GetErrorListErrorCount();
-            }
-
-            return errorCount;
         }
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
-            var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
-            var window = project.ProjectItems.Item(fileName).Open(EnvDTE.Constants.vsViewKindDesigner);
+            var projectItem = GetProjectItem(projectName, relativeFilePath);
+            var window = projectItem.Open(EnvDTE.Constants.vsViewKindDesigner);
             window.Activate();
 
             var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(fileName))
+            while (!dte.ActiveWindow.Caption.Contains(projectItem.Name))
             {
                 Thread.Yield();
             }
@@ -464,13 +721,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFile(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
 
-            ExecuteCommand("File.OpenFile", filePath);
+            ExecuteCommand(WellKnownCommandNames.File_OpenFile, filePath);
 
             var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(fileName))
+            while (!dte.ActiveWindow.Caption.Contains(Path.GetFileName(filePath)))
             {
                 Thread.Yield();
             }
@@ -478,91 +734,205 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
-
-            var dte = GetDTE();
-            var documents = dte.Documents.Cast<EnvDTE.Document>();
-            var fileToClose = documents.FirstOrDefault(document => document.Name.Equals(fileName));
-            if (fileToClose == null)
-            {
-                throw new InvalidOperationException($"File '{fileName}' not closed because it couldn't be found.  Available files: {string.Join(", ", documents.Select(x => x.Name))}.");
-            }
+            var document = GetOpenDocument(projectName, relativeFilePath);
             if (saveFile)
             {
-                SaveFile(fileName);
-                fileToClose.Close(EnvDTE.vsSaveChanges.vsSaveChangesYes);
+                SaveFileWithExtraValidation(document);
+                document.Close(EnvDTE.vsSaveChanges.vsSaveChangesYes);
             }
             else
             {
-                fileToClose.Close(EnvDTE.vsSaveChanges.vsSaveChangesNo);
+                document.Close(EnvDTE.vsSaveChanges.vsSaveChangesNo);
             }
+        }
+
+        private EnvDTE.Document GetOpenDocument(string projectName, string relativeFilePath)
+        {
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            var documents = GetDTE().Documents.Cast<EnvDTE.Document>();
+            var document = documents.FirstOrDefault(d => d.FullName == filePath);
+
+            if (document == null)
+            {
+                throw new InvalidOperationException($"Open document '{filePath} could not be found. Available documents: {string.Join(", ", documents.Select(x => x.FullName))}.");
+            }
+
+            return document;
+        }
+
+        private EnvDTE.ProjectItem GetProjectItem(string projectName, string relativeFilePath)
+        {
+            var projects = _solution.Projects.Cast<EnvDTE.Project>();
+            var project = projects.FirstOrDefault(x => x.Name == projectName);
+
+            if (project == null)
+            {
+                throw new InvalidOperationException($"Project '{projectName} could not be found. Available projects: {string.Join(", ", projects.Select(x => x.Name))}.");
+            }
+
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var fullFilePath = Path.Combine(projectPath, relativeFilePath);
+
+            var projectItems = project.ProjectItems.Cast<EnvDTE.ProjectItem>();
+            var document = projectItems.FirstOrDefault(d => d.FileNames[1].Equals(fullFilePath));
+
+            if (document == null)
+            {
+                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.FileNames[1]))}.");
+            }
+
+            return document;
         }
 
         public void SaveFile(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
-            SaveFile(fileName);
+            SaveFileWithExtraValidation(GetOpenDocument(projectName, relativeFilePath));
         }
 
-        private static void SaveFile(string fileName)
+        private static void SaveFileWithExtraValidation(EnvDTE.Document document)
         {
-            var dte = GetDTE();
-            var fileToSave = dte.Documents.Cast<EnvDTE.Document>().FirstOrDefault(document => document.Name.Equals(fileName));
-            if (fileToSave == null)
-            {
-                var fileNames = dte.Documents.Cast<EnvDTE.Document>().Select(d => d.Name);
-                throw new InvalidOperationException($"File '{fileName}' not saved because it couldn't be found.  Available files: {string.Join(", ", fileNames)}.");
-            }
-            var textDocument = (EnvDTE.TextDocument)fileToSave.Object(nameof(EnvDTE.TextDocument));
+            var textDocument = (EnvDTE.TextDocument)document.Object(nameof(EnvDTE.TextDocument));
             var currentTextInDocument = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-            var fullPath = fileToSave.FullName;
-            fileToSave.Save();
+            var fullPath = document.FullName;
+            document.Save();
             if (File.ReadAllText(fullPath) != currentTextInDocument)
             {
                 throw new InvalidOperationException("The text that we thought we were saving isn't what we saved!");
             }
         }
 
-        private string GetFilePath(string projectName, string relativeFilePath)
+        private string GetAbsolutePathForProjectRelativeFilePath(string projectName, string relativeFilePath)
         {
             var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
             var projectPath = Path.GetDirectoryName(project.FullName);
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectName)
+        public void ReloadProject(string projectRelativePath)
         {
             var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectName);
+            var projectPath = Path.Combine(solutionPath, projectRelativePath);
             _solution.AddFromFile(projectPath);
         }
 
         public void RestoreNuGetPackages()
-            => ExecuteCommand("ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages");
+            => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
 
         public void SaveAll()
-            => ExecuteCommand("File.SaveAll");
+            => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
 
         public void ShowErrorList()
-            => ExecuteCommand("View.ErrorList");
+            => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
 
         public void ShowOutputWindow()
-            => ExecuteCommand("View.Output");
+            => ExecuteCommand(WellKnownCommandNames.View_Output);
 
         public void UnloadProject(string projectName)
         {
-            var project = _solution.Projects.Item(projectName);
+            var projects = _solution.Projects;
+            EnvDTE.Project project = null;
+            for (int i = 1; i <= projects.Count; i++)
+            {
+                project = projects.Item(i);
+                if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
+                {
+                    break;
+                }
+            }
+
             _solution.Remove(project);
         }
 
-        public void WaitForNoErrorsInErrorList()
+        public void SelectItem(string itemName)
         {
-            while (GetErrorListErrorCount() != 0)
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        public void SelectItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        public string[] GetChildrenOfItem(string itemName)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        public string[] GetChildrenOfItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        private static EnvDTE.UIHierarchyItem FindItemAtPath(
+            EnvDTE.UIHierarchyItems currentItems,
+            string[] path)
+        {
+            EnvDTE.UIHierarchyItem item = null;
+            foreach (var name in path)
             {
-                Thread.Yield();
+                item = currentItems.Cast<EnvDTE.UIHierarchyItem>().FirstOrDefault(i => i.Name == name);
+
+                if (item == null)
+                {
+                    return null;
+                }
+
+                currentItems = item.UIHierarchyItems;
             }
+
+            return item;
+        }
+
+        private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
+            EnvDTE.UIHierarchyItems currentItems,
+            string itemName)
+        {
+            if (currentItems == null)
+            {
+                return null;
+            }
+
+            foreach (var item in currentItems.Cast<EnvDTE.UIHierarchyItem>())
+            {
+                if (item.Name == itemName)
+                {
+                    return item;
+                }
+
+                var result = FindFirstItemRecursively(item.UIHierarchyItems, itemName);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
     }
 }

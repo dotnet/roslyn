@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 
@@ -442,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     locations.Add(argumentSyntax.Location);
                 }
 
-                CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
+                CollectTupleFieldMemberName(name, i, numElements, ref elementNames);
             }
 
             uniqueFieldNames.Free();
@@ -480,11 +481,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 elementNames.ToImmutableAndFree(),
                                             this.Compilation,
                                             this.ShouldCheckConstraints,
-                                            syntax,
-                                            diagnostics);
+                                            errorPositions: default(ImmutableArray<bool>),
+                                            syntax: syntax,
+                                            diagnostics: diagnostics);
         }
 
-        private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)
+        private static void CollectTupleFieldMemberName(string name, int elementIndex, int tupleSize, ref ArrayBuilder<string> elementNames)
         {
             // add the name to the list
             // names would typically all be there or none at all
@@ -498,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (name != null)
                 {
                     elementNames = ArrayBuilder<string>.GetInstance(tupleSize);
-                    for (int j = 1; j < position; j++)
+                    for (int j = 0; j < elementIndex; j++)
                     {
                         elementNames.Add(null);
                     }
@@ -597,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var identifierValueText = node.Identifier.ValueText;
 
-            // If we are here in an error-recovery scenario, say, "foo<int, >(123);" then
+            // If we are here in an error-recovery scenario, say, "goo<int, >(123);" then
             // we might have an 'empty' simple name. In that case do not report an 
             // 'unable to find ""' error; we've already reported an error in the parser so
             // just bail out with an error symbol.
@@ -752,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var args = (this, diagnostics, syntax);
                     type.VisitType((typePart, argTuple, isNested) =>
                     {
-                        argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.Item2, typePart, argTuple.Item3, hasBaseReceiver: false);
+                        argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.diagnostics, typePart, argTuple.syntax, hasBaseReceiver: false);
                         return false;
                     }, args);
                 }
@@ -1208,6 +1210,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
             ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
+            return typeSymbol;
+        }
+
+        /// <summary>
+        /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
+        /// type isn't found.
+        /// </summary>
+        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
+            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, typeSymbol.GetUseSiteDiagnostic());
             return typeSymbol;
         }
 
@@ -2059,28 +2073,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static void CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
+        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
         {
-            var options = (CSharpParseOptions)syntax.SyntaxTree.Options;
-            if (options.IsFeatureEnabled(feature))
+            return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, locationOpt ?? syntax.GetLocation());
+        }
+
+        internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
+        {
+            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(tree, feature);
+
+            if (error is null)
             {
-                return;
+                return true;
             }
 
-            var location = locationOpt ?? syntax.GetLocation();
-            string requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
+            diagnostics.Add(new CSDiagnostic(error, location));
+            return false;
+        }
+
+        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(syntax.SyntaxTree, feature);
+
+            if (error is null)
             {
-                diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
-                return;
+                return true;
+            }
+
+            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, error);
+            return false;
+        }
+
+        private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
+        {
+            CSharpParseOptions options = (CSharpParseOptions)tree.Options;
+
+            if (options.IsFeatureEnabled(feature))
+            {
+                return null;
             }
 
             LanguageVersion availableVersion = options.LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)
             {
-                diagnostics.Add(availableVersion.GetErrorCode(), location, feature.Localize(), requiredVersion.Localize());
+                return new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
             }
+
+            return null;
         }
     }
 }

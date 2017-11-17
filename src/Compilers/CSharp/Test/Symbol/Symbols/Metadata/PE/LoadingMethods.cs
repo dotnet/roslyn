@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var source = @"
 class Invoke
 {
-    void Foo(MetadataModifiers m)
+    void Goo(MetadataModifiers m)
     {
         m.M00();
         m.M01();
@@ -764,7 +764,7 @@ class Invoke
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(); // No errors, as in Dev10
         }
 
@@ -777,7 +777,7 @@ class Abstract : MetadataModifiers
     //CS0534 for methods 2, 5, 8, 9, 11, 12, 14, 15
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(
                 // (2,7): error CS0534: 'Abstract' does not implement inherited abstract member 'MetadataModifiers.M02()'
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Abstract").WithArguments("Abstract", "MetadataModifiers.M02()"),
@@ -821,7 +821,7 @@ class Override : MetadataModifiers
     public override void M15() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(
                 // (4,26): error CS0506: 'Override.M00()': cannot override inherited member 'MetadataModifiers.M00()' because it is not marked virtual, abstract, or override
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M00").WithArguments("Override.M00()", "MetadataModifiers.M00()"),
@@ -1257,7 +1257,7 @@ public class D
 ";
             var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature);
 
-            var c = CreateCompilationWithMscorlib(source, new[] { longFormRef });
+            var c = CreateStandardCompilation(source, new[] { longFormRef });
 
             c.VerifyDiagnostics(
                 // (6,20): error CS0570: 'C.RT()' is not supported by the language
@@ -1281,7 +1281,7 @@ class P
 ";
             var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.SignatureCycle2);
 
-            var c = CreateCompilationWithMscorlib(source, new[] { lib });
+            var c = CreateStandardCompilation(source, new[] { lib });
 
             c.VerifyDiagnostics();
         }
@@ -1301,7 +1301,7 @@ class P
 ";
             var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.TypeSpecInWrongPlace);
 
-            var c = CreateCompilationWithMscorlib(source, new[] { lib });
+            var c = CreateStandardCompilation(source, new[] { lib });
 
             c.VerifyDiagnostics(
                 // (6,14): error CS0570: 'User.X(?)' is not supported by the language
@@ -1339,7 +1339,7 @@ class P
 } // end of class Test
 ";
 
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation("", new[] { ilRef });
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -1364,7 +1364,7 @@ public class D
 ";
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags) };
 
-            var comp = CreateCompilationWithMscorlib(source, references: references);
+            var comp = CreateStandardCompilation(source, references: references);
 
             // The method, field and nested type with public and private accessibility flags get loaded as private.
             comp.VerifyDiagnostics(

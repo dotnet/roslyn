@@ -1,6 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -8,8 +8,9 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
-        Inherits BasicTestBase
+        Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub NoInitializers()
             Dim source = <compilation>
@@ -32,249 +33,430 @@ End Class
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
             For Each node In nodes
-                Assert.Null(semanticModel.GetOperationInternal(node))
+                Assert.Null(semanticModel.GetOperation(node))
             Next
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
-        Public Sub ConstantInitializers()
+        Public Sub ConstantInitializers_StaticField()
             Dim source = <![CDATA[
 Class C
-	Shared s1 As Integer = 1
-	Private i1 As Integer = 1, i2 as Integer = 2
-    Private Property P1 As Integer = 1
+    Shared s1 As Integer = 1'BIND:"= 1"
+End Class]]>.Value
 
-	Private Sub M(Optional p1 As Integer = 0, Optional ParamArray p2 As Integer() = Nothing)
-    End Sub
-End Class
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
 
-            Dim tree = compilation.SyntaxTrees.Single()
-            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of EqualsValueSyntax)().ToArray()
-            Assert.Equal(6, nodes.Length)
+            Dim expectedDiagnostics = String.Empty
 
-            compilation.VerifyOperationTree(nodes(0), expectedOperationTree:=
-            <![CDATA[IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(1), expectedOperationTree:=<![CDATA[
-IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(2), expectedOperationTree:=<![CDATA[
-IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(3), expectedOperationTree:=<![CDATA[
-IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(4), expectedOperationTree:=<![CDATA[
-IParameterInitializer (Parameter: [p1 As System.Int32 = 0]) (OperationKind.ParameterInitializerAtDeclaration)
-  ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(5), expectedOperationTree:=<![CDATA[
-IParameterInitializer (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (OperationKind.ParameterInitializerAtDeclaration)
-  IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null)
-]]>.Value)
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17813"), WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        Public Sub ConstantInitializers_InstanceField()
+            Dim source = <![CDATA[
+Class C
+    Private i1 As Integer = 1, i2 As Integer = 2'BIND:"= 2"
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 2')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        Public Sub ConstantInitializers_Property()
+            Dim source = <![CDATA[
+Class C
+    Private Property P1 As Integer = 1'BIND:"= 1"
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IPropertyInitializerOperation (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= 1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        Public Sub ConstantInitializers_DefaultValueParameter()
+            Dim source = <![CDATA[
+Class C
+    Private Sub M(Optional p1 As Integer = 0, Optional ParamArray p2 As Integer() = Nothing)'BIND:"= 0"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IParameterInitializerOperation (Parameter: [p1 As System.Int32 = 0]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= 0')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30642: 'Optional' and 'ParamArray' cannot be combined.
+    Private Sub M(Optional p1 As Integer = 0, Optional ParamArray p2 As Integer() = Nothing)'BIND:"= 0"
+                                                       ~~~~~~~~~~
+BC30046: Method cannot have both a ParamArray and Optional parameters.
+    Private Sub M(Optional p1 As Integer = 0, Optional ParamArray p2 As Integer() = Nothing)'BIND:"= 0"
+                                                                  ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        Public Sub ConstantInitializers_DefaultValueParamsArray()
+            Dim source = <![CDATA[
+Class C
+    Private Sub M(Optional p1 As Integer = 0, Optional ParamArray p2 As Integer() = Nothing)'BIND:"= Nothing"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IParameterInitializerOperation (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= Nothing')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30642: 'Optional' and 'ParamArray' cannot be combined.
+    Private Sub M(Optional p1 As Integer = 0, Optional ParamArray p2 As Integer() = Nothing)'BIND:"= Nothing"
+                                                       ~~~~~~~~~~
+BC30046: Method cannot have both a ParamArray and Optional parameters.
+    Private Sub M(Optional p1 As Integer = 0, Optional ParamArray p2 As Integer() = Nothing)'BIND:"= Nothing"
+                                                                  ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub AsNewFieldInitializer()
+            Dim source = <![CDATA[
+Class C
+    Dim x As New Object'BIND:"As New Object"
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.x As System.Object) (OperationKind.FieldInitializer, Type: null) (Syntax: 'As New Object')
+  IObjectCreationOperation (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'New Object')
+    Arguments(0)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub MultipleFieldInitializers()
             Dim source = <![CDATA[
 Class C
-	Dim x, y As New Object
-End Class
-]]>.Value
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
+    Dim x, y As New Object'BIND:"As New Object"
+End Class]]>.Value
 
-            Dim tree = compilation.SyntaxTrees.Single()
-            Dim node = tree.GetRoot().DescendantNodes().OfType(Of AsNewClauseSyntax)().Single()
-
-            compilation.VerifyOperationTree(node, expectedOperationTree:=<![CDATA[
-IFieldInitializer (2 initialized fields) (OperationKind.FieldInitializerAtDeclaration)
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (2 initialized fields) (OperationKind.FieldInitializer, Type: null) (Syntax: 'As New Object')
   Field_1: C.x As System.Object
   Field_2: C.y As System.Object
-  IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object)
-]]>.Value)
+  IObjectCreationOperation (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'New Object')
+    Arguments(0)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub SingleFieldInitializerErrorCase()
+            Dim source = <![CDATA[
+Class C1
+    Dim x, y As Object = Me'BIND:"= Me"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (2 initialized fields) (OperationKind.FieldInitializer, Type: null, IsInvalid) (Syntax: '= Me')
+  Field_1: C1.x As System.Object
+  Field_2: C1.y As System.Object
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Me')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+    Dim x, y As Object = Me'BIND:"= Me"
+        ~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub MultipleWithEventsInitializers()
+            Dim source = <![CDATA[
+Class C1
+    Public Sub New(c As C1)
+    End Sub
+
+    WithEvents e, f As New C1(Me)'BIND:"As New C1(Me)"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IPropertyInitializerOperation (2 initialized properties) (OperationKind.PropertyInitializer, Type: null) (Syntax: 'As New C1(Me)')
+  Property_1: WithEvents C1.e As C1
+  Property_2: WithEvents C1.f As C1
+  IObjectCreationOperation (Constructor: Sub C1..ctor(c As C1)) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1(Me)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: 'Me')
+          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'Me')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub SingleWithEventsInitializersErrorCase()
+            Dim source = <![CDATA[
+Class C1
+    Public Sub New(c As C1)
+    End Sub
+    WithEvents e, f As C1 = Me'BIND:"= Me"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IPropertyInitializerOperation (2 initialized properties) (OperationKind.PropertyInitializer, Type: null, IsInvalid) (Syntax: '= Me')
+  Property_1: WithEvents C1.e As C1
+  Property_2: WithEvents C1.f As C1
+  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+    WithEvents e, f As C1 = Me'BIND:"= Me"
+               ~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
-        Public Sub ExpressionInitializers()
+        Public Sub ExpressionInitializers_StaticField()
             Dim source = <![CDATA[
 Class C
-	Shared s1 As Integer = 1 + F()
-	Private i1 As Integer = 1 + F()
-    Private Property P1 As Integer = 1 + F()
+    Shared s1 As Integer = 1 + F()'BIND:"= 1 + F()"
 
-	Private Shared Function F() As Integer
-		Return 1
-	End Function
-End Class
+    Private Shared Function F() As Integer
+        Return 1
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+    Left: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Right: 
+      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: 
+          null
+        Arguments(0)
 ]]>.Value
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
+            Dim expectedDiagnostics = String.Empty
 
-            Dim tree = compilation.SyntaxTrees.Single()
-            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of EqualsValueSyntax)().ToArray()
-            Assert.Equal(3, nodes.Length)
-
-            compilation.VerifyOperationTree(nodes(0), expectedOperationTree:=<![CDATA[
-IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-    Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(1), expectedOperationTree:=<![CDATA[
-IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-    Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
-]]>.Value)
-            compilation.VerifyOperationTree(nodes(2), expectedOperationTree:=<![CDATA[
-IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializerAtDeclaration)
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-    Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
-]]>.Value)
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
-        Public Sub PartialClasses()
+        Public Sub ExpressionInitializers_InstanceField()
             Dim source = <![CDATA[
-Partial Class C
-	Shared s1 As Integer = 1
-	Private i1 As Integer = 1
-End Class
-Partial Class C
-	Shared s2 As Integer = 2
-	Private i2 As Integer = 2
-End Class
-]]>.Value
-
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
-
-            Dim tree = compilation.SyntaxTrees.Single()
-            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of EqualsValueSyntax)().ToArray()
-            Assert.Equal(4, nodes.Length)
-
-            compilation.VerifyOperationTree(nodes(0), expectedOperationTree:=<![CDATA[
-IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(1), expectedOperationTree:=<![CDATA[
-IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(2), expectedOperationTree:=<![CDATA[
-IFieldInitializer (Field: C.s2 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(3), expectedOperationTree:=<![CDATA[
-IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-]]>.Value)
-        End Sub
-
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
-        Public Sub MemberInitializer()
-            Dim source = <![CDATA[
-Structure B
-	Public Field As Boolean
-End Structure
-
-Class F
-	Public Field As Integer
-	Public Property Property1() As String
-	Public Property Property2() As B
-End Class
-
 Class C
-	Public Sub M1()
-		Dim x1 = New F()
-		Dim x2 = New F() With { .Field = 2 }
-		Dim x3 = New F() With { .Property1 = "" }
-		Dim x4 = New F() With { .Property1 = "",  .Field = 2 }
-		Dim x5 = New F() With { .Property2 = New B() With { .Field = True } }
+    Private i1 As Integer = 1 + F()'BIND:"= 1 + F()"
 
-		Dim e1 = New F() With { .Property2 = 1 }
-		Dim e2 = New F() From { "" }
-	End Sub
+    Private Shared Function F() As Integer
+        Return 1
+    End Function
+End Class]]>.Value
+
+Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.i1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+    Left: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Right: 
+      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        Public Sub ExpressionInitializers_Property()
+            Dim source = <![CDATA[
+Class C
+    Private Property P1 As Integer = 1 + F()'BIND:"= 1 + F()"
+
+    Private Shared Function F() As Integer
+        Return 1
+    End Function
+End Class]]>.Value
+
+Dim expectedOperationTree = <![CDATA[
+IPropertyInitializerOperation (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= 1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+    Left: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Right: 
+      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        Public Sub PartialClasses_StaticField()
+            Dim source = <![CDATA[
+Partial Class C
+    Shared s1 As Integer = 1'BIND:"= 1"
+    Private i1 As Integer = 1
+End Class
+Partial Class C
+    Shared s2 As Integer = 2
+    Private i2 As Integer = 2
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        Public Sub PartialClasses_InstanceField()
+            Dim source = <![CDATA[
+Partial Class C
+    Shared s1 As Integer = 1
+    Private i1 As Integer = 1
+End Class
+Partial Class C
+    Shared s2 As Integer = 2
+    Private i2 As Integer = 2'BIND:"= 2"
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 2')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        Public Sub FieldInitializer_ConstantConversions_01()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Private s1 As Byte = 0.0'BIND:"= 0.0"
 End Class
 ]]>.Value
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
 
-            Dim tree = compilation.SyntaxTrees.Single()
-            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax).ToArray()
-            Assert.Equal(7, nodes.Length)
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.s1 As System.Byte) (OperationKind.FieldInitializer, Type: null, IsInvalid) (Syntax: '= 0.0')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+]]>.Value
 
-            compilation.VerifyOperationTree(nodes(0), expectedOperationTree:=<![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x1 As F (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-]]>.Value)
+            Dim expectedDiagnostics = <![CDATA[
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Byte'.
+    Private s1 As Byte = 0.0'BIND:"= 0.0"
+                         ~~~
+]]>.Value
 
-            compilation.VerifyOperationTree(nodes(1), expectedOperationTree:=<![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x2 As F (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-        Member Initializers: IFieldInitializer (Field: F.Field As System.Int32) (OperationKind.FieldInitializerInCreation)
-            ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-]]>.Value)
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
 
-            compilation.VerifyOperationTree(nodes(2), expectedOperationTree:=<![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x3 As F (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-        Member Initializers: IPropertyInitializer (Property: Property F.Property1 As System.String) (OperationKind.PropertyInitializerInCreation)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-]]>.Value)
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        Public Sub FieldInitializer_ConstantConversions_02()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Private s1 As Byte = 0'BIND:"= 0"
+End Class
+]]>.Value
 
-            compilation.VerifyOperationTree(nodes(3), expectedOperationTree:=<![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x4 As F (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-        Member Initializers: IPropertyInitializer (Property: Property F.Property1 As System.String) (OperationKind.PropertyInitializerInCreation)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-          IFieldInitializer (Field: F.Field As System.Int32) (OperationKind.FieldInitializerInCreation)
-            ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-]]>.Value)
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.s1 As System.Byte) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 0')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsImplicit) (Syntax: '0')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+]]>.Value
 
-            compilation.VerifyOperationTree(nodes(4), expectedOperationTree:=<![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x5 As F (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
-        Member Initializers: IPropertyInitializer (Property: Property F.Property2 As B) (OperationKind.PropertyInitializerInCreation)
-            IObjectCreationExpression (Constructor: Sub B..ctor()) (OperationKind.ObjectCreationExpression, Type: B)
-              Member Initializers: IFieldInitializer (Field: B.Field As System.Boolean) (OperationKind.FieldInitializerInCreation)
-                  ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-]]>.Value)
+            Dim expectedDiagnostics = String.Empty
 
-            compilation.VerifyOperationTree(nodes(5), expectedOperationTree:=<![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: e1 As F (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid)
-        Member Initializers: IPropertyInitializer (Property: Property F.Property2 As B) (OperationKind.PropertyInitializerInCreation, IsInvalid)
-            IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: B, IsInvalid)
-              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-]]>.Value)
-
-            compilation.VerifyOperationTree(nodes(6), expectedOperationTree:=<![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: e2 As F (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid)
-]]>.Value)
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 End Namespace

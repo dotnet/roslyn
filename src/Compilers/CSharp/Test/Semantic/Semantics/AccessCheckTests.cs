@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact]
         public void AccessCheckOutsideToInner()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 class C
 {
     static public int c_pub;
@@ -133,7 +133,7 @@ class C
         [Fact]
         public void AccessCheckInnerToOuter()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 class C
 {
     static public int c_pub;
@@ -222,7 +222,7 @@ class C
         [Fact]
         public void AccessCheckDerived()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 class C
 {
     static public int c_pub;
@@ -341,7 +341,7 @@ class E: D
         [Fact]
         public void AccessCheckProtected()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 public class A
 {
     protected int iField;
@@ -385,7 +385,7 @@ public class E : B.N
         [Fact]
         public void AccessCheckProtected02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 interface I<T> { }
  
 class A { }
@@ -406,7 +406,7 @@ class C : I<C.D.E>
         [Fact]
         public void AccessCheckProtected03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 class X<T> { }
 
 class A { }
@@ -442,7 +442,7 @@ class B
             // SPEC VIOLATION: compiler behavior; it is arguably sensible and would be a 
             // SPEC VIOLATION: bad breaking change to fix now.
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 public class B
 {
     protected void M(int x) {}
@@ -488,7 +488,7 @@ public class D : B
             // have a way to succeed, either by calling a protected static method or a non-protected
             // instance method.
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 namespace CS1540
 {
     public class Base
@@ -573,7 +573,7 @@ namespace CS1540
         [Fact]
         public void AccessCheckPrivate()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 interface I<T> { }
  
 class A { }
@@ -594,7 +594,7 @@ class C : I<C.D.E>
         [Fact]
         public void AccessCheckPrivate02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 class X<T> { }
 
 class A { }
@@ -620,7 +620,7 @@ class B
         [Fact]
         public void AccessCheckCrossAssembly()
         {
-            CSharpCompilation other = CreateCompilationWithMscorlib(@"
+            CSharpCompilation other = CreateStandardCompilation(@"
 public class C
 {
     static public int c_pub;
@@ -635,7 +635,7 @@ internal class D
     static public int d_pub;
 }");
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 public class A
 {
     public void m() {
@@ -669,7 +669,7 @@ public class A
         [Fact]
         public void AccessCheckCrossAssemblyDerived()
         {
-            CSharpCompilation other = CreateCompilationWithMscorlib(@"
+            CSharpCompilation other = CreateStandardCompilation(@"
 public class C
 {
     static public int c_pub;
@@ -684,7 +684,7 @@ internal class D
     static public int d_pub;
 }");
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 public class A: C
 {
     public void m() {
@@ -712,14 +712,14 @@ public class A: C
         [Fact]
         public void AccessCheckApi1()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 using System.Collections.Generic;
 class A
 {
     static private int priv;
     static public int pub;
     protected int prot;
-    static private Foo unknowntype;
+    static private Goo unknowntype;
     
     private class K {}
 
@@ -784,13 +784,13 @@ class ADerived2: A
         [Fact]
         public void AccessCheckCrossAssemblyParameterProtectedMethodP2P()
         {
-            CSharpCompilation other = CreateCompilationWithMscorlib(@"
+            CSharpCompilation other = CreateStandardCompilation(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""AccessCheckCrossAssemblyParameterProtectedMethod2"")]
 internal class C {}",
                     assemblyName: "AccessCheckCrossAssemblyParameterProtectedMethod1");
             Assert.Empty(other.GetDiagnostics());
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 public class A
 {
   internal class B
@@ -804,13 +804,13 @@ public class A
         [Fact]
         public void EnsureAccessCheckWithBadIVTDenies()
         {
-            CSharpCompilation other = CreateCompilationWithMscorlib(@"
+            CSharpCompilation other = CreateStandardCompilation(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""AccessCheckCrossAssemblyParameterProtectedMethod2000000"")]
 internal class C {}",
                     assemblyName: "AccessCheckCrossAssemblyParameterProtectedMethod1");
             Assert.Empty(other.GetDiagnostics());
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 public class A
 {
   internal class B
@@ -827,12 +827,12 @@ public class A
         [Fact]
         public void AccessCheckCrossAssemblyParameterProtectedMethodMD()
         {
-            var other = CreateCompilationWithMscorlib(@"
+            var other = CreateStandardCompilation(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""AccessCheckCrossAssemblyParameterProtectedMethod2"")]
 internal class C {}",
                     assemblyName: "AccessCheckCrossAssemblyParameterProtectedMethod1").EmitToArray();
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateStandardCompilation(@"
 public class A
 {
   internal class B
@@ -886,7 +886,7 @@ internal class A
     public virtual void M() { }
     public virtual object P { get { return null; } set { } }
 }";
-            var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "A");
+            var compilation1 = CreateStandardCompilation(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
             var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
@@ -912,7 +912,7 @@ internal abstract class B3 : A
 {
     public override object P { set { } }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, assemblyName: "B", references: new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, assemblyName: "B", references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilationVerifier = CompileAndVerify(compilation2);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
@@ -934,7 +934,7 @@ internal abstract class B3 : A
         b3.P = o;
     }
 }";
-            var compilation3 = CreateCompilationWithMscorlib(source3, assemblyName: "C", references: new[] { reference1, reference2 });
+            var compilation3 = CreateStandardCompilation(source3, assemblyName: "C", references: new[] { reference1, reference2 });
             compilation3.VerifyDiagnostics(
                 // (6,12): error CS0122: 'A.M()' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("A.M()").WithLocation(6, 12),
@@ -959,7 +959,7 @@ public abstract class A
     internal abstract void M();
     internal abstract object P { get; }
 }";
-            var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "A");
+            var compilation1 = CreateStandardCompilation(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
             var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
@@ -970,7 +970,7 @@ public abstract class B : A
     internal override abstract void M();
     internal override abstract object P { get; }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, assemblyName: "B", references: new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, assemblyName: "B", references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilationVerifier = CompileAndVerify(compilation2);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
@@ -983,7 +983,7 @@ public abstract class B : A
         return b.P;
     }
 }";
-            var compilation3 = CreateCompilationWithMscorlib(source3, assemblyName: "C", references: new[] { reference1, reference2 });
+            var compilation3 = CreateStandardCompilation(source3, assemblyName: "C", references: new[] { reference1, reference2 });
             compilation3.VerifyDiagnostics();
         }
 
@@ -997,7 +997,7 @@ internal class A
 {
 }
 ";
-            var compilationA = CreateCompilationWithMscorlib(sourceA, assemblyName: "A");
+            var compilationA = CreateStandardCompilation(sourceA, assemblyName: "A");
             var compilationVerifier = CompileAndVerify(compilationA);
             var referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
@@ -1009,7 +1009,7 @@ public class B
     internal A M() { return null; }
 }
 ";
-            var compilationB = CreateCompilationWithMscorlib(sourceB, assemblyName: "B", references: new[] { referenceA });
+            var compilationB = CreateStandardCompilation(sourceB, assemblyName: "B", references: new[] { referenceA });
             compilationVerifier = CompileAndVerify(compilationB);
             var referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
@@ -1022,7 +1022,7 @@ class C
     }
 }
 ";
-            var compilationC = CreateCompilationWithMscorlib(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB });
+            var compilationC = CreateStandardCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB });
             compilationC.VerifyDiagnostics(
                 // (5,9): error CS0122: 'B.M()' is inaccessible due to its protection level
                 //         b.M();
@@ -1039,7 +1039,7 @@ internal class A
 {
 }
 ";
-            var compilationA = CreateCompilationWithMscorlib(sourceA, assemblyName: "A");
+            var compilationA = CreateStandardCompilation(sourceA, assemblyName: "A");
             var compilationVerifier = CompileAndVerify(compilationA);
             var referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
@@ -1050,7 +1050,7 @@ public class B
     internal A M(int a) { return null; }
 }
 ";
-            var compilationB = CreateCompilationWithMscorlib(sourceB, assemblyName: "B", references: new[] { referenceA });
+            var compilationB = CreateStandardCompilation(sourceB, assemblyName: "B", references: new[] { referenceA });
             compilationVerifier = CompileAndVerify(compilationB);
             var referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
@@ -1063,7 +1063,7 @@ class C
     }
 }
 ";
-            var compilationC = CreateCompilationWithMscorlib(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB, SystemCoreRef });
+            var compilationC = CreateStandardCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB, SystemCoreRef });
             compilationC.VerifyDiagnostics(
                 // (6,9): error CS0122: 'B.M(int)' is inaccessible due to its protection level
                 //         b.M(d);
@@ -1094,7 +1094,7 @@ class C
         return MI.MyMeth(new MyInner2());
     }
 }";
-            CreateCompilationWithMscorlib(source).GetDiagnostics();
+            CreateStandardCompilation(source).GetDiagnostics();
         }
 
         [WorkItem(563563, "DevDiv"), WorkItem(563573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
@@ -1121,7 +1121,7 @@ class C
         return MI.MyMeth(new MyInner2());
     }
 }";
-            CreateCompilationWithMscorlib(source).GetDiagnostics();
+            CreateStandardCompilation(source).GetDiagnostics();
         }
 
         [Fact]
@@ -1151,7 +1151,7 @@ public clas TestClass2 { }
 [MyAttribut(object) ((new E()).Test()))]
 public class TestClass1 { }
 ///////////////";
-            CreateCompilationWithMscorlib(source).GetDiagnostics();
+            CreateStandardCompilation(source).GetDiagnostics();
         }
 
         [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]

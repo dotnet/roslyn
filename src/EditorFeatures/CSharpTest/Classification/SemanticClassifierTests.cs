@@ -1,17 +1,21 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -22,14 +26,12 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
+        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
@@ -37,17 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
                 var syntaxTree = await document.GetSyntaxTreeAsync();
 
-                var service = document.GetLanguageService<IClassificationService>();
+                var service = document.GetLanguageService<ISyntaxClassificationService>();
                 var classifiers = service.GetDefaultSyntaxClassifiers();
                 var extensionManager = workspace.Services.GetService<IExtensionManager>();
 
-                var results = new List<ClassifiedSpan>();
+                var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
                 await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
                     results, CancellationToken.None);
 
-                return results;
+                return results.ToImmutableAndFree();
             }
         }
 
@@ -65,8 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task RefVar()
         {
             await TestInMethodAsync(
-                className: "Class",
-                methodName: "M",
                 code: @"int i = 0; ref var x = ref i;",
                 expected: Keyword("var"));
         }
@@ -264,7 +264,7 @@ class C
 
 class C
 {
-    dynamic::Foo a;
+    dynamic::Goo a;
 }");
         }
 
@@ -279,7 +279,7 @@ class C
 class C
 {
     A d;
-}");
+}", Class("A"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -680,7 +680,7 @@ class Derived : Base
 
         /// <summary>
         /// Instance field should be preferred to type
-        /// 7.5.4.1
+        /// §7.5.4.1
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ColorColor4()
@@ -700,7 +700,7 @@ class Derived : Base
 
         /// <summary>
         /// Type should be preferred to a static field
-        /// 7.5.4.1
+        /// §7.5.4.1
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ColorColor5()
@@ -985,7 +985,7 @@ class Derived : Base
         }
 
         /// <summary>
-        /// 7.5.4.2
+        /// §7.5.4.2
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GrammarAmbiguity_7_5_4_2()
@@ -1343,7 +1343,7 @@ namespace N
         public async Task NAQUserDefinedNAQNamespace()
         {
             await TestAsync(
-@"using foo = N;
+@"using goo = N;
 
 namespace N
 {
@@ -1351,7 +1351,7 @@ namespace N
     {
         static void M()
         {
-            foo.C.M();
+            goo.C.M();
         }
     }
 }",
@@ -1362,7 +1362,7 @@ namespace N
         public async Task NAQUserDefinedNAQNamespaceDoubleColon()
         {
             await TestAsync(
-@"using foo = N;
+@"using goo = N;
 
 namespace N
 {
@@ -1370,7 +1370,7 @@ namespace N
     {
         static void M()
         {
-            foo::C.M();
+            goo::C.M();
         }
     }
 }",
@@ -1907,7 +1907,7 @@ public class X : B<X>
 
 class C<T>
 {
-    public void Foo<U, U>(U arg)
+    public void Goo<U, U>(U arg)
         where S : T
         where U : IEnumerable<S>
     {
@@ -2078,7 +2078,7 @@ struct Type<T>
             await TestAsync(
 @"class C
 {
-    void foo()
+    void goo()
     {
         var x = nameof
     }
@@ -2093,7 +2093,7 @@ struct Type<T>
             await TestAsync(
 @"class C
 {
-    void foo()
+    void goo()
     {
         var x = nameof(C);
     }
@@ -2113,7 +2113,7 @@ struct Type<T>
     {
     }
 
-    void foo()
+    void goo()
     {
         int y = 3;
         var x = nameof();
@@ -2289,6 +2289,41 @@ namespace ConsoleApplication1
         }
     }
 }", Class("Debug"));
+        }
+
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVarInPattern1()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Main(string s)
+    {
+        if (s is var v)
+        {
+        }
+    }
+}", Keyword("var"));
+        }
+
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVarInPattern2()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Main(string s)
+    {
+        switch (s)
+        {
+            case var v:
+        }
+    }
+}", Keyword("var"));
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -24,12 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority);
+                glyph, matchPriority, hasSuggestionItem);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -319,6 +321,41 @@ class C { void M() { B.$$ } }
 ";
             await VerifyItemExistsAsync(code, "X");
             await VerifyItemExistsAsync(code, "Y");
+        }
+
+        [WorkItem(209299, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestDescriptionWhenDocumentLengthChanges()
+        {
+            var code = @"using System;
+
+class C 
+{
+    string Property
+    {
+        get 
+        {
+            Console.$$";//, @"Beep"
+
+            using (var workspace = TestWorkspace.CreateCSharp(code))
+            {
+                var testDocument = workspace.Documents.Single();
+                var position = testDocument.CursorPosition.Value;
+
+                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+                var service = CompletionService.GetService(document);
+                var completions = await service.GetCompletionsAndSetItemDocumentAsync(document, position);
+
+                var item = completions.Items.First(i => i.DisplayText == "Beep");
+                var edit = testDocument.GetTextBuffer().CreateEdit();
+                edit.Delete(Span.FromBounds(position - 10, position));
+                edit.Apply();
+
+                document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+
+                Assert.NotEqual(document, item.Document);
+                var description = service.GetDescriptionAsync(item.Document, item);
+            }
         }
     }
 }

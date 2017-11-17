@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Public Sub ErrorSpans_TopLevel()
             Dim source = <![CDATA[
 <span>Option Strict Off</span>
-<span>Imports Z = Foo.Bar</span>
+<span>Imports Z = Goo.Bar</span>
 
 <<span>Assembly: A(1,2,3,4)</span>, <span>B</span>>
 
@@ -159,7 +159,7 @@ End Enum
     <A><span>Function M1()</span> As Integer
     End Function
 
-    <span>Function M2()</span> As Integer Implements I.Foo
+    <span>Function M2()</span> As Integer Implements I.Goo
     End Function
 
     <span>Function M3()</span> As Integer Handles I.E
@@ -405,7 +405,7 @@ End Class
         End Sub
 
         ''' <summary>
-        ''' Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
+        ''' Verifies that <see cref="VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
         ''' </summary>
         <Fact>
         Public Sub ErrorSpansAllKinds()
@@ -543,8 +543,8 @@ End Class
             End Using
         End Function
 
-        <Fact>
-        Public Async Function AnalyzeDocumentAsync_SemanticError_Change() As Threading.Tasks.Task
+        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        Public Async Function AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change() As Task
             Dim source1 = "
 Class C
     Public Shared Sub Main()
@@ -558,6 +558,38 @@ Class C
     Public Shared Sub Main()
         System.Console.WriteLine(2)
         Bar()
+    End Sub
+End Class
+"
+
+            Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
+            Using workspace = TestWorkspace.CreateVisualBasic(source1)
+                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldSolution = workspace.CurrentSolution
+                Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
+
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
+
+                ' no declaration errors (error in method body is only reported when emitting)
+                Assert.False(result.HasChangesAndErrors)
+                Assert.False(result.HasChangesAndCompilationErrors)
+            End Using
+        End Function
+
+        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        Public Async Function AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change() As Task
+            Dim source1 = "
+Class C
+    Public Shared Sub Main(x As Bar)
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim source2 = "
+Class C
+    Public Shared Sub Main(x As Bar)
+        System.Console.WriteLine(2)
     End Sub
 End Class
 "
@@ -585,10 +617,10 @@ Class C
 
     Public Sub New()
         MyBase.New()
-        Foo()
+        Goo()
     End Sub
 
-    Public Sub Foo
+    Public Sub Goo
     End Sub
 End Class
 </text>.Value
@@ -619,7 +651,7 @@ End Class
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim newDocId = Microsoft.CodeAnalysis.DocumentId.CreateNewId(project.Id)
                 Dim oldSolution = workspace.CurrentSolution
-                Dim newSolution = oldSolution.AddDocument(newDocId, "foo.vb", SourceText.From(source2))
+                Dim newSolution = oldSolution.AddDocument(newDocId, "goo.vb", SourceText.From(source2))
 
                 workspace.TryApplyChanges(newSolution)
 

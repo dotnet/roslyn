@@ -2,9 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -65,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.RequiredParameterMissing, 0, parameterPosition, default(ImmutableArray<int>));
         }
 
+        public static ArgumentAnalysisResult BadNonTrailingNamedArgument(int argumentPosition)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.BadNonTrailingNamedArgument, argumentPosition, 0, default(ImmutableArray<int>));
+        }
+
         public static ArgumentAnalysisResult NormalForm(ImmutableArray<int> argsToParamsOpt)
         {
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.Normal, 0, 0, argsToParamsOpt);
@@ -98,6 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case ArgumentAnalysisResultKind.RequiredParameterMissing:
                     s += "Invalid because parameter " + ParameterPosition + " has no corresponding argument.";
+                    break;
+                case ArgumentAnalysisResultKind.BadNonTrailingNamedArgument:
+                    s += "Invalid because named argument " + ParameterPosition + " is used out of position but some following argument(s) are not named.";
                     break;
             }
 

@@ -31,7 +31,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS1736: Default parameter value for 'da' must be a compile-time constant
                 //     static void M(DateTime da = new DateTime(2012, 6, 22),
@@ -55,18 +55,18 @@ using System.Runtime.InteropServices;
  
 class Program
 {
-    public static void Foo1([Optional][DecimalConstant(0, 0, low: (uint)100, mid: (uint)0, hi: (uint)0)] decimal i)
+    public static void Goo1([Optional][DecimalConstant(0, 0, low: (uint)100, mid: (uint)0, hi: (uint)0)] decimal i)
     {
         System.Console.Write(i);
     }
-    public static void Foo2([Optional][DecimalConstant(0, 0, 0, 0, 200)] decimal i)
+    public static void Goo2([Optional][DecimalConstant(0, 0, 0, 0, 200)] decimal i)
     {
         System.Console.Write(i);
     }
     static void Main(string[] args)
     {
-        Foo1();
-        Foo2();
+        Goo1();
+        Goo2();
     }
 }";
             string expected = "100200";
@@ -121,7 +121,7 @@ abstract class Golf : Echo
 
 
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -131,7 +131,7 @@ abstract class Golf : Echo
 
 class Base
 {
-    public virtual void Foo(int reqParam1, 
+    public virtual void Goo(int reqParam1, 
                             int optParam1 = 0, 
                             int optParam2 = default(int), 
                             int optParam3 = new int(),
@@ -144,7 +144,7 @@ class Base
 class Middle : Base
 {
     //override and change the parameters names
-    public override void Foo(int reqChParam1,
+    public override void Goo(int reqChParam1,
                              int optChParam1 = 0,
                              int optChParam2 = default(int),
                              int optChParam3 = new int(),
@@ -162,22 +162,22 @@ class C : Middle
     {
         var c = new C();
         // calling child class parameters with base names
-        // error CS1739: The best overload for 'Foo' does not have a parameter named 'optParam3'
-        c.Foo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
+        // error CS1739: The best overload for 'Goo' does not have a parameter named 'optParam3'
+        c.Goo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
         // error CS1738: Named argument specifications must appear after all fixed arguments have been specified
-        c.Foo(optArg1: 3333, 11111);
+        c.Goo(optArg1: 3333, 11111);
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (37,15): error CS1739: The best overload for 'Foo' does not have a parameter named 'optParam3'
-                //         c.Foo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Foo", "optParam3").WithLocation(37, 15),
-                // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
-                //         c.Foo(optArg1: 3333, 11111);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithLocation(39, 30),
-                // (39,15): error CS1739: The best overload for 'Foo' does not have a parameter named 'optArg1'
-                //         c.Foo(optArg1: 3333, 11111);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optArg1").WithArguments("Foo", "optArg1").WithLocation(39, 15)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+                // (37,15): error CS1739: The best overload for 'Goo' does not have a parameter named 'optParam3'
+                //         c.Goo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Goo", "optParam3").WithLocation(37, 15),
+                // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c.Goo(optArg1: 3333, 11111);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithArguments("7.2").WithLocation(39, 30),
+                // (39,15): error CS1739: The best overload for 'Goo' does not have a parameter named 'optArg1'
+                //         c.Goo(optArg1: 3333, 11111);
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optArg1").WithArguments("Goo", "optArg1").WithLocation(39, 15)
                 );
         }
 
@@ -190,7 +190,7 @@ class C
     //error CS1736 
     public void M(string s = new string('c',5)) {}
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,30): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     public void M(string s = new string('c',5)) {}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new string('c',5)").WithArguments("s").WithLocation(5, 30));
@@ -220,7 +220,7 @@ class C
         new C(0, cz : 456);
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'fg' of 'C.F'
                 //         f(0, fz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f").WithArguments("fg", "C.F").WithLocation(10, 9),
@@ -250,7 +250,7 @@ class C
 }";
             // and so Roslyn does too. It seems likely that someone has taken a dependency
             // on the bad pattern.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,15): error CS0542: 'C': member names cannot be the same as their enclosing type
                 //   static void C(int q = 10, params int[] x) {}
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 15));
@@ -269,7 +269,7 @@ class C
     C(1, 2, 3, x:4);
   }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,15): error CS0542: 'C': member names cannot be the same as their enclosing type
                 //   static void C(int q = 10, params int[] x) {}
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 15),
@@ -649,7 +649,7 @@ class D
 {
     public int this[string s = ""four""] { get { return s.Length; } set { } }
     public int this[int x = 2, int y = 5] { get { return x + y; } set { } }
-    public int this[string str = ""foo"", int i = 13] 
+    public int this[string str = ""goo"", int i = 13] 
     { 
         get { Console.WriteLine(""D.this[str: '{0}', i: {1}].get"", str, i); return i;}
         set { Console.WriteLine(""D.this[str: '{0}', i: {1}].set"", str, i); }
@@ -686,7 +686,7 @@ class C
 5
 3
 5
-D.this[str: 'foo', i: 1].set
+D.this[str: 'goo', i: 1].set
 D.this[str: 'bar', i: 13].set
 D.this[str: 'baz', i: 2].set
 D.this[str: 'bah', i: 3].set";
@@ -734,7 +734,7 @@ partial class C
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
 // (13,23): error CS1739: The best overload for 'PartialMethod' does not have a parameter named 'y'
 //         PartialMethod(y:123);
 Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("PartialMethod", "y")
@@ -801,7 +801,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var nodeAndModel = GetBindingNodeAndModel<IdentifierNameSyntax>(comp);
 
             var typeInfo = nodeAndModel.Item2.GetTypeInfo(nodeAndModel.Item1);
@@ -825,7 +825,7 @@ namespace NS
     void M1(object value = F()) { }
     object M2(object value = M2()) { return null; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,28): error CS1736: Default parameter value for 'value' must be a compile-time constant
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("value").WithLocation(4, 28),
                 // (5,30): error CS1736: Default parameter value for 'value' must be a compile-time constant
@@ -842,7 +842,7 @@ namespace NS
     static void M1(object value = F()) { }
     static object M2(object value = M2()) { return null; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,35): error CS1736: Default parameter value for 'value' must be a compile-time constant
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("value").WithLocation(4, 35),
                 // (5,37): error CS1736: Default parameter value for 'value' must be a compile-time constant
@@ -865,7 +865,7 @@ public struct Vector3
     public float Y;
     public float Z;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (3,39): error CS1736: Default parameter value for 'vector' must be a compile-time constant
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new Vector3() { X = 1f, Y = 1f, Z = 1f}").WithArguments("vector").WithLocation(3, 39));
         }
@@ -878,9 +878,9 @@ public struct Vector3
             var source =
 @"class C
 {
-    static void Foo<T>(T t = default(T)) {}
+    static void Goo<T>(T t = default(T)) {}
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
 
@@ -891,7 +891,7 @@ public struct Vector3
             // public struct S{}
             // public class C
             // {
-            //     public static void Foo(string s, S t = default(S)) {}
+            //     public static void Goo(string s, S t = default(S)) {}
             // }            
             string ilSource = @"
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -906,7 +906,7 @@ public struct Vector3
 .class public auto ansi beforefieldinit C
        extends [mscorlib]System.Object
 {
-  .method public hidebysig static void  Foo(string s,
+  .method public hidebysig static void  Goo(string s,
                                             [opt] valuetype S t) cil managed
   {
     .param [2] = nullref
@@ -914,7 +914,7 @@ public struct Vector3
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 } // end of class C
 
 ";
@@ -925,7 +925,7 @@ public class D
 {
     public static void Caller()
     {
-        C.Foo("""");
+        C.Goo("""");
     }
 }";
 
@@ -940,7 +940,7 @@ public class D
 using System.Runtime.InteropServices;
 
 public class Parent{
-    public int Foo([Optional]object i = null) {
+    public int Goo([Optional]object i = null) {
         return 1;
     }
 
@@ -952,11 +952,11 @@ public class Parent{
 class Test{
     public static int Main(){
         Parent p = new Parent();
-        return p.Foo();
+        return p.Goo();
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
                 // (9,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
                 //     public int Bar([DefaultParameterValue(1)]int i = 2) {
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(9, 21),
@@ -964,7 +964,7 @@ class Test{
                 //     public int Bar([DefaultParameterValue(1)]int i = 2) {
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "2").WithLocation(9, 54),
                 // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                //     public int Foo([Optional]object i = null) {
+                //     public int Goo([Optional]object i = null) {
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(5, 21)
                 );
         }
@@ -990,25 +990,25 @@ public class Test
         [Fact]
         public void RefParameterDeclaredWithOptionalAttribute()
         {
-            // The native compiler produces "CS1501: No overload for method 'Foo' takes 0 arguments."
+            // The native compiler produces "CS1501: No overload for method 'Goo' takes 0 arguments."
             // Roslyn produces a slightly more informative error message.
 
             string source = @"
 using System.Runtime.InteropServices;
 public class Parent
 {
-     public static void Foo([Optional] ref int x) {}
+     public static void Goo([Optional] ref int x) {}
      static void Main()
      {
-         Foo();
+         Goo();
      }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRef });
+            var comp = CreateStandardCompilation(source, new[] { SystemRef });
             comp.VerifyDiagnostics(
- // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Foo(ref int)'
- //          Foo();
- Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("x", "Parent.Foo(ref int)"));
+ // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Goo(ref int)'
+ //          Goo();
+ Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("x", "Parent.Goo(ref int)"));
         }
 
         [Fact, WorkItem(544491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544491")]
@@ -1115,7 +1115,7 @@ public static class ErrorCases
 }
 ";
             // NOTE: anywhere dev10 reported CS1909, roslyn reports CS1910.
-            CreateCompilationWithMscorlib(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
                 // (27,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 //         [Optional][DefaultParameterValue(0)]         bool b1,
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
@@ -1378,7 +1378,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'D.M(ref object)'
                 //         d.M(); //CS1501
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
@@ -1546,7 +1546,7 @@ public enum E
 
 public class C
 {
-    public void Foo(
+    public void Goo(
             [Optional][DateTimeConstant(100000)]DateTime dateTime,
             decimal dec = 12345678901234567890m,
             int? x = 0,
@@ -1621,16 +1621,16 @@ public class D
             = System.Globalization.CultureInfo.InvariantCulture;
 
         C c = new C();
-        c.Foo();
+        c.Goo();
         c.Baz();
     }
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib(library, options: TestOptions.ReleaseDll, assemblyName: "Library");
+            var libComp = CreateStandardCompilation(library, options: TestOptions.ReleaseDll, assemblyName: "Library");
             libComp.VerifyDiagnostics();
 
-            var exeComp = CreateCompilationWithMscorlib(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
+            var exeComp = CreateStandardCompilation(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
 
             var verifier = CompileAndVerify(exeComp, expectedOutput: @"DatesMatch
 12345678901234567890
@@ -1667,7 +1667,7 @@ one
   IL_0040:  ldloca.s   V_1
   IL_0042:  initobj    ""S?""
   IL_0048:  ldloc.1
-  IL_0049:  callvirt   ""void C.Foo(System.DateTime, decimal, int?, int?, short, int, S?)""
+  IL_0049:  callvirt   ""void C.Goo(System.DateTime, decimal, int?, int?, short, int, S?)""
   IL_004e:  ldc.i4.0
   IL_004f:  newobj     ""E?..ctor(E)""
   IL_0054:  ldc.i4.0
@@ -1698,7 +1698,7 @@ class P
 ";
             // Note that the native compiler gives a slightly less informative error message here.
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
 // (11,26): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'I.M(out object)'
 //     static void Q(I i) { i.M(); }

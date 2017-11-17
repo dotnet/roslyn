@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertIncompleteSubmission("using X; /*");
 
             AssertIncompleteSubmission(@"
-void foo() 
+void goo() 
 {
 #if F
 }
 ");
 
             AssertIncompleteSubmission(@"
-void foo() 
+void goo() 
 {
 #region R
 }
@@ -81,28 +81,28 @@ void foo()
             // invalid escape sequence in a string
             AssertCompleteSubmission("\"\\q\"");
 
-            AssertIncompleteSubmission("void foo(");
-            AssertIncompleteSubmission("void foo()");
-            AssertIncompleteSubmission("void foo() {");
-            AssertCompleteSubmission("void foo() {}");
-            AssertCompleteSubmission("void foo() { int a = 1 }");
+            AssertIncompleteSubmission("void goo(");
+            AssertIncompleteSubmission("void goo()");
+            AssertIncompleteSubmission("void goo() {");
+            AssertCompleteSubmission("void goo() {}");
+            AssertCompleteSubmission("void goo() { int a = 1 }");
 
-            AssertIncompleteSubmission("int foo {");
-            AssertCompleteSubmission("int foo { }");
-            AssertCompleteSubmission("int foo { get }");
+            AssertIncompleteSubmission("int goo {");
+            AssertCompleteSubmission("int goo { }");
+            AssertCompleteSubmission("int goo { get }");
 
-            AssertIncompleteSubmission("enum foo {");
-            AssertCompleteSubmission("enum foo {}");
-            AssertCompleteSubmission("enum foo { a = }");
-            AssertIncompleteSubmission("class foo {");
-            AssertCompleteSubmission("class foo {}");
-            AssertCompleteSubmission("class foo { void }");
-            AssertIncompleteSubmission("struct foo {");
-            AssertCompleteSubmission("struct foo {}");
-            AssertCompleteSubmission("[A struct foo {}");
-            AssertIncompleteSubmission("interface foo {");
-            AssertCompleteSubmission("interface foo {}");
-            AssertCompleteSubmission("interface foo : {}");
+            AssertIncompleteSubmission("enum goo {");
+            AssertCompleteSubmission("enum goo {}");
+            AssertCompleteSubmission("enum goo { a = }");
+            AssertIncompleteSubmission("class goo {");
+            AssertCompleteSubmission("class goo {}");
+            AssertCompleteSubmission("class goo { void }");
+            AssertIncompleteSubmission("struct goo {");
+            AssertCompleteSubmission("struct goo {}");
+            AssertCompleteSubmission("[A struct goo {}");
+            AssertIncompleteSubmission("interface goo {");
+            AssertCompleteSubmission("interface goo {}");
+            AssertCompleteSubmission("interface goo : {}");
 
             AssertCompleteSubmission("partial");
             AssertIncompleteSubmission("partial class");
@@ -155,6 +155,42 @@ void foo()
             var section = SyntaxFactory.SwitchSection();
             var span = section.Span;
             Assert.Equal(default(TextSpan), span);
+        }
+
+        [Theory]
+        [InlineData("x", "x")]
+        [InlineData("x.y", "y")]
+        [InlineData("x?.y", "y")]
+        [InlineData("this.y", "y")]
+        [InlineData("M()", null)]
+        [InlineData("new C()", null)]
+        [InlineData("x.M()", null)]
+        [InlineData("-x", null)]
+        [InlineData("this", null)]
+        [InlineData("default(x)", null)]
+        [InlineData("typeof(x)", null)]
+        public void TestTryGetInferredMemberName(string source, string expected)
+        {
+            var expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
+            var actual = SyntaxFacts.TryGetInferredMemberName(expr);
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("Item0", false)]
+        [InlineData("Item01", false)]
+        [InlineData("Item1", true)]
+        [InlineData("Item2", true)]
+        [InlineData("Item10", true)]
+        [InlineData("Rest", true)]
+        [InlineData("ToString", true)]
+        [InlineData("GetHashCode", true)]
+        [InlineData("item1", false)]
+        [InlineData("item10", false)]
+        [InlineData("Alice", false)]
+        public void TestIsReservedTupleElementName(string elementName, bool isReserved)
+        {
+            Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName));
         }
     }
 }

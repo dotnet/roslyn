@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
             const string code = @"
 class C
 {
-    public static explicit operator $$Foo(byte b);
+    public static explicit operator $$Goo(byte b);
 }";
 
             await VerifyNoBlockSpansAsync(code);
@@ -34,7 +34,7 @@ class C
 class C
 {
     {|hint:{|textspan:[Blah]
-    |}public static explicit operator $$Foo(byte b);|}
+    |}public static explicit operator $$Goo(byte b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
@@ -50,7 +50,7 @@ class C
     {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
-    |}public static explicit operator $$Foo(byte b);|}
+    |}public static explicit operator $$Goo(byte b);|}
 }";
 
             await VerifyBlockSpansAsync(code,

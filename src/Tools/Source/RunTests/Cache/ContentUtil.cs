@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace RunTests.Cache
 {
@@ -15,7 +16,22 @@ namespace RunTests.Cache
     {
         private readonly TestExecutionOptions _options;
         private readonly MD5 _hash = MD5.Create();
-        private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Building up checksums for assembly values represents a significant amount of time when calculating
+        /// the content for a given test.  As such we aggressively cache these results.
+        /// 
+        /// The cache is done by the MVID of the assembly.  This is guaranteed to be different for different
+        /// content and it's efficient to read.  Hence it's an excellent key.
+        /// </summary>
+        private readonly Dictionary<Guid, string> _assemblyChecksumCacheMap = new Dictionary<Guid, string>();
+
+        /// <summary>
+        /// Stores a map between a unit test assembly and the reference section of the content file.  For 
+        /// a number of assemblies the reference section is calculated multiple times.  That is a non-trivial
+        /// cost due to the IO and processing
+        /// </summary>
+        private readonly Dictionary<string, (string content, bool isError)> _referenceSectionMap = new Dictionary<string, (string content, bool isError)>();
 
         internal ContentUtil(TestExecutionOptions options)
         {
@@ -56,17 +72,59 @@ namespace RunTests.Cache
             return builder.ToString();
         }
 
-        private void AppendReferences(StringBuilder builder, string assemblyPath)
+        private void AppendReferences(StringBuilder builder, string unitTestAssemblyPath)
         {
-            builder.AppendLine("References:");
+            if (!_referenceSectionMap.TryGetValue(unitTestAssemblyPath, out var tuple))
+            {
+                tuple = GetReferenceSectionCore(unitTestAssemblyPath);
+                _referenceSectionMap[unitTestAssemblyPath] = tuple;
+            }
 
-            var binariesPath = Path.GetDirectoryName(assemblyPath);
+            if (tuple.isError)
+            {
+                throw new Exception(tuple.content);
+            }
+
+            builder.AppendLine(tuple.content);
+        }
+
+        private (string content, bool isError) GetReferenceSectionCore(string unitTestAssemblyPath)
+        {
+            // This map is used for diagnostics and tracks the set of assemblies which bring in a given
+            // name as a reference.
+            var referenceMap = new Dictionary<string, List<AssemblyName>>();
+            void noteReference(AssemblyName source, AssemblyName referenced)
+            {
+                var key = referenced.FullName;
+                if (!referenceMap.TryGetValue(key, out var list))
+                {
+                    list = new List<AssemblyName>();
+                    referenceMap[key] = list;
+                }
+
+                list.Add(source);
+            }
+
+            var unitTestAssemblyName = AssemblyName.GetAssemblyName(unitTestAssemblyPath);
+            var binariesPath = Path.GetDirectoryName(unitTestAssemblyPath);
             var assemblyUtil = new AssemblyUtil(binariesPath);
-            var visitedSet = new HashSet<string>();
-            var missingSet = new HashSet<string>();
-            var toVisit = new Queue<AssemblyName>(assemblyUtil.GetReferencedAssemblies(assemblyPath));
-            var references = new List<Tuple<string, string>>();
 
+            var toVisit = new Queue<AssemblyName>();
+            void enqueueReferences(string assemblyPath)
+            {
+                var assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
+                foreach (var current in assemblyUtil.GetReferencedAssemblies(assemblyPath))
+                {
+                    noteReference(assemblyName, current);
+                    toVisit.Enqueue(current);
+                }
+            }
+
+            enqueueReferences(unitTestAssemblyPath);
+
+            var missingSet = new HashSet<string>();
+            var visitedSet = new HashSet<string>();
+            var references = new List<(string assemblyName, string assemblyHash)>();
             while (toVisit.Count > 0)
             {
                 var current = toVisit.Dequeue();
@@ -75,20 +133,15 @@ namespace RunTests.Cache
                     continue;
                 }
 
-                string currentPath;
-                if (assemblyUtil.TryGetAssemblyPath(current, out currentPath))
+                if (assemblyUtil.TryGetAssemblyPath(current, out var currentPath))
                 {
-                    foreach (var name in assemblyUtil.GetReferencedAssemblies(currentPath))
-                    {
-                        toVisit.Enqueue(name);
-                    }
-
+                    enqueueReferences(currentPath);
                     var currentHash = GetFileChecksum(currentPath);
-                    references.Add(Tuple.Create(current.Name, currentHash));
+                    references.Add((current.Name, currentHash));
                 }
                 else if (assemblyUtil.IsKnownMissingAssembly(current))
                 {
-                    references.Add(Tuple.Create(current.Name, "<missing light up reference>"));
+                    references.Add((current.Name, "<missing light up reference>"));
                 }
                 else
                 {
@@ -96,22 +149,34 @@ namespace RunTests.Cache
                 }
             }
 
-            references.Sort((x, y) => x.Item1.CompareTo(y.Item1));
-            foreach (var pair in references)
+            if (missingSet.Count == 0)
             {
-                builder.AppendLine($"\t{pair.Item1} {pair.Item2}");
-            }
+                var builder = new StringBuilder();
+                builder.AppendLine("References:");
+                references.Sort((x, y) => x.assemblyName.CompareTo(y.assemblyName));
+                foreach (var pair in references)
+                {
+                    builder.AppendLine($"\t{pair.assemblyName} {pair.assemblyHash}");
+                }
 
-            // Error if there are any referenced assemblies that we were unable to resolve.
-            if (missingSet.Count > 0)
+                return (builder.ToString(), isError: false);
+            }
+            else
             {
+                // Error if there are any referenced assemblies that we were unable to resolve.
                 var errorBuilder = new StringBuilder();
                 errorBuilder.AppendLine($"Unable to resolve {missingSet.Count} referenced assemblies");
                 foreach (var item in missingSet.OrderBy(x => x))
                 {
-                    errorBuilder.AppendLine($"\t{item}");
+                    errorBuilder.AppendLine($"\t{item} referenced from");
+                    var list = referenceMap[item];
+                    foreach (var source in list.OrderBy(x => x))
+                    {
+                        errorBuilder.AppendLine($"\t\t{source.Name}");
+                    }
                 }
-                throw new Exception(errorBuilder.ToString());
+
+                return (errorBuilder.ToString(), isError: true);
             }
         }
 
@@ -149,15 +214,32 @@ namespace RunTests.Cache
 
         private string GetFileChecksum(string filePath)
         {
-            string checksum;
-            if (_fileToChecksumMap.TryGetValue(filePath, out checksum))
+            var ext = Path.GetExtension(filePath).ToLower();
+            return (ext == ".dll" || ext == ".exe") 
+                ? GetAssemblyChecksum(filePath)
+                : GetFileChecksumCore(filePath);
+        }
+
+        private string GetAssemblyChecksum(string filePath)
+        {
+            var mvid = GetAssemblyMvid(filePath);
+            if (!_assemblyChecksumCacheMap.TryGetValue(mvid, out var checksum))
             {
-                return checksum;
+                checksum = GetFileChecksumCore(filePath);
+                _assemblyChecksumCacheMap[mvid] = checksum;
             }
 
-            checksum = GetFileChecksumCore(filePath);
-            _fileToChecksumMap.Add(filePath, checksum);
             return checksum;
+        }
+
+        private Guid GetAssemblyMvid(string filePath)
+        {
+            using (var source = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var reader = new PEReader(source))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                return metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
+            }
         }
 
         private string GetFileChecksumCore(string filePath)

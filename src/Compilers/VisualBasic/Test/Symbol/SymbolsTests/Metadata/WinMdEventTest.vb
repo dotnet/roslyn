@@ -705,6 +705,7 @@ Public Partial Class A
         ''' would expect.
         ''' </summary>
         <ConditionalFact(GetType(OSVersionWin8))>
+        <WorkItem(18092, "https://github.com/dotnet/roslyn/issues/18092")>
         Public Sub WinMdEvent()
 
             Dim source =
@@ -717,7 +718,7 @@ Public Partial Class A
 	    Private Sub OnSuspending(sender As Object, e As SuspendingEventArgs)
 	    End Sub
 
-	    Public Sub foo()
+	    Public Sub goo()
 		    Dim application As Application = Nothing
             AddHandler application.Suspending, AddressOf Me.OnSuspending
             RemoveHandler application.Suspending, AddressOf Me.OnSuspending
@@ -725,7 +726,7 @@ Public Partial Class A
 
 	    Public Shared Sub Main()
 		    Dim abcdef As abcdef = New abcdef()
-		    abcdef.foo()
+		    abcdef.goo()
 	    End Sub
     End Class
         </file>
@@ -762,7 +763,7 @@ Public Partial Class A
   IL_004b:  ret
 }
                     </output>
-            CompileAndVerify(compilation).VerifyIL("abcdef.foo", expectedIL.Value())
+            CompileAndVerify(compilation).VerifyIL("abcdef.goo", expectedIL.Value())
         End Sub
 
         <Fact()>
@@ -800,7 +801,7 @@ End Class
 	    Private Sub OnSuspending(sender As Object, e As SuspendingEventArgs)
 	    End Sub
 
-	    Public Sub foo()
+	    Public Sub goo()
 		    Dim application As Application = Nothing
             AddHandler application.Suspending, Sub(sender as Object, e As SuspendingEventArgs)
                                             End Sub
@@ -808,7 +809,7 @@ End Class
 
 	    Public Shared Sub Main()
 		    Dim abcdef As abcdef = New abcdef()
-		    abcdef.foo()
+		    abcdef.goo()
 	    End Sub
     End Class
         </file>
@@ -845,7 +846,7 @@ End Class
 }
                     </output>
 
-            CompileAndVerify(compilation, verify:=OSVersion.IsWin8).VerifyIL("abcdef.foo", expectedIL.Value())
+            CompileAndVerify(compilation, verify:=OSVersion.IsWin8).VerifyIL("abcdef.goo", expectedIL.Value())
         End Sub
 
         <Fact>

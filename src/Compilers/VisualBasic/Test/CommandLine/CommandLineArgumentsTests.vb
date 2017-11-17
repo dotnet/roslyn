@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(True, dict("OnlyEqualsNoValue2"))
             Assert.Equal(GetType(Boolean), (dict("OnlyEqualsNoValue2")).GetType)
 
-            text = ",,,,,foo=bar,,,,,,,,,,"
+            text = ",,,,,goo=bar,,,,,,,,,,"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, dict.Count)
 
@@ -45,26 +45,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(0, dict.Count)
             Assert.Equal(1, errors.Count)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "= ^^ ^^ "))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "= ^^ ^^ "))
 
-            Dim previousSymbols As New Dictionary(Of String, Object)() From {{"Foo", 1}, {"Bar", "Foo"}}
+            Dim previousSymbols As New Dictionary(Of String, Object)() From {{"Goo", 1}, {"Bar", "Goo"}}
             text = ",,,=,,,"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors, previousSymbols)
             Assert.Equal(2, dict.Count)
             Assert.Equal(1, errors.Count)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "= ^^ ^^ "))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "= ^^ ^^ "))
 
-            text = "OnlyEqualsNoValue1=, Bar=foo"
+            text = "OnlyEqualsNoValue1=, Bar=goo"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(0, dict.Count)
             Assert.Equal(1, errors.Count)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Expression expected.", "OnlyEqualsNoValue1= ^^ ^^ "))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Expression expected.", "OnlyEqualsNoValue1= ^^ ^^ "))
 
-            text = "Bar=foo, OnlyEqualsNoValue1="
+            text = "Bar=goo, OnlyEqualsNoValue1="
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, dict.Count)
             Assert.Equal(1, errors.Count)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Expression expected.", "OnlyEqualsNoValue1= ^^ ^^ "))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Expression expected.", "OnlyEqualsNoValue1= ^^ ^^ "))
 
             text = """""OnlyEqualsNoValue1"""""
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
@@ -81,44 +81,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             text = "then=bar" ' keyword :)
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, errors.Count)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "then ^^ ^^ =bar"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "then ^^ ^^ =bar"))
 
             text = "bar=then" ' keyword :)
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, errors.Count)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Syntax error in conditional compilation expression.", "bar= ^^ ^^ then"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Syntax error in conditional compilation expression.", "bar= ^^ ^^ then"))
 
-            text = "FOO:BAR"
+            text = "GOO:BAR"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(2, dict.Count)
-            Assert.Equal(True, dict("FOO"))
-            Assert.Equal(GetType(Boolean), (dict("FOO")).GetType)
+            Assert.Equal(True, dict("GOO"))
+            Assert.Equal(GetType(Boolean), (dict("GOO")).GetType)
             Assert.Equal(True, dict("BAR"))
             Assert.Equal(GetType(Boolean), (dict("BAR")).GetType)
 
-            text = "FOO::::::::BAR"
+            text = "GOO::::::::BAR"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(2, dict.Count)
-            Assert.Equal(True, dict("FOO"))
-            Assert.Equal(GetType(Boolean), (dict("FOO")).GetType)
+            Assert.Equal(True, dict("GOO"))
+            Assert.Equal(GetType(Boolean), (dict("GOO")).GetType)
             Assert.Equal(True, dict("BAR"))
             Assert.Equal(GetType(Boolean), (dict("BAR")).GetType)
 
-            text = "FOO=23::,,:::BAR"
+            text = "GOO=23::,,:::BAR"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, errors.Count)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "FOO=23:: ^^ , ^^ ,:::"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "GOO=23:: ^^ , ^^ ,:::"))
 
-            text = "FOO=23,:BAR"
+            text = "GOO=23,:BAR"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, errors.Count)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "FOO=23, ^^ : ^^ BAR"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "GOO=23, ^^ : ^^ BAR"))
 
-            text = "FOO::BAR,,BAZ"
+            text = "GOO::BAR,,BAZ"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(3, dict.Count)
-            Assert.Equal(True, dict("FOO"))
-            Assert.Equal(GetType(Boolean), (dict("FOO")).GetType)
+            Assert.Equal(True, dict("GOO"))
+            Assert.Equal(GetType(Boolean), (dict("GOO")).GetType)
             Assert.Equal(True, dict("BAR"))
             Assert.Equal(GetType(Boolean), (dict("BAR")).GetType)
             Assert.Equal(True, dict("BAZ"))
@@ -141,15 +141,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             errors.Verify()
             Assert.Equal(2.2, dict("bar"))
 
-            text = "foo=1,bar=foo+2"
+            text = "goo=1,bar=goo+2"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
             Assert.Equal(3, dict("bar"))
 
-            text = "bar=foo+2,foo=1"
+            text = "bar=goo+2,goo=1"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
-            Assert.Equal(2, dict("bar")) ' foo is known, but not yet initialized
+            Assert.Equal(2, dict("bar")) ' goo is known, but not yet initialized
 
             ' dev 10 does not crash here, not sure what the value is
             text = "bar=1/0"
@@ -179,38 +179,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
             text = "A=""A"",B=""B"",T=IF(1>0, A, B)+B+""C"",RRR=1+""3"""
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Conversion from 'String' to 'Double' cannot occur in a constant expression.", "RRR=1+""3"" ^^ ^^ "))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Conversion from 'String' to 'Double' cannot occur in a constant expression.", "RRR=1+""3"" ^^ ^^ "))
 
             text = "A=""A"",B=""B"",T=IF(1>0, A, B)+B+""C"",X=IF(1,,,,,RRR=1"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(
-                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("')' expected.", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
-                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("'If' operator requires either two or three operands.", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
-                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Expression expected.", "X=IF(1,,,,,RRR=1 ^^ ^^ "))
+                Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("')' expected.", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
+                Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("'If' operator requires either two or three operands.", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
+                Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Expression expected.", "X=IF(1,,,,,RRR=1 ^^ ^^ "))
 
             text = "A=CHR(128)"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "A=CHR ^^ ^^ (128)"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("End of statement expected.", "A=CHR ^^ ^^ (128)"))
 
             text = "A=ASCW(""G"")"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "A=ASCW ^^ ^^ (""G"")"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("End of statement expected.", "A=ASCW ^^ ^^ (""G"")"))
 
             text = "A=1--1,B=1 1"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "B=1  ^^ ^^ 1"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("End of statement expected.", "B=1  ^^ ^^ 1"))
 
             text = "A=1--1,B=1 C=1"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "B=1  ^^ ^^ C=1"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("End of statement expected.", "B=1  ^^ ^^ C=1"))
 
             text = "A=111111111111111111111111"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Overflow.", "A=111111111111111111111111 ^^ ^^ "))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Overflow.", "A=111111111111111111111111 ^^ ^^ "))
 
             text = "A= 2 + " + vbCrLf + "2"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Syntax error in conditional compilation expression.", "A= 2 + " + vbCrLf + " ^^ ^^ 2"))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Syntax error in conditional compilation expression.", "A= 2 + " + vbCrLf + " ^^ ^^ 2"))
 
             text = "A= 2 + _" + vbCrLf + "2"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
@@ -280,7 +280,7 @@ blah
 
             Dim text = "'Blah'"
             Dim dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", " ^^ 'Blah' ^^ "))
+            errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", " ^^ 'Blah' ^^ "))
         End Sub
     End Class
 End Namespace

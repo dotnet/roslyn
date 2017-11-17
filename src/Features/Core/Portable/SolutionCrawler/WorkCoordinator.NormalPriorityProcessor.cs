@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Versions;
@@ -28,7 +29,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
                     private readonly ConcurrentDictionary<DocumentId, IDisposable> _higherPriorityDocumentsNotProcessed;
-                    private readonly HashSet<ProjectId> _currentSnapshotVersionTrackingSet;
 
                     private ProjectId _currentProjectProcessing;
                     private Solution _processingSolution;
@@ -50,10 +50,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
-                        _currentProjectProcessing = default(ProjectId);
+                        _currentProjectProcessing = default;
                         _processingSolution = null;
-
-                        _currentSnapshotVersionTrackingSet = new HashSet<ProjectId>();
 
                         Start();
                     }
@@ -321,8 +319,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                 if (document != null)
                                 {
-                                    await TrackSemanticVersionsAsync(document, workItem, cancellationToken).ConfigureAwait(false);
-
                                     // if we are called because a document is opened, we invalidate the document so that
                                     // it can be re-analyzed. otherwise, since newly opened document has same version as before
                                     // analyzer will simply return same data back
@@ -370,33 +366,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // remove one that is finished running
                             _workItemQueue.RemoveCancellationSource(workItem.DocumentId);
                         }
-                    }
-
-                    private async Task TrackSemanticVersionsAsync(Document document, WorkItem workItem, CancellationToken cancellationToken)
-                    {
-                        if (workItem.IsRetry ||
-                            workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentAdded) ||
-                            !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
-                        {
-                            return;
-                        }
-
-                        var service = document.Project.Solution.Workspace.Services.GetService<ISemanticVersionTrackingService>();
-                        if (service == null)
-                        {
-                            return;
-                        }
-
-                        // we already reported about this project for same snapshot, don't need to do it again
-                        if (_currentSnapshotVersionTrackingSet.Contains(document.Project.Id))
-                        {
-                            return;
-                        }
-
-                        await service.RecordSemanticVersionsAsync(document.Project, cancellationToken).ConfigureAwait(false);
-
-                        // mark this project as already processed.
-                        _currentSnapshotVersionTrackingSet.Add(document.Project.Id);
                     }
 
                     private async Task ProcessOpenDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
@@ -465,7 +434,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         RemoveDocument(this.Analyzers, documentId);
                     }
 
-                    private static void RemoveDocument(IEnumerable<IIncrementalAnalyzer> analyzers, DocumentId documentId)
+                    private static void RemoveDocument(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId)
                     {
                         foreach (var analyzer in analyzers)
                         {
@@ -493,24 +462,27 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             var currentSolution = this.Processor.CurrentSolution;
 
-                            if (currentSolution != _processingSolution)
+                            if (currentSolution == _processingSolution)
                             {
-                                ResetLogAggregatorIfNeeded(currentSolution);
-
-                                // clear version tracking set we already reported.
-                                _currentSnapshotVersionTrackingSet.Clear();
-
-                                _processingSolution = currentSolution;
-
-                                await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
-
-                                foreach (var id in this.Processor.GetOpenDocumentIds())
-                                {
-                                    AddHigherPriorityDocument(id);
-                                }
-
-                                SolutionCrawlerLogger.LogResetStates(this.Processor._logAggregator);
+                                return;
                             }
+
+                            // solution has changed
+                            ResetLogAggregatorIfNeeded(currentSolution);
+
+                            _processingSolution = currentSolution;
+
+                            // synchronize new solution to OOP
+                            await currentSolution.Workspace.SynchronizePrimaryWorkspaceAsync(currentSolution, this.CancellationToken).ConfigureAwait(false);
+
+                            await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
+
+                            foreach (var id in this.Processor.GetOpenDocumentIds())
+                            {
+                                AddHigherPriorityDocument(id);
+                            }
+
+                            SolutionCrawlerLogger.LogResetStates(this.Processor._logAggregator);
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         None = 0,
         MessageBase = 1200,
+
         IDS_SK_METHOD = MessageBase + 2000,
         IDS_SK_TYPE = MessageBase + 2001,
         IDS_SK_NAMESPACE = MessageBase + 2002,
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_SK_ALIAS = MessageBase + 2010,
         //IDS_SK_EXTERNALIAS = MessageBase + 2011,
         IDS_SK_LABEL = MessageBase + 2012,
+        IDS_SK_CONSTRUCTOR = MessageBase + 2013,
+
         IDS_NULL = MessageBase + 10001,
         //IDS_RELATEDERROR = MessageBase + 10002,
         //IDS_RELATEDWARNING = MessageBase + 10003,
@@ -123,10 +126,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureOutVar = MessageBase + 12713,
 
-        IDS_FeatureIOperation = MessageBase + 12714,
+        // IDS_FeatureIOperation = MessageBase + 12714,
         IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
         IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
         IDS_ThrowExpression = MessageBase + 12717,
+        IDS_FeatureDefaultLiteral = MessageBase + 12718,
+        IDS_FeatureInferredTupleNames = MessageBase + 12719,
+        IDS_FeatureGenericPatternMatching = MessageBase + 12720,
+        IDS_FeatureAsyncMain = MessageBase + 12721,
+        IDS_LangVersions = MessageBase +  12722,
+
+        IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
+        IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
+
+        IDS_FeatureReadOnlyReferences = MessageBase + 12725,
+        IDS_FeatureRefStructs = MessageBase + 12726,
+        IDS_FeatureReadOnlyStructs = MessageBase + 12727,
+        IDS_FeatureRefExtensionMethods = MessageBase + 12728,
+        IDS_StackAllocExpression = MessageBase + 12729,
+        IDS_FeaturePrivateProtected = MessageBase + 12730,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -160,29 +178,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableErrorArgument(id);
         }
 
-        // Returns the string to be used in the /features flag switch to enable the MessageID feature.
-        // Always call this before RequiredVersion:
-        //   If this method returns null, call RequiredVersion and use that.
-        //   If this method returns non-null, use that.
-        // Features should be mutually exclusive between RequiredFeature and RequiredVersion.
-        //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
-        internal static string RequiredFeature(this MessageID feature)
-        {
-            switch (feature)
-            {
-                case MessageID.IDS_FeatureIOperation:
-                    return "IOperation";
-                default:
-                    return null;
-            }
-        }
-
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7.2 features.
+                case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
+                case MessageID.IDS_FeatureLeadingDigitSeparator:
+                case MessageID.IDS_FeaturePrivateProtected:
+                case MessageID.IDS_FeatureReadOnlyReferences:
+                case MessageID.IDS_FeatureRefStructs:
+                case MessageID.IDS_FeatureReadOnlyStructs:
+                case MessageID.IDS_FeatureRefExtensionMethods:
+                    return LanguageVersion.CSharp7_2;
+
+                // C# 7.1 features.
+                case MessageID.IDS_FeatureAsyncMain:
+                case MessageID.IDS_FeatureDefaultLiteral:
+                case MessageID.IDS_FeatureInferredTupleNames:
+                case MessageID.IDS_FeatureGenericPatternMatching:
+                    return LanguageVersion.CSharp7_1;
+
                 // C# 7 features.
                 case MessageID.IDS_FeatureBinaryLiteral:
                 case MessageID.IDS_FeatureDigitSeparator:

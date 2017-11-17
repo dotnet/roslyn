@@ -2,24 +2,24 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicBuild
+    public class BasicBuild : AbstractIntegrationTest
     {
-        private readonly VisualStudioInstanceContext _visualStudio;
-
         public BasicBuild(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
-
-            _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            var testProj = new ProjectUtils.Project("TestProj");
+            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"Module Program
@@ -30,7 +30,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
 End Module";
 
-            _visualStudio.Instance.Editor.SetText(editorText);
+            VisualStudio.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

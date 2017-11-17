@@ -2,12 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
@@ -21,11 +24,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public async Task TestAssets()
         {
             var sessionId = 0;
-            var checksum = new Checksum(Guid.NewGuid().ToByteArray());
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage, sessionId, checksum, data);
+            var source = new TestAssetSource(storage, checksum, data);
 
             var service = new AssetService(sessionId, storage);
             var stored = await service.GetAssetAsync<object>(checksum, CancellationToken.None);
@@ -54,15 +57,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var sessionId = 0;
                 var storage = new AssetStorage();
-                var source = new TestAssetSource(storage, sessionId, map);
+                var source = new TestAssetSource(storage, map);
 
                 var service = new AssetService(sessionId, storage);
                 await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
-                object data;
                 foreach (var kv in map)
                 {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
+                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
                 }
             }
         }
@@ -83,15 +85,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var sessionId = 0;
                 var storage = new AssetStorage();
-                var source = new TestAssetSource(storage, sessionId, map);
+                var source = new TestAssetSource(storage, map);
 
                 var service = new AssetService(sessionId, storage);
                 await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
-                object data;
                 foreach (var kv in map)
                 {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
+                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
                 }
             }
         }
@@ -112,15 +113,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var sessionId = 0;
                 var storage = new AssetStorage();
-                var source = new TestAssetSource(storage, sessionId, map);
+                var source = new TestAssetSource(storage, map);
 
                 var service = new AssetService(sessionId, storage);
                 await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
 
-                object data;
                 foreach (var kv in map)
                 {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
+                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
                 }
             }
         }

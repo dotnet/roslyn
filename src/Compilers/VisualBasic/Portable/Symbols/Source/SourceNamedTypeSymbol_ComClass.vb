@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -783,7 +784,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return SpecializedCollections.EmptyEnumerable(Of FieldSymbol)()
                 End Function
 
-                Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+                Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get

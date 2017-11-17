@@ -7,6 +7,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -27,7 +28,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -44,7 +45,7 @@ class Test
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -62,7 +63,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,22): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         yield return 1.1;
@@ -85,7 +86,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (8,44): error CS1621: The yield statement cannot be used inside an anonymous method or lambda expression
                 //         Func<IEnumerable<int>> i = () => { yield break; };
@@ -123,7 +124,7 @@ class Test
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             EmitResult emitResult;
             using (var output = new MemoryStream())
@@ -364,7 +365,7 @@ class Base
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(text, options: TestOptions.DebugDll);
             comp.VerifyEmitDiagnostics(); // without the fix for bug 11649, the compilation would fail emitting
             CompileAndVerify(comp);
         }
@@ -408,6 +409,7 @@ class Base
             comp.Compilation.VerifyDiagnostics();
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(261047, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=261047&_a=edit")]
         public void MissingExpression()
@@ -422,12 +424,25 @@ class Test
         yield return;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,15): error CS1627: Expression expected after yield return
                 //         yield return;
                 Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<YieldStatementSyntax>().First();
+
+            Assert.Equal("yield return;", node.ToString());
+
+            comp.VerifyOperationTree(node, expectedOperationTree:
+@"
+IReturnOperation (OperationKind.YieldReturn, Type: null, IsInvalid) (Syntax: 'yield return;')
+  ReturnedValue: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'yield return;')
+      Children(0)
+");
         }
 
         [Fact]

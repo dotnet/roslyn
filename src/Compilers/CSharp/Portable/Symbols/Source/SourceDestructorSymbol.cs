@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceDestructorSymbol : SourceMethodSymbol
+    internal sealed class SourceDestructorSymbol : SourceMemberMethodSymbol
     {
         private TypeSymbol _lazyReturnType;
         private readonly bool _isExpressionBodied;
@@ -94,7 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        internal override RefKind RefKind
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }

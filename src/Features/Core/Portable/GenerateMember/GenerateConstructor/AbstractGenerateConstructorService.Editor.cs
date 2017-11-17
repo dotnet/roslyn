@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -27,38 +28,33 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private readonly TService _service;
             private readonly SemanticDocument _document;
             private readonly State _state;
+            private readonly bool _withFields;
             private readonly CancellationToken _cancellationToken;
 
             public Editor(
                 TService service,
                 SemanticDocument document,
                 State state,
+                bool withFields,
                 CancellationToken cancellationToken)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _withFields = withFields;
                 _cancellationToken = cancellationToken;
             }
 
-            internal async Task<Document> GetEditAsync()
+            internal async Task<(Document, bool addedFields)> GetEditAsync()
             {
-                // First, if we were just given the constructor and the type to generate it into
-                // then just go generat that constructor.  There's nothing special we need to do.
-                var edit = await GenerateDelegatedConstructorAsync().ConfigureAwait(false);
-                if (edit != null)
-                {
-                    return edit;
-                }
-
-                // then, see if there's an accessible base constructor that would accept these
+                // See if there's an accessible base constructor that would accept these
                 // types, then just call into that instead of generating fields.
                 //
                 // then, see if there are any constructors that would take the first 'n' arguments
                 // we've provided.  If so, delegate to those, and then create a field for any
                 // remaining arguments.  Try to match from largest to smallest.
-                edit = await GenerateThisOrBaseDelegatingConstructorAsync().ConfigureAwait(false);
-                if (edit != null)
+                var edit = await GenerateThisOrBaseDelegatingConstructorAsync().ConfigureAwait(false);
+                if (edit.document != null)
                 {
                     return edit;
                 }
@@ -68,92 +64,47 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return await GenerateFieldDelegatingConstructorAsync().ConfigureAwait(false);
             }
 
-            private async Task<Document> GenerateThisOrBaseDelegatingConstructorAsync()
+            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync()
             {
                 // We don't have to deal with the zero length case, since there's nothing to
                 // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
                 for (int i = _state.Arguments.Length; i >= 1; i--)
                 {
                     var edit = await GenerateThisOrBaseDelegatingConstructorAsync(i).ConfigureAwait(false);
-                    if (edit != null)
+                    if (edit.document != null)
                     {
                         return edit;
                     }
                 }
 
-                return null;
+                return default;
             }
 
-            private async Task<Document> GenerateThisOrBaseDelegatingConstructorAsync(int argumentCount)
+            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync(int argumentCount)
             {
-                Document edit;
-                if ((edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn).ConfigureAwait(false)) != null ||
-                    (edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn.BaseType).ConfigureAwait(false)) != null)
+                (Document document, bool addedField) edit;
+                if ((edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn).ConfigureAwait(false)).document != null ||
+                    (edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn.BaseType).ConfigureAwait(false)).document != null)
                 {
                     return edit;
                 }
 
-                return null;
+                return default;
             }
 
-            private async Task<Document> GenerateDelegatedConstructorAsync()
-            {
-                var delegatedConstructor = _state.DelegatedConstructorOpt;
-                if (delegatedConstructor == null)
-                {
-                    return null;
-                }
-
-                var namedType = _state.TypeToGenerateIn;
-                if (namedType == null)
-                {
-                    return null;
-                }
-
-                // There was a best match.  Call it directly.  
-                var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
-                var syntaxFactory = provider.GetService<SyntaxGenerator>();
-                var codeGenerationService = provider.GetService<ICodeGenerationService>();
-
-                var isThis = namedType.Equals(delegatedConstructor.ContainingType);
-                var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
-
-                var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
-                    accessibility: Accessibility.Public,
-                    modifiers: default(DeclarationModifiers),
-                    typeName: _state.TypeToGenerateIn.Name,
-                    parameters: delegatedConstructor.Parameters,
-                    baseConstructorArguments: baseConstructorArguments,
-                    thisConstructorArguments: thisConstructorArguments);
-
-                var result = await codeGenerationService.AddMembersAsync(
-                    _document.Project.Solution,
-                    _state.TypeToGenerateIn,
-                    new List<ISymbol> { constructor },
-                    new CodeGenerationOptions(_state.Token.GetLocation()),
-                    _cancellationToken)
-                    .ConfigureAwait(false);
-
-                return result;
-            }
-
-
-            private async Task<Document> GenerateDelegatingConstructorAsync(
+            private async Task<(Document, bool addedFields)> GenerateDelegatingConstructorAsync(
                 int argumentCount,
                 INamedTypeSymbol namedType)
             {
                 if (namedType == null)
                 {
-                    return null;
+                    return default;
                 }
 
                 // We can't resolve overloads across language.
                 if (_document.Project.Language != namedType.Language)
                 {
-                    return null;
+                    return default;
                 }
 
                 var arguments = _state.Arguments.Take(argumentCount).ToList();
@@ -166,13 +117,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var instanceConstructors = namedType.InstanceConstructors.Where(IsSymbolAccessible).ToSet();
                 if (instanceConstructors.IsEmpty())
                 {
-                    return null;
+                    return default;
                 }
 
                 var delegatedConstructor = _service.GetDelegatingConstructor(_state, _document, argumentCount, namedType, instanceConstructors, _cancellationToken);
                 if (delegatedConstructor == null)
                 {
-                    return null;
+                    return default;
                 }
 
                 // There was a best match.  Call it directly.  
@@ -188,41 +139,48 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // delegating.
                 var remainingParameterNames = _service.GenerateParameterNames(
                     _document.SemanticModel, remainingArguments,
-                    delegatedConstructor.Parameters.Select(p => p.Name).ToList());
+                    delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
+                    _cancellationToken);
 
                 // Can't generate the constructor if the parameter names we're copying over forcibly
                 // conflict with any names we generated.
                 if (delegatedConstructor.Parameters.Select(p => p.Name)
-                    .Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
+                        .Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
                 {
-                    return null;
+                    return default;
                 }
+
                 // Try to map those parameters to fields.
                 this.GetParameters(remainingArguments, remainingAttributeArguments,
                     remainingParameterTypes, remainingParameterNames,
                     out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 
-                var fields = syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap);
-                var assignStatements = syntaxFactory.CreateAssignmentStatements(remainingParameters, parameterToExistingFieldMap, parameterToNewFieldMap);
+                var fields = _withFields
+                    ? syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap)
+                    : ImmutableArray<IFieldSymbol>.Empty;
+                var assignStatements = syntaxFactory.CreateAssignmentStatements(
+                    _document.SemanticModel.Compilation, remainingParameters, 
+                    parameterToExistingFieldMap, parameterToNewFieldMap,
+                    addNullChecks: false, preferThrowExpression: false);
 
                 var allParameters = delegatedConstructor.Parameters.Concat(remainingParameters);
 
                 var isThis = namedType.Equals(_state.TypeToGenerateIn);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
+                var baseConstructorArguments = isThis ? default : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default;
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: default(DeclarationModifiers),
+                    modifiers: default,
                     typeName: _state.TypeToGenerateIn.Name,
                     parameters: allParameters,
-                    statements: assignStatements.ToImmutableArray(),
+                    statements: assignStatements,
                     baseConstructorArguments: baseConstructorArguments,
                     thisConstructorArguments: thisConstructorArguments);
 
-                var members = new List<ISymbol>(fields) { constructor };
+                var members = fields.OfType<ISymbol>().Concat(constructor);
                 var result = await codeGenerationService.AddMembersAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
@@ -231,16 +189,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     _cancellationToken)
                     .ConfigureAwait(false);
 
-                return result;
+                return (result, fields.Length > 0);
             }
 
-            private async Task<Document> GenerateFieldDelegatingConstructorAsync()
+            private async Task<(Document, bool addedFields)> GenerateFieldDelegatingConstructorAsync()
             {
                 var arguments = _state.Arguments;
                 var parameterTypes = _state.ParameterTypes;
 
                 var typeParametersNames = _state.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
                 var parameterNames = GetParameterNames(arguments, typeParametersNames);
+
                 GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames,
                     out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var parameters);
 
@@ -249,27 +208,31 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var codeGenerationService = provider.GetService<ICodeGenerationService>();
 
                 var syntaxTree = _document.SyntaxTree;
-                var members = syntaxFactory.CreateFieldDelegatingConstructor(
-                    _state.TypeToGenerateIn.Name, _state.TypeToGenerateIn, parameters,
-                    parameterToExistingFieldMap, parameterToNewFieldMap, _cancellationToken);
+                var (fields, constructor) = syntaxFactory.CreateFieldDelegatingConstructor(
+                    _document.SemanticModel.Compilation, 
+                    _state.TypeToGenerateIn.Name, 
+                    _state.TypeToGenerateIn, parameters,
+                    parameterToExistingFieldMap, parameterToNewFieldMap, 
+                    addNullChecks: false, preferThrowExpression: false, 
+                    cancellationToken: _cancellationToken);
 
                 var result = await codeGenerationService.AddMembersAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
-                    members,
+                    fields.Concat(constructor),
                     new CodeGenerationOptions(_state.Token.GetLocation()),
                     _cancellationToken)
                     .ConfigureAwait(false);
 
-                return result;
+                return (result, fields.Length > 0);
             }
 
             private ImmutableArray<ParameterName> GetParameterNames(
                 ImmutableArray<TArgumentSyntax> arguments, ImmutableArray<string> typeParametersNames)
             {
                 return _state.AttributeArguments != null
-                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames)
-                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames);
+                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames, _cancellationToken)
+                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames, _cancellationToken);
             }
 
             private void GetParameters(
@@ -290,23 +253,29 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     // See if there's a matching field we can use.  First test in a case sensitive
                     // manner, then case insensitively.
                     if (!TryFindMatchingField(
-                            arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, 
+                            arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap,
                             parameterToNewFieldMap, caseSensitive: true, newParameterNames: out parameterNames))
                     {
-                        if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, 
+                        if (!TryFindMatchingField(
+                                arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap,
                                 parameterToNewFieldMap, caseSensitive: false, newParameterNames: out parameterNames))
                         {
-                            parameterToNewFieldMap[parameterNames[i].BestNameForParameter] = 
+                            parameterToNewFieldMap[parameterNames[i].BestNameForParameter] =
                                 parameterNames[i].NameBasedOnArgument;
                         }
                     }
 
                     result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         refKind: _service.GetRefKind(arguments[i]),
                         isParams: false,
                         type: parameterTypes[i],
                         name: parameterNames[i].BestNameForParameter));
+                }
+
+                if (!_withFields)
+                {
+                    parameterToNewFieldMap.Clear();
                 }
 
                 parameters = result.ToImmutableAndFree();
@@ -357,8 +326,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 // use so we can assign to that.  
                                 var newFieldName = NameGenerator.EnsureUniqueness(
                                     attributeArguments != null
-                                        ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index])
-                                        : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index]),
+                                        ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index], _cancellationToken)
+                                        : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index], _cancellationToken),
                                     GetUnavailableMemberNames().Concat(parameterToNewFieldMap.Values));
 
                                 if (isFixed)

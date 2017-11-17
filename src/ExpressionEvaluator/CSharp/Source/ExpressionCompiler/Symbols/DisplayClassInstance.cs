@@ -1,8 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System.Diagnostics;
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             Debug.Assert((object)parameter != null);
             Debug.Assert(parameter.Name.EndsWith("this", StringComparison.Ordinal) ||
+                parameter.Name.Equals("", StringComparison.Ordinal) || // unnamed
+                parameter.Name.Equals("value", StringComparison.Ordinal) || // display class instance passed to local function as parameter
                 GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
             this.Parameter = parameter;
         }

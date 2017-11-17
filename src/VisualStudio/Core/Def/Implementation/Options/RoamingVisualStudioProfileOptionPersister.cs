@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -122,24 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
             else if (optionKey.Option.Type == typeof(CodeStyleOption<bool>))
             {
-                // We store these as strings, so deserialize
-                if (value is string serializedValue)
-                {
-                    try
-                    {
-                        value = CodeStyleOption<bool>.FromXElement(XElement.Parse(serializedValue));
-                    }
-                    catch (Exception)
-                    {
-                        value = null;
-                        return false;
-                    }
-                }
-                else
-                {
-                    value = null;
-                    return false;
-                }
+                return DeserializeCodeStyleOption<bool>(ref value);
+            }
+            else if (optionKey.Option.Type == typeof(CodeStyleOption<ExpressionBodyPreference>))
+            {
+                return DeserializeCodeStyleOption<ExpressionBodyPreference>(ref value);
             }
             else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
@@ -190,6 +177,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
+        private bool DeserializeCodeStyleOption<T>(ref object value)
+        {
+            if (value is string serializedValue)
+            {
+                try
+                {
+                    value = CodeStyleOption<T>.FromXElement(XElement.Parse(serializedValue));
+                    return true;
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            value = null;
+            return false;
+        }
+
         private void RecordObservedValueToWatchForChanges(OptionKey optionKey, string storageKey)
         {
             // We're about to fetch the value, so make sure that if it changes we'll know about it
@@ -225,15 +230,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             RecordObservedValueToWatchForChanges(optionKey, storageKey);
 
-            if (optionKey.Option.Type == typeof(CodeStyleOption<bool>))
+            if (value is ICodeStyleOption codeStyleOption)
             {
                 // We store these as strings, so serialize
-                var valueToSerialize = value as CodeStyleOption<bool>;
-
-                if (value != null)
-                {
-                    value = valueToSerialize.ToXElement().ToString();
-                }
+                value = codeStyleOption.ToXElement().ToString();
             }
             else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {

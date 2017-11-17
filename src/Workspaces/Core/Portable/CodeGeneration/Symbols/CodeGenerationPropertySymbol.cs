@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
+        private RefKind _refKind;
         public ITypeSymbol Type { get; }
-        public bool ReturnsByRef { get; }
         public bool IsIndexer { get; }
 
         public ImmutableArray<IParameterSymbol> Parameters { get; }
@@ -25,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
-            bool returnsByRef,
-            IPropertySymbol explicitInterfaceSymbolOpt,
+            RefKind refKind,
+            ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
             string name,
             bool isIndexer,
             ImmutableArray<IParameterSymbol> parametersOpt,
@@ -35,12 +33,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
-            this.ReturnsByRef = returnsByRef;
+            this._refKind = refKind;
             this.IsIndexer = isIndexer;
             this.Parameters = parametersOpt.NullToEmpty();
-            this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
-                ? ImmutableArray.Create<IPropertySymbol>()
-                : ImmutableArray.Create(explicitInterfaceSymbolOpt);
+            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             this.GetMethod = getMethod;
             this.SetMethod = setMethod;
         }
@@ -49,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationPropertySymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.Type, this.ReturnsByRef, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.Modifiers, this.Type, this.RefKind, this.ExplicitInterfaceImplementations,
                 this.Name, this.IsIndexer, this.Parameters,
                 this.GetMethod, this.SetMethod);
             CodeGenerationPropertyInfo.Attach(result,
@@ -68,23 +64,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitProperty(this);
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return this.GetMethod != null && this.SetMethod == null;
-            }
-        }
+        public bool IsReadOnly => this.GetMethod != null && this.SetMethod == null;
 
-        public bool IsWriteOnly
-        {
-            get
-            {
-                return this.GetMethod == null && this.SetMethod != null;
-            }
-        }
+        public bool IsWriteOnly => this.GetMethod == null && this.SetMethod != null;
 
         public new IPropertySymbol OriginalDefinition => this;
+
+        public RefKind RefKind => this._refKind;
+
+        public bool ReturnsByRef => this._refKind == RefKind.Ref;
+
+        public bool ReturnsByRefReadonly => this._refKind == RefKind.RefReadOnly;
 
         public IPropertySymbol OverriddenProperty => null;
 

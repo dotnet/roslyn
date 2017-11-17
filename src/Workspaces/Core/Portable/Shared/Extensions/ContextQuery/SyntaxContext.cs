@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isInImportsDirective,
             bool isWithinAsyncMethod,
             bool isPossibleTupleContext,
+            bool isPatternContext,
             CancellationToken cancellationToken)
         {
             this.Workspace = workspace;
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsInImportsDirective = isInImportsDirective;
             this.IsWithinAsyncMethod = isWithinAsyncMethod;
             this.IsPossibleTupleContext = isPossibleTupleContext;
+            this.IsPatternContext = isPatternContext;
             this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
         }
 
@@ -83,8 +86,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsInImportsDirective { get; }
         public bool IsWithinAsyncMethod { get; }
         public bool IsPossibleTupleContext { get; }
+        public bool IsPatternContext { get; }
 
-        public IEnumerable<ITypeSymbol> InferredTypes { get; }
+        public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 
         private ISet<INamedTypeSymbol> ComputeOuterTypes(CancellationToken cancellationToken)
         {
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             return SpecializedCollections.EmptySet<INamedTypeSymbol>();
         }
 
-        protected IEnumerable<ITypeSymbol> ComputeInferredTypes(Workspace workspace,
+        protected ImmutableArray<ITypeSymbol> ComputeInferredTypes(Workspace workspace,
             SemanticModel semanticModel,
             int position,
             CancellationToken cancellationToken)

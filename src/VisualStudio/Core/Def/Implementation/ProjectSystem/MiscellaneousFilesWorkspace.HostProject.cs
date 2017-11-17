@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class MiscellaneousFilesWorkspace
     {
         private sealed class HostProject : IVisualStudioHostProject
@@ -77,7 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public Workspace Workspace => _workspace;
 
-            public string ProjectSystemName => "MiscellaneousFiles";
+            public string DisplayName => "MiscellaneousFiles";
+            public string ProjectSystemName => DisplayName;
 
             public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
             {

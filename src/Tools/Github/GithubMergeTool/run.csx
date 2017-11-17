@@ -8,13 +8,13 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 
-private static string VslsnapGithubAuthToken = null;
+private static string DotnetBotGithubAuthToken = null;
 
 private static TraceWriter Log = null;
 
 private static async Task MakeGithubPr(string repoOwner, string repoName, string srcBranch, string destBranch)
 {    
-    var gh = new GithubMergeTool.GithubMergeTool("vslsnap@users.noreply.github.com", VslsnapGithubAuthToken);
+    var gh = new GithubMergeTool.GithubMergeTool("dotnet-bot@users.noreply.github.com", DotnetBotGithubAuthToken);
 
     Log.Info($"Merging from {srcBranch} to {destBranch}");
 
@@ -37,20 +37,45 @@ private static async Task MakeGithubPr(string repoOwner, string repoName, string
     }
 }
 
-private static Task MakeRoslynPr(string srcBranch, string destBranch)
+private static Task MakeRoslynPr(string srcBranch, string destBranch) 
     => MakeGithubPr("dotnet", "roslyn", srcBranch, destBranch);
+
+private static Task MakeRoslynInternalPr(string srcBranch, string destBranch)
+    => MakeGithubPr("dotnet", "roslyn-internal", srcBranch, destBranch);
+
+private static Task MakeLutPr(string srcBranch, string destBranch)
+    => MakeGithubPr("dotnet", "testimpact", srcBranch, destBranch);
+
+private static Task MakeProjectSystemPr(string srcBranch, string destBranch)
+    => MakeGithubPr("dotnet", "roslyn-project-system", srcBranch, destBranch);
 
 private static async Task RunAsync()
 {
-    VslsnapGithubAuthToken = await GetSecret("vslsnap-github-auth-token");
+    DotnetBotGithubAuthToken = await GetSecret("dotnet-bot-github-auth-token");
 
     // Roslyn branches
     await MakeRoslynPr("dev15.0.x", "dev15.1.x");
     await MakeRoslynPr("dev15.1.x", "master");
     await MakeRoslynPr("master", "dev16");
+    await MakeRoslynPr("master", "features/ioperation");
+
+    // Roslyn-internal branches
+    await MakeRoslynInternalPr("dev15.0.x", "dev15.1.x");
+    await MakeRoslynInternalPr("dev15.1.x", "master");
+    await MakeRoslynInternalPr("master", "dev16");
+
+    // LUT branches
+    await MakeLutPr("dev15.0.x", "dev15.1.x");
+    await MakeLutPr("dev15.1.x", "master");
+    await MakeLutPr("master", "dev16");
+
+    // Project system branches
+    await MakeProjectSystemPr("dev15.0.x", "dev15.1.x");
+    await MakeProjectSystemPr("dev15.0.x", "dev15.2.x");
+    await MakeProjectSystemPr("dev15.2.x", "master");
 }
 
-public static void Run(TimerInfo myTimer, TraceWriter log)
+public static void Run(TimerInfo nightlyRun, TraceWriter log)
 {
     Log = log;
 

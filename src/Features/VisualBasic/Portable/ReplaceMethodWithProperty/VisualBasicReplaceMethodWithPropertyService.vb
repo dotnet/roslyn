@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -12,11 +12,8 @@ Imports Microsoft.CodeAnalysis.Options
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicReplaceMethodWithPropertyService
+        Inherits AbstractReplaceMethodWithPropertyService
         Implements IReplaceMethodWithPropertyService
-
-        Public Function GetMethodName(methodNode As SyntaxNode) As String Implements IReplaceMethodWithPropertyService.GetMethodName
-            Return DirectCast(methodNode, MethodStatementSyntax).Identifier.ValueText
-        End Function
 
         Public Function GetMethodDeclaration(token As SyntaxToken) As SyntaxNode Implements IReplaceMethodWithPropertyService.GetMethodDeclaration
             Dim containingMethod = token.Parent.FirstAncestorOrSelf(Of MethodStatementSyntax)
@@ -39,8 +36,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return Nothing
             End If
 
-            If position > containingMethod.ParameterList.Span.End Then
-                Return Nothing
+            ' Parameter lists in VB are optional and may not be provided.
+            If containingMethod.ParameterList Is Nothing Then
+                If position > containingMethod.Span.End Then
+                    Return Nothing
+                End If
+            Else
+                If position > containingMethod.ParameterList.Span.End Then
+                    Return Nothing
+                End If
             End If
 
             Return containingMethod
@@ -94,6 +98,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Dim setMethodStatement = TryCast(getAndSetMethods.SetMethodDeclaration, MethodStatementSyntax)
 
             Dim propertyNameToken = GetPropertyName(getMethodStatement.Identifier, propertyName, nameChanged)
+            Dim warning = GetWarning(getAndSetMethods)
+            If warning IsNot Nothing Then
+                propertyNameToken = propertyNameToken.WithAdditionalAnnotations(WarningAnnotation.Create(warning))
+            End If
 
             Dim newPropertyDeclaration As DeclarationStatementSyntax
             If getAndSetMethods.SetMethod Is Nothing Then
@@ -141,12 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 End If
             End If
 
-            Dim trivia As IEnumerable(Of SyntaxTrivia) = getMethodStatement.GetLeadingTrivia()
-            If setMethodStatement IsNot Nothing Then
-                trivia = trivia.Concat(setMethodStatement.GetLeadingTrivia())
-            End If
-
-            newPropertyDeclaration = newPropertyDeclaration.WithLeadingTrivia(trivia)
+            newPropertyDeclaration = SetLeadingTrivia(
+                VisualBasicSyntaxFactsService.Instance, getAndSetMethods, newPropertyDeclaration)
 
             Return newPropertyDeclaration.WithAdditionalAnnotations(Formatter.Annotation)
         End Function

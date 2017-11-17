@@ -45,18 +45,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return SpecializedTasks.EmptyTask;
         }
 
-        private void AddEdits(
-            SyntaxEditor editor, 
-            Diagnostic diagnostic, 
+        private static ExpressionSyntax GetCondition(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.WhileStatement:
+                    return ((WhileStatementSyntax)node).Condition;
+                case SyntaxKind.IfStatement:
+                    return ((IfStatementSyntax)node).Condition;
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private static void AddEdits(
+            SyntaxEditor editor,
+            Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
-            var ifStatementLocation = diagnostic.AdditionalLocations[1];
+            var ifOrWhileStatementLocation = diagnostic.AdditionalLocations[1];
             var conditionLocation = diagnostic.AdditionalLocations[2];
             var asExpressionLocation = diagnostic.AdditionalLocations[3];
 
             var localDeclaration = (LocalDeclarationStatementSyntax)localDeclarationLocation.FindNode(cancellationToken);
-            var ifStatement = (IfStatementSyntax)ifStatementLocation.FindNode(cancellationToken);
+            var ifOrWhileStatement = (StatementSyntax)ifOrWhileStatementLocation.FindNode(cancellationToken);
             var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
 
@@ -66,31 +79,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     SyntaxFactory.SingleVariableDesignation(
                         localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
 
-            var finalCondition = ifStatement.Condition.ReplaceNode(conditionPart, updatedConditionPart);
+            var currentCondition = GetCondition(ifOrWhileStatement);
+            var updatedCondition = currentCondition.ReplaceNode(conditionPart, updatedConditionPart);
 
             var block = (BlockSyntax)localDeclaration.Parent;
             var declarationIndex = block.Statements.IndexOf(localDeclaration);
 
             // Trivia on the local declaration will move to the next statement.
-            // use the callback form as the next statement may be the place where we're 
+            // use the callback form as the next statement may be the place where we're
             // inlining the declaration, and thus need to see the effects of that change.
             editor.ReplaceNode(
                 block.Statements[declarationIndex + 1],
                 (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
             editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-            editor.ReplaceNode(ifStatement, (i, g) =>
+            editor.ReplaceNode(ifOrWhileStatement, (currentStatement, g) =>
             {
-                var currentIf = (IfStatementSyntax)i;
-                var updatedIf = currentIf.ReplaceNode(currentIf.Condition, finalCondition);
-                return updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
+                var updatedStatement = currentStatement.ReplaceNode(GetCondition(currentStatement), updatedCondition);
+                return updatedStatement.WithAdditionalAnnotations(Formatter.Annotation);
             });
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Inline_temporary_variable, createChangedDocument)
+                : base(FeaturesResources.Use_pattern_matching, createChangedDocument)
             {
             }
         }

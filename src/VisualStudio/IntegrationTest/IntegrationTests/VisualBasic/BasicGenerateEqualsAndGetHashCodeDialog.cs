@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,19 +32,20 @@ Class C
 $$
 End Class");
 
-            InvokeCodeActionList();
-            VerifyCodeAction("Generate 'Equals(object)'...", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickCancel();
-            VerifyTextContains(
-@"
+            var actualText = VisualStudio.Editor.GetText();
+            var expectedText = @"
 Class C
     Dim i as Integer
     Dim j as String
     Dim k as Boolean
 
 
-End Class");
+End Class";
+            Assert.Contains(expectedText, actualText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -62,13 +62,13 @@ Class C
 $$
 End Class");
 
-            InvokeCodeActionList();
-            VerifyCodeAction("Generate 'Equals(object)'...", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickOk();
-            WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            VerifyTextContains(
-@"
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudio.Editor.GetText();
+            var expectedText = @"
 Imports TestProj
 
 Class C
@@ -83,16 +83,17 @@ Class C
                j = c.j AndAlso
                k = c.k
     End Function
-End Class");
+End Class";
+            Assert.Contains(expectedText, actualText);
         }
 
         private void VerifyDialog(bool isOpen)
-            => VerifyDialog(DialogName, isOpen);
+            => VisualStudio.Editor.Verify.Dialog(DialogName, isOpen);
 
         private void Dialog_ClickCancel()
-            => PressDialogButton(DialogName, "CancelButton");
+            => VisualStudio.Editor.PressDialogButton(DialogName, "CancelButton");
 
         private void Dialog_ClickOk()
-            => PressDialogButton(DialogName, "OkButton");
+            => VisualStudio.Editor.PressDialogButton(DialogName, "OkButton");
     }
 }

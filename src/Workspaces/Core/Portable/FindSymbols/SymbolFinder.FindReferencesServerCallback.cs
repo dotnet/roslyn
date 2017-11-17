@@ -52,15 +52,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
             {
-                var symbolAndProjectId = await definition.RehydrateAsync(
+                var symbolAndProjectId = await definition.TryRehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
+
+                if (!symbolAndProjectId.HasValue)
+                {
+                    return;
+                }
 
                 lock (_gate)
                 {
-                    _definitionMap[definition] = symbolAndProjectId;
+                    _definitionMap[definition] = symbolAndProjectId.Value;
                 }
 
-                await _progress.OnDefinitionFoundAsync(symbolAndProjectId).ConfigureAwait(false);
+                await _progress.OnDefinitionFoundAsync(symbolAndProjectId.Value).ConfigureAwait(false);
             }
 
             public async Task OnReferenceFoundAsync(

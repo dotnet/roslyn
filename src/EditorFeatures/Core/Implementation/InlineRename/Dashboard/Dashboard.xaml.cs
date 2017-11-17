@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,9 @@ using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -21,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private IInputElement _rootInputElement;
         private UIElement _focusedElement = null;
         private readonly List<UIElement> _tabNavigableChildren;
+        private readonly IEditorFormatMap _textFormattingMap;
+
         internal bool ShouldReceiveKeyboardNavigation { get; set; }
 
         private IEnumerable<string> _renameAccessKeys = new[]
@@ -34,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public Dashboard(
             DashboardViewModel model,
+            IEditorFormatMapService editorFormatMapService,
             IWpfTextView textView)
         {
             _model = model;
@@ -69,9 +75,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // for us to set up the AutomationPeer
             this.Loaded += Dashboard_Loaded;
 
+            if (editorFormatMapService != null)
+            {
+                _textFormattingMap = editorFormatMapService.GetEditorFormatMap("text");
+                _textFormattingMap.FormatMappingChanged += UpdateBorderColors;
+                UpdateBorderColors(this, eventArgs: null);
+            }
+
+            ResolvableConflictBorder.StrokeThickness = RenameFixupTagDefinition.StrokeThickness;
+            ResolvableConflictBorder.StrokeDashArray = new DoubleCollection(RenameFixupTagDefinition.StrokeDashArray);
+
+            UnresolvableConflictBorder.StrokeThickness = RenameConflictTagDefinition.StrokeThickness;
+            UnresolvableConflictBorder.StrokeDashArray = new DoubleCollection(RenameConflictTagDefinition.StrokeDashArray);
+
             this.Focus();
             textView.Caret.IsHidden = false;
             ShouldReceiveKeyboardNavigation = false;
+        }
+
+        private void UpdateBorderColors(object sender, FormatItemsEventArgs eventArgs)
+        {
+            var resolvableConflictBrush = GetEditorTagBorderBrush(RenameFixupTag.TagId);
+            ResolvableConflictBorder.Stroke = resolvableConflictBrush;
+            ResolvableConflictText.Foreground = resolvableConflictBrush;
+
+            var unresolvableConflictBrush = GetEditorTagBorderBrush(RenameConflictTag.TagId);
+            UnresolvableConflictBorder.Stroke = unresolvableConflictBrush;
+            UnresolvableConflictText.Foreground = unresolvableConflictBrush;
+
+            ErrorText.Foreground = unresolvableConflictBrush;
+        }
+
+        private Brush GetEditorTagBorderBrush(string tagId)
+        {
+            var properties = _textFormattingMap.GetProperties(tagId);
+            return (Brush)(properties["Foreground"] ?? ((Pen)properties["MarkerFormatDefinition/BorderId"]).Brush);
         }
 
         private void Dashboard_Loaded(object sender, RoutedEventArgs e)
@@ -292,6 +330,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_findAdornmentLayer != null)
             {
                 ((UIElement)_findAdornmentLayer).LayoutUpdated -= FindAdornmentCanvas_LayoutUpdated;
+            }
+
+            if (_textFormattingMap != null)
+            {
+                _textFormattingMap.FormatMappingChanged -= UpdateBorderColors;
             }
 
             this.Loaded -= Dashboard_Loaded;

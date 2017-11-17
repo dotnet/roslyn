@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -238,5 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+
+        internal override uint LocalScopeDepth => Binder.ExternalScope;
     }
 }

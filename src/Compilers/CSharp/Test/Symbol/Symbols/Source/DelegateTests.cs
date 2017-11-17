@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -62,7 +63,7 @@ class A {
     delegate void D();
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var d = a.GetMembers("D")[0] as NamedTypeSymbol;
@@ -79,7 +80,7 @@ class A {
 delegate void D(int x);
 delegate void D(float y);
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var diags = comp.GetDeclarationDiagnostics();
             Assert.Equal(1, diags.Count());
 
@@ -97,7 +98,7 @@ class A {
     public System.Func<int> Field;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var field = a.GetMembers("Field")[0] as FieldSymbol;
@@ -118,7 +119,7 @@ class A {
             var text =
 @"delegate void MyDel(int n);";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyDel", 0).Single();
             Assert.NotEqual(null, v);
             Assert.Equal(SymbolKind.NamedType, v.Kind);
@@ -146,7 +147,7 @@ namespace System
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var myDel = global.GetTypeMembers("MyDel", 0).Single() as NamedTypeSymbol;
 
@@ -193,7 +194,7 @@ namespace System
     internal delegate void D<Q>(Q q);
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var namespaceNS = comp.GlobalNamespace.GetMembers("NS").First() as NamespaceOrTypeSymbol;
             Assert.Equal(1, namespaceNS.GetTypeMembers().Length);
 
@@ -219,7 +220,7 @@ namespace System
             var text = @"
 delegate void @out();
 ";
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateStandardCompilation(Parse(text));
             NamedTypeSymbol dout = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("out").Single();
             Assert.Equal("out", dout.Name);
             Assert.Equal("@out", dout.ToString());
@@ -248,7 +249,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -292,7 +293,7 @@ namespace CSSample
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (17,19): warning CS0169: The field 'CSSample.Program.d3' is never used
                 //         static D3 d3;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "d3").WithArguments("CSSample.Program.d3"));
@@ -312,7 +313,7 @@ class Program
   }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,27): error CS0428: Cannot convert method group 'Main' to non-delegate type 'System.MulticastDelegate'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.MulticastDelegate"));
         }
@@ -324,7 +325,7 @@ class Program
             var text = @"
 delegate int D(int x, ref int y, out int z);
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -360,7 +361,7 @@ delegate int D(int x, ref int y, out int z);
             var text = @"
 delegate void F<Invoke>(Invoke i);
  
-class Foo 
+class Goo 
 { 
   void M(int i)
   {
@@ -368,7 +369,7 @@ class Foo
   }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(612002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
@@ -378,7 +379,7 @@ class Foo
             var text = @"
 delegate void D(out int result);
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -409,7 +410,7 @@ delegate void D(out int result);
             var text = @"
 delegate void D(out int @__result);
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -440,7 +441,7 @@ delegate void D(out int @__result);
             var text = @"
 delegate void D(out int result, out int @__result);
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -474,7 +475,7 @@ delegate void D(out int result, out int @__result);
             var text = @"
 delegate void D(int callback, int @object);
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
@@ -587,7 +588,7 @@ public class DelegateTest
     public static void RunG<T>(T t) { }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // These match Dev10.
 
                 // (44,14): error CS0123: No overload for 'FTT' matches delegate 'DelegateTest.Da'
@@ -695,7 +696,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(634014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634014")]
@@ -708,14 +709,13 @@ class C
 {
     D d = async delegate { };
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,17): error CS1988: Async methods cannot have ref or out parameters
                 //     D d = async delegate { };
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate").WithLocation(4, 17),
-                // (4,11): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate"),
+                // (4,17): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     D d = async delegate { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async delegate { }").WithLocation(4, 11)
-                );
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(4, 17));
         }
 
         [Fact]
@@ -728,8 +728,65 @@ class C
 
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D")[0] as NamedTypeSymbol;
+            Assert.True(d.DelegateInvokeMethod.ReturnsByRef);
+            Assert.False(d.DelegateInvokeMethod.ReturnsByRefReadonly);
             Assert.Equal(RefKind.Ref, d.DelegateInvokeMethod.RefKind);
             Assert.Equal(RefKind.Ref, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningDelegate()
+        {
+            var source = @"delegate ref readonly int D(in int arg);";
+
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var d = global.GetMembers("D")[0] as NamedTypeSymbol;
+            Assert.False(d.DelegateInvokeMethod.ReturnsByRef);
+            Assert.True(d.DelegateInvokeMethod.ReturnsByRefReadonly);
+            Assert.Equal(RefKind.RefReadOnly, d.DelegateInvokeMethod.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
+
+            Assert.Equal(RefKind.In, d.DelegateInvokeMethod.Parameters[0].RefKind);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlysInlambda()
+        {
+            var source = @"
+class C
+{
+    public delegate ref readonly T DD<T>(in T arg);
+
+    public static void Main()
+    {
+        DD<int> d1 = (in int a) => ref a;
+
+        DD<int> d2 = delegate(in int a){return ref a;};
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+
+            var model = compilation.GetSemanticModel(tree);
+
+            ExpressionSyntax lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+
+            Assert.False(lambda.ReturnsByRef);
+            Assert.True(lambda.ReturnsByRefReadonly);
+            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
+
+            lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+            lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+
+            Assert.False(lambda.ReturnsByRef);
+            Assert.True(lambda.ReturnsByRefReadonly);
+            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
         }
     }
 }

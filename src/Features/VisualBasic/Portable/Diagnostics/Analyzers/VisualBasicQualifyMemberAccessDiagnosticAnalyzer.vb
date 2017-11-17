@@ -15,5 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
         Protected Overrides Function IsAlreadyQualifiedMemberAccess(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.MeExpression)
         End Function
+
+        Protected Overrides Function CanMemberAccessBeQualified(containingSymbol As ISymbol, node As SyntaxNode) As Boolean
+            ' If the member is already qualified with `MyBase.`, or `MyClass.`, it cannot be further qualified.
+            Return Not (node.IsKind(SyntaxKind.MyBaseExpression) OrElse node.IsKind(SyntaxKind.MyClassExpression))
+        End Function
     End Class
 End Namespace

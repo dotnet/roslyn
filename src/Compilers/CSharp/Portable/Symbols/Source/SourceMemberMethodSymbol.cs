@@ -1,542 +1,578 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceMemberMethodSymbol : SourceMethodSymbol
+    internal abstract class SourceMemberMethodSymbol : SourceMethodSymbol, IAttributeTargetSymbol
     {
-        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly TypeSymbol _explicitInterfaceType;
-        private readonly string _name;
-        private readonly bool _isExpressionBodied;
-        private readonly RefKind _refKind;
-
-        private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
-        private CustomModifiersTuple _lazyCustomModifiers;
-        private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbol _lazyReturnType;
-        private bool _lazyIsVararg;
-
-        /// <summary>
-        /// A collection of type parameter constraints, populated when
-        /// constraints for the first type parameter is requested.
-        /// </summary>
-        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-
-        /// <summary>
-        /// If this symbol represents a partial method definition or implementation part, its other part (if any).
-        /// This should be set, if at all, before this symbol appears among the members of its owner.  
-        /// The implementation part is not listed among the "members" of the enclosing type.
-        /// </summary>
-        private SourceMemberMethodSymbol _otherPartOfPartial;
-
-        public static SourceMemberMethodSymbol CreateMethodSymbol(
-            NamedTypeSymbol containingType,
-            Binder bodyBinder,
-            MethodDeclarationSyntax syntax,
-            DiagnosticBag diagnostics)
+        // The flags type is used to compact many different bits of information.
+        protected struct Flags
         {
-            var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
-            var nameToken = syntax.Identifier;
+            // We currently pack everything into a 32 bit int with the following layout:
+            //
+            // |   |s|r|q|z|xxxxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // 
+            // w = method kind.  5 bits.
+            //
+            // x = modifiers.  23 bits.
+            //
+            // z = isExtensionMethod. 1 bit.
+            //
+            // q = isMetadataVirtualIgnoringInterfaceChanges. 1 bit.
+            //
+            // r = isMetadataVirtual. 1 bit. (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
+            //
+            // s = isMetadataVirtualLocked. 1 bit.
 
-            TypeSymbol explicitInterfaceType;
-            string discardedAliasQualifier;
-            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, out discardedAliasQualifier);
-            var location = new SourceLocation(nameToken);
+            private const int MethodKindOffset = 0;
+            private const int DeclarationModifiersOffset = 5;
 
-            var methodKind = interfaceSpecifier == null
-                ? MethodKind.Ordinary
-                : MethodKind.ExplicitInterfaceImplementation;
+            private const int MethodKindMask = 0x1F;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
 
-            return new SourceMemberMethodSymbol(containingType, explicitInterfaceType, name, location, syntax, methodKind, diagnostics);
+            private const int ReturnsVoidBit = 1 << 27;
+            private const int IsExtensionMethodBit = 1 << 28;
+            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 29;
+            private const int IsMetadataVirtualBit = 1 << 30;
+            private const int IsMetadataVirtualLockedBit = 1 << 31;
+
+            private int _flags;
+            private bool _returnsVoid;
+
+            public bool ReturnsVoid
+            {
+                get { return _returnsVoid; }
+                set { _returnsVoid = value; }
+            }
+
+            public MethodKind MethodKind
+            {
+                get { return (MethodKind)((_flags >> MethodKindOffset) & MethodKindMask); }
+            }
+
+            public bool IsExtensionMethod
+            {
+                get { return (_flags & IsExtensionMethodBit) != 0; }
+            }
+
+            public bool IsMetadataVirtualLocked
+            {
+                get { return (_flags & IsMetadataVirtualLockedBit) != 0; }
+            }
+
+            public DeclarationModifiers DeclarationModifiers
+            {
+                get { return (DeclarationModifiers)((_flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
+            }
+
+#if DEBUG
+            static Flags()
+            {
+                // Verify a few things about the values we combine into flags.  This way, if they ever
+                // change, this will get hit and you will know you have to update this type as well.
+
+                // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
+                // method kind mask.
+                var methodKinds = EnumUtilities.GetValues<MethodKind>();
+                var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
+                Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
+
+                // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
+                // the declaration modifier mask.
+                var declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
+                var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
+                Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
+            }
+#endif
+
+            private static bool ModifiersRequireMetadataVirtual(DeclarationModifiers modifiers)
+            {
+                return (modifiers & (DeclarationModifiers.Abstract | DeclarationModifiers.Virtual | DeclarationModifiers.Override)) != 0;
+            }
+
+            public Flags(
+                MethodKind methodKind,
+                DeclarationModifiers declarationModifiers,
+                bool returnsVoid,
+                bool isExtensionMethod,
+                bool isMetadataVirtualIgnoringModifiers = false)
+            {
+                bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
+
+                int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
+                int declarationModifiersInt = ((int)declarationModifiers & DeclarationModifiersMask) << DeclarationModifiersOffset;
+                int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
+                int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
+                int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
+
+                _flags = methodKindInt | declarationModifiersInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
+                _returnsVoid = returnsVoid;
+            }
+
+            public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+            {
+                // This flag is immutable, so there's no reason to set a lock bit, as we do below.
+                if (ignoreInterfaceImplementationChanges)
+                {
+                    return (_flags & IsMetadataVirtualIgnoringInterfaceChangesBit) != 0;
+                }
+
+                if (!IsMetadataVirtualLocked)
+                {
+                    ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualLockedBit);
+                }
+
+                return (_flags & IsMetadataVirtualBit) != 0;
+            }
+
+            public void EnsureMetadataVirtual()
+            {
+                // ACASEY: This assert is here to check that we're not mutating the value of IsMetadataVirtual after
+                // someone has consumed it.  The best practice is to not access IsMetadataVirtual before ForceComplete
+                // has been called on all SourceNamedTypeSymbols.  If it is necessary to do so, then you can pass
+                // ignoreInterfaceImplementationChanges: true, but you must be conscious that seeing "false" may not
+                // reflect the final, emitted modifier.
+                Debug.Assert(!IsMetadataVirtualLocked);
+                if ((_flags & IsMetadataVirtualBit) == 0)
+                {
+                    ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualBit);
+                }
+            }
         }
 
-        private SourceMemberMethodSymbol(
-            NamedTypeSymbol containingType,
-            TypeSymbol explicitInterfaceType,
-            string name,
-            Location location,
-            MethodDeclarationSyntax syntax,
-            MethodKind methodKind,
-            DiagnosticBag diagnostics) :
-            base(containingType,
-                 syntax.GetReference(),
-                 // Prefer a block body if both exist
-                 syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
-                 location)
+        protected SymbolCompletionState state;
+
+        protected Flags flags;
+
+        private readonly NamedTypeSymbol _containingType;
+        private ParameterSymbol _lazyThisParameter;
+        private TypeSymbol _iteratorElementType;
+
+        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
+
+        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
+
+        // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
+        protected readonly SyntaxReference syntaxReferenceOpt;
+
+        // some symbols may not have a body syntax (e.g. abstract and extern members, primary constructors, synthesized event accessors, etc.)
+        protected readonly SyntaxReference bodySyntaxReferenceOpt;
+
+        protected ImmutableArray<Location> locations;
+        protected string lazyDocComment;
+
+        //null if has never been computed. Initial binding diagnostics
+        //are stashed here in service of API usage patterns
+        //where method body diagnostics are requested multiple times.
+        private ImmutableArray<Diagnostic> _cachedDiagnostics;
+        internal ImmutableArray<Diagnostic> Diagnostics
         {
-            _name = name;
-            _explicitInterfaceType = explicitInterfaceType;
+            get { return _cachedDiagnostics; }
+        }
 
-            SyntaxTokenList modifiers = syntax.Modifiers;
+        internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
+        {
+            //return the diagnostics that were actually saved in the event that there were two threads racing. 
+            diagsWritten = ImmutableInterlocked.InterlockedInitialize(ref _cachedDiagnostics, newSet);
+            return _cachedDiagnostics;
+        }
 
-            // The following two values are used to compute and store the initial value of the flags
-            // However, these two components are placeholders; the correct value will be
-            // computed lazily later and then the flags will be fixed up.
-            const bool returnsVoid = false;
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
+            : this(containingType, syntaxReferenceOpt, bodySyntaxReferenceOpt, ImmutableArray.Create(location))
+        {
+        }
 
-            var firstParam = syntax.ParameterList.Parameters.FirstOrDefault();
-            bool isExtensionMethod = firstParam != null &&
-                !firstParam.IsArgList &&
-                firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
+        {
+            Debug.Assert((object)containingType != null);
+            Debug.Assert(!locations.IsEmpty);
 
-            bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, methodKind, location, diagnostics, out modifierErrors);
+            _containingType = containingType;
+            this.syntaxReferenceOpt = syntaxReferenceOpt;
+            this.bodySyntaxReferenceOpt = bodySyntaxReferenceOpt;
+            this.locations = locations;
+        }
 
-            var isMetadataVirtualIgnoringModifiers = (object)explicitInterfaceType != null; //explicit impls must be marked metadata virtual
-
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
-
-            if (syntax.Arity == 0)
+        protected void CheckEffectiveAccessibility(TypeSymbol returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        {
+            if (this.DeclaredAccessibility <= Accessibility.Private)
             {
-                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics);
-            }
-            else
-            {
-                _typeParameters = MakeTypeParameters(syntax, diagnostics);
-            }
-
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            syntax.ReturnType.SkipRef(out _refKind);
-
-            if (hasBlockBody || _isExpressionBodied)
-            {
-                CheckModifiersForBody(location, diagnostics);
+                return;
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
-            if (info != null)
+            ErrorCode code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
+                ErrorCode.ERR_BadVisOpReturn :
+                ErrorCode.ERR_BadVisReturnType;
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
             {
-                diagnostics.Add(info, location);
+                // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
+                diagnostics.Add(code, Locations[0], this, returnType);
             }
 
-            // When a generic method overrides a generic method declared in a base class, or is an 
-            // explicit interface member implementation of a method in a base interface, the method
-            // shall not specify any type-parameter-constraints-clauses. In these cases, the type 
-            // parameters of the method inherit constraints from the method being overridden or 
-            // implemented
-            if (syntax.ConstraintClauses.Count > 0)
+            code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
+                ErrorCode.ERR_BadVisOpParam :
+                ErrorCode.ERR_BadVisParamType;
+
+            foreach (var parameter in parameters)
             {
-                if (syntax.ExplicitInterfaceSpecifier != null ||
-                    syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
+                if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
-                    diagnostics.Add(
-                        ErrorCode.ERR_OverrideWithConstraints, 
-                        syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+                    // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
+                    diagnostics.Add(code, Locations[0], this, parameter.Type);
                 }
             }
 
-            CheckForBlockAndExpressionBody(
-                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+            diagnostics.Add(Locations[0], useSiteDiagnostics);
         }
+
+        protected void MakeFlags(
+            MethodKind methodKind,
+            DeclarationModifiers declarationModifiers,
+            bool returnsVoid,
+            bool isExtensionMethod,
+            bool isMetadataVirtualIgnoringModifiers = false)
+        {
+            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
+        }
+
+        protected void SetReturnsVoid(bool returnsVoid)
+        {
+            this.flags.ReturnsVoid = returnsVoid;
+        }
+
+        /// <remarks>
+        /// Implementers should assume that a lock has been taken on MethodChecksLockObject.
+        /// In particular, it should not (generally) be necessary to use CompareExchange to
+        /// protect assignments to fields.
+        /// </remarks>
+        protected abstract void MethodChecks(DiagnosticBag diagnostics);
+
+        /// <summary>
+        /// We can usually lock on the syntax reference of this method, but it turns
+        /// out that some synthesized methods (e.g. field-like event accessors) also
+        /// need to do method checks.  This property allows such methods to supply
+        /// their own lock objects, so that we don't have to add a new field to every
+        /// SourceMethodSymbol.
+        /// </summary>
+        protected virtual object MethodChecksLockObject
+        {
+            get { return this.syntaxReferenceOpt; }
+        }
+
+        protected void LazyMethodChecks()
+        {
+            if (!state.HasComplete(CompletionPart.FinishMethodChecks))
+            {
+                // TODO: if this lock ever encloses a potential call to Debugger.NotifyOfCrossThreadDependency,
+                // then we should call DebuggerUtilities.CallBeforeAcquiringLock() (see method comment for more
+                // details).
+
+                object lockObject = MethodChecksLockObject;
+                Debug.Assert(lockObject != null);
+                lock (lockObject)
+                {
+                    if (state.NotePartComplete(CompletionPart.StartMethodChecks))
+                    {
+                        // By setting StartMethodChecks, we've committed to doing the checks and setting
+                        // FinishMethodChecks.  So there is no cancellation supported between one and the other.
+                        var diagnostics = DiagnosticBag.GetInstance();
+                        try
+                        {
+                            MethodChecks(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
+                        }
+                        finally
+                        {
+                            state.NotePartComplete(CompletionPart.FinishMethodChecks);
+                            diagnostics.Free();
+                        }
+                    }
+                    else
+                    {
+                        // Either (1) this thread is in the process of completing the method,
+                        // or (2) some other thread has beat us to the punch and completed the method.
+                        // We can distinguish the two cases here by checking for the FinishMethodChecks
+                        // part to be complete, which would only occur if another thread completed this
+                        // method.
+                        //
+                        // The other case, in which this thread is in the process of completing the method,
+                        // requires that we return here even though the checks are not complete.  That's because
+                        // methods are processed by first populating the return type and parameters by binding
+                        // the syntax from source.  Those values are visible to the same thread for the purpose
+                        // of computing which methods are implemented and overridden.  But then those values
+                        // may be rewritten (by the same thread) to copy down custom modifiers.  In order to
+                        // allow the same thread to see the return type and parameters from the syntax (though
+                        // they do not yet take on their final values), we return here.
+
+                        // Due to the fact that LazyMethodChecks is potentially reentrant, we must use a 
+                        // reentrant lock to avoid deadlock and cannot assert that at this point method checks
+                        // have completed (state.HasComplete(CompletionPart.FinishMethodChecks)).
+                    }
+                }
+            }
+        }
+
+        protected virtual void LazyAsyncMethodChecks(CancellationToken cancellationToken)
+        {
+            state.NotePartComplete(CompletionPart.StartAsyncMethodChecks);
+            state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+        }
+
+        public sealed override Symbol ContainingSymbol
+        {
+            get
+            {
+                return _containingType;
+            }
+        }
+
+        public override NamedTypeSymbol ContainingType
+        {
+            get
+            {
+                return _containingType;
+            }
+        }
+
+        public override Symbol AssociatedSymbol
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        #region Flags
 
         public override bool ReturnsVoid
         {
             get
             {
-                LazyMethodChecks();
-                return base.ReturnsVoid;
+                return this.flags.ReturnsVoid;
             }
         }
 
-        private void MethodChecks(MethodDeclarationSyntax syntax, Binder withTypeParamsBinder, DiagnosticBag diagnostics)
-        {
-            SyntaxToken arglistToken;
-
-            // Constraint checking for parameter and return types must be delayed until
-            // the method has been added to the containing type member list since
-            // evaluating the constraints may depend on accessing this method from
-            // the container (comparing this method to others to find overrides for
-            // instance). Constraints are checked in AfterAddingTypeMembersChecks.
-            var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
-
-            _lazyParameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, syntax.ParameterList, out arglistToken,
-                allowRefOrOut: true,
-                allowThis: true,
-                diagnostics: diagnostics);
-
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            RefKind refKind;
-            var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
-            _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
-
-            if (_lazyReturnType.IsRestrictedType())
-            {
-                if (_lazyReturnType.SpecialType == SpecialType.System_TypedReference &&
-                    (this.ContainingType.SpecialType == SpecialType.System_TypedReference || this.ContainingType.SpecialType == SpecialType.System_ArgIterator))
-                {
-                    // Two special cases: methods in the special types TypedReference and ArgIterator are allowed to return TypedReference
-                }
-                else
-                {
-                    // Method or delegate cannot return type '{0}'
-                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType);
-                }
-            }
-
-            var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
-            if (this.RefKind != RefKind.None && returnsVoid)
-            {
-                Debug.Assert(returnTypeSyntax.HasErrors);
-            }
-
-            // set ReturnsVoid flag
-            this.SetReturnsVoid(returnsVoid);
-
-            var location = this.Locations[0];
-            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
-
-            // Checks taken from MemberDefiner::defineMethod
-            if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
-            {
-                diagnostics.Add(ErrorCode.WRN_FinalizeMethod, location);
-            }
-
-            // errors relevant for extension methods
-            if (IsExtensionMethod)
-            {
-                var parameter0Type = this.Parameters[0].Type;
-                if (!parameter0Type.IsValidExtensionParameterType())
-                {
-                    // Duplicate Dev10 behavior by selecting the parameter type.
-                    var parameterSyntax = syntax.ParameterList.Parameters[0];
-                    Debug.Assert(parameterSyntax.Type != null);
-                    var loc = parameterSyntax.Type.Location;
-                    diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type);
-                }
-                else if ((object)ContainingType.ContainingType != null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, location, ContainingType.Name);
-                }
-                else if (!ContainingType.IsScriptClass && !(ContainingType.IsStatic && ContainingType.Arity == 0))
-                {
-                    // Duplicate Dev10 behavior by selecting the containing type identifier. However if there
-                    // is no containing type (in the interactive case for instance), select the method identifier.
-                    var typeDecl = syntax.Parent as TypeDeclarationSyntax;
-                    var identifier = (typeDecl != null) ? typeDecl.Identifier : syntax.Identifier;
-                    var loc = identifier.GetLocation();
-                    diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, loc);
-                }
-                else if (!IsStatic)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, location);
-                }
-                else
-                {
-                    // Verify ExtensionAttribute is available.
-                    var attributeConstructor = withTypeParamsBinder.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-                    if ((object)attributeConstructor == null)
-                    {
-                        var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-                        // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
-                        diagnostics.Add(
-                            ErrorCode.ERR_ExtensionAttrNotFound,
-                            syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(),
-                            memberDescriptor.DeclaringTypeMetadataName);
-                    }
-                }
-            }
-
-            if (this.MethodKind == MethodKind.UserDefinedOperator)
-            {
-                foreach (var p in this.Parameters)
-                {
-                    if (p.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_IllegalRefParam, location);
-                        break;
-                    }
-                }
-            }
-            else if (IsPartial)
-            {
-                // check that there are no out parameters in a partial
-                foreach (var p in this.Parameters)
-                {
-                    if (p.RefKind == RefKind.Out)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, location);
-                        break;
-                    }
-                }
-
-                if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, location);
-                }
-
-                if (!ContainingType.IsPartial() || ContainingType.IsInterface)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, location);
-                }
-            }
-
-            if (!IsPartial)
-            {
-                LazyAsyncMethodChecks(CancellationToken.None);
-                Debug.Assert(state.HasComplete(CompletionPart.FinishAsyncMethodChecks));
-            }
-
-            // The runtime will not treat this method as an override or implementation of another
-            // method unless both the signatures and the custom modifiers match.  Hence, in the
-            // case of overrides and *explicit* implementations, we need to copy the custom modifiers
-            // that are in the signature of the overridden/implemented method.  (From source, we know
-            // that there can only be one such method, so there are no conflicts.)  This is
-            // unnecessary for implicit implementations because, if the custom modifiers don't match,
-            // we'll insert a bridge method (an explicit implementation that delegates to the implicit
-            // implementation) with the correct custom modifiers 
-            // (see SourceNamedTypeSymbol.ImplementInterfaceMember).
-
-            // This value may not be correct, but we need something while we compute overridden/implemented method.
-            // May be re-assigned below.
-            Debug.Assert(_lazyCustomModifiers == null);
-            _lazyCustomModifiers = CustomModifiersTuple.Empty;
-
-            // Note: we're checking if the syntax indicates explicit implementation rather,
-            // than if explicitInterfaceType is null because we don't want to look for an
-            // overridden property if this is supposed to be an explicit implementation.
-            if (syntax.ExplicitInterfaceSpecifier == null)
-            {
-                Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
-                _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
-
-                // If this method is an override, we may need to copy custom modifiers from
-                // the overridden method (so that the runtime will recognize it as an override).
-                // We check for this case here, while we can still modify the parameters and
-                // return type without losing the appearance of immutability.
-                if (this.IsOverride)
-                {
-                    // This computation will necessarily be performed with partially incomplete
-                    // information.  There is no way we can determine the complete signature
-                    // (i.e. including custom modifiers) until we have found the method that
-                    // this method overrides.  To accommodate this, MethodSymbol.OverriddenOrHiddenMembers
-                    // is written to allow relaxed matching of custom modifiers for source methods,
-                    // on the assumption that they will be updated appropriately.
-                    MethodSymbol overriddenMethod = this.OverriddenMethod;
-
-                    if ((object)overriddenMethod != null)
-                    {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
-                                                                      out _lazyCustomModifiers, 
-                                                                      out _lazyParameters, alsoCopyParamsModifier: true);
-                    }
-                }
-            }
-            else if ((object)_explicitInterfaceType != null)
-            {
-                //do this last so that it can assume the method symbol is constructed (except for ExplicitInterfaceImplementation)
-                MethodSymbol implementedMethod = this.FindExplicitlyImplementedMethod(_explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
-
-                if ((object)implementedMethod != null)
-                {
-                    Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
-                    _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
-
-                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
-                                                                  out _lazyCustomModifiers,
-                                                                  out _lazyParameters, alsoCopyParamsModifier: false);
-                }
-                else
-                {
-                    Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
-                    _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
-                }
-            }
-
-            CheckModifiers(location, diagnostics);
-        }
-
-        // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
-        {
-            foreach (var parameter in parameters)
-            {
-                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
-                if (parameter.RefKind != RefKind.None)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsUnsafe())
-                {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsRestrictedType())
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
-                }
-            }
-        }
-
-        protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
-        {
-            Debug.Assert(this.IsPartial == state.HasComplete(CompletionPart.FinishMethodChecks),
-                "Partial methods complete method checks during construction.  " +
-                "Other methods can't complete method checks before executing this method.");
-
-            if (!this.IsAsync)
-            {
-                CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
-                return;
-            }
-
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            Location errorLocation = this.Locations[0];
-
-            if (this.RefKind != RefKind.None)
-            {
-                var returnTypeSyntax = GetSyntax().ReturnType;
-                if (!returnTypeSyntax.HasErrors)
-                {
-                    var refKeyword = returnTypeSyntax.GetFirstToken();
-                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
-                }
-            }
-            else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
-            {
-                // The return type of an async method must be void, Task or Task<T>
-                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
-            }
-
-            for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
-            {
-                var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
-                if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
-                {
-                    diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
-                    break;
-                }
-            }
-
-            if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
-            {
-                diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
-            }
-
-            if (diagnostics.IsEmptyWithoutResolution)
-            {
-                ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
-            }
-
-            CompleteAsyncMethodChecks(diagnostics, cancellationToken);
-            diagnostics.Free();
-        }
-
-        private void CompleteAsyncMethodChecks(DiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
-        {
-            if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
-            {
-                if (diagnosticsOpt != null)
-                {
-                    AddDeclarationDiagnostics(diagnosticsOpt);
-                }
-                if (IsPartialDefinition && (object)PartialImplementationPart == null)
-                {
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                }
-                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
-            }
-            else
-            {
-                state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
-            }
-        }
-
-        protected override void MethodChecks(DiagnosticBag diagnostics)
-        {
-            var syntax = GetSyntax();
-            var withTypeParametersBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
-            MethodChecks(syntax, withTypeParametersBinder, diagnostics);
-        }
-
-        internal MethodDeclarationSyntax GetSyntax()
-        {
-            Debug.Assert(syntaxReferenceOpt != null);
-            return (MethodDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
-        }
-
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get { return _typeParameters; }
-        }
-
-        internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
-        {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
-        }
-
-        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
-        {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
-        }
-
-        private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
-        {
-            if (_lazyTypeParameterConstraints.IsDefault)
-            {
-                var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
-                {
-                    this.AddDeclarationDiagnostics(diagnostics);
-                }
-                diagnostics.Free();
-            }
-
-            var clauses = _lazyTypeParameterConstraints;
-            return (clauses.Length > 0) ? clauses[ordinal] : null;
-        }
-
-        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
-        {
-            var typeParameters = this.TypeParameters;
-            if (typeParameters.Length == 0)
-            {
-                return ImmutableArray<TypeParameterConstraintClause>.Empty;
-            }
-
-            var syntax = GetSyntax();
-            var constraintClauses = syntax.ConstraintClauses;
-            if (constraintClauses.Count == 0)
-            {
-                return ImmutableArray<TypeParameterConstraintClause>.Empty;
-            }
-
-            var syntaxTree = syntax.SyntaxTree;
-            var compilation = this.DeclaringCompilation;
-            var binderFactory = compilation.GetBinderFactory(syntaxTree);
-            var binder = binderFactory.GetBinder(constraintClauses[0]);
-
-            // Wrap binder from factory in a generic constraints specific binder
-            // to avoid checking constraints when binding type names.
-            Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
-
-            var result = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
-            this.CheckConstraintTypesVisibility(new SourceLocation(syntax.Identifier), result, diagnostics);
-            return result;
-        }
-
-        public override bool IsVararg
+        public sealed override MethodKind MethodKind
         {
             get
             {
-                LazyMethodChecks();
-                return _lazyIsVararg;
+                return this.flags.MethodKind;
             }
         }
 
+        public override bool IsExtensionMethod
+        {
+            get
+            {
+                return this.flags.IsExtensionMethod;
+            }
+        }
+
+        private bool IsMetadataVirtualLocked
+        {
+            get
+            {
+                return this.flags.IsMetadataVirtualLocked;
+            }
+        }
+
+        // TODO (tomat): sealed
+        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        {
+            // If C# and the runtime don't agree on the overridden method,
+            // then we will mark the method as newslot and specify the
+            // override explicitly (see GetExplicitImplementationOverrides
+            // in NamedTypeSymbolAdapter.cs).
+            return this.IsOverride ?
+                this.RequiresExplicitOverride() :
+                this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
+        }
+
+        // TODO (tomat): sealed?
+        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        {
+            return this.flags.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
+        }
+
+        internal void EnsureMetadataVirtual()
+        {
+            this.flags.EnsureMetadataVirtual();
+        }
+
+
+        protected DeclarationModifiers DeclarationModifiers
+        {
+            get
+            {
+                return this.flags.DeclarationModifiers;
+            }
+        }
+
+        // TODO (tomat): sealed?
+        public override Accessibility DeclaredAccessibility
+        {
+            get
+            {
+                return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers);
+            }
+        }
+
+        public sealed override bool IsExtern
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Extern) != 0;
+            }
+        }
+
+        public sealed override bool IsSealed
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Sealed) != 0;
+            }
+        }
+
+        public sealed override bool IsAbstract
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Abstract) != 0;
+            }
+        }
+
+        public sealed override bool IsOverride
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Override) != 0;
+            }
+        }
+
+        internal bool IsPartial
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Partial) != 0;
+            }
+        }
+
+        public sealed override bool IsVirtual
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Virtual) != 0;
+            }
+        }
+
+        internal bool IsNew
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.New) != 0;
+            }
+        }
+
+        public sealed override bool IsStatic
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Static) != 0;
+            }
+        }
+
+        internal bool IsUnsafe
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+            }
+        }
+
+        public sealed override bool IsAsync
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Async) != 0;
+            }
+        }
+
+        internal sealed override Cci.CallingConvention CallingConvention
+        {
+            get
+            {
+                var cc = IsVararg ? Cci.CallingConvention.ExtraArguments : Cci.CallingConvention.Default;
+
+                if (IsGenericMethod)
+                {
+                    cc |= Cci.CallingConvention.Generic;
+                }
+
+                if (!IsStatic)
+                {
+                    cc |= Cci.CallingConvention.HasThis;
+                }
+
+                return cc;
+            }
+        }
+
+        #endregion
+
+        #region Syntax
+
+        internal SyntaxNode BodySyntax
+        {
+            get
+            {
+                return (this.bodySyntaxReferenceOpt == null) ? null : this.bodySyntaxReferenceOpt.GetSyntax();
+            }
+        }
+
+        internal SyntaxReference SyntaxRef
+        {
+            get
+            {
+                return this.syntaxReferenceOpt;
+            }
+        }
+
+        internal CSharpSyntaxNode SyntaxNode
+        {
+            get
+            {
+                return (this.syntaxReferenceOpt == null) ? null : (CSharpSyntaxNode)this.syntaxReferenceOpt.GetSyntax();
+            }
+        }
+
+        internal SyntaxTree SyntaxTree
+        {
+            get
+            {
+                return this.syntaxReferenceOpt == null ? null : this.syntaxReferenceOpt.SyntaxTree;
+            }
+        }
+
+        /// <summary>
+        /// Overridden by <see cref="SourceOrdinaryMethodSymbol"/>, 
+        /// which might return locations of partial methods.
+        /// </summary>
         public override ImmutableArray<Location> Locations
         {
             get
@@ -545,162 +581,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override int ParameterCount
+        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
-                return !_lazyParameters.IsDefault ? _lazyParameters.Length : GetSyntax().ParameterList.ParameterCount;
-            }
-        }
-
-        public override ImmutableArray<ParameterSymbol> Parameters
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyParameters;
-            }
-        }
-
-        internal override RefKind RefKind
-        {
-            get
-            {
-                return _refKind;
-            }
-        }
-
-        public override TypeSymbol ReturnType
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyReturnType;
-            }
-        }
-
-        internal static void InitializePartialMethodParts(SourceMemberMethodSymbol definition, SourceMemberMethodSymbol implementation)
-        {
-            Debug.Assert(definition.IsPartialDefinition);
-            Debug.Assert(implementation.IsPartialImplementation);
-            Debug.Assert((object)definition._otherPartOfPartial == null);
-            Debug.Assert((object)implementation._otherPartOfPartial == null);
-
-            definition._otherPartOfPartial = implementation;
-            implementation._otherPartOfPartial = definition;
-        }
-
-        /// <summary>
-        /// If this is a partial implementation part returns the definition part and vice versa.
-        /// </summary>
-        internal SourceMemberMethodSymbol OtherPartOfPartial
-        {
-            get { return _otherPartOfPartial; }
-        }
-
-        /// <summary>
-        /// Returns true if this symbol represents a partial method definition (the part that specifies a signature but no body).
-        /// </summary>
-        internal bool IsPartialDefinition
-        {
-            get
-            {
-                return this.IsPartial
-                    && this.BodySyntax == null;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if this symbol represents a partial method implementation (the part that specifies both signature and body).
-        /// </summary>
-        internal bool IsPartialImplementation
-        {
-            get
-            {
-                return this.IsPartial
-                    && this.BodySyntax != null;
-            }
-        }
-
-        /// <summary>
-        /// True if this is a partial method that doesn't have an implementation part.
-        /// </summary>
-        internal bool IsPartialWithoutImplementation
-        {
-            get
-            {
-                return this.IsPartialDefinition && (object)_otherPartOfPartial == null;
-            }
-        }
-
-        /// <summary>
-        /// Returns the implementation part of a partial method definition, 
-        /// or null if this is not a partial method or it is the definition part.
-        /// </summary>
-        internal SourceMemberMethodSymbol SourcePartialDefinition
-        {
-            get
-            {
-                return this.IsPartialImplementation ? _otherPartOfPartial : null;
-            }
-        }
-
-        /// <summary>
-        /// Returns the definition part of a partial method implementation, 
-        /// or null if this is not a partial method or it is the implementation part.
-        /// </summary>
-        internal SourceMemberMethodSymbol SourcePartialImplementation
-        {
-            get
-            {
-                return this.IsPartialDefinition ? _otherPartOfPartial : null;
-            }
-        }
-
-        public override MethodSymbol PartialDefinitionPart
-        {
-            get
-            {
-                return SourcePartialDefinition;
-            }
-        }
-
-        public override MethodSymbol PartialImplementationPart
-        {
-            get
-            {
-                return SourcePartialImplementation;
+                return (this.syntaxReferenceOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntaxReferenceOpt);
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this.SourcePartialImplementation ?? this, expandIncludes, ref lazyDocComment);
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
-        internal override bool IsExplicitInterfaceImplementation
-        {
-            get
-            {
-                return this.GetSyntax().ExplicitInterfaceSpecifier != null;
-            }
-        }
-
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyExplicitInterfaceImplementations;
-            }
-        }
+        #endregion
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
             get
             {
-                LazyMethodChecks();
-                return _lazyCustomModifiers.TypeCustomModifiers;
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 
@@ -708,407 +608,1017 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                LazyMethodChecks();
-                return _lazyCustomModifiers.RefCustomModifiers;
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 
-        public override string Name
+        public sealed override ImmutableArray<TypeSymbol> TypeArguments
         {
             get
             {
-                return _name;
+                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
             }
         }
 
-        protected override SourceMethodSymbol BoundAttributesSource
+        public sealed override int Arity
         {
             get
             {
-                return this.SourcePartialDefinition;
+                return TypeParameters.Length;
             }
         }
 
-        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            if ((object)this.SourcePartialImplementation != null)
+            thisParameter = _lazyThisParameter;
+            if ((object)thisParameter != null || IsStatic)
             {
-                return OneOrMany.Create(ImmutableArray.Create(AttributeDeclarationSyntaxList, this.SourcePartialImplementation.AttributeDeclarationSyntaxList));
+                return true;
             }
-            else
-            {
-                return OneOrMany.Create(AttributeDeclarationSyntaxList);
-            }
+
+            Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
+            thisParameter = _lazyThisParameter;
+            return true;
         }
 
-        private SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        internal override TypeSymbol IteratorElementType
         {
             get
             {
-                var sourceContainer = this.ContainingType as SourceMemberContainerTypeSymbol;
-                if ((object)sourceContainer != null && sourceContainer.AnyMemberHasAttributes)
+                return _iteratorElementType;
+            }
+            set
+            {
+                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
+                Interlocked.CompareExchange(ref _iteratorElementType, value, null);
+            }
+        }
+
+        //overridden appropriately in SourceMemberMethodSymbol
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
+        {
+            get
+            {
+                return ImmutableArray<MethodSymbol>.Empty;
+            }
+        }
+
+        internal sealed override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
+        {
+            get
+            {
+                this.LazyMethodChecks();
+                if (_lazyOverriddenOrHiddenMembers == null)
                 {
-                    return this.GetSyntax().AttributeLists;
+                    Interlocked.CompareExchange(ref _lazyOverriddenOrHiddenMembers, this.MakeOverriddenOrHiddenMembers(), null);
                 }
 
-                return default(SyntaxList<AttributeListSyntax>);
+                return _lazyOverriddenOrHiddenMembers;
             }
         }
 
-        internal override bool IsExpressionBodied
+        internal sealed override bool RequiresCompletion
         {
-            get { return _isExpressionBodied; }
+            get { return true; }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        internal sealed override bool HasComplete(CompletionPart part)
         {
-            bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
-
-            // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
-
-            if (methodKind != MethodKind.ExplicitInterfaceImplementation)
-            {
-                allowedModifiers |= DeclarationModifiers.New;
-
-                if (!isInterface)
-                {
-                    allowedModifiers |=
-                        DeclarationModifiers.AccessibilityMask |
-                        DeclarationModifiers.Sealed |
-                        DeclarationModifiers.Abstract |
-                        DeclarationModifiers.Static |
-                        DeclarationModifiers.Virtual |
-                        DeclarationModifiers.Override;
-                }
-            }
-
-            if (!isInterface)
-            {
-                allowedModifiers |= DeclarationModifiers.Extern |
-                    DeclarationModifiers.Async;
-            }
-
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
-
-            this.CheckUnsafeModifier(mods, diagnostics);
-
-            mods = AddImpliedModifiers(mods, isInterface, methodKind);
-            return mods;
-        }
-
-        private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind)
-        {
-            // Let's overwrite modifiers for interface and explicit interface implementation methods with what they are supposed to be. 
-            // Proper errors must have been reported by now.
-            if (containingTypeIsInterface)
-            {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Public | DeclarationModifiers.Abstract;
-            }
-            else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
-            {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Private;
-            }
-            return mods;
-        }
-
-        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(syntax.TypeParameterList != null);
-
-            OverriddenMethodTypeParameterMapBase typeMap = null;
-            if (this.IsOverride)
-            {
-                typeMap = new OverriddenMethodTypeParameterMap(this);
-            }
-            else if (this.IsExplicitInterfaceImplementation)
-            {
-                typeMap = new ExplicitInterfaceMethodTypeParameterMap(this);
-            }
-
-            var typeParameters = syntax.TypeParameterList.Parameters;
-            var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-
-            for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
-            {
-                var parameter = typeParameters[ordinal];
-                if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
-                {
-                    diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
-                }
-
-                var identifier = parameter.Identifier;
-                var location = identifier.GetLocation();
-                var name = identifier.ValueText;
-
-                // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
-
-                for (int i = 0; i < result.Count; i++)
-                {
-                    if (name == result[i].Name)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
-                        break;
-                    }
-                }
-
-                var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
-                if ((object)tpEnclosing != null)
-                {
-                    // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
-                    diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
-                }
-
-                var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
-                var locations = ImmutableArray.Create(location);
-                var typeParameter = (typeMap != null) ?
-                    (TypeParameterSymbol)new SourceOverridingMethodTypeParameterSymbol(
-                        typeMap,
-                        name,
-                        ordinal,
-                        locations,
-                        syntaxRefs) :
-                    new SourceMethodTypeParameterSymbol(
-                        this,
-                        name,
-                        ordinal,
-                        locations,
-                        syntaxRefs);
-
-                result.Add(typeParameter);
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-        private void CheckModifiers(Location location, DiagnosticBag diagnostics)
-        {
-            const DeclarationModifiers partialMethodInvalidModifierMask = (DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private) |
-                     DeclarationModifiers.Virtual |
-                     DeclarationModifiers.Abstract |
-                     DeclarationModifiers.Override |
-                     DeclarationModifiers.New |
-                     DeclarationModifiers.Sealed |
-                     DeclarationModifiers.Extern;
-
-            if (IsPartial && !ReturnsVoid)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodMustReturnVoid, location);
-            }
-            else if (IsPartial && !ContainingType.IsInterface && (DeclarationModifiers & partialMethodInvalidModifierMask) != 0)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
-            }
-            else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || IsAbstract || IsOverride))
-            {
-                diagnostics.Add(ErrorCode.ERR_VirtualPrivate, location, this);
-            }
-            else if (IsStatic && (IsOverride || IsVirtual || IsAbstract))
-            {
-                // A static member '{0}' cannot be marked as override, virtual, or abstract
-                diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, this);
-            }
-            else if (IsOverride && (IsNew || IsVirtual))
-            {
-                // A member '{0}' marked as override cannot be marked as new or virtual
-                diagnostics.Add(ErrorCode.ERR_OverrideNotNew, location, this);
-            }
-            else if (IsSealed && !IsOverride)
-            {
-                // '{0}' cannot be sealed because it is not an override
-                diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
-            }
-            else if (IsSealed && ContainingType.TypeKind == TypeKind.Struct)
-            {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.SealedKeyword));
-            }
-            else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
-            {
-                // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType);
-            }
-            else if (IsAbstract && IsExtern)
-            {
-                diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
-            }
-            else if (IsAbstract && IsSealed)
-            {
-                diagnostics.Add(ErrorCode.ERR_AbstractAndSealed, location, this);
-            }
-            else if (IsAbstract && IsVirtual)
-            {
-                diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
-            }
-            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
-            {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
-            }
-            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
-            {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
-            }
-            else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
-            {
-                // '{0}' is abstract but it is contained in non-abstract class '{1}'
-                diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
-            }
-            else if (IsVirtual && ContainingType.IsSealed)
-            {
-                // '{0}' is a new virtual member in sealed class '{1}'
-                diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
-            }
-            else if (bodySyntaxReferenceOpt == null && IsAsync)
-            {
-                diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
-            }
-            else if (bodySyntaxReferenceOpt == null && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
-            {
-                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
-            }
-            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
-            {
-                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
-            }
-            else if (ContainingType.IsStatic && !IsStatic)
-            {
-                diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
-            }
-            else if (_lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
-            {
-                diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
-            }
-            else if (_lazyIsVararg && IsAsync)
-            {
-                diagnostics.Add(ErrorCode.ERR_VarargsAsync, location);
-            }
-        }
-
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
-
-            if (this.IsExtensionMethod)
-            {
-                // No need to check if [Extension] attribute was explicitly set since
-                // we'll issue CS1112 error in those cases and won't generate IL.
-                var compilation = this.DeclaringCompilation;
-
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
-                    WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
-            }
+            return state.HasComplete(part);
         }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            var implementingPart = this.SourcePartialImplementation;
-            if ((object)implementingPart != null)
+            while (true)
             {
-                implementingPart.ForceComplete(locationOpt, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                var incompletePart = state.NextIncompletePart;
+                switch (incompletePart)
+                {
+                    case CompletionPart.Attributes:
+                        GetAttributes();
+                        break;
+
+                    case CompletionPart.ReturnTypeAttributes:
+                        this.GetReturnTypeAttributes();
+                        break;
+
+                    case CompletionPart.Type:
+                        var unusedType = this.ReturnType;
+                        state.NotePartComplete(CompletionPart.Type);
+                        break;
+
+                    case CompletionPart.Parameters:
+                        foreach (var parameter in this.Parameters)
+                        {
+                            parameter.ForceComplete(locationOpt, cancellationToken);
+                        }
+
+                        state.NotePartComplete(CompletionPart.Parameters);
+                        break;
+
+                    case CompletionPart.TypeParameters:
+                        foreach (var typeParameter in this.TypeParameters)
+                        {
+                            typeParameter.ForceComplete(locationOpt, cancellationToken);
+                        }
+
+                        state.NotePartComplete(CompletionPart.TypeParameters);
+                        break;
+
+                    case CompletionPart.StartAsyncMethodChecks:
+                    case CompletionPart.FinishAsyncMethodChecks:
+                        LazyAsyncMethodChecks(cancellationToken);
+                        break;
+
+                    case CompletionPart.StartMethodChecks:
+                    case CompletionPart.FinishMethodChecks:
+                        LazyMethodChecks();
+                        goto done;
+
+                    case CompletionPart.None:
+                        return;
+
+                    default:
+                        // any other values are completion parts intended for other kinds of symbols
+                        state.NotePartComplete(CompletionPart.All & ~CompletionPart.MethodSymbolAll);
+                        break;
+                }
+
+                state.SpinWaitComplete(incompletePart, cancellationToken);
             }
 
-            base.ForceComplete(locationOpt, cancellationToken);
+        done:
+            // Don't return until we've seen all of the CompletionParts. This ensures all
+            // diagnostics have been reported (not necessarily on this thread).
+            CompletionPart allParts = CompletionPart.MethodSymbolAll;
+            state.SpinWaitComplete(allParts, cancellationToken);
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        #region Attributes
+
+        /// <summary>
+        /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source method symbols.
+        /// </summary>
+        /// <remarks>
+        /// Used for example for event accessors. The "remove" method delegates attribute binding to the "add" method. 
+        /// The bound attribute data are then applied to both accessors.
+        /// </remarks>
+        protected virtual SourceMemberMethodSymbol BoundAttributesSource
         {
-            // Check constraints on return type and parameters. Note: Dev10 uses the
-            // method name location for any such errors. We'll do the same for return
-            // type errors but for parameter errors, we'll use the parameter location.
-
-            if ((object)_explicitInterfaceType != null)
+            get
             {
-                var syntax = this.GetSyntax();
-                Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                return null;
             }
+        }
 
-            this.ReturnType.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
+        protected virtual IAttributeTargetSymbol AttributeOwner
+        {
+            get { return this; }
+        }
 
-            foreach (var parameter in this.Parameters)
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
+        {
+            get { return this.AttributeOwner; }
+        }
+
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
+        {
+            get { return AttributeLocation.Method; }
+        }
+
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
+        {
+            get
             {
-                parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
-            }
+                switch (MethodKind)
+                {
+                    case MethodKind.Constructor:
+                    case MethodKind.Destructor:
+                    case MethodKind.StaticConstructor:
+                        return AttributeLocation.Method;
 
-            var implementingPart = this.SourcePartialImplementation;
-            if ((object)implementingPart != null)
-            {
-                PartialMethodChecks(this, implementingPart, diagnostics);
+                    case MethodKind.PropertySet:
+                    case MethodKind.EventRemove:
+                    case MethodKind.EventAdd:
+                        return AttributeLocation.Method | AttributeLocation.Return | AttributeLocation.Parameter;
+
+                    default:
+                        return AttributeLocation.Method | AttributeLocation.Return;
+                }
             }
         }
 
         /// <summary>
-        /// Report differences between the defining and implementing
-        /// parts of a partial method. Diagnostics are reported on the
-        /// implementing part, matching Dev10 behavior.
+        /// Gets the syntax list of custom attributes that declares attributes for this method symbol.
         /// </summary>
-        private static void PartialMethodChecks(SourceMemberMethodSymbol definition, SourceMemberMethodSymbol implementation, DiagnosticBag diagnostics)
+        internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            Debug.Assert(!ReferenceEquals(definition, implementation));
+            return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
+        }
 
-            if (definition.IsStatic != implementation.IsStatic)
+        /// <summary>
+        /// Gets the syntax list of custom attributes that declares attributes for return type of this method.
+        /// </summary>
+        internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
+        {
+            // Usually the same list as other attributes applied on the method, but e.g.
+            // constructors and destructors do not allow return-type attributes, so this is empty.
+            return GetAttributeDeclarations();
+        }
+
+        /// <summary>
+        /// Returns data decoded from special early bound well-known attributes applied to the symbol or null if there are no applied attributes.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        internal CommonMethodEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
+        {
+            var attributesBag = _lazyCustomAttributesBag;
+            if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodStaticDifference, implementation.Locations[0]);
+                attributesBag = this.GetAttributesBag();
             }
 
-            if (definition.IsExtensionMethod != implementation.IsExtensionMethod)
+            return (CommonMethodEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
+        }
+
+        /// <summary>
+        /// Returns data decoded from well-known attributes applied to the symbol or null if there are no applied attributes.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        protected CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        {
+            var attributesBag = _lazyCustomAttributesBag;
+            if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodExtensionDifference, implementation.Locations[0]);
+                attributesBag = this.GetAttributesBag();
             }
 
-            if (definition.IsUnsafe != implementation.IsUnsafe && definition.CompilationAllowsUnsafe()) // Don't cascade.
+            return (CommonMethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+        }
+
+        /// <summary>
+        /// Returns information retrieved from custom attributes on return type in source, or null if the symbol is not source symbol or there are none.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        internal CommonReturnTypeWellKnownAttributeData GetDecodedReturnTypeWellKnownAttributeData()
+        {
+            var attributesBag = _lazyReturnTypeCustomAttributesBag;
+            if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.Locations[0]);
+                attributesBag = this.GetReturnTypeAttributesBag();
             }
 
-            if (definition.IsParams() != implementation.IsParams())
+            return (CommonReturnTypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+        }
+
+        /// <summary>
+        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
+        {
+            var bag = _lazyCustomAttributesBag;
+            if (bag != null && bag.IsSealed)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
+                return bag;
             }
 
-            if (!HaveSameConstraints(definition, implementation))
+            return GetAttributesBag(ref _lazyCustomAttributesBag, forReturnType: false);
+        }
+
+        /// <summary>
+        /// Returns a bag of custom attributes applied on the method return value and data decoded from well-known attributes. Returns null if there are no attributes.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        private CustomAttributesBag<CSharpAttributeData> GetReturnTypeAttributesBag()
+        {
+            var bag = _lazyReturnTypeCustomAttributesBag;
+            if (bag != null && bag.IsSealed)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
+                return bag;
+            }
+
+            return GetAttributesBag(ref _lazyReturnTypeCustomAttributesBag, forReturnType: true);
+        }
+
+        private CustomAttributesBag<CSharpAttributeData> GetAttributesBag(ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag, bool forReturnType)
+        {
+            SourceMemberMethodSymbol copyFrom = this.BoundAttributesSource;
+
+            // prevent infinite recursion:
+            Debug.Assert(!ReferenceEquals(copyFrom, this));
+
+            bool bagCreatedOnThisThread;
+            if ((object)copyFrom != null)
+            {
+                var attributesBag = forReturnType ? copyFrom.GetReturnTypeAttributesBag() : copyFrom.GetAttributesBag();
+                bagCreatedOnThisThread = Interlocked.CompareExchange(ref lazyCustomAttributesBag, attributesBag, null) == null;
+            }
+            else if (forReturnType)
+            {
+                bagCreatedOnThisThread = LoadAndValidateAttributes(
+                    this.GetReturnTypeAttributeDeclarations(),
+                    ref lazyCustomAttributesBag,
+                    symbolPart: AttributeLocation.Return);
+            }
+            else
+            {
+                bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref lazyCustomAttributesBag);
+            }
+
+            if (bagCreatedOnThisThread)
+            {
+                var part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
+                state.NotePartComplete(part);
+            }
+
+            return lazyCustomAttributesBag;
+        }
+
+        /// <summary>
+        /// Gets the attributes applied on this symbol.
+        /// Returns an empty array if there are no attributes.
+        /// </summary>
+        public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            return this.GetAttributesBag().Attributes;
+        }
+
+        /// <summary>
+        /// Gets the attributes applied on the return value of this method symbol.
+        /// Returns an empty array if there are no attributes.
+        /// </summary>
+        public sealed override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        {
+            return this.GetReturnTypeAttributesBag().Attributes;
+        }
+
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+
+            if (this.ReturnType.ContainsDynamic())
+            {
+                var compilation = this.DeclaringCompilation;
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (ReturnType.ContainsTupleNames())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(ReturnType));
+            }
+        }
+
+        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
+
+            bool hasAnyDiagnostics;
+
+            if (arguments.SymbolPart == AttributeLocation.None)
+            {
+                if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
+                {
+                    var boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                    if (!boundAttribute.HasErrors)
+                    {
+                        string name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+                        arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
+                        if (!hasAnyDiagnostics)
+                        {
+                            return boundAttribute;
+                        }
+                    }
+
+                    return null;
+                }
+                else
+                {
+                    CSharpAttributeData boundAttribute;
+                    ObsoleteAttributeData obsoleteData;
+
+                    if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+                    {
+                        if (obsoleteData != null)
+                        {
+                            arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
+                        }
+
+                        return boundAttribute;
+                    }
+                }
+            }
+
+            return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
+        /// <summary>
+        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal override ObsoleteAttributeData ObsoleteAttributeData
+        {
+            get
+            {
+                var sourceContainer = ContainingType as SourceMemberContainerTypeSymbol;
+                if ((object)sourceContainer == null || !sourceContainer.AnyMemberHasAttributes)
+                {
+                    return null;
+                }
+
+                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+                if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonMethodEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
+                    return data != null ? data.ObsoleteAttributeData : null;
+                }
+
+                var reference = this.syntaxReferenceOpt;
+                if (reference == null)
+                {
+                    // no references -> no attributes
+                    return null;
+                }
+
+                return ObsoleteAttributeData.Uninitialized;
+            }
+        }
+
+        internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
+        {
+            CommonMethodEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
+            return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
+        }
+
+        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(!arguments.Attribute.HasErrors);
+            Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
+
+            if (arguments.SymbolPart == AttributeLocation.None)
+            {
+                DecodeWellKnownAttributeAppliedToMethod(ref arguments);
+            }
+            else
+            {
+                DecodeWellKnownAttributeAppliedToReturnValue(ref arguments);
+            }
+        }
+
+        private void DecodeWellKnownAttributeAppliedToMethod(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+
+            var attribute = arguments.Attribute;
+            Debug.Assert(!attribute.HasErrors);
+
+            if (attribute.IsTargetAttribute(this, AttributeDescription.PreserveSigAttribute))
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().SetPreserveSignature(arguments.Index);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MethodImplAttribute))
+            {
+                AttributeData.DecodeMethodImplAttribute<CommonMethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DllImportAttribute))
+            {
+                DecodeDllImportAttribute(ref arguments);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
+            {
+                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicSecurityMethodAttribute))
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasDynamicSecurityMethodAttribute = true;
+            }
+            else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.ObsoleteAttribute))
+            {
+            }
+            else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.DeprecatedAttribute))
+            {
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
+            {
+                // [Extension] attribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
+                || attribute.IsTargetAttribute(this, AttributeDescription.SecuritySafeCriticalAttribute))
+            {
+                if (IsAsync)
+                {
+                    arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                }
+            }
+            else
+            {
+                var compilation = this.DeclaringCompilation;
+                if (attribute.IsSecurityAttribute(compilation))
+                {
+                    attribute.DecodeSecurityAttribute<CommonMethodWellKnownAttributeData>(this, compilation, ref arguments);
+                }
+            }
+        }
+
+        private bool VerifyObsoleteAttributeAppliedToMethod(
+            ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
+            AttributeDescription description)
+        {
+            if (arguments.Attribute.IsTargetAttribute(this, description))
+            {
+                if (this.IsAccessor())
+                {
+                    // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
+                    AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
+                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.IsConditional);
+
+            if (this.IsAccessor())
+            {
+                // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
+                AttributeUsageInfo attributeUsage = attribute.AttributeClass.GetAttributeUsageInfo();
+                diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, node.Name.Location, node.GetErrorDisplayName(), attributeUsage.GetValidTargetsErrorArgument());
+            }
+            else if (this.ContainingType.IsInterfaceType())
+            {
+                // CS0582: The Conditional attribute is not valid on interface members
+                diagnostics.Add(ErrorCode.ERR_ConditionalOnInterfaceMethod, node.Location);
+            }
+            else if (this.IsOverride)
+            {
+                // CS0243: The Conditional attribute is not valid on '{0}' because it is an override method
+                diagnostics.Add(ErrorCode.ERR_ConditionalOnOverride, node.Location, this);
+            }
+            else if (!this.CanBeReferencedByName || this.MethodKind == MethodKind.Destructor)
+            {
+                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation
+                diagnostics.Add(ErrorCode.ERR_ConditionalOnSpecialMethod, node.Location, this);
+            }
+            else if (!this.ReturnsVoid)
+            {
+                // CS0578: The Conditional attribute is not valid on '{0}' because its return type is not void
+                diagnostics.Add(ErrorCode.ERR_ConditionalMustReturnVoid, node.Location, this);
+            }
+            else if (this.HasAnyOutParameter())
+            {
+                // CS0685: Conditional member '{0}' cannot have an out parameter
+                diagnostics.Add(ErrorCode.ERR_ConditionalWithOutParam, node.Location, this);
+            }
+            else
+            {
+                string name = attribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+
+                if (name == null || !SyntaxFacts.IsValidIdentifier(name))
+                {
+                    // CS0633: The argument to the '{0}' attribute must be a valid identifier
+                    CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, node);
+                    diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
+                }
+            }
+        }
+
+        private bool HasAnyOutParameter()
+        {
+            foreach (var param in this.Parameters)
+            {
+                if (param.RefKind == RefKind.Out)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void DecodeWellKnownAttributeAppliedToReturnValue(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+
+            var attribute = arguments.Attribute;
+            Debug.Assert(!attribute.HasErrors);
+
+            if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
+            {
+                // MarshalAs applied to the return value:
+                MarshalAsAttributeDecoder<CommonReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+            {
+                // DynamicAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+        }
+
+        private void DecodeDllImportAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+
+            var attribute = arguments.Attribute;
+            Debug.Assert(!attribute.HasErrors);
+            bool hasErrors = false;
+
+            if (!this.IsExtern || !this.IsStatic)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
+                hasErrors = true;
+            }
+
+            if (this.IsGenericMethod || (object)_containingType != null && _containingType.IsGenericType)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
+                hasErrors = true;
+            }
+
+            string moduleName = attribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+            if (!MetadataHelpers.IsValidMetadataIdentifier(moduleName))
+            {
+                // Dev10 reports CS0647: "Error emitting attribute ..."
+                CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
+                arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                hasErrors = true;
+                moduleName = null;
+            }
+
+            // Default value of charset is inherited from the module (only if specified).
+            // This might be different from ContainingType.DefaultMarshallingCharSet. If the charset is not specified on module
+            // ContainingType.DefaultMarshallingCharSet would be Ansi (the class is emitted with "Ansi" charset metadata flag) 
+            // while the charset in P/Invoke metadata should be "None".
+            CharSet charSet = this.GetEffectiveDefaultMarshallingCharSet() ?? Cci.Constants.CharSet_None;
+
+            string importName = null;
+            bool preserveSig = true;
+            CallingConvention callingConvention = System.Runtime.InteropServices.CallingConvention.Winapi;
+            bool setLastError = false;
+            bool exactSpelling = false;  // C#: ExactSpelling=false for any charset
+            bool? bestFitMapping = null;
+            bool? throwOnUnmappable = null;
+
+            int position = 1;
+            foreach (var namedArg in attribute.CommonNamedArguments)
+            {
+                switch (namedArg.Key)
+                {
+                    case "EntryPoint":
+                        importName = namedArg.Value.Value as string;
+                        if (!MetadataHelpers.IsValidMetadataIdentifier(importName))
+                        {
+                            // Dev10 reports CS0647: "Error emitting attribute ..."
+                            arguments.Diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
+                            hasErrors = true;
+                            importName = null;
+                        }
+
+                        break;
+
+                    case "CharSet":
+                        // invalid values will be ignored
+                        charSet = namedArg.Value.DecodeValue<CharSet>(SpecialType.System_Enum);
+                        break;
+
+                    case "SetLastError":
+                        // invalid values will be ignored
+                        setLastError = namedArg.Value.DecodeValue<bool>(SpecialType.System_Boolean);
+                        break;
+
+                    case "ExactSpelling":
+                        // invalid values will be ignored
+                        exactSpelling = namedArg.Value.DecodeValue<bool>(SpecialType.System_Boolean);
+                        break;
+
+                    case "PreserveSig":
+                        preserveSig = namedArg.Value.DecodeValue<bool>(SpecialType.System_Boolean);
+                        break;
+
+                    case "CallingConvention":
+                        // invalid values will be ignored
+                        callingConvention = namedArg.Value.DecodeValue<CallingConvention>(SpecialType.System_Enum);
+                        break;
+
+                    case "BestFitMapping":
+                        bestFitMapping = namedArg.Value.DecodeValue<bool>(SpecialType.System_Boolean);
+                        break;
+
+                    case "ThrowOnUnmappableChar":
+                        throwOnUnmappable = namedArg.Value.DecodeValue<bool>(SpecialType.System_Boolean);
+                        break;
+                }
+
+                position++;
+            }
+
+            if (!hasErrors)
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().SetDllImport(
+                    arguments.Index,
+                    moduleName,
+                    importName,
+                    DllImportData.MakeFlags(
+                        exactSpelling,
+                        charSet,
+                        setLastError,
+                        callingConvention,
+                        bestFitMapping,
+                        throwOnUnmappable),
+                    preserveSig);
+            }
+        }
+
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            Debug.Assert(!boundAttributes.IsDefault);
+            Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
+            Debug.Assert(boundAttributes.Length == allAttributeSyntaxNodes.Length);
+            Debug.Assert(symbolPart == AttributeLocation.None || symbolPart == AttributeLocation.Return);
+
+            if (symbolPart != AttributeLocation.Return)
+            {
+                Debug.Assert(_lazyCustomAttributesBag != null);
+                Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
+
+                if (_containingType.IsComImport && _containingType.TypeKind == TypeKind.Class)
+                {
+                    switch (this.MethodKind)
+                    {
+                        case MethodKind.Constructor:
+                        case MethodKind.StaticConstructor:
+                            if (!this.IsImplicitlyDeclared)
+                            {
+                                // CS0669: A class with the ComImport attribute cannot have a user-defined constructor
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithUserCtor, this.Locations[0]);
+                            }
+
+                            break;
+
+                        default:
+                            if (!this.IsAbstract && !this.IsExtern)
+                            {
+                                // CS0423: Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, _containingType);
+                            }
+
+                            break;
+                    }
+                }
+            }
+
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
+        public sealed override bool HidesBaseMethodsByName
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override bool HasRuntimeSpecialName
+        {
+            get
+            {
+                return base.HasRuntimeSpecialName || IsVtableGapInterfaceMethod();
+            }
+        }
+
+        private bool IsVtableGapInterfaceMethod()
+        {
+            return this.ContainingType.IsInterface &&
+                   ModuleExtensions.GetVTableGapSize(this.MetadataName) > 0;
+        }
+
+        internal sealed override bool HasSpecialName
+        {
+            get
+            {
+                switch (this.MethodKind)
+                {
+                    case MethodKind.Constructor:
+                    case MethodKind.StaticConstructor:
+                    case MethodKind.PropertyGet:
+                    case MethodKind.PropertySet:
+                    case MethodKind.EventAdd:
+                    case MethodKind.EventRemove:
+                    case MethodKind.UserDefinedOperator:
+                    case MethodKind.Conversion:
+                        return true;
+                }
+
+                if (IsVtableGapInterfaceMethod())
+                {
+                    return true;
+                }
+
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasSpecialNameAttribute;
+            }
+        }
+
+        internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
+            GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
+
+        internal sealed override bool RequiresSecurityObject
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasDynamicSecurityMethodAttribute;
+            }
+        }
+
+        internal sealed override bool HasDeclarativeSecurity
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                return data != null && data.HasDeclarativeSecurity;
+            }
+        }
+
+        internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
+        {
+            var attributesBag = this.GetAttributesBag();
+            var wellKnownData = (CommonMethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            if (wellKnownData != null)
+            {
+                SecurityWellKnownAttributeData securityData = wellKnownData.SecurityInformation;
+                if (securityData != null)
+                {
+                    return securityData.GetSecurityAttributes(attributesBag.Attributes);
+                }
+            }
+
+            return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
+        }
+
+        public sealed override DllImportData GetDllImportData()
+        {
+            var data = this.GetDecodedWellKnownAttributeData();
+            return data != null ? data.DllImportPlatformInvokeData : null;
+        }
+
+        internal sealed override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        {
+            get
+            {
+                var data = this.GetDecodedReturnTypeWellKnownAttributeData();
+                return data != null ? data.MarshallingInformation : null;
+            }
+        }
+
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                var result = (data != null) ? data.MethodImplAttributes : default(System.Reflection.MethodImplAttributes);
+
+                if (this.ContainingType.IsComImport && this.MethodKind == MethodKind.Constructor)
+                {
+                    // Synthesized constructor of ComImport types is marked as Runtime implemented and InternalCall
+                    result |= (System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall);
+                }
+
+                return result;
+            }
+        }
+
+#endregion
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (this.IsAsync || this.IsIterator)
+            {
+                var compilation = this.DeclaringCompilation;
+
+                // The async state machine type is not synthesized until the async method body is rewritten. If we are
+                // only emitting metadata the method body will not have been rewritten, and the async state machine
+                // type will not have been created. In this case, omit the attribute.
+                NamedTypeSymbol stateMachineType;
+                if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out stateMachineType))
+                {
+                    WellKnownMember ctor = this.IsAsync ?
+                        WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :
+                        WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor;
+
+                    var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
+
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
+                }
+
+                if (this.IsAsync)
+                {
+                    // Async kick-off method calls MoveNext, which contains user code. 
+                    // This means we need to emit DebuggerStepThroughAttribute in order
+                    // to have correct stepping behavior during debugging.
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                }
             }
         }
 
         /// <summary>
-        /// Returns true if the two partial methods have the same constraints.
+        /// Checks to see if a body is legal given the current modifiers.
+        /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        private static bool HaveSameConstraints(SourceMemberMethodSymbol part1, SourceMemberMethodSymbol part2)
+        protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
         {
-            Debug.Assert(!ReferenceEquals(part1, part2));
-            Debug.Assert(part1.Arity == part2.Arity);
-
-            var typeParameters1 = part1.TypeParameters;
-
-            int arity = typeParameters1.Length;
-            if (arity == 0)
+            if (_containingType.IsInterface)
             {
-                return true;
+                diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
             }
-
-            var typeParameters2 = part2.TypeParameters;
-            var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
-            var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
-            var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
-
-            return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
+            else if (IsExtern && !IsAbstract)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
+            }
+            else if (IsAbstract && !IsExtern)
+            {
+                diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
+            }
+            // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
+            // in that case ("member cannot be both extern and abstract").
         }
 
-        internal override bool CallsAreOmitted(SyntaxTree syntaxTree)
+        /// <summary>
+        /// Returns true if the method body is an expression, as expressed
+        /// by the <see cref="ArrowExpressionClauseSyntax"/> syntax. False
+        /// otherwise.
+        /// </summary>
+        /// <remarks>
+        /// If the method has both block body and an expression body
+        /// present, this is not treated as expression-bodied.
+        /// </remarks>
+        internal abstract bool IsExpressionBodied { get; }
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            if (this.IsPartialWithoutImplementation)
-            {
-                return true;
-            }
+            // Method without body doesn't declare locals.
+            Debug.Assert(this.BodySyntax != null);
+            Debug.Assert(this.BodySyntax.SyntaxTree == localTree);
 
-            return base.CallsAreOmitted(syntaxTree);
+            // All locals are declared within the body of the method.
+            Debug.Assert(this.BodySyntax.Span.Contains(localPosition));
+
+            return localPosition - this.BodySyntax.SpanStart;
         }
-
-        internal override bool GenerateDebugInfo => !IsAsync && !IsIterator;
     }
 }

@@ -171,13 +171,19 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            result = default(T);
+            result = default;
             return false;
         }
 
         public override T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // If the value is already available, return it immediately
+            if (TryGetValue(out T value))
+            {
+                return value;
+            }
 
             Request request = null;
             AsynchronousComputationToStart? newAsynchronousComputation = null;
@@ -297,7 +303,14 @@ namespace Roslyn.Utilities
             // Optimization: if we're already cancelled, do not pass go
             if (cancellationToken.IsCancellationRequested)
             {
-                return new Task<T>(() => default(T), cancellationToken);
+                return Task.FromCanceled<T>(cancellationToken);
+            }
+
+            // Avoid taking the lock if a cached value is available
+            var cachedResult = _cachedResult;
+            if (cachedResult != null)
+            {
+                return cachedResult;
             }
 
             Request request;
@@ -387,9 +400,7 @@ namespace Roslyn.Utilities
                             task = GetCachedValueAndCacheThisValueIfNoneCached_NoLock(task);
                         }
 
-                        // It's safe to synchronously complete this task, since the Task object hasn't been returned
-                        // to the caller of GetValueAsync yet
-                        requestToCompleteSynchronously.CompleteFromTaskSynchronously(task);
+                        requestToCompleteSynchronously.CompleteFromTask(task);
                     }
 
                     // We avoid creating a full closure just to pass the token along
@@ -453,9 +464,11 @@ namespace Roslyn.Utilities
                 task = GetCachedValueAndCacheThisValueIfNoneCached_NoLock(task);
             }
 
+            // Complete the requests outside the lock. It's not necessary to do this (none of this is touching any shared state)
+            // but there's no reason to hold the lock so we could reduce any theoretical lock contention.
             foreach (var requestToComplete in requestsToComplete)
             {
-                requestToComplete.CompleteFromTaskAsynchronously(task);
+                requestToComplete.CompleteFromTask(task);
             }
         }
 
@@ -512,7 +525,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            request.CancelAsynchronously();
+            request.Cancel();
 
             if (cancellationTokenSource != null)
             {
@@ -520,7 +533,12 @@ namespace Roslyn.Utilities
             }
         }
 
-        private sealed class Request
+        /// <remarks>
+        /// This inherits from <see cref="TaskCompletionSource{TResult}"/> to avoid allocating two objects when we can just use one.
+        /// The public surface area of <see cref="TaskCompletionSource{TResult}"/> should probably be avoided in favor of the public
+        /// methods on this class for correct behavior.
+        /// </remarks>
+        private sealed class Request : TaskCompletionSource<T>
         {
             /// <summary>
             /// The <see cref="CancellationToken"/> associated with this request. This field will be initialized before
@@ -529,15 +547,14 @@ namespace Roslyn.Utilities
             private CancellationToken _cancellationToken;
             private CancellationTokenRegistration _cancellationTokenRegistration;
 
-            // WARNING: this is a mutable struct, and thus cannot be made readonly
-            private TaskCompletionSource<T> _taskCompletionSource;
-
-            public Request()
+            // We want to always run continuations asynchronously. Running them synchronously could result in deadlocks:
+            // if we're looping through a bunch of Requests and completing them one by one, and the continuation for the
+            // first Request was then blocking waiting for a later Request, we would hang. It also could cause performance
+            // issues. If the first request then consumes a lot of CPU time, we're not letting other Requests complete that
+            // could use another CPU core at the same time.
+            public Request() : base(TaskCreationOptions.RunContinuationsAsynchronously)
             {
-                _taskCompletionSource = new TaskCompletionSource<T>();
             }
-
-            public Task<T> Task => _taskCompletionSource.Task;
 
             public void RegisterForCancellation(Action<object> callback, CancellationToken cancellationToken)
             {
@@ -545,56 +562,29 @@ namespace Roslyn.Utilities
                 _cancellationTokenRegistration = cancellationToken.Register(callback, this);
             }
 
-            public void CompleteFromTaskAsynchronously(Task<T> task)
+            public void CompleteFromTask(Task<T> task)
             {
-                System.Threading.Tasks.Task.Factory.StartNew(CompleteFromTaskSynchronouslyStub, task, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
-            }
-
-            private void CompleteFromTaskSynchronouslyStub(object task)
-            {
-                CompleteFromTaskSynchronously((Task<T>)task);
-            }
-
-            public void CompleteFromTaskSynchronously(Task<T> task)
-            {
-                // AsyncTaskMethodBuilder doesn't give us Try* methods, and the Set methods may throw if the task
-                // is already completed. The belief is that the race is somewhere between rare to impossible, and
-                // so we'll do a quick check to see if the task is already completed or otherwise just give it a shot
-                // and catch it if it fails
-                if (this.Task.IsCompleted)
-                {
-                    return;
-                }
-
                 // As an optimization, we'll cancel the request even we did get a value for it.
                 // That way things abort sooner.
                 if (task.IsCanceled || _cancellationToken.IsCancellationRequested)
                 {
-                    CancelSynchronously();
+                    Cancel();
                 }
                 else if (task.IsFaulted)
                 {
-                    _taskCompletionSource.TrySetException(task.Exception);
+                    this.TrySetException(task.Exception);
                 }
                 else
                 {
-                    _taskCompletionSource.TrySetResult(task.Result);
+                    this.TrySetResult(task.Result);
                 }
 
                 _cancellationTokenRegistration.Dispose();
             }
 
-            public void CancelAsynchronously()
+            public void Cancel()
             {
-                // Since there could be synchronous continuations on the TaskCancellationSource, we queue this to the threadpool
-                // to avoid inline running of other operations.
-                System.Threading.Tasks.Task.Factory.StartNew(
-                    CancelSynchronously, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
-            }
-
-            private void CancelSynchronously()
-            {
-                _taskCompletionSource.TrySetCanceled(_cancellationToken);
+                this.TrySetCanceled(_cancellationToken);
             }
         }
     }

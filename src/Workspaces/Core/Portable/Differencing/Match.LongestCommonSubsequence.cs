@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Differencing
                 foreach (var edit in GetEdits(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
                 {
                     yield return new Edit<TNode>(edit.Kind, _match.Comparer,
-                        edit.OldIndex >= 0 ? oldNodes[edit.OldIndex] : default(TNode),
-                        edit.NewIndex >= 0 ? newNodes[edit.NewIndex] : default(TNode));
+                        edit.OldIndex >= 0 ? oldNodes[edit.OldIndex] : default,
+                        edit.NewIndex >= 0 ? newNodes[edit.NewIndex] : default);
                 }
             }
         }

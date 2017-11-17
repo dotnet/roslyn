@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Async Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+        Protected Overrides Async Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
             Return Await AddMissingTokensRewriter.CreateAsync(document, spans, cancellationToken).ConfigureAwait(False)
         End Function
 
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private _model As SemanticModel = Nothing
 
-            Private Sub New(document As Document, semanticModel As SemanticModel, spans As IEnumerable(Of TextSpan), modifiedSpan As TextSpan, cancellationToken As CancellationToken)
+            Private Sub New(document As Document, semanticModel As SemanticModel, spans As ImmutableArray(Of TextSpan), modifiedSpan As TextSpan, cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
                 Me._document = document
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Me._model = semanticModel
             End Sub
 
-            Public Shared Async Function CreateAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of AddMissingTokensRewriter)
+            Public Shared Async Function CreateAsync(document As Document, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of AddMissingTokensRewriter)
                 Dim modifiedSpan = spans.Collapse()
                 Dim semanticModel = If(document Is Nothing, Nothing,
                     Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))

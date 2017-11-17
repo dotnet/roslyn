@@ -11,6 +11,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -1672,6 +1673,7 @@ FullWidthRepeat:
             Dim IntegerLiteralStart As Integer
             Dim UnderscoreInWrongPlace As Boolean
             Dim UnderscoreUsed As Boolean = False
+            Dim LeadingUnderscoreUsed = False
 
             Dim Base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
@@ -1694,7 +1696,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Hexadecimal
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsHexDigit(ch) AndAlso ch <> "_"c Then
@@ -1712,7 +1717,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Binary
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsBinaryDigit(ch) AndAlso ch <> "_"c Then
@@ -1730,7 +1738,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Octal
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsOctalDigit(ch) AndAlso ch <> "_"c Then
@@ -2084,13 +2095,16 @@ FullWidthRepeat2:
 
             If Overflows Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
-            ElseIf UnderscoreInWrongPlace Then
-                result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
             End If
 
-            If UnderscoreUsed Then
+            If UnderscoreInWrongPlace Then
+                result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
+            ElseIf LeadingUnderscoreUsed Then
+                result = CheckFeatureAvailability(result, Feature.LeadingDigitSeparator)
+            ElseIf UnderscoreUsed Then
                 result = CheckFeatureAvailability(result, Feature.DigitSeparators)
             End If
+
             If Base = LiteralBase.Binary Then
                 result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
             End If
@@ -2650,7 +2664,11 @@ baddate:
             If CheckFeatureAvailability(feature) Then
                 Return token
             End If
-            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
+            Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion,
+                                                   _options.LanguageVersion.GetErrorName(),
+                                                   ErrorFactory.ErrorInfo(feature.GetResourceId()),
+                                                   requiredVersion)
             Return DirectCast(token.AddError(errorInfo), SyntaxToken)
         End Function
 
@@ -2659,11 +2677,6 @@ baddate:
         End Function
 
         Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                Return parseOptions.Features.ContainsKey(featureFlag)
-            End If
-
             Dim required = feature.GetLanguageVersion()
             Dim actual = parseOptions.LanguageVersion
             Return CInt(required) <= CInt(actual)

@@ -16,66 +16,91 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class BindingMemberInitializerTests
         Inherits BasicTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub SimpleObjectInitialization()
-            Dim source =
-<compilation name="SimpleObjectInitialization">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Class C2
-    Public Field as String
+    Public Field As String
 End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim c as C2 = New C2() With {.Field = "Hello World!"}        
+        Dim c As C2 = New C2() With {.Field = "Hello World!"}'BIND:"New C2() With {.Field = "Hello World!"}"
         Console.WriteLine(c.Field)
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            CompileAndVerify(source, <![CDATA[
-Hello World!
-]]>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'With {.Fiel ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.Field = "Hello World!"')
+            Left: 
+              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... lo World!"}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializationWithFieldOnRight()
-            Dim source =
-<compilation name="ObjectInitializationWithFieldOnRight">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Class C2
-    Public Field as String
-    Public HelloWorld as String = "Hello World!"
+    Public Field As String
+    Public HelloWorld As String = "Hello World!"
 End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim c as C2 = New C2() With {.Field = .HelloWorld}        
+        Dim c As C2 = New C2() With {.Field = .HelloWorld}'BIND:"New C2() With {.Field = .HelloWorld}"
         Console.WriteLine(c.Field)
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            CompileAndVerify(source, <![CDATA[
-Hello World!
-]]>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Wi ... HelloWorld}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'With {.Fiel ... HelloWorld}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.Field = .HelloWorld')
+            Left: 
+              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... HelloWorld}')
+            Right: 
+              IFieldReferenceOperation: C2.HelloWorld As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: '.HelloWorld')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... HelloWorld}')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerEmptyInitializers()
-            Dim source =
-<compilation name="ObjectInitializerEmptyInitializers">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
@@ -85,213 +110,320 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim c as C2 = New C2() With {}
+        Dim c As C2 = New C2() With {}'BIND:"New C2() With {}"
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() With {}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {}')
+      Initializers(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30996: Initializer expected.
-        Dim c as C2 = New C2() With {}
-                                    ~                                               
-                                           </expected>)
+        Dim c As C2 = New C2() With {}'BIND:"New C2() With {}"
+                                    ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerMissingIdentifierInInitializer()
-            Dim source =
-<compilation name="ObjectInitializerMissingIdentifierInInitializer">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Public Class C2
-    Public Field as Integer
+    Public Field As Integer
 End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim c as C2 = New C2() With {. = Unknown(), . = Unknown()}
+        Dim c As C2 = New C2() With {. = Unknown(), . = Unknown()}'BIND:"New C2() With {. = Unknown(), . = Unknown()}"
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ...  Unknown()}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {. = U ...  Unknown()}')
+      Initializers(2):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '. = Unknown()')
+                Children(0)
+            Right: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown()')
+                Children(1):
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown')
+                      Children(0)
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '. = Unknown()')
+                Children(0)
+            Right: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown()')
+                Children(1):
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown')
+                      Children(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30203: Identifier expected.
-        Dim c as C2 = New C2() With {. = Unknown(), . = Unknown()}
+        Dim c As C2 = New C2() With {. = Unknown(), . = Unknown()}'BIND:"New C2() With {. = Unknown(), . = Unknown()}"
                                        ~
 BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection level.
-        Dim c as C2 = New C2() With {. = Unknown(), . = Unknown()}
+        Dim c As C2 = New C2() With {. = Unknown(), . = Unknown()}'BIND:"New C2() With {. = Unknown(), . = Unknown()}"
                                          ~~~~~~~
 BC30203: Identifier expected.
-        Dim c as C2 = New C2() With {. = Unknown(), . = Unknown()}
+        Dim c As C2 = New C2() With {. = Unknown(), . = Unknown()}'BIND:"New C2() With {. = Unknown(), . = Unknown()}"
                                                       ~
 BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection level.
-        Dim c as C2 = New C2() With {. = Unknown(), . = Unknown()}
-                                                        ~~~~~~~                                            
-                                           </expected>)
+        Dim c As C2 = New C2() With {. = Unknown(), . = Unknown()}'BIND:"New C2() With {. = Unknown(), . = Unknown()}"
+                                                        ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerOnlyDotIdentifierInInitializer()
-            Dim source =
-<compilation>
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Public Class C2
-    Public Field as Integer
+    Public Field As Integer
 End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim c as C2 = New C2() With {.Field}
+        Dim c As C2 = New C2() With {.Field}'BIND:"New C2() With {.Field}"
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() With {.Field}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Field}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.Field')
+            Left: 
+              IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() With {.Field}')
+            Right: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30201: Expression expected.
-        Dim c as C2 = New C2() With {.Field}
+        Dim c As C2 = New C2() With {.Field}'BIND:"New C2() With {.Field}"
                                            ~
 BC30984: '=' expected (object initializer).
-        Dim c as C2 = New C2() With {.Field}
-                                           ~                                         
-                                           </expected>)
+        Dim c As C2 = New C2() With {.Field}'BIND:"New C2() With {.Field}"
+                                           ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerMissingExpressionInInitializer()
-            Dim source =
-<compilation name="ObjectInitializerMissingExpressionInInitializer">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Public Class C2
-    Public Field as Integer
+    Public Field As Integer
 End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim c as C2 = New C2() With {.Field=}
+        Dim c As C2 = New C2() With {.Field =}'BIND:"New C2() With {.Field =}"
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() With {.Field =}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Field =}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.Field =')
+            Left: 
+              IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() With {.Field =}')
+            Right: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30201: Expression expected.
-        Dim c as C2 = New C2() With {.Field=}
-                                            ~
-                                           </expected>)
+        Dim c As C2 = New C2() With {.Field =}'BIND:"New C2() With {.Field =}"
+                                             ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(529213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529213")>
         <Fact()>
         Public Sub ObjectInitializerKeyKeywordInInitializer()
-            Dim source =
-<compilation name="ObjectInitializerKeyKeywordInInitializer">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Class C2
-    Public Field as Integer
+    Public Field As Integer
 End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim c as C2 = New C2() With {Key .Field=23}
+        Dim c As C2 = New C2() With {Key .Field = 23}'BIND:"New C2() With {Key .Field = 23}"
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... Field = 23}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {Key .Field = 23}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field = 23')
+                Children(0)
+            Right: 
+              IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+                Left: 
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field')
+                    Children(1):
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Key .Field')
+                          Children(1):
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Key')
+                                Children(0)
+                Right: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30985: Name of field or property being initialized in an object initializer must start with '.'.
-        Dim c as C2 = New C2() With {Key .Field=23}
+        Dim c As C2 = New C2() With {Key .Field = 23}'BIND:"New C2() With {Key .Field = 23}"
                                      ~
 BC30451: 'Key' is not declared. It may be inaccessible due to its protection level.
-        Dim c as C2 = New C2() With {Key .Field=23}
+        Dim c As C2 = New C2() With {Key .Field = 23}'BIND:"New C2() With {Key .Field = 23}"
                                      ~~~
-                                           </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(544357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544357")>
         <Fact()>
         Public Sub ObjectInitializerMultipleInitializations()
-            Dim source =
-<compilation name="ObjectInitializerMultipleInitializations">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Class C2
-    Public Field as String
+    Public Field As String
 End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim c as C2 = New C2() With {.Field = "a", .Field="b"}
-        Dim d as C2 = New C2() With {.field = "a", .FIELD="b"}
+        Dim c As C2 = New C2() With {.Field = "a", .Field = "b"}'BIND:"New C2() With {.Field = "a", .Field = "b"}"
+        Dim d As C2 = New C2() With {.Field = "a", .Field = "b"}
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... ield = "b"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Fiel ... ield = "b"}')
+      Initializers(2):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.Field = "a"')
+            Left: 
+              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... ield = "b"}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a") (Syntax: '"a"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '.Field = "b"')
+            Left: 
+              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... ield = "b"}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "b") (Syntax: '"b"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30989: Multiple initializations of 'Field'.  Fields and properties can be initialized only once in an object initializer expression.
-        Dim c as C2 = New C2() With {.Field = "a", .Field="b"}
+        Dim c As C2 = New C2() With {.Field = "a", .Field = "b"}'BIND:"New C2() With {.Field = "a", .Field = "b"}"
                                                     ~~~~~
-BC30989: Multiple initializations of 'FIELD'.  Fields and properties can be initialized only once in an object initializer expression.
-        Dim d as C2 = New C2() With {.field = "a", .FIELD="b"}
+BC30989: Multiple initializations of 'Field'.  Fields and properties can be initialized only once in an object initializer expression.
+        Dim d As C2 = New C2() With {.Field = "a", .Field = "b"}
                                                     ~~~~~
-                                           </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializingObject()
-            Dim source =
-<compilation name="ObjectInitializerInitializingObject">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Class C1
     Public Shared Sub Main()
-        Dim c as Object = new Object() With {.Field = "a"}
-        Dim d as new Object() With {.Field = "b"}
+        Dim c As Object = New Object() With {.Field = "a"}'BIND:"New Object() With {.Field = "a"}"
+        Dim d As New Object() With {.Field = "b"}
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'New Object( ... ield = "a"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Object, IsInvalid) (Syntax: 'With {.Field = "a"}')
+      Initializers(1):
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a", IsInvalid) (Syntax: '"a"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30994: Object initializer syntax cannot be used to initialize an instance of 'System.Object'.
-        Dim c as Object = new Object() With {.Field = "a"}
+        Dim c As Object = New Object() With {.Field = "a"}'BIND:"New Object() With {.Field = "a"}"
                                        ~~~~~~~~~~~~~~~~~~~
 BC30994: Object initializer syntax cannot be used to initialize an instance of 'System.Object'.
-        Dim d as new Object() With {.Field = "b"}
+        Dim d As New Object() With {.Field = "b"}
                               ~~~~~~~~~~~~~~~~~~~
-                                           </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact()>
@@ -317,7 +449,7 @@ Class C1
         Dim c1 as New C1() With {.Field2 = .Field1}
         Console.WriteLine(c1.Field2)
     End Sub
-End Class        
+End Class
     </file>
 </compilation>
 
@@ -326,39 +458,92 @@ Hello World!
 ]]>)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeSharedFieldOnNewInstance()
-            Dim source =
-<compilation name="ObjectInitializerInitializeSharedFieldOnNewInstance">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Class C1
-    Public Shared Field1 as String
-    
+    Public Shared Field1 As String
+
     Public Shared Sub Main()
-        Dim c1 as New C1() With {.Field1 = "Hello World!"}
+        Dim c1 As New C1() With {.Field1 = "Hello World!"}'BIND:"New C1() With {.Field1 = "Hello World!"}"
     End Sub
 
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '.Field1 = "Hello World!"')
+            Left: 
+              IFieldReferenceOperation: C1.Field1 As System.String (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'Field1')
+                Instance Receiver: 
+                  null
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30991: Member 'Field1' cannot be initialized in an object initializer expression because it is shared.
-        Dim c1 as New C1() With {.Field1 = "Hello World!"}
+        Dim c1 As New C1() With {.Field1 = "Hello World!"}'BIND:"New C1() With {.Field1 = "Hello World!"}"
                                   ~~~~~~
-                                               </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ObjectInitializerInitializeSharedPropertyOnNewInstance()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Property Property1 As String
+
+    Public Shared Sub Main()
+        Dim c1 As New C1() With {.Property1 = "Hello World!"}'BIND:"New C1() With {.Property1 = "Hello World!"}"
+    End Sub
+
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Prop ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '.Property1  ... llo World!"')
+            Left: 
+              IPropertyReferenceOperation: Property C1.Property1 As System.String (Static) (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Property1')
+                Instance Receiver: 
+                  null
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30991: Member 'Property1' cannot be initialized in an object initializer expression because it is shared.
+        Dim c1 As New C1() With {.Property1 = "Hello World!"}'BIND:"New C1() With {.Property1 = "Hello World!"}"
+                                  ~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeNonExistentField()
-            Dim source =
-<compilation name="ObjectInitializerInitializeNonExistentField">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
@@ -366,92 +551,149 @@ Imports System
 Class C1
 
     Public Shared Sub Main()
-        Dim c1 as New C1() With {.Field1 = Bar(.Field1)}
+        Dim c1 As New C1() With {.Field1 = Bar(.Field1)}'BIND:"New C1() With {.Field1 = Bar(.Field1)}"
     End Sub
 
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... r(.Field1)}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... r(.Field1)}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Field1 = Bar(.Field1)')
+                Children(1):
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Field1')
+                      Children(1):
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... r(.Field1)}')
+            Right: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Bar(.Field1)')
+                Children(2):
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Bar')
+                      Children(0)
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field1')
+                      Children(1):
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... r(.Field1)}')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30456: 'Field1' is not a member of 'C1'.
-        Dim c1 as New C1() With {.Field1 = Bar(.Field1)}
+        Dim c1 As New C1() With {.Field1 = Bar(.Field1)}'BIND:"New C1() With {.Field1 = Bar(.Field1)}"
                                   ~~~~~~
 BC30451: 'Bar' is not declared. It may be inaccessible due to its protection level.
-        Dim c1 as New C1() With {.Field1 = Bar(.Field1)}
+        Dim c1 As New C1() With {.Field1 = Bar(.Field1)}'BIND:"New C1() With {.Field1 = Bar(.Field1)}"
                                            ~~~
 BC30456: 'Field1' is not a member of 'C1'.
-        Dim c1 as New C1() With {.Field1 = Bar(.Field1)}
+        Dim c1 As New C1() With {.Field1 = Bar(.Field1)}'BIND:"New C1() With {.Field1 = Bar(.Field1)}"
                                                ~~~~~~~
-                                               </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeInaccessibleField()
-            Dim source =
-<compilation name="ObjectInitializerInitializeInaccessibleField">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Class C2
-    Protected Field as Integer
+    Protected Field As Integer
 End Class
 
 Class C1
 
     Public Shared Sub Main()
-        Dim c2 as New C2() With {.Field = 23}
+        Dim c2 As New C2() With {.Field = 23}'BIND:"New C2() With {.Field = 23}"
     End Sub
 
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... Field = 23}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Field = 23}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Field = 23')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Field = 23')
+                Children(1):
+                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'Field')
+                      Children(1):
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... Field = 23}')
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '23')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30389: 'C2.Field' is not accessible in this context because it is 'Protected'.
-        Dim c2 as New C2() With {.Field = 23}
+        Dim c2 As New C2() With {.Field = 23}'BIND:"New C2() With {.Field = 23}"
                                   ~~~~~
-                                               </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeNonWriteableMember()
-            Dim source =
-<compilation name="ObjectInitializerInitializeNonWriteableMember">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
 Class C1
-    Public Sub Foo()
-    End Sub    
-
-    Public Shared Sub Main()
-        Dim c1 as New C1() With {.Foo = "Hello World!"}
+    Public Sub Goo()
     End Sub
 
-End Class        
-    </file>
-</compilation>
+    Public Shared Sub Main()
+        Dim c1 As New C1() With {.Goo = "Hello World!"}'BIND:"New C1() With {.Goo = "Hello World!"}"
+    End Sub
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
-BC30990: Member 'Foo' cannot be initialized in an object initializer expression because it is not a field or property.
-        Dim c1 as New C1() With {.Foo = "Hello World!"}
-                                  ~~~                                                   
-                                               </expected>)
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Goo  ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Goo = "Hello World!"')
+                Children(1):
+                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Goo')
+                      Children(1):
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30990: Member 'Goo' cannot be initialized in an object initializer expression because it is not a field or property.
+        Dim c1 As New C1() With {.Goo = "Hello World!"}'BIND:"New C1() With {.Goo = "Hello World!"}"
+                                  ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeReadOnlyProperty()
-            Dim source =
-<compilation name="ObjectInitializerInitializeReadOnlyProperty">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
@@ -459,30 +701,43 @@ Imports System
 Class C1
     Public ReadOnly Property X As String
         Get
-            Return "foo"
+            Return "goo"
         End Get
     End Property
 
     Public Shared Sub Main()
-        Dim c1 as New C1() With {.X = "Hello World!"}
+        Dim c1 As New C1() With {.X = "Hello World!"}'BIND:"New C1() With {.X = "Hello World!"}"
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.X =  ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '.X = "Hello World!"')
+            Left: 
+              IPropertyReferenceOperation: ReadOnly Property C1.X As System.String (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30526: Property 'X' is 'ReadOnly'.
-        Dim c1 as New C1() With {.X = "Hello World!"}
+        Dim c1 As New C1() With {.X = "Hello World!"}'BIND:"New C1() With {.X = "Hello World!"}"
                                  ~~~~~~~~~~~~~~~~~~~
-                                               </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeReadOnlyField()
-            Dim source =
-<compilation name="ObjectInitializerInitializeReadOnlyField">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
@@ -491,60 +746,89 @@ Class C1
     Public ReadOnly X As String
 
     Public Shared Sub Main()
-        Dim c1 as New C1() With {.X = "Hello World!"}
+        Dim c1 As New C1() With {.X = "Hello World!"}'BIND:"New C1() With {.X = "Hello World!"}"
     End Sub
-End Class        
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.X =  ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.X = "Hello World!"')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'X')
+                Children(1):
+                    IFieldReferenceOperation: C1.X As System.String (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'X')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30064: 'ReadOnly' variable cannot be the target of an assignment.
-        Dim c1 as New C1() With {.X = "Hello World!"}
-                                  ~                                                  
-                                               </expected>)
+        Dim c1 As New C1() With {.X = "Hello World!"}'BIND:"New C1() With {.X = "Hello World!"}"
+                                  ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerPropertyWithInaccessibleSet()
-            Dim source =
-<compilation name="ObjectInitializerPropertyWithInaccessibleSet">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Class C1
     Public Property X As String
         Get
-            Return "foo"
+            Return "goo"
         End Get
-        private set
-        End set
-        
+        Private Set
+        End Set
+
     End Property
 End Class
 Module Module1
 
     Sub Main()
-        Dim x As New C1() With {.X = "foo"}
+        Dim x As New C1() With {.X = "goo"}'BIND:"New C1() With {.X = "goo"}"
     End Sub
 
-End Module
-       
-    </file>
-</compilation>
+End Module]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... .X = "goo"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.X = "goo"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '.X = "goo"')
+            Left: 
+              IPropertyReferenceOperation: Property C1.X As System.String (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... .X = "goo"}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC31102: 'Set' accessor of property 'X' is not accessible.
-        Dim x As New C1() With {.X = "foo"}
+        Dim x As New C1() With {.X = "goo"}'BIND:"New C1() With {.X = "goo"}"
                                 ~~~~~~~~~~
-                                               </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerTypeIsErrorType()
-            Dim source =
-<compilation name="ObjectInitializerTypeIsErrorType">
-    <file name="a.vb">
-
+            Dim source = <![CDATA[
 Class C3
     Private Sub New()
     End Sub
@@ -552,23 +836,78 @@ End Class
 
 Module Module1
 
-    Sub Main()
-        Dim x As New C3() With {.X = "foo"}
+    Sub Main()'BIND:"Sub Main()"
+        Dim x As New C3() With {.X = "goo"}
         x = New C3() With {.X = Unknown()}
     End Sub
 
-End Module
-       
-    </file>
-</compilation>
+End Module]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
+  Locals: Local_1: x As C3
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'x As New C3 ... .X = "goo"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As C3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+      Initializer: 
+        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New C3() ... .X = "goo"}')
+          IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
+            Arguments(0)
+            Initializer: 
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C3, IsInvalid) (Syntax: 'With {.X = "goo"}')
+                Initializers(1):
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                      Left: 
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.X = "goo"')
+                          Children(1):
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'X')
+                                Children(1):
+                                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
+                      Right: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"goo"')
+                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo") (Syntax: '"goo"')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C3, IsInvalid, IsImplicit) (Syntax: 'x = New C3( ...  Unknown()}')
+        Left: 
+          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C3) (Syntax: 'x')
+        Right: 
+          IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ...  Unknown()}')
+            Arguments(0)
+            Initializer: 
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C3, IsInvalid) (Syntax: 'With {.X = Unknown()}')
+                Initializers(1):
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
+                      Left: 
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.X = Unknown()')
+                          Children(1):
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'X')
+                                Children(1):
+                                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ...  Unknown()}')
+                      Right: 
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown()')
+                          Children(1):
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown')
+                                Children(0)
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30517: Overload resolution failed because no 'New' is accessible.
-        Dim x As New C3() With {.X = "foo"}
+        Dim x As New C3() With {.X = "goo"}
                      ~~
 BC30456: 'X' is not a member of 'C3'.
-        Dim x As New C3() With {.X = "foo"}
+        Dim x As New C3() With {.X = "goo"}
                                  ~
 BC30517: Overload resolution failed because no 'New' is accessible.
         x = New C3() With {.X = Unknown()}
@@ -579,52 +918,53 @@ BC30456: 'X' is not a member of 'C3'.
 BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection level.
         x = New C3() With {.X = Unknown()}
                                 ~~~~~~~
-                                               </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNewTWith()
-            Dim source =
-<compilation name="ObjectInitializerNewTWith">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Imports System
 
-Interface IFoo
+Interface IGoo
     Property Bar As Integer
 End Interface
 
 Class C2
-    Implements IFoo
+    Implements IGoo
 
-    Public Property Bar As Integer Implements IFoo.Bar
+    Public Property Bar As Integer Implements IGoo.Bar
 End Class
 
 Class C1
     Public Shared Sub main()
-        DoStuff(OF C2)()
+        DoStuff(Of C2)()
     End Sub
 
-    Public shared Sub DoStuff(Of T As {IFoo, New})()
-        Dim x As New T() With {.Bar = 23}
+    Public Shared Sub DoStuff(Of T As {IGoo, New})()
+        Dim x As New T() With {.Bar = 23}'BIND:"New T() With {.Bar = 23}"
         x = New T() With {.Bar = 23}
 
         Console.WriteLine(x.Bar)
     End Sub
-End Class    
-    </file>
-</compilation>
+End Class]]>.Value
 
-            CompileAndVerify(source, <![CDATA[
-23
-]]>)
+            Dim expectedOperationTree = <![CDATA[
+ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T() With {.Bar = 23}')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerTypeParametersInInitializers()
-            Dim source =
-<compilation name="ObjectInitializerTypeParametersInInitializers">
-    <file name="a.vb">
-
+            Dim source = <![CDATA[
 Class C1
     Public Field As Integer = 42
 End Class
@@ -637,21 +977,36 @@ Class C2
     Public Shared Sub Main()
         Dim x As New C1(Of Integer) With {.Field = 23}
 
-        Foo(Of C1)
+        Goo(Of C1)()
     End Sub
 
-    Public Shared Sub Foo(Of T As New)()
-        Dim x As New C1(Of T) With {.Field = New T}
+    Public Shared Sub Goo(Of T As New)()
+        Dim x As New C1(Of T) With {.Field = New T}'BIND:"New C1(Of T) With {.Field = New T}"
     End Sub
 
-End Class  
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1(Of T)..ctor()) (OperationKind.ObjectCreation, Type: C1(Of T)) (Syntax: 'New C1(Of T ... ld = New T}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1(Of T)) (Syntax: 'With {.Field = New T}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: T) (Syntax: '.Field = New T')
+            Left: 
+              IFieldReferenceOperation: C1(Of T).Field As T (OperationKind.FieldReference, Type: T) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1(Of T), IsImplicit) (Syntax: 'New C1(Of T ... ld = New T}')
+            Right: 
+              ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNestedInWithStatement_1()
             Dim source =
@@ -674,24 +1029,44 @@ Class C2
 
         ' test that initializer shadows fields
         With x
-            Dim y As New C1() With {.Field = .Field}
+            Dim y As New C1() With {.Field = .Field}'BIND:"New C1() With {.Field = .Field}"
             Console.WriteLine(y.Field) ' should be 42
         End With
     End Sub
-End Class   
+End Class
     </file>
 </compilation>
 
             CompileAndVerify(source, <![CDATA[
 42
 ]]>)
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... d = .Field}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.Field = .Field}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field = .Field')
+            Left: 
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... d = .Field}')
+            Right: 
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... d = .Field}')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNestedInWithStatement_2()
-            Dim source =
-<compilation name="ObjectInitializerNestedInWithStatement_2">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Imports System
 
 Class C1
@@ -707,23 +1082,43 @@ Class C2
 
         ' nesting of with is not supported
         With New C3()
-            Dim y As New C1() With {.Field = .Field2}
+            Dim y As New C1() With {.Field = .Field2}'BIND:"New C1() With {.Field = .Field2}"
             Console.WriteLine(y.Field) ' should be 42
         End With
 
     End Sub
-End Class   
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ...  = .Field2}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Field = .Field2}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.Field = .Field2')
+            Left: 
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ...  = .Field2}')
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field2')
+                    Children(1):
+                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ...  = .Field2}')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30456: 'Field2' is not a member of 'C1'.
-            Dim y As New C1() With {.Field = .Field2}
+            Dim y As New C1() With {.Field = .Field2}'BIND:"New C1() With {.Field = .Field2}"
                                              ~~~~~~~
-                                               </expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNestedInitializers_1()
             Dim source =
@@ -743,12 +1138,12 @@ End Class
 Class C3
     Public Shared Sub Main()
 
-        Dim x as new C1() with {.Field=23, .FieldC2=new C2() with {.Field=42}}
+        Dim x As New C1() With {.Field = 23, .FieldC2 = New C2() With {.Field = 42}}'BIND:"New C1() With {.Field = 23, .FieldC2 = New C2() With {.Field = 42}}"
 
         Console.WriteLine(x.Field)
         Console.WriteLine(x.FieldC2.Field)
     End Sub
-End Class   
+End Class
     </file>
 </compilation>
 
@@ -756,19 +1151,55 @@ End Class
 23
 42
 ]]>)
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... ield = 42}}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.Fiel ... ield = 42}}')
+      Initializers(2):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field = 23')
+            Left: 
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ield = 42}}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C2) (Syntax: '.FieldC2 =  ... Field = 42}')
+            Left: 
+              IFieldReferenceOperation: C1.FieldC2 As C2 (OperationKind.FieldReference, Type: C2) (Syntax: 'FieldC2')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ield = 42}}')
+            Right: 
+              IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Wi ... Field = 42}')
+                Arguments(0)
+                Initializer: 
+                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'With {.Field = 42}')
+                    Initializers(1):
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field = 42')
+                          Left: 
+                            IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... Field = 42}')
+                          Right: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNestedInitializers_2()
-            Dim source =
-<compilation name="ObjectInitializerNestedInitializers_2">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Imports System
 
 Class C1
     Public Field1 As Integer = 1
     Public Field2 As Integer = 1
-    Public FieldC2 as C2
+    Public FieldC2 As C2
 End Class
 
 Class C2
@@ -778,20 +1209,58 @@ End Class
 Class C3
     Public Shared Sub Main()
 
-        Dim x as new C1() with {.Field1=23, .FieldC2=new C2() with {.Field1=.Field2}}
+        Dim x As New C1() With {.Field1 = 23, .FieldC2 = New C2() With {.Field1 = .Field2}}'BIND:"New C1() With {.Field1 = 23, .FieldC2 = New C2() With {.Field1 = .Field2}}"
     End Sub
-End Class   
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected>
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... = .Field2}}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... = .Field2}}')
+      Initializers(2):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field1 = 23')
+            Left: 
+              IFieldReferenceOperation: C1.Field1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field1')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... = .Field2}}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C2, IsInvalid) (Syntax: '.FieldC2 =  ...  = .Field2}')
+            Left: 
+              IFieldReferenceOperation: C1.FieldC2 As C2 (OperationKind.FieldReference, Type: C2) (Syntax: 'FieldC2')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... = .Field2}}')
+            Right: 
+              IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
+                Arguments(0)
+                Initializer: 
+                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Field1 = .Field2}')
+                    Initializers(1):
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.Field1 = .Field2')
+                          Left: 
+                            IFieldReferenceOperation: C2.Field1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field1')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ...  = .Field2}')
+                          Right: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
+                              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand: 
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field2')
+                                  Children(1):
+                                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ...  = .Field2}')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30456: 'Field2' is not a member of 'C2'.
-        Dim x as new C1() with {.Field1=23, .FieldC2=new C2() with {.Field1=.Field2}}
-                                                                            ~~~~~~~                                                   
-                                               </expected>)
+        Dim x As New C1() With {.Field1 = 23, .FieldC2 = New C2() With {.Field1 = .Field2}}'BIND:"New C1() With {.Field1 = 23, .FieldC2 = New C2() With {.Field1 = .Field2}}"
+                                                                                  ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerCaptureFieldForLambda()
             Dim source =
@@ -813,21 +1282,56 @@ Class C2
         Dim y as new C1()
         y.Field = 23
 
-        Dim x As New C1 With {.Field2 = Function() As Integer
+        Dim x As New C1 With {.Field2 = Function() As Integer'BIND:"New C1 With {.Field2 = Function() As Integer"
                                             Return .Field
                                         End Function}
         x.Field = 42
         Console.WriteLine(x.Field2.Invoke())
     End Sub
-End Class 
+End Class
     </file>
 </compilation>
 
             CompileAndVerify(source, <![CDATA[
 42
 ]]>)
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1 With ... d Function}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.Fiel ... d Function}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Int32)) (Syntax: '.Field2 = F ... nd Function')
+            Left: 
+              IFieldReferenceOperation: C1.Field2 As System.Func(Of System.Int32) (OperationKind.FieldReference, Type: System.Func(Of System.Int32)) (Syntax: 'Field2')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1 With ... d Function}')
+            Right: 
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function()  ... nd Function')
+                Target: 
+                  IAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function()  ... nd Function')
+                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function()  ... nd Function')
+                      Locals: Local_1: <anonymous local> As System.Int32
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return .Field')
+                        ReturnedValue: 
+                          IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.Field')
+                            Instance Receiver: 
+                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1 With ... d Function}')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
+                        Statement: 
+                          null
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerUsedInFieldInitializers()
             Dim source =
@@ -841,7 +1345,7 @@ End Class
 
 Class C2
     Private PrivateField As Integer = 23
-    Public C1Inst As C1 = New C1() With {.Field = PrivateField}
+    Public C1Inst As C1 = New C1() With {.Field = PrivateField}'BIND:"New C1() With {.Field = PrivateField}"
 
     Public Shared Sub Main()
         Console.WriteLine((new C2()).C1Inst.Field)
@@ -853,6 +1357,26 @@ End Class
             CompileAndVerify(source, <![CDATA[
 23
 ]]>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... ivateField}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.Fiel ... ivateField}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field = PrivateField')
+            Left: 
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ivateField}')
+            Right: 
+              IFieldReferenceOperation: C2.PrivateField As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'PrivateField')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'PrivateField')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact()>
@@ -881,16 +1405,15 @@ End Class
             AssertTheseDiagnostics(compilation, <expected>
 BC42104: Variable 'y' is used before it has been assigned a value. A null reference exception could result at runtime.
         Dim x As New C1 With {.RefTypeField = y.CreateC2}
-                                              ~                                                   
+                                              ~
                                                </expected>)
             ' Yeah! We did not have this in Dev10 :)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializePropertyWithOptionalParameters()
-            Dim source =
-<compilation name="ObjectInitializerInitializePropertyWithOptionalParameters">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
@@ -902,21 +1425,39 @@ Class C1
     End Property
 
     Public Shared Sub Main()
-        Dim c1 As New C1() With {.X = "Hello World!"}
+        Dim c1 As New C1() With {.X = "Hello World!"}'BIND:"New C1() With {.X = "Hello World!"}"
     End Sub
-End Class       
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.X =  ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.X = "Hello World!"')
+            Left: 
+              IPropertyReferenceOperation: WriteOnly Property C1.X([p As System.Int32 = 23]) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'X')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23, IsImplicit) (Syntax: 'X')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerMemberAccessOnInitExpressionAllowsAllFields()
-            Dim source =
-<compilation name="ObjectInitializerMemberAccessOnInitExpressionAllowsAllFields">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
@@ -927,71 +1468,113 @@ Class C1
         End Set
     End Property
 
-    Public Function InstanceFunction(p as string) as String
-        return nothing
+    Public Function InstanceFunction(p As String) As String
+        Return Nothing
     End Function
 
-    Public ReadOnly Property ROProp as String
+    Public ReadOnly Property ROProp As String
         Get
-            return nothing
+            Return Nothing
         End Get
     End Property
 
     Public Shared Sub Main()
-        Dim c1 As New C1() With {.X = .InstanceFunction(.ROProp)}
+        Dim c1 As New C1() With {.X = .InstanceFunction(.ROProp)}'BIND:"New C1() With {.X = .InstanceFunction(.ROProp)}"
     End Sub
-End Class       
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... n(.ROProp)}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.X =  ... n(.ROProp)}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.X = .Insta ... on(.ROProp)')
+            Left: 
+              IPropertyReferenceOperation: WriteOnly Property C1.X([p As System.Int32 = 23]) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'X')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23, IsImplicit) (Syntax: 'X')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Right: 
+              IInvocationOperation ( Function C1.InstanceFunction(p As System.String) As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: '.InstanceFu ... on(.ROProp)')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null) (Syntax: '.ROProp')
+                      IPropertyReferenceOperation: ReadOnly Property C1.ROProp As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: '.ROProp')
+                        Instance Receiver: 
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerUsingInitializedTargetInInitializerValueType()
-            Dim source =
-<compilation name="ObjectInitializerUsingInitializedTargetInInitializerValueType">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
-    Structure s1
-        Public y As Integer
-        Private _x As Integer
-        Public Property x() As Integer
-            Get
-                y = 5
-                Return _x
-            End Get
-            Set(ByVal value As Integer)
-                _x = value
-            End Set
-        End Property
-    End Structure
+Structure s1
+    Public y As Integer
+    Private _x As Integer
+    Public Property x() As Integer
+        Get
+            y = 5
+            Return _x
+        End Get
+        Set(ByVal value As Integer)
+            _x = value
+        End Set
+    End Property
+End Structure
 
 Class C1
 
     Public Shared Sub Main()
-        dim foo as new s1()
-        foo.x = 23
+        Dim goo As New s1()
+        goo.x = 23
 
-        Dim s1 As New s1 With {.x = s1.x}
+        Dim s1 As New s1 With {.x = s1.x}'BIND:"New s1 With {.x = s1.x}"
     End Sub
-End Class       
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub s1..ctor()) (OperationKind.ObjectCreation, Type: s1) (Syntax: 'New s1 With {.x = s1.x}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: s1) (Syntax: 'With {.x = s1.x}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.x = s1.x')
+            Left: 
+              IPropertyReferenceOperation: Property s1.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: s1, IsImplicit) (Syntax: 'As New s1 W ... {.x = s1.x}')
+            Right: 
+              IPropertyReferenceOperation: Property s1.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1.x')
+                Instance Receiver: 
+                  ILocalReferenceOperation: s1 (OperationKind.LocalReference, Type: s1) (Syntax: 's1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerWithLifting_1()
-            Dim source =
-<compilation name="ObjectInitializerWithLifting_1">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
@@ -1003,91 +1586,187 @@ End Structure
 
 Class C1
     Public Shared Sub Main()
-        Dim x As New C2 With {.Field = Function()
+        Dim x As New C2 With {.Field = Function()'BIND:"New C2 With {.Field = Function()"
                                            Return .Field ' only the first read is unassigned
                                        End Function,
                               .Field2 = Function()
-                                           Return .Field ' reading is fine now.
-                                       End Function}
+                                            Return .Field ' reading is fine now.
+                                        End Function}
 
-        if x.Field.Invoke() is nothing then
-            console.Writeline("Nothing returned, ok")
-        end if
+        If x.Field.Invoke() Is Nothing Then
+            Console.WriteLine("Nothing returned, ok")
+        End If
     End Sub
-End Class       
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2 With ... d Function}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'With {.Fiel ... d Function}')
+      Initializers(2):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Object)) (Syntax: '.Field = Fu ... nd Function')
+            Left: 
+              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: 'Field')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
+            Right: 
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Object), IsImplicit) (Syntax: 'Function()' ... nd Function')
+                Target: 
+                  IAnonymousFunctionOperation (Symbol: Function () As System.Object) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function()' ... nd Function')
+                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function()' ... nd Function')
+                      Locals: Local_1: <anonymous local> As System.Object
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return .Field')
+                        ReturnedValue: 
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '.Field')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            Operand: 
+                              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: '.Field')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
+                        Statement: 
+                          null
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'End Function')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
+            Left: 
+              IFieldReferenceOperation: C2.Field2 As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
+            Right: 
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Object), IsImplicit) (Syntax: 'Function() ... nd Function')
+                Target: 
+                  IAnonymousFunctionOperation (Symbol: Function () As System.Object) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function() ... nd Function')
+                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function() ... nd Function')
+                      Locals: Local_1: <anonymous local> As System.Object
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return .Field')
+                        ReturnedValue: 
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '.Field')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            Operand: 
+                              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: '.Field')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
+                        Statement: 
+                          null
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'End Function')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerDictionaryLookupOperatorSupported()
-            Dim source =
-<compilation name="ObjectInitializerDictionaryLookupOperatorSupported">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
 
-    Class cust
-        Public x As Long
+Class cust
+    Public x As Long
 
-        Default Public ReadOnly Property scen5(ByVal arg As String) As Integer
-            Get
-                Return 23
-            End Get
-        End Property
-    End Class
-  
+    Default Public ReadOnly Property scen5(ByVal arg As String) As Integer
+        Get
+            Return 23
+        End Get
+    End Property
+End Class
+
 Class C1
     Public Shared Sub Main()
-       dim a as string = "foo"
-       Dim c As New cust With {.x = !a}
+        Dim a As String = "goo"
+        Dim c As New cust With {.x = !a}'BIND:"New cust With {.x = !a}"
     End Sub
-End Class       
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub cust..ctor()) (OperationKind.ObjectCreation, Type: cust) (Syntax: 'New cust With {.x = !a}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: cust) (Syntax: 'With {.x = !a}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64) (Syntax: '.x = !a')
+            Left: 
+              IFieldReferenceOperation: cust.x As System.Int64 (OperationKind.FieldReference, Type: System.Int64) (Syntax: 'x')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: cust, IsImplicit) (Syntax: 'New cust With {.x = !a}')
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: '!a')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IPropertyReferenceOperation: ReadOnly Property cust.scen5(arg As System.String) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '!a')
+                    Instance Receiver: 
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: cust, IsImplicit) (Syntax: 'New cust With {.x = !a}')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a") (Syntax: 'a')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInField()
-            Dim source =
-<compilation name="ObjectInitializerInField">
-    <file name="a.vb">
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
-        Class scen2
-            Private _scen2 As Short
-            Protected Friend Property Scen2() As Short
-                Get
-                    Return _scen2
-                End Get
-                Set(ByVal value As Short)
-                    _scen2 = value
-                End Set
-            End Property
-        End Class
+Class scen2
+    Private _scen2 As Short
+    Protected Friend Property Scen2() As Short
+        Get
+            Return _scen2
+        End Get
+        Set(ByVal value As Short)
+            _scen2 = value
+        End Set
+    End Property
+End Class
 
-        Class scen2_2
-            Dim o As Object = New scen2 With {.scen2 = 5}
-        End Class
-  
+Class scen2_2
+    Dim o As Object = New scen2 With {.Scen2 = 5}'BIND:"New scen2 With {.Scen2 = 5}"
+End Class
+
 Class C2
     Public Shared Sub Main()
-       dim x as new scen2_2
+        Dim x As New scen2_2
     End Sub
-End Class       
-    </file>
-</compilation>
+End Class]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub scen2..ctor()) (OperationKind.ObjectCreation, Type: scen2) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: scen2) (Syntax: 'With {.Scen2 = 5}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.Scen2 = 5')
+            Left: 
+              IPropertyReferenceOperation: Property scen2.Scen2 As System.Int16 (OperationKind.PropertyReference, Type: System.Int16) (Syntax: 'Scen2')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: scen2, IsImplicit) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 5, IsImplicit) (Syntax: '5')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(788522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/788522")>
@@ -1105,7 +1784,7 @@ End Class
 
 Class C2
     Public Shared Sub Main()
-       Dim c As Cust = New Cust With {.y = 1, 
+       Dim c As Cust = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
@@ -1136,7 +1815,7 @@ Class C2
 }}}}}}}}}}
 }}}}}}}}}}
     End Sub
-End Class       
+End Class
     </file>
 </compilation>
 
@@ -1154,77 +1833,77 @@ End Class
 Structure NonEmptyStructure
     Public RefField1 As String
     Public ValField1 As Integer
-    Public Property Foo As String
+    Public Property Goo As String
 End Structure
 
 Structure EmptyStructure
-    Public Property Foo1 As Integer
-    Public Property Foo2 As String
+    Public Property Goo1 As Integer
+    Public Property Goo2 As String
 End Structure
 
 Class RefClass
     Public RefField1 As String
     Public ValField1 As Integer
-    Public Property Foo As String
-    Public Property Foo1 As Integer
-    Public Property Foo2 As String
+    Public Property Goo As String
+    Public Property Goo1 As Integer
+    Public Property Goo2 As String
 End Class
 
 Interface IMissingStuff2
-    Property Foo1 As Integer
-    Property Foo2 As String
+    Property Goo1 As Integer
+    Property Goo2 As String
 End Interface
 
 Class ObjectInitializerClass
     Public Sub TypeParameterNotDefined(Of T As {IMissingStuff2, New})()
-        Dim var20 As New T() With {.Foo1 = .Foo2.Length}                        ' Receiver type unknown, no warning
-        Dim var21 As New T() With {.Foo1 = var21.Foo2.Length}                   ' Receiver type unknown, no warning
-        Dim var22 As T = New T() With {.Foo1 = .Foo2.Length}                    ' Receiver type unknown, no warning
-        Dim var23 As T = New T() With {.Foo1 = var23.Foo2.Length}               ' Receiver type unknown, no warning
+        Dim var20 As New T() With {.Goo1 = .Goo2.Length}                        ' Receiver type unknown, no warning
+        Dim var21 As New T() With {.Goo1 = var21.Goo2.Length}                   ' Receiver type unknown, no warning
+        Dim var22 As T = New T() With {.Goo1 = .Goo2.Length}                    ' Receiver type unknown, no warning
+        Dim var23 As T = New T() With {.Goo1 = var23.Goo2.Length}               ' Receiver type unknown, no warning
     End Sub
 
     Public Sub TypeParameterAsStructure(Of T As {Structure, IMissingStuff2})()
-        Dim var24 As New T() With {.Foo1 = .Foo2.Length}                        ' no local referenced, no warning
-        Dim var25 As New T() With {.Foo1 = var25.Foo2.Length}                   ' inplace initialized, no warning
-        Dim var26 As T = New T() With {.Foo1 = .Foo2.Length}                    ' no local referenced, no warning
-        Dim var27 As T = New T() With {.Foo1 = var27.Foo2.Length}               ' temporary used, warning
+        Dim var24 As New T() With {.Goo1 = .Goo2.Length}                        ' no local referenced, no warning
+        Dim var25 As New T() With {.Goo1 = var25.Goo2.Length}                   ' inplace initialized, no warning
+        Dim var26 As T = New T() With {.Goo1 = .Goo2.Length}                    ' no local referenced, no warning
+        Dim var27 As T = New T() With {.Goo1 = var27.Goo2.Length}               ' temporary used, warning
 
-        Dim var28, var29 As New T() With {.Foo1 = var28.Foo2.Length}            ' no local referenced, no warning
-        Dim var30, var31 As New T() With {.Foo1 = var31.Foo2.Length}            ' Receiver type unknown, no warning
+        Dim var28, var29 As New T() With {.Goo1 = var28.Goo2.Length}            ' no local referenced, no warning
+        Dim var30, var31 As New T() With {.Goo1 = var31.Goo2.Length}            ' Receiver type unknown, no warning
     End Sub
 
     Public Sub DoStuff_3(Of T As {RefClass, New})()
-        Dim var32 As New T() With {.Foo1 = .Foo2.Length}                        ' no local referenced, no warning
-        Dim var33 As New T() With {.Foo1 = var33.Foo2.Length}                   ' not yet initialized, warning
-        Dim var34 As T = New T() With {.Foo1 = .Foo2.Length}                    ' no local referenced, no warning
-        Dim var35 As T = New T() With {.Foo1 = var35.Foo2.Length}               ' not yet initialized, warning
-        Dim var36, var37 As New T() With {.Foo1 = var36.Foo2.Length}            ' not yet initialized, warning
-        Dim var38, var39 As New T() With {.Foo1 = var39.Foo2.Length}            ' not yet initialized, warning
+        Dim var32 As New T() With {.Goo1 = .Goo2.Length}                        ' no local referenced, no warning
+        Dim var33 As New T() With {.Goo1 = var33.Goo2.Length}                   ' not yet initialized, warning
+        Dim var34 As T = New T() With {.Goo1 = .Goo2.Length}                    ' no local referenced, no warning
+        Dim var35 As T = New T() With {.Goo1 = var35.Goo2.Length}               ' not yet initialized, warning
+        Dim var36, var37 As New T() With {.Goo1 = var36.Goo2.Length}            ' not yet initialized, warning
+        Dim var38, var39 As New T() With {.Goo1 = var39.Goo2.Length}            ' not yet initialized, warning
     End Sub
 
     Public Shared Sub Main()
-        Dim var01 As New NonEmptyStructure() With {.ValField1 = var01.RefField1.Length, .RefField1 = var01.Foo} ' no warnings
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
-        Dim var04, var05 As New NonEmptyStructure() With {.RefField1 = var04.Foo} ' no warnings
+        Dim var01 As New NonEmptyStructure() With {.ValField1 = var01.RefField1.Length, .RefField1 = var01.Goo} ' no warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
+        Dim var04, var05 As New NonEmptyStructure() With {.RefField1 = var04.Goo} ' no warnings
 
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
-
-
-        Dim var07 As New EmptyStructure() With {.Foo1 = var07.Foo2.Length} ' no warnings
-        Dim var08, var09 As New EmptyStructure() With {.Foo1 = var09.Foo2.Length} ' warnings
-        Dim var10, var11 As New EmptyStructure() With {.Foo1 = var10.Foo2.Length} ' no warnings
-
-        Dim var12 As EmptyStructure = New EmptyStructure() With {.Foo1 = var12.Foo2.Length} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
 
 
-        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Foo} ' no warnings
-        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Foo} ' warnings
-        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Foo} ' no warnings
+        Dim var07 As New EmptyStructure() With {.Goo1 = var07.Goo2.Length} ' no warnings
+        Dim var08, var09 As New EmptyStructure() With {.Goo1 = var09.Goo2.Length} ' warnings
+        Dim var10, var11 As New EmptyStructure() With {.Goo1 = var10.Goo2.Length} ' no warnings
 
-        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var12 As EmptyStructure = New EmptyStructure() With {.Goo1 = var12.Goo2.Length} ' warnings
 
 
-        Dim var19 = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Goo} ' no warnings
+        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Goo} ' warnings
+        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Goo} ' no warnings
+
+        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
+
+
+        Dim var19 = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
     End Sub
 End Class
 
@@ -1237,8 +1916,8 @@ Class CObjInitDerived
     Inherits CObjInitBase(Of NonEmptyStructure)
 
     Public Overrides Sub TypeParameterValueTypeAsClassConstraint(Of U As {NonEmptyStructure, IMissingStuff2})()
-        Dim uinst1 As New U() With {.Foo1 = uinst1.Foo2.Length}
-        Dim uinst2 As U = New U() With {.Foo1 = uinst2.Foo2.Length}
+        Dim uinst1 As New U() With {.Goo1 = uinst1.Goo2.Length}
+        Dim uinst2 As U = New U() With {.Goo1 = uinst2.Goo2.Length}
     End Sub
 End Class
     </file>
@@ -1247,55 +1926,55 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42109: Variable 'var27' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var27 As T = New T() With {.Foo1 = var27.Foo2.Length}               ' temporary used, warning
+        Dim var27 As T = New T() With {.Goo1 = var27.Goo2.Length}               ' temporary used, warning
                                                ~~~~~
 BC42109: Variable 'var31' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var30, var31 As New T() With {.Foo1 = var31.Foo2.Length}            ' Receiver type unknown, no warning
+        Dim var30, var31 As New T() With {.Goo1 = var31.Goo2.Length}            ' Receiver type unknown, no warning
                                                   ~~~~~
 BC42104: Variable 'var33' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var33 As New T() With {.Foo1 = var33.Foo2.Length}                   ' not yet initialized, warning
+        Dim var33 As New T() With {.Goo1 = var33.Goo2.Length}                   ' not yet initialized, warning
                                            ~~~~~
 BC42104: Variable 'var35' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var35 As T = New T() With {.Foo1 = var35.Foo2.Length}               ' not yet initialized, warning
+        Dim var35 As T = New T() With {.Goo1 = var35.Goo2.Length}               ' not yet initialized, warning
                                                ~~~~~
 BC42104: Variable 'var36' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var36, var37 As New T() With {.Foo1 = var36.Foo2.Length}            ' not yet initialized, warning
+        Dim var36, var37 As New T() With {.Goo1 = var36.Goo2.Length}            ' not yet initialized, warning
                                                   ~~~~~
 BC42104: Variable 'var39' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var38, var39 As New T() With {.Foo1 = var39.Foo2.Length}            ' not yet initialized, warning
+        Dim var38, var39 As New T() With {.Goo1 = var39.Goo2.Length}            ' not yet initialized, warning
                                                   ~~~~~
 BC42104: Variable 'RefField1' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
                                                                        ~~~~~~~~~~~~~~~
 BC42109: Variable 'var03' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
                                                                                                             ~~~~~
 BC42104: Variable 'RefField1' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
                                                                                     ~~~~~~~~~~~~~~~
 BC42109: Variable 'var06' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
                                                                                                                          ~~~~~
 BC42109: Variable 'var09' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var08, var09 As New EmptyStructure() With {.Foo1 = var09.Foo2.Length} ' warnings
+        Dim var08, var09 As New EmptyStructure() With {.Goo1 = var09.Goo2.Length} ' warnings
                                                                ~~~~~
 BC42109: Variable 'var12' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var12 As EmptyStructure = New EmptyStructure() With {.Foo1 = var12.Foo2.Length} ' warnings
+        Dim var12 As EmptyStructure = New EmptyStructure() With {.Goo1 = var12.Goo2.Length} ' warnings
                                                                          ~~~~~
 BC42104: Variable 'var13' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Foo} ' no warnings
+        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Goo} ' no warnings
                                                        ~~~~~
 BC42104: Variable 'var15' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Foo} ' warnings
+        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Goo} ' warnings
                                                               ~~~~~
 BC42104: Variable 'var16' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Foo} ' no warnings
+        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Goo} ' no warnings
                                                               ~~~~~
 BC42104: Variable 'var18' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
                                                                   ~~~~~
 BC42109: Variable 'uinst2' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim uinst2 As U = New U() With {.Foo1 = uinst2.Foo2.Length}
+        Dim uinst2 As U = New U() With {.Goo1 = uinst2.Goo2.Length}
                                                 ~~~~~~
                                            </expected>)
         End Sub
@@ -1360,7 +2039,7 @@ Public Module Module1
             Try
                 '<><%= ======================================================================================= %=></>
              Dim cust = New Cust With {.Cust = 1, .Name = .Value, .e = .<e>(0)}
-                    Dim cust2 = New Cust With {.Cust = 1, .Name = .Name, .e = ...<e>(0)}         
+                    Dim cust2 = New Cust With {.Cust = 1, .Name = .Name, .e = ...<e>(0)}
 Console.writeline("Scenario 8")
 Console.writeline(<e><e/></>.ToString)
 Console.writeline( cust.e.ToString)

@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
@@ -343,6 +343,57 @@ public class C1
     public struct Int32 { }
     public struct Decimal { }
     public struct TypedReference { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static object rrr;
+
+    public static T Read<T>() where T : new()
+    {
+        T result = new T();
+        var refresult = __makeref(result);
+        rrr = refresult;
+        rrr = (object)__makeref(result);
+        return result;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+    // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
+    //         rrr = refresult;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "refresult").WithArguments("System.TypedReference", "object").WithLocation(10, 15),
+    // (11,15): error CS0030: Cannot convert type 'System.TypedReference' to 'object'
+    //         rrr = (object)__makeref(result);
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)__makeref(result)").WithArguments("System.TypedReference", "object").WithLocation(11, 15)
+);
+        }
+
+        [Fact()]
+        public void NoTypedRefBox_RefStruct()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public struct Decimal { }
+    public class Attribute{ }
+    public class ObsoleteAttribute: Attribute
+    {
+        public ObsoleteAttribute(string message, bool error){}
+    }
+
+    // Make the type ref struct. Should work just fine.
+    public ref struct TypedReference { }
 }";
             var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
@@ -785,14 +836,14 @@ namespace System
             return unchecked((int)((long)m_value));
         }
 
-        public unsafe static IntPtr Foo() 
+        public unsafe static IntPtr Goo() 
         {
             return new IntPtr(0);
         }
 
         public unsafe static bool Bar(IntPtr value1) 
         {
-            return value1.m_value == Foo().m_value;
+            return value1.m_value == Goo().m_value;
         }
     }
 
@@ -892,7 +943,7 @@ namespace System
   .locals init (System.IntPtr V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldfld      ""void* System.IntPtr.m_value""
-  IL_0007:  call       ""System.IntPtr System.IntPtr.Foo()""
+  IL_0007:  call       ""System.IntPtr System.IntPtr.Goo()""
   IL_000c:  stloc.0
   IL_000d:  ldloca.s   V_0
   IL_000f:  ldfld      ""void* System.IntPtr.m_value""

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -278,8 +278,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 accessibility: Accessibility.Private,
                 modifiers: new DeclarationModifiers(isStatic: eventHookupExpression.IsInStaticContext()),
                 returnType: delegateType.DelegateInvokeMethod.ReturnType,
-                returnsByRef: delegateType.DelegateInvokeMethod.ReturnsByRef,
-                explicitInterfaceSymbol: null,
+                refKind: delegateType.DelegateInvokeMethod.RefKind,
+                explicitInterfaceImplementations: default,
                 name: eventHandlerMethodName,
                 typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 parameters: delegateType.DelegateInvokeMethod.Parameters,

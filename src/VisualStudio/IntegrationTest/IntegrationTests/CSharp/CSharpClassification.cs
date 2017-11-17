@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyColorOfSomeTokens()
         {
-            Editor.SetText(@"using System;
+            VisualStudio.Editor.SetText(@"using System;
 using System.Collections.Generic;
 using System.Text;
 namespace ConsoleApplication1
@@ -39,36 +39,36 @@ namespace ConsoleApplication1
         }
     }");
 
-            PlaceCaret("class");
-            VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("{");
-            VerifyCurrentTokenType(tokenType: "punctuation");
-            PlaceCaret("Program");
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("Main");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Hello");
-            VerifyCurrentTokenType(tokenType: "string");
-            PlaceCaret("<summary", charsOffset: -1);
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("summary");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-            PlaceCaret("innertext");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-            PlaceCaret("comment");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-            PlaceCaret("CDATA");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("cdata");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-            PlaceCaret("attribute");
-            VerifyCurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.PlaceCaret("class");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "keyword");
+            VisualStudio.Editor.PlaceCaret("{");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "punctuation");
+            VisualStudio.Editor.PlaceCaret("Program");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.PlaceCaret("Main");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.PlaceCaret("Hello");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "string");
+            VisualStudio.Editor.PlaceCaret("<summary", charsOffset: -1);
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudio.Editor.PlaceCaret("summary");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - name");
+            VisualStudio.Editor.PlaceCaret("innertext");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
+            VisualStudio.Editor.PlaceCaret("comment");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - comment");
+            VisualStudio.Editor.PlaceCaret("CDATA");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudio.Editor.PlaceCaret("cdata");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - cdata section");
+            VisualStudio.Editor.PlaceCaret("attribute");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void SemanticClassification()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 using System;
 using System.Collections.Generic;
 class Program : Attribute
@@ -79,37 +79,37 @@ class Program : Attribute
         Program.Main(null);
     }
 }");
-            PlaceCaret("Attribute");
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("list", charsOffset: 8);
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("list", charsOffset: -8);
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("null", charsOffset: -8);
-            VerifyCurrentTokenType(tokenType: "class name");
-            Editor.MoveCaret(0);
-            DeleteText(@"using System;");
-            DeleteText(@"using System.Collections.Generic;");
-            PlaceCaret("Attribute");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("list", charsOffset: 8);
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("list", charsOffset: -8);
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("null", charsOffset: -8);
-            VerifyCurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.PlaceCaret("Attribute");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.PlaceCaret("list", charsOffset: 8);
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.PlaceCaret("list", charsOffset: -8);
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.PlaceCaret("null", charsOffset: -8);
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.MoveCaret(0);
+            VisualStudio.Editor.DeleteText(@"using System;");
+            VisualStudio.Editor.DeleteText(@"using System.Collections.Generic;");
+            VisualStudio.Editor.PlaceCaret("Attribute");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.PlaceCaret("list", charsOffset: 8);
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.PlaceCaret("list", charsOffset: -8);
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.PlaceCaret("null", charsOffset: -8);
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyProjectConfigChange()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 namespace ClassLibrary1
 {
     public class Class1
     {
 #if DEBUG
-        void Foo()
+        void Goo()
         {
         }
 #else
@@ -120,18 +120,18 @@ namespace ClassLibrary1
     }
 }
 ");
-            ExecuteCommand("Build.SolutionConfigurations", argument: "Debug");
-            PlaceCaret("Foo");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Bar");
-            VerifyCurrentTokenType(tokenType: "excluded code");
-            Editor.MoveCaret(0);
-            ExecuteCommand("Build.SolutionConfigurations", argument: "Release");
-            PlaceCaret("Foo");
-            VerifyCurrentTokenType(tokenType: "excluded code");
-            PlaceCaret("Bar");
-            VerifyCurrentTokenType(tokenType: "identifier");
-        }
 
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Debug");
+            VisualStudio.Editor.PlaceCaret("Goo");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.PlaceCaret("Bar");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "excluded code");
+            VisualStudio.Editor.MoveCaret(0);
+            VisualStudio.ExecuteCommand("Build.SolutionConfigurations", argument: "Release");
+            VisualStudio.Editor.PlaceCaret("Goo");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "excluded code");
+            VisualStudio.Editor.PlaceCaret("Bar");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+        }
     }
 }

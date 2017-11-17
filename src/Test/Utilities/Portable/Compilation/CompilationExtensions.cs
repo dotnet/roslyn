@@ -12,8 +12,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var emitResult = compilation.Emit(
                 peStream: peStream,
+                metadataPEStream: null,
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualTextBuilder = new StringBuilder();
             SemanticModel model = compilation.GetSemanticModel(node.SyntaxTree);
             AppendOperationTree(model, node, actualTextBuilder);
-            VerifyOperationTree(expectedOperationTree, actualTextBuilder.ToString());
+            OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
         }
 
         internal static void VerifyOperationTree(this Compilation compilation, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
@@ -213,35 +215,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         actualTextBuilder.Append(Environment.NewLine);
                         AppendOperationTree(model, executableCodeBlock, actualTextBuilder, initialIndent: 2);
                     }
-                }               
+                }
 
                 actualTextBuilder.Append(Environment.NewLine);
             }
 
-            VerifyOperationTree(expectedOperationTree, actualTextBuilder.ToString());
+            OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
         }
 
         private static void AppendOperationTree(SemanticModel model, SyntaxNode node, StringBuilder actualTextBuilder, int initialIndent = 0)
         {
-            IOperation operation = model.GetOperationInternal(node);
+            IOperation operation = model.GetOperation(node);
             if (operation != null)
             {
-                string operationTree = OperationTreeVerifier.GetOperationTree(operation, initialIndent);
+                string operationTree = OperationTreeVerifier.GetOperationTree(model.Compilation, operation, initialIndent);
                 actualTextBuilder.Append(operationTree);
             }
             else
             {
                 actualTextBuilder.Append($"  SemanticModel.GetOperation() returned NULL for node with text: '{node.ToString()}'");
             }
-        }
-
-        private static void VerifyOperationTree(string expectedOperationTree, string actualOperationTree)
-        {
-            char[] newLineChars = Environment.NewLine.ToCharArray();
-            string actual = actualOperationTree.Trim(newLineChars);
-            expectedOperationTree = expectedOperationTree.Trim(newLineChars);
-            expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
-            AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
         internal static bool CanHaveExecutableCodeBlock(ISymbol symbol)
@@ -260,5 +253,82 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static void ValidateIOperations(Func<Compilation> createCompilation)
+        {
+#if TEST_IOPERATION_INTERFACE
+            var compilation = createCompilation();
+            var roots = ArrayBuilder<IOperation>.GetInstance();
+
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+
+                foreach (var node in root.DescendantNodesAndSelf())
+                {
+                    var operation = semanticModel.GetOperation(node);
+                    if (operation != null)
+                    {
+                        // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
+                        Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
+
+                        Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
+
+                        if (operation.Parent == null)
+                        {
+                            roots.Add(operation);
+                        }
+                    }
+                }
+            }
+
+            var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+
+            foreach (var root in roots)
+            {
+                foreach (var operation in root.DescendantsAndSelf())
+                {
+                    if (!operation.IsImplicit)
+                    {
+                        try
+                        {
+                            explictNodeMap.Add(operation.Syntax, operation);
+                        }
+                        catch (ArgumentException)
+                        {
+                            Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
+                        }
+                    }
+
+                    if (operation.Kind == OperationKind.Argument)
+                    {
+                        var argument = (IArgumentOperation)operation;
+
+                        if (argument.ArgumentKind == ArgumentKind.DefaultValue)
+                        {
+                            Assert.True(argument.Descendants().All(n => n.IsImplicit), $"Explicit node in default argument value ({argument.Syntax.RawKind}): {argument.Syntax.ToString()}");
+                        }
+                    }
+
+                    // Make sure that all static member references or invocations of static methods do not have implicit IInstanceReferenceOperations
+                    // as their receivers
+                    if (operation is IMemberReferenceOperation memberReference &&
+                        memberReference.Member.IsStatic &&
+                        memberReference.Instance is IInstanceReferenceOperation)
+                    {
+                        Assert.False(memberReference.Instance.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                    }
+                    else if (operation is IInvocationOperation invocation &&
+                             invocation.TargetMethod.IsStatic &&
+                             invocation.Instance is IInstanceReferenceOperation)
+                    {
+                        Assert.False(invocation.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                    }
+                }
+            }
+
+            roots.Free();
+#endif
+        }
     }
 }

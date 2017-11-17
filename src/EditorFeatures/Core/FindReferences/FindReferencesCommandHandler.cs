@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -53,15 +53,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         public void ExecuteCommand(FindReferencesCommandArgs args, Action nextHandler)
         {
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
-
-            if (caretPosition >= 0)
+            // Get the selection that user has in our buffer (this also works if there
+            // is no selection and the caret is just at a single position).  If we 
+            // can't get the selection, or there are multiple spans for it (i.e. a 
+            // box selection), then don't do anything.
+            var snapshotSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
+            if (snapshotSpans.Count == 1)
             {
+                var selectedSpan = snapshotSpans[0];
                 var snapshot = args.SubjectBuffer.CurrentSnapshot;
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    if (TryExecuteCommand(caretPosition, document))
+                    // Do a find-refs at the *start* of the selection.  That way if the
+                    // user has selected a symbol that has another symbol touching it
+                    // on the right (i.e.  Goo++  ), then we'll do the find-refs on the
+                    // symbol selected, not the symbol following.
+                    if (TryExecuteCommand(selectedSpan.Start, document))
                     {
                         return;
                     }
@@ -74,15 +82,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         private bool TryExecuteCommand(int caretPosition, Document document)
         {
             var streamingService = document.GetLanguageService<IFindUsagesService>();
-            var synchronousService = document.GetLanguageService<IFindReferencesService>();
-
             var streamingPresenter = GetStreamingPresenter();
 
             // See if we're running on a host that can provide streaming results.
             // We'll both need a FAR service that can stream results to us, and 
             // a presenter that can accept streamed results.
-            var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingFindReferences, document.Project.Language);
-            if (streamingEnabled && streamingService != null && streamingPresenter != null)
+            if (streamingService != null && streamingPresenter != null)
             {
                 StreamingFindReferences(document, caretPosition, streamingService, streamingPresenter);
                 return true;
@@ -92,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             // or the host has no way to present results in a streaming manner.
             // Fall back to the old non-streaming approach to finding and presenting 
             // results.
+            var synchronousService = document.GetLanguageService<IFindReferencesService>();
             if (synchronousService != null)
             {
                 FindReferences(document, synchronousService, caretPosition);

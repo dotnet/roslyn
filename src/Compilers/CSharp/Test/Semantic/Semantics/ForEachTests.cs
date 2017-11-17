@@ -33,7 +33,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (7,18): error CS0246: The type or namespace name 'MissingType' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingType").WithArguments("MissingType"));
         }
@@ -53,7 +53,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0186: Use of null is not valid in this context
                 Diagnostic(ErrorCode.ERR_NullNotValid, "null"));
         }
@@ -73,7 +73,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (7,27): error CS0186: Use of null is not valid in this context
                 Diagnostic(ErrorCode.ERR_NullNotValid, "NULL"));
         }
@@ -93,7 +93,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (7,27): error CS0186: Use of null is not valid in this context
                 Diagnostic(ErrorCode.ERR_NullNotValid, "default(int[])"));
         }
@@ -112,7 +112,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0446: Foreach cannot operate on a 'lambda expression'. Did you intend to invoke the 'lambda expression'?
                 Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "(() => {})").WithArguments("lambda expression"));
         }
@@ -131,7 +131,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0446: Foreach cannot operate on a 'method group'. Did you intend to invoke the 'method group'?
                 Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "Main").WithArguments("method group"));
         }
@@ -150,7 +150,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,9): error CS0030: Cannot convert type 'string' to 'int'
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("string", "int"));
         }
@@ -181,7 +181,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
         }
@@ -212,7 +212,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
         }
@@ -243,7 +243,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is either static or not public.
                 Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
@@ -276,7 +276,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is either static or not public.
                 Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
@@ -289,14 +289,14 @@ class Enumerator
             var text = @"
 struct C
 {
-    static void Foo(Enumerable? e)
+    static void Goo(Enumerable? e)
     {
         foreach (long x in e) { }
     }
 
     static void Main()
     {
-        Foo(new Enumerable());
+        Goo(new Enumerable());
     }
 }
 
@@ -312,7 +312,7 @@ struct Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,28): error CS0117: 'Enumerator?' does not contain a definition for 'Current'
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "e").WithArguments("Enumerator?", "Current"),
             // (6,28): error CS0202: foreach requires that the return type 'Enumerator?' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
@@ -345,7 +345,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0117: 'Enumerator' does not contain a definition for 'Current'
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "new Enumerable()").WithArguments("Enumerator", "Current"),
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
@@ -378,7 +378,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0122: 'Enumerator.Current' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "new Enumerable()").WithArguments("Enumerator.Current"),
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
@@ -411,7 +411,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"));
         }
@@ -442,7 +442,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"));
         }
@@ -473,7 +473,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
                 //         foreach (int x in new Enumerable())
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"),
@@ -509,7 +509,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0117: 'Enumerator' does not contain a definition for 'MoveNext'
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "new Enumerable()").WithArguments("Enumerator", "MoveNext"),
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
@@ -542,7 +542,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0122: 'Enumerator.MoveNext()' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "new Enumerable()").WithArguments("Enumerator.MoveNext()"),
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
@@ -575,7 +575,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"));
         }
@@ -606,7 +606,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"));
         }
@@ -637,7 +637,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
                 //         foreach (int x in new Enumerable())
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"),
@@ -673,7 +673,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"));
         }
@@ -704,7 +704,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"));
         }
@@ -735,7 +735,7 @@ class Enumerator
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0117: 'Enumerator' does not contain a definition for 'Current'
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "new Enumerable()").WithArguments("Enumerator", "Current"),
             // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
@@ -751,7 +751,7 @@ using System.Collections.Generic;
 
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (int x in e) { }
     }
@@ -765,7 +765,7 @@ class Enumerable : IEnumerable<int>, IEnumerable<float>
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (9,27): error CS1640: foreach statement cannot operate on variables of type 'Enumerable' because it implements multiple instantiations of 'System.Collections.Generic.IEnumerable<T>'; try casting to a specific interface instantiation
                 Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "e").WithArguments("Enumerable", "System.Collections.Generic.IEnumerable<T>"));
         }
@@ -779,7 +779,7 @@ using System.Collections.Generic;
 
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (int x in e) { }
     }
@@ -795,7 +795,7 @@ class Enumerable : IEnumerable<int>, I
 interface I : IEnumerable<float> { }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (9,27): error CS1640: foreach statement cannot operate on variables of type 'Enumerable' because it implements multiple instantiations of 'System.Collections.Generic.IEnumerable<T>'; try casting to a specific interface instantiation
                 Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "e").WithArguments("Enumerable", "System.Collections.Generic.IEnumerable<T>"));
         }
@@ -842,7 +842,7 @@ class C
         foreach (string o in t6) { }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (26,27): error CS1640: foreach statement cannot operate on variables of type 'B' because it implements multiple instantiations of 'System.Collections.Generic.IEnumerable<T>'; try casting to a specific interface instantiation
                 Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "b").WithArguments("B", "System.Collections.Generic.IEnumerable<T>").WithLocation(26, 27),
                 // (28,27): error CS1640: foreach statement cannot operate on variables of type 'T2' because it implements multiple instantiations of 'System.Collections.Generic.IEnumerable<T>'; try casting to a specific interface instantiation
@@ -891,7 +891,7 @@ class C
         foreach (string o in t6) { }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (31,9): error CS0030: Cannot convert type 'int' to 'S'
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "S").WithLocation(31, 9),
                 // (32,9): error CS0030: Cannot convert type 'int' to 'string'
@@ -927,7 +927,7 @@ class C
         foreach (var o in v) { }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (17,27): error CS1579: foreach statement cannot operate on variables of type 'T' because 'T' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "t").WithArguments("T", "GetEnumerator").WithLocation(17, 27));
         }
@@ -938,14 +938,14 @@ class C
             var text = @"
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         foreach (int x in i) { }
     }
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "i").WithArguments("int", "GetEnumerator"));
         }
@@ -956,14 +956,14 @@ class C
             var text = @"
 class C
 {
-    void Foo(int[] a)
+    void Goo(int[] a)
     {
         foreach (int x in a) { x++; }
     }
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,32): error CS1656: Cannot assign to 'x' because it is a 'foreach iteration variable'
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x").WithArguments("x", "foreach iteration variable"));
         }
@@ -974,15 +974,15 @@ class C
             var text = @"
 class C
 {
-    System.Collections.IEnumerable Foo(object y)
+    System.Collections.IEnumerable Goo(object y)
     {
-        foreach (var x in Foo(x)) { }
+        foreach (var x in Goo(x)) { }
         return null;
     }
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,31): error CS0103: The name 'x' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x"));
         }
@@ -993,7 +993,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(DynamicEnumerable e)
+    void Goo(DynamicEnumerable e)
     {
         foreach (int x in e) { }
     }
@@ -1025,7 +1025,7 @@ class C
 }
 ";
             // It's not entirely clear why this doesn't work, but it doesn't work in Dev10 either.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0119: 'System.Collections.IEnumerable' is a 'type', which is not valid in the given context
             //         foreach (var x in System.Collections.IEnumerable) { }
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Collections.IEnumerable").WithArguments("System.Collections.IEnumerable", "type"));
@@ -1037,14 +1037,14 @@ class C
             var text = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         foreach (int x in System.Console) { }
     }
 }
 ";
             // It's not entirely clear why this doesn't work, but it doesn't work in Dev10 either.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
             // (6,27): error CS0119: 'System.Console' is a 'type', which is not valid in the given context
             //         foreach (int x in System.Console) { }
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Console").WithArguments("System.Console", "type"));
@@ -1077,7 +1077,7 @@ public class ExtensionMethodTest
         }
     }
 }";
-            Assert.NotEmpty(CreateCompilationWithMscorlib(source).GetDiagnostics());
+            Assert.NotEmpty(CreateStandardCompilation(source).GetDiagnostics());
         }
 
         [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
@@ -1096,7 +1096,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,21): error CS0826: No best type found for implicitly-typed array
                 //         var array = new[] { Main() };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
@@ -1118,7 +1118,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,21): error CS0826: No best type found for implicitly-typed array
                 //         var array = new[] { Main() };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"),
@@ -1146,7 +1146,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         foreach (void element in new int[1])
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 18),
@@ -1171,7 +1171,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,37): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //         foreach (var element in new Unknown[1])
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"));
@@ -1183,7 +1183,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(int[] a)
+    void Goo(int[] a)
     {
         foreach (int x in a) { }
     }
@@ -1215,7 +1215,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(string s)
+    void Goo(string s)
     {
         foreach (char c in s) { }
     }
@@ -1247,7 +1247,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1290,7 +1290,7 @@ class Enumerator
             var text = @"
 struct C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1319,7 +1319,7 @@ struct Enumerator
             Assert.False(info.NeedsDisposeMethod); // Definitely not disposable
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
@@ -1333,7 +1333,7 @@ struct Enumerator
             var text = @"
 class C
 {
-    void Foo(System.Collections.IEnumerable e)
+    void Goo(System.Collections.IEnumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1365,7 +1365,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1404,7 +1404,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<int>
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (object x in e) { }
     }
@@ -1445,7 +1445,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<Enumerable.Hidden>
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1483,7 +1483,7 @@ class Enumerable : System.Collections.IEnumerable
             var text = @"
 class C
 {
-    void Foo(int[] a)
+    void Goo(int[] a)
     {
         foreach (var x in a) { }
     }
@@ -1513,7 +1513,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(string s)
+    void Goo(string s)
     {
         foreach (var x in s) { }
     }
@@ -1543,7 +1543,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (var x in e) { }
     }
@@ -1572,7 +1572,7 @@ class Enumerator
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (var x in e) { }
     }
@@ -1596,7 +1596,7 @@ class Enumerable : System.Collections.IEnumerable
             var text = @"
 class C
 {
-    void Foo(var[] a)
+    void Goo(var[] a)
     {
         foreach (var x in a) { }
     }
@@ -1628,7 +1628,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(dynamic d)
+    void Goo(dynamic d)
     {
         foreach (int x in d) { }
     }
@@ -1660,7 +1660,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(dynamic d)
+    void Goo(dynamic d)
     {
         foreach (var x in d) { }
     }
@@ -1759,7 +1759,7 @@ class C<T>
     }
     static void M<U>(U u) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
             compilation.VerifyDiagnostics();
         }
 
@@ -1809,7 +1809,7 @@ interface MyEnumerator
             Assert.Equal("Enumerable<T>", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
 
-        // Copied from TestSuccessPatternStruct - only change is that Foo parameter is now nullable.
+        // Copied from TestSuccessPatternStruct - only change is that Goo parameter is now nullable.
         [WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         [Fact]
         public void TestSuccessNullableCollection()
@@ -1817,7 +1817,7 @@ interface MyEnumerator
             var text = @"
 struct C
 {
-    void Foo(Enumerable? e)
+    void Goo(Enumerable? e)
     {
         foreach (long x in e) { }
     }
@@ -1847,7 +1847,7 @@ struct Enumerator
             Assert.False(info.NeedsDisposeMethod); // Definitely not disposable
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
@@ -1900,8 +1900,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i < 5").WithLocation(6, 18),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
                 //     foreach(int; i < 5; i++)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25)
-                );
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25));
             Assert.Null(boundNode.EnumeratorInfoOpt);
         }
 
@@ -2018,7 +2017,7 @@ BaseEnumeratorImpl::MoveNext()";
 
             // (a) Preprocessor symbol defined through command line parse options
             var options = new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create("CONDITIONAL"), documentationMode: DocumentationMode.None);
-            CreateCompilationWithMscorlib(source, parseOptions: options).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: options).VerifyDiagnostics(
                 // (35,31): error CS0117: 'void' does not contain a definition for 'Current'
                 //             foreach (int i in new ValidBaseTest.Derived5()) { }
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "new ValidBaseTest.Derived5()").WithArguments("void", "Current").WithLocation(35, 31),
@@ -2028,7 +2027,7 @@ BaseEnumeratorImpl::MoveNext()";
 
             // (b) Preprocessor symbol defined in source
             string condDefSource = "#define CONDITIONAL" + source;
-            CreateCompilationWithMscorlib(condDefSource).VerifyDiagnostics(
+            CreateStandardCompilation(condDefSource).VerifyDiagnostics(
                 // (35,31): error CS0117: 'void' does not contain a definition for 'Current'
                 //             foreach (int i in new ValidBaseTest.Derived5()) { }
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "new ValidBaseTest.Derived5()").WithArguments("void", "Current").WithLocation(35, 31),
@@ -2072,7 +2071,7 @@ class F
 public struct S<T> { }
 ";
 
-            Assert.NotEmpty(CreateCompilationWithMscorlib(source).GetDiagnostics());
+            Assert.NotEmpty(CreateStandardCompilation(source).GetDiagnostics());
         }
 
         [WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")]
@@ -2138,7 +2137,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var udc = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
@@ -2175,7 +2174,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (Element x in e) { }
     }
@@ -2231,7 +2230,7 @@ namespace System.Collections.Generic
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C>? e)
+    void Goo(System.Collections.Generic.IEnumerable<C>? e)
     {
         foreach (var c in e) { }
     }
@@ -2267,7 +2266,7 @@ public class Enumerable<T> : System.Collections.Generic.IEnumerable<T> { }
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
+    void Goo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2329,7 +2328,7 @@ public class Enumerable<T> : System.Collections.Generic.IEnumerable<T>
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
+    void Goo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2399,7 +2398,7 @@ public class Enumerable<T> : System.Collections.Generic.IEnumerable<T>
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
+    void Goo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2469,7 +2468,7 @@ public class Enumerable<T> : System.Collections.Generic.IEnumerable<T>
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
+    void Goo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2514,7 +2513,7 @@ public class Enumerable : System.Collections.IEnumerable { }
 
 class C
 {
-    void Foo(System.Collections.IEnumerable e1, Enumerable e2)
+    void Goo(System.Collections.IEnumerable e1, Enumerable e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2579,7 +2578,7 @@ public class Enumerable : System.Collections.IEnumerable
 
 class C
 {
-    void Foo(System.Collections.IEnumerable e1, Enumerable e2)
+    void Goo(System.Collections.IEnumerable e1, Enumerable e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2642,7 +2641,7 @@ public class Enumerable : System.Collections.IEnumerable
 
 class C
 {
-    void Foo(System.Collections.IEnumerable e1, Enumerable e2)
+    void Goo(System.Collections.IEnumerable e1, Enumerable e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2705,7 +2704,7 @@ public class Enumerable : System.Collections.IEnumerable
 
 class C
 {
-    void Foo(System.Collections.IEnumerable e1, Enumerable e2)
+    void Goo(System.Collections.IEnumerable e1, Enumerable e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2736,14 +2735,14 @@ class Program
 {
     static void Main()
     {
-        foreach(var x in Foo) { }
+        foreach(var x in Goo) { }
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,26): error CS0103: The name 'Foo' does not exist in the current context
-                //         foreach(var x in Foo) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(6, 26));
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,26): error CS0103: The name 'Goo' does not exist in the current context
+                //         foreach(var x in Goo) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo").WithArguments("Goo").WithLocation(6, 26));
         }
 
         [WorkItem(847507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847507")]
@@ -2805,7 +2804,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,27): error CS1579: foreach statement cannot operate on variables of type 'myClass<System.Collections.Generic.List<string>>' because 'myClass<System.Collections.Generic.List<string>>' does not contain a public definition for 'GetEnumerator'
                 //         foreach (var x in myObj) { }
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "myObj").WithArguments("myClass<System.Collections.Generic.List<string>>", "GetEnumerator").WithLocation(14, 27));
@@ -2846,7 +2845,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (27,25): error CS0266: Cannot implicitly convert type 'Dummy' to 'System.Collections.IEnumerable'. An explicit conversion exists (are you missing a cast?)
                 //         IEnumerable i = d; // fails
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "d").WithArguments("Dummy", "System.Collections.IEnumerable").WithLocation(27, 25));
@@ -2871,7 +2870,7 @@ class Program
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,27): error CS1579: foreach statement cannot operate on variables of type '<anonymous type: string B, string C>' because '<anonymous type: string B, string C>' does not contain a public definition for 'GetEnumerator'
                 //         foreach (var a in new { B, C })
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new { B, C }").WithArguments("<anonymous type: string B, string C>", "GetEnumerator").WithLocation(9, 27)
@@ -3106,7 +3105,7 @@ internal ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#=
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ForEachStatement).OfType<ForEachStatementSyntax>().Single();
@@ -3188,13 +3187,10 @@ class Program
 
             var comp4 = CreateCompilation(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
             comp4.VerifyDiagnostics(
-    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    //         foreach (var x in new Enumerable())
-    Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
-        { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
-    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    //         foreach (var x in new Enumerable())
-    Diagnostic(ErrorCode.ERR_NoTypeDef, "foreach").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
+                // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         foreach (var x in new Enumerable())
+                Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
+        { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
                 );
         }
     }

@@ -11,15 +11,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class IlasmUtilities
     {
-        public static DisposableFile CreateTempAssembly(string declarations, bool appendDefaultHeader = true)
+        public static DisposableFile CreateTempAssembly(string declarations, bool prependDefaultHeader = true)
         {
-            string assemblyPath;
-            string pdbPath;
-            IlasmTempAssembly(declarations, appendDefaultHeader, includePdb: false, assemblyPath: out assemblyPath, pdbPath: out pdbPath);
+            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath);
             Assert.NotNull(assemblyPath);
             Assert.Null(pdbPath);
             return new DisposableFile(assemblyPath);
         }
+
+        private static string GetIlasmPath()
+        {
+            if (CoreClrShim.AssemblyLoadContext.Type == null)
+            {
+                return Path.Combine(
+                    Path.GetDirectoryName(CorLightup.Desktop.GetAssemblyLocation(typeof(object).GetTypeInfo().Assembly)),
+                    "ilasm.exe");
+            }
+            else
+            {
+                return Path.Combine(AppContext.BaseDirectory, "ilasm");
+            }
+        }
+
+        private static readonly string IlasmPath = GetIlasmPath();
 
         public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, out string assemblyPath, out string pdbPath)
         {
@@ -36,18 +50,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string completeIL;
                 if (appendDefaultHeader)
                 {
-                    completeIL = string.Format(
-@".assembly '{0}' {{}} 
+                    const string corLibName = "mscorlib";
+                    const string corLibVersion = "4:0:0:0";
+                    const string corLibKey = "B7 7A 5C 56 19 34 E0 89";
 
-.assembly extern mscorlib 
+                    completeIL =
+$@".assembly '{sourceFileName}' {{}} 
+
+.assembly extern {corLibName} 
 {{
-  .publickeytoken = (B7 7A 5C 56 19 34 E0 89)
-  .ver 4:0:0:0
+  .publickeytoken = ({corLibKey})
+  .ver {corLibVersion}
 }} 
 
-{1}",
-                        sourceFileName,
-                        declarations);
+{declarations}";
                 }
                 else
                 {
@@ -56,29 +72,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 sourceFile.WriteAllText(completeIL);
 
-                var ilasmPath = Path.Combine(
-                    Path.GetDirectoryName(CorLightup.Desktop.GetAssemblyLocation(typeof(object).GetTypeInfo().Assembly)),
-                    "ilasm.exe");
-
-                var arguments = string.Format(
-                    "\"{0}\" /DLL /OUT=\"{1}\"",
-                    sourceFile.Path,
-                    assemblyPath);
+                var arguments = $"\"{sourceFile.Path}\" -DLL -out=\"{assemblyPath}\"";
 
                 if (includePdb && !MonoHelpers.IsRunningOnMono())
                 {
                     pdbPath = Path.ChangeExtension(assemblyPath, "pdb");
-                    arguments += string.Format(" /PDB=\"{0}\"", pdbPath);
+                    arguments += string.Format(" -PDB=\"{0}\"", pdbPath);
                 }
                 else
                 {
                     pdbPath = null;
                 }
 
-                var program = ilasmPath;
+                var program = IlasmPath;
                 if (MonoHelpers.IsRunningOnMono())
                 {
-                    arguments = string.Format("{0} {1}", ilasmPath, arguments);
+                    arguments = string.Format("{0} {1}", IlasmPath, arguments);
                     arguments = arguments.Replace("\"", "");
                     arguments = arguments.Replace("=", ":");
                     program = "mono";

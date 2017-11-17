@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -56,8 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicCodeGenerationServiceFactory),
                 typeof(CodeAnalysis.CSharp.CSharpSyntaxFactsServiceFactory),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory),
+                typeof(CodeAnalysis.CSharp.FindSymbols.CSharpDeclaredSymbolInfoFactoryService),
+                typeof(CodeAnalysis.VisualBasic.FindSymbols.VisualBasicDeclaredSymbolInfoFactoryService),
                 typeof(CodeAnalysis.CSharp.CSharpSymbolDeclarationService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSymbolDeclarationService),
+                typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingService),
+                typeof(CodeAnalysis.VisualBasic.Formatting.VisualBasicFormattingService),
                 typeof(CSharp.LanguageServices.CSharpSymbolDisplayServiceFactory),
                 typeof(CSharp.Interactive.CSharpInteractiveEvaluator),
                 typeof(VisualBasic.LanguageServices.VisualBasicSymbolDisplayServiceFactory),
@@ -72,17 +76,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
                 typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
+                typeof(CodeAnalysis.CSharp.Execution.CSharpOptionsSerializationService),
+                typeof(CodeAnalysis.VisualBasic.Execution.VisualBasicOptionsSerializationService),
+                typeof(CodeAnalysis.Execution.DesktopReferenceSerializationServiceFactory),
                 typeof(TestExportProvider)
             };
 
             return ServiceTestExportProvider.GetLanguageNeutralTypes()
                 .Concat(types)
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
                 .Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions).Assembly, typeof(CodeAnalysis.Options.IOption)))
                 .Distinct()
                 .ToArray();

@@ -17,12 +17,11 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <DeployVSTemplates>false</DeployVSTemplates>
     <CopyZipOutputToOutputDirectory>false</CopyZipOutputToOutputDirectory>
-    <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)\$(VersionType)\</BaseIntermediateOutputPath>
-    <VsixOutDirSuffix>Roslyn Templates\$(VersionType)</VsixOutDirSuffix>
-    <TargetVsixContainerName>$(VsixOutDirSuffix)\Roslyn SDK.vsix</TargetVsixContainerName>
+    <TargetVsixContainerName>Roslyn SDK.vsix</TargetVsixContainerName>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
@@ -50,7 +49,6 @@
       <Link>EULA.rtf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="project.json" />
     <None Include="VisualBasic\Diagnostic\Vsix\Deployment.vbproj" />
     <None Include="VisualBasic\Diagnostic\Vsix\Deployment.vstemplate">
       <SubType>Designer</SubType>
@@ -236,6 +234,48 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
+      <Version>$(MicrosoftCodeAnalysisAnalyzersVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common">
+      <Version>$(MicrosoftCodeAnalysisCommonVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
+      <Version>$(MicrosoftCodeAnalysisCSharpVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
+      <Version>$(MicrosoftCodeAnalysisCSharpWorkspacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text">
+      <Version>$(MicrosoftCodeAnalysisEditorFeaturesTextVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic">
+      <Version>$(MicrosoftCodeAnalysisVisualBasicVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces">
+      <Version>$(MicrosoftCodeAnalysisVisualBasicWorkspacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
+      <Version>$(MicrosoftCodeAnalysisWorkspacesCommonVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.CommandLine">
+      <Version>$(NuGetCommandLineVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableFixedVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Reflection.Metadata">
+      <Version>$(SystemReflectionMetadataFixedVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface">
+      <Version>$(MicrosoftVisualStudioTemplateWizardInterfaceVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="VSLangProj">
+      <Version>$(VSLangProjVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="CSharp\Diagnostic\Analyzer\AssemblyInfo.cs" />
@@ -322,7 +362,7 @@
       <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic.Workspaces\1.0.1\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.1.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.Composition\1.0.27\Microsoft.Composition.1.0.27.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\System.Composition\1.0.31\System.Composition.1.0.31.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
       <VSIXSourceItem Include="$(NuGetPackageRoot)\System.Collections.Immutable\1.1.36\System.Collections.Immutable.1.1.36.nupkg">

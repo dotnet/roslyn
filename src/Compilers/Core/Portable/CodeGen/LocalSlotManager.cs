@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -125,8 +126,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            ImmutableArray<TypedConstant> dynamicTransformFlags,
-            ImmutableArray<TypedConstant> tupleElementNames,
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames,
             bool isSlotReusable)
         {
             LocalDefinition local;
@@ -165,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal LocalDefinition AllocateSlot(
             Cci.ITypeReference type,
             LocalSlotConstraints constraints,
-            ImmutableArray<TypedConstant> dynamicTransformFlags = default(ImmutableArray<TypedConstant>),
-            ImmutableArray<TypedConstant> tupleElementNames = default(ImmutableArray<TypedConstant>))
+            ImmutableArray<bool> dynamicTransformFlags = default(ImmutableArray<bool>),
+            ImmutableArray<string> tupleElementNames = default(ImmutableArray<string>))
         {
             LocalDefinition local;
             if (!FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
@@ -194,8 +195,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            ImmutableArray<TypedConstant> dynamicTransformFlags,
-            ImmutableArray<TypedConstant> tupleElementNames)
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames)
         {
             if (_lazyAllLocals == null)
             {

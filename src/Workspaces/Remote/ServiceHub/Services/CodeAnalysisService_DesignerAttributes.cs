@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttributes;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -18,36 +19,25 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task<DesignerAttributeResult> ScanDesignerAttributesAsync(DocumentId documentId)
+        public Task<DesignerAttributeResult> ScanDesignerAttributesAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.ProjectId.DebugName, CancellationToken))
+            return RunServiceAsync(async token =>
             {
-                try
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, documentId.DebugName, token))
                 {
-                    var solution = await GetSolutionAsync().ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, token).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<IDesignerAttributeService>();
                     if (service != null)
                     {
                         // todo comment service supported
-                        return await service.ScanDesignerAttributesAsync(document, CancellationToken).ConfigureAwait(false);
+                        return await service.ScanDesignerAttributesAsync(document, token).ConfigureAwait(false);
                     }
-                }
-                catch (IOException)
-                {
-                    // stream to send over result has closed before we
-                    // had chance to check cancellation
-                }
-                catch (OperationCanceledException)
-                {
-                    // rpc connection has closed.
-                    // this can happen if client side cancelled the
-                    // operation
-                }
 
-                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
-            }
+                    return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
+                }
+            }, cancellationToken);
         }
     }
 }

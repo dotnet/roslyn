@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -16,11 +16,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
         Public Async Function TestMethodWithGetName() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
 End class",
 "class C
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
+        Get
+        End Get
+    End Property
+End class")
+        End Function
+
+        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestMissingParameterList() As Task
+            Await TestInRegularAndScript1Async(
+"class C
+    function [||]GetGoo as integer
+    End function
+End class",
+"class C
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -31,11 +47,11 @@ End class")
         Public Async Function TestMethodWithoutGetName() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]Foo() as integer
+    function [||]Goo() as integer
     End function
 End class",
 "class C
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -46,10 +62,10 @@ End class")
         Public Async Function TestMethodWithoutBody() As Task
             Await TestInRegularAndScriptAsync(
 "mustinherit class C
-    MustOverride function [||]GetFoo() as integer
+    MustOverride function [||]GetGoo() as integer
 End class",
 "mustinherit class C
-    MustOverride ReadOnly Property Foo as integer
+    MustOverride ReadOnly Property Goo as integer
 End class")
         End Function
 
@@ -57,11 +73,11 @@ End class")
         Public Async Function TestMethodWithModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public shared function [||]GetFoo() as integer
+    public shared function [||]GetGoo() as integer
     End function
 End class",
 "class C
-    public shared ReadOnly Property Foo as integer
+    public shared ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -72,11 +88,12 @@ End class")
         Public Async Function TestMethodWithAttributes() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    <A> function [||]GetFoo() as integer
+    <A> function [||]GetGoo() as integer
     End function
 End class",
 "class C
-    <A> ReadOnly Property Foo as integer
+    <A>
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -87,18 +104,17 @@ End class")
         Public Async Function TestMethodWithTrivia_1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    ' Foo
-    function [||]GetFoo() as integer
+    ' Goo
+    function [||]GetGoo() as integer
     End function
 End class",
 "class C
-    ' Foo
-    ReadOnly Property Foo as integer
+    ' Goo
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
-End class",
-ignoreTrivia:=False)
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -106,13 +122,13 @@ ignoreTrivia:=False)
             Await TestInRegularAndScriptAsync(
 "class C
 #if true
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
 #End if
 End class",
 "class C
 #if true
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -121,47 +137,146 @@ End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    function [||]GetGoo() as integer
+    End function
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class",
+"class C
+#if true
+    ReadOnly Property Goo as integer
+        Get
+        End Get
+    End Property
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    function [||]GetGoo() as integer
+    End function
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class",
+"class C
+#if true
+    Property Goo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+#End if
+End class", index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod4() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    function [||]GetGoo() as integer
+    End function
+#End if
+End class",
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    ReadOnly Property Goo as integer
+        Get
+        End Get
+    End Property
+#End if
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod5() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    function [||]GetGoo() as integer
+    End function
+#End if
+End class",
+"class C
+
+#if true
+
+    Property Goo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+#End if
+End class", index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithTrivia_2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    ' Foo
-    function [||]GetFoo() as integer
+    ' Goo
+    function [||]GetGoo() as integer
     End function
-    ' SetFoo
-    sub SetFoo(i as integer)
+    ' SetGoo
+    sub SetGoo(i as integer)
     End sub
 End class",
 "class C
-    ' Foo
-    ' SetFoo
-    Property Foo as integer
+    ' Goo
+    ' SetGoo
+    Property Goo as integer
         Get
         End Get
         Set(i as integer)
         End Set
     End Property
 End class",
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestExplicitInterfaceMethod_2() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
-    function GetFoo() as integer
+    function GetGoo() as integer
 End interface
 class C
     implements I
-    function [||]GetFoo() as integer implements I.GetFoo
+    function [||]GetGoo() as integer implements I.GetGoo
     End function
 End class",
 "interface I
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
 End interface
 class C
     implements I
-    ReadOnly Property Foo as integer implements I.Foo
+    ReadOnly Property Goo as integer implements I.Goo
         Get
         End Get
     End Property
@@ -172,19 +287,19 @@ End class")
         Public Async Function TestExplicitInterfaceMethod_3() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
 End interface
 class C
     implements I
-    function GetFoo() as integer implements I.GetFoo
+    function GetGoo() as integer implements I.GetGoo
     End function
 End class",
 "interface I
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
 End interface
 class C
     implements I
-    ReadOnly Property Foo as integer implements I.Foo
+    ReadOnly Property Goo as integer implements I.Goo
         Get
         End Get
     End Property
@@ -195,7 +310,7 @@ End class")
         Public Async Function TestInAttribute() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    <At[||]tr> function GetFoo() as integer
+    <At[||]tr> function GetGoo() as integer
     End function
 End class")
         End Function
@@ -204,7 +319,7 @@ End class")
         Public Async Function TestInMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    function GetFoo() as integer
+    function GetGoo() as integer
 
 [||]    End function
 End class")
@@ -214,7 +329,7 @@ End class")
         Public Async Function TestSubMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    sub [||]GetFoo()
+    sub [||]GetGoo()
     End sub
 End class")
         End Function
@@ -223,7 +338,7 @@ End class")
         Public Async Function TestAsyncMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    async function [||]GetFoo() as Task
+    async function [||]GetGoo() as Task
     End function
 End class")
         End Function
@@ -232,7 +347,7 @@ End class")
         Public Async Function TestGenericMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo(of T)() as integer
+    function [||]GetGoo(of T)() as integer
     End function
 End class")
         End Function
@@ -241,7 +356,7 @@ End class")
         Public Async Function TestExtensionMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "module C
-    <System.Runtime.CompilerServices.Extension> function [||]GetFoo(i as integer) as integer
+    <System.Runtime.CompilerServices.Extension> function [||]GetGoo(i as integer) as integer
     End function
 End module")
         End Function
@@ -250,7 +365,7 @@ End module")
         Public Async Function TestMethodWithParameters_1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo(i as integer) as integer
+    function [||]GetGoo(i as integer) as integer
     End function
 End class")
         End Function
@@ -259,19 +374,20 @@ End class")
         Public Async Function TestUpdateGetReferenceNotInMethod() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
     sub Bar()
-        dim x = GetFoo()
+        dim x = GetGoo()
     End sub
 End class",
 "class C
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
+
     sub Bar()
-        dim x = Foo
+        dim x = Goo
     End sub
 End class")
         End Function
@@ -280,19 +396,20 @@ End class")
         Public Async Function TestUpdateGetReferenceMemberAccessInvocation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
     sub Bar()
-        dim x = me.GetFoo()
+        dim x = me.GetGoo()
     End sub
 End class",
 "class C
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
+
     sub Bar()
-        dim x = me.Foo
+        dim x = me.Goo
     End sub
 End class")
         End Function
@@ -301,21 +418,22 @@ End class")
         Public Async Function TestUpdateGetReferenceBindingMemberInvocation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
     sub Bar()
         dim x as C
-        dim v = x?.GetFoo()
+        dim v = x?.GetGoo()
     End sub
 End class",
 "class C
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
+
     sub Bar()
         dim x as C
-        dim v = x?.Foo
+        dim v = x?.Goo
     End sub
 End class")
         End Function
@@ -324,14 +442,14 @@ End class")
         Public Async Function TestUpdateGetReferenceInMethod() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
-        return GetFoo()
+    function [||]GetGoo() as integer
+        return GetGoo()
     End function
 End class",
 "class C
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
         Get
-            return Foo
+            return Goo
         End Get
     End Property
 End class")
@@ -341,23 +459,23 @@ End class")
         Public Async Function TestOverride() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public overridable function [||]GetFoo() as integer
+    public overridable function [||]GetGoo() as integer
     End function
 End class
 class D
     inherits C
-    public overrides function GetFoo() as integer
+    public overrides function GetGoo() as integer
     End function
 End class",
 "class C
-    public overridable ReadOnly Property Foo as integer
+    public overridable ReadOnly Property Goo as integer
         Get
         End Get
     End Property
 End class
 class D
     inherits C
-    public overrides ReadOnly Property Foo as integer
+    public overrides ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -368,19 +486,20 @@ End class")
         Public Async Function TestUpdateGetReference_NonInvoked() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
     sub Bar()
-        dim i = GetFoo
+        dim i = GetGoo
     End sub
 End class",
 "class C
-    ReadOnly Property Foo as integer
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
+
     sub Bar()
-        dim i = Foo
+        dim i = Goo
     End sub
 End class")
         End Function
@@ -389,13 +508,13 @@ End class")
         Public Async Function TestUpdateGetSet() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
-    sub SetFoo(i as integer)
+    sub SetGoo(i as integer)
     End sub
 End class",
 "class C
-    Property Foo as integer
+    Property Goo as integer
         Get
         End Get
         Set(i as integer)
@@ -410,24 +529,25 @@ index:=1)
             Await TestInRegularAndScriptAsync(
 "Imports System
 class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
-    sub SetFoo(i as integer)
+    sub SetGoo(i as integer)
     End sub
     sub Bar()
-        dim i as Action(of integer) = addressof SetFoo
+        dim i as Action(of integer) = addressof SetGoo
     End sub
 End class",
 "Imports System
 class C
-    Property Foo as integer
+    Property Goo as integer
         Get
         End Get
         Set(i as integer)
         End Set
     End Property
+
     sub Bar()
-        dim i as Action(of integer) = addressof {|Conflict:Foo|}
+        dim i as Action(of integer) = addressof {|Conflict:Goo|}
     End sub
 End class",
 index:=1)
@@ -437,17 +557,18 @@ index:=1)
         Public Async Function TestUpdateGetSet_SetterAccessibility() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public function [||]GetFoo() as integer
+    public function [||]GetGoo() as integer
     End function
-    private sub SetFoo(i as integer)
+    private sub SetGoo(i as integer)
     End sub
 End class",
 "class C
-    public Property Foo as integer
-        Get End Get 
- Private Set(i as integer) 
- End Set
- End Property
+    public Property Goo as integer
+        Get
+        End Get
+        Private Set(i as integer)
+        End Set
+    End Property
 End class",
 index:=1)
         End Function
@@ -456,24 +577,24 @@ index:=1)
         Public Async Function TestUpdateGetSet_GetInSetReference() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
-    sub SetFoo(i as integer)
+    sub SetGoo(i as integer)
     End sub
     sub Bar()
-        SetFoo(GetFoo() + 1)
+        SetGoo(GetGoo() + 1)
     End sub
 End class",
 "class C
-    Property Foo as integer
+    Property Goo as integer
         Get
         End Get
         Set(i as integer)
         End Set
     End Property
+
     sub Bar()
-        Foo = Foo + 1
-    End sub
+        Goo = Goo + 1    End sub
 End class",
 index:=1)
         End Function
@@ -482,18 +603,18 @@ index:=1)
         Public Async Function TestUpdateGetSet_SetReferenceInSetter() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
-    sub SetFoo(i as integer)
-        SetFoo(i - 1)
+    sub SetGoo(i as integer)
+        SetGoo(i - 1)
     End sub
 End class",
 "class C
-    Property Foo as integer
+    Property Goo as integer
         Get
         End Get
         Set(i as integer)
-            Foo = i - 1
+            Goo = i - 1
         End Set
     End Property
 End class",
@@ -504,23 +625,23 @@ index:=1)
         Public Async Function TestVirtualGetWithOverride_1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    protected overridable function [||]GetFoo() as integer
+    protected overridable function [||]GetGoo() as integer
     End function
 End class
 class D
     inherits C
-    protected overrides function GetFoo() as integer
+    protected overrides function GetGoo() as integer
     End function
 End class",
 "class C
-    protected overridable ReadOnly Property Foo as integer
+    protected overridable ReadOnly Property Goo as integer
         Get
         End Get
     End Property
 End class
 class D
     inherits C
-    protected overrides ReadOnly Property Foo as integer
+    protected overrides ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -531,26 +652,26 @@ End class")
         Public Async Function TestVirtualGetWithOverride_2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    protected overridable function [||]GetFoo() as integer
+    protected overridable function [||]GetGoo() as integer
     End function
 End class
 class D
     inherits C
-    protected overrides function GetFoo() as integer
-        return mybase.GetFoo()
+    protected overrides function GetGoo() as integer
+        return mybase.GetGoo()
     End function
 End class",
 "class C
-    protected overridable ReadOnly Property Foo as integer
+    protected overridable ReadOnly Property Goo as integer
         Get
         End Get
     End Property
 End class
 class D
     inherits C
-    protected overrides ReadOnly Property Foo as integer
+    protected overrides ReadOnly Property Goo as integer
         Get
-            return mybase.Foo
+            return mybase.Goo
         End Get
     End Property
 End class")
@@ -560,15 +681,15 @@ End class")
         Public Async Function TestWithPartialClasses() As Task
             Await TestInRegularAndScriptAsync(
 "partial class C
-    function [||]GetFoo() as integer
+    function [||]GetGoo() as integer
     End function
 End class
 partial class C
-    sub SetFoo(i as integer)
+    sub SetGoo(i as integer)
     End sub
 End class",
 "partial class C
-    Property Foo as integer
+    Property Goo as integer
         Get
         End Get
         Set(i as integer)
@@ -585,21 +706,21 @@ index:=1)
         Public Async Function TestUpdateChainedGet1() As Task
             Await TestInRegularAndScriptAsync(
 "
-public class Foo
-    public sub Foo()
+public class Goo
+    public sub Goo()
         dim v = GetValue().GetValue()
     end sub
 
-    Public Function [||]GetValue() As Foo 
+    Public Function [||]GetValue() As Goo 
     End Function
 end class",
 "
-public class Foo
-    public sub Foo()
+public class Goo
+    public sub Goo()
         dim v = Value.Value
     end sub
 
-    Public ReadOnly Property Value As Foo
+    Public ReadOnly Property Value As Goo
         Get
         End Get
     End Property
@@ -628,7 +749,70 @@ end class",
             return count
         End Get
     End Property
-end class", ignoreTrivia:=False)
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestInterfaceImplementation() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface IGoo
+    Function [||]GetGoo() As Integer
+End Interface
+
+Class C
+    Implements IGoo
+
+    Private _Goo As Integer
+
+    Public Function GetGoo() As Integer Implements IGoo.GetGoo
+        Return _Goo
+    End Function
+End Class",
+"Interface IGoo
+    ReadOnly Property Goo As Integer
+End Interface
+
+Class C
+    Implements IGoo
+
+    Private _Goo As Integer
+
+    Public ReadOnly Property Goo As Integer Implements IGoo.Goo
+        Get
+            Return _Goo
+        End Get
+    End Property
+End Class")
+        End Function
+
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestSystemObjectMetadataOverride() As Task
+            Await TestMissingAsync(
+"class C
+    public overrides function [||]ToString() as string
+    End function
+End class")
+        End Function
+
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestMetadataOverride() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    inherits system.type
+
+    public overrides function [||]GetArrayRank() as integer
+    End function
+End class",
+"class C
+    inherits system.type
+
+    public overrides ReadOnly Property {|Warning:ArrayRank|} as integer
+        Get
+        End Get
+    End Property
+End class")
         End Function
     End Class
 End Namespace

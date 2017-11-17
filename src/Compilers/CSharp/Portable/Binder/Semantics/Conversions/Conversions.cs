@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -54,67 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        protected override Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            var arguments = source.Arguments;
-
-            // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
-            {
-                return Conversion.NoConversion;
-            }
-
-            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
-            Debug.Assert(arguments.Length == targetElementTypes.Length);
-
-            // check arguments against flattened list of target element types 
-            var argumentConversions = ArrayBuilder<Conversion>.GetInstance(arguments.Length);
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                var argument = arguments[i];
-                var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
-                if (!result.Exists)
-                {
-                    argumentConversions.Free();
-                    return Conversion.NoConversion;
-                }
-
-                argumentConversions.Add(result);
-            }
-
-            return new Conversion(ConversionKind.ImplicitTupleLiteral, argumentConversions.ToImmutableAndFree());
-        }
-
-        protected override Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
-        {
-            var arguments = source.Arguments;
-
-            // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
-            {
-                return Conversion.NoConversion;
-            }
-
-            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
-            Debug.Assert(arguments.Length == targetElementTypes.Length);
-
-            // check arguments against flattened list of target element types 
-            var argumentConversions = ArrayBuilder<Conversion>.GetInstance(arguments.Length);
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                var result = ClassifyConversionFromExpression(arguments[i], targetElementTypes[i], ref useSiteDiagnostics, forCast);
-                if (!result.Exists)
-                {
-                    argumentConversions.Free();
-                    return Conversion.NoConversion;
-                }
-
-                argumentConversions.Add(result);
-            }
-
-            return new Conversion(ConversionKind.ExplicitTupleLiteral, argumentConversions.ToImmutableAndFree());
-        }
-
         protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // An interpolated string expression may be converted to the types
@@ -132,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)delegateInvokeMethodOpt != null)
             {
-                var analyzedArguments = new AnalyzedArguments();
+                var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, inferWithDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                analyzedArguments.Free();
                 return resolution;
             }
             else
@@ -318,6 +256,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
+            //cannot capture span-like types.
+            if (!method.IsStatic && methodGroup.Receiver?.Type?.IsByRefLikeType == true)
+            {
+                return Conversion.NoConversion;
+            }
+
             if (method.OriginalDefinition.ContainingType.SpecialType == SpecialType.System_Nullable_T &&
                 !method.IsOverride)
             {
@@ -338,6 +282,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
 
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
+        }
+
+        public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
+            {
+                Debug.Assert((object)sourceExpression.Type == null);
+                Debug.Assert(sourceExpression.ElementType != null);
+
+                var pointerConversion = default(Conversion);
+                var sourceAsPointer = new PointerTypeSymbol(sourceExpression.ElementType);
+                pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
+
+                if (pointerConversion.IsValid)
+                {
+                    // Report unsafe errors
+                    _binder.ReportUnsafeIfNotAllowed(sourceExpression.Syntax.Location, ref useSiteDiagnostics);
+
+                    return Conversion.MakeStackAllocToPointerType(pointerConversion);
+                }
+                else
+                {
+                    var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
+                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsByRefLikeType)
+                    {
+                        var spanType_T = spanType.Construct(sourceExpression.ElementType);
+                        var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteDiagnostics);
+
+                        if (spanConversion.Exists)
+                        {
+                            // Report errors if Span ctor is missing, or using an older C# version
+                            Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
+                            Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
+                            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
+
+                            return Conversion.MakeStackAllocToSpanType(spanConversion);
+                        }
+                    }
+                }
+            }
+
+            return Conversion.NoConversion;
         }
     }
 }

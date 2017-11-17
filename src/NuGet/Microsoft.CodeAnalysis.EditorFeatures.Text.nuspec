@@ -2,11 +2,18 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.CodeAnalysis.EditorFeatures.Text</id>
+    <summary>
+      .NET Compiler Platform ("Roslyn") support for working with Visual Studio text buffers.
+    </summary>
     <description>
       .NET Compiler Platform ("Roslyn") support for working with Visual Studio text buffers.
 
-Supported Platforms:
-- .NET Framework 4.6
+      Supported Platforms:
+      - .NET Framework 4.6
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />

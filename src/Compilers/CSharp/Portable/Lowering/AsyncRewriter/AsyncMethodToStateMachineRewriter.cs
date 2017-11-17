@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -298,30 +299,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownMemberNames.GetResult,
                 resultsDiscarded: resultPlace == null);
 
-            var nullAwaiter = F.AssignmentExpression(F.Local(awaiterTemp), F.NullOrDefault(awaiterTemp.Type));
-            if (resultPlace != null && type.SpecialType != SpecialType.System_Void)
-            {
-                // $resultTemp = $awaiterTemp.GetResult();
-                // $awaiterTemp = null;
-                // $resultTemp
-                LocalSymbol resultTemp = F.SynthesizedLocal(type);
-                return F.Block(
-                    ImmutableArray.Create(awaiterTemp, resultTemp),
-                    awaitIfIncomplete,
-                    F.Assignment(F.Local(resultTemp), getResultCall),
-                    F.ExpressionStatement(nullAwaiter),
-                    F.Assignment(resultPlace, F.Local(resultTemp)));
-            }
-            else
-            {
-                // $awaiterTemp.GetResult();
-                // $awaiterTemp = null;
-                return F.Block(
-                    ImmutableArray.Create(awaiterTemp),
-                    awaitIfIncomplete,
-                    F.ExpressionStatement(getResultCall),
-                    F.ExpressionStatement(nullAwaiter));
-            }
+            // [$resultPlace = ] $awaiterTemp.GetResult();
+            BoundStatement getResultStatement = resultPlace != null && type.SpecialType != SpecialType.System_Void ?
+                F.Assignment(resultPlace, getResultCall):
+                F.ExpressionStatement(getResultCall);
+
+            return F.Block(
+                ImmutableArray.Create(awaiterTemp),
+                awaitIfIncomplete,
+                getResultStatement);
         }
 
         private BoundExpression MakeCallMaybeDynamic(

@@ -187,6 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             BoundExpression valueBeforeConversion;
             var convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+            if (valueBeforeConversion.HasErrors)
+            {
+                return ConstantValue.Bad;
+            }
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)
@@ -196,8 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
+            // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
 
-            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion)
+            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
+                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && valueBeforeConversion.Type == null))
             {
                 if (parameterType.IsNullableType())
                 {
@@ -218,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // The metadata parameter name should be the name used in the partial definition.
 
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod == null)
                 {
                     return base.MetadataName;
@@ -253,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod == null)
                 {
                     return null;
@@ -291,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxList<AttributeListSyntax> attributes = AttributeDeclarationList;
 
-            var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+            var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
             if ((object)sourceMethod == null)
             {
                 return OneOrMany.Create(attributes);
@@ -300,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxList<AttributeListSyntax> otherAttributes;
 
             // if this is a definition get the implementation and vice versa
-            SourceMemberMethodSymbol otherPart = sourceMethod.OtherPartOfPartial;
+            SourceOrdinaryMethodSymbol otherPart = sourceMethod.OtherPartOfPartial;
             if ((object)otherPart != null)
             {
                 otherAttributes = ((SourceParameterSymbol)otherPart.Parameters[this.Ordinal]).AttributeDeclarationList;
@@ -557,6 +563,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {

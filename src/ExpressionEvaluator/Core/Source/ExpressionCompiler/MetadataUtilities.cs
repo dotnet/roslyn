@@ -10,16 +10,14 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal static class MetadataUtilities
+    internal static partial class MetadataUtilities
     {
-        internal const uint COR_E_BADIMAGEFORMAT = 0x8007000b;
-        internal const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
-
         /// <summary>
         /// Group module metadata into assemblies.
         /// If <paramref name="moduleVersionId"/> is set, the
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         metadataBuilder.Add(metadata);
                     }
                 }
-                catch (Exception e) when (IsBadMetadataException(e))
+                catch (BadImageFormatException)
                 {
                     // Ignore modules with "bad" metadata.
                 }
@@ -283,7 +281,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         }
                     }
                 }
-                catch (Exception e) when (IsBadMetadataException(e))
+                catch (BadImageFormatException)
                 {
                     // Ignore modules with "bad" metadata.
                 }
@@ -411,32 +409,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
             return builder.ToImmutableAndFree();
-        }
-
-        private static bool IsBadMetadataException(Exception e)
-        {
-            return GetHResult(e) == COR_E_BADIMAGEFORMAT;
-        }
-
-        internal static bool IsBadOrMissingMetadataException(Exception e, string moduleName)
-        {
-            Debug.Assert(moduleName != null);
-            switch (GetHResult(e))
-            {
-                case COR_E_BADIMAGEFORMAT:
-                    Debug.WriteLine($"Module '{moduleName}' contains corrupt metadata.");
-                    return true;
-                case CORDBG_E_MISSING_METADATA:
-                    Debug.WriteLine($"Module '{moduleName}' is missing metadata.");
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        private static uint GetHResult(Exception e)
-        {
-            return unchecked((uint)e.HResult);
         }
     }
 }

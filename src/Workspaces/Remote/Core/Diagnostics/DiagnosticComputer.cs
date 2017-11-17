@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
             IEnumerable<AnalyzerReference> hostAnalyzers,
+            OptionSet options,
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
@@ -43,13 +45,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var cacheService = _project.Solution.Workspace.Services.GetService<IProjectCacheService>();
             using (var cache = cacheService.EnableCaching(_project.Id))
             {
-                return await AnalyzeAsync(analyzerMap, analyzers, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
+                return await AnalyzeAsync(analyzerMap, analyzers, options, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> AnalyzeAsync(
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            OptionSet options,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
@@ -65,10 +68,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // faster
             compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(useConcurrent));
 
+            // We need this to fork soluton, otherwise, option is cached at document.
+            // all this can go away once we do this - https://github.com/dotnet/roslyn/issues/19284
+            var temporaryWorksapce = new TemporaryWorkspace(_project.Solution);
+
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace),
+                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), temporaryWorksapce.CurrentSolution),
                     onAnalyzerException: OnAnalyzerException,
                     analyzerExceptionFilter: null,
                     concurrentAnalysis: useConcurrent,
@@ -79,18 +86,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
             var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
-
-            // REVIEW: the design of current analyzer engine is that, information/states in CompilationWithAnalyzer (more specifically AnalyzerManager singleton)
-            //         will live forever until analyzer references (analyzers), which is given to CompilationWithAnalyzer, go away.
-            //         that is not suitable for OOP since OOP will create new workspace
-            //         for each analysis but share all resources including analyzer references.
-            //         until, we address this issue, OOP will clear state every time analysis is done.
-            //
-            //         * NOTE * this only works for now since we don't run analysis on multiple threads.
-            //
-            //         best way to fix this is doing this - https://github.com/dotnet/roslyn/issues/2830
-            //         host should control lifetime of all information related to analyzer reference explicitly
-            CompilationWithAnalyzers.ClearAnalyzerState(analyzers);
 
             var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
@@ -124,8 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             foreach (var analyzerId in analyzerIds)
             {
-                DiagnosticAnalyzer analyzer;
-                if (analyzerMap.TryGetValue(analyzerId, out analyzer))
+                if (analyzerMap.TryGetValue(analyzerId, out var analyzer))
                 {
                     builder.Add(analyzer);
                 }
@@ -139,6 +133,17 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // TODO: probably need something like analyzer service so that we don't do this repeatedly?
             return new BidirectionalMap<string, DiagnosticAnalyzer>(
                 hostAnalyzers.Concat(project.AnalyzerReferences).SelectMany(r => r.GetAnalyzers(project.Language)).Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)));
+        }
+
+        private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
+        {
+            var newOptions = workspaceOptions;
+            foreach (var key in userOptions.GetChangedOptions(workspaceOptions))
+            {
+                newOptions = newOptions.WithChangedOption(key, userOptions.GetOption(key));
+            }
+
+            return newOptions;
         }
     }
 }

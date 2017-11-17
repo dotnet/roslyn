@@ -40,11 +40,11 @@ public class C
 
     void G()
     {
-        Func<int> H1 = <N:0>() => 1</N:0>;
+        Func<int> <N:4>H1</N:4> = <N:0>() => 1</N:0>;
 
-        Action H2 = <N:1>() =>
+        Action <N:5>H2</N:5> = <N:1>() =>
         {
-            Func<int> H3 = <N:2>() => 3</N:2>;
+            Func<int> <N:6>H3</N:6> = <N:2>() => 3</N:2>;
 
         }</N:1>;
     }
@@ -69,12 +69,12 @@ public class C
 
     void G()
     {
-        Func<int> H1 = <N:0>() => 1</N:0>;
+        Func<int> <N:4>H1</N:4> = <N:0>() => 1</N:0>;
 
-        Action H2 = <N:1>() =>
+        Action <N:5>H2</N:5> = <N:1>() =>
         {
-            Func<int> H3 = <N:2>() => 3</N:2>;
-            Func<int> H4 = <N:3>() => 4</N:3>;
+            Func<int> <N:6>H3</N:6> = <N:2>() => 3</N:2>;
+            Func<int> <N:7>H4</N:7> = <N:3>() => 4</N:3>;
         }</N:1>;
     }
 
@@ -102,10 +102,10 @@ public class C
     {
         
 
-        Action H2 = <N:1>() =>
+        Action <N:5>H2</N:5> = <N:1>() =>
         {
             
-            Func<int> H4 = <N:3>() => 4</N:3>;
+            Func<int> <N:7>H4</N:7> = <N:3>() => 4</N:3>;
         }</N:1>;
     }
 
@@ -115,7 +115,7 @@ public class C
 }
 ", fileName: @"C:\Enc1.cs");
 
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "EncMethodExtents");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "EncMethodExtents");
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -184,7 +184,7 @@ public class C
             diff1.VerifyPdb(Enumerable.Range(0x06000001, 20), @"
 <symbols>
   <files>
-    <file id=""1"" name=""C:\Enc1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""D1, 84, C6,  3, AA, 83, C0, CF, 49, E2, 52, 48, BB, 35, 99, 51, 88, 2B, 6C, D6, "" />
+    <file id=""1"" name=""C:\Enc1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum="" B, 95, CB, 78,  0, AE, C7, 34, 45, D9, FB, 31, E4, 30, A4,  E, FC, EA, 9E, 95, "" />
     <file id=""2"" name=""C:\F\A.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
     <file id=""3"" name=""C:\F\C.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
   </files>
@@ -211,13 +211,13 @@ public class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""43"" document=""1"" />
+        <entry offset=""0x1"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""54"" document=""1"" />
         <entry offset=""0x21"" startLine=""21"" startColumn=""9"" endLine=""25"" endColumn=""17"" document=""1"" />
         <entry offset=""0x41"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x42"">
-        <local name=""H1"" il_index=""2"" il_start=""0x0"" il_end=""0x42"" attributes=""0"" />
-        <local name=""H2"" il_index=""3"" il_start=""0x0"" il_end=""0x42"" attributes=""0"" />
+        <local name=""H1"" il_index=""0"" il_start=""0x0"" il_end=""0x42"" attributes=""0"" />
+        <local name=""H2"" il_index=""1"" il_start=""0x0"" il_end=""0x42"" attributes=""0"" />
       </scope>
     </method>
     <method token=""0x6000008"">
@@ -225,7 +225,7 @@ public class C
         <forward token=""0x6000002"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""19"" startColumn=""35"" endLine=""19"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x0"" startLine=""19"" startColumn=""46"" endLine=""19"" endColumn=""47"" document=""1"" />
       </sequencePoints>
     </method>
     <method token=""0x6000009"">
@@ -234,13 +234,13 @@ public class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x1"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""47"" document=""1"" />
-        <entry offset=""0x21"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x1"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x21"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""58"" document=""1"" />
         <entry offset=""0x41"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x42"">
-        <local name=""H3"" il_index=""1"" il_start=""0x0"" il_end=""0x42"" attributes=""0"" />
-        <local name=""H4"" il_index=""2"" il_start=""0x0"" il_end=""0x42"" attributes=""0"" />
+        <local name=""H3"" il_index=""0"" il_start=""0x0"" il_end=""0x42"" attributes=""0"" />
+        <local name=""H4"" il_index=""1"" il_start=""0x0"" il_end=""0x42"" attributes=""0"" />
       </scope>
     </method>
     <method token=""0x600000a"">
@@ -248,7 +248,7 @@ public class C
         <forward token=""0x6000002"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""23"" startColumn=""39"" endLine=""23"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x0"" startLine=""23"" startColumn=""50"" endLine=""23"" endColumn=""51"" document=""1"" />
       </sequencePoints>
     </method>
     <method token=""0x600000b"">
@@ -256,7 +256,7 @@ public class C
         <forward token=""0x6000002"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""24"" startColumn=""39"" endLine=""24"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x0"" startLine=""24"" startColumn=""50"" endLine=""24"" endColumn=""51"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -305,7 +305,7 @@ public class C
             diff2.VerifyPdb(Enumerable.Range(0x06000001, 20), @"
 <symbols>
   <files>
-    <file id=""1"" name=""C:\Enc1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""4D, 14, 76, DE, 68, ED, ED, C1, 88, DF,  C, 85, 1C, 6B, 15, F7, BE, C0, 34, 34, "" />
+    <file id=""1"" name=""C:\Enc1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""9C, B9, FF, 18,  E, 9F, A4, 22, 93, 85, A8, 5A,  6, 11, 43, 1E, 64, 3E, 88,  6, "" />
     <file id=""2"" name=""C:\F\B.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
     <file id=""3"" name=""C:\F\E.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
   </files>
@@ -341,10 +341,10 @@ public class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""21"" startColumn=""9"" endLine=""25"" endColumn=""17"" document=""1"" />
-        <entry offset=""0x22"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x21"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x23"">
-        <local name=""H2"" il_index=""4"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x22"">
+        <local name=""H2"" il_index=""1"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
       </scope>
     </method>
     <method token=""0x6000009"">
@@ -353,7 +353,7 @@ public class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x1"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x1"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""58"" document=""1"" />
         <entry offset=""0x21"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x22"">
@@ -365,7 +365,7 @@ public class C
         <forward token=""0x6000001"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""24"" startColumn=""39"" endLine=""24"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x0"" startLine=""24"" startColumn=""50"" endLine=""24"" endColumn=""51"" document=""1"" />
       </sequencePoints>
     </method>
     <method token=""0x600000c"">

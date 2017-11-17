@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,9 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -20,15 +23,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
+            private readonly bool _addNullChecks;
 
             public ConstructorDelegatingCodeAction(
                 GenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
-                State state)
+                State state,
+                bool addNullChecks)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _addNullChecks = addNullChecks;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -39,26 +45,35 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 //
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
-                var factory = provider.GetService<SyntaxGenerator>();
-                var codeGenerationService = provider.GetService<ICodeGenerationService>();
+                var project = _document.Project;
+                var languageServices = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
+
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var factory = languageServices.GetService<SyntaxGenerator>();
+                var codeGenerationService = languageServices.GetService<ICodeGenerationService>();
 
                 var thisConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
-                var statements = ArrayBuilder<SyntaxNode>.GetInstance();
+
+                var nullCheckStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+                var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var useThrowExpressions = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
 
                 for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {
                     var symbolName = _state.SelectedMembers[i].Name;
-                    var parameterName = _state.Parameters[i].Name;
-                    var assignExpression = factory.AssignmentStatement(
-                        factory.MemberAccessExpression(
-                            factory.ThisExpression(),
-                            factory.IdentifierName(symbolName)),
-                        factory.IdentifierName(parameterName));
+                    var parameter = _state.Parameters[i];
 
-                    var expressionStatement = factory.ExpressionStatement(assignExpression);
-                    statements.Add(expressionStatement);
+                    var fieldAccess = factory.MemberAccessExpression(
+                        factory.ThisExpression(),
+                        factory.IdentifierName(symbolName));
+
+                    factory.AddAssignmentStatements(
+                        compilation, parameter, fieldAccess,
+                        _addNullChecks, useThrowExpressions,
+                        nullCheckStatements, assignStatements);
                 }
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -71,23 +86,24 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     ? syntaxTree.GetLocation(_state.TextSpan)
                     : null;
 
+                var statements = nullCheckStatements.ToImmutableAndFree().Concat(assignStatements.ToImmutableAndFree());
                 var result = await codeGenerationService.AddMethodAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: Accessibility.Public,
                         modifiers: new DeclarationModifiers(),
                         typeName: _state.ContainingType.Name,
                         parameters: _state.Parameters,
-                        statements: statements.ToImmutableAndFree(),
+                        statements: statements,
                         thisConstructorArguments: thisConstructorArguments),
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                return result;
+                return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title

@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             // First, split the message into three parts--Origin, Category, Code, Text.
             // Example,
-            //      Main.cs(17,20):Command line warning CS0168: The variable 'foo' is declared but never used
+            //      Main.cs(17,20):Command line warning CS0168: The variable 'goo' is declared but never used
             //      -------------- ------------ ------- ------  ----------------------------------------------
             //      Origin         SubCategory  Cat.    Code    Text
             // 
@@ -336,13 +336,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             // Origin is not a simple file, but it still could be of the form,
-            //  foo.cpp(location)
+            //  goo.cpp(location)
             match = s_filenameLocationFromOrigin.Match(origin);
 
             if (match.Success)
             {
                 // The origin is in the form,
-                //  foo.cpp(location)
+                //  goo.cpp(location)
                 // Assume the filename exists, but don't verify it. What else could it be?
                 string location = match.Groups["LOCATION"].Value.Trim();
                 parsedMessage.origin = match.Groups["FILENAME"].Value.Trim();

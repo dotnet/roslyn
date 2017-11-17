@@ -2,9 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.CodeAnalysis.VisualBasic.Scripting</id>
-    <summary>Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.</summary>
+    <summary>
+      Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.
+    </summary>
     <description>
       Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.
+      
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
 
     <language>en-US</language>

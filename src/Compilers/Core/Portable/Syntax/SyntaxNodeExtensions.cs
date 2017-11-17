@@ -409,9 +409,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new node from this node with the trailing trivia removed.
         /// </summary>
-        public static TSyntax WithoutTrailingTrivia<TSyntax>(
-            this TSyntax node
-            ) where TSyntax : SyntaxNode
+        public static TSyntax WithoutTrailingTrivia<TSyntax>(this TSyntax node) where TSyntax : SyntaxNode
         {
             return node.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)null);
         }

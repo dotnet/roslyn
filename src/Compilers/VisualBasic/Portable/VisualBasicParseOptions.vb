@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
@@ -40,74 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         kind,
                         If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
                         ImmutableDictionary(Of String, String).Empty)
-
-            ' We test the mapped value, _languageVersion, rather than the parameter, languageVersion,
-            ' which has not had "Latest" mapped to the latest version yet.
-            If Not _languageVersion.IsValid Then
-                Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
-            End If
-
-            If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException(NameOf(kind))
-            End If
-
-            ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(preprocessorSymbols))
         End Sub
 
         Friend Sub New(
-            languageVersion As LanguageVersion,
-            documentationMode As DocumentationMode,
-            kind As SourceCodeKind,
-            preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
-            features As ImmutableDictionary(Of String, String))
-
-            MyClass.New(languageVersion,
-                        documentationMode,
-                        kind,
-                        If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
-                        features)
-
-            ' We test the mapped value, _languageVersion, rather than the parameter, languageVersion,
-            ' which has not had "Latest" mapped to the latest version yet.
-            If Not _languageVersion.IsValid Then
-                Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
-            End If
-
-            If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException(NameOf(kind))
-            End If
-
-            ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(preprocessorSymbols))
-
-            If features Is Nothing Then
-                Throw New ArgumentException(NameOf(features))
-            End If
-        End Sub
-
-        Private Shared Sub ValidatePreprocessorSymbols(preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
-                                                       parameterName As String)
-            If preprocessorSymbols Is Nothing Then
-                Return
-            End If
-
-            For Each symbol In preprocessorSymbols
-                If Not IsValidIdentifier(symbol.Key) OrElse
-                   SyntaxFacts.GetKeywordKind(symbol.Key) <> SyntaxKind.None Then
-
-                    Throw New ArgumentException(parameterName)
-                End If
-
-                Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
-
-                Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
-                If constant Is Nothing Then
-                    Throw New ArgumentException(String.Format(VBResources.IDS_InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType()), parameterName)
-                End If
-            Next
-        End Sub
-
-        ' Does not perform validation.
-        Private Sub New(
             languageVersion As LanguageVersion,
             documentationMode As DocumentationMode,
             kind As SourceCodeKind,
@@ -116,11 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(kind, documentationMode)
 
-            Debug.Assert(Not preprocessorSymbols.IsDefault)
             _specifiedLanguageVersion = languageVersion
             _languageVersion = languageVersion.MapSpecifiedToEffectiveVersion
-            _preprocessorSymbols = preprocessorSymbols
-            _features = features
+            _preprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty
+            _features = If(features, ImmutableDictionary(Of String, String).Empty)
         End Sub
 
         Private Sub New(other As VisualBasicParseOptions)
@@ -200,10 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim effectiveVersion = version.MapSpecifiedToEffectiveVersion()
-            If Not effectiveVersion.IsValid Then
-                Throw New ArgumentOutOfRangeException(NameOf(version))
-            End If
-
             Return New VisualBasicParseOptions(Me) With {._specifiedLanguageVersion = version, ._languageVersion = effectiveVersion}
         End Function
 
@@ -213,15 +144,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="kind">The parser source code kind.</param>
         ''' <returns>A new instance of VisualBasicParseOptions if source code kind is different; otherwise current instance.</returns>
         Public Shadows Function WithKind(kind As SourceCodeKind) As VisualBasicParseOptions
-            If kind = Me.Kind Then
+            If kind = Me.SpecifiedKind Then
                 Return Me
             End If
 
-            If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException(NameOf(kind))
-            End If
-
-            Return New VisualBasicParseOptions(Me) With {.Kind = kind}
+            Dim effectiveKind = kind.MapSpecifiedToEffectiveKind
+            Return New VisualBasicParseOptions(Me) With {.SpecifiedKind = kind, .Kind = effectiveKind}
         End Function
 
         ''' <summary>
@@ -232,10 +160,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overloads Function WithDocumentationMode(documentationMode As DocumentationMode) As VisualBasicParseOptions
             If documentationMode = Me.DocumentationMode Then
                 Return Me
-            End If
-
-            If Not documentationMode.IsValid() Then
-                Throw New ArgumentOutOfRangeException(NameOf(documentationMode))
             End If
 
             Return New VisualBasicParseOptions(Me) With {.DocumentationMode = documentationMode}
@@ -273,8 +197,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            ValidatePreprocessorSymbols(symbols, NameOf(symbols))
-
             Return New VisualBasicParseOptions(Me) With {._preprocessorSymbols = symbols}
         End Function
 
@@ -306,10 +228,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function WithFeatures(features As IEnumerable(Of KeyValuePair(Of String, String))) As VisualBasicParseOptions
             ' there are currently no parse options for experimental features
             If features Is Nothing Then
-                Throw New ArgumentException(NameOf(features))
+                Return New VisualBasicParseOptions(Me) With {._features = ImmutableDictionary(Of String, String).Empty}
+            Else
+                Return New VisualBasicParseOptions(Me) With {._features = features.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)}
             End If
-
-            Return New VisualBasicParseOptions(Me) With {._features = features.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)}
         End Function
 
         Public Overrides ReadOnly Property Features As IReadOnlyDictionary(Of String, String)
@@ -317,6 +239,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _features
             End Get
         End Property
+
+
+        Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
+            ValidateOptions(builder, MessageProvider.Instance)
+
+            ' Validate LanguageVersion Not SpecifiedLanguageVersion, after Latest/Default has been converted
+            If Not LanguageVersion.IsValid Then
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_BadLanguageVersion, LanguageVersion.ToString))
+            End If
+
+            If Not PreprocessorSymbols.IsDefaultOrEmpty Then
+                For Each symbol In PreprocessorSymbols
+                    If Not IsValidIdentifier(symbol.Key) OrElse SyntaxFacts.GetKeywordKind(symbol.Key) <> SyntaxKind.None Then
+                        builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_ConditionalCompilationConstantNotValid, VBResources.ERR_ExpectedIdentifier, symbol.Key))
+                    Else
+                        Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
+                    End If
+
+                    If InternalSyntax.CConst.TryCreate(symbol.Value) Is Nothing Then
+                        builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType))
+                    End If
+                Next
+            End If
+        End Sub
 
         ''' <summary>
         ''' Determines whether the current object is equal to another object of the same type.

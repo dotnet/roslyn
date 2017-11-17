@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Local functions can "call forward" to after a variable has
                         // been declared but before it has been assigned, so we can never
                         // consider the declaration location when reporting errors.
-                        ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration: false);
+                        ReportUnassignedIfNotCapturedInLocalFunction(symbol, node, slot, skipIfUseBeforeDeclaration: false);
                     }
                 }
             }
@@ -163,9 +163,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.State = pending.State;
                 BoundNode branch = pending.Branch;
-                LeaveParameters(localFuncSymbol.Parameters, branch?.Syntax,
-                                branch?.WasCompilerGenerated == true
-                                    ? location : null);
+
+                // Pass the local function identifier as a location if the branch
+                // is null or compiler generated.
+                LeaveParameters(localFuncSymbol.Parameters,
+                  branch?.Syntax,
+                  branch?.WasCompilerGenerated == false ? null : location);
+
                 IntersectWith(ref stateAtReturn, ref this.State);
             }
 

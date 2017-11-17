@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -232,7 +232,7 @@ class C : IB, IC
             c[1, 2, 3];
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this[0]").WithArguments("y", "C.this[int, int]").WithLocation(9, 16),
                 // (10,18): error CS1503: Argument 2: cannot convert from 'C' to 'int'
@@ -266,7 +266,7 @@ public class C : B
 {
     public override int this[int x] { get { return 0; } }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             // NOTE: we could eliminate WRN_NewOrOverrideExpected by putting a "new" modifier on B.this[]
             compilation.VerifyDiagnostics(
@@ -306,7 +306,7 @@ class C : I1, I2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
             compilation.VerifyDiagnostics();
 
             var interface1 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
@@ -830,23 +830,32 @@ class Derived : Base
         this[q: 1, r: 2] = base[0]; //bad parameter names / no indexer
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, long]'
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]"),
+                //         c[0] = c[0, 0, 0]; //wrong number of arguments
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]").WithLocation(7, 9),
                 // (7,16): error CS1501: No overload for method 'this' takes 3 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "c[0, 0, 0]").WithArguments("this", "3"),
+                //         c[0] = c[0, 0, 0]; //wrong number of arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "c[0, 0, 0]").WithArguments("this", "3").WithLocation(7, 16),
                 // (8,11): error CS1503: Argument 1: cannot convert from 'bool' to 'int'
-                Diagnostic(ErrorCode.ERR_BadArgType, "true").WithArguments("1", "bool", "int"),
+                //         c[true, 1] = c[y: 1, x: long.MaxValue]; //wrong argument types
+                Diagnostic(ErrorCode.ERR_BadArgType, "true").WithArguments("1", "bool", "int").WithLocation(8, 11),
                 // (8,33): error CS1503: Argument 2: cannot convert from 'long' to 'int'
-                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("2", "long", "int"),
+                //         c[true, 1] = c[y: 1, x: long.MaxValue]; //wrong argument types
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("2", "long", "int").WithLocation(8, 33),
                 // (9,14): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
-                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x"),
-                // (9,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2"),
+                //         c[1, x: 1] = c[x: 1, 2]; //bad mix of named and positional
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(9, 14),
+                // (9,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c[1, x: 1] = c[x: 1, 2]; //bad mix of named and positional
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(9, 30),
                 // (10,14): error CS1739: The best overload for 'this' does not have a parameter named 'q'
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "q").WithArguments("this", "q"),
+                //         this[q: 1, r: 2] = base[0]; //bad parameter names / no indexer
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "q").WithArguments("this", "q").WithLocation(10, 14),
                 // (10,28): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[0]").WithArguments("object"));
+                //         this[q: 1, r: 2] = base[0]; //bad parameter names / no indexer
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[0]").WithArguments("object").WithLocation(10, 28)
+                );
         }
 
         [Fact]
@@ -863,7 +872,7 @@ class Derived : Base
         int x = c[0]; //pick the first overload, even though it has no getter and the second would work
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,17): error CS0154: The property or indexer 'C.this[int]' cannot be used in this context because it lacks the get accessor
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c[0]").WithArguments("C.this[int]"));
         }
@@ -888,7 +897,7 @@ class C : I
         int y = ((I)c)[0];
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (13,17): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[0]").WithArguments("C"));
         }
@@ -908,7 +917,7 @@ class C : I
         c.set_Item(y); //CS0571 - use the indexer
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,19): error CS1061: 'C' does not contain a definition for 'Item' and no extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item"),
                 // (8,19): error CS0571: 'C.this[int].get': cannot explicitly call operator or accessor
@@ -931,7 +940,7 @@ class C : I
         int x = c[0][1][2][3]['a'][1]; //fine
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -954,7 +963,7 @@ class C : I
         x = c[0, z:'a', y: ""hello""]; //some reordered
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -978,7 +987,7 @@ class C : I
         x = c[x: 0, y: ""hello"", z:'a'];
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0443: Syntax error; value expected
                 Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
         }
@@ -1013,7 +1022,7 @@ class C : I
         x = c[args: new char[3], c: 'a'];
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0443: Syntax error; value expected
                 Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
         }
@@ -1033,7 +1042,7 @@ class C : I
         int y = new C()['a']; //we don't even check for this kind of error because it's always cascading
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,23): error CS0106: The modifier 'static' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 23),
                 // (8,17): error CS0119: 'C' is a 'type', which is not valid in the given context
@@ -1084,7 +1093,7 @@ public class C : B
     }
 }";
             // Doesn't matter that B's indexer has an explicit name - the symbols are all called "this[]".
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,16): warning CS0114: 'B.this[int]' hides inherited member 'A.this[int]'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "this").WithArguments("B.this[int]", "A.this[int]"),
                 // (31,25): error CS0506: 'C.this[int]': cannot override inherited member 'B.this[int]' because it is not marked virtual, abstract, or override
@@ -1177,7 +1186,7 @@ class C : I
         System.Console.WriteLine(this[0]);
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -1235,7 +1244,7 @@ public class C : I
 {
     public virtual int this[int x] { get; set; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (3,38): error CS0501: 'B.this[int].get' must declare a body because it is not marked abstract, extern, or partial
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("B.this[int].get"),
                 // (3,43): error CS0501: 'B.this[int].set' must declare a body because it is not marked abstract, extern, or partial
@@ -1261,7 +1270,7 @@ public class Derived : Base
     }
 }";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
 
             var indexerAccessSyntax = GetElementAccessExpressions(tree.GetCompilationUnitRoot()).Single();
@@ -1295,7 +1304,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { TestReferences.SymbolsTests.Indexers });
+            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
 
             compilation.VerifyDiagnostics(
                 // (8,13): error CS1545: Property, indexer, or event 'RefIndexer.this[ref int]' is not supported by the language; try directly calling accessor methods 'RefIndexer.get_Item(ref int)' or 'RefIndexer.set_Item(ref int, int)'
@@ -1326,7 +1335,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { TestReferences.SymbolsTests.Indexers });
+            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
             compilation.VerifyDiagnostics();
         }
 
@@ -1342,7 +1351,7 @@ class Test : RefIndexer
     public override int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source,
+            var compilation = CreateStandardCompilation(source,
                 new MetadataReference[] { TestReferences.SymbolsTests.Indexers });
             compilation.VerifyDiagnostics(
                 // (4,25): error CS0115: 'Test.this[int]': no suitable method found to override
@@ -1361,7 +1370,7 @@ class Test : IRefIndexer
     public int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { TestReferences.SymbolsTests.Indexers });
+            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
 
             // Normally, we wouldn't see errors for the accessors, but here we do because the indexer is bogus.
             compilation.VerifyDiagnostics(
@@ -1383,7 +1392,7 @@ class Test : IRefIndexer
     int IRefIndexer.this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source,
+            var compilation = CreateStandardCompilation(source,
                 new MetadataReference[] { TestReferences.SymbolsTests.Indexers });
             // Normally, we wouldn't see errors for the accessors, but here we do because the indexer is bogus.
             compilation.VerifyDiagnostics(
@@ -1407,7 +1416,7 @@ class B
     public virtual int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
 
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").Indexers.Single();
@@ -1432,7 +1441,7 @@ interface I
     int this[int x] { get; set; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
 
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I").Indexers.Single();
@@ -1461,7 +1470,7 @@ class D : B
     public int this[int x, int y] { get { return 0; } set { } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (15,16): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
                 Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this"));
         }
@@ -1487,7 +1496,7 @@ class D : B
     public int this[int x, int y] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
             var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
             Assert.True(derivedType.Indexers.All(i => i.MetadataName == "A"));
@@ -1513,7 +1522,7 @@ class D : B
     public int this[int x, int y] { get { return 0; } set { } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1539,7 +1548,7 @@ class C : B
     public int this[int x, int y] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
 
             var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
@@ -1568,7 +1577,7 @@ class A
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,30): error CS0102: The type 'A' already contains a definition for 'get_X'
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("A", "get_X"));
@@ -1599,7 +1608,7 @@ class A
 }
 ";
             // NOTE: Dev10 reports CS0571 for MyAttribute's use of get_Item
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS0571: 'A.this[int].get': cannot explicitly call operator or accessor
                 //     [IndexerName(get_Item)]
@@ -1631,7 +1640,7 @@ class B
 }
 ";
             // NOTE: Dev10 reports CS0117 in A, but CS0571 in B
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,20): error CS0571: 'B.this[int].get': cannot explicitly call operator or accessor
                 //     [IndexerName(B.get_Item)]
@@ -1660,7 +1669,7 @@ class B : A
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1689,7 +1698,7 @@ class B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
@@ -1726,7 +1735,7 @@ struct B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
@@ -1763,7 +1772,7 @@ interface B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
@@ -1812,7 +1821,7 @@ class B<T>
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
@@ -1845,7 +1854,7 @@ struct B<T>
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
@@ -1878,7 +1887,7 @@ interface B<T>
     int this[int x] { get; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
@@ -1930,7 +1939,7 @@ class B<T> where T : Q
     public int this[long x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,25): error CS0110: The evaluation of the constant value for 'P.Constant2' involves a circular definition
                 //     public const string Constant2 = Q.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("P.Constant2"),
@@ -1979,7 +1988,7 @@ class A
     public int this[ulong x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,5): error CS0110: The evaluation of the constant value for 'E.E' involves a circular definition
                 //     E = F,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "E").WithArguments("E.E"),
@@ -2022,7 +2031,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (13,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Name)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Name"),
@@ -2050,7 +2059,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B.GetName())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.GetName()"),
@@ -2076,7 +2085,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,20): error CS0117: 'A' does not contain a definition for 'Fake'
                 //     [IndexerName(A.Fake)]
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Fake").WithArguments("A", "Fake"),
@@ -2101,7 +2110,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
 
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").Indexers.Single();
@@ -2113,7 +2122,7 @@ class Program
             Assert.True(attribute.IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
 
             // Not emitted.
-            Assert.Equal(0, indexer.GetCustomAttributesToEmit(new ModuleCompilationState()).Count());
+            Assert.Equal(0, indexer.GetCustomAttributesToEmit(GetDefaultPEBuilder(compilation)).Count());
         }
 
         [WorkItem(545884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545884")]
@@ -2137,7 +2146,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
                 type.ForceComplete(null, default(CancellationToken)));
@@ -2168,7 +2177,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
                 type.ForceComplete(null, default(CancellationToken)));
@@ -2204,7 +2213,7 @@ class B
     }
 }";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2245,7 +2254,7 @@ public class Derived : Base
     }
 }";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2287,7 +2296,7 @@ public class Derived : Base
     }
 }";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2325,7 +2334,7 @@ class Test2
     }
 }";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2358,7 +2367,7 @@ class Test2
         x = d[d, d, d, d, d]; // CS1501
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,13): error CS1501: No overload for method 'this' takes 5 arguments
                 Diagnostic(ErrorCode.ERR_BadArgCount, "b[d, d, d, d, d]").WithArguments("this", "5"),
                 // (17,13): error CS1501: No overload for method 'this' takes 5 arguments
@@ -2375,7 +2384,7 @@ struct Test
     public byte this[byte p] { get { return p; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             NamedTypeSymbol type01 = comp.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single();
             var indexer = type01.GetMembers(WellKnownMemberNames.Indexer).Single() as PropertySymbol;
             Assert.NotNull(indexer.GetMethod);
@@ -2404,7 +2413,7 @@ public class Derived : Base
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -2531,11 +2540,11 @@ partial class C
     public void M() {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new string[] { text1, text2 });
+            var compilation = CreateStandardCompilation(new string[] { text1, text2 });
             Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
 
             //test with text inputs reversed in case syntax ordering predicate ever changes.
-            compilation = CreateCompilationWithMscorlib(new string[] { text2, text1 });
+            compilation = CreateStandardCompilation(new string[] { text2, text1 });
             Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
         }
 
@@ -2583,7 +2592,7 @@ public class Wrapper
 }
 ";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2670,7 +2679,7 @@ class Derived2 : Base
 }
 ";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2783,12 +2792,12 @@ set_P: 1");
         {
             #region "Source"
             var src1 = @"using System;
-    public interface IFoo
+    public interface IGoo
     {
         int this[int i] { get; }
     }
 
-    public class Foo : IFoo
+    public class Goo : IGoo
     {
         public int this[int i] { get { return i; } }
     }
@@ -2799,17 +2808,17 @@ class Test
 {
     public void M()
     {
-        IFoo ifoo = new Foo();
-        var local = ifoo[100];
+        IGoo igoo = new Goo();
+        var local = igoo[100];
     }
 }
 ";
             #endregion
 
             var comp1 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
-            var comp2 = CreateCompilationWithMscorlib(src2, new[] { new CSharpCompilationReference(comp1) });
+            var comp2 = CreateStandardCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
 
-            var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IFoo");
+            var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");
             var idxSymbol = typeSymbol.GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.NotNull(idxSymbol);
             Assert.Equal("this[]", idxSymbol.Name);
@@ -2833,7 +2842,7 @@ class C<T>
     int this[int x] { get { return 0; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var unsubstitutedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -2858,7 +2867,7 @@ class C<Item, get_Item>
     int this[int x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,9): error CS0102: The type 'C<Item, get_Item>' already contains a definition for 'Item'
                 //     int this[int x] { get { return 0; } }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("C<Item, get_Item>", "Item"),
@@ -2879,7 +2888,7 @@ class C<A, get_A>
     int this[int x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS0102: The type 'C<A, get_A>' already contains a definition for 'A'
                 //     int this[int x] { get { return 0; } }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("C<A, get_A>", "A"),
@@ -2899,7 +2908,7 @@ class C
     [IndexerName(F)]
     object this[object o] { get { return null; } }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,18): error CS0145: A const field requires a value to be provided
                 //     const string F;
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "F").WithLocation(4, 18),

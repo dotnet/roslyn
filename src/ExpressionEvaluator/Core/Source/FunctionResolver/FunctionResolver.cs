@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.FunctionResolution;
 using Microsoft.VisualStudio.Debugger.Symbols;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -96,9 +97,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 foreach (var moduleInstance in runtime.GetModuleInstances())
                 {
-                    var module = moduleInstance as DkmClrModuleInstance;
                     // Only interested in managed modules.
-                    if (module != null)
+                    if (moduleInstance is DkmClrModuleInstance module)
                     {
                         yield return module;
                     }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 ptr = module.GetMetaDataBytesPtr(out length);
             }
-            catch (Exception e) when (IsBadOrMissingMetadataException(e))
+            catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
             {
                 return null;
             }
@@ -189,21 +189,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             catch (NotImplementedException)
             {
                 return false;
-            }
-        }
-
-        private const uint COR_E_BADIMAGEFORMAT = 0x8007000b;
-        private const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
-
-        private static bool IsBadOrMissingMetadataException(Exception e)
-        {
-            switch (unchecked((uint)e.HResult))
-            {
-                case COR_E_BADIMAGEFORMAT:
-                case CORDBG_E_MISSING_METADATA:
-                    return true;
-                default:
-                    return false;
             }
         }
 

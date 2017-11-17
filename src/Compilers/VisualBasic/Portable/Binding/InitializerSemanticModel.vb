@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -86,6 +87,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
+        Private Iterator Function GetInitializedFieldsOrProperties(binder As Binder) As IEnumerable(Of Symbol)
+            Yield Me.MemberSymbol
+
+            For Each additionalSymbol In binder.AdditionalContainingMembers
+                Yield additionalSymbol
+            Next
+        End Function
+
         Private Function BindInitializer(binder As Binder, initializer As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Dim boundInitializer As BoundNode = Nothing
 
@@ -105,7 +114,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                         If initializer IsNot Nothing Then
                             ' bind const and non const field initializers the same to get a bound expression back and not a constant value.
-                            binder.BindFieldInitializer(ImmutableArray.Create(Of FieldSymbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
+                            Dim fields = ImmutableArray.CreateRange(GetInitializedFieldsOrProperties(binder).Cast(Of FieldSymbol))
+                            binder.BindFieldInitializer(fields, initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
                         Else
                             binder.BindArrayFieldImplicitInitializer(fieldSymbol, boundInitializers, diagnostics)
                         End If
@@ -121,15 +131,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SymbolKind.Property
                     '  get property symbol
-                    Dim propertySymbol = DirectCast(Me.MemberSymbol, PropertySymbol)
+                    Dim propertySymbols = ImmutableArray.CreateRange(GetInitializedFieldsOrProperties(binder).Cast(Of PropertySymbol))
                     Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
-                    binder.BindPropertyInitializer(ImmutableArray.Create(propertySymbol), initializer, boundInitializers, diagnostics)
+                    binder.BindPropertyInitializer(propertySymbols, initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()
 
                     Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
                     If expressionInitializer IsNot Nothing Then
-                        Return New BoundPropertyInitializer(initializer, ImmutableArray.Create(propertySymbol), Nothing, expressionInitializer)
+                        Return New BoundPropertyInitializer(initializer, propertySymbols, Nothing, expressionInitializer)
                     End If
 
                 Case SymbolKind.Parameter

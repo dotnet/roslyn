@@ -12,6 +12,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ObjectSerializationTests
     {
+        static ObjectSerializationTests()
+        {
+            // Register appropriate deserialization methods.
+            new PrimitiveArrayMemberTest();
+            new PrimitiveMemberTest();
+            new PrimitiveValueTest();
+        }
+
         [Fact]
         private void TestInvalidStreamVersion()
         {
@@ -911,7 +919,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue("\uD800\uDC00"); // valid surrogate pair
             writer.WriteValue("\uDC00\uD800"); // invalid surrogate pair
             writer.WriteValue("\uD800"); // incomplete surrogate pair
-            writer.WriteValue(null);
+            writer.WriteValue((object)null);
+            writer.WriteValue((IObjectWritable)null);
             unchecked
             {
                 writer.WriteInt64((long)ConsoleColor.Cyan);
@@ -949,6 +958,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uD800\uDC00", (String)reader.ReadValue()); // valid surrogate pair
             Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
             Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
+            Assert.Equal(null, reader.ReadValue());
             Assert.Equal(null, reader.ReadValue());
 
             unchecked
@@ -1020,6 +1030,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void TestRoundTripChar(Char ch)
         {
             TestRoundTrip(ch, (w, v) => w.WriteChar(v), r => r.ReadChar());
+        }
+
+        [Fact]
+        public void TestRoundTripGuid()
+        {
+            TestRoundTripGuid(Guid.Empty);
+            TestRoundTripGuid(new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
+            TestRoundTripGuid(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
+            TestRoundTripGuid(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+            for (int i = 0; i < 10; i++)
+            {
+                TestRoundTripGuid(Guid.NewGuid());
+            }
+        }
+
+        private void TestRoundTripGuid(Guid guid)
+        {
+            TestRoundTrip(guid, (w, v) => w.WriteGuid(v), r => r.ReadGuid());
         }
 
         [Fact]

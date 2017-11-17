@@ -2531,10 +2531,9 @@ class Module1
     {}
 }
 ";
-            var tree = Parse(text);
-
-            var c1 = CreateCompilationWithMscorlib(tree, new MetadataReference[]
+            var c1 = CreateCompilation(text, new MetadataReference[]
             {
+                MscorlibRef,
                 TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                 TestReferences.SymbolsTests.V1.MTTestModule2.netmodule
             });
@@ -2717,7 +2716,7 @@ System.Diagnostics.Process.GetCurrentProcess();
 ", options: TestOptions.Script),
                 SyntaxFactory.ParseSyntaxTree(@"
 #r ""System.Core""
-")
+", TestOptions.Regular)
                 };
 
             var compilation = CreateCompilationWithMscorlib45(
@@ -2761,7 +2760,6 @@ System.Diagnostics.Process.GetCurrentProcess();
             var csInterfaces01 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01).Path;
 
             var source = @"
-#r """ + typeof(object).Assembly.Location + @"""
 #r """ + "!@#$%^/&*-resolve" + @"""
 #r """ + csInterfaces01 + @"""
 class C : Metadata.ICSPropImpl { }";
@@ -2800,7 +2798,7 @@ class C
 { 
     void Foo() { Console.WriteLine(3); }
 }
-")
+", TestOptions.Regular)
             };
 
             var compilation = CreateCompilationWithMscorlib45(
@@ -2956,10 +2954,10 @@ Console.WriteLine(2);
             var source1 = "public class C1 { }";
             var source2 = "public class C2 { }";
 
-            var lib1 = CreateCompilationWithMscorlib(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
+            var lib1 = CreateStandardCompilation(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
             var ref1 = lib1.EmitToImageReference(); // NOTE: can't use a compilation reference for a module.
 
-            var lib2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "Lib2");
+            var lib2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "Lib2");
             lib2.VerifyDiagnostics();
 
             var sourceAssembly = lib2.Assembly;

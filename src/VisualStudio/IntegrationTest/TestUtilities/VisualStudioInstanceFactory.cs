@@ -5,22 +5,27 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Process = System.Diagnostics.Process;
+using RunTests;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public sealed class VisualStudioInstanceFactory : IDisposable
     {
-        public static readonly string VsProductVersion = Settings.Default.VsProductVersion;
+        [ThreadStatic]
+        private static bool s_inHandler;
 
-        public static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
+        public static readonly string VsProductVersion = Settings.Default.VsProductVersion;
 
         public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
 
@@ -28,8 +33,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
         private VisualStudioInstance _currentlyRunningInstance;
-        private ImmutableHashSet<string> _supportedPackageIds;
-        private string _installationPath;
+
         private bool _hasCurrentlyActiveContext;
 
         static VisualStudioInstanceFactory()
@@ -40,7 +44,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
             }
-
         }
 
         public VisualStudioInstanceFactory()
@@ -51,22 +54,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
         {
+            if (s_inHandler)
+            {
+                // An exception was thrown from within the handler, resulting in a recursive call to the handler.
+                // Bail out now we so don't recursively throw another exception and overflow the stack.
+                return;
+            }
+
             try
             {
-                var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
-                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                s_inHandler = true;
+
+                var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
+                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
+                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
 
-                var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
+                var exception = eventArgs.Exception;
+                File.WriteAllText(
+                    Path.Combine(logDir, $"{baseFileName}.log"),
+                    $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
 
-                ScreenshotService.TakeScreenshot(fullPath);
             }
-            catch (Exception e)
+            finally
             {
-                Debug.WriteLine(e);
-                // Per the AppDomain.FirstChanceException contract we must catch and deal with all exceptions that arise in the handler.
-                // Otherwise, we are likely to end up with recursive calls into this method until we overflow the stack.
+                s_inHandler = false;
             }
         }
 
@@ -123,7 +136,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             //  * The current instance is no longer running
 
             return _currentlyRunningInstance == null
-                || (_supportedPackageIds != null && !requiredPackageIds.All((requiredPackageId) => _supportedPackageIds.Contains(requiredPackageId))) // _supportedPackagesIds will be null if ISetupInstance2.GetPackages() is NYI
+                || (!requiredPackageIds.All(id => _currentlyRunningInstance.SupportedPackageIds.Contains(id)))
                 || !_currentlyRunningInstance.IsRunning;
         }
 
@@ -142,6 +155,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             Process hostProcess;
             DTE dte;
+            ImmutableHashSet<string> supportedPackageIds;
+            string installationPath;
 
             if (shouldStartNewInstance)
             {
@@ -149,10 +164,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 _currentlyRunningInstance?.Close();
 
                 var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
-                _supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
-                _installationPath = instance.GetInstallationPath();
+                supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
+                installationPath = instance.GetInstallationPath();
 
-                hostProcess = StartNewVisualStudioProcess(_installationPath);
+                hostProcess = StartNewVisualStudioProcess(installationPath);
+
+                var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
+                if (procDumpInfo != null)
+                {
+                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
+                }
+
                 // We wait until the DTE instance is up before we're good
                 dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
             }
@@ -166,36 +188,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
                 dte = _currentlyRunningInstance.Dte;
+                supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
+                installationPath = _currentlyRunningInstance.InstallationPath;
 
                 _currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte);
-        }
-
-        private static ISetupConfiguration GetSetupConfiguration()
-        {
-            try
-            {
-                return new SetupConfiguration();
-            }
-            catch (COMException comException) when (comException.HResult == NativeMethods.REGDB_E_CLASSNOTREG)
-            {
-                // Fallback to P/Invoke if the COM registration is missing
-                var hresult = NativeMethods.GetSetupConfiguration(out var setupConfiguration, pReserved: IntPtr.Zero);
-
-                if (hresult < 0)
-                {
-                    throw Marshal.GetExceptionForHR(hresult);
-                }
-
-                return setupConfiguration;
-            }
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
         {
-            var setupConfiguration = GetSetupConfiguration() as ISetupConfiguration2;
+            var setupConfiguration = new SetupConfiguration();
 
             var instanceEnumerator = setupConfiguration.EnumAllInstances();
             var instances = new ISetupInstance[3];
@@ -221,14 +225,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static ISetupInstance LocateVisualStudioInstance(ImmutableHashSet<string> requiredPackageIds)
         {
-            var instances = EnumerateVisualStudioInstances().Where((instance) => instance.GetInstallationVersion().StartsWith(VsProductVersion));
+            var vsInstallDir = Environment.GetEnvironmentVariable("VSInstallDir");
+            var haveVsInstallDir = !string.IsNullOrEmpty(vsInstallDir);
+
+            if (haveVsInstallDir)
+            {
+                vsInstallDir = Path.GetFullPath(vsInstallDir);
+                vsInstallDir = vsInstallDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                Debug.WriteLine($"An environment variable named 'VSInstallDir' was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
+            }
+
+            var instances = EnumerateVisualStudioInstances().Where((instance) => {
+                var isMatch = true;
+                {
+                    isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
+
+                    if (haveVsInstallDir)
+                    {
+                        var installationPath = instance.GetInstallationPath();
+                        installationPath = Path.GetFullPath(installationPath);
+                        installationPath = installationPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        isMatch &= installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                return isMatch;
+            });
 
             var instanceFoundWithInvalidState = false;
 
             foreach (ISetupInstance2 instance in instances)
             {
                 var packages = instance.GetPackages()
-                                        .Where((package) => requiredPackageIds.Contains(package.GetId()));
+                                       .Where((package) => requiredPackageIds.Contains(package.GetId()));
 
                 if (packages.Count() != requiredPackageIds.Count())
                 {
@@ -250,7 +278,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             throw new Exception(instanceFoundWithInvalidState ?
                                 "An instance matching the specified requirements was found but it was in an invalid state." :
-                                "There were no instances of Visual Studio 15.0 or later found that match the specified requirements.");
+                                "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
         private static Process StartNewVisualStudioProcess(string installationPath)
@@ -269,10 +297,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess("dexplore");
 
             var process = Process.Start(vsExeFile, VsLaunchArgs);
-
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
+        }
+
+        private static string GetAssemblyDirectory()
+        {
+            var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
+            return Path.GetDirectoryName(assemblyPath);
         }
 
         public void Dispose()

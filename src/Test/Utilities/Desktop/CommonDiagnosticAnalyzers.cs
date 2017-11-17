@@ -461,6 +461,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithInvalidDiagnosticSpan : DiagnosticAnalyzer
+        {
+            private readonly TextSpan _badSpan;
+
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "Message",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public AnalyzerWithInvalidDiagnosticSpan(TextSpan badSpan) => _badSpan = badSpan;
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(Descriptor, SourceLocation.Create(c.Tree, _badSpan))));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerWithInvalidDiagnosticLocation : DiagnosticAnalyzer
         {
             private readonly Location _invalidLocation;
@@ -511,7 +530,7 @@ namespace Microsoft.CodeAnalysis
 
                     cc.RegisterOperationBlockStartAction(oc =>
                     {
-                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), OperationKind.VariableDeclarationStatement);
+                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), OperationKind.VariableDeclarationGroup);
                         oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.OperationBlockEnd));
                     });
                 });
@@ -732,7 +751,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// This analyzer will report diagnostics only if it receives any concurrent action callbacks, which would be a
-        /// bug in the analyzer driver as this analyzer doesn't invoke <see cref="AnalysisContext.RegisterConcurrentExecution"/>.
+        /// bug in the analyzer driver as this analyzer doesn't invoke <see cref="AnalysisContext.EnableConcurrentExecution"/>.
         /// </summary>
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class NonConcurrentAnalyzer : DiagnosticAnalyzer
@@ -815,12 +834,37 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (_actionKind == ActionKind.Operation)
                 {
-                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), OperationKind.VariableDeclarationStatement);
+                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), OperationKind.VariableDeclarationGroup);
                 }
                 else
                 {
                     context.RegisterOperationBlockAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
                 }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class OperationBlockAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "OperationBlock for {0}: {1}",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(c =>
+                {
+                    foreach (var operationRoot in c.OperationBlocks)
+                    {
+                        var diagnostic = Diagnostic.Create(Descriptor, c.OwningSymbol.Locations[0], c.OwningSymbol.Name, operationRoot.Kind);
+                        c.ReportDiagnostic(diagnostic);
+                    }
+                });
             }
         }
 
@@ -1045,8 +1089,7 @@ namespace Microsoft.CodeAnalysis
                     var descriptor = GeneratedCodeDescriptor;
                     foreach (var location in symbolContext.Symbol.Locations)
                     {
-                        bool isGeneratedCode;
-                        context.TryGetValue(location.SourceTree, _treeValueProvider, out isGeneratedCode);
+                        context.TryGetValue(location.SourceTree, _treeValueProvider, out var isGeneratedCode);
                         if (!isGeneratedCode)
                         {
                             descriptor = NonGeneratedCodeDescriptor;
@@ -1060,15 +1103,13 @@ namespace Microsoft.CodeAnalysis
 
                 context.RegisterSyntaxTreeAction(treeContext =>
                 {
-                    bool isGeneratedCode;
-                    context.TryGetValue(treeContext.Tree, _treeValueProvider, out isGeneratedCode);
+                    context.TryGetValue(treeContext.Tree, _treeValueProvider, out var isGeneratedCode);
                     var descriptor = isGeneratedCode ? GeneratedCodeDescriptor : NonGeneratedCodeDescriptor;
 
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, treeContext.Tree.FilePath);
                     treeContext.ReportDiagnostic(diagnostic);
 
-                    int length;
-                    context.TryGetValue(treeContext.Tree.GetText(), _textValueProvider, out length);
+                    context.TryGetValue(treeContext.Tree.GetText(), _textValueProvider, out var length);
                     diagnostic = Diagnostic.Create(UniqueTextFileDescriptor, Location.None, treeContext.Tree.FilePath);
                     treeContext.ReportDiagnostic(diagnostic);
                 });

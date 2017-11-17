@@ -542,7 +542,7 @@ public class A<T1>
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         System.Func<int> lambda = () => 
         {
@@ -633,7 +633,7 @@ class C
                 // Ensure we don't crash getting these symbol keys.
                 var id = SymbolKey.ToString(symbol);
                 Assert.NotNull(id);
-                var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
+                var found = SymbolKey.Resolve(id, compilation: compilation).GetAnySymbol();
                 Assert.NotNull(found);
 
                 // note: we don't check that the symbols are equal.  That's because the compiler
@@ -645,6 +645,80 @@ class C
             }
 
             Assert.True(tested);
+        }
+
+        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        public void TestTupleWithLocalTypeReferences1()
+        {
+            var source = @"
+using System.Linq;
+
+class C
+{
+    void Method((C, int) t)
+    {
+    }
+}";
+            // Tuples store locations along with them.  But we can only recover those locations
+            // if we're re-resolving into a compilation with the same files.
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs");
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs");
+
+            var symbol = GetAllSymbols(
+                compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.ToString(symbol);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(symbol.Name, found.Name);
+            Assert.Equal(symbol.Kind, found.Kind);
+
+            var method = found as IMethodSymbol;
+            Assert.True(method.Parameters[0].Type.IsTupleType);
+        }
+
+        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        public void TestTupleWithLocalTypeReferences2()
+        {
+            var source = @"
+using System.Linq;
+
+class C
+{
+    void Method((C a, int b) t)
+    {
+    }
+}";
+            // Tuples store locations along with them.  But we can only recover those locations
+            // if we're re-resolving into a compilation with the same files.
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs");
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs");
+
+            var symbol = GetAllSymbols(
+                compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.ToString(symbol);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(symbol.Name, found.Name);
+            Assert.Equal(symbol.Kind, found.Kind);
+
+            var method = found as IMethodSymbol;
+            Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
         private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
@@ -674,7 +748,7 @@ class C
             }
         }
 
-        private Compilation GetCompilation(string source, string language)
+        private Compilation GetCompilation(string source, string language, string path = "")
         {
             var references = new[]
             {
@@ -684,12 +758,12 @@ class C
 
             if (language == LanguageNames.CSharp)
             {
-                var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source);
+                var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source, path: path);
                 return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
             }
             else if (language == LanguageNames.VisualBasic)
             {
-                var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source);
+                var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source, path: path);
                 return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
             }
 
@@ -745,8 +819,7 @@ class C
             {
                 symbols.Add(member);
 
-                var nsOrType = member as INamespaceOrTypeSymbol;
-                if (nsOrType != null)
+                if (member is INamespaceOrTypeSymbol nsOrType)
                 {
                     GetDeclaredSymbols(nsOrType, symbols);
                 }

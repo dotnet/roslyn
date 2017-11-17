@@ -45,19 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsSingleLineComment(this SyntaxTrivia trivia)
-        {
-            return trivia.Kind() == SyntaxKind.SingleLineCommentTrivia;
-        }
+            => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia;
 
         public static bool IsMultiLineComment(this SyntaxTrivia trivia)
-        {
-            return trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
-        }
+            => trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
 
         public static bool IsShebangDirective(this SyntaxTrivia trivia)
-        {
-            return trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
-        }
+            => trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
 
         public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)
         {
@@ -150,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (trivia.Any())
             {
                 var sb = new StringBuilder();
-                trivia.Select(t => t.ToFullString()).Do((s) => sb.Append(s));
+                trivia.Select(t => t.ToFullString()).Do(s => sb.Append(s));
                 return sb.ToString();
             }
             else
@@ -185,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var span = trivia.FullSpan;
             if (span.Start == 0)
             {
-                return default(SyntaxTrivia);
+                return default;
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTrivia(span.Start - 1, findInsideTrivia);

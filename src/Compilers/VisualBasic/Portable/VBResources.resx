@@ -574,7 +574,7 @@
     <value>Leading '.' or '!' can only appear inside a 'With' statement.</value>
   </data>
   <data name="ERR_DuplicateAccessCategoryUsed" xml:space="preserve">
-    <value>Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.</value>
+    <value>Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.</value>
   </data>
   <data name="ERR_DuplicateModifierCategoryUsed" xml:space="preserve">
     <value>Only one of 'NotOverridable', 'MustOverride', or 'Overridable' can be specified.</value>
@@ -714,8 +714,14 @@
   <data name="ERR_ExpectedExitKind" xml:space="preserve">
     <value>'Exit' must be followed by 'Sub', 'Function', 'Property', 'Do', 'For', 'While', 'Select', or 'Try'.</value>
   </data>
-  <data name="ERR_ExpectedNamedArgument" xml:space="preserve">
+  <data name="ERR_ExpectedNamedArgumentInAttributeList" xml:space="preserve">
     <value>Named argument expected.</value>
+  </data>
+  <data name="ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation" xml:space="preserve">
+    <value>Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation.</value>
+  </data>
+  <data name="ERR_ExpectedNamedArgument" xml:space="preserve">
+    <value>Named argument expected. Please use language version {0} or greater to use non-trailing named arguments.</value>
   </data>
   <data name="ERR_BadMethodFlags1" xml:space="preserve">
     <value>'{0}' is not valid on a method declaration.</value>
@@ -1857,8 +1863,8 @@
   <data name="ERR_EventHandlerSignatureIncompatible2" xml:space="preserve">
     <value>Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.</value>
   </data>
-  <data name="ERR_ProjectCCError1" xml:space="preserve">
-    <value>Project-level conditional compilation constant '{1}' is not valid: {0}</value>
+  <data name="ERR_ConditionalCompilationConstantNotValid" xml:space="preserve">
+    <value>Conditional compilation constant '{1}' is not valid: {0}</value>
   </data>
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
@@ -1963,7 +1969,7 @@
     <value>'Set' parameter cannot be declared '{0}'.</value>
   </data>
   <data name="ERR_StructureCantUseProtected" xml:space="preserve">
-    <value>Method in a structure cannot be declared 'Protected' or 'Protected Friend'.</value>
+    <value>Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.</value>
   </data>
   <data name="ERR_BadInterfaceDelegateSpecifier1" xml:space="preserve">
     <value>Delegate in an interface cannot be declared '{0}'.</value>
@@ -5045,6 +5051,9 @@
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>
+  <data name="IDS_LangVersions" xml:space="preserve">
+    <value>Supported language versions:</value>
+  </data>
   <data name="IDS_VBCHelp" xml:space="preserve">
     <value>                  Visual Basic Compiler Options
 
@@ -5061,6 +5070,7 @@
 /target:winmdobj                  Create a Windows Metadata intermediate file
 /doc[+|-]                         Generates XML documentation file.
 /doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
+/refout:&lt;file&gt;                    Reference assembly output to generate
 
                                   - INPUT FILES -
 /addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
@@ -5105,9 +5115,10 @@
                                   the target .dll or .exe.
 /deterministic                    Produce a deterministic assembly
                                   (including module version GUID and timestamp)
+/refonly                          Produce a reference assembly in place of the main output
 /instrument:TestCoverage          Produce an assembly instrumented to collect
                                   coverage information
-/sourcelink:&lt;file&gt;                Source link info to embed into Portable PDB.
+/sourcelink:&lt;file&gt;                Source link info to embed into PDB.
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.
@@ -5128,9 +5139,11 @@
 /imports:&lt;import_list&gt;            Declare global Imports for namespaces in 
                                   referenced metadata files. 
                                   import_list:namespace,...
-/langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
-                                  15.0|default|latest
+/langversion:?                    Display the allowed values for language version
+/langversion:&lt;string&gt;             Specify language version such as
+                                  `default` (latest major version), or
+                                  `latest` (latest version, including minor versions),
+                                  or specific versions like `14` or `15.3`
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
@@ -5154,7 +5167,6 @@
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
                                   (hex).
-/bugreport:&lt;file&gt;                 Create bug report file.
 /checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file 
                                   checksum stored in PDB. Supported values are:
                                   SHA1 (default) or SHA256.
@@ -5263,7 +5275,7 @@
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
     <value>'{0}' is not a valid format specifier</value>
   </data>
-  <data name="IDS_InvalidPreprocessorConstantType" xml:space="preserve">
+  <data name="ERR_InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
   </data>
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
@@ -5401,6 +5413,9 @@
   <data name="FEATURE_Tuples" xml:space="preserve">
     <value>tuples</value>
   </data>
+  <data name="FEATURE_PrivateProtected" xml:space="preserve">
+    <value>Private Protected</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -5419,17 +5434,17 @@
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
   </data>
-  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
-    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  <data name="ERR_SourceLinkRequiresPdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting PDB.</value>
   </data>
   <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
     <value>Tuple element names must be unique.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
-    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified by the target type '{1}'.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
-    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
+    <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
   <data name="ERR_TupleReservedElementName" xml:space="preserve">
     <value>Tuple element name '{0}' is only allowed at position {1}.</value>
@@ -5450,7 +5465,7 @@
     <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
-    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+    <value>/embed switch is only supported when emitting a PDB.</value>
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
@@ -5466,5 +5481,47 @@
   </data>
   <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
     <value>Merge conflict marker encountered</value>
+  </data>
+  <data name="ERR_NoRefOutWhenRefOnly" xml:space="preserve">
+    <value>Do not use refout when using refonly.</value>
+  </data>
+  <data name="ERR_NoNetModuleOutputWhenRefOutOrRefOnly" xml:space="preserve">
+    <value>Cannot compile net modules when using /refout or /refonly.</value>
+  </data>
+  <data name="ERR_BadNonTrailingNamedArgument" xml:space="preserve">
+    <value>Named argument '{0}' is used out-of-position but is followed by an unnamed argument</value>
+  </data>
+  <data name="ERR_BadDocumentationMode" xml:space="preserve">
+    <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadLanguageVersion" xml:space="preserve">
+    <value>Provided language version is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided source code kind is unsupported or invalid: '{0}'</value>
+  </data>
+  <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
+    <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
+  <data name="WRN_Experimental" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
+  <data name="WRN_Experimental_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
+  <data name="ERR_InvalidDebugInfo" xml:space="preserve">
+    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+  </data>
+  <data name="IConversionExpressionIsNotVisualBasicConversion" xml:space="preserve">
+    <value>{0} is not a valid Visual Basic conversion expression</value>
+  </data>
+  <data name="IArgumentIsNotVisualBasicArgument" xml:space="preserve">
+    <value>{0} is not a valid Visual Basic argument</value>
+  </data>
+  <data name="FEATURE_LeadingDigitSeparator" xml:space="preserve">
+    <value>leading digit separator</value>
+  </data>
+  <data name="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment" xml:space="preserve">
+    <value>{0} is not a valid Visual Basic compound assignment operation</value>
   </data>
 </root>

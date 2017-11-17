@@ -48,16 +48,16 @@ BC37257: Option 'CryptoKeyFile' must be an absolute path.
         Public Sub CompilationName()
             ' report an error, rather then silently ignoring the directory
             ' (see cli partition II 22.30) 
-            VisualBasicCompilation.Create("C:/foo/Test.exe").AssertTheseEmitDiagnostics(
+            VisualBasicCompilation.Create("C:/goo/Test.exe").AssertTheseEmitDiagnostics(
                 <expected>
-BC30420: 'Sub Main' was not found in 'C:/foo/Test.exe'.
+BC30420: 'Sub Main' was not found in 'C:/goo/Test.exe'.
 BC37283: Invalid assembly name: Name contains invalid characters.
                 </expected>)
-            VisualBasicCompilation.Create("C:\foo\Test.exe", options:=TestOptions.ReleaseDll).AssertTheseDeclarationDiagnostics(
+            VisualBasicCompilation.Create("C:\goo\Test.exe", options:=TestOptions.ReleaseDll).AssertTheseDeclarationDiagnostics(
                 <expected>
 BC37283: Invalid assembly name: Name contains invalid characters.
                 </expected>)
-            VisualBasicCompilation.Create("\foo/Test.exe", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+            VisualBasicCompilation.Create("\goo/Test.exe", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
                 <expected>
 BC37283: Invalid assembly name: Name contains invalid characters.
                 </expected>)
@@ -92,9 +92,9 @@ BC37283: Invalid assembly name: Name contains invalid characters.
 
             ' other characters than directory separators are ok:
             VisualBasicCompilation.Create(";,*?<>#!@&", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
-            VisualBasicCompilation.Create("foo", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
-            VisualBasicCompilation.Create(".foo", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
-            VisualBasicCompilation.Create("foo ", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics() ' can end with whitespace
+            VisualBasicCompilation.Create("goo", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create(".goo", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create("goo ", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics() ' can end with whitespace
             VisualBasicCompilation.Create("....", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
             VisualBasicCompilation.Create(Nothing, options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
         End Sub
@@ -104,7 +104,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             Dim listSyntaxTree = New List(Of SyntaxTree)
             Dim listRef = New List(Of MetadataReference)
 
-            Dim s1 = "using Foo"
+            Dim s1 = "using Goo"
             Dim t1 As SyntaxTree = VisualBasicSyntaxTree.ParseText(s1)
             listSyntaxTree.Add(t1)
 
@@ -285,22 +285,10 @@ End Namespace
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream:=New TestStream(canRead:=False, canWrite:=True, canSeek:=True)))
 
-            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
-                peStream:=New MemoryStream(),
-                pdbStream:=New MemoryStream(),
-                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
-                sourceLinkStream:=New MemoryStream()))
-
-            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
-                peStream:=New MemoryStream(),
-                pdbStream:=Nothing,
-                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
-                sourceLinkStream:=New MemoryStream()))
-
             Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
-                pdbStream:=New MemoryStream(),
-                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                pdbStream:=Nothing,
+                options:=Nothing,
                 embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
 
             Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
@@ -450,7 +438,7 @@ End Namespace
         Public Sub SyntreeAPITest()
 
             Dim s1 = "using System.Linq;"
-            Dim s2 = <![CDATA[Class foo
+            Dim s2 = <![CDATA[Class goo
                         sub main
                             Public Operator
                          End Operator
@@ -459,7 +447,7 @@ End Namespace
             Dim s3 = "Imports s$ = System.Text"
             Dim s4 = <text>
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         for i = 0 to 100
                         next
                     end sub
@@ -1211,7 +1199,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Dim t3 = t2
 
             Dim csComp = CS.CSharpCompilation.Create("CompilationVB")
-            csComp = csComp.AddSyntaxTrees(t1, CS.SyntaxFactory.ParseSyntaxTree("Imports Foo"))
+            csComp = csComp.AddSyntaxTrees(t1, CS.SyntaxFactory.ParseSyntaxTree("Imports Goo"))
             ' Throw exception when cast SyntaxTree
             For Each item In csComp.SyntaxTrees
                 t3 = item
@@ -1238,9 +1226,9 @@ BC2014: the value 'From()' is invalid for option 'RootNamespace'
 BC2014: the value 'x$' is invalid for option 'RootNamespace'
 </expected>)
 
-            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("Foo.").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("Goo.").Errors,
 <expected>
-BC2014: the value 'Foo.' is invalid for option 'RootNamespace'
+BC2014: the value 'Goo.' is invalid for option 'RootNamespace'
 </expected>)
 
             AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("_").Errors,
@@ -1795,7 +1783,7 @@ End Class
             Dim ta = Parse("Imports System")
             Dim tb = Parse("Imports System", options:=TestOptions.Script)
             Dim tc = Parse("#r ""bar""  ' error: #r in regular code")
-            Dim tr = Parse("#r ""foo""", options:=TestOptions.Script)
+            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script)
             Dim ts = Parse("#r ""bar""", options:=TestOptions.Script)
 
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
@@ -1904,7 +1892,7 @@ End Class
             Dim pinnedPEImage = GCHandle.Alloc(moduleBytes.ToArray(), GCHandleType.Pinned)
             Try
                 Using mdModule = ModuleMetadata.CreateFromMetadata(pinnedPEImage.AddrOfPinnedObject() + headers.MetadataStartOffset, headers.MetadataSize)
-                    Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, mdModule.GetReference(display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
+                    Dim c = VisualBasicCompilation.Create("Goo", references:={MscorlibRef, mdModule.GetReference(display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
                     c.VerifyDiagnostics(Diagnostic(ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1))
                 End Using
             Finally
@@ -2048,8 +2036,8 @@ End Namespace
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata)))
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeApplication)))
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsApplication)))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithCryptoKeyContainer("foo")))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithCryptoKeyFile("foo.snk")))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithCryptoKeyContainer("goo")))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithCryptoKeyFile("goo.snk")))
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithDelaySign(True)))
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithDelaySign(False)))
         End Sub
@@ -2068,7 +2056,7 @@ End Namespace
             ' TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Interactive, returnType:=GetType(Double)), expectedType:=SpecialType.System_Double, expectedHasValue:=True)
 
             Assert.False(CreateSubmission("
-Sub Foo() 
+Sub Goo() 
 End Sub
 ").HasSubmissionResult())
 

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -126,13 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (pending.Branch.Kind)
                 {
                     case BoundKind.GotoStatement:
-                        if (_labelsInside.Contains(((pending.Branch) as BoundGotoStatement).Label)) continue;
+                        if (_labelsInside.Contains(((BoundGotoStatement)pending.Branch).Label)) continue;
                         break;
                     case BoundKind.BreakStatement:
-                        if (_labelsInside.Contains(((pending.Branch) as BoundBreakStatement).Label)) continue;
+                        if (_labelsInside.Contains(((BoundBreakStatement)pending.Branch).Label)) continue;
                         break;
                     case BoundKind.ContinueStatement:
-                        if (_labelsInside.Contains(((pending.Branch) as BoundContinueStatement).Label)) continue;
+                        if (_labelsInside.Contains(((BoundContinueStatement)pending.Branch).Label)) continue;
                         break;
                     case BoundKind.YieldBreakStatement:
                     case BoundKind.ReturnStatement:
