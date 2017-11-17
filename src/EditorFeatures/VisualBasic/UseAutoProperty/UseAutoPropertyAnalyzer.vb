@@ -53,8 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
             Dim propertyDeclaration = TryCast(member, PropertyBlockSyntax)
             If propertyDeclaration IsNot Nothing Then
-                Dim [property] = context.SemanticModel.GetDeclaredSymbol(propertyDeclaration, context.CancellationToken)
-                AnalyzeProperty(context, [property], analysisResults)
+                AnalyzeProperty(context, propertyDeclaration, analysisResults)
             End If
         End Sub
 

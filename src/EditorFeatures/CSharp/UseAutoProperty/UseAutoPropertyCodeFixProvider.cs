@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             var sourceText = await propertyDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var getAccessor = propertyDeclaration.AccessorList.Accessors.First(d => d.IsKind(SyntaxKind.GetAccessorDeclaration));
-            var isSingleLine = sourceText.AreOnSameLine(getAccessor.GetFirstToken(), getAccessor.GetLastToken());
 
             var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList));
 
@@ -63,10 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
 
-            if (isSingleLine)
-            {
-                updatedProperty = updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
-            }
+            updatedProperty = updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
 
             return updatedProperty;
         }

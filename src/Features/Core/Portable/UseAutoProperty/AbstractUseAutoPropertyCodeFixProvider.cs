@@ -46,20 +46,17 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var equivalenceKey = diagnostic.Properties[Constants.SymbolEquivalenceKey];
-
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
                         FeaturesResources.Use_auto_property,
-                        c => ProcessResult(context, diagnostic, c),
-                        equivalenceKey),
+                        c => ProcessResultAsync(context, diagnostic, c)),
                     diagnostic);
             }
 
             return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Solution> ProcessResult(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var locations = diagnostic.AdditionalLocations;
             var propertyLocation = locations[0];
@@ -238,8 +235,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private class UseAutoPropertyCodeAction : CodeAction.SolutionChangeAction
         {
-            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
+            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

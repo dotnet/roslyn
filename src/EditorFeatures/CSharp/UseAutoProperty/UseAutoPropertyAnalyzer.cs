@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
             if (member is PropertyDeclarationSyntax propertyDeclaration)
             {
-                var property = (IPropertySymbol)context.SemanticModel.GetDeclaredSymbol(propertyDeclaration, context.CancellationToken);
-                AnalyzeProperty(context, property, analysisResults);
+                AnalyzeProperty(context, propertyDeclaration, analysisResults);
             }
         }
 

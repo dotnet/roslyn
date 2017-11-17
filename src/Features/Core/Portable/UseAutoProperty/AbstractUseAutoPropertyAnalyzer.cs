@@ -10,11 +10,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
-    internal static class Constants
-    {
-        public const string SymbolEquivalenceKey = nameof(SymbolEquivalenceKey);
-    }
-
     internal abstract class AbstractUseAutoPropertyAnalyzer<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> :
         AbstractCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
@@ -31,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         }
 
         public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.ProjectAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract void RegisterIneligibleFieldsAction(
             List<AnalysisResult> analysisResults, HashSet<IFieldSymbol> ineligibleFields,
@@ -62,8 +57,17 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected abstract void AnalyzeCompilationUnit(SemanticModelAnalysisContext context, SyntaxNode root, List<AnalysisResult> analysisResults);
 
-        protected void AnalyzeProperty(SemanticModelAnalysisContext context, IPropertySymbol property, List<AnalysisResult> analysisResults)
+        protected void AnalyzeProperty(SemanticModelAnalysisContext context, TPropertyDeclaration propertyDeclaration, List<AnalysisResult> analysisResults)
         {
+            var cancellationToken = context.CancellationToken;
+            var semanticModel = context.SemanticModel;
+
+            var property = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) as IPropertySymbol;
+            if (property == null)
+            {
+                return;
+            }
+
             if (property.IsIndexer)
             {
                 return;
@@ -104,14 +108,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-            var propertyDeclaration = property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).FirstAncestorOrSelf<TPropertyDeclaration>();
-            if (propertyDeclaration == null)
-            {
-                return;
-            }
-
-            var semanticModel = context.SemanticModel;
             var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
             if (getterField == null)
             {
@@ -272,9 +268,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(
-                Constants.SymbolEquivalenceKey, result.SymbolEquivalenceKey);
-
             // Fade out the field/variable we are going to remove.
             var diagnostic1 = Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, nodeToFade.GetLocation());
             context.ReportDiagnostic(diagnostic1);
@@ -284,10 +277,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // them when performing the code fix.
             IEnumerable<Location> additionalLocations = new Location[] { propertyDeclaration.GetLocation(), variableDeclarator.GetLocation() };
 
-            var diagnostic2 = Diagnostic.Create(HiddenDescriptor, propertyDeclaration.GetLocation(), additionalLocations, properties);
+            var diagnostic2 = Diagnostic.Create(HiddenDescriptor, propertyDeclaration.GetLocation(), additionalLocations);
             context.ReportDiagnostic(diagnostic2);
 
-            var diagnostic3 = Diagnostic.Create(HiddenDescriptor, nodeToFade.GetLocation(), additionalLocations, properties);
+            var diagnostic3 = Diagnostic.Create(HiddenDescriptor, nodeToFade.GetLocation(), additionalLocations);
             context.ReportDiagnostic(diagnostic3);
         }
 
