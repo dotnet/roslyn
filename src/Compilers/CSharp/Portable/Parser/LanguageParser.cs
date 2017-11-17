@@ -6201,45 +6201,65 @@ tryAgain:
                     this.Release(ref resetPoint);
                 }
             }
-
-            // Check for pointer types (only if pType is NOT an array type)
-            switch (mode)
+            // Check for pointer types.
+            var pointerResetPoint = this.GetResetPoint();
+            try
             {
-                case ParseTypeMode.AfterIs:
-                case ParseTypeMode.AfterCase:
-                case ParseTypeMode.AfterTupleComma:
-                case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                    // these contexts do not permit a pointer type.
-                    break;
-                case ParseTypeMode.Normal:
-                case ParseTypeMode.Parameter:
-                case ParseTypeMode.AfterOut:
-                case ParseTypeMode.ArrayCreation:
-                case ParseTypeMode.AsExpression:
-                    type = this.ParsePointerTypeMods(type);
-                    break;
-            }
-
-            // Now check for arrays.
-            if (this.IsPossibleRankAndDimensionSpecifier())
-            {
-                var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
-                try
+                var typeBeforePossiblePointer = type;
+                switch (mode)
                 {
-                    while (this.IsPossibleRankAndDimensionSpecifier())
+                    case ParseTypeMode.AfterTupleComma:
+                    case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                        // These contexts do not permit a pointer type.
+                        break;
+                    case ParseTypeMode.Normal:
+                    case ParseTypeMode.Parameter:
+                        // After 'is' and 'case' we do not allow pointer types, but we might have an array of a pointer type. So parse it for now.
+                    case ParseTypeMode.AfterIs:
+                    case ParseTypeMode.AfterCase:
+                    case ParseTypeMode.AfterOut:
+                    case ParseTypeMode.ArrayCreation:
+                    case ParseTypeMode.AsExpression:
+                        type = this.ParsePointerTypeMods(type);
+                        break;
+                }
+
+                // Now check for arrays.
+                if (this.IsPossibleRankAndDimensionSpecifier())
+                {
+                    var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
+                    try
                     {
-                        bool unused;
-                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, out unused);
-                        ranks.Add(rank);
-                        expectSizes = false;
-                    }
+                        while (this.IsPossibleRankAndDimensionSpecifier())
+                        {
+                            bool unused;
+                            var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, out unused);
+                            ranks.Add(rank);
+                            expectSizes = false;
+                        }
 
-                    type = _syntaxFactory.ArrayType(type, ranks);
+                        type = _syntaxFactory.ArrayType(type, ranks);
+                    }
+                    finally
+                    {
+                        _pool.Free(ranks);
+                    }
                 }
-                finally
+
+                if (type.Kind == SyntaxKind.PointerType)
                 {
-                    _pool.Free(ranks);
+                    if (mode == ParseTypeMode.AfterIs
+                    || mode == ParseTypeMode.AfterCase)
+                    {
+                        // In this case we made a mistake by parsing the pointer and have to reset to the point before we parsed the asterisk.
+                        type = typeBeforePossiblePointer;
+                        this.Reset(ref pointerResetPoint);
+                    }
                 }
+            }
+            finally
+            {
+                Release(ref pointerResetPoint);
             }
 
             Debug.Assert(type != null);
