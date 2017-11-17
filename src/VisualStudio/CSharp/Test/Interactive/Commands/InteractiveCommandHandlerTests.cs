@@ -95,7 +95,7 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
                 submissionBuffer: "var x = 1;");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/23200")]
         public void TestExecuteInInteractiveWithDefines()
         {
             string exampleWithIfDirective =

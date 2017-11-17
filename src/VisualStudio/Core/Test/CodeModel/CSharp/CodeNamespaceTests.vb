@@ -389,6 +389,109 @@ namespace N1
 
 #End Region
 
+#Region "Set Name tests"
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SameName() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N$$ 
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_NewName() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N$$
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N2
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N2", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SimpleNameToDottedName() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N1$$
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N2.N3
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N2.N3", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_DottedNameToSimpleName() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N1.N2$$
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N3.N4
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N3.N4", NoThrow(Of String)())
+        End Function
+
+#End Region
+
 #Region "Remove tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

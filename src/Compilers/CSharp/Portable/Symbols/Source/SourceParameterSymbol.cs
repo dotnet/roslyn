@@ -262,5 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
+
+        internal override bool IsMetadataIn => RefKind == RefKind.In;
+
+        internal override bool IsMetadataOut => RefKind == RefKind.Out;
     }
 }

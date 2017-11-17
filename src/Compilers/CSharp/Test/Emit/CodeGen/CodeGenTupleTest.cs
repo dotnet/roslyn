@@ -2110,7 +2110,7 @@ class C
     IL_0011:  ldarg.0
     IL_0012:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0017:  newobj     ""System.ValueTuple<T, T>..ctor(T, T)""
-    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0021:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_0026:  stloc.3
     IL_0027:  ldloca.s   V_3
@@ -2147,7 +2147,7 @@ class C
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_007b:  ldarg.0
-    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0081:  ldfld      ""T System.ValueTuple<T, T>.Item1""
     IL_0086:  stloc.1
     IL_0087:  leave.s    IL_00a2
@@ -2224,7 +2224,7 @@ class C
     IL_0011:  ldarg.0
     IL_0012:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0017:  newobj     ""System.ValueTuple<T, T>..ctor(T, T)""
-    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0021:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_0026:  stloc.3
     IL_0027:  ldloca.s   V_3
@@ -2261,7 +2261,7 @@ class C
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_007b:  ldarg.0
-    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0081:  constrained. ""System.ValueTuple<T, T>""
     IL_0087:  callvirt   ""string object.ToString()""
     IL_008c:  stloc.1
@@ -2365,7 +2365,7 @@ namespace System
     IL_0011:  ldarg.0
     IL_0012:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0017:  newobj     ""System.ValueTuple<T, T>..ctor(T, T)""
-    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0021:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_0026:  stloc.3
     IL_0027:  ldloca.s   V_3
@@ -2402,7 +2402,7 @@ namespace System
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_007b:  ldarg.0
-    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0081:  ldarg.0
     IL_0082:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0087:  call       ""T System.ValueTuple<T, T>.Test<T>(T)""
@@ -2505,7 +2505,7 @@ namespace System
     IL_000b:  ldc.i4.1
     IL_000c:  ldc.i4.2
     IL_000d:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-    IL_0012:  stfld      ""(int f1, int f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0012:  stfld      ""(int f1, int f2) C.<Test>d__1<T>.<x>5__2""
     IL_0017:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_001c:  stloc.3
     IL_001d:  ldloca.s   V_3
@@ -2542,7 +2542,7 @@ namespace System
     IL_006a:  ldloca.s   V_2
     IL_006c:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_0071:  ldarg.0
-    IL_0072:  ldflda     ""(int f1, int f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0072:  ldflda     ""(int f1, int f2) C.<Test>d__1<T>.<x>5__2""
     IL_0077:  ldarg.0
     IL_0078:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_007d:  call       ""T System.ValueTuple<int, int>.Test<T>(T)""
@@ -20376,7 +20376,7 @@ class C
     IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_0062
     IL_000a:  ldarg.0
-    IL_000b:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
+    IL_000b:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__2""
     IL_0010:  ldc.i4.5
     IL_0011:  conv.i8
     IL_0012:  stfld      ""long System.ValueTuple<long, int>.Item1""
@@ -20422,7 +20422,7 @@ class C
     IL_007e:  ldloca.s   V_3
     IL_0080:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_0085:  ldarg.0
-    IL_0086:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
+    IL_0086:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__2""
     IL_008b:  ldfld      ""long System.ValueTuple<long, int>.Item1""
     IL_0090:  stloc.1
     IL_0091:  leave.s    IL_00ac
