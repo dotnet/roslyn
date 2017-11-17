@@ -300,20 +300,17 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, propertyDeclaration.Language);
 
-            var lowPriority = ImmutableDictionary<string, string>.Empty.Add("LowPriority", "");
-
             // Place the appropriate marker on the field depending on the user option.
             var diagnostic1 = Diagnostic.Create(
                 GetFieldDescriptor(option), nodeToFade.GetLocation(),
-                additionalLocations: additionalLocations,
-                properties: option.Notification.Value == DiagnosticSeverity.Hidden ? lowPriority : default);
+                additionalLocations: additionalLocations);
 
             // Also, place a hidden marker on the property.  If they bring up a lightbulb
             // there, they'll be able to see that they can convert it to an auto-prop.
             var diagnostic2 = Diagnostic.Create(
                 HiddenDescriptor, propertyDeclaration.GetLocation(),
                 additionalLocations: additionalLocations,
-                properties: lowPriority);
+                properties: ImmutableDictionary<string, string>.Empty.Add("LowPriority", ""));
 
             context.ReportDiagnostic(diagnostic1);
             context.ReportDiagnostic(diagnostic2);
