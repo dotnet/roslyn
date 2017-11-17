@@ -12,8 +12,7 @@
     <ValidateManifest>false</ValidateManifest>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
+  <Import Project="$(NuGetPackageRoot)\microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\build\MicroBuild.Plugins.*.props" />
 
   <Target Name="BeforeBuild">
     <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" />
@@ -23,8 +22,5 @@
     <MergeManifest Include="$(OutputPath)\Microsoft.CodeAnalysis.Compilers.json" />
   </ItemGroup>
 
-  <Target Name="ValidateManifest" />
-
-  <!-- Disable automatic signing. This will be signed in the batch phase -->
-  <Target Name="AddTargetPathToFilesToSign" />
+  <Import Project="$(NuGetPackageRoot)\microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\build\MicroBuild.Plugins.*.targets" />
 </Project>

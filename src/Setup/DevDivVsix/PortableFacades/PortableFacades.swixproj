@@ -11,7 +11,7 @@
     <OutputType>vsix</OutputType>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
+  <Import Project="$(NuGetPackageRoot)\microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\build\MicroBuild.Plugins.*.props" />
 
   <PropertyGroup>
     <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);NuGetPackageRoot=$(NuGetPackageRoot)</PackagePreprocessorDefinitions>
@@ -22,8 +22,5 @@
     <Package Include="PortableFacades.swr" />
   </ItemGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
-
-  <!-- Disable automatic signing. This will be signed in the batch phase -->
-  <Target Name="AddTargetPathToFilesToSign" />
+  <Import Project="$(NuGetPackageRoot)\microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\build\MicroBuild.Plugins.*.targets" />
 </Project>
