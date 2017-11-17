@@ -1086,7 +1086,7 @@ options: TestOptions.ReleaseExe
         .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
         .WithStrongNameProvider(s_defaultDesktopProvider));
 
-            CompileAndVerify(comp2, expectedOutput: "Called M", verify: Verification.IVT);
+            CompileAndVerify(comp2, expectedOutput: "Called M", verify: Verification.Passes);
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey);
             Assert.Equal<byte>(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken);
 
@@ -1097,7 +1097,7 @@ options: TestOptions.ReleaseExe
         .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
         .WithStrongNameProvider(s_defaultDesktopProvider));
 
-            CompileAndVerify(comp3, expectedOutput: "Called M", verify: Verification.IVT);
+            CompileAndVerify(comp3, expectedOutput: "Called M", verify: Verification.Passes);
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey);
             Assert.Equal<byte>(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken);
         }
@@ -2391,7 +2391,7 @@ class B
             CompileAndVerify(ca);
 
             var cb = CreateStandardCompilation(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
-            CompileAndVerify(cb, expectedOutput: "42", verify: Verification.IVT).Diagnostics.Verify();
+            CompileAndVerify(cb, expectedOutput: "42", verify: Verification.Passes).Diagnostics.Verify();
         }
 
         [Fact, WorkItem(1072339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")]

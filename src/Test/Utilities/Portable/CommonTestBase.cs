@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Passes = PassesPeVerify | PassesIlVerify,
         Fails = FailsPeVerify | FailsIlVerify,
 
-        IVT = PassesPeVerify | FailsIlVerify, // ILVerify doesn't handle IVT properly (issue with spaces). See https://github.com/dotnet/corert/issues/4938
+        IVT = PassesPeVerify | FailsIlVerify, // ILVerify is case-sensitive in IVT 
         FullNames = PassesPeVerify, // ILVerify uses simple names instead of full names
         TypedReference = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support TypedReference
         InvalidProgramVararg = PassesPeVerify | FailsIlVerify, // ILVerify complains about InvalidProgramVararg
