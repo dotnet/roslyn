@@ -222,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                     return "/";
                 case SyntaxKind.ModuloExpression:
                     return "%";
+                case SyntaxKind.RangeExpression:
+                    return "..";
                 case SyntaxKind.LeftShiftExpression:
                     return "<<";
                 case SyntaxKind.RightShiftExpression:

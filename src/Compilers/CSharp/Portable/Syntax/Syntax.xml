@@ -549,6 +549,7 @@
     <Kind Name="MultiplyExpression"/>
     <Kind Name="DivideExpression"/>
     <Kind Name="ModuloExpression"/>
+    <Kind Name="RangeExpression"/>
     <Kind Name="LeftShiftExpression"/>
     <Kind Name="RightShiftExpression"/>
     <Kind Name="LogicalOrExpression"/>
@@ -576,6 +577,7 @@
       <Kind Name="AsteriskToken"/>
       <Kind Name="SlashToken"/>
       <Kind Name="PercentToken"/>
+      <Kind Name="DotDotToken"/>
       <Kind Name="LessThanLessThanToken"/>
       <Kind Name="GreaterThanGreaterThanToken"/>
       <Kind Name="BarBarToken"/>

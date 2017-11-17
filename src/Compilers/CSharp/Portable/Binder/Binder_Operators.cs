@@ -376,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SubtractExpression:
                 case SyntaxKind.DivideExpression:
                 case SyntaxKind.ModuloExpression:
+                case SyntaxKind.RangeExpression:
                 case SyntaxKind.EqualsExpression:
                 case SyntaxKind.NotEqualsExpression:
                 case SyntaxKind.GreaterThanExpression:
@@ -627,6 +628,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
+            if (resultKind == LookupResultKind.Empty && operatorToken.Kind() == SyntaxKind.DotDotToken)
+            {
+                // Diagnostics will already have been reported (when searching for an appropriate method)
+                return;
+            }
+
             if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken) &&
                 (left.IsLiteralDefault() && right.IsLiteralDefault()))
             {
@@ -1879,6 +1886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AddExpression: return BinaryOperatorKind.Addition;
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.SubtractExpression: return BinaryOperatorKind.Subtraction;
+                case SyntaxKind.RangeExpression: return BinaryOperatorKind.Range;
                 case SyntaxKind.RightShiftAssignmentExpression:
                 case SyntaxKind.RightShiftExpression: return BinaryOperatorKind.RightShift;
                 case SyntaxKind.LeftShiftAssignmentExpression:

@@ -8216,6 +8216,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot create a range value because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference?.
+        /// </summary>
+        internal static string ERR_RangeNotFound {
+            get {
+                return ResourceManager.GetString("ERR_RangeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to } expected.
         /// </summary>
         internal static string ERR_RbraceExpected {

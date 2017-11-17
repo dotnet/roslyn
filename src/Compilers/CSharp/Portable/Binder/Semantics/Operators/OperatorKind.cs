@@ -313,6 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         And = 0x00001D00,
         Xor = 0x00001E00,
         Or = 0x00001F00,
+        Range = 0x00002000,
 
         Lifted = UnaryOperatorKind.Lifted,
         Logical = UnaryOperatorKind._Logical,

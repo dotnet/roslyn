@@ -38203,6 +38203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.MultiplyExpression:
         case SyntaxKind.DivideExpression:
         case SyntaxKind.ModuloExpression:
+        case SyntaxKind.RangeExpression:
         case SyntaxKind.LeftShiftExpression:
         case SyntaxKind.RightShiftExpression:
         case SyntaxKind.LogicalOrExpression:
@@ -38235,6 +38236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AsteriskToken:
         case SyntaxKind.SlashToken:
         case SyntaxKind.PercentToken:
+        case SyntaxKind.DotDotToken:
         case SyntaxKind.LessThanLessThanToken:
         case SyntaxKind.GreaterThanGreaterThanToken:
         case SyntaxKind.BarBarToken:
@@ -45128,6 +45130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.MultiplyExpression:
         case SyntaxKind.DivideExpression:
         case SyntaxKind.ModuloExpression:
+        case SyntaxKind.RangeExpression:
         case SyntaxKind.LeftShiftExpression:
         case SyntaxKind.RightShiftExpression:
         case SyntaxKind.LogicalOrExpression:
@@ -45160,6 +45163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AsteriskToken:
         case SyntaxKind.SlashToken:
         case SyntaxKind.PercentToken:
+        case SyntaxKind.DotDotToken:
         case SyntaxKind.LessThanLessThanToken:
         case SyntaxKind.GreaterThanGreaterThanToken:
         case SyntaxKind.BarBarToken:

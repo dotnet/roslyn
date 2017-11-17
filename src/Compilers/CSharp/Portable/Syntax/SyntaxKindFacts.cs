@@ -449,6 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsteriskToken:
                 case SyntaxKind.SlashToken:
                 case SyntaxKind.PercentToken:
+                case SyntaxKind.DotDotToken:
                 case SyntaxKind.CaretToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.BarToken:
@@ -612,6 +613,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.DivideExpression;
                 case SyntaxKind.PercentToken:
                     return SyntaxKind.ModuloExpression;
+                case SyntaxKind.DotDotToken:
+                    return SyntaxKind.RangeExpression;
                 case SyntaxKind.AmpersandAmpersandToken:
                     return SyntaxKind.LogicalAndExpression;
                 case SyntaxKind.BarBarToken:
@@ -985,6 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case WellKnownMemberNames.ModulusOperatorName: return SyntaxKind.PercentToken;
                 case WellKnownMemberNames.MultiplyOperatorName: return SyntaxKind.AsteriskToken;
                 case WellKnownMemberNames.OnesComplementOperatorName: return SyntaxKind.TildeToken;
+                case WellKnownMemberNames.RangeOperatorName: return SyntaxKind.DotDotToken;
                 case WellKnownMemberNames.RightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanToken;
                 case WellKnownMemberNames.SubtractionOperatorName: return SyntaxKind.MinusToken;
                 case WellKnownMemberNames.TrueOperatorName: return SyntaxKind.TrueKeyword;
@@ -1254,6 +1258,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ">";
                 case SyntaxKind.DotToken:
                     return ".";
+                case SyntaxKind.DotDotToken:
+                    return "..";
                 case SyntaxKind.QuestionToken:
                     return "?";
                 case SyntaxKind.HashToken:

@@ -3856,6 +3856,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return CreateBinaryExpression(SyntaxKind.ModuloExpression, left, right);
         }
 
+        public SyntaxNode RangeExpression(SyntaxNode left, SyntaxNode right)
+        {
+            return CreateBinaryExpression(SyntaxKind.RangeExpression, left, right);
+        }
+
         public override SyntaxNode BitwiseAndExpression(SyntaxNode left, SyntaxNode right)
         {
             return CreateBinaryExpression(SyntaxKind.BitwiseAndExpression, left, right);

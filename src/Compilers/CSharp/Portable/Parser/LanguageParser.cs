@@ -8715,6 +8715,7 @@ tryAgain:
             Equality,
             Relational,
             Shift,
+            Range,
             Additive,
             Mutiplicative,
             Unary,
@@ -8766,6 +8767,8 @@ tryAgain:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
                     return Precedence.Shift;
+                case SyntaxKind.RangeExpression:
+                    return Precedence.Range;
                 case SyntaxKind.AddExpression:
                 case SyntaxKind.SubtractExpression:
                     return Precedence.Additive;
@@ -10142,6 +10145,7 @@ tryAgain:
                 case SyntaxKind.AsteriskToken:
                 case SyntaxKind.SlashToken:
                 case SyntaxKind.PercentToken:
+                case SyntaxKind.DotDotToken:
                 case SyntaxKind.PlusPlusToken:
                 case SyntaxKind.MinusMinusToken:
                 case SyntaxKind.OpenBracketToken:

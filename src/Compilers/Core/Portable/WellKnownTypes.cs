@@ -271,6 +271,8 @@ namespace Microsoft.CodeAnalysis
         System_ObsoleteAttribute,
         System_Span_T,
 
+        System_Range,
+
         NextAvailable,
     }
 
@@ -535,6 +537,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.InteropServices.InAttribute",
             "System.ObsoleteAttribute",
             "System.Span`1",
+
+            "System.Range",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -424,6 +424,8 @@ namespace Microsoft.CodeAnalysis
         System_ObsoleteAttribute__ctor,
         System_Span_T__ctor,
 
-        Count
+        System_Range__Create,
+
+        Count,
     }
 }

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         Equality,
         RelationalAndTypeTesting,
         Shift,
+        Range,
         Additive,
         Multiplicative,
         Unary,

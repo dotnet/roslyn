@@ -1548,5 +1548,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_FilterIsConstantFalse = 8359,
         WRN_FilterIsConstantFalseRedundantTryCatch = 8360,
         #endregion diagnostics for FilterIsConstant warning message fix
+
+        #region diagnostics introduced for C# 7.3
+        ERR_RangeNotFound = 8380,
+        #endregion diagnostics introduced for C# 7.3
     }
 }

@@ -2573,6 +2573,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     return OperatorPrecedence.Additive;
 
+                case SyntaxKind.RangeExpression:
+                    return OperatorPrecedence.Range;
+
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
                     // From C# spec, 7.3.1:

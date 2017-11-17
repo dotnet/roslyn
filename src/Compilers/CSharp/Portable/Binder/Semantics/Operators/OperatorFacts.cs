@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsteriskToken: return WellKnownMemberNames.MultiplyOperatorName;
                 case SyntaxKind.SlashToken: return WellKnownMemberNames.DivisionOperatorName;
                 case SyntaxKind.PercentToken: return WellKnownMemberNames.ModulusOperatorName;
+                case SyntaxKind.DotDotToken: return WellKnownMemberNames.RangeOperatorName;
                 case SyntaxKind.CaretToken: return WellKnownMemberNames.ExclusiveOrOperatorName;
                 case SyntaxKind.AmpersandToken: return WellKnownMemberNames.BitwiseAndOperatorName;
                 case SyntaxKind.BarToken: return WellKnownMemberNames.BitwiseOrOperatorName;
@@ -175,6 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Multiplication: return WellKnownMemberNames.MultiplyOperatorName;
                 case BinaryOperatorKind.Or: return WellKnownMemberNames.BitwiseOrOperatorName;
                 case BinaryOperatorKind.NotEqual: return WellKnownMemberNames.InequalityOperatorName;
+                case BinaryOperatorKind.Range: return WellKnownMemberNames.RangeOperatorName;
                 case BinaryOperatorKind.Remainder: return WellKnownMemberNames.ModulusOperatorName;
                 case BinaryOperatorKind.RightShift: return WellKnownMemberNames.RightShiftOperatorName;
                 case BinaryOperatorKind.Subtraction: return WellKnownMemberNames.SubtractionOperatorName;
