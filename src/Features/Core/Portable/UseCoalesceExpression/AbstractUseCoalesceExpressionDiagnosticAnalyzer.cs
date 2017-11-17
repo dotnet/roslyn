@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var semanticModel = context.SemanticModel;
             var conditionType = semanticModel.GetTypeInfo(
-                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, context.CancellationToken).Type;
+                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, cancellationToken).Type;
             if (conditionType != null &&
                 !conditionType.IsReferenceType)
             {
