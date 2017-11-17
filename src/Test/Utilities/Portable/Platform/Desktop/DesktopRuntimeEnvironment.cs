@@ -301,7 +301,11 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 foreach (var module in emitData.AllModuleData)
                 {
-                    if (!verifier.AddModule(module.Image, builder))
+                    var image = module.SimpleName == "mscorlib"
+                        ? TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
+                        : module.Image;
+
+                    if (!verifier.AddModule(image, builder))
                     {
                         string message = builder.ToStringAndFree();
                         builder = null;

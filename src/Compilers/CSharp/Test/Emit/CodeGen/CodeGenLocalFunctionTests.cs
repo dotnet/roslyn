@@ -1307,7 +1307,6 @@ class C
 }";
             CompileAndVerify(src,
                 additionalRefs: new[] { MscorlibRef_v46 },
-                verify: Verification.ClassLoadGeneral,
                 expectedOutput: @"1
 0");
         }
@@ -1347,7 +1346,6 @@ class C
 }";
             CompileAndVerify(src,
                 additionalRefs: new[] { MscorlibRef_v46 },
-                verify: Verification.MissingMethod,
                 expectedOutput: @"1
 0");
         }

@@ -71,7 +71,7 @@ class Test
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -143,8 +143,8 @@ namespace ConsoleApplication1
             var expected = @"
 a
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected, verify: Verification.Mscorlib);
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected, verify: Verification.Mscorlib);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected);
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected);
 
         }
 
@@ -176,7 +176,7 @@ class Test
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -210,7 +210,7 @@ class Test
             var expected = @"
 21
 ";
-            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -231,7 +231,7 @@ class C
         y = 1;
     }
 }";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Mscorlib,
+            CompileAndVerify(source, additionalRefs: s_asyncRefs,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
@@ -245,7 +245,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Mscorlib,
+            CompileAndVerify(source, additionalRefs: s_asyncRefs,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
@@ -285,7 +285,7 @@ class C
         lock (this) { }
     }
 }";
-            CompileAndVerify(source, s_asyncRefs, verify: Verification.Mscorlib,
+            CompileAndVerify(source, s_asyncRefs,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
@@ -304,7 +304,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__3"));
             });
 
-            var vd = CompileAndVerify(source, s_asyncRefs, verify: Verification.Mscorlib,
+            var vd = CompileAndVerify(source, s_asyncRefs,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
@@ -407,7 +407,7 @@ class Driver
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expected, verify: Verification.Mscorlib);
+            CompileAndVerify(source, expected);
         }
 
         [Fact]
@@ -446,7 +446,7 @@ class Driver
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expected, verify: Verification.Mscorlib);
+            CompileAndVerify(source, expected);
         }
 
         [Fact]
@@ -473,7 +473,7 @@ class Test
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected, references: new[] { CSharpRef }, verify: Verification.Mscorlib);
+            CompileAndVerify(source, expectedOutput: expected, references: new[] { CSharpRef });
         }
 
         [Fact]
@@ -506,7 +506,7 @@ class Test
             var expected = @"
 42
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
+            var verifier = CompileAndVerify(source, expectedOutput: expected);
 
             verifier.VerifyIL("C.<F>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -637,7 +637,7 @@ class Test
             var expected = @"
 42
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
+            var verifier = CompileAndVerify(source, expectedOutput: expected);
 
             verifier.VerifyIL("C.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -920,7 +920,7 @@ class Test
             var expected = @"
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Mscorlib);
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -988,7 +988,7 @@ class Test<U>
         foreach (var x in GetEnum<U>()) await F(5);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll, verify: Verification.Mscorlib);
+            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
 
             var actual = GetFieldLoadsAndStores(c, "Test<U>.<M>d__2<S, T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 
@@ -1146,7 +1146,7 @@ class Test
         foreach (var x in GetObjectEnum()) await F(2);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll, verify: Verification.Mscorlib);
+            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
 
             var actual = GetFieldLoadsAndStores(c, "Test.<M>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 
@@ -1243,7 +1243,7 @@ public class C
         var b8 = await Task.FromResult(default(Tuple<long, long, long>));
     }
 }";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Mscorlib,
+            CompileAndVerify(source, additionalRefs: s_asyncRefs,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]

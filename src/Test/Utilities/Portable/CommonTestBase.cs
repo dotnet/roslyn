@@ -36,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Fails = FailsPeVerify | FailsIlVerify,
 
         IVT = PassesPeVerify | FailsIlVerify, // ILVerify doesn't handle IVT properly (issue with spaces). See https://github.com/dotnet/corert/issues/4938
-        Mscorlib = PassesPeVerify | FailsIlVerify, // ILVerify doesn't use mscorlib from runtime, but that passed from test, which lacks some types
         FullNames = PassesPeVerify, // ILVerify uses simple names instead of full names
         TypedReference = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support TypedReference
         InvalidProgramVararg = PassesPeVerify | FailsIlVerify, // ILVerify complains about InvalidProgramVararg
-        MissingMethod = PassesPeVerify | FailsIlVerify, // ILVerify complains about MissingMethod
         ClassLoadGeneral = PassesPeVerify | FailsIlVerify, // ILVerify complains about ClassLoadGeneral
         NotImplemented = PassesPeVerify | FailsIlVerify, // ILVerify has some un-implemented cases in EcmaModule.GetType
         NoPia = PassesPeVerify | FailsIlVerify, // ILVerify doesn't do NoPia unification
+        RuntimeArgumentHandle = PassesPeVerify | FailsIlVerify, // ILVerify reports: RuntimeArgumentHandle not supported in .NET Core
+        LeaveIntoTry = PassesPeVerify | FailsIlVerify, // ILVerify reports: Leave into try block.
 
         TypeLoadFailed = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain type load failed
         UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: Unexpected type on the stack.

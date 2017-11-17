@@ -1994,7 +1994,7 @@ class UsePia
                                                         new MetadataReference[] { MscorlibRef_v4_0_30316_17626, piaCompilation.EmitToImageReference(embedInteropTypes: true) },
                                                         options: TestOptions.DebugExe);
 
-            verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator, verify: Verification.MissingMethod);
+            verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia.Test", expected);
         }

@@ -7115,7 +7115,7 @@ class C : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerify(source2, verify: Verification.Mscorlib, expectedOutput:
+            var comp2 = CompileAndVerify(source2, expectedOutput:
 @"True
 Handler", additionalRefs: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
@@ -7174,7 +7174,7 @@ struct S : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerify(source2, verify: Verification.Mscorlib, expectedOutput:
+            var comp2 = CompileAndVerify(source2, expectedOutput:
 @"GetC
 1
 True
