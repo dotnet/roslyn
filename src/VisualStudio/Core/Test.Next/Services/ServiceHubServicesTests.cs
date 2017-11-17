@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
+using Nerdbank;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
@@ -27,19 +28,22 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestRemoteHostCreation()
         {
-            var remoteHostService = CreateService();
-            Assert.NotNull(remoteHostService);
+            using (var remoteHostService = CreateService())
+            {
+                Assert.NotNull(remoteHostService);
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestRemoteHostConnect()
         {
-            var remoteHostService = CreateService();
+            using (var remoteHostService = CreateService())
+            {
+                var input = "Test";
+                var output = remoteHostService.Connect(input, serializedSession: null, cancellationToken: CancellationToken.None);
 
-            var input = "Test";
-            var output = remoteHostService.Connect(input, serializedSession: null, cancellationToken: CancellationToken.None);
-
-            Assert.Equal(input, output);
+                Assert.Equal(input, output);
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -398,8 +402,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static RemoteHostService CreateService()
         {
-            var stream = new MemoryStream();
-            return new RemoteHostService(stream, new InProcRemoteHostClient.ServiceProvider(runCacheCleanup: false));
+            var tuple = FullDuplexStream.CreateStreams();
+            return new RemoteHostService(tuple.Item1, new InProcRemoteHostClient.ServiceProvider(runCacheCleanup: false));
         }
 
         private static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
