@@ -1078,7 +1078,7 @@ Q[6] = 5
         o = i.valid_name(1);
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, verify: true);
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, verify: Verification.Passes);
 
             var @namespace = (NamespaceSymbol)compilation2.Compilation.GlobalNamespace;
             // Indexed property with valid name.
@@ -1166,7 +1166,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: true);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B : A
 {
@@ -1202,7 +1202,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: true);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B : A
 {
@@ -1532,7 +1532,7 @@ Public Class B
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
             var source2 =
 @"class C
 {
@@ -1555,7 +1555,7 @@ End Class";
         o = b.Q[2, 3];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, verify: false);
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, verify: Verification.Skipped);
             compilation3.VerifyIL("C.M(B)",
 @"{
   // Code size       33 (0x21)
@@ -1948,7 +1948,7 @@ Public Class A
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: true);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B
 {
@@ -1960,7 +1960,7 @@ End Class";
         a = new IA() { P3 = { 6, 7 } };
     }
 }";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(1).set
 P2(2).get
 P1(1).set
@@ -2036,7 +2036,7 @@ Public Class A
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: true);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B
 {
@@ -2095,7 +2095,7 @@ Public Class A2
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
             var source2 =
 @"[A1(P = 1)] // Not ComImport
 class B
@@ -2228,7 +2228,7 @@ Public Class A
 End Class
 ";
 
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: true);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"
 using System;
@@ -2252,7 +2252,7 @@ class B
     }
 }
 ";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(1).set
 P2(2).get
 P1(1).set
@@ -2300,7 +2300,7 @@ Public Class A
 End Class
 ";
 
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: true);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"
 using System;
@@ -2322,7 +2322,7 @@ class B
 }
 ";
 
-            var compilation2 = CompileAndVerify(source2, new[] { reference1, SystemCoreRef }, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1, SystemCoreRef }, verify: Verification.Passes, expectedOutput:
 @"P1(2).get
 P1(2).get
 P1(2).get
@@ -2377,7 +2377,7 @@ Public Class A
 End Class
 ";
 
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: true);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"
 using System;
@@ -2397,7 +2397,7 @@ class B
     }
 }
 ";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(3).get
 P1(3).set
 6

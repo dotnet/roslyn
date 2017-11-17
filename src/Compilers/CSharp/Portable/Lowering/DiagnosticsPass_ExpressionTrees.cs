@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -95,21 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitBaseReference(node);
-        }
-
-        public override BoundNode VisitLockStatement(BoundLockStatement node)
-        {
-            this.Visit(node.Argument);
-            this.Visit(node.Body);
-            return null;
-        }
-
-        public override BoundNode VisitTryStatement(BoundTryStatement node)
-        {
-            this.Visit(node.TryBlock);
-            this.VisitList(node.CatchBlocks);
-            this.Visit(node.FinallyBlockOpt);
-            return null;
         }
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)

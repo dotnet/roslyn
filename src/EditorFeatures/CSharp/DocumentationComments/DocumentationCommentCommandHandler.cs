@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position - 1, includeDirectives: true, includeDocumentationComments: true);
+                position - 1, includeDirectives: true, includeDocumentationComments: true, includeSkipped: true);
         }
 
         protected override bool IsDocCommentNewLine(SyntaxToken token)
@@ -285,5 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         {
             get { return true; }
         }
+
+        internal override bool HasSkippedTrailingTrivia(SyntaxToken token) => token.TrailingTrivia.Any(t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
     }
 }

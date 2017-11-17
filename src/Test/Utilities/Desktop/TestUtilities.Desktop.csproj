@@ -10,7 +10,7 @@
     <RootNamespace>Roslyn.Test.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Test.Utilities.Desktop</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7;ubuntu.14.04;osx.10.10</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">

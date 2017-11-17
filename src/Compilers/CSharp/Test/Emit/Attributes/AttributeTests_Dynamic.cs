@@ -1290,7 +1290,7 @@ class C
             comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
-            CompileAndVerify(comp, verify: false);
+            CompileAndVerify(comp, verify: Verification.Fails);
         }
 
         [Fact]
@@ -1324,7 +1324,7 @@ class C
             comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
-            CompileAndVerify(comp, verify: false);
+            CompileAndVerify(comp, verify: Verification.Fails);
         }
 
         [Fact]

@@ -1763,9 +1763,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: false);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: false);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
         }
 
         [Fact]
@@ -4692,11 +4692,11 @@ class UsePia5
 
             var compilation3 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: false);
+            CompileAndVerify(compilation3, verify: Verification.Fails);
 
             var compilation4 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: false);
+            CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
         [Fact]
@@ -5169,11 +5169,11 @@ class UsePia5
 
             var compilation3 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: false);
+            CompileAndVerify(compilation3, verify: Verification.Fails);
 
             var compilation4 = CreateStandardCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: false);
+            CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
         [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
@@ -1006,7 +1007,7 @@ class Program {
     }
 }";
             var comp = CreateCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            var compilation = CompileAndVerify(comp, verify: false);
+            var compilation = CompileAndVerify(comp, verify: Verification.Fails);
             compilation.VerifyIL("System.Program.Main",
 @"{
   // Code size       35 (0x23)

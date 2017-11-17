@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="deconstruction">The deconstruction operation</param>
         /// <param name="left">The left (tuple) operand</param>
-        /// <param name="right">The right (deconstrucible) operand</param>
+        /// <param name="right">The right (deconstructable) operand</param>
         /// <param name="diagnostics">Where to report diagnostics</param>
         /// <param name="declaration">A variable set to the first variable declaration found in the left</param>
         /// <param name="expression">A variable set to the first expression in the left that isn't a declaration or discard</param>
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             conversion = Conversion.Deconstruction;
 
             // Figure out the deconstruct method (if one is required) and determine the types we get from the RHS at this level
-            var deconstructInfo = default(DeconstructionInfo);
+            var deconstructMethod = default(DeconstructMethodInfo);
             if (type.IsTupleType)
             {
                 // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                deconstructInfo = new DeconstructionInfo(deconstructInvocation, inputPlaceholder, outPlaceholders);
+                deconstructMethod = new DeconstructMethodInfo(deconstructInvocation, inputPlaceholder, outPlaceholders);
 
                 tupleOrDeconstructedTypes = outPlaceholders.SelectAsArray(p => p.Type);
                 SetInferredTypes(variables, tupleOrDeconstructedTypes, diagnostics);
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions.Add(nestedConversion);
             }
 
-            conversion = new Conversion(ConversionKind.Deconstruction, deconstructInfo, nestedConversions.ToImmutableAndFree());
+            conversion = new Conversion(ConversionKind.Deconstruction, deconstructMethod, nestedConversions.ToImmutableAndFree());
 
             return !hasErrors;
         }

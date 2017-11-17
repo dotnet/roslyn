@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -102,6 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInRefContext();
+
+        public bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => (node as ExpressionSyntax).IsInInContext();
 
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
         {
@@ -221,6 +225,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return default;
+            }
+        }
+
+        public ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
+            {
+                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), builder);
+                return builder.ToImmutableAndFree();
+            }
+
+            return ImmutableArray<IMethodSymbol>.Empty;
+        }
+
+        public ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is ForEachVariableStatementSyntax @foreach)
+            {
+                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), builder);
+                return builder.ToImmutableAndFree();
+            }
+
+            return ImmutableArray<IMethodSymbol>.Empty;
+        }
+
+        private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ArrayBuilder<IMethodSymbol> builder)
+        {
+            var method = deconstruction.Method;
+            if (method != null)
+            {
+                builder.Add(method);
+            }
+
+            foreach (var nested in deconstruction.Nested)
+            {
+                FlattenDeconstructionMethods(nested, builder);
             }
         }
 

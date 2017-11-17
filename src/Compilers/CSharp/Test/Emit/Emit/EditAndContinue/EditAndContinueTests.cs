@@ -2408,16 +2408,18 @@ class C
 
             diff7.VerifyIL(
 @"{
-  // Code size       16 (0x10)
-  .maxstack  8
+  // Code size       18 (0x12)
+  .maxstack  1
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       0x06000008
   IL_0007:  nop
   IL_0008:  ldarg.0
-  IL_0009:  call       0x06000009
-  IL_000e:  nop
-  IL_000f:  ret
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  call       0x06000009
+  IL_0010:  nop
+  IL_0011:  ret
 }");
 
             //static void M(object[][] b)
@@ -7462,7 +7464,7 @@ class C
                 throw new ArgumentOutOfRangeException();
             });
 
-            // the compiler shound't swallow any exceptions but InvalidDataException
+            // the compiler should't swallow any exceptions but InvalidDataException
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 compilation1.EmitDifference(
                     generation0,

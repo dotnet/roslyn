@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// True if the method itself is excluded from code covarage instrumentation.
+        /// True if the method itself is excluded from code coverage instrumentation.
         /// True for source methods marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
@@ -1158,6 +1158,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ReturnsByRefReadonly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
+            var compilation = this.DeclaringCompilation;
+            var type = this.ReturnType;
+
+            if (type.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (type.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type));
             }
         }
 

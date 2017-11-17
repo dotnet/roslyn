@@ -1645,7 +1645,7 @@ True
         End Sub
 
         <Fact>
-        Public Sub TestImplicitConstructorConverage()
+        Public Sub TestImplicitConstructorCoverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Module Program
@@ -1868,7 +1868,7 @@ True
         End Sub
 
         <Fact>
-        Public Sub MissingMethodNeededForAnaysis()
+        Public Sub MissingMethodNeededForAnalysis()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Namespace System

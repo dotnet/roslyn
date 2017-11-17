@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this" 
-        /// is sematically immutable.
+        /// is semantically immutable.
         /// It would be hard for such caching to happen at JIT level (since JIT does not know that it never changes).
         /// NOTE: this field is null when we are not caching "this" which happens when
         ///       - not optimizing
@@ -283,21 +283,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(local.SynthesizedKind.IsLongLived());
 
                 CapturedSymbolReplacement proxy;
+                bool reused = false;
                 if (!proxies.TryGetValue(local, out proxy))
                 {
-                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type), isReusable: true);
-
+                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type, out reused, local), isReusable: true);
                     proxies.Add(local, proxy);
                 }
 
                 // We need to produce hoisted local scope debug information for user locals as well as 
                 // lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
                 // in Locals window.
-                if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && 
-                        local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
+                if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
-                    hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxy).HoistedField);
+                    // NB: This is the case when the local backed by recycled field will not be visible in debugger.
+                    //     It may be possible in the future, but for now a backing field can be mapped only to a single local.
+                    if (!reused)
+                    {
+                        hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxy).HoistedField);
+                    }
                 }
             }
 
@@ -415,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type)
+        private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)
         {
             // In debug builds we don't reuse any hoisted variable.
             Debug.Assert(F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release);
@@ -425,10 +429,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var field = fields.Last();
                 fields.RemoveLast();
+                reused = true;
                 return field;
             }
 
-            return F.StateMachineField(type, GeneratedNames.ReusableHoistedLocalFieldName(_nextHoistedFieldId++));
+            reused = false;
+            var slotIndex = _nextHoistedFieldId++;
+
+            if (local?.SynthesizedKind == SynthesizedLocalKind.UserDefined)
+            {
+                string fieldName = GeneratedNames.MakeHoistedLocalFieldName(SynthesizedLocalKind.UserDefined, slotIndex, local.Name);
+                return F.StateMachineField(type, fieldName, SynthesizedLocalKind.UserDefined, slotIndex);
+            }
+
+            return F.StateMachineField(type, GeneratedNames.ReusableHoistedLocalFieldName(slotIndex));
         }
 
         private void FreeReusableHoistedField(StateMachineFieldSymbol field)
@@ -615,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        hoistedField = GetOrAllocateReusableHoistedField(fieldType);
+                        hoistedField = GetOrAllocateReusableHoistedField(fieldType, reused: out _);
                     }
 
                     hoistedFields.Add(hoistedField);

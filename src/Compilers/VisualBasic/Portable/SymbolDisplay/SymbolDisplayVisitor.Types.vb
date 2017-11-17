@@ -479,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddTypeParameterConstraints(typeParam)
                     End If
                 Else
-                    typeArg.Accept(Me.NotFirstVisitor())
+                    typeArg.Accept(Me.NotFirstVisitorNamespaceOrType())
                 End If
 
                 If modifiersSource IsNot Nothing Then

@@ -22,6 +22,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITupleOperation (OperationKind.Tuple, Type: (x As System.Int32, System.Int32)) (Syntax: '(x, x + y)')
+  NaturalType: (x As System.Int32, System.Int32)
   Elements(2):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')

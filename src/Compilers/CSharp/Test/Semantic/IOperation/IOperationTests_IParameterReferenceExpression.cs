@@ -25,6 +25,7 @@ class Class1
 ";
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, x + y)')
+  NaturalType: (System.Int32 x, System.Int32)
   Elements(2):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
@@ -78,6 +79,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Left: 
     IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+        NaturalType: (System.Int32 x, System.Int32 y)
         Elements(2):
             ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
             ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -175,7 +177,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IPropertyReferenceOperation: System.String Customer.Name { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'cust.Name')
                           Instance Receiver: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'cust')
+                            IParameterReferenceOperation: cust (OperationKind.ParameterReference, Type: Customer) (Syntax: 'cust')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";

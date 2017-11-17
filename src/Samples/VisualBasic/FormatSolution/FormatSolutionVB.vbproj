@@ -10,7 +10,7 @@
     <AssemblyName>FormatSolution</AssemblyName>
     <MyType>Console</MyType>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <ScrubbedSamplePath>VisualBasic\FormatSolution</ScrubbedSamplePath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OptionStrict>Off</OptionStrict>

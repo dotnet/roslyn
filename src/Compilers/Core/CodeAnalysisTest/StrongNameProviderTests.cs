@@ -3,9 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -32,61 +29,62 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var provider = new VirtualizedStrongNameProvider(
                 existingFullPaths: fs,
                 searchPaths: ImmutableArray.Create(subdir));
+            var subdirSearchPath = ImmutableArray.Create(subdir);
 
             // using base directory; base path ignored
-            var path = provider.ResolveStrongNameKeyFile(fileName);
+            var path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, subdirSearchPath);
             Assert.Equal(subFilePath, path, StringComparer.OrdinalIgnoreCase);
 
             // search paths
-            var providerSP = new VirtualizedStrongNameProvider(
-                existingFullPaths: fs,
-                searchPaths: ImmutableArray.Create(@"C:\goo", dir, subdir));
+            var searchPathsSP = ImmutableArray.Create(@"C:\goo", dir, subdir);
 
-            path = providerSP.ResolveStrongNameKeyFile(fileName);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir, no search paths
-            var providerNullBase = new VirtualizedStrongNameProvider(
-                existingFullPaths: fs,
-                searchPaths: ImmutableArray.Create<string>());
+            var searchPathsEmpty = ImmutableArray<string>.Empty;
 
             // relative path
-            path = providerNullBase.ResolveStrongNameKeyFile(fileName);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsEmpty);
             Assert.Null(path);
 
             // full path
-            path = providerNullBase.ResolveStrongNameKeyFile(filePath);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(filePath, searchPathsEmpty);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir
-            var providerNullBaseSP = new VirtualizedStrongNameProvider(
-                existingFullPaths: fs,
-                searchPaths: ImmutableArray.Create(dir, subdir));
+            var searchPathsNullBaseSP = ImmutableArray.Create(dir, subdir);
 
             // relative path
-            path = providerNullBaseSP.ResolveStrongNameKeyFile(fileName);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // full path
-            path = providerNullBaseSP.ResolveStrongNameKeyFile(filePath);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(filePath, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
         }
 
         public class VirtualizedStrongNameProvider : DesktopStrongNameProvider
         {
-            private readonly HashSet<string> _existingFullPaths;
+            private class VirtualStrongNameFileSystem : StrongNameFileSystem
+            {
+                private readonly HashSet<string> _existingFullPaths;
+                public VirtualStrongNameFileSystem(HashSet<string> existingFullPaths)
+                {
+                    _existingFullPaths = existingFullPaths;
+                }
+
+                internal override bool FileExists(string fullPath)
+                {
+                    return fullPath != null && _existingFullPaths != null && _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
+                }
+            }
 
             public VirtualizedStrongNameProvider(
                 IEnumerable<string> existingFullPaths = null,
                 ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
-                : base(searchPaths.NullToEmpty())
+                : base(searchPaths.NullToEmpty(), null, new VirtualStrongNameFileSystem(new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase)))
             {
-                _existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
-            }
-
-            internal override bool FileExists(string fullPath)
-            {
-                return fullPath != null && _existingFullPaths != null && _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
             }
         }
     }
