@@ -46,10 +46,15 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
             foreach (var diagnostic in context.Diagnostics)
             {
+                var priority = diagnostic.Properties.ContainsKey("LowPriority")
+                    ? CodeActionPriority.Low
+                    : CodeActionPriority.Medium;
+
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
                         FeaturesResources.Use_auto_property,
-                        c => ProcessResultAsync(context, diagnostic, c)),
+                        c => ProcessResultAsync(context, diagnostic, c),
+                        priority),
                     diagnostic);
             }
 
@@ -273,10 +278,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private class UseAutoPropertyCodeAction : CodeAction.SolutionChangeAction
         {
-            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, CodeActionPriority priority)
                 : base(title, createChangedSolution, title)
             {
+                this.Priority = priority;
             }
+
+            internal override CodeActionPriority Priority { get; }
         }
     }
 }
