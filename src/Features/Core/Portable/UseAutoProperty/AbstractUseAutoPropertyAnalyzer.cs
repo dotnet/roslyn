@@ -28,15 +28,17 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract void RegisterIneligibleFieldsAction(
-            List<AnalysisResult> analysisResults, HashSet<IFieldSymbol> ineligibleFields,
-            Compilation compilation, CancellationToken cancellationToken);
+        protected abstract void AnalyzeCompilationUnit(SemanticModelAnalysisContext context, SyntaxNode root, List<AnalysisResult> analysisResults);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
         protected abstract TExpression GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
         protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
         protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
+
+        protected abstract void RegisterIneligibleFieldsAction(
+            List<AnalysisResult> analysisResults, HashSet<IFieldSymbol> ineligibleFields,
+            Compilation compilation, CancellationToken cancellationToken);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
@@ -54,8 +56,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 context.SemanticModel.Compilation, context.CancellationToken);
             Process(analysisResults, ineligibleFields, context);
         }
-
-        protected abstract void AnalyzeCompilationUnit(SemanticModelAnalysisContext context, SyntaxNode root, List<AnalysisResult> analysisResults);
 
         protected void AnalyzeProperty(SemanticModelAnalysisContext context, TPropertyDeclaration propertyDeclaration, List<AnalysisResult> analysisResults)
         {
