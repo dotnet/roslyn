@@ -29,12 +29,10 @@ namespace Perf
         }
 
         /// <summary>
-        /// Generate a Target for usage in the Benchmark. This
-        /// target features a fake type and method because
-        /// the BenchmarkDotNet core runner prints the name
-        /// of the type and method in the summary, so if these
-        /// elements were null, the benchmark runner crashes
-        /// with an NRE.
+        /// Generate a Target for usage in the Benchmark. This target features a
+        /// fake type and method because the BenchmarkDotNet core runner prints
+        /// the name of the type and method in the summary, so if these elements
+        /// were null, the benchmark runner crashes with an NRE.
         /// </summary>
         private static Target GetTarget()
         {

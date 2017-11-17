@@ -38,7 +38,7 @@ namespace Perf
 
         private ExecuteResult Execute(Process proc, ExternalProcessBenchmark benchmark, ILogger logger)
         {
-            logger.WriteLineInfo("// Execute: " + proc.StartInfo.FileName + " " + proc.StartInfo.Arguments);
+            logger.WriteLineInfo($"// Execute: {proc.StartInfo.FileName} {proc.StartInfo.Arguments}");
 
             var invokeCount = benchmark.Job.Run.TargetCount;
             var measurements = new string[invokeCount];
