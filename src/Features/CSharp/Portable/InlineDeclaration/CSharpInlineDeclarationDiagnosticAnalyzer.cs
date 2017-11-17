@@ -194,6 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // rewrite things.
             var outArgumentScope = GetOutArgumentScope(argumentExpression);
 
+            if (!outLocalSymbol.CanSafelyMoveLocalToBlock(enclosingBlockOfLocalStatement, outArgumentScope))
+            {
+                return;
+            }
+
             // Make sure that variable is not accessed outside of that scope.
             var dataFlow = semanticModel.AnalyzeDataFlow(outArgumentScope);
             if (dataFlow.ReadOutside.Contains(outLocalSymbol) || dataFlow.WrittenOutside.Contains(outLocalSymbol))
