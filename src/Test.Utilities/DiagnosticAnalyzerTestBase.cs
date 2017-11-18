@@ -31,9 +31,9 @@ namespace Test.Utilities
         private static readonly MetadataReference s_immutableCollectionsReference = MetadataReference.CreateFromFile(typeof(ImmutableArray<int>).Assembly.Location);
         private static readonly MetadataReference s_systemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
         private static readonly MetadataReference s_systemDataReference = MetadataReference.CreateFromFile(typeof(System.Data.DataSet).Assembly.Location);
-        private static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-        private static readonly CompilationOptions s_CSharpUnsafeCodeDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true);
-        private static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        protected static readonly CompilationOptions s_CSharpUnsafeCodeDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true);
+        protected static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         internal const string DefaultFilePathPrefix = "Test";
         internal const string CSharpDefaultFileExt = "cs";
@@ -47,14 +47,14 @@ namespace Test.Utilities
 
         /// <summary>
         /// Return the C# diagnostic analyzer to get analyzer diagnostics.
-        /// This may return null when used in context of verifying a code fix for compiler diagnostics. 
+        /// This may return null when used in context of verifying a code fix for compiler diagnostics.
         /// </summary>
         /// <returns></returns>
         protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
 
         /// <summary>
         /// Return the VB diagnostic analyzer to get analyzer diagnostics.
-        /// This may return null when used in context of verifying a code fix for compiler diagnostics. 
+        /// This may return null when used in context of verifying a code fix for compiler diagnostics.
         /// </summary>
         /// <returns></returns>
         protected abstract DiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
@@ -216,78 +216,98 @@ namespace Test.Utilities
 
         protected void VerifyCSharpUnsafeCode(string source, params DiagnosticResult[] expected)
         {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, true, expected);
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, true, null, expected);
         }
 
         protected void VerifyCSharp(string source, params DiagnosticResult[] expected)
         {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, false, expected);
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, false, null, expected);
+        }
+
+        protected void VerifyCSharp(string source, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
+        {
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, false, compilationOptions, expected);
         }
 
         protected void VerifyCSharp(string source, TestValidationMode validationMode, params DiagnosticResult[] expected)
         {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), validationMode, false, expected);
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), validationMode, false, null, expected);
+        }
+
+        protected void VerifyCSharp(string source, TestValidationMode validationMode, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
+        {
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), validationMode, false, compilationOptions, expected);
         }
 
         protected void VerifyCSharp(string source, bool addLanguageSpecificCodeAnalysisReference, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
         {
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), addLanguageSpecificCodeAnalysisReference, validationMode, expected);
+            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), addLanguageSpecificCodeAnalysisReference, validationMode, null, expected);
         }
 
         protected void VerifyCSharp(string[] sources, params DiagnosticResult[] expected)
         {
-            Verify(sources.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, false, expected);
+            Verify(sources.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, false, null, expected);
         }
 
         protected void VerifyCSharp(FileAndSource[] sources, params DiagnosticResult[] expected)
         {
-            Verify(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, false, expected);
+            Verify(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, false, null, expected);
         }
 
         protected void VerifyBasic(string source, params DiagnosticResult[] expected)
         {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, expected);
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, null, expected);
+        }
+
+        protected void VerifyBasic(string source, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
+        {
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, compilationOptions, expected);
         }
 
         protected void VerifyBasic(string source, TestValidationMode validationMode, params DiagnosticResult[] expected)
         {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), validationMode, false, expected);
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), validationMode, false, null, expected);
+        }
+
+        protected void VerifyBasic(string source, TestValidationMode validationMode, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
+        {
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), validationMode, false, compilationOptions, expected);
         }
 
         protected void VerifyBasic(string source, bool addLanguageSpecificCodeAnalysisReference, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
         {
-            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), addLanguageSpecificCodeAnalysisReference, validationMode, expected);
+            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), addLanguageSpecificCodeAnalysisReference, validationMode, null, expected);
         }
 
         protected void VerifyBasic(string[] sources, params DiagnosticResult[] expected)
         {
-            Verify(sources.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, expected);
+            Verify(sources.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, null, expected);
         }
 
         protected void VerifyBasic(FileAndSource[] sources, params DiagnosticResult[] expected)
         {
-            Verify(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, expected);
+            Verify(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, null, expected);
         }
 
-        protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, IEnumerable<TestAdditionalDocument> additionalFiles, params DiagnosticResult[] expected)
+        protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, IEnumerable<TestAdditionalDocument> additionalFiles, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
-            var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, additionalFiles: additionalFiles);
+            var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, additionalFiles: additionalFiles);
             diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, expected);
         }
 
-        private void Verify(string source, string language, DiagnosticAnalyzer analyzer, bool addLanguageSpecificCodeAnalysisReference, TestValidationMode validationMode, params DiagnosticResult[] expected)
+        private void Verify(string source, string language, DiagnosticAnalyzer analyzer, bool addLanguageSpecificCodeAnalysisReference, TestValidationMode validationMode, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
-            var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, addLanguageSpecificCodeAnalysisReference: addLanguageSpecificCodeAnalysisReference, validationMode: validationMode);
+            var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, addLanguageSpecificCodeAnalysisReference: addLanguageSpecificCodeAnalysisReference, validationMode: validationMode);
             diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, expected);
         }
 
-        private void Verify(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, TestValidationMode validationMode, bool allowUnsafeCode, params DiagnosticResult[] expected)
+        private void Verify(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, TestValidationMode validationMode, bool allowUnsafeCode, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
-            var diagnostics = GetSortedDiagnostics(sources, language, analyzer, validationMode, allowUnsafeCode: allowUnsafeCode);
+            var diagnostics = GetSortedDiagnostics(sources, language, analyzer, compilationOptions, validationMode, allowUnsafeCode: allowUnsafeCode);
             diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, expected);
         }
 
-        private static Tuple<Document[], bool, TextSpan?[]> GetDocumentsAndSpans(FileAndSource[] sources, string language, bool addLanguageSpecificCodeAnalysisReference = true, string projectName = TestProjectName, bool allowUnsafeCode = false)
+        private static Tuple<Document[], bool, TextSpan?[]> GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, bool addLanguageSpecificCodeAnalysisReference = true, string projectName = TestProjectName, bool allowUnsafeCode = false)
         {
             Assert.True(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic, "Unsupported language");
 
@@ -307,7 +327,7 @@ namespace Test.Utilities
                 }
             }
 
-            Project project = CreateProject(sources, language, addLanguageSpecificCodeAnalysisReference, null, projectName, allowUnsafeCode);
+            Project project = CreateProject(sources, language, addLanguageSpecificCodeAnalysisReference, null, projectName, allowUnsafeCode, compilationOptions: compilationOptions);
             Document[] documents = project.Documents.ToArray();
             Assert.Equal(sources.Length, documents.Length);
 
@@ -330,13 +350,15 @@ namespace Test.Utilities
             bool addLanguageSpecificCodeAnalysisReference = true,
             Solution addToSolution = null,
             string projectName = TestProjectName,
-            bool allowUnsafeCode = false)
+            bool allowUnsafeCode = false,
+            CompilationOptions compilationOptions = null)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
-            CompilationOptions options = language == LanguageNames.CSharp
-                ? (allowUnsafeCode ? s_CSharpUnsafeCodeDefaultOptions : s_CSharpDefaultOptions)
-                : s_visualBasicDefaultOptions;
+            CompilationOptions options = compilationOptions ??
+                (language == LanguageNames.CSharp
+                    ? (allowUnsafeCode ? s_CSharpUnsafeCodeDefaultOptions : s_CSharpDefaultOptions) :
+                      s_visualBasicDefaultOptions);
 
             ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
 
@@ -379,9 +401,9 @@ namespace Test.Utilities
             return project;
         }
 
-        protected static Diagnostic[] GetSortedDiagnostics(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, TestValidationMode validationMode = DefaultTestValidationMode, bool addLanguageSpecificCodeAnalysisReference = true, bool allowUnsafeCode = false, string projectName = TestProjectName, IEnumerable<TestAdditionalDocument> additionalFiles = null)
+        protected static Diagnostic[] GetSortedDiagnostics(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, TestValidationMode validationMode = DefaultTestValidationMode, bool addLanguageSpecificCodeAnalysisReference = true, bool allowUnsafeCode = false, string projectName = TestProjectName, IEnumerable<TestAdditionalDocument> additionalFiles = null)
         {
-            Tuple<Document[], bool, TextSpan?[]> documentsAndUseSpan = GetDocumentsAndSpans(sources, language, addLanguageSpecificCodeAnalysisReference, projectName, allowUnsafeCode);
+            Tuple<Document[], bool, TextSpan?[]> documentsAndUseSpan = GetDocumentsAndSpans(sources, language, compilationOptions, addLanguageSpecificCodeAnalysisReference, projectName, allowUnsafeCode);
             Document[] documents = documentsAndUseSpan.Item1;
             bool useSpans = documentsAndUseSpan.Item2;
             TextSpan?[] spans = documentsAndUseSpan.Item3;
