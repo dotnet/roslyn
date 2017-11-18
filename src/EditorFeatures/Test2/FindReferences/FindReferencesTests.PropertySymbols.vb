@@ -66,6 +66,39 @@ namespace ConsoleApplication22
             Await TestAPIAndFeature(input)
         End Function
 
+        <WorkItem(17684, "https://github.com/dotnet/roslyn/issues/17684")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertySetter() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static public int Property
+    {
+        get
+        {
+            throw null;
+        }
+        {|Definition:se$$t|}
+        {
+            throw null;
+        }
+    }
+    static int M()
+    {
+        C.[|Property|] = 1;
+        return C.Property;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
         <WorkItem(539022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539022")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyCascadeThroughInterface1() As Task

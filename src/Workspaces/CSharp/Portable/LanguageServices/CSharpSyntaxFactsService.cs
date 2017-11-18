@@ -1304,6 +1304,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (node as ExpressionSyntax).IsLeftSideOfAnyAssignExpression();
         }
 
+        public bool IsAssignedTo(SyntaxNode node)
+        {
+            if (IsLeftSideOfAnyAssignment(node))
+            {
+                return true;
+            }
+            if (node.Parent is MemberAccessExpressionSyntax access && access.Name == node)
+            {
+                return IsLeftSideOfAnyAssignment(access);
+            }
+            return false;
+        }
+
         public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
         {
             return (node as AssignmentExpressionSyntax)?.Right;

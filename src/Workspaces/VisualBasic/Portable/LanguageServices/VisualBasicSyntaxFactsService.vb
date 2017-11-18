@@ -1701,5 +1701,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetDeconstructionReferenceLocation(node As SyntaxNode) As Location Implements ISyntaxFactsService.GetDeconstructionReferenceLocation
             Throw New NotImplementedException()
         End Function
+
+        Public Function IsAssignedTo(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAssignedTo
+            Throw New NotImplementedException()
+        End Function
     End Class
 End Namespace
