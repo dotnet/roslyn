@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchLabel defaultLabel;
             bool isComplete;
             ImmutableArray<BoundPatternSwitchSection> switchSections =
-                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, out var someCaseMatches, diagnostics);
+                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, out bool someCaseMatches, diagnostics);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(

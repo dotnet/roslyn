@@ -246,10 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var typeSyntax = node.Type;
-            var boundDeclType = BindPatternType(typeSyntax, operandType, ref hasErrors, out var isVar, diagnostics);
+            var boundDeclType = BindPatternType(typeSyntax, operandType, ref hasErrors, out bool isVar, diagnostics);
             var declType = boundDeclType.Type;
 
-            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out var variableSymbol, out var variableAccess);
+            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar, hasErrors);
         }
 
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeSyntax != null)
             {
-                boundDeclType = BindPatternType(typeSyntax, operandType, ref hasErrors, out var isVar, diagnostics);
+                boundDeclType = BindPatternType(typeSyntax, operandType, ref hasErrors, out bool isVar, diagnostics);
                 if (isVar)
                 {
                     // The type `var` is not permitted in recursive patterns. If you want the type inferred, just omit it.
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindDeconstructionPattern(DeconstructionPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             var typeSyntax = node.Type;
-            TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, ref hasErrors, out var boundDeclType, diagnostics);
+            TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, ref hasErrors, out BoundTypeExpression boundDeclType, diagnostics);
 
             var patterns = ArrayBuilder<BoundPattern>.GetInstance();
             MethodSymbol deconstructMethod = null;
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
                 var deconstruct = MakeDeconstructInvocationExpression(
-                    node.SubPatterns.Count, inputPlaceholder, node, diagnostics, out var outPlaceholders, requireTwoOrMoreElements: false);
+                    node.SubPatterns.Count, inputPlaceholder, node, diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, requireTwoOrMoreElements: false);
                 deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
                 // PROTOTYPE(patterns2): Set and check the deconstructMethod
 
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
             }
 
-            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out var variableSymbol, out var variableAccess);
+            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, inputType: declType, deconstructMethodOpt: deconstructMethod,
                 deconstruction: patterns.ToImmutableAndFree(), propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
@@ -441,9 +441,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindPropertyPattern(PropertyPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             var typeSyntax = node.Type;
-            TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, ref hasErrors, out var boundDeclType, diagnostics);
+            TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, ref hasErrors, out BoundTypeExpression boundDeclType, diagnostics);
             ImmutableArray<(Symbol property, BoundPattern pattern)> propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
-            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out var variableSymbol, out var variableAccess);
+            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, inputType: declType, deconstructMethodOpt: null,
                 deconstruction: default, propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);

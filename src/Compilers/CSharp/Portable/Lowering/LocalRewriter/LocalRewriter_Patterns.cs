@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public BoundExpression GetTemp(BoundDagTemp dagTemp)
                 {
-                    if (!_map.TryGetValue(dagTemp, out var result))
+                    if (!_map.TryGetValue(dagTemp, out BoundExpression result))
                     {
                         // PROTOTYPE(patterns2): Not sure what temp kind should be used for `is pattern`.
                         var temp = _factory.SynthesizedLocal(dagTemp.Type, syntax: _factory.Syntax, kind: SynthesizedLocalKind.SwitchCasePatternMatching);
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation)
             {
                 var decisionBuilder = new DecisionDagBuilder(compilation);
-                var inputTemp = decisionBuilder.TranslatePattern(_loweredInput, pattern, out var decisions, out var bindings);
+                var inputTemp = decisionBuilder.TranslatePattern(_loweredInput, pattern, out ImmutableArray<BoundDagDecision> decisions, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
                 Debug.Assert(inputTemp == _inputTemp);
 
                 // first, copy the input expression into the input temp

@@ -5829,7 +5829,7 @@ tryAgain:
         private ScanTypeFlags ScanType(bool forPattern = false)
         {
             SyntaxToken lastTokenOfType;
-            return ScanType(out lastTokenOfType);
+            return ScanType(out lastTokenOfType, forPattern);
         }
 
         private ScanTypeFlags ScanType(out SyntaxToken lastTokenOfType, bool forPattern = false)
@@ -9449,7 +9449,12 @@ tryAgain:
                 return (ArgumentListSyntax)this.EatNode();
             }
 
-            ParseArgumentList(out var openToken, out var arguments, out var closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
+            ParseArgumentList(
+                openToken: out SyntaxToken openToken,
+                arguments: out SeparatedSyntaxList<ArgumentSyntax> arguments,
+                closeToken: out SyntaxToken closeToken,
+                openKind: SyntaxKind.OpenParenToken,
+                closeKind: SyntaxKind.CloseParenToken);
             return _syntaxFactory.ArgumentList(openToken, arguments, closeToken);
         }
 
@@ -9460,7 +9465,12 @@ tryAgain:
                 return (BracketedArgumentListSyntax)this.EatNode();
             }
 
-            ParseArgumentList(out var openToken, out var arguments, out var closeToken, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken);
+            ParseArgumentList(
+                openToken: out SyntaxToken openToken,
+                arguments: out SeparatedSyntaxList<ArgumentSyntax> arguments,
+                closeToken: out SyntaxToken closeToken,
+                openKind: SyntaxKind.OpenBracketToken,
+                closeKind: SyntaxKind.CloseBracketToken);
             return _syntaxFactory.BracketedArgumentList(openToken, arguments, closeToken);
         }
 

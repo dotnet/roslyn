@@ -6,6 +6,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     internal partial class LanguageParser : SyntaxParser
     {
         /// <summary>
@@ -387,23 +389,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool looksLikeCast()
             {
-                var resetPoint2 = this.GetResetPoint();
-                try
-                {
-                    return this.ScanCast(forPattern: true);
-                }
-                finally
-                {
-                    this.Reset(ref resetPoint2);
-                    this.Release(ref resetPoint2);
-                }
+                var resetPoint = this.GetResetPoint();
+                bool result = this.ScanCast(forPattern: true);
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+                return result;
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && (type != null || !looksLikeCast()))
             {
                 // It is possible this is a parenthesized (constant) expression.
                 // We normalize later.
-                ParseSubpatternList(out var openParenToken, out var subPatterns, out var closeParenToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
+                ParseSubpatternList(
+                    openToken: out SyntaxToken openParenToken,
+                    subPatterns: out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
+                    closeToken: out SyntaxToken closeParenToken,
+                    openKind: SyntaxKind.OpenParenToken,
+                    closeKind: SyntaxKind.CloseParenToken);
                 //if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
                 //{
                 //    // Testers do the darndest things, in this case putting a lambda expression where a pattern is expected.
@@ -464,13 +466,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PropertySubpatternSyntax ParsePropertySubpattern()
         {
-            ParseSubpatternList(out var openBraceToken, out var subPatterns, out var closeBraceToken, SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken);
+            ParseSubpatternList(
+                openToken: out SyntaxToken openBraceToken,
+                subPatterns: out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
+                closeToken: out SyntaxToken closeBraceToken,
+                openKind: SyntaxKind.OpenBraceToken,
+                closeKind: SyntaxKind.CloseBraceToken);
             return _syntaxFactory.PropertySubpattern(openBraceToken, subPatterns, closeBraceToken);
         }
 
         private void ParseSubpatternList(
             out SyntaxToken openToken,
-            out Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
+            out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
             out SyntaxToken closeToken,
             SyntaxKind openKind,
             SyntaxKind closeKind)
@@ -549,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PostSkipAction SkipBadPatternListTokens(
             ref SyntaxToken open,
-            Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxListBuilder<SubpatternElementSyntax> list,
+            SeparatedSyntaxListBuilder<SubpatternElementSyntax> list,
             SyntaxKind expected,
             SyntaxKind closeKind)
         {

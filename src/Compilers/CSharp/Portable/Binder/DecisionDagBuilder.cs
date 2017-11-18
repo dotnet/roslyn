@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private PartialCaseDecision MakePartialCaseDecision(int index, BoundDagTemp input, BoundPatternSwitchLabel label)
         {
-            MakeAndSimplifyDecisionsAndBindings(input, label.Pattern, out var decisions, out var bindings);
+            MakeAndSimplifyDecisionsAndBindings(input, label.Pattern, out ImmutableArray<BoundDagDecision> decisions, out var bindings);
             return new PartialCaseDecision(index, label.Syntax, decisions, bindings, label.Guard, label.Label);
         }
 
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var tail = MakeDecisionDag(syntax, RemoveEvaluation(cases, e), defaultLabel);
                         return new BoundEvaluationPoint(syntax, e, tail);
                     case BoundDagDecision d:
-                        SplitCases(cases, d, out var whenTrueDecisions, out var whenFalseDecisions);
+                        SplitCases(cases, d, out ImmutableArray<PartialCaseDecision> whenTrueDecisions, out ImmutableArray<PartialCaseDecision> whenFalseDecisions);
                         var whenTrue = MakeDecisionDag(syntax, whenTrueDecisions, defaultLabel);
                         var whenFalse = MakeDecisionDag(syntax, whenFalseDecisions, defaultLabel);
                         return new BoundDecisionPoint(syntax, d, whenTrue, whenFalse);

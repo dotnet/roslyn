@@ -1780,6 +1780,7 @@
       </PropertyComment>
     </Field>
   </Node>
+
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
     <Kind Name="InterpolatedStringText"/>
@@ -1921,6 +1922,7 @@
       <Kind Name="CloseParenToken"/>
     </Field>
   </Node>
+
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
     <Kind Name="ExpressionStatement"/>
     <Field Name="Expression" Type="ExpressionSyntax"/>
