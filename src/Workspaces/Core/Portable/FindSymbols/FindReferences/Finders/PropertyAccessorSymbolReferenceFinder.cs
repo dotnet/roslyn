@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     return syntaxFacts.IsAssignedTo(t.Parent);
                 }
 
-                return true;
+                return syntaxFacts.IsReadFrom(t.Parent);
             }
 
             result = result.Concat(await FindReferencesForAccessorsAsync(propertySymbol, tokensMatchAndAppropriate, document, cancellationToken).ConfigureAwait(false));

@@ -1705,5 +1705,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsAssignedTo(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAssignedTo
             Throw New NotImplementedException()
         End Function
+
+        Public Function IsReadFrom(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReadFrom
+            Throw New NotImplementedException()
+        End Function
     End Class
 End Namespace

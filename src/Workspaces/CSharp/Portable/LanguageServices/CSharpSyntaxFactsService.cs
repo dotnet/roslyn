@@ -1317,6 +1317,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        public bool IsReadFrom(SyntaxNode node)
+        {
+            if (IsLeftSideOfAssignment(node))
+            {
+                // `node = ...`
+                return false;
+            }
+
+            if (node.Parent is MemberAccessExpressionSyntax access && access.Name == node)
+            {
+                // `x.node = ...`
+                return !IsLeftSideOfAssignment(access);
+            }
+
+            return true;
+        }
+
         public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
         {
             return (node as AssignmentExpressionSyntax)?.Right;

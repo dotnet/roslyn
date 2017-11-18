@@ -90,7 +90,43 @@ class C
     static int M()
     {
         C.[|Property|] = 1;
+        [|Property|] = 2;
         return C.Property;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(17684, "https://github.com/dotnet/roslyn/issues/17684")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertyGetter() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static public int Property
+    {
+        {|Definition:ge$$t|}
+        {
+            throw null;
+        }
+        set
+        {
+            throw null;
+        }
+    }
+    static int M()
+    {
+        var x = C.[|Property|];
+        x = [|Property|];
+        Property = x;
+        return C.[|Property|];
     }
 }
         </Document>
