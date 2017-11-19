@@ -1703,11 +1703,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsAssignedTo(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAssignedTo
-            Throw New NotImplementedException()
+            ' TODO handle indexers
+            If Not TypeOf node Is ExpressionSyntax Then
+                Return False
+            End If
+
+            If IsLeftSideOfAnyAssignment(node) Then
+                Return True
+            End If
+
+            Dim access = TryCast(node.Parent, MemberAccessExpressionSyntax)
+            If access IsNot Nothing AndAlso ReferenceEquals(access.Name, node) Then
+                Return IsLeftSideOfAnyAssignment(access)
+            End If
+
+            Return False
         End Function
 
         Public Function IsReadFrom(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReadFrom
-            Throw New NotImplementedException()
+            ' TODO handle indexers
+            If Not TypeOf node Is ExpressionSyntax Then
+                Return False
+            End If
+
+            If IsLeftSideOfAssignment(node) Then
+                Return False
+            End If
+
+            Dim access = TryCast(node.Parent, MemberAccessExpressionSyntax)
+            If access IsNot Nothing AndAlso ReferenceEquals(access.Name, node) Then
+                Return Not IsLeftSideOfAssignment(access)
+            End If
+
+            Return True
         End Function
     End Class
 End Namespace

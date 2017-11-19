@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         Dim actual = actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
                         If Not TextSpansMatch(expected, actual) Then
-                            Assert.True(False, PrintSpans(expected, actual, workspace.CurrentSolution.GetDocument(doc.Id), "{Definition:", "}"))
+                            Assert.True(False, PrintSpans(expected, actual, workspace.CurrentSolution.GetDocument(doc.Id), "{|Definition:", "|}"))
                         End If
                     Next
 
@@ -229,17 +229,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         Dim expectedSpans = doc.SelectedSpans.Order()
                         Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
-                        AssertEx.Equal(expectedSpans, actualSpans)
+                        AssertEx.Equal(expectedSpans, actualSpans,
+                                       message:=PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), "[|", "|]", messageOnly:=True))
                     Next
                 Next
             End Using
         End Function
 
-        Private Function PrintSpans(expected As IOrderedEnumerable(Of TextSpan), actual As IOrderedEnumerable(Of TextSpan), doc As Document, prefix As String, suffix As String) As String
+        Private Function PrintSpans(expected As IOrderedEnumerable(Of TextSpan), actual As IOrderedEnumerable(Of TextSpan), doc As Document, prefix As String, suffix As String, Optional messageOnly As Boolean = False) As String
             Dim builder = PooledStringBuilder.GetInstance()
             builder.Builder.AppendLine()
-            builder.Builder.AppendLine($"Expected: {String.Join(", ", expected.Select(Function(e) e.ToString()))}")
-            builder.Builder.AppendLine($"Actual: {String.Join(", ", actual.Select(Function(a) a.ToString()))}")
+            If Not messageOnly Then
+                builder.Builder.AppendLine($"Expected: {String.Join(", ", expected.Select(Function(e) e.ToString()))}")
+                builder.Builder.AppendLine($"Actual: {String.Join(", ", actual.Select(Function(a) a.ToString()))}")
+            End If
 
             Dim tree = doc.GetSyntaxTreeSynchronously(Nothing)
             Dim position = 0
