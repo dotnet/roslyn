@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -84,7 +85,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             CancellationToken cancellationToken)
         {
-            var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+            //var nameReferences = await FindNonAccessorReferencesInDocument(symbol, document, cancellationToken).ConfigureAwait(false);
+            // experimenting
+            var nameReferences = await FindNonAccessorReferencesInDocument(symbol, document, cancellationToken).ConfigureAwait(false);
 
             var forEachReferences = IsForEachProperty(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, document, cancellationToken).ConfigureAwait(false)
@@ -96,6 +99,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return nameReferences.Concat(forEachReferences)
                                  .Concat(elementAccessReferences);
+        }
+
+        private async Task<ImmutableArray<ReferenceLocation>> FindNonAccessorReferencesInDocument(IPropertySymbol propertySymbol, Document document, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            bool tokensMatchAndAppropriate(SyntaxToken t)
+            {
+                if (!IdentifiersMatch(syntaxFacts, propertySymbol.Name, t))
+                {
+                    return false;
+                }
+
+                return !syntaxFacts.IsAssignedTo(t.Parent) && !syntaxFacts.IsReadFrom(t.Parent);
+            }
+
+            var result = await FindNonAccessorReferencesAsync(propertySymbol, tokensMatchAndAppropriate, document, cancellationToken).ConfigureAwait(false);
+            return result;
+        }
+
+        private async Task<ImmutableArray<ReferenceLocation>> FindNonAccessorReferencesAsync(
+            ISymbol propertySymbol,
+            Func<SyntaxToken, bool> tokensMatchAndAppropriate,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            // TODO factor code out (shared with accessor finder)
+            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            string name = propertySymbol.Name;
+            if (!syntaxTreeInfo.ProbablyContainsIdentifier(name))
+            {
+                return ImmutableArray<ReferenceLocation>.Empty;
+            }
+
+            var tokens = await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(name, cancellationToken).ConfigureAwait(false);
+            SyntaxNode findParentNode(SyntaxToken t) => t.Parent;
+
+            var symbolMatch = GetStandardSymbolsMatchFunction(propertySymbol, findParentNode, document.Project.Solution, cancellationToken);
+
+            var result = await FindReferencesInTokensAsync(document, tokens, tokensMatchAndAppropriate, symbolMatch, cancellationToken).ConfigureAwait(false);
+            return result;
         }
 
         private Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(

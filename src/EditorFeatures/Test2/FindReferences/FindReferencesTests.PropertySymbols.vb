@@ -18,7 +18,7 @@ namespace ConsoleApplication22
     {
         static public int {|Definition:G$$oo|}
         {
-            get
+            {|Definition:get|}
             {
                 return 1;
             }
@@ -49,7 +49,7 @@ namespace ConsoleApplication22
     {
         static public int {|Definition:Goo|}
         {
-            get
+            {|Definition:get|}
             {
                 return 1;
             }
@@ -65,6 +65,191 @@ namespace ConsoleApplication22
 </Workspace>
             Await TestAPIAndFeature(input)
         End Function
+
+        <WorkItem(17684, "https://github.com/dotnet/roslyn/issues/17684")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_Property3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+namespace ConsoleApplication22
+{
+    class Program
+    {
+        static public int {|Definition:G$$oo|}
+        {
+            {|Definition:get|}
+            {
+                return 1;
+            }
+            set
+            {
+                throw null;
+            }
+        } 
+        static void Main(string[] args)
+        {
+            int temp = Program.[|Goo|];
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(17684, "https://github.com/dotnet/roslyn/issues/17684")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertySetter() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static public int Property
+    {
+        get
+        {
+            throw null;
+        }
+        {|Definition:se$$t|}
+        {
+            throw null;
+        }
+    }
+    static int M()
+    {
+        C.[|Property|] = 1;
+        [|Property|] = 2;
+        return C.Property;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(17684, "https://github.com/dotnet/roslyn/issues/17684")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertyGetter() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static public int Property
+    {
+        {|Definition:ge$$t|}
+        {
+            throw null;
+        }
+        set
+        {
+            throw null;
+        }
+    }
+    static int M()
+    {
+        var x = C.[|Property|];
+        x = [|Property|];
+        Property = x;
+        return C.[|Property|];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(17684, "https://github.com/dotnet/roslyn/issues/17684")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertyGetterAndSetter() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static public int Property
+    {
+        {|Definition:get|}
+        {
+            throw null;
+        }
+        {|Definition:set|}
+        {
+            throw null;
+        }
+    }
+    static int M()
+    {
+        [|Proper$$ty|] = 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(17684, "https://github.com/dotnet/roslyn/issues/17684")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertyGetterAndSetter2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I
+{
+    int {|Definition:Property|} { get; }
+}
+class Program : I
+{
+    public int {|Definition:Pro$$perty|} { {|Definition:get|}; set; }
+
+    void M()
+    {
+        var i = [|Property|];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(17684, "https://github.com/dotnet/roslyn/issues/17684")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertyCascadeThroughInterface2_Accessor() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+    interface I
+    {
+        int {|Definition:P|} { get; }
+    }
+    class C : I
+    {
+        public int {|Definition:P|} { ge$$t; }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
 
         <WorkItem(539022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539022")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -124,7 +309,7 @@ interface I1
  
 class C1 : I1
 {
-    public int {|Definition:Area|} { get { return 1; } }
+    public int {|Definition:Area|} { {|Definition:get|} { return 1; } }
 }
  
 class C2 : C1
@@ -157,7 +342,7 @@ interface I1
  
 class C1 : I1
 {
-    public int {|Definition:$$Area|} { get { return 1; } }
+    public int {|Definition:$$Area|} { {|Definition:get|} { return 1; } }
 }
  
 class C2 : C1
