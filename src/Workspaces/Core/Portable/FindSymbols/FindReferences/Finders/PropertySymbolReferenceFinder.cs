@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             CancellationToken cancellationToken)
         {
+            //var nameReferences = await FindNonAccessorReferencesInDocument(symbol, document, cancellationToken).ConfigureAwait(false);
+            // experimenting
             var nameReferences = await FindNonAccessorReferencesInDocument(symbol, document, cancellationToken).ConfigureAwait(false);
 
             var forEachReferences = IsForEachProperty(symbol)
