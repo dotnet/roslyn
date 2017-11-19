@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
@@ -202,7 +203,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim documentsWithAnnotatedSpans = workspace.Documents.Where(Function(d) d.AnnotatedSpans.Any())
                     Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualDefinitions.Keys.Order())
                     For Each doc In documentsWithAnnotatedSpans
-                        Assert.Equal(Of Text.TextSpan)(doc.AnnotatedSpans(DefinitionKey).Order(), actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order())
+
+                        Dim expected = doc.AnnotatedSpans(DefinitionKey).Order()
+                        Dim actual = actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order()
+
+                        If Not TextSpansMatch(expected, actual) Then
+                            Assert.True(False, PrintSpans(expected, actual, workspace.CurrentSolution.GetDocument(doc.Id), "{Definition:", "}"))
+                        End If
                     Next
 
                     Dim actualReferences =
@@ -226,6 +233,66 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Next
                 Next
             End Using
+        End Function
+
+        Private Function PrintSpans(expected As IOrderedEnumerable(Of TextSpan), actual As IOrderedEnumerable(Of TextSpan), doc As Document, prefix As String, suffix As String) As String
+            Dim builder = PooledStringBuilder.GetInstance()
+            builder.Builder.AppendLine()
+            builder.Builder.AppendLine($"Expected: {String.Join(", ", expected.Select(Function(e) e.ToString()))}")
+            builder.Builder.AppendLine($"Actual: {String.Join(", ", actual.Select(Function(a) a.ToString()))}")
+
+            Dim tree = doc.GetSyntaxTreeSynchronously(Nothing)
+            Dim position = 0
+            Dim sourceText As SourceText = tree.GetText()
+
+            For Each span In actual
+                builder.Builder.Append(sourceText.GetSubText(New TextSpan(position, span.Start - position)))
+                builder.Builder.Append(prefix)
+                builder.Builder.Append(sourceText.GetSubText(span))
+                builder.Builder.Append(suffix)
+                position = span.End
+            Next
+            builder.Builder.Append(sourceText.GetSubText(New TextSpan(position, sourceText.Length - position)))
+
+            Return builder.ToStringAndFree()
+        End Function
+
+        Private Shared Function TextSpansMatch(expected As IOrderedEnumerable(Of TextSpan), actual As IOrderedEnumerable(Of TextSpan)) As Boolean
+            If expected Is Nothing OrElse actual Is Nothing Then
+                Return False
+            End If
+
+            Dim enumeratorExpected As IEnumerator(Of TextSpan) = Nothing
+            Dim enumeratorActual As IEnumerator(Of TextSpan) = Nothing
+            Try
+                enumeratorExpected = expected.GetEnumerator()
+                enumeratorActual = actual.GetEnumerator()
+
+                While True
+                    Dim hasNextExpected = enumeratorExpected.MoveNext()
+                    Dim hasNextActual = enumeratorActual.MoveNext()
+
+                    If Not hasNextExpected OrElse Not hasNextActual Then
+                        Return hasNextExpected = hasNextActual
+                    End If
+                    If Not enumeratorExpected.Current.Equals(enumeratorActual.Current) Then
+                        Return False
+                    End If
+                End While
+
+            Finally
+                Dim asDisposable = TryCast(enumeratorExpected, IDisposable)
+                If asDisposable IsNot Nothing Then
+                    asDisposable.Dispose()
+                End If
+
+                asDisposable = TryCast(enumeratorActual, IDisposable)
+                If asDisposable IsNot Nothing Then
+                    asDisposable.Dispose()
+                End If
+            End Try
+
+            Return True
         End Function
 
         Private Function IsImplicitNamespace(referencedSymbol As ReferencedSymbol) As Boolean
