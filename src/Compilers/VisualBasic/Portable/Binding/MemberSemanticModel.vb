@@ -318,7 +318,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.RaiseEventStatement,
                      SyntaxKind.ExpressionStatement,
                      SyntaxKind.YieldStatement,
-                     SyntaxKind.PrintStatement
+                     SyntaxKind.PrintStatement,
+                     SyntaxKind.OptionStatement
                     Return True
 
                 Case SyntaxKind.IfStatement,
