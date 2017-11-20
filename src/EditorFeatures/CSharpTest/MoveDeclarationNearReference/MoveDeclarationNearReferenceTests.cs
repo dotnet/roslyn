@@ -1198,5 +1198,134 @@ class Program
     }
 }");
         }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingOnCrossFunction1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Method<string>();
+  }
+
+  public static void Method<T>()
+  { 
+    [|T t|];
+    void Local<T>()
+    {
+      Out(out t);
+      Console.WriteLine(t);
+    }
+    Local<int>();
+  }
+
+  public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingOnCrossFunction2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Method<string>();
+  }
+
+  public static void Method<T>()
+  { 
+    void Local<T>()
+    {
+        [|T t|];
+        void InnerLocal<T>()
+        {
+          Out(out t);
+          Console.WriteLine(t);
+        }
+    }
+    Local<int>();
+  }
+
+  public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingOnCrossFunction3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Method<string>();
+    }
+
+    public static void Method<T>()
+    { 
+        [|T t|];
+        void Local<T>()
+        {
+            { // <-- note this set of added braces
+                Out(out t);
+                Console.WriteLine(t);
+            }
+        }
+        Local<int>();
+    }
+
+    public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingOnCrossFunction4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Method<string>();
+    }
+
+    public static void Method<T>()
+    {
+        { // <-- note this set of added braces
+            [|T t|];
+            void Local<T>()
+            {
+                { // <-- and my axe
+                    Out(out t);
+                    Console.WriteLine(t);
+                }
+            }
+            Local<int>();
+        }
+    }
+
+    public static void Out<T>(out T t) => t = default;
+}");
+        }
     }
 }
