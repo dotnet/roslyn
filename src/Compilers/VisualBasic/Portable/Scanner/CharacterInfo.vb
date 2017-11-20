@@ -261,7 +261,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function FullwidthCharacter_BeginsBaseLiteral(c As Char) As Boolean
-            Debug.Assert(IsFullWidth(c), NameOf(FullwidthCharacter_BeginsBaseLiteral) & " should only be called with Fullwidth Characters.")
             Return (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_H) Or
                    (c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_O) Or
                    (c = FULLWIDTH_LATIN_CAPITAL_LETTER_B Or c = FULLWIDTH_LATIN_SMALL_LETTER_B)
