@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     {
         protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
 
+        protected abstract bool TokenIsPartOfDeclaringSyntax(SyntaxToken token);
+
         public async Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
@@ -39,8 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // Disabled navigation if token is a part of declaration syntax
             // or if it is a part of partial method implementation.
             if (symbol != null &&
-            	IsNotPartialMethodDefinitionPart(symbol) &&
-                TokenIsPartOfDeclaringSyntax(token, symbol))
+                IsNotPartialMethodDefinitionPart(symbol) &&
+                symbol.DeclaringSyntaxReferences.Length < 2 &&
+                TokenIsPartOfDeclaringSyntax(token))
             {
                 return EmptyResult;
             }
@@ -65,13 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         private static bool IsNotPartialMethodDefinitionPart(ISymbol symbol)
             => !(symbol is IMethodSymbol methodSymbol && methodSymbol.IsPartialMethodDefinitionPart());
-
-        private static bool TokenIsPartOfDeclaringSyntax(SyntaxToken token, ISymbol symbol)
-        {
-            // For partial classes symbol can contain more than one declaring syntax reference
-            // and we won't change behavior for that cases (user should be able to navigate to other class declarations).
-            return symbol.DeclaringSyntaxReferences.Length == 1 && symbol.DeclaringSyntaxReferences[0].GetSyntax().Equals(token.Parent);
-        }
 
         private static readonly (ISymbol, TextSpan) EmptyResult = (default, default);
     }

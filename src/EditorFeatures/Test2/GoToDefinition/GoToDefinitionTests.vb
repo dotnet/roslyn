@@ -197,7 +197,7 @@ class Program
     end sub
 end class
         </Document>
-    </Project>
+    </Project> 
 </Workspace>
 
             Test(workspace)
@@ -435,6 +435,50 @@ end class
 </Workspace>
 
             Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionOnEvent1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class C
+            {
+                public event EventHandler [|Foo|];
+
+                public void Bar()
+                {
+                    this.F$$oo += (x, y) => { };
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionOnEvent2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class C
+            {
+                public event EventHandler F$$oo;
+
+                public void Bar()
+                {
+                    this.Foo += (x, y) => { };
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
@@ -764,6 +808,386 @@ class C
 </Workspace>
 
             Test(workspace)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnClassDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Fo$$o
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnConstructorDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public Fo$$o() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnMethodDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public void Ba$$r() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnPropertyDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public int Ba$$r { get; set; }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnFieldDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public int Ba$$r;
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnGetAccessorDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public int Bar { ge$$t; set; }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnSetAccessorDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public int Bar { get; s$$et; }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnAddAccessorDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            private EventHandler bar;
+            public event EventHandler Bar 
+            {
+                ad$$d { lock(this) { _MyEvent += value; } }
+                remove { lock(this) { _MyEvent -= value; } }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnRemoveAccessorDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            private EventHandler bar;
+            public event EventHandler Bar 
+            {
+                add { lock(this) { _MyEvent += value; } }
+                re$$move { lock(this) { _MyEvent -= value; } }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnDelegateDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            delegate void MyDel$$egate(int a); DelegateDeclaration
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnEnumDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        enum Fo$$o
+        {
+            Bar
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnEnumMemberDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        enum Foo
+        {
+            Ba$$r
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnParameter1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public void Bar(int param$$eter) { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnParameter2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public Foo(int param$$eter) { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnLocalFunctionStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public Foo(int parameter)
+            {
+                void Lo$$cal() P { }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnTypeParameter1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+        class Foo<TPar$$am>
+        {
+        }]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnTypeParameter2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+        class Foo
+        {
+            public void M<TPa$$ram>() { }
+        }]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnAnonymousObjectCreationExpression()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public void M()
+            {
+                var t = n$$ew { Foo: 1, Bar: 2 };
+            }
+        }>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnAnonymousObjectField()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public void M()
+            {
+                var t = new { F$$oo = 1, Bar = 2 };
+            }
+        }>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionOnTupleField()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Foo
+        {
+            public void M()
+            {
+                var t = (F$$oo: 1, Bar: 2 );
+            }
+        }>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
         End Sub
 #End Region
 
@@ -1784,6 +2208,359 @@ End Class
 
             Test(workspace)
         End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnClassStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class F$$oo
+End Class 
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnPropertyStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class C
+    Property Fo$$o As Integer
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnSubStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Public Sub B$$ar()
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnFunctionStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Public Function B$$ar() As Integer
+        Return 1
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnSubNewStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Public Sub Ne$$w()
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnEventStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Public event D$$one As EventHandler
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnGetAccessorStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Private field As Integer
+
+    Public Property Prop() As Integer
+        Ge$$t
+            Return Me.field
+        End Get
+
+        Set
+            Me.field = Value
+        End Set
+    End Property
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnSetAccessorStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Private field As Integer
+
+    Public Property Prop() As Integer
+        Get
+            Return Me.field
+        End Get
+
+        Set
+            Me.field = Value
+        End S$$et
+    End Property
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnAddHandlerAccessorStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Private EventHandlerList As New ArrayList
+
+    Public Custom Event Click As EventHandler
+        AddHan$$dler(ByVal value As EventHandler)
+            Me.EventHandlerList.Add(value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Me.EventHandlerList.Remove(value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            For Each handler As EventHandler In Me.EventHandlerList
+                If handler IsNot Nothing Then
+                    handler.BeginInvoke(sender, e, Nothing, Nothing)
+                End If
+            Next
+        End RaiseEvent
+    End Event
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnRemoveHandlerStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Private EventHandlerList As New ArrayList
+
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Me.EventHandlerList.Add(value)
+        End AddHandler
+        RemoveHand$$ler(ByVal value As EventHandler)
+            Me.EventHandlerList.Remove(value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            For Each handler As EventHandler In Me.EventHandlerList
+                If handler IsNot Nothing Then
+                    handler.BeginInvoke(sender, e, Nothing, Nothing)
+                End If
+            Next
+        End RaiseEvent
+    End Event
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnDelegateFunctionStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Delegate Sub Deleg$$ateType()
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnTypeParameter()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Public Sub Bar(Of TPa$$ram)(ByVal arg As TParam)
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnEnumStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Enum New$$Enum
+    Foo
+    Bar
+End Enum
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnEnumMemberDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Enum NewEnum
+    F$$oo
+    Bar
+End Enum
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnAnonymousObjectCreationExpression()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Public Sub Bar()
+        Dim product = Ne$$w With {Key .Name = "test"}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnAnonymousObjectField()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Public Sub Bar()
+        Dim product = New With {Key .Na$$me = "test"}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicOnTupleField()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class Foo
+    Public Sub Bar()
+        Dim product = (Nam$$e:= "test", Id:= 1)
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
 #End Region
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
@@ -2059,42 +2836,6 @@ class C
 </Workspace>
 
             Test(workspace)
-        End Sub
-
-        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestCSharpGotoDefinitionPropertyGet()
-            Dim workspace =
-<Workspace>
-    <Project Language="C#" CommonReferences="true">
-        <Document>
-            class SomeClass
-            {
-                public int Number { $$get; set; }
-            }
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace, expectedResult:=False)
-        End Sub
-
-        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestCSharpGotoDefinitionPropertySet()
-            Dim workspace =
-<Workspace>
-    <Project Language="C#" CommonReferences="true">
-        <Document>
-            class SomeClass
-            {
-                public int Number { get; $$set; }
-            }
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace, expectedResult:=False)
         End Sub
 
         <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
