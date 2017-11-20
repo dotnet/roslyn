@@ -183,14 +183,14 @@ function Build-Artifacts() {
 
     if ($pack) {
         Build-NuGetPackages
-
-        if ($cibuild -or $official) { 
-            Build-DeployToSymStore
-        }
     }
 
     if ($sign) {
         Run-SignTool
+    }
+
+    if ($pack -and ($cibuild -or $official)) { 
+        Build-DeployToSymStore
     }
 
     if ($buildAll) {
