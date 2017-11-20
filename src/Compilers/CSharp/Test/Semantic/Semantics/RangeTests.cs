@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RangeTests : CompilingTestBase
     {
-        private readonly string RangeStruct = @"
+        private static readonly string RangeStruct = @"
 using System.Collections;
 using System.Collections.Generic;
 namespace System
@@ -50,7 +50,9 @@ namespace System
 }
 ";
 
-        private readonly string SlicableArray = @"
+        private static readonly string LongRangeStruct = RangeStruct.Replace("int", "long").Replace("Range", "LongRange");
+
+        private static readonly string SlicableArray = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -319,6 +321,95 @@ struct C
 ";
 
             CompileAndVerify(source, expectedOutput: "ok,False");
+        }
+
+        [Fact]
+        public void LongRange()
+        {
+            var source = @"
+using System;
+struct C
+{
+    static void Main()
+    {
+        var a = 10_000_000_000L..10_000_000_002L;
+        var b = 10_000_000_000..10_000_000_002;
+        var c = 10..10_000_000_002;
+        var d = 10..12L;
+        var e = 2..((long?)4L);
+        Console.Write(string.Join("";"",
+            string.Join("","", a),
+            string.Join("","", b),
+            string.Join("","", c.Start, c.End),
+            string.Join("","", d),
+            string.Join("","", e.Value)
+        ));
+    }
+}
+";
+
+            var big = 10_000_000_000;
+            CompileAndVerify(new[] { RangeStruct, LongRangeStruct, source }, expectedOutput: $"{big},{big+1};{big},{big+1};10,{big+2};10,11;2,3");
+        }
+
+        [Fact]
+        public void BuiltInRangesWithConversions()
+        {
+            var source = @"
+using System;
+struct C
+{
+    static void Main()
+    {
+        var a = ((sbyte)2)..((sbyte)4);
+        var b = ((byte)2)..((byte)4);
+        var c = ((short)2)..((short)4);
+        var d = ((ushort)2)..((ushort)4);
+        var e = ((uint)2)..((uint)4);
+        Console.Write(string.Join("","",
+            a.GetType().Name,
+            b.GetType().Name,
+            c.GetType().Name,
+            d.GetType().Name,
+            e.GetType().Name
+        ));
+    }
+}
+";
+
+            CompileAndVerify(new[] { RangeStruct, LongRangeStruct, source }, expectedOutput: $"Range,Range,Range,Range,LongRange");
+        }
+
+        [Fact]
+        public void BadlyTypedBuiltInRanges()
+        {
+            var source = @"
+struct C
+{
+    static void Main()
+    {
+        var a = false..true;
+        var b = ((ulong)2)..((ulong)4);
+        var c = ((float)2)..((float)4);
+        var d = ((double)2)..((double)4);
+    }
+}
+";
+
+            CreateStandardCompilation(new[] { RangeStruct, LongRangeStruct, source }).VerifyDiagnostics(
+                // (6,17): error CS0019: Operator '..' cannot be applied to operands of type 'bool' and 'bool'
+                //         var a = false..true;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "false..true").WithArguments("..", "bool", "bool").WithLocation(6, 17),
+                // (7,17): error CS0019: Operator '..' cannot be applied to operands of type 'ulong' and 'ulong'
+                //         var b = ((ulong)2)..((ulong)4);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "((ulong)2)..((ulong)4)").WithArguments("..", "ulong", "ulong").WithLocation(7, 17),
+                // (8,17): error CS0019: Operator '..' cannot be applied to operands of type 'float' and 'float'
+                //         var c = ((float)2)..((float)4);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "((float)2)..((float)4)").WithArguments("..", "float", "float").WithLocation(8, 17),
+                // (9,17): error CS0019: Operator '..' cannot be applied to operands of type 'double' and 'double'
+                //         var d = ((double)2)..((double)4);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "((double)2)..((double)4)").WithArguments("..", "double", "double").WithLocation(9, 17)
+            );
         }
     }
 }
