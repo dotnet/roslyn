@@ -514,9 +514,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the default warning level for a diagnostic severity. Warning levels are used with the <c>/warn:N</c>
-        /// command line option, where 0≤N≤4, to suppress diagnostics over a severity of interest. While this flag is
-        /// generally not recommended for use, the special value <c>/warn:0</c> preserves its original meaning of "only
-        /// show errors".
+        /// command line option to suppress diagnostics over a severity of interest. When N is 0, only error severity
+        /// messages are produced by the compiler. Values greater than 0 indicated that warnings up to and including
+        /// level N should also be included.
         /// </summary>
         /// <remarks>
         /// <see cref="DiagnosticSeverity.Info"/> and <see cref="DiagnosticSeverity.Hidden"/> are treated as warning
