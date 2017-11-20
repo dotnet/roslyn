@@ -179,6 +179,21 @@ function Build-Artifacts() {
 
     if ($buildAll) {
         Build-ExtraSignArtifacts
+    }
+
+    if ($pack) {
+        Build-NuGetPackages
+    }
+
+    if ($sign) {
+        Run-SignTool
+    }
+
+    if ($pack -and ($cibuild -or $official)) { 
+        Build-DeployToSymStore
+    }
+
+    if ($buildAll) {
         Build-InsertionItems
     }
 }
@@ -634,18 +649,6 @@ try {
 
     if ($build) {
         Build-Artifacts
-    }
-
-    if ($pack) {
-        Build-NuGetPackages
-
-        if ($cibuild -or $official) { 
-            Build-DeployToSymStore
-        }
-    }
-
-    if ($sign) {
-        Run-SignTool
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {
