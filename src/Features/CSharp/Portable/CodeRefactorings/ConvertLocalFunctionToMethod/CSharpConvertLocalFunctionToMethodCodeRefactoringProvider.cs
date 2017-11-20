@@ -34,14 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var identifier = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
-                token => token.Parent is LocalFunctionStatementSyntax, cancellationToken).ConfigureAwait(false);
+                token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
             if (identifier == default)
-            {
-                return;
-            }
-
-            var localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
-            if (localFunction.Identifier != identifier)
             {
                 return;
             }
@@ -52,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            if (localFunction.ContainsDiagnostics)
+            var localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
+            if (localFunction.Identifier != identifier)
             {
                 return;
             }
@@ -78,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var dataFlow = semanticModel.AnalyzeDataFlow(
                 localFunction.Body ?? (SyntaxNode)localFunction.ExpressionBody.Expression);
             var captures = dataFlow.Captured;
+
+            // First, create a parameter per each capture so that we can pass them as arguments to the final method
+            // Filter out `this` because it doesn't need a parameter, we will just make a non-static method for that
+            // We also make a `ref` parameter here for each capture that is being written into inside the funciton
             var capturesAsParameters = captures
                 .Where(capture => !capture.IsThisParameter())
                 .Select(capture => CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -87,10 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     type: capture.GetSymbolType(),
                     name: capture.Name)).ToList();
 
+            // Find all enclosing type parameters e.g. from outer local functions and the containing member
+            // We exclude the containing type itself which has type parameters accessible to all members
             var typeParameters = new List<ITypeParameterSymbol>();
             GetCapturedTypeParameters(declaredSymbol, typeParameters);
 
-            // We explicitly preserve captures' types, in case they were not spelt out in the function body
+            // We're going to remove unreferenced type parameters but we explicitly preserve
+            // captures' types, just in case that they were not spelt out in the function body
             var captureTypes = captures.Select(capture => capture.GetSymbolType()).OfType<ITypeParameterSymbol>();
             RemoveUnusedTypeParameters(localFunction, semanticModel, typeParameters, reservedTypeParameters: captureTypes);
 
