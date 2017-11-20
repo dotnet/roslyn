@@ -39,5 +39,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
         Protected Overrides Function TypesAreCompatibleAsync(document As Document, localSymbol As ILocalSymbol, declarationStatement As LocalDeclarationStatementSyntax, right As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return SpecializedTasks.True
         End Function
+
+        Protected Overrides Function CanMoveToBlock(localSymbol As ILocalSymbol, currentBlock As SyntaxNode, destinationBlock As SyntaxNode) As Boolean
+            Return True
+        End Function
     End Class
 End Namespace

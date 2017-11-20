@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         {
                             // The DesignerCategoryAttribute doesn't exist. either not applicable or
                             // no idea on design attribute status, just leave things as it is.
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: true);
+                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: false);
                         }
                     }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         if (attribute != null && attribute.ConstructorArguments.Length == 1)
                         {
                             designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: false);
+                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
                         }
                     }
                 }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                 }
             }
 
-            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: false);
+            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
         }
 
         private static string GetArgumentString(TypedConstant argument)
