@@ -363,24 +363,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PatternSyntax ParsePatternContinued(TypeSyntax type, bool forCase)
         {
-            PropertySubpatternSyntax propertySubpattern = null;
-            bool parsePropertySubpattern()
+            bool parsePropertySubpattern(out PropertySubpatternSyntax propertySubpatternResult)
             {
+                propertySubpatternResult = null;
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
-                    propertySubpattern = ParsePropertySubpattern();
+                    propertySubpatternResult = ParsePropertySubpattern();
                     return true;
                 }
 
                 return false;
             }
 
-            VariableDesignationSyntax designation = null;
-            bool parseDesignation()
+            bool parseDesignation(out VariableDesignationSyntax designationResult)
             {
+                designationResult = null;
                 if (this.IsTrueIdentifier() && (!forCase || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
                 {
-                    designation = ParseSimpleDesignation();
+                    designationResult = ParseSimpleDesignation();
                     return true;
                 }
 
@@ -412,12 +412,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //    return null;
                 //}
 
-                parsePropertySubpattern();
-                parseDesignation();
+                parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern0);
+                parseDesignation(out VariableDesignationSyntax designation0);
 
                 if (type == null &&
-                    propertySubpattern == null &&
-                    designation == null &&
+                    propertySubpattern0 == null &&
+                    designation0 == null &&
                     subPatterns.Count == 1 &&
                     subPatterns[0].NameColon == null &&
                     subPatterns[0].Pattern is ConstantPatternSyntax cp)
@@ -430,18 +430,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
                 }
 
-                var node = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern, designation);
+                var node = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
                 return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
             }
 
-            if (parsePropertySubpattern())
+            if (parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern))
             {
-                parseDesignation();
-                var node = _syntaxFactory.PropertyPattern(type, propertySubpattern, designation);
+                parseDesignation(out VariableDesignationSyntax designation0);
+                var node = _syntaxFactory.PropertyPattern(type, propertySubpattern, designation0);
                 return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
             }
 
-            if (type != null && parseDesignation())
+            if (type != null && parseDesignation(out VariableDesignationSyntax designation))
             {
                 return _syntaxFactory.DeclarationPattern(type, designation);
             }
