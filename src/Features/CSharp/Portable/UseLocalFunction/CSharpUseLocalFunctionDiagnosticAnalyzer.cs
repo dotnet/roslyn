@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Threading;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, cancellationToken))
+            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var locations, cancellationToken))
             {
                 return;
             }
@@ -125,6 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var additionalLocations = ImmutableArray.Create(
                 localDeclaration.GetLocation(),
                 anonymousFunction.GetLocation());
+
+            if (!locations.IsEmpty)
+            {
+                additionalLocations = additionalLocations.AddRange(locations);
+            }
 
             if (severity != DiagnosticSeverity.Hidden)
             {
@@ -197,10 +203,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private bool CanReplaceAnonymousWithLocalFunction(
             SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
-            AnonymousFunctionExpressionSyntax anonymousFunction, CancellationToken cancellationToken)
+            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> locations, CancellationToken cancellationToken)
         {
             // Check all the references to the anonymous function and disallow the conversion if
             // they're used in certain ways.
+            List<Location> delegateInvokeMethodLocations = null;
+            locations = ImmutableArray<Location>.Empty;
             var anonymousFunctionStart = anonymousFunction.SpanStart;
             foreach (var descendentNode in block.DescendantNodes())
             {
@@ -232,11 +240,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                             return false;
                         }
 
-                        if (nodeToCheck.Parent is MemberAccessExpressionSyntax)
+                        if (nodeToCheck.Parent is MemberAccessExpressionSyntax memberAccessExpression)
                         {
-                            // They're doing something like "del.ToString()".  Can't do this with a
-                            // local function.
-                            return false;
+                            if (memberAccessExpression.Name.Identifier.Text != WellKnownMemberNames.DelegateInvokeName)
+                            {
+                                // They're doing something like "del.ToString()".  Can't do this with a
+                                // local function.
+                                return false;
+                            }
+                            else
+                            {
+                                delegateInvokeMethodLocations = delegateInvokeMethodLocations ?? new List<Location>();
+                                delegateInvokeMethodLocations.Add(memberAccessExpression.GetLocation());
+                            }
                         }
 
                         var convertedType = semanticModel.GetTypeInfo(nodeToCheck, cancellationToken).ConvertedType;
@@ -258,6 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 }
             }
 
+            locations = delegateInvokeMethodLocations.AsImmutableOrEmpty();
             return true;
         }
 
