@@ -10,6 +10,7 @@ efforts behind them.
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
+| [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | Prototype | [Ashley](https://github.com/khyperia) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
 
 
 # C# 8.0
