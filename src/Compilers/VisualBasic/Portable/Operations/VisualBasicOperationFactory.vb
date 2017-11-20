@@ -474,18 +474,21 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundUserDefinedShortCircuitingOperatorOperation(boundUserDefinedShortCircuitingOperator As BoundUserDefinedShortCircuitingOperator) As IBinaryOperation
-            Dim operatorKind As BinaryOperatorKind = If((boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And VisualBasic.BinaryOperatorKind.And) <> 0, BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr)
-            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.LeftOperand))
-            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.BitwiseOperator.Right))
-            Dim operatorMethod As IMethodSymbol = boundUserDefinedShortCircuitingOperator.BitwiseOperator.Call.Method
+            Dim bitwiseOperator As BoundUserDefinedBinaryOperator = boundUserDefinedShortCircuitingOperator.BitwiseOperator
+            Dim binaryOperatorInfo As BinaryOperatorInfo = GetUserDefinedBinaryOperatorInfo(bitwiseOperator)
+            Dim operatorKind As BinaryOperatorKind = If(binaryOperatorInfo.OperatorKind = BinaryOperatorKind.And, BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr)
+
+            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() If(boundUserDefinedShortCircuitingOperator.LeftOperand IsNot Nothing,
+                                                                                           Create(boundUserDefinedShortCircuitingOperator.LeftOperand), ' Possibly dropping conversions https://github.com/dotnet/roslyn/issues/23236
+                                                                                           GetUserDefinedBinaryOperatorChild(bitwiseOperator, binaryOperatorInfo.LeftOperand)))
+            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(bitwiseOperator, binaryOperatorInfo.RightOperand))
             Dim syntax As SyntaxNode = boundUserDefinedShortCircuitingOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedShortCircuitingOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedShortCircuitingOperator.ConstantValueOpt)
-            Dim isLifted As Boolean = (boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And VisualBasic.BinaryOperatorKind.Lifted) <> 0
             Dim isChecked As Boolean = False
             Dim isCompareText As Boolean = False
             Dim isImplicit As Boolean = boundUserDefinedShortCircuitingOperator.WasCompilerGenerated
-            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, binaryOperatorInfo.IsLifted, isChecked, isCompareText, binaryOperatorInfo.OperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidOperation
