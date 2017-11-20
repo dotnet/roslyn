@@ -498,6 +498,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                     operandLazy = New Lazy(Of IOperation)(Function() Create(operand))
                 End If
                 Return (operandLazy, IsDelegateCreation:=True)
+            ElseIf IsNestedDelegateCreation(operand, conversionKind, conversionSyntax, targetType) Then
+                Return (CreateNestedDelegateCreationOperand(operand, conversionSyntax), IsDelegateCreation:=True)
             Else
                 Dim methodSymbol As MethodSymbol = Nothing
                 Return (New Lazy(Of IOperation)(Function() Create(operand)), IsDelegateCreation:=False)
@@ -514,6 +516,73 @@ Namespace Microsoft.CodeAnalysis.Operations
             Else
                 Return (Operand:=boundConversion.Operand, Method:=Nothing)
             End If
+        End Function
+
+        Private Shared Function IsNestedDelegateCreation(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode, targetType As TypeSymbol) As Boolean
+            If conversionKind = ConversionKind.Identity AndAlso operand.Kind = BoundKind.Parenthesized Then
+                Dim nestedOperand = operand
+                While nestedOperand IsNot Nothing And nestedOperand.Kind = BoundKind.Parenthesized
+                    nestedOperand = DirectCast(nestedOperand, BoundParenthesized).Expression
+                End While
+
+                Dim nestedConversionKind As ConversionKind
+                Dim nestedConversionOperand As BoundNode = Nothing
+                Dim nestedConversionType As TypeSymbol
+
+                If nestedOperand.Kind = BoundKind.Conversion Then
+                    Dim nestedConversion = DirectCast(nestedOperand, BoundConversion)
+                    nestedConversionKind = nestedConversion.ConversionKind
+                    nestedConversionOperand = nestedConversion.Operand
+                    nestedConversionType = nestedConversion.Type
+                ElseIf nestedOperand.Kind = BoundKind.DirectCast Then
+                    Dim nestedConversion = DirectCast(nestedOperand, BoundDirectCast)
+                    nestedConversionKind = nestedConversion.ConversionKind
+                    nestedConversionOperand = nestedConversion.Operand
+                    nestedConversionType = nestedConversion.Type
+                ElseIf nestedOperand.Kind = BoundKind.TryCast Then
+                    Dim nestedConversion = DirectCast(nestedOperand, BoundTryCast)
+                    nestedConversionKind = nestedConversion.ConversionKind
+                    nestedConversionOperand = nestedConversion.Operand
+                    nestedConversionType = nestedConversion.Type
+                ElseIf nestedOperand.Kind = BoundKind.DelegateCreationExpression Then
+                    Dim nestedDelegateCreation = DirectCast(nestedOperand, BoundDelegateCreationExpression)
+                    Return nestedDelegateCreation.Type = targetType
+                Else
+                    Return False
+                End If
+
+                Return nestedConversionType = targetType AndAlso
+                       IsDelegateCreation(nestedConversionKind, conversionSyntax, nestedConversionOperand, targetType)
+            End If
+            Return False
+        End Function
+
+        Private Function CreateNestedDelegateCreationOperand(operand As BoundNode, conversionSyntax As SyntaxNode) As Lazy(Of IOperation)
+            Select Case operand.Kind
+                Case BoundKind.Parenthesized
+                    Dim boundParenthesized = DirectCast(operand, BoundParenthesized)
+                    Return New Lazy(Of IOperation)(Function() New LazyParenthesizedExpression(
+                        CreateNestedDelegateCreationOperand(boundParenthesized.Expression, conversionSyntax),
+                        _semanticModel,
+                        boundParenthesized.Syntax,
+                        boundParenthesized.Type,
+                        ConvertToOptional(boundParenthesized.ConstantValueOpt),
+                        boundParenthesized.WasCompilerGenerated))
+                Case BoundKind.Conversion
+                    Dim boundConversion = DirectCast(operand, BoundConversion)
+                    Return CreateConversionOperand(boundConversion.Operand, boundConversion.ConversionKind, conversionSyntax, boundConversion.Type).Operation
+                Case BoundKind.DirectCast
+                    Dim boundConversion = DirectCast(operand, BoundDirectCast)
+                    Return CreateConversionOperand(boundConversion.Operand, boundConversion.ConversionKind, conversionSyntax, boundConversion.Type).Operation
+                Case BoundKind.TryCast
+                    Dim boundConversion = DirectCast(operand, BoundTryCast)
+                    Return CreateConversionOperand(boundConversion.Operand, boundConversion.ConversionKind, conversionSyntax, boundConversion.Type).Operation
+                Case BoundKind.DelegateCreationExpression
+                    Dim boundDelegateCreation = DirectCast(operand, BoundDelegateCreationExpression)
+                    Return New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreation))
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(operand.Kind)
+            End Select
         End Function
 
         Friend Class Helper
