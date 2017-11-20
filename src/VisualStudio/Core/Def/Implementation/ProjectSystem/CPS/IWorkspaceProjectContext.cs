@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         // Options.
         void SetOptions(string commandLineForOptions);
+        void SetOptions(ImmutableArray<string> splitCommandLine, CommandLineArguments commandLineArguments);
 
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);

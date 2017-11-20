@@ -622,7 +622,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await PopulateWorkspaceFromDeferredProjectInfoAsync(_solutionParsingCancellationTokenSource.Token).ConfigureAwait(true);
         }
 
-        [Conditional("DEBUG")]
+        //[Conditional("DEBUG")]
         private void InitializeOutputPane()
         {
             var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
@@ -757,13 +757,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OutputToOutputWindow($"{logPrefix} - done (took {DateTimeOffset.UtcNow - start})");
         }
 
-        [Conditional("DEBUG")]
+        //[Conditional("DEBUG")]
         private void OutputToOutputWindow(string message)
         {
             _pane?.OutputString(message + Environment.NewLine);
         }
 
-        [Conditional("DEBUG")]
+        //[Conditional("DEBUG")]
         private void OutputListToOutputWindow(string prefix, IEnumerable<string> values)
         {
             foreach (var s in values)
@@ -840,7 +840,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 binOutputPath: projectInfo.TargetPath);
 
             project = (AbstractProject)projectContext;
-            projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
+            projectContext.SetOptions(projectInfo.CommandLineArguments, commandLineArguments);
 
             var addedSourceFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var sourceFile in commandLineArguments.SourceFiles)

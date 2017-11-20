@@ -10,9 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal abstract partial class AbstractProject
     {
         #region Options
-        private string _lastParsedCompilerOptions;
-
-        /// Can be null if there is no <see cref="CommandLineParserService" /> available.
+        /// <summary>Can be null if there is no <see cref="CommandLineParserService" /> available.</summary>
+        private ImmutableArray<string> _lastSplitCommandLine;
         private CommandLineArguments _lastParsedCommandLineArguments;
         private CompilationOptions _currentCompilationOptions;
         private ParseOptions _currentParseOptions;
@@ -38,11 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void SetArgumentsCore(string commandLine, CommandLineArguments commandLineArguments)
+        private void SetArgumentsCore(ImmutableArray<string> splitCommandLine, CommandLineArguments commandLineArguments)
         {
             lock (_gate)
             {
-                _lastParsedCompilerOptions = commandLine;
+                _lastSplitCommandLine = splitCommandLine;
                 _lastParsedCommandLineArguments = commandLineArguments;
             }
         }
@@ -56,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            CommandLineArguments lastParsedCommandLineArguments = _lastParsedCommandLineArguments;
+            var lastParsedCommandLineArguments = _lastParsedCommandLineArguments;
             if (lastParsedCommandLineArguments != null)
             {
                 // do nothing if the last parsed arguments aren't present, which is the case for languages that don't
@@ -80,9 +79,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var commandLineArguments = SetArguments(commandLine);
+            var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).ToImmutableArray();
+            return SetArgumentsAndUpdateOptions(splitArguments);
+        }
+
+        private CommandLineArguments SetArgumentsAndUpdateOptions(ImmutableArray<string> splitCommandLine)
+        {
+            AssertIsForeground();
+
+            var parsedCommandLineArguments = CommandLineParserService?.Parse(splitCommandLine, this.ContainingDirectoryPathOpt, isInteractive: false, sdkDirectory: System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory());
+            SetArgumentsAndUpdateOptions(splitCommandLine, parsedCommandLineArguments);
+            return parsedCommandLineArguments;
+        }
+
+        protected void SetArgumentsAndUpdateOptions(ImmutableArray<string> splitCommandLine, CommandLineArguments commandLineArguments)
+        {
+            AssertIsForeground();
+
+            SetArgumentsCore(splitCommandLine, commandLineArguments);
             UpdateOptions();
-            return commandLineArguments;
+            SetRuleSetFileCore(commandLineArguments?.RuleSetPath);
         }
 
         /// <summary>
@@ -92,26 +108,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Use this method when options can go stale due to side effects, even though the command line is identical.
         /// For example, changes to contents of a ruleset file needs to force update the options for the same command line.
         /// </remarks>
-        protected CommandLineArguments ResetArgumentsAndUpdateOptions()
+        protected void ReparseOptionsBecauseRulesetChanged()
         {
             // Clear last parsed command line.
-            string savedLastParsedCompilerOptions = _lastParsedCompilerOptions;
-            SetArgumentsCore(commandLine: null, commandLineArguments: null);
+            var savedSplitCommandLine = _lastSplitCommandLine;
+            SetArgumentsCore(splitCommandLine: ImmutableArray<string>.Empty, commandLineArguments: null);
 
             // Now set arguments and update options with the saved command line.
-            return SetArgumentsAndUpdateOptions(savedLastParsedCompilerOptions);
-        }
-
-        /// <summary>
-        /// Parses the given command line and sets new command line arguments.
-        /// </summary>
-        protected CommandLineArguments SetArguments(string commandLine)
-        {
-            // Command line options have changed, so update options with new parsed CommandLineArguments.
-            var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false);
-            var parsedCommandLineArguments = CommandLineParserService?.Parse(splitArguments, this.ContainingDirectoryPathOpt, isInteractive: false, sdkDirectory: null);
-            SetArgumentsCore(commandLine, parsedCommandLineArguments);
-            return parsedCommandLineArguments;
+            SetArgumentsAndUpdateOptions(savedSplitCommandLine);
         }
 
         /// <summary>

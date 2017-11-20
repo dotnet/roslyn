@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(metadataResolver != null);
 
-            var resolved = new List<MetadataReference>();
+            var resolved = new List<MetadataReference>(MetadataReferences.Length);
             this.ResolveMetadataReferences(metadataResolver, diagnosticsOpt, messageProviderOpt, resolved);
 
             return resolved;
