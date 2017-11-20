@@ -512,6 +512,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Gets the default warning level for a diagnostic severity. Warning levels are used with the <c>/warn:N</c>
+        /// command line option, where 0≤N≤4, to suppress diagnostics over a severity of interest. While this flag is
+        /// generally not recommended for use, the special value <c>/warn:0</c> preserves its original meaning of "only
+        /// show errors".
+        /// </summary>
+        /// <remarks>
+        /// <see cref="DiagnosticSeverity.Info"/> and <see cref="DiagnosticSeverity.Hidden"/> are treated as warning
+        /// level 1. In other words, these diagnostics which typically interact with editor features are enabled unless
+        /// the special <c>/warn:0</c> option is set.
+        /// </remarks>
+        /// <param name="severity">A <see cref="DiagnosticSeverity"/> value.</param>
+        /// <returns>The default compiler warning level for <paramref name="severity"/>.</returns>
         internal static int GetDefaultWarningLevel(DiagnosticSeverity severity)
         {
             switch (severity)
