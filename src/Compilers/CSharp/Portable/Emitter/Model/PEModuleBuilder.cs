@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
+        private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+                _needsGeneratedAttributes_IsFrozen = true;
                 return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
             }
         }
@@ -1427,11 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeEmbeddedAttribute()
-        {
-            // Embedded attributes should never be synthesized in modules.
-            throw ExceptionUtilities.Unreachable;
-        }
+        internal abstract SynthesizedAttributeData SynthesizeEmbeddedAttribute();
 
         internal SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
         {
@@ -1469,6 +1465,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal void EnsureIsReadOnlyAttributeExists()
         {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
             if (_needsGeneratedIsReadOnlyAttribute_Value || Compilation.NeedsGeneratedIsReadOnlyAttribute)
             {
                 return;
@@ -1477,7 +1475,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Don't report any errors. They should be reported during binding.
             if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
             {
-                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
                 _needsGeneratedIsReadOnlyAttribute_Value = true;
             }
         }

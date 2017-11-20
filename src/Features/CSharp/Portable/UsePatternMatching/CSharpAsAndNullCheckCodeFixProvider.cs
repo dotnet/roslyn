@@ -53,8 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     return ((WhileStatementSyntax)node).Condition;
                 case SyntaxKind.IfStatement:
                     return ((IfStatementSyntax)node).Condition;
+                case SyntaxKind.ReturnStatement:
+                    return ((ReturnStatementSyntax)node).Expression;
+                case SyntaxKind.LocalDeclarationStatement:
+                    return ((LocalDeclarationStatementSyntax)node).Declaration.Variables[0].Initializer.Value;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 
@@ -64,12 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             CancellationToken cancellationToken)
         {
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
-            var ifOrWhileStatementLocation = diagnostic.AdditionalLocations[1];
+            var targetStatementLocation = diagnostic.AdditionalLocations[1];
             var conditionLocation = diagnostic.AdditionalLocations[2];
             var asExpressionLocation = diagnostic.AdditionalLocations[3];
 
             var localDeclaration = (LocalDeclarationStatementSyntax)localDeclarationLocation.FindNode(cancellationToken);
-            var ifOrWhileStatement = (StatementSyntax)ifOrWhileStatementLocation.FindNode(cancellationToken);
+            var targetStatement = (StatementSyntax)targetStatementLocation.FindNode(cancellationToken);
             var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
 
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     SyntaxFactory.SingleVariableDesignation(
                         localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
 
-            var currentCondition = GetCondition(ifOrWhileStatement);
+            var currentCondition = GetCondition(targetStatement);
             var updatedCondition = currentCondition.ReplaceNode(conditionPart, updatedConditionPart);
 
             var block = (BlockSyntax)localDeclaration.Parent;
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
             editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-            editor.ReplaceNode(ifOrWhileStatement, (currentStatement, g) =>
+            editor.ReplaceNode(targetStatement, (currentStatement, g) =>
             {
                 var updatedStatement = currentStatement.ReplaceNode(GetCondition(currentStatement), updatedCondition);
                 return updatedStatement.WithAdditionalAnnotations(Formatter.Annotation);

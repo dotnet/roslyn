@@ -683,8 +683,17 @@ public class C
                             break;
 
                         case SymbolKind.Method:
-                            // Dev11 marks return type of GetEnumerator with DynamicAttribute, we don't
-                            Assert.Equal(0, ((MethodSymbol)member).GetReturnTypeAttributes().Length);
+                            var attributes = ((MethodSymbol)member).GetReturnTypeAttributes();
+                            switch (member.MetadataName)
+                            {
+                                case "System.Collections.Generic.IEnumerator<dynamic>.get_Current":
+                                case "System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator":
+                                    Assert.Equal(1, attributes.Length);
+                                    break;
+                                default:
+                                    Assert.Equal(0, attributes.Length);
+                                    break;
+                            }
                             break;
 
                         case SymbolKind.Property:

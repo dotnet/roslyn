@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
         private bool _needsGeneratedIsByRefLikeAttribute_Value;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
-        private bool _needsGeneratedIsByRefLikeAttribute_IsFrozen;
+        private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+                _needsGeneratedAttributes_IsFrozen = true;
                 return _needsGeneratedIsReadOnlyAttribute_Value;
             }
         }
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
+                _needsGeneratedAttributes_IsFrozen = true;
                 return _needsGeneratedIsByRefLikeAttribute_Value;
             }
         }
@@ -463,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForRefReadOnly)
         {
-            Debug.Assert(!modifyCompilationForRefReadOnly || !_needsGeneratedIsReadOnlyAttribute_IsFrozen);
+            Debug.Assert(!modifyCompilationForRefReadOnly || !_needsGeneratedAttributes_IsFrozen);
 
             var isNeeded = CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnostics, location);
 
@@ -475,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureIsByRefLikeAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForIsByRefLike)
         {
-            Debug.Assert(!modifyCompilationForIsByRefLike || !_needsGeneratedIsByRefLikeAttribute_IsFrozen);
+            Debug.Assert(!modifyCompilationForIsByRefLike || !_needsGeneratedAttributes_IsFrozen);
 
             var isNeeded = CheckIfIsByRefLikeAttributeShouldBeEmbedded(diagnostics, location);
 
