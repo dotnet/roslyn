@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.EqualsGreaterThanToken:
-                    return this.ParseIdentifierName(ErrorCode.ERR_MissingArgument);
+                    return this.ParseIdentifierName(ErrorCode.ERR_MissingPattern);
             }
 
             if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_")

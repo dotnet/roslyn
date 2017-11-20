@@ -1677,10 +1677,65 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 );
         }
 
-        //[Fact]
-        //public void ParenthesizedExpression_04()
-        //{
-        //    UsingStatement(@"switch (e) { case (((x: 3))): ; }");
-        //}
+        [Fact]
+        public void ParenthesizedExpression_05()
+        {
+            UsingStatement(@"switch (e) { case (x: ): ; }",
+                // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case (x: ): ; }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(x: )").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19),
+                // (1,23): error CS8400: Pattern missing
+                // switch (e) { case (x: ): ; }
+                Diagnostic(ErrorCode.ERR_MissingPattern, ")").WithLocation(1, 23)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.DeconstructionPattern);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SubpatternElement);
+                            {
+                                N(SyntaxKind.NameColon);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                M(SyntaxKind.ConstantPattern);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
     }
 }
