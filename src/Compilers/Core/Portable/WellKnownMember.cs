@@ -425,6 +425,7 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__ctor,
 
         System_Range__Create,
+        System_LongRange__Create,
 
         Count,
     }

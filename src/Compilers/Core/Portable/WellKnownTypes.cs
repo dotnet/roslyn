@@ -272,6 +272,7 @@ namespace Microsoft.CodeAnalysis
         System_Span_T,
 
         System_Range,
+        System_LongRange,
 
         NextAvailable,
     }
@@ -539,6 +540,7 @@ namespace Microsoft.CodeAnalysis
             "System.Span`1",
 
             "System.Range",
+            "System.LongRange",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

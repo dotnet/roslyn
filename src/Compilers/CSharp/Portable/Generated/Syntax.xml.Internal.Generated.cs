@@ -42406,6 +42406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AsteriskToken:
         case SyntaxKind.SlashToken:
         case SyntaxKind.PercentToken:
+        case SyntaxKind.DotDotToken:
         case SyntaxKind.LessThanLessThanToken:
         case SyntaxKind.GreaterThanGreaterThanToken:
         case SyntaxKind.BarToken:
@@ -49333,6 +49334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AsteriskToken:
         case SyntaxKind.SlashToken:
         case SyntaxKind.PercentToken:
+        case SyntaxKind.DotDotToken:
         case SyntaxKind.LessThanLessThanToken:
         case SyntaxKind.GreaterThanGreaterThanToken:
         case SyntaxKind.BarToken:

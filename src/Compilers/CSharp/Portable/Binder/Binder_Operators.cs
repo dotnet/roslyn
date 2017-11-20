@@ -630,8 +630,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (resultKind == LookupResultKind.Empty && operatorToken.Kind() == SyntaxKind.DotDotToken)
             {
-                // Diagnostics will already have been reported (when searching for an appropriate method)
-                return;
+                var leftSpecialType = left.Type.SpecialType;
+                var rightSpecialType = right.Type.SpecialType;
+                if (leftSpecialType.IsIntegralType() && rightSpecialType.IsIntegralType())
+                {
+                    // User meant to use the built-in range type, but it was missing
+                    if (leftSpecialType == SpecialType.System_Int64 || leftSpecialType == SpecialType.System_UInt64 ||
+                        rightSpecialType == SpecialType.System_Int64 || rightSpecialType == SpecialType.System_UInt64)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RangeNotFound, node, WellKnownTypes.GetMetadataName(WellKnownType.System_LongRange));
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RangeNotFound, node, WellKnownTypes.GetMetadataName(WellKnownType.System_Range));
+                    }
+                    return;
+                }
+                else
+                {
+                    // User meant to use a custom range operator: fall through to ERR_BadBinaryOps
+                }
             }
 
             if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken) &&

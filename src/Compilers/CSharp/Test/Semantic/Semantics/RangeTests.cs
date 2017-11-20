@@ -236,5 +236,89 @@ class C
                 Diagnostic(ErrorCode.ERR_RangeNotFound, "0..4").WithArguments("System.Range").WithLocation(6, 27)
             );
         }
+
+        [Fact]
+        public void LiftedOperatorDotDot()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        int? nullX = 2;
+        int? nullY = 4;
+        var a = nullX..4;
+        var b = 2..nullY;
+        var c = nullX..nullY;
+        Console.Write(string.Join("";"",
+            string.Join("","", a.Value),
+            string.Join("","", b.Value),
+            string.Join("","", c.Value)
+        ));
+        Console.Write(""|"");
+        nullX = null;
+        nullY = null;
+        a = nullX..4;
+        b = 2..nullY;
+        c = nullX..nullY;
+        Console.Write(string.Join("","",
+            a.HasValue,
+            b.HasValue,
+            c.HasValue
+        ));
+    }
+}
+";
+
+            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "2,3;2,3;2,3|False,False,False");
+        }
+
+        [Fact]
+        public void CustomOperatorDotDot()
+        {
+            var source = @"
+class C
+{
+    public static object operator..(C left, C right)
+    {
+        System.Console.Write(""ok"");
+        return null;
+    }
+    static void Main()
+    {
+        var x = new C()..new C();
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "ok");
+        }
+
+        [Fact]
+        public void LiftedCustomOperatorDotDot()
+        {
+            var source = @"
+using System;
+struct C
+{
+    public static bool operator..(C left, C right)
+    {
+        Console.Write(""ok"");
+        return true;
+    }
+    static void Main()
+    {
+        C? nullable = new C();
+        var res = nullable..nullable;
+        Console.Write("","");
+        // Compare to null to make sure the type is bool?, not bool
+        Console.Write(res == null);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "ok,False");
+        }
     }
 }

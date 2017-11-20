@@ -3940,8 +3940,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.Kind = SyntaxKind.CommaToken;
                     break;
                 case '.':
-                    if (AdvanceIfMatches('.')) info.Kind = SyntaxKind.DotDotToken;
-                    else info.Kind = SyntaxKind.DotToken;
+                    if (AdvanceIfMatches('.'))
+                    {
+                        if (TextWindow.PeekChar() == '.')
+                        {
+                            // See documentation in ScanSyntaxToken
+                            break;
+                        }
+                        else
+                        {
+                            info.Kind = SyntaxKind.DotDotToken;
+                        }
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.DotToken;
+                    }
+
                     break;
                 case '?':
                     info.Kind = SyntaxKind.QuestionToken;

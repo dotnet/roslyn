@@ -33,33 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (underlyingKind == BinaryOperatorKind.Range)
-            {
-                var method = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__Create);
-                if (method == null)
-                {
-                    if (useSiteDiagnostics == null)
-                    {
-                        useSiteDiagnostics = new HashSet<DiagnosticInfo>();
-                    }
-
-                    var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Range__Create);
-                    useSiteDiagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_RangeNotFound, memberDescriptor.DeclaringTypeMetadataName));
-                    return;
-                }
-
-                var signature = new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | BinaryOperatorKind.Range, method.ParameterTypes[0], method.ParameterTypes[1], method.ReturnType, method);
-
-                Conversion leftConversion = Conversions.FastClassifyConversion(left.Type, signature.LeftType);
-                Conversion rightConversion = Conversions.FastClassifyConversion(right.Type, signature.RightType);
-
-                Debug.Assert(leftConversion.Exists && leftConversion.IsImplicit);
-                Debug.Assert(rightConversion.Exists && rightConversion.IsImplicit);
-
-                result.Results.Add(BinaryOperatorAnalysisResult.Applicable(signature, leftConversion, rightConversion));
-                return;
-            }
-
             // The following is a slight rewording of the specification to emphasize that not all
             // operands of a binary operation need to have a type.
 
@@ -143,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LessThanOrEqual:
                 case BinaryOperatorKind.LogicalAnd:
                 case BinaryOperatorKind.LogicalOr:
+                case BinaryOperatorKind.Range:
                     return;
 
                 case BinaryOperatorKind.Addition:
@@ -400,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LeftShift:
                 case BinaryOperatorKind.LogicalAnd:
                 case BinaryOperatorKind.LogicalOr:
+                case BinaryOperatorKind.Range:
                     return;
             }
 

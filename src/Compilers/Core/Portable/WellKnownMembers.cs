@@ -2938,6 +2938,15 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                 // System_LongRange__Create
+                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_LongRange - WellKnownType.ExtSentinel),                                               // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     2,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_LongRange - WellKnownType.ExtSentinel),
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int64,
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int64,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3304,6 +3313,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_ObsoleteAttribute__ctor
                 ".ctor",                                    // System_Span__ctor
                 "Create",                                   // System_Range__Create
+                "Create",                                   // System_LongRange__Create
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

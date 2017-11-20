@@ -3265,6 +3265,7 @@
       <Kind Name="AsteriskToken"/>
       <Kind Name="SlashToken"/>
       <Kind Name="PercentToken"/>
+      <Kind Name="DotDotToken"/>
       <Kind Name="LessThanLessThanToken"/>
       <Kind Name="GreaterThanGreaterThanToken"/>
       <Kind Name="BarToken"/>
