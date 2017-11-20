@@ -527,4 +527,7 @@
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
   </data>
+  <data name="Convert_to_regular_method" xml:space="preserve">
+    <value>Convert to regular method</value>
+  </data>
 </root>

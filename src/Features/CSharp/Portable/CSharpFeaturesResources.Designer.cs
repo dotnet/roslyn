@@ -315,6 +315,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to regular method.
+        /// </summary>
+        internal static string Convert_to_regular_method {
+            get {
+                return ResourceManager.GetString("Convert_to_regular_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to deconstruction.
         /// </summary>
         internal static string deconstruction {
