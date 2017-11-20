@@ -10151,7 +10151,6 @@ tryAgain:
                 case SyntaxKind.MinusGreaterThanToken:
                 case SyntaxKind.QuestionQuestionToken:
                 case SyntaxKind.EndOfFileToken:
-                case SyntaxKind.EqualsGreaterThanToken:
                     return false;
                 default:
                     return true;
