@@ -4373,12 +4373,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(8, 29),
                 // (11,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18),
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29)
                 );
         }
 
@@ -4406,15 +4406,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (9,29): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(9, 29),
                 // (12,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(12, 18),
-                // (8,13): warning CS0219: The variable '_' is assigned but its value is never used
-                //         int _ = 4;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "_").WithArguments("_").WithLocation(8, 13)
+                // (9,29): error CS0150: A constant value is expected
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29)
                 );
         }
 

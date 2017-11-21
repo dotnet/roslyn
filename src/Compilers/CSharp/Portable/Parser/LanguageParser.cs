@@ -7969,7 +7969,7 @@ tryAgain:
                         }
                         else
                         {
-                            var node = ParseExpressionOrPattern(forCase: true);
+                            var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(forCase: true));
                             if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.

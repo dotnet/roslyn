@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             evaluation = new BoundDagFieldEvaluation(prop.pattern.Syntax, field, input);
                             break;
                         default:
-                            Debug.Assert(prop.pattern.HasAnyErrors);
+                            Debug.Assert(recursive.HasAnyErrors);
                             continue;
                     }
                     decisions.Add(evaluation);

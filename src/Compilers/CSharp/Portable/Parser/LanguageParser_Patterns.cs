@@ -14,8 +14,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Parses the type, or pattern, right-hand operand of an is expression.
         /// Priority is the TypeSyntax. It may return a TypeSyntax which turns out in binding to
         /// be a constant pattern such as enum 'Days.Sunday'. We handle such cases in the binder of the is operator.
+        /// Note that the syntax `_` will be parsed as a type.
         /// </summary>
         private CSharpSyntaxNode ParseTypeOrPatternForIsOperator()
+        {
+            return CheckRecursivePatternFeature(ParseTypeOrPatternForIsOperatorCore());
+        }
+
+        private CSharpSyntaxNode CheckRecursivePatternFeature(CSharpSyntaxNode node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.DeconstructionPattern:
+                case SyntaxKind.DiscardPattern:
+                case SyntaxKind.PropertyPattern:
+                    return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
+                default:
+                    return node;
+            }
+        }
+
+        private CSharpSyntaxNode ParseTypeOrPatternForIsOperatorCore()
         {
             var tk = this.CurrentToken.Kind;
             Precedence precedence = GetPrecedence(SyntaxKind.IsPatternExpression);
@@ -40,18 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
-            if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_")
-            {
-                // In a pattern, we reserve `_` as a wildcard. It cannot be used (with that spelling) as the
-                // type of a declaration or recursive pattern, nor as a type in an in-type expression starting
-                // in C# 7. The binder will give a diagnostic if
-                // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
-                // TODO(patterns2): Should we use the "contextual keyword" infrastructure for this?
-                var node = _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
-                return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
-            }
-
-            // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
+            // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
+            bool typeCannotBePattern = tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_";
+                // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
             if (SyntaxFacts.IsPredefinedType(tk) ||
                 (tk == SyntaxKind.IdentifierToken &&
                   (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)))
@@ -61,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     TypeSyntax type = this.ParseType(ParseTypeMode.AfterIs);
 
-                    if (!type.IsMissing)
+                    if (!type.IsMissing && !typeCannotBePattern)
                     {
                         PatternSyntax p = ParsePatternContinued(type, false);
                         if (p != null)
@@ -89,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
             // check to see if it looks like a recursive pattern.
-            else if (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken)
+            else if (!typeCannotBePattern && (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken))
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -325,8 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // in C# 7. The binder will give a diagnostic if
                 // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
                 // TODO(patterns2): Should we use the "contextual keyword" infrastructure for this?
-                var node = _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
-                return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
+                return _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
             }
 
             var resetPoint = this.GetResetPoint();
@@ -423,22 +432,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     subPatterns[0].Pattern is ConstantPatternSyntax cp)
                 {
                     // There is an ambiguity between a deconstruction pattern `(` pattern `)`
-                    // and a constant expression pattern than happens to be parenthesized.
+                    // and a constant expression pattern that happens to be parenthesized.
                     // We normalize to the parenthesized expression, and semantic analysis
                     // will notice the parens and treat it whichever way is semantically sensible,
                     // giving priority to its treatment as a constant expression.
                     return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
                 }
 
-                var node = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
-                return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
+                return _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
             }
 
             if (parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern))
             {
                 parseDesignation(out VariableDesignationSyntax designation0);
-                var node = _syntaxFactory.PropertyPattern(type, propertySubpattern, designation0);
-                return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
+                return _syntaxFactory.PropertyPattern(type, propertySubpattern, designation0);
             }
 
             if (type != null && parseDesignation(out VariableDesignationSyntax designation))
@@ -485,45 +492,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(openKind == SyntaxKind.OpenParenToken || openKind == SyntaxKind.OpenBraceToken);
             Debug.Assert(closeKind == SyntaxKind.CloseParenToken || closeKind == SyntaxKind.CloseBraceToken);
             Debug.Assert((openKind == SyntaxKind.OpenParenToken) == (closeKind == SyntaxKind.CloseParenToken));
+            Debug.Assert(openKind == this.CurrentToken.Kind);
 
             openToken = this.EatToken(openKind);
             var list = _pool.AllocateSeparated<SubpatternElementSyntax>();
             try
             {
-                if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                tryAgain:
+
+                if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    tryAgain:
+                    // first pattern
+                    list.Add(this.ParseSubpatternElement());
 
-                    if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    // additional patterns
+                    while (true)
                     {
-                        // first pattern
-                        list.Add(this.ParseSubpatternElement());
-
-                        // additional patterns
-                        while (true)
+                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
+                            this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
+                            this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         {
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
-                                this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
-                                this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                            {
-                                break;
-                            }
-                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleSubpatternElement())
-                            {
-                                list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                                list.Add(this.ParseSubpatternElement());
-                                continue;
-                            }
-                            else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
-                            {
-                                break;
-                            }
+                            break;
+                        }
+                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleSubpatternElement())
+                        {
+                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                            list.Add(this.ParseSubpatternElement());
+                            continue;
+                        }
+                        else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
+                        {
+                            break;
                         }
                     }
-                    else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
-                    {
-                        goto tryAgain;
-                    }
+                }
+                else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
+                {
+                    goto tryAgain;
                 }
 
                 closeToken = this.EatToken(closeKind);
@@ -549,6 +554,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this._syntaxFactory.SubpatternElement(nameColon, pattern);
         }
 
+        /// <summary>
+        /// Check the next token to see if it is valid as the first token of a subpattern element.
+        /// Used to assist in error recovery for subpattern lists (e.g. determining which tokens to skip)
+        /// to ensure we make forward progress during recovery.
+        /// </summary>
         private bool IsPossibleSubpatternElement()
         {
             return this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
