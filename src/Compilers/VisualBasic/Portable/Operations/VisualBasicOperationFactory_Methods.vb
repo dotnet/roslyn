@@ -167,10 +167,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                     method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
                 End If
                 Return New Conversion(KeyValuePair.Create(conversionKind, method))
-            ElseIf expression.Kind = BoundKind.TryCast Then
-                Return New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundTryCast).ConversionKind, Nothing))
-            ElseIf expression.Kind = BoundKind.DirectCast Then
-                Return New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundDirectCast).ConversionKind, Nothing))
+            ElseIf expression.Kind = BoundKind.TryCast OrElse expression.Kind = BoundKind.DirectCast Then
+                Return New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
             End If
             Return New Conversion(Conversions.Identity)
         End Function
