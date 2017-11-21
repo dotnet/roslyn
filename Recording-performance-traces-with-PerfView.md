@@ -6,7 +6,7 @@ This document describes practices for gathering performance traces for scenarios
 
 In some scenarios, users may wish to collect performance traces using the PerfView command line tool rather than using the Report a Problem tool. The most common reason for this is it increases the amount of data collected by a single performance trace, which in turn supports measurements for a larger period of time. It also uses larger buffers, reducing the chances of lost data during tracing. Other users may require these steps as a result of company policies preventing users from accessing the Report a Problem tool.
 
-Instructions for manually recording with PerfView:
+# Manually recording with PerfView:
 
 1. Download [PerfView](http://www.microsoft.com/en-us/download/details.aspx?id=28567) and save it to a temporary directory
 1. If using one of the predefined command lines below, review the section to identify the best time to start and stop measuring for the problem at hand and type of recording
