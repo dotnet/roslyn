@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod
@@ -164,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     // Prepend additional type arguments to preserve lexical order in which they are defined
                     var typeArguments = additionalTypeArguments.Concat(existingTypeArguments);
                     currentNode = generator.WithTypeArguments(currentNode, typeArguments);
+                    currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
                 if (node.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
@@ -195,6 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     currentNode = generator.ValueReturningLambdaExpression(
                         lambdaParameters: ParameterGenerator.GetParameters(parameters, isExplicit: true, options: defaultOptions),
                         expression: generator.InvocationExpression(currentNode, arguments));
+
+                    currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
 
                     if (node.IsParentKind(SyntaxKind.CastExpression))
                     {

@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
     {
         var local1 = 0;
         var local2 = 0;
-        LocalFunction1<T1, T2>(param1, ref param2, local1, ref local2);
-        System.Action x = () => LocalFunction1<T1, T2>(param1, ref param2, local1, ref local2);
+        LocalFunction1(param1, ref param2, local1, ref local2);
+        System.Action x = () => LocalFunction1(param1, ref param2, local1, ref local2);
     }
 
     private void LocalFunction1<T1, T2>(T1 param1, ref T2 param2, int local1, ref int local2)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
         Use(local1);
         Use(ref local2);
         Use(this);
-        LocalFunction1<T1, T2>(param1, ref param2, local1, ref local2);
+        LocalFunction1(param1, ref param2, local1, ref local2);
     }
 }");
         }
@@ -333,7 +333,7 @@ class C
     void M<T>(Func<CancellationToken, Task<T>> func) {}
     void M<T>(Task<T> task)
     {
-        M((CancellationToken c) => LocalFunction<T>(c, task));
+        M(c => LocalFunction(c, task));
     }
 
     private static async Task<T> LocalFunction<T>(CancellationToken c, Task<T> task)
@@ -370,7 +370,7 @@ class C
     void M(Action<CancellationToken> func) {}
     void M<T>(Task<T> task)
     {
-        M((CancellationToken c) => LocalFunction<T>(c, task));
+        M(c => LocalFunction(c, task));
     }
 
     private static async void LocalFunction<T>(CancellationToken c, Task<T> task)
