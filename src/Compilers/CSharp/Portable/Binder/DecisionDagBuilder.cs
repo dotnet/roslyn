@@ -603,86 +603,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Decisions: c.Decisions.WhereAsArray(d => !(d is BoundDagEvaluation e2) || e2 != e),
                 Bindings: c.Bindings, WhereClause: c.WhereClause, CaseLabel: c.CaseLabel);
         }
-    }
 
-    internal class PartialCaseDecision
-    {
-        public readonly int Index;
-        public readonly SyntaxNode Syntax;
-        public readonly ImmutableArray<BoundDagDecision> Decisions;
-        public readonly ImmutableArray<(BoundExpression, BoundDagTemp)> Bindings;
-        public readonly BoundExpression WhereClause;
-        public readonly LabelSymbol CaseLabel;
-        public PartialCaseDecision(
-            int Index,
-            SyntaxNode Syntax,
-            ImmutableArray<BoundDagDecision> Decisions,
-            ImmutableArray<(BoundExpression, BoundDagTemp)> Bindings,
-            BoundExpression WhereClause,
-            LabelSymbol CaseLabel)
+        internal class PartialCaseDecision
         {
-            this.Index = Index;
-            this.Syntax = Syntax;
-            this.Decisions = Decisions;
-            this.Bindings = Bindings;
-            this.WhereClause = WhereClause;
-            this.CaseLabel = CaseLabel;
-        }
-    }
-
-    partial class BoundDagEvaluation
-    {
-        public override bool Equals(object obj) => obj is BoundDagEvaluation other && this.Equals(other);
-        public bool Equals(BoundDagEvaluation other)
-        {
-            return other != (object)null && this.Kind == other.Kind && this.Input.Equals(other.Input) && this.Symbol == other.Symbol;
-        }
-        private Symbol Symbol
-        {
-            get
+            public readonly int Index;
+            public readonly SyntaxNode Syntax;
+            public readonly ImmutableArray<BoundDagDecision> Decisions;
+            public readonly ImmutableArray<(BoundExpression, BoundDagTemp)> Bindings;
+            public readonly BoundExpression WhereClause;
+            public readonly LabelSymbol CaseLabel;
+            public PartialCaseDecision(
+                int Index,
+                SyntaxNode Syntax,
+                ImmutableArray<BoundDagDecision> Decisions,
+                ImmutableArray<(BoundExpression, BoundDagTemp)> Bindings,
+                BoundExpression WhereClause,
+                LabelSymbol CaseLabel)
             {
-                switch (this)
-                {
-                    case BoundDagFieldEvaluation e: return e.Field;
-                    case BoundDagPropertyEvaluation e: return e.Property;
-                    case BoundDagTypeEvaluation e: return e.Type;
-                    case BoundDagDeconstructEvaluation e: return e.DeconstructMethod;
-                    default: throw ExceptionUtilities.UnexpectedValue(this.Kind);
-                }
+                this.Index = Index;
+                this.Syntax = Syntax;
+                this.Decisions = Decisions;
+                this.Bindings = Bindings;
+                this.WhereClause = WhereClause;
+                this.CaseLabel = CaseLabel;
             }
-        }
-        public override int GetHashCode()
-        {
-            return this.Input.GetHashCode() ^ (this.Symbol?.GetHashCode() ?? 0);
-        }
-        public static bool operator ==(BoundDagEvaluation left, BoundDagEvaluation right)
-        {
-            return (left == (object)null) ? right == (object)null : left.Equals(right);
-        }
-        public static bool operator !=(BoundDagEvaluation left, BoundDagEvaluation right)
-        {
-            return !(left == right);
-        }
-    }
-
-    partial class BoundDagTemp
-    {
-        public override bool Equals(object obj) => obj is BoundDagTemp other && this.Equals(other);
-        public bool Equals(BoundDagTemp other)
-        {
-            return other != (object)null && this.Type == other.Type && object.Equals(this.Source, other.Source) && this.Index == other.Index;
-        }
-        public override int GetHashCode()
-        {
-            return this.Type.GetHashCode() ^ (this.Source?.GetHashCode() ?? 0) ^ this.Index;
-        }
-        public static bool operator ==(BoundDagTemp left, BoundDagTemp right)
-        {
-            return left.Equals(right);
-        }
-        public static bool operator !=(BoundDagTemp left, BoundDagTemp right)
-        {
-            return !left.Equals(right);
         }
     }
 }

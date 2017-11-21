@@ -381,11 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
         }
 
-        public BoundAssignmentOperator AssignmentExpression(LocalSymbol left, BoundExpression right, RefKind refKind = RefKind.None)
-        {
-            return new BoundAssignmentOperator(Syntax, this.Local(left), right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
-        }
-
         public BoundBlock Block()
         {
             return Block(ImmutableArray<BoundStatement>.Empty);
