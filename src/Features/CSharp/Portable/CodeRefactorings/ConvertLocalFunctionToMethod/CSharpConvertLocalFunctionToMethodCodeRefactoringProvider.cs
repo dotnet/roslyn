@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
 
             var methodName = GenerateUniqueMethodName(declaredSymbol);
+            var parameters = declaredSymbol.Parameters;
             var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                 containingType: declaredSymbol.ContainingType,
                 attributes: default,
@@ -111,10 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 explicitInterfaceImplementations: default,
                 name: methodName,
                 typeParameters: typeParameters.ToImmutableArray(),
-                parameters: declaredSymbol.Parameters.AddRange(capturesAsParameters));
+                parameters: parameters.AddRange(capturesAsParameters));
 
+            var defaultOptions = CodeGenerationOptions.Default;
             var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
-                    document.Project.Solution.Workspace, CodeGenerationOptions.Default, root.SyntaxTree.Options);
+                    document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
 
             method = WithBodyFrom(method, localFunction);
 
@@ -154,7 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 }
 
                 var currentNode = node;
-                if (currentNode.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+
+                if (needsRename)
+                {
+                    currentNode = ((SimpleNameSyntax)currentNode).WithIdentifier(identifierToken);
+                }
+
+                if (node.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
                 {
                     if (hasAdditionalArguments)
                     {
@@ -179,10 +187,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                         currentNode = generator.WithTypeArguments(currentNode, typeArguments);
                     }
                 }
-
-                if (needsRename)
+                else if (hasAdditionalArguments || hasAdditionalTypeArguments)
                 {
-                    currentNode = ((SimpleNameSyntax)currentNode).WithIdentifier(identifierToken);
+                    // Convert local function delegates to lambda if the signature no longer matches
+                    var arguments = parameters
+                        .Concat(capturesAsParameters)
+                        .Select(parameter => generator.Argument(
+                            name: null, refKind: parameter.RefKind,
+                            expression: parameter.Name.ToIdentifierName()));
+
+                    currentNode = generator.ValueReturningLambdaExpression(
+                        lambdaParameters: ParameterGenerator.GetParameters(parameters, isExplicit: true, options: defaultOptions),
+                        expression: generator.InvocationExpression(currentNode, arguments));
                 }
 
                 editor.ReplaceNode(node, currentNode);

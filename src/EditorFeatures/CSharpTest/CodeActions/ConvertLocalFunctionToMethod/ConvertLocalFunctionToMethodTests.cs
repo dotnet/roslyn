@@ -222,6 +222,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestDelegate1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void LocalFunction() {} // trigger rename
+
+    void M(int i)
+    {
+        int [||]LocalFunction() => i;
+        System.Func<int> x = LocalFunction;
+    }
+}",
+@"class C
+{
+    void LocalFunction() {} // trigger rename
+
+    void M(int i)
+    {
+        System.Func<int> x = () => LocalFunction1(i);
+    }
+
+    private static int LocalFunction1(int i) => i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestDelegate2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void LocalFunction() {} // trigger rename
+    delegate int D(int a, ref string b);
+    void M(int i, int j)
+    {
+        int [||]LocalFunction(int a, ref string b) => i = j;
+        D x = LocalFunction;
+    }
+}",
+@"class C
+{
+    void LocalFunction() {} // trigger rename
+    delegate int D(int a, ref string b);
+    void M(int i, int j)
+    {
+        D x = (int a, ref string b) => LocalFunction1(a, ref b, ref i, j);
+    }
+
+    private static int LocalFunction1(int a, ref string b, ref int i, int j) => i = j;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
         public async Task TestCaretPositon()
         {
             await TestAsync("C [||]LocalFunction(C c)");
