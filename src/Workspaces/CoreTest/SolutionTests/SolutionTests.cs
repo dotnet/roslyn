@@ -1404,14 +1404,14 @@ public class C : A {
             Assert.True(vbNormalProject.HasSuccessfullyLoadedAsync().Result);
 
             // check flag for normal project that directly reference a broken project
-            Assert.False(dependsOnBrokenProject.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(dependsOnBrokenProject.HasSuccessfullyLoadedAsync().Result);
 
             // check flag for normal project that directly reference only normal project
             Assert.True(dependsOnVbNormalProject.HasSuccessfullyLoadedAsync().Result);
 
             // check flag for normal project that indirectly reference a borken project
             // normal project -> normal project -> broken project
-            Assert.False(transitivelyDependsOnBrokenProjects.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(transitivelyDependsOnBrokenProjects.HasSuccessfullyLoadedAsync().Result);
 
             // check flag for normal project that indirectly reference only normal project
             // normal project -> normal project -> normal project

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Emit;
@@ -65,6 +66,15 @@ namespace Microsoft.CodeAnalysis
                             {
                                 workspace.LogTestMessage("  " + diagnostic.GetMessage());
                             }
+
+                            // log emit failures so that we can improve most common cases
+                            Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
+                            {
+                                // log errors in the format of
+                                // CS0001:1;CS002:10;...
+                                var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
+                                m["Errors"] = string.Join(";", groups);
+                            }));
                         }
                     }
                 }
