@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 containingType: declaredSymbol.ContainingType,
                 attributes: default,
                 accessibility: Accessibility.Private,
-                modifiers: isStatic ? DeclarationModifiers.Static : default,
+                modifiers: new DeclarationModifiers(isStatic, isAsync: declaredSymbol.IsAsync),
                 returnType: declaredSymbol.ReturnType,
                 refKind: default,
                 explicitInterfaceImplementations: default,
@@ -195,6 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     currentNode = generator.ValueReturningLambdaExpression(
                         lambdaParameters: ParameterGenerator.GetParameters(parameters, isExplicit: true, options: defaultOptions),
                         expression: generator.InvocationExpression(currentNode, arguments));
+
+                    if (node.IsParentKind(SyntaxKind.CastExpression))
+                    {
+                        currentNode = ((ExpressionSyntax)currentNode).Parenthesize();
+                    }
                 }
 
                 editor.ReplaceNode(node, currentNode);

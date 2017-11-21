@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
     void M(int i, int j)
     {
         int [||]LocalFunction(int a, ref string b) => i = j;
-        D x = LocalFunction;
+        var x = (D)LocalFunction;
     }
 }",
 @"class C
@@ -299,10 +299,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
     delegate int D(int a, ref string b);
     void M(int i, int j)
     {
-        D x = (int a, ref string b) => LocalFunction1(a, ref b, ref i, j);
+        var x = (D)((int a, ref string b) => LocalFunction1(a, ref b, ref i, j));
     }
 
     private static int LocalFunction1(int a, ref string b, ref int i, int j) => i = j;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestAsyncFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    void M<T>(Func<CancellationToken, Task<T>> func) {}
+    void M<T>(Task<T> task)
+    {
+        async Task<T> [||]LocalFunction(CancellationToken c)
+        {
+            return await task;
+        }
+        M(LocalFunction);
+    }
+}",
+@"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    void M<T>(Func<CancellationToken, Task<T>> func) {}
+    void M<T>(Task<T> task)
+    {
+        M((CancellationToken c) => LocalFunction<T>(c, task));
+    }
+
+    private static async Task<T> LocalFunction<T>(CancellationToken c, Task<T> task)
+    {
+        return await task;
+    }
 }");
         }
 
