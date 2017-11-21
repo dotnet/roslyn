@@ -5238,4 +5238,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RangeNotFound" xml:space="preserve">
     <value>Cannot create a range value because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
   </data>
+  <data name="ERR_TripleDotNotAllowed" xml:space="preserve">
+    <value>Unexpected character sequence '...'</value>
+  </data>
 </root>

@@ -452,13 +452,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // Triple-dot: explicitly reject this, to allow triple-dot
                                 // to be added to the language without a breaking change.
                                 // (without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2)
-                                TextWindow.Reset(startingPosition);
-                                goto default;
+                                this.AddError(ErrorCode.ERR_TripleDotNotAllowed);
                             }
-                            else
-                            {
-                                info.Kind = SyntaxKind.DotDotToken;
-                            }
+
+                            info.Kind = SyntaxKind.DotDotToken;
                         }
                         else
                         {
@@ -3945,12 +3942,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (TextWindow.PeekChar() == '.')
                         {
                             // See documentation in ScanSyntaxToken
-                            break;
+                            this.AddCrefError(ErrorCode.ERR_UnexpectedCharacter, ".");
                         }
-                        else
-                        {
-                            info.Kind = SyntaxKind.DotDotToken;
-                        }
+
+                        info.Kind = SyntaxKind.DotDotToken;
                     }
                     else
                     {

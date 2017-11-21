@@ -1551,6 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 7.3
         ERR_RangeNotFound = 8380,
+        ERR_TripleDotNotAllowed = 8381,
         #endregion diagnostics introduced for C# 7.3
     }
 }

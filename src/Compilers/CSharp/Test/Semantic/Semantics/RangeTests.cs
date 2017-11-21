@@ -151,15 +151,9 @@ class C
                 // (6,20): error CS1002: ; expected
                 //         var a = 0. .1;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ".1").WithLocation(6, 20),
-                // (7,18): error CS1056: Unexpected character '.'
+                // (7,18): error CS8381: Unexpected character sequence '...'
                 //         var b = 0...1;
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(".").WithLocation(7, 18),
-                // (7,19): error CS1002: ; expected
-                //         var b = 0...1;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "..").WithLocation(7, 19),
-                // (7,19): error CS1525: Invalid expression term '..'
-                //         var b = 0...1;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "..").WithArguments("..").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(7, 18),
                 // (8,20): error CS1525: Invalid expression term '='
                 //         var c = 0..=1;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 20),
@@ -168,7 +162,10 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(9, 20),
                 // (6,20): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         var a = 0. .1;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, ".1").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, ".1").WithLocation(6, 20),
+                // (7,17): error CS0019: Operator '..' cannot be applied to operands of type 'int' and 'double'
+                //         var b = 0...1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "0...1").WithArguments("..", "int", "double").WithLocation(7, 17)
             );
         }
 
@@ -215,7 +212,6 @@ class C
 
             CompileAndVerify(new[] { RangeStruct, SlicableArray, source }, expectedOutput: "6,8,10;;6");
         }
-
 
         [Fact]
         public void RangeTypeMissing()
