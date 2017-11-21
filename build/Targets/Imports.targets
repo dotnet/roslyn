@@ -121,6 +121,12 @@
     </When>
   </Choose>
 
+  <!-- Settings for localization -->
+  <PropertyGroup>
+    <!-- Only turn on localization for shipping binaries. -->
+    <EnableXlfLocalization Condition="'$(NonShipping)' == 'true'">false</EnableXlfLocalization>
+  </PropertyGroup>
+
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
@@ -299,6 +305,33 @@
       <Visible>false</Visible>
     </VSIXSourceItem>
   </ItemDefinitionGroup>
+
+  <!--
+    This is a workaround for allowing neutral CTO resource produced from *.vsct to go in the main assembly.
+    We move the neutral *.cto file to be categorized as WithCulture=true,Culture=en to prevent the tools from falsely reporting:
+      error VSSDK1006: Two CTO files have the same Menus.ctmenu resource name.
+     Note that this categorization does not apply to the items that actually produce the .resources.dll and so it will
+     not cause an English satellite to be generated.
+     The documented way around this is to put all resources (including neutral/en) in satellites:
+       https://msdn.microsoft.com/en-us/library/ee943168.aspx
+       However, that has consequences we do not want:
+        - It breaks resx code-gen to *.designer.cs
+        - It causes extra dll loads in en case
+        - If we ever split satellites in to language packs, the english fallback satellites would become a special case.
+  -->
+  <Target Name="AssignEnCultureToNeutralCto" BeforeTargets="MergeCtoResource">
+    <ItemGroup>
+      <_GeneratedCTOFilesWithCulture Include="@(_GeneratedCTOFilesWithNoCulture)">
+        <Culture>en</Culture>
+        <WithCulture>true</WithCulture>
+      </_GeneratedCTOFilesWithCulture>
+      <_GeneratedCTOFilesWithNoCulture Remove="@(_GeneratedCTOFilesWithNoCulture)" />
+      <_ResourcesToMergeWithCTOWithCultureMetadata Condition="'%(WithCulture)' != 'true'">
+        <Culture>en</Culture>
+        <WithCulture>true</WithCulture>
+      </_ResourcesToMergeWithCTOWithCultureMetadata>
+    </ItemGroup>
+  </Target>
 
   <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
