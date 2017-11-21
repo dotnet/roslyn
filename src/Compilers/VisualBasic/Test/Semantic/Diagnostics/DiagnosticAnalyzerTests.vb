@@ -1261,5 +1261,134 @@ End Class
             Dim diag = Diagnostic(diagnosticId, squiggledText).WithArguments(arguments).WithLocation(line, column)
             builder.Add(diag)
         End Sub
+
+        <Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")>
+        Public Sub TestFieldReferenceAnalyzer_InAttributes()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+
+Friend Class MyAttribute
+    Inherits Attribute
+    Public Sub New(f As Integer)
+    End Sub
+End Class
+
+Friend Interface MyInterface
+    Event MyEvent As EventHandler
+End Interface
+
+<MyAttribute(C.FieldForClass)>
+Friend Class C
+    Implements MyInterface
+    Friend Const FieldForClass As Integer = 1, FieldForStruct As Integer = 2, FieldForInterface As Integer = 3, FieldForField As Integer = 4, FieldForMethod As Integer = 5,
+        FieldForEnum As Integer = 6, FieldForEnumMember As Integer = 7, FieldForDelegateSub As Integer = 8, FieldForDelegateFunction As Integer = 9, FieldForEventField As Integer = 10,
+        FieldForEvent As Integer = 11, FieldForAddHandler As Integer = 12, FieldForRemoveHandler As Integer = 13, FieldForRaiseHandler As Integer = 14, FieldForProperty As Integer = 15,
+        FieldForPropertyGetter As Integer = 16, FieldForPropertySetter As Integer = 17, FieldForIndexer As Integer = 18, FieldForIndexerGetter As Integer = 19, FieldForIndexerSetter As Integer = 20
+
+    <MyAttribute(FieldForStruct)>
+    Private Structure S
+    End Structure
+
+    <MyAttribute(FieldForInterface)>
+    Private Interface I
+    End Interface
+
+    <MyAttribute(FieldForField)>
+    Private field2 As Integer = 0, field3 As Integer = 0
+
+    <MyAttribute(FieldForMethod)>
+    Private Sub M1()
+    End Sub
+
+    <MyAttribute(FieldForEnum)>
+    Private Enum E
+        <MyAttribute(FieldForEnumMember)>
+        F = 0
+    End Enum
+
+    <MyAttribute(FieldForDelegateSub)>
+    Public Delegate Sub [Delegate]()
+
+    <MyAttribute(FieldForDelegateFunction)>
+    Public Delegate Function Delegate2()
+
+    <MyAttribute(FieldForEventField)>
+    Public Event MyEvent As [Delegate]
+
+    <MyAttribute(FieldForEvent)>
+    Private Custom Event MyEvent2 As EventHandler Implements MyInterface.MyEvent
+        <MyAttribute(FieldForAddHandler)>
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        <MyAttribute(FieldForRemoveHandler)>
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        <MyAttribute(FieldForRaiseHandler)>
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+
+    <MyAttribute(FieldForProperty)>
+    Private Property P1() As Integer
+        <MyAttribute(FieldForPropertyGetter)>
+        Get
+            Return 0
+        End Get
+        <MyAttribute(FieldForPropertySetter)>
+        Set
+        End Set
+    End Property
+
+    <MyAttribute(FieldForIndexer)>
+    Default Property Item(index As Integer) As Integer
+        <MyAttribute(FieldForIndexerGetter)>
+        Get
+            Return 0
+        End Get
+        <MyAttribute(FieldForIndexerSetter)>
+        Set
+        End Set
+    End Property
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+
+            ' Test RegisterOperationBlockAction
+            TestFieldReferenceAnalyzer_InAttributes_Core(comp, doOperationBlockAnalysis:=True)
+
+            ' Test RegisterOperationAction
+            TestFieldReferenceAnalyzer_InAttributes_Core(comp, doOperationBlockAnalysis:=False)
+        End Sub
+
+        Private Shared Sub TestFieldReferenceAnalyzer_InAttributes_Core(comp As Compilation, doOperationBlockAnalysis As Boolean)
+            comp.VerifyAnalyzerDiagnostics({New FieldReferenceOperationAnalyzer(doOperationBlockAnalysis)}, Nothing, Nothing, False,
+                Diagnostic("ID", "C.FieldForClass").WithArguments("FieldForClass", "1").WithLocation(13, 14),
+                Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(21, 18),
+                Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(25, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(29, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(29, 18),
+                Diagnostic("ID", "FieldForMethod").WithArguments("FieldForMethod", "5").WithLocation(32, 18),
+                Diagnostic("ID", "FieldForEnum").WithArguments("FieldForEnum", "6").WithLocation(36, 18),
+                Diagnostic("ID", "FieldForEnumMember").WithArguments("FieldForEnumMember", "7").WithLocation(38, 22),
+                Diagnostic("ID", "FieldForDelegateSub").WithArguments("FieldForDelegateSub", "8").WithLocation(42, 18),
+                Diagnostic("ID", "FieldForDelegateFunction").WithArguments("FieldForDelegateFunction", "9").WithLocation(45, 18),
+                Diagnostic("ID", "FieldForEventField").WithArguments("FieldForEventField", "10").WithLocation(48, 18),
+                Diagnostic("ID", "FieldForEvent").WithArguments("FieldForEvent", "11").WithLocation(51, 18),
+                Diagnostic("ID", "FieldForAddHandler").WithArguments("FieldForAddHandler", "12").WithLocation(53, 22),
+                Diagnostic("ID", "FieldForRemoveHandler").WithArguments("FieldForRemoveHandler", "13").WithLocation(56, 22),
+                Diagnostic("ID", "FieldForRaiseHandler").WithArguments("FieldForRaiseHandler", "14").WithLocation(59, 22),
+                Diagnostic("ID", "FieldForProperty").WithArguments("FieldForProperty", "15").WithLocation(64, 18),
+                Diagnostic("ID", "FieldForPropertyGetter").WithArguments("FieldForPropertyGetter", "16").WithLocation(66, 22),
+                Diagnostic("ID", "FieldForPropertySetter").WithArguments("FieldForPropertySetter", "17").WithLocation(70, 22),
+                Diagnostic("ID", "FieldForIndexer").WithArguments("FieldForIndexer", "18").WithLocation(75, 18),
+                Diagnostic("ID", "FieldForIndexerGetter").WithArguments("FieldForIndexerGetter", "19").WithLocation(77, 22),
+                Diagnostic("ID", "FieldForIndexerSetter").WithArguments("FieldForIndexerSetter", "20").WithLocation(81, 22))
+        End Sub
     End Class
 End Namespace

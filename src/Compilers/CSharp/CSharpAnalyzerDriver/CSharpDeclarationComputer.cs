@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var t = (TypeDeclarationSyntax)node;
                         foreach (var decl in t.Members) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken));
+                        var attributes = GetAttributes(t);
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
                         return;
                     }
 
@@ -90,20 +91,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var t = (EnumDeclarationSyntax)node;
                         foreach (var decl in t.Members) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken));
+                        var attributes = GetAttributes(t.AttributeLists);
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
                         return;
                     }
 
                 case SyntaxKind.EnumMemberDeclaration:
                     {
                         var t = (EnumMemberDeclarationSyntax)node;
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, t.EqualsValue, cancellationToken));
+                        var attributes = GetAttributes(t.AttributeLists);
+                        var codeBlocks = SpecializedCollections.SingletonEnumerable(t.EqualsValue).Concat(attributes);
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
                         return;
                     }
 
                 case SyntaxKind.DelegateDeclaration:
                     {
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken));
+                        var attributes = GetAttributes(((DelegateDeclarationSyntax)node).AttributeLists);
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
                         return;
                     }
 
@@ -111,7 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var t = (EventDeclarationSyntax)node;
                         foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken));
+                        var attributes = GetAttributes(t.AttributeLists);
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
                         return;
                     }
 
@@ -119,9 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.FieldDeclaration:
                     {
                         var t = (BaseFieldDeclarationSyntax)node;
+                        var attributes = GetAttributes(t.AttributeLists);
                         foreach (var decl in t.Declaration.Variables)
                         {
-                            builder.Add(GetDeclarationInfo(model, decl, getSymbol, decl.Initializer, cancellationToken));
+                            var codeBlocks = SpecializedCollections.SingletonEnumerable(decl.Initializer).Concat(attributes);
+                            builder.Add(GetDeclarationInfo(model, decl, getSymbol, codeBlocks, cancellationToken));
                         }
 
                         return;
@@ -152,7 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ComputeDeclarations(model, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
                         }
 
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken, t.Initializer));
+                        var attributes = GetAttributes(t.AttributeLists);
+                        var codeBlocks = SpecializedCollections.SingletonEnumerable(t.Initializer).Concat(attributes);
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
                         return;
                     }
 
@@ -173,6 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+                        var attributes = GetAttributes(t.AttributeLists);
+                        codeBlocks = codeBlocks.Concat(attributes);
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
                         return;
@@ -187,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var blocks = ArrayBuilder<SyntaxNode>.GetInstance();
                         blocks.AddIfNotNull(t.Body);
                         blocks.AddIfNotNull(t.ExpressionBody);
+                        blocks.AddRange(GetAttributes(t.AttributeLists));
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, blocks, cancellationToken));
                         blocks.Free();
                         
@@ -215,6 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             codeBlocks = codeBlocks.Concat(expressionBody);
                         }
 
+                        codeBlocks = codeBlocks.Concat(GetAttributes(t.AttributeLists));
+
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
                         return;
                     }
@@ -228,6 +243,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     return;
+            }
+        }
+
+        private static IEnumerable<SyntaxNode> GetAttributes(TypeDeclarationSyntax typeDeclaration)
+        {
+            switch (typeDeclaration.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                    return GetAttributes(((ClassDeclarationSyntax)typeDeclaration).AttributeLists);
+
+                case SyntaxKind.StructDeclaration:
+                    return GetAttributes(((StructDeclarationSyntax)typeDeclaration).AttributeLists);
+
+                case SyntaxKind.InterfaceDeclaration:
+                    return GetAttributes(((InterfaceDeclarationSyntax)typeDeclaration).AttributeLists);
+
+                default:
+                    return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            }
+        }
+
+        private static IEnumerable<SyntaxNode> GetAttributes(SyntaxList<AttributeListSyntax> attributeLists)
+        {
+            foreach (var attributeList in attributeLists)
+            {
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    yield return attribute;
+                }
             }
         }
 
