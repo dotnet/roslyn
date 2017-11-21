@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestAsyncFunction()
+        public async Task TestAsyncFunction1()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -341,6 +341,45 @@ class C
     private static async Task<T> LocalFunction<T>(CancellationToken c, Task<T> task)
     {
         return await task;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestAsyncFunction2()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    void M(Action<CancellationToken> func) {}
+    void M<T>(Task<T> task)
+    {
+        async void [||]LocalFunction(CancellationToken c)
+        {
+            await task;
+        }
+        M(LocalFunction);
+    }
+}",
+                @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    void M(Action<CancellationToken> func) {}
+    void M<T>(Task<T> task)
+    {
+        M((CancellationToken c) => LocalFunction<T>(c, task));
+    }
+
+    private static async void LocalFunction<T>(CancellationToken c, Task<T> task)
+    {
+        await task;
     }
 }");
         }

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             // We're going to remove unreferenced type parameters but we explicitly preserve
             // captures' types, just in case that they were not spelt out in the function body
-            var captureTypes = captures.Select(capture => capture.GetSymbolType()).OfType<ITypeParameterSymbol>().ToList();
+            var captureTypes = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
             RemoveUnusedTypeParameters(localFunction, semanticModel, typeParameters, reservedTypeParameters: captureTypes);
 
             var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
