@@ -310,8 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
         public async Task TestAsyncFunction1()
         {
             await TestInRegularAndScriptAsync(
-@"
-using System;
+@"using System;
 using System.Threading;
 using System.Threading.Tasks;
 class C
@@ -326,8 +325,7 @@ class C
         M(LocalFunction);
     }
 }",
-@"
-using System;
+@"using System;
 using System.Threading;
 using System.Threading.Tasks;
 class C
@@ -349,8 +347,7 @@ class C
         public async Task TestAsyncFunction2()
         {
             await TestInRegularAndScriptAsync(
-                @"
-using System;
+@"using System;
 using System.Threading;
 using System.Threading.Tasks;
 class C
@@ -365,8 +362,7 @@ class C
         M(LocalFunction);
     }
 }",
-                @"
-using System;
+@"using System;
 using System.Threading;
 using System.Threading.Tasks;
 class C
