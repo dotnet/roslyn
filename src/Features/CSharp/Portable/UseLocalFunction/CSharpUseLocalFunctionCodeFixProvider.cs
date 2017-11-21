@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var localDeclarationToLambda = new Dictionary<LocalDeclarationStatementSyntax, LambdaExpressionSyntax>();
             var nodesToTrack = new HashSet<SyntaxNode>();
-            var memberAccess = new List<MemberAccessExpressionSyntax>();
+            var explicitInvokeCalls = new List<MemberAccessExpressionSyntax>();
             foreach (var diagnostic in diagnostics)
             {
                 var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -59,16 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 nodesToTrack.Add(localDeclaration);
                 nodesToTrack.Add(lambda);
 
-                if (diagnostic.AdditionalLocations.Count > 2)
+                for (var i = 2; i < diagnostic.AdditionalLocations.Count; i++)
                 {
-                    for (var i = 2; i < diagnostic.AdditionalLocations.Count; i++)
-                    {
-                        memberAccess.Add((MemberAccessExpressionSyntax)diagnostic.AdditionalLocations[i].FindNode(cancellationToken));
-                    }
+                    explicitInvokeCalls.Add((MemberAccessExpressionSyntax)diagnostic.AdditionalLocations[i].FindNode(getInnermostNodeForTie: true, cancellationToken));
                 }
             }
 
-            nodesToTrack.AddRange(memberAccess);
+            nodesToTrack.AddRange(explicitInvokeCalls);
             var root = editor.OriginalRoot;
             var currentRoot = root.TrackNodes(nodesToTrack);
 
@@ -85,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 currentRoot = ReplaceAnonymousWithLocalFunction(
                     document.Project.Solution.Workspace, currentRoot,
                     currentLocalDeclaration, currentLambda,
-                    delegateType, parameterList, memberAccess.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray(),
+                    delegateType, parameterList, explicitInvokeCalls.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray(),
                     cancellationToken);
             }
 
@@ -96,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             Workspace workspace, SyntaxNode currentRoot,
             LocalDeclarationStatementSyntax localDeclaration, LambdaExpressionSyntax lambda,
             INamedTypeSymbol delegateType, ParameterListSyntax parameterList,
-            ImmutableArray<MemberAccessExpressionSyntax> notDirectInvocationUsages,
+            ImmutableArray<MemberAccessExpressionSyntax> explicitInvokeCalls,
             CancellationToken cancellationToken)
         {
             var newLocalFunctionStatement = CreateLocalFunctionStatement(
@@ -116,14 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 editor.RemoveNode(lambdaStatement);
             }
 
-            if (!notDirectInvocationUsages.IsEmpty)
+            foreach (var usage in explicitInvokeCalls)
             {
-                foreach (var usage in notDirectInvocationUsages)
-                {
-                    editor.ReplaceNode(
-                        usage.Parent, 
-                        SyntaxFactory.InvocationExpression(usage.Expression, (usage.Parent as InvocationExpressionSyntax).ArgumentList));
-                }
+                editor.ReplaceNode(
+                    usage.Parent,
+                    (usage.Parent as InvocationExpressionSyntax).WithExpression(usage.Expression).WithTriviaFrom(usage.Parent));
             }
 
             return editor.GetChangedRoot();
@@ -166,27 +160,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private ParameterListSyntax GenerateParameterList(
-            SemanticModel semanticModel, AnonymousFunctionExpressionSyntax anonymousFunction, INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
+            SemanticModel semanticModel, AnonymousFunctionExpressionSyntax anonymousFunction, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
         {
             switch (anonymousFunction)
             {
                 case SimpleLambdaExpressionSyntax simpleLambda:
-                    return GenerateSimpleLambdaParameterList(semanticModel, simpleLambda, namedTypeSymbol, cancellationToken);
+                    return GenerateSimpleLambdaParameterList(semanticModel, simpleLambda, delegateType.DelegateInvokeMethod, cancellationToken);
                 case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
-                    return GenerateParenthesizedLambdaParameterList(semanticModel, parenthesizedLambda, namedTypeSymbol, cancellationToken);
+                    return GenerateParenthesizedLambdaParameterList(semanticModel, parenthesizedLambda, delegateType.DelegateInvokeMethod, cancellationToken);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(anonymousFunction);
             }
         }
 
         private ParameterListSyntax GenerateSimpleLambdaParameterList(
-            SemanticModel semanticModel, SimpleLambdaExpressionSyntax lambdaExpression, INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
+            SemanticModel semanticModel, SimpleLambdaExpressionSyntax lambdaExpression, IMethodSymbol delegateInvokeMethod, CancellationToken cancellationToken)
         {
             var parameter = semanticModel.GetDeclaredSymbol(lambdaExpression.Parameter, cancellationToken);
             var type = parameter?.Type.GenerateTypeSyntax() ?? s_objectType;
 
             var parameterSyntax = SyntaxFactory.Parameter(lambdaExpression.Parameter.Identifier).WithType(type);
-            var param = namedTypeSymbol.DelegateInvokeMethod.Parameters[0];
+            var param = delegateInvokeMethod.Parameters[0];
             if (param.HasExplicitDefaultValue)
             {
                 parameterSyntax = parameterSyntax.WithDefault(GetDefaultValue(param));
@@ -197,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private ParameterListSyntax GenerateParenthesizedLambdaParameterList(
-            SemanticModel semanticModel, ParenthesizedLambdaExpressionSyntax lambdaExpression, INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
+            SemanticModel semanticModel, ParenthesizedLambdaExpressionSyntax lambdaExpression, IMethodSymbol delegateInvokeMethod, CancellationToken cancellationToken)
         {
             int i = 0;
             return lambdaExpression.ParameterList.ReplaceNodes(
@@ -211,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
                     var parameter = semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
                     parameterNode = parameterNode.WithType(parameter?.Type.GenerateTypeSyntax() ?? s_objectType);
-                    var param = namedTypeSymbol.DelegateInvokeMethod.Parameters[i++];
+                    var param = delegateInvokeMethod.Parameters[i++];
                     if (param.HasExplicitDefaultValue)
                     {
                         parameterNode = parameterNode.WithDefault(GetDefaultValue(param));
@@ -222,9 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
-        {
-            return SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
-        }
+            => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

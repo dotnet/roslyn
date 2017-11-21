@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var locations, cancellationToken))
+            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var explicitInvokeCallLocations, cancellationToken))
             {
                 return;
             }
@@ -127,10 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 localDeclaration.GetLocation(),
                 anonymousFunction.GetLocation());
 
-            if (!locations.IsEmpty)
-            {
-                additionalLocations = additionalLocations.AddRange(locations);
-            }
+            additionalLocations = additionalLocations.AddRange(explicitInvokeCallLocations);
 
             if (severity != DiagnosticSeverity.Hidden)
             {
@@ -203,12 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private bool CanReplaceAnonymousWithLocalFunction(
             SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
-            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> locations, CancellationToken cancellationToken)
+            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> explicitInvokeCallLocations, CancellationToken cancellationToken)
         {
             // Check all the references to the anonymous function and disallow the conversion if
             // they're used in certain ways.
-            List<Location> delegateInvokeMethodLocations = null;
-            locations = ImmutableArray<Location>.Empty;
+            var explicitInvokeCalls = ArrayBuilder<Location>.GetInstance();
+            explicitInvokeCallLocations = ImmutableArray<Location>.Empty;
             var anonymousFunctionStart = anonymousFunction.SpanStart;
             foreach (var descendentNode in block.DescendantNodes())
             {
@@ -250,8 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                             }
                             else
                             {
-                                delegateInvokeMethodLocations = delegateInvokeMethodLocations ?? new List<Location>();
-                                delegateInvokeMethodLocations.Add(memberAccessExpression.GetLocation());
+                                explicitInvokeCalls.Add(memberAccessExpression.GetLocation());
                             }
                         }
 
@@ -274,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 }
             }
 
-            locations = delegateInvokeMethodLocations.AsImmutableOrEmpty();
+            explicitInvokeCallLocations = explicitInvokeCalls.ToImmutableAndFree();
             return true;
         }
 
