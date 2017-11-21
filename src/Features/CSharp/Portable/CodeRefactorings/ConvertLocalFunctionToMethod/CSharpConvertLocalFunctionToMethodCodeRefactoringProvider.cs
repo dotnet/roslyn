@@ -205,13 +205,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 editor.ReplaceNode(node, currentNode);
             }
 
+            editor.TrackNode(localFunction);
+            editor.TrackNode(container);
+
             root = editor.GetChangedRoot();
-            localFunction = (LocalFunctionStatementSyntax)root.FindNode(localFunction.Span);
+
+            localFunction = root.GetCurrentNode(localFunction);
+            container = root.GetCurrentNode(container);
 
             method = WithBodyFrom(method, localFunction);
-            editor = new SyntaxEditor(root, generator);
-            container = localFunction.GetAncestor<MemberDeclarationSyntax>();
 
+            editor = new SyntaxEditor(root, generator);
             editor.InsertAfter(container, method);
             editor.RemoveNode(localFunction, SyntaxRemoveOptions.KeepNoTrivia);
 
