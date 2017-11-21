@@ -4359,5 +4359,28 @@ struct TextSpan
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() [||]=> { });
+    }
+}",
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        Action {|Rename:action1|} = () => { };
+        M(action1);
+    }
+}");
+        }
     }
 }
