@@ -216,6 +216,7 @@ class C
             CompileAndVerify(new[] { RangeStruct, SlicableArray, source }, expectedOutput: "6,8,10;;6");
         }
 
+
         [Fact]
         public void RangeTypeMissing()
         {
@@ -224,18 +225,55 @@ class C
 {
     static void Main()
     {
-        foreach (var x in 0..4)
-        {
-            System.Console.Write(x);
-        }
+        var a = false..true;
+        var b = ((sbyte)2)..((sbyte)4);
+        var c = ((byte)2)..((byte)4);
+        var d = ((short)2)..((short)4);
+        var e = ((ushort)2)..((ushort)4);
+        var f = ((int)2)..((int)4);
+        var g = ((uint)2)..((uint)4);
+        var h = ((long)2)..((long)4);
+        var i = ((ulong)2)..((ulong)4);
+        var j = ((float)2)..((float)4);
+        var k = ((double)2)..((double)4);
     }
 }
 ";
 
-            CreateCSharpCompilation(source).VerifyDiagnostics(
-                // (6,27): error CS8380: Cannot create a range value because the compiler required type 'System.Range' cannot be found. Are you missing a reference?
-                //         foreach (var x in 0..4)
-                Diagnostic(ErrorCode.ERR_RangeNotFound, "0..4").WithArguments("System.Range").WithLocation(6, 27)
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,17): error CS0019: Operator '..' cannot be applied to operands of type 'bool' and 'bool'
+                //         var a = false..true;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "false..true").WithArguments("..", "bool", "bool").WithLocation(6, 17),
+                // (7,17): error CS8380: Cannot create a range value because the compiler required type 'System.Range' cannot be found. Are you missing a reference?
+                //         var b = ((sbyte)2)..((sbyte)4);
+                Diagnostic(ErrorCode.ERR_RangeNotFound, "((sbyte)2)..((sbyte)4)").WithArguments("System.Range").WithLocation(7, 17),
+                // (8,17): error CS8380: Cannot create a range value because the compiler required type 'System.Range' cannot be found. Are you missing a reference?
+                //         var c = ((byte)2)..((byte)4);
+                Diagnostic(ErrorCode.ERR_RangeNotFound, "((byte)2)..((byte)4)").WithArguments("System.Range").WithLocation(8, 17),
+                // (9,17): error CS8380: Cannot create a range value because the compiler required type 'System.Range' cannot be found. Are you missing a reference?
+                //         var d = ((short)2)..((short)4);
+                Diagnostic(ErrorCode.ERR_RangeNotFound, "((short)2)..((short)4)").WithArguments("System.Range").WithLocation(9, 17),
+                // (10,17): error CS8380: Cannot create a range value because the compiler required type 'System.Range' cannot be found. Are you missing a reference?
+                //         var e = ((ushort)2)..((ushort)4);
+                Diagnostic(ErrorCode.ERR_RangeNotFound, "((ushort)2)..((ushort)4)").WithArguments("System.Range").WithLocation(10, 17),
+                // (11,17): error CS8380: Cannot create a range value because the compiler required type 'System.Range' cannot be found. Are you missing a reference?
+                //         var f = ((int)2)..((int)4);
+                Diagnostic(ErrorCode.ERR_RangeNotFound, "((int)2)..((int)4)").WithArguments("System.Range").WithLocation(11, 17),
+                // (12,17): error CS8380: Cannot create a range value because the compiler required type 'System.LongRange' cannot be found. Are you missing a reference?
+                //         var g = ((uint)2)..((uint)4);
+                Diagnostic(ErrorCode.ERR_RangeNotFound, "((uint)2)..((uint)4)").WithArguments("System.LongRange").WithLocation(12, 17),
+                // (13,17): error CS8380: Cannot create a range value because the compiler required type 'System.LongRange' cannot be found. Are you missing a reference?
+                //         var h = ((long)2)..((long)4);
+                Diagnostic(ErrorCode.ERR_RangeNotFound, "((long)2)..((long)4)").WithArguments("System.LongRange").WithLocation(13, 17),
+                // (14,17): error CS0019: Operator '..' cannot be applied to operands of type 'ulong' and 'ulong'
+                //         var i = ((ulong)2)..((ulong)4);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "((ulong)2)..((ulong)4)").WithArguments("..", "ulong", "ulong").WithLocation(14, 17),
+                // (15,17): error CS0019: Operator '..' cannot be applied to operands of type 'float' and 'float'
+                //         var j = ((float)2)..((float)4);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "((float)2)..((float)4)").WithArguments("..", "float", "float").WithLocation(15, 17),
+                // (16,17): error CS0019: Operator '..' cannot be applied to operands of type 'double' and 'double'
+                //         var k = ((double)2)..((double)4);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "((double)2)..((double)4)").WithArguments("..", "double", "double").WithLocation(16, 17)
             );
         }
 

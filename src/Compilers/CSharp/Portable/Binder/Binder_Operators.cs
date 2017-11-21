@@ -632,11 +632,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var leftSpecialType = left.Type.SpecialType;
                 var rightSpecialType = right.Type.SpecialType;
-                if (leftSpecialType.IsIntegralType() && rightSpecialType.IsIntegralType())
+                if (leftSpecialType.IsIntegralType() && rightSpecialType.IsIntegralType() &&
+                    leftSpecialType != SpecialType.System_UInt64 && rightSpecialType != SpecialType.System_UInt64)
                 {
                     // User meant to use the built-in range type, but it was missing
-                    if (leftSpecialType == SpecialType.System_Int64 || leftSpecialType == SpecialType.System_UInt64 ||
-                        rightSpecialType == SpecialType.System_Int64 || rightSpecialType == SpecialType.System_UInt64)
+                    if (leftSpecialType == SpecialType.System_Int64 || leftSpecialType == SpecialType.System_UInt32 ||
+                        rightSpecialType == SpecialType.System_Int64 || rightSpecialType == SpecialType.System_UInt32)
                     {
                         Error(diagnostics, ErrorCode.ERR_RangeNotFound, node, WellKnownTypes.GetMetadataName(WellKnownType.System_LongRange));
                     }
