@@ -1,11 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -19,27 +13,28 @@ namespace System
 {
     public struct Range : IEnumerable<int>
     {
-        public int Start { get; }
-        public int End { get; }
-        private Range(int start, int end)
+        public readonly int Start;
+        public readonly int Last;
+        private Range(int start, int last)
         {
             Start = start;
-            End = end;
+            Last = last;
         }
-        public static Range Create(int start, int end) => new Range(start, end);
-        public RangeEnumerable GetEnumerator() => new RangeEnumerable(Start, End);
+        public static Range Create(int start, int last) => new Range(start, last);
+        public RangeEnumerable GetEnumerator() => new RangeEnumerable(Start, Last);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
         public struct RangeEnumerable : IEnumerator<int>
         {
-            public int Current { get; private set; }
-            public int End { get; }
-            public RangeEnumerable(int start, int end)
+            private int _current;
+            private readonly int _last;
+            public RangeEnumerable(int start, int last)
             {
-                Current = start - 1;
-                End = end;
+                _current = start - 1;
+                _last = last;
             }
-            public bool MoveNext() => ++Current < End;
+            public int Current => _current;
+            public bool MoveNext() => ++_current <= _last;
             int IEnumerator<int>.Current => Current;
             object IEnumerator.Current => Current;
             void IDisposable.Dispose() { }
@@ -65,7 +60,7 @@ public struct SlicableArray<T> : IEnumerable<T>
     {
         get
         {
-            var length = range.End - range.Start;
+            var length = range.Last - range.Start + 1;
             var result = new T[length];
             Array.Copy(_array, range.Start, result, 0, length);
             return new SlicableArray<T>(result);
@@ -92,7 +87,7 @@ class C
 }
 ";
 
-            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "0123");
+            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "01234");
         }
 
         [Fact]
@@ -131,7 +126,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "0;0;0;0;0");
+            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "0,1;0,1;0,1;0,1;0,1");
         }
 
         [Fact]
@@ -188,12 +183,15 @@ class C
     {
         var a = 0..4;
         System.Range b = 0..4;
-        Console.Write(string.Join("","", a) + "","" + string.Join("","", b));
+        Console.Write(string.Join("";"",
+            string.Join("","", a),
+            string.Join("","", b)
+        ));
     }
 }
 ";
 
-            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "0,1,2,3,0,1,2,3");
+            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "0,1,2,3,4;0,1,2,3,4");
         }
 
         [Fact]
@@ -206,14 +204,16 @@ class C
     static void Main()
     {
         var arr = new SlicableArray<int>(2, 4, 6, 8, 10);
-        Console.Write(""["" + string.Join("","", arr[2..4]) + ""]"");
-        Console.Write(""["" + string.Join("","", arr[2..2]) + ""]"");
-        Console.Write(""["" + string.Join("","", arr[1..3][1]) + ""]"");
+        Console.Write(string.Join("";"",
+            string.Join("","", arr[2..4]),
+            string.Join("","", arr[2..1]),
+            string.Join("","", arr[1..3][1])
+        ));
     }
 }
 ";
 
-            CompileAndVerify(new[] { RangeStruct, SlicableArray, source }, expectedOutput: "[6,8][][6]");
+            CompileAndVerify(new[] { RangeStruct, SlicableArray, source }, expectedOutput: "6,8,10;;6");
         }
 
         [Fact]
@@ -273,7 +273,7 @@ class C
 }
 ";
 
-            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "2,3;2,3;2,3|False,False,False");
+            CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "2,3,4;2,3,4;2,3,4|False,False,False");
         }
 
         [Fact]
@@ -332,15 +332,15 @@ struct C
 {
     static void Main()
     {
-        var a = 10_000_000_000L..10_000_000_002L;
-        var b = 10_000_000_000..10_000_000_002;
+        var a = 10_000_000_000L..10_000_000_001L;
+        var b = 10_000_000_000..10_000_000_001;
         var c = 10..10_000_000_002;
         var d = 10..12L;
         var e = 2..((long?)4L);
         Console.Write(string.Join("";"",
             string.Join("","", a),
             string.Join("","", b),
-            string.Join("","", c.Start, c.End),
+            string.Join("","", c.Start, c.Last),
             string.Join("","", d),
             string.Join("","", e.Value)
         ));
@@ -349,7 +349,7 @@ struct C
 ";
 
             var big = 10_000_000_000;
-            CompileAndVerify(new[] { RangeStruct, LongRangeStruct, source }, expectedOutput: $"{big},{big+1};{big},{big+1};10,{big+2};10,11;2,3");
+            CompileAndVerify(new[] { RangeStruct, LongRangeStruct, source }, expectedOutput: $"{big},{big+1};{big},{big+1};10,{big+2};10,11,12;2,3,4");
         }
 
         [Fact]
