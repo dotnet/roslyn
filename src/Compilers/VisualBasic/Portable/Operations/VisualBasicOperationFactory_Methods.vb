@@ -525,34 +525,17 @@ Namespace Microsoft.CodeAnalysis.Operations
                     nestedOperand = DirectCast(nestedOperand, BoundParenthesized).Expression
                 End While
 
-                Dim nestedConversionKind As ConversionKind
-                Dim nestedConversionOperand As BoundNode = Nothing
-                Dim nestedConversionType As TypeSymbol
-
-                If nestedOperand.Kind = BoundKind.Conversion Then
-                    Dim nestedConversion = DirectCast(nestedOperand, BoundConversion)
-                    nestedConversionKind = nestedConversion.ConversionKind
-                    nestedConversionOperand = nestedConversion.Operand
-                    nestedConversionType = nestedConversion.Type
-                ElseIf nestedOperand.Kind = BoundKind.DirectCast Then
-                    Dim nestedConversion = DirectCast(nestedOperand, BoundDirectCast)
-                    nestedConversionKind = nestedConversion.ConversionKind
-                    nestedConversionOperand = nestedConversion.Operand
-                    nestedConversionType = nestedConversion.Type
-                ElseIf nestedOperand.Kind = BoundKind.TryCast Then
-                    Dim nestedConversion = DirectCast(nestedOperand, BoundTryCast)
-                    nestedConversionKind = nestedConversion.ConversionKind
-                    nestedConversionOperand = nestedConversion.Operand
-                    nestedConversionType = nestedConversion.Type
-                ElseIf nestedOperand.Kind = BoundKind.DelegateCreationExpression Then
-                    Dim nestedDelegateCreation = DirectCast(nestedOperand, BoundDelegateCreationExpression)
-                    Return nestedDelegateCreation.Type = targetType
-                Else
-                    Return False
-                End If
-
-                Return nestedConversionType = targetType AndAlso
-                       IsDelegateCreation(nestedConversionKind, conversionSyntax, nestedConversionOperand, targetType)
+                Select Case nestedOperand.Kind
+                    Case BoundKind.Conversion, BoundKind.DirectCast, BoundKind.TryCast
+                        Dim nestedConversion = DirectCast(nestedOperand, BoundConversionOrCast)
+                        Return nestedConversion.Type = targetType AndAlso
+                               IsDelegateCreation(nestedConversion.ConversionKind, conversionSyntax, nestedConversion.Operand, targetType)
+                    Case BoundKind.DelegateCreationExpression
+                        Dim nestedDelegateCreation = DirectCast(nestedOperand, BoundDelegateCreationExpression)
+                        Return nestedDelegateCreation.Type = targetType
+                    Case Else
+                        Return False
+                End Select
             End If
             Return False
         End Function
@@ -568,14 +551,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                         boundParenthesized.Type,
                         ConvertToOptional(boundParenthesized.ConstantValueOpt),
                         boundParenthesized.WasCompilerGenerated))
-                Case BoundKind.Conversion
-                    Dim boundConversion = DirectCast(operand, BoundConversion)
-                    Return CreateConversionOperand(boundConversion.Operand, boundConversion.ConversionKind, conversionSyntax, boundConversion.Type).Operation
-                Case BoundKind.DirectCast
-                    Dim boundConversion = DirectCast(operand, BoundDirectCast)
-                    Return CreateConversionOperand(boundConversion.Operand, boundConversion.ConversionKind, conversionSyntax, boundConversion.Type).Operation
-                Case BoundKind.TryCast
-                    Dim boundConversion = DirectCast(operand, BoundTryCast)
+                Case BoundKind.Conversion, BoundKind.DirectCast, BoundKind.TryCast
+                    Dim boundConversion = DirectCast(operand, BoundConversionOrCast)
                     Return CreateConversionOperand(boundConversion.Operand, boundConversion.ConversionKind, conversionSyntax, boundConversion.Type).Operation
                 Case BoundKind.DelegateCreationExpression
                     Dim boundDelegateCreation = DirectCast(operand, BoundDelegateCreationExpression)

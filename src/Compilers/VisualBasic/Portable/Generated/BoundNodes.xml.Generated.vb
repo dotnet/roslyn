@@ -2146,8 +2146,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConversion
+    Friend MustInherit Partial Class BoundConversionOrCast
         Inherits BoundExpression
+
+        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
+            MyBase.New(kind, syntax, type, hasErrors)
+
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+
+        End Sub
+
+        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+            MyBase.New(kind, syntax, type)
+
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+
+        End Sub
+
+    End Class
+
+    Friend NotInheritable Partial Class BoundConversion
+        Inherits BoundConversionOrCast
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, extendedInfoOpt As BoundExtendedConversionInfo, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Conversion, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse extendedInfoOpt.NonNullAndHasErrors())
@@ -2170,14 +2189,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private ReadOnly _Operand As BoundExpression
-        Public ReadOnly Property Operand As BoundExpression
+        Public Overrides ReadOnly Property Operand As BoundExpression
             Get
                 Return _Operand
             End Get
         End Property
 
         Private ReadOnly _ConversionKind As ConversionKind
-        Public ReadOnly Property ConversionKind As ConversionKind
+        Public Overrides ReadOnly Property ConversionKind As ConversionKind
             Get
                 Return _ConversionKind
             End Get
@@ -2390,7 +2409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend NotInheritable Partial Class BoundDirectCast
-        Inherits BoundExpression
+        Inherits BoundConversionOrCast
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, suppressVirtualCalls As Boolean, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DirectCast, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse relaxationLambdaOpt.NonNullAndHasErrors())
@@ -2412,14 +2431,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private ReadOnly _Operand As BoundExpression
-        Public ReadOnly Property Operand As BoundExpression
+        Public Overrides ReadOnly Property Operand As BoundExpression
             Get
                 Return _Operand
             End Get
         End Property
 
         Private ReadOnly _ConversionKind As ConversionKind
-        Public ReadOnly Property ConversionKind As ConversionKind
+        Public Overrides ReadOnly Property ConversionKind As ConversionKind
             Get
                 Return _ConversionKind
             End Get
@@ -2465,7 +2484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend NotInheritable Partial Class BoundTryCast
-        Inherits BoundExpression
+        Inherits BoundConversionOrCast
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TryCast, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse relaxationLambdaOpt.NonNullAndHasErrors())
@@ -2486,14 +2505,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private ReadOnly _Operand As BoundExpression
-        Public ReadOnly Property Operand As BoundExpression
+        Public Overrides ReadOnly Property Operand As BoundExpression
             Get
                 Return _Operand
             End Get
         End Property
 
         Private ReadOnly _ConversionKind As ConversionKind
-        Public ReadOnly Property ConversionKind As ConversionKind
+        Public Overrides ReadOnly Property ConversionKind As ConversionKind
             Get
                 Return _ConversionKind
             End Get
