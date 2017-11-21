@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetAttributes(((InterfaceDeclarationSyntax)typeDeclaration).AttributeLists);
 
                 default:
-                    return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+                    throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind());
             }
         }
 
