@@ -3742,5 +3742,48 @@ select t";
             }
             EOF();
         }
+
+        [Fact, WorkItem(12214, "https://github.com/dotnet/roslyn/issues/12214")]
+        public void ConditionalExpressionInInterpolation()
+        {
+            UsingExpression("$\"{a ? b : d}\"",
+                // (1,4): error CS8361: A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.
+                // $"{a ? b : d}"
+                Diagnostic(ErrorCode.ERR_ConditionalInInterpolation, "a ? b ").WithLocation(1, 4)
+                );
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        M(SyntaxKind.ColonToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.InterpolationFormatClause);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.InterpolatedStringTextToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
     }
 }
