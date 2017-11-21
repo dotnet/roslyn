@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             // We're going to remove unreferenced type parameters but we explicitly preserve
             // captures' types, just in case that they were not spelt out in the function body
-            var captureTypes = captures.Select(capture => capture.GetSymbolType()).OfType<ITypeParameterSymbol>();
+            var captureTypes = captures.Select(capture => capture.GetSymbolType()).OfType<ITypeParameterSymbol>().ToList();
             RemoveUnusedTypeParameters(localFunction, semanticModel, typeParameters, reservedTypeParameters: captureTypes);
 
             var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
@@ -118,21 +118,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
                     document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
 
-            method = WithBodyFrom(method, localFunction);
-
             var generator = CSharpSyntaxGenerator.Instance;
             var editor = new SyntaxEditor(root, generator);
-            editor.InsertAfter(container, method);
-            editor.RemoveNode(localFunction, SyntaxRemoveOptions.KeepNoTrivia);
 
             var needsRename = methodName != declaredSymbol.Name;
             var identifierToken = needsRename ? methodName.ToIdentifierToken() : default;
             var supportsNonTrailing = SupportsNonTrailingNamedArguments(root.SyntaxTree.Options);
             var hasAdditionalArguments = !capturesAsParameters.IsEmpty();
-            var hasAdditionalTypeArguments = !typeParameters.IsEmpty();
+            var additionalTypeParameters = typeParameters.Except(declaredSymbol.TypeParameters).ToList();
+            var hasAdditionalTypeArguments = !additionalTypeParameters.IsEmpty();
             var additionalTypeArguments = hasAdditionalTypeArguments
-                ? typeParameters.Except(declaredSymbol.TypeParameters)
-                    .Select(p => (TypeSyntax)p.Name.ToIdentifierName()).ToArray()
+                ? additionalTypeParameters.Select(p => (TypeSyntax)p.Name.ToIdentifierName()).ToArray()
                 : null;
 
             // Update callers' name, arguments and type arguments
@@ -162,6 +158,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     currentNode = ((SimpleNameSyntax)currentNode).WithIdentifier(identifierToken);
                 }
 
+                if (hasAdditionalTypeArguments)
+                {
+                    var existingTypeArguments = symbol.TypeArguments.Select(x => x.GenerateTypeSyntax());
+                    // Prepend additional type arguments to preserve lexical order in which they are defined
+                    var typeArguments = additionalTypeArguments.Concat(existingTypeArguments);
+                    currentNode = generator.WithTypeArguments(currentNode, typeArguments);
+                }
+
                 if (node.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
                 {
                     if (hasAdditionalArguments)
@@ -177,14 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
                         editor.ReplaceNode(invocation.ArgumentList,
                             invocation.ArgumentList.AddArguments(additionalArguments));
-                    }
-
-                    if (hasAdditionalTypeArguments)
-                    {
-                        var existingTypeArguments = symbol.TypeArguments.Select(x => x.GenerateTypeSyntax());
-                        // Prepend additional type arguments to preserve lexical order in which they are defined
-                        var typeArguments = additionalTypeArguments.Concat(existingTypeArguments);
-                        currentNode = generator.WithTypeArguments(currentNode, typeArguments);
                     }
                 }
                 else if (hasAdditionalArguments || hasAdditionalTypeArguments)
@@ -203,6 +199,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
                 editor.ReplaceNode(node, currentNode);
             }
+
+            root = editor.GetChangedRoot();
+            localFunction = (LocalFunctionStatementSyntax)root.FindNode(localFunction.Span);
+
+            method = WithBodyFrom(method, localFunction);
+            editor = new SyntaxEditor(root, generator);
+            container = localFunction.GetAncestor<MemberDeclarationSyntax>();
+
+            editor.InsertAfter(container, method);
+            editor.RemoveNode(localFunction, SyntaxRemoveOptions.KeepNoTrivia);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }

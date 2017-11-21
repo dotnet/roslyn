@@ -39,8 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
             Use(local1);
             Use(ref local2);
             Use(this);
+            LocalFunction();
         }
         LocalFunction();
+        System.Action x = LocalFunction;
     }
 }",
 @"class C
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
         var local1 = 0;
         var local2 = 0;
         LocalFunction1<T1, T2>(param1, ref param2, local1, ref local2);
+        System.Action x = () => LocalFunction1<T1, T2>(param1, ref param2, local1, ref local2);
     }
 
     private void LocalFunction1<T1, T2>(T1 param1, ref T2 param2, int local1, ref int local2)
@@ -68,12 +71,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
         Use(local1);
         Use(ref local2);
         Use(this);
+        LocalFunction1<T1, T2>(param1, ref param2, local1, ref local2);
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestTypeParameters()
+        public async Task TestTypeParameters1()
         {
             await TestInRegularAndScriptAsync(
 @"class C<T0>
@@ -91,6 +95,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
             {
                 _ = typeof(T2);
                 _ = typeof(T4);
+                LocalFunction(a, b);
+                System.Action<T5, T6> x = LocalFunction;
             }
             LocalFunction<byte, int>(5, 6);
             LocalFunction(5, 6);
@@ -118,7 +124,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
     {
         _ = typeof(T2);
         _ = typeof(T4);
+        LocalFunction1<T2, T4, T5, T6>(a, b);
+        System.Action<T5, T6> x = (T5 a, T6 b) => LocalFunction1<T2, T4, T5, T6>(a, b);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestTypeParameters2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        int [||]LocalFunction<T1, T2>(T1 a, T2 b) => i;
+        LocalFunction(2, 3);
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        LocalFunction(2, 3, i);
+    }
+
+    private static int LocalFunction<T1, T2>(T1 a, T2 b, int i) => i;
 }");
         }
 
