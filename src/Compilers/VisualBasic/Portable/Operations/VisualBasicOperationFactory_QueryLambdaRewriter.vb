@@ -35,7 +35,13 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
                 LocalRewriter.PopulateRangeVariableMapForQueryLambdaRewrite(node, _rangeVariableMap, inExpressionLambda:=True)
-                Dim rewrittenBody As BoundExpression = VisitExpressionWithStackGuard(node.Expression)
+                Dim body As BoundExpression = node.Expression
+
+                If node.LambdaSymbol.ReturnType Is LambdaSymbol.ReturnTypePendingDelegate Then
+                    body = node.LambdaSymbol.ContainingBinder.MakeRValueAndIgnoreDiagnostics(body)
+                End If
+
+                Dim rewrittenBody As BoundExpression = VisitExpressionWithStackGuard(body)
                 Dim rewrittenStatement As BoundStatement = LocalRewriter.CreateReturnStatementForQueryLambdaBody(rewrittenBody, node)
                 LocalRewriter.RemoveRangeVariables(node, _rangeVariableMap)
                 Return LocalRewriter.RewriteQueryLambda(rewrittenStatement, node)

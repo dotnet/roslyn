@@ -1,6 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
@@ -11,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
         <Fact>
+        <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub Simple()
             Dim compilationDef =
 <compilation>
@@ -32,13 +35,41 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef,
+            Dim verifier = CompileAndVerify(compilationDef,
                                 expectedOutput:=
             <![CDATA[
 True
 True
 True
 ]]>)
+            Dim compilation = verifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of EraseStatementSyntax)().Last()
+
+            Assert.Equal("Erase y, z", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IOperation:  (OperationKind.None, Type: null) (Syntax: 'Erase y, z')
+  Children(2):
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Array, IsImplicit) (Syntax: 'y')
+        Left: 
+          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Array) (Syntax: 'y')
+        Right: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Array, Constant: null, IsImplicit) (Syntax: 'y')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'z')
+        Left: 
+          ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Object) (Syntax: 'z')
+        Right: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'z')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'z')
+]]>.Value)
         End Sub
 
         <Fact>

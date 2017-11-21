@@ -3436,13 +3436,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       True)
 
                         outerKey = outerKeyBinder.BindAnonymousObjectCreationExpression(join, descriptor, outerKeys.AsImmutableOrNull(),
-                                                                                        diagnostics).MakeCompilerGenerated()
+                                                                                        diagnostics)
                         innerKey = innerKeyBinder.BindAnonymousObjectCreationExpression(join, descriptor, innerKeys.AsImmutableOrNull(),
-                                                                                        diagnostics).MakeCompilerGenerated()
+                                                                                        diagnostics)
                     Else
                         outerKey = BadExpression(join, outerKeys.AsImmutableOrNull(), ErrorTypeSymbol.UnknownResultType)
                         innerKey = BadExpression(join, innerKeys.AsImmutableOrNull(), ErrorTypeSymbol.UnknownResultType)
                     End If
+
+                    outerKey.MakeCompilerGenerated()
+                    innerKey.MakeCompilerGenerated()
                 End If
 
                 If suppressDiagnostics IsNot Nothing Then

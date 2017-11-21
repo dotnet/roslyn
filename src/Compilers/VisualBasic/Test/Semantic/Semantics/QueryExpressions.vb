@@ -2555,6 +2555,7 @@ BC42327: Using the iteration variable in a query expression may have unexpected 
         End Sub
 
         <Fact>
+        <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub Select4()
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -2617,6 +2618,17 @@ BC36610: Name 'DoesntExist' is either not declared or not in the current scope.
                                               ~~~~~~~~~~~
 </expected>)
 
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of WhereClauseSyntax)().Single()
+
+            Assert.Equal("Date.Now()", node.Condition.ToString())
+
+            compilation.VerifyOperationTree(node.Condition, expectedOperationTree:=
+            <![CDATA[
+IPropertyReferenceOperation: ReadOnly Property System.DateTime.Now As System.DateTime (Static) (OperationKind.PropertyReference, Type: System.DateTime, IsInvalid) (Syntax: 'Date.Now()')
+  Instance Receiver: 
+    null
+]]>.Value)
         End Sub
 
         <Fact>

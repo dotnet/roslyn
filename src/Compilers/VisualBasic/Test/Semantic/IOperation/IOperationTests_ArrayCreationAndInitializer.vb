@@ -363,7 +363,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
-        Public Sub ArrayCreationWithInitializer_ImplicitlyTyped()
+        Public Sub ArrayCreationWithInitializer_ImplicitlyTyped_01()
             Dim source = <![CDATA[
 Class M
 End Class
@@ -388,6 +388,35 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: '{New 
               null
 ]]>.Value
             Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationWithInitializer_ImplicitlyTyped_02()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F(dimension As Object)
+        Dim a = {M}'BIND:"{M}"
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '{M}')
+  Children(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{M}')
+      IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: '{M}')
+        Element Values(1):
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M')
+              Children(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30451: 'M' is not declared. It may be inaccessible due to its protection level.
+        Dim a = {M}'BIND:"{M}"
+                 ~
+]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
