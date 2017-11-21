@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return await service.ScanDesignerAttributesAsync(document, token).ConfigureAwait(false);
                     }
 
-                    return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
+                    return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, applicable: false);
                 }
             }, cancellationToken);
         }

@@ -2951,6 +2951,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A conditional expression cannot be used directly in a string interpolation because the &apos;:&apos; ends the interpolation. Parenthesize the conditional expression..
+        /// </summary>
+        internal static string ERR_ConditionalInInterpolation {
+            get {
+                return ResourceManager.GetString("ERR_ConditionalInInterpolation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Conditional attribute is not valid on &apos;{0}&apos; because its return type is not void.
         /// </summary>
         internal static string ERR_ConditionalMustReturnVoid {

@@ -594,7 +594,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
         {
-            Lazy<IOperation> instance = boundObjectInitializerMember.MemberSymbol.IsStatic ?
+            Symbol memberSymbol = boundObjectInitializerMember.MemberSymbol;
+
+            Lazy<IOperation> instance = memberSymbol?.IsStatic == true ?
                                             OperationFactory.NullOperation :
                                             new Lazy<IOperation>(() =>
                                                 new InstanceReferenceExpression(
@@ -609,17 +611,27 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = ConvertToOptional(boundObjectInitializerMember.ConstantValue);
             bool isImplicit = boundObjectInitializerMember.WasCompilerGenerated;
 
-            switch (boundObjectInitializerMember.MemberSymbol.Kind)
+            if ((object)memberSymbol == null)
+            {
+                Debug.Assert(boundObjectInitializerMember.Type.IsDynamic());
+
+                Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundObjectInitializerMember.Arguments.SelectAsArray(n => Create(n)));
+                ImmutableArray<string> argumentNames = boundObjectInitializerMember.ArgumentNamesOpt.NullToEmpty();
+                ImmutableArray<RefKind> argumentRefKinds = boundObjectInitializerMember.ArgumentRefKindsOpt.NullToEmpty();
+                return new LazyDynamicIndexerAccessExpression(instance, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+            }
+
+            switch (memberSymbol.Kind)
             {
                 case SymbolKind.Field:
-                    var field = (FieldSymbol)boundObjectInitializerMember.MemberSymbol;
+                    var field = (FieldSymbol)memberSymbol;
                     bool isDeclaration = false;
                     return new LazyFieldReferenceExpression(field, isDeclaration, instance, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Event:
-                    var eventSymbol = (EventSymbol)boundObjectInitializerMember.MemberSymbol;
+                    var eventSymbol = (EventSymbol)memberSymbol;
                     return new LazyEventReferenceExpression(eventSymbol, instance, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Property:
-                    var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
+                    var property = (PropertySymbol)memberSymbol;
                     Lazy<ImmutableArray<IArgumentOperation>> arguments;
                     if (!boundObjectInitializerMember.Arguments.Any())
                     {

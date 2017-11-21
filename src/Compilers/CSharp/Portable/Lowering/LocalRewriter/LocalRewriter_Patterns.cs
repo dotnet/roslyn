@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
                 {
-                    return result;
+                    return _factory.MakeSequence(loweredInput, result);
                 }
 
                 Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType(), TypeCompareKind.AllIgnoreOptions));

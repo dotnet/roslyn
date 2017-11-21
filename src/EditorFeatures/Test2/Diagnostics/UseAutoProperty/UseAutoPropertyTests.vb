@@ -2,6 +2,8 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
     Public Class UseAutoPropertyTests
@@ -9,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
-                Return (New CSharp.UseAutoProperty.UseAutoPropertyAnalyzer(), New CSharp.UseAutoProperty.UseAutoPropertyCodeFixProvider())
+                Return (New CSharpUseAutoPropertyAnalyzer(), New CSharpUseAutoPropertyCodeFixProvider())
             ElseIf language = LanguageNames.VisualBasic Then
-                Return (New VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer(), New VisualBasic.UseAutoProperty.UseAutoPropertyCodeFixProvider())
+                Return (New VisualBasicUseAutoPropertyAnalyzer(), New VisualBasicUseAutoPropertyCodeFixProvider())
             Else
                 Throw New Exception()
             End If
@@ -91,6 +93,56 @@ partial class C
 end class
 </text>.Value.Trim()}
                 })
+        End Function
+
+        <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestLinkedFile() As System.Threading.Tasks.Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="LinkedProj" Name="CSProj.1">
+                        <Document FilePath='C.cs'>
+partial class C
+{
+    $$int i;
+
+    public int P { get { return i; } }
+
+    public C()
+    {
+        this.i = 0;
+    }
+}
+                        </Document>
+                    </Project>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="LinkedProj" Name="CSProj.2">
+                        <Document IsLinkFile="true" LinkProjectName="CSProj.1" LinkFilePath="C.cs"/>
+                    </Project>
+                </Workspace>
+
+            Dim expectedText = "
+partial class C
+{
+
+    public int P { get; private set; }
+
+    public C()
+    {
+        this.P = 0;
+    }
+}".Trim()
+
+            Await TestAsync(input, verifySolutions:=
+                Async Function(oldSolution, newSolution)
+                    Dim documents = newSolution.Projects.SelectMany(Function(p) p.Documents).
+                                                         Where(Function(d) d.Name = "C.cs")
+                    Assert.Equal(2, documents.Count())
+
+                    For Each doc In documents
+                        Dim text = (Await doc.GetTextAsync()).ToString().Trim()
+                        Assert.Equal(expectedText, text)
+                    Next
+                End Function)
         End Function
     End Class
 End Namespace

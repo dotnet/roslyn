@@ -1159,6 +1159,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
+
+            var compilation = this.DeclaringCompilation;
+            var type = this.ReturnType;
+
+            if (type.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (type.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type));
+            }
         }
 
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] arguments)
