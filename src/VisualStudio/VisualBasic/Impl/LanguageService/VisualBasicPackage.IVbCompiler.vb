@@ -25,8 +25,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
             Dim projectTracker = Workspace.GetProjectTrackerAndInitializeIfNecessary(Me)
 
-            projectTracker.TryDisconnectExistingDeferredProject(pProjHier, wszName)
-
             Return New VisualBasicProjectShimWithServices(
                 projectTracker,
                 pVbCompilerHost,
