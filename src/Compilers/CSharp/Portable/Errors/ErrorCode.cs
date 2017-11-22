@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FixedBufferTooManyDimensions = 7092,
         ERR_CantReadConfigFile = 7093,
         ERR_BadAwaitInCatchFilter = 7094,
-        WRN_FilterIsConstant = 7095,
+        WRN_FilterIsConstantTrue = 7095,
         ERR_EncNoPIAReference = 7096,
         //ERR_EncNoDynamicOperation = 7097,   // dynamic operations are now allowed
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
@@ -1536,6 +1536,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeLocal = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
+        ERR_OutAttrOnInParam = 8355,
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+
+        ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
+        ERR_InvalidVersionFormatDeterministic = 8357,
+
+        ERR_AttributeCtorInParameter = 8358,
+
+        #region diagnostics for FilterIsConstant warning message fix
+        WRN_FilterIsConstantFalse = 8359,
+        WRN_FilterIsConstantFalseRedundantTryCatch = 8360,
+        #endregion diagnostics for FilterIsConstant warning message fix
     }
 }

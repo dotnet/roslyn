@@ -1499,7 +1499,7 @@ class Class3
                         Assert.Equal("<>f__AnonymousType2", types[2]);
                         Assert.Equal("<>f__AnonymousType3<<b>j__TPar, <a>j__TPar>", types[3]);
                     },
-                    verify: false
+                    verify: Verification.Passes
                 );
 
                 // do some speculative semantic query

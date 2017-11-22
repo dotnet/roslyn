@@ -1636,7 +1636,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1656,7 +1656,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1677,7 +1677,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1697,7 +1697,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1718,7 +1718,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1739,7 +1739,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1760,7 +1760,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1780,7 +1780,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1801,7 +1801,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1822,7 +1822,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1842,7 +1842,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1862,7 +1862,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1883,7 +1883,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1904,7 +1904,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1925,7 +1925,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1950,7 +1950,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(endInvokeParameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1971,7 +1971,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(endInvokeMethod.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1991,7 +1991,7 @@ class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2011,7 +2011,7 @@ class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2031,7 +2031,7 @@ class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2051,7 +2051,7 @@ public class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2075,7 +2075,7 @@ public class Test
                 Assert.Empty(parameters[1].RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2095,7 +2095,7 @@ public class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -4422,7 +4422,7 @@ class Child: Parent, IM
     public void M(in int x) { }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 // Nothing on Parent
                 var parentMethod = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M");
@@ -4465,7 +4465,7 @@ class Child: Parent, IM
 {
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 // Nothing on Parent
                 var parentMethod = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M");

@@ -6,7 +6,7 @@
   <PropertyGroup>
     <OutputArchitecture>neutral</OutputArchitecture>
     <OutputLocalized>false</OutputLocalized>
-    <OutputPath>$(OutputPath)\Insertion</OutputPath>
+    <OutputPath>$(OutputPath)\Vsix\PortableFacades</OutputPath>
     <IsPackage>true</IsPackage>
     <OutputType>vsix</OutputType>
   </PropertyGroup>
@@ -23,4 +23,7 @@
   </ItemGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
+
+  <!-- Disable automatic signing. This will be signed in the batch phase -->
+  <Target Name="AddTargetPathToFilesToSign" />
 </Project>

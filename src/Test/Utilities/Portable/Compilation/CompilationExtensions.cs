@@ -316,13 +316,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         memberReference.Member.IsStatic &&
                         memberReference.Instance is IInstanceReferenceOperation)
                     {
-                        Assert.False(memberReference.Instance.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                        Assert.False(memberReference.Instance.IsImplicit, $"Implicit {nameof(IInstanceReferenceOperation)} on {operation.Syntax}");
                     }
                     else if (operation is IInvocationOperation invocation &&
                              invocation.TargetMethod.IsStatic &&
                              invocation.Instance is IInstanceReferenceOperation)
                     {
-                        Assert.False(invocation.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                        Assert.False(invocation.IsImplicit, $"Implicit {nameof(IInstanceReferenceOperation)} on {operation.Syntax}");
                     }
                 }
             }

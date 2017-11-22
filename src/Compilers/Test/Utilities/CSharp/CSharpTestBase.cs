@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return base.CompileAndVerify(
                 source: source,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return base.CompileAndVerify(
                 sources,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
             CSharpCompilationOptions options = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             if (options == null)
             {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return base.CompileAndVerify(
                 compilation,

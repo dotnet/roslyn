@@ -196,10 +196,10 @@ public class Cls
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,20): error CS8184: A declaration is not allowed in this context.
+                // (6,20): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(6, 20),
-                // (6,28): error CS8184: A declaration is not allowed in this context.
+                // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x2").WithLocation(6, 28),
                 // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -30387,7 +30387,7 @@ class Program
     {
         switch (true)
         {
-            case TakeOutParam(3, out UndelcaredType x1):
+            case TakeOutParam(3, out UndeclaredType x1):
                 System.Console.WriteLine(x1);
                 break;
         }
@@ -30397,11 +30397,11 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
-                // (8,38): error CS0246: The type or namespace name 'UndelcaredType' could not be found (are you missing a using directive or an assembly reference?)
-                //             case TakeOutParam(3, out UndelcaredType x1):
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndelcaredType").WithArguments("UndelcaredType").WithLocation(8, 38),
+                // (8,38): error CS0246: The type or namespace name 'UndeclaredType' could not be found (are you missing a using directive or an assembly reference?)
+                //             case TakeOutParam(3, out UndeclaredType x1):
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndeclaredType").WithArguments("UndeclaredType").WithLocation(8, 38),
                 // (8,18): error CS0103: The name 'TakeOutParam' does not exist in the current context
-                //             case TakeOutParam(3, out UndelcaredType x1):
+                //             case TakeOutParam(3, out UndeclaredType x1):
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(8, 18),
                 // (9,17): warning CS0162: Unreachable code detected
                 //                 System.Console.WriteLine(x1);
@@ -31119,7 +31119,7 @@ public class C
     @"
 public class C
 {
-    static void M(out object x) { x = 1; System.Console.Write(""object returing M. ""); }
+    static void M(out object x) { x = 1; System.Console.Write(""object returning M. ""); }
     static void M(out int x) { x = 2; System.Console.Write(""int returning M.""); }
     static void Main()
     {
@@ -31130,7 +31130,7 @@ public class C
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "object returing M. int returning M.");
+            CompileAndVerify(comp, expectedOutput: "object returning M. int returning M.");
         }
 
         [Fact]

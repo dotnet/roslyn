@@ -39,6 +39,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Humanizer.dll")]
 
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.VisualStudio.CallHierarchy.Package.Definitions",

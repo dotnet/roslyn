@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
-        public void BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpacetring()
+        public void BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpaceString()
         {
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { " " });
 

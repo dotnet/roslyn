@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -106,6 +103,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 methodSymbol.Name == WellKnownMemberNames.MoveNextMethodName;
         }
 
+        private bool IsDeconstructMethod(IMethodSymbol methodSymbol)
+            => methodSymbol.Name == WellKnownMemberNames.DeconstructMethodName;
+
         protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
@@ -117,11 +117,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 document,
                 cancellationToken).ConfigureAwait(false);
 
-            var forEachMatches = IsForEachMethod(symbol)
-                ? await FindReferencesInForEachStatementsAsync(symbol, document, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<ReferenceLocation>.Empty;
+            if (IsForEachMethod(symbol))
+            {
+                var forEachMatches = await FindReferencesInForEachStatementsAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+                nameMatches = nameMatches.Concat(forEachMatches);
+            }
 
-            return nameMatches.Concat(forEachMatches);
+            if (IsDeconstructMethod(symbol))
+            {
+                var deconstructMatches = await FindReferencesInDeconstructionAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+                nameMatches = nameMatches.Concat(deconstructMatches);
+            }
+
+            return nameMatches;
         }
     }
 }

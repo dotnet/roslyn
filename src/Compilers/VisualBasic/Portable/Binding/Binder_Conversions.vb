@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
 
-            Return ApplyConversion(node, targetType, argument, isExplicit:=True, diagnostics:=diagnostics)
+            Return ApplyConversion(node, targetType, argument, isExplicit:=True, diagnostics)
         End Function
 
         Private Function BindDirectCastExpression(

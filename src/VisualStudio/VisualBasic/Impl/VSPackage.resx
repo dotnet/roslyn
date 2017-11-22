@@ -186,4 +186,12 @@
     <value>Change completion list settings;Pre-select most recently used member</value>
     <comment>IntelliSense options page keywords</comment>
   </data>
+  <data name="114" xml:space="preserve">
+    <value>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</value>
+    <comment>Help &gt; About</comment>
+  </data>
+  <data name="113" xml:space="preserve">
+    <value>Visual Basic Tools</value>
+    <comment>Help &gt; About</comment>
+  </data>
 </root>

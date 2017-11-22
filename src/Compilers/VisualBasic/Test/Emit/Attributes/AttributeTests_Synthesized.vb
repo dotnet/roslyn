@@ -934,7 +934,7 @@ BC35000: Requested operation is not available because the runtime library functi
                 ' NYI: /addmodule support
                 ' TODO: PEVerify currently fails for netmodules with error: "The module X was expected to contain an assembly manifest".
                 ' TODO: Remove the 'verify' named argument once /addmodule support has been added.
-                CompileAndVerify(comp, verify:=outputKindFlag <> OutputKind.NetModule)
+                CompileAndVerify(comp, verify:=If(outputKindFlag <> OutputKind.NetModule, Verification.Passes, Verification.Skipped))
             End If
         End Sub
 

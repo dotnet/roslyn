@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1545,7 +1546,7 @@ public class D
     }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: false);
+            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -2042,7 +2043,7 @@ readonly struct S
         // named argument reordering introduces a sequence with temps
         // and we cannot know whether RefMethod returns a ref to a sequence local
         // so we must assume that it can, and therefore must keep all the sequence the locals in use 
-        // for the duration of the most-encompasing expression.
+        // for the duration of the most-encompassing expression.
         Console.WriteLine(RefMethod(arg2: I(5), arg1: I(3)).GreaterThan(
                           RefMethod(arg2: I(0), arg1: I(0))));
     }
@@ -2065,7 +2066,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: false, expectedOutput: "True");
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -2186,7 +2187,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: false, expectedOutput: @"353
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
 353");
 
             compilation.VerifyIL("S.TestRO",

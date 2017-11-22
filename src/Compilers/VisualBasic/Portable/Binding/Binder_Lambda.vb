@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _lambdaSymbol As LambdaSymbol
             Private ReadOnly _isIterator As Boolean
-            Private _delegatRelaxationLevel As ConversionKind = ConversionKind.DelegateRelaxationLevelNone
+            Private _delegateRelaxationLevel As ConversionKind = ConversionKind.DelegateRelaxationLevelNone
             Private _seenReturnWithAValue As Boolean
             Private _useSiteDiagnostics As HashSet(Of DiagnosticInfo)
 
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 visitor.VisitBlock(lambdaBlock)
                 seenReturnWithAValue = visitor._seenReturnWithAValue
                 useSiteDiagnostics = visitor._useSiteDiagnostics
-                Return visitor._delegatRelaxationLevel
+                Return visitor._delegateRelaxationLevel
             End Function
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
@@ -385,8 +385,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim returnRelaxation As ConversionKind = Conversions.DetermineDelegateRelaxationLevelForLambdaReturn(node.ExpressionOpt, _useSiteDiagnostics)
 
-                If returnRelaxation > _delegatRelaxationLevel Then
-                    _delegatRelaxationLevel = returnRelaxation
+                If returnRelaxation > _delegateRelaxationLevel Then
+                    _delegateRelaxationLevel = returnRelaxation
                 End If
 
                 Return Nothing
@@ -396,8 +396,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If _isIterator Then
                     Dim returnRelaxation As ConversionKind = Conversions.DetermineDelegateRelaxationLevelForLambdaReturn(node.Expression, _useSiteDiagnostics)
 
-                    If returnRelaxation > _delegatRelaxationLevel Then
-                        _delegatRelaxationLevel = returnRelaxation
+                    If returnRelaxation > _delegateRelaxationLevel Then
+                        _delegateRelaxationLevel = returnRelaxation
                     End If
                 End If
 

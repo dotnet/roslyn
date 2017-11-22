@@ -5280,7 +5280,165 @@ class Program
         }
 
         [Fact]
-        public void CS7095WRN_FilterIsConstant1()
+        public void CS8359WRN_FilterIsConstantFalse_NonBoolean()
+        {
+            // Non-boolean constant filters are not considered for WRN_FilterIsConstant warnings. 
+
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (1) { }
+        catch (B) when (0) { }
+        catch (B) when (""false"") { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         catch (A) when (1) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool").WithLocation(11, 25),
+                // (12,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         catch (B) when (0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(12, 25),
+                // (13,25): error CS0029: Cannot implicitly convert type 'string' to 'bool'
+                //         catch (B) when ("false") { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""false""").WithArguments("string", "bool").WithLocation(13, 25),
+                // (14,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(14, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse1()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
+                // (12,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse2()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when ((1+1)!=2) { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "(1+1)!=2").WithLocation(11, 25),
+                // (12,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse3()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+        finally { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS8360WRN_FilterIsConstantRedundantTryCatch1()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS8360WRN_FilterIsConstantRedundantTryCatch2()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when ((1+1)!=2) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "(1+1)!=2").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS7095WRN_FilterIsConstantTrue1()
         {
             var text = @"
 using System;
@@ -5298,13 +5456,13 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,23): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (11,25): warning CS7095: Filter expression is a constant 'true', consider removing the filter
                 //         catch (A) when (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(11, 25));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(11, 25));
         }
 
         [Fact]
-        public void CS7095WRN_FilterIsConstant2()
+        public void CS7095WRN_FilterIsConstantTrue2()
         {
             var text = @"
 using System;
@@ -5322,12 +5480,34 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (10,19): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (10,19): warning CS7095: Filter expression is a constant 'true', consider removing the filter
                 //         catch when (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 21),
-                // (12,19): warning CS7095: Filter expression is a constant, consider removing the filter
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 21),
+                // (12,19): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch when (false) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(12, 21));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 21));
+        }
+
+        [Fact]
+        public void CS7095WRN_FilterIsConstantTrue3()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch when ((1+1)==2) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (10,19): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         catch when (true) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "(1+1)==2").WithLocation(10, 21));
         }
 
         [Fact]
@@ -5352,9 +5532,9 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (11,25): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
     //         catch (A) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
     // (13,13): warning CS0162: Unreachable code detected
     //             Console.WriteLine(1); 
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 13)
@@ -5385,9 +5565,9 @@ class Program
             // is to make conditional compilation easier. Such scenario doesn't apply to filters.
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (10,33): warning CS7105: Filter expression is a constant 'false', consider removing the try-catch block
     //         catch (Exception) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 33),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 33),
     // (12,13): warning CS0162: Unreachable code detected
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(12, 13)
@@ -5418,9 +5598,9 @@ class Program
             // is to make conditional compilation easier. Such scenario doesn't apply to filters.
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (10,33): warning CS7095: Filter expression is a constant 'true', consider removing the filter
     //         catch (Exception) when (true) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 33),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 33),
     // (12,31): error CS0165: Use of unassigned local variable 'x'
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 31)
@@ -7030,7 +7210,7 @@ initializing for System.String
 String
 ";
             // Although we accept this nasty code, it will not verify.
-            CompileAndVerify(text, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(text, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -12658,7 +12838,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B
 {
@@ -23494,6 +23674,30 @@ class Program
                 // (6,9): error CS8209: A value of type 'void' may not be assigned.
                 //         _ = M();
                 Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(22880, "https://github.com/dotnet/roslyn/issues/22880")]
+        public void AttributeCtorInParam()
+        {
+            var text = @"
+[A(1)]
+class A : System.Attribute {
+  A(in int x) { }
+}
+
+[B()]
+class B : System.Attribute {
+  B(in int x = 1) { }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (7,2): error CS8355: Cannot use attribute constructor 'B.B(in int)' because it is has 'in' parameters.
+                // [B()]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2),
+                // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
+                // [A(1)]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
                 );
         }
     }

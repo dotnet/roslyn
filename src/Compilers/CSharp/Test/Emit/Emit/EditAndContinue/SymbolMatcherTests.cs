@@ -791,7 +791,7 @@ public class C
         }
 
         [Fact]
-        public void TupleDeletagate_NameChange()
+        public void TupleDelegate_NameChange()
         {
             var source0 = @"
 public class C

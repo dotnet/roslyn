@@ -1117,5 +1117,68 @@ namespace N
 }",
 parseOptions: null);
         }
+
+        [WorkItem(16547, "https://github.com/dotnet/roslyn/issues/16547")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForAddExtentionMethodWithSameNameAsProperty()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    public class Foo
+    {
+        public void Bar()
+        {
+            var self = this.[|Self()|];
+        }
+
+        public Foo Self
+        {
+            get { return this; }
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class FooExtensions
+    {
+        public static Foo Self(this Foo foo)
+        {
+            return foo;
+        }
+    }
+}",
+@"
+using A.Extensions;
+
+namespace A
+{
+    public class Foo
+    {
+        public void Bar()
+        {
+            var self = this.Self();
+        }
+
+        public Foo Self
+        {
+            get { return this; }
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class FooExtensions
+    {
+        public static Foo Self(this Foo foo)
+        {
+            return foo;
+        }
+    }
+}");
+        }
     }
 }

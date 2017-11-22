@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -165,15 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
-            if ((object)_lazyEmbeddedAttribute != null)
-            {
-                return new SynthesizedAttributeData(
-                    _lazyEmbeddedAttribute.Constructor,
-                    ImmutableArray<TypedConstant>.Empty,
-                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
-            }
-
-            return base.SynthesizeEmbeddedAttribute();
+            // _lazyEmbeddedAttribute should have been created before calling this method.
+            return new SynthesizedAttributeData(
+                _lazyEmbeddedAttribute.Constructor,
+                ImmutableArray<TypedConstant>.Empty,
+                ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
