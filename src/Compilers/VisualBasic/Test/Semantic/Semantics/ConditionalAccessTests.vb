@@ -9553,5 +9553,117 @@ Test
 ]]>)
         End Sub
 
+        <Fact()>
+        <WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")>
+        Public Sub ConditionalAccessOffConstrainedTypeParameter_Property()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim obj1 As New MyObject1 With {.MyDate = CDate("2017-11-13T14:25:00Z")}
+        Dim obj2 As New MyObject2(Of MyObject1)(obj1)
+
+        System.Console.WriteLine(obj1.MyDate.Ticks)
+        System.Console.WriteLine(obj2.CurrentDate.Value.Ticks)
+        System.Console.WriteLine(new MyObject2(Of MyObject1)(Nothing).CurrentDate.HasValue)
+    End Sub
+End Module
+
+Public MustInherit Class MyBaseObject1
+    Property MyDate As Date
+End Class
+
+Public Class MyObject1
+    Inherits MyBaseObject1
+End Class
+
+Public Class MyObject2(Of MyObjectType As {MyBaseObject1, New})
+    Public Sub New(obj As MyObjectType)
+        m_CurrentObject1 = obj
+    End Sub
+
+    Private m_CurrentObject1 As MyObjectType = Nothing
+    Public ReadOnly Property CurrentObject1 As MyObjectType
+        Get
+            Return m_CurrentObject1
+        End Get
+    End Property
+    Public ReadOnly Property CurrentDate As Date?
+        Get
+            Return CurrentObject1?.MyDate
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>
+
+            Dim expectedOutput =
+            <![CDATA[
+636461511000000000
+636461511000000000
+False
+]]>
+            CompileAndVerify(compilationDef, options:=TestOptions.DebugExe, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact()>
+        <WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")>
+        Public Sub ConditionalAccessOffConstrainedTypeParameter_Field()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim obj1 As New MyObject1 With {.MyDate = CDate("2017-11-13T14:25:00Z")}
+        Dim obj2 As New MyObject2(Of MyObject1)(obj1)
+
+        System.Console.WriteLine(obj1.MyDate.Ticks)
+        System.Console.WriteLine(obj2.CurrentDate.Value.Ticks)
+        System.Console.WriteLine(new MyObject2(Of MyObject1)(Nothing).CurrentDate.HasValue)
+    End Sub
+End Module
+
+Public MustInherit Class MyBaseObject1
+    Public MyDate As Date
+End Class
+
+Public Class MyObject1
+    Inherits MyBaseObject1
+End Class
+
+Public Class MyObject2(Of MyObjectType As {MyBaseObject1, New})
+    Public Sub New(obj As MyObjectType)
+        m_CurrentObject1 = obj
+    End Sub
+
+    Private m_CurrentObject1 As MyObjectType = Nothing
+    Public ReadOnly Property CurrentObject1 As MyObjectType
+        Get
+            Return m_CurrentObject1
+        End Get
+    End Property
+    Public ReadOnly Property CurrentDate As Date?
+        Get
+            Return CurrentObject1?.MyDate
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>
+
+            Dim expectedOutput =
+            <![CDATA[
+636461511000000000
+636461511000000000
+False
+]]>
+            CompileAndVerify(compilationDef, options:=TestOptions.DebugExe, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, expectedOutput:=expectedOutput)
+        End Sub
+
     End Class
 End Namespace
