@@ -177,8 +177,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function GetMethodBaseCodeBlocks(methodBase As MethodBaseSyntax) As IEnumerable(Of SyntaxNode)
             Dim paramInitializers = GetParameterListInitializersAndAttributes(methodBase.ParameterList)
-            Dim attributes = GetAttributes(methodBase.AttributeLists).Concat(GetReturnTypeAttributes(methodBase.AsClauseInternal))
+            Dim attributes = GetAttributes(methodBase.AttributeLists).Concat(GetReturnTypeAttributes(GetAsClause(methodBase)))
             Return paramInitializers.Concat(attributes)
+        End Function
+
+        Private Shared Function GetAsClause(methodBase As MethodBaseSyntax) As AsClauseSyntax
+            Select Case methodBase.Kind
+                Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
+                    Return DirectCast(methodBase, MethodStatementSyntax).AsClause
+
+                Case SyntaxKind.SubLambdaHeader, SyntaxKind.FunctionLambdaHeader
+                    Return DirectCast(methodBase, LambdaHeaderSyntax).AsClause
+
+                Case SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement
+                    Return DirectCast(methodBase, DeclareStatementSyntax).AsClause
+
+                Case SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement
+                    Return DirectCast(methodBase, DelegateStatementSyntax).AsClause
+
+                Case SyntaxKind.EventStatement
+                    Return DirectCast(methodBase, EventStatementSyntax).AsClause
+
+                Case SyntaxKind.OperatorStatement
+                    Return DirectCast(methodBase, OperatorStatementSyntax).AsClause
+
+                Case SyntaxKind.PropertyStatement
+                    Return DirectCast(methodBase, PropertyStatementSyntax).AsClause
+
+                Case SyntaxKind.SubNewStatement,
+                        SyntaxKind.GetAccessorStatement,
+                        SyntaxKind.SetAccessorStatement,
+                        SyntaxKind.AddHandlerAccessorStatement,
+                        SyntaxKind.RemoveHandlerAccessorStatement,
+                        SyntaxKind.RaiseEventAccessorStatement
+                    Return Nothing
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(methodBase.Kind)
+            End Select
         End Function
 
         Private Shared Function GetReturnTypeAttributes(asClause As AsClauseSyntax) As IEnumerable(Of SyntaxNode)
