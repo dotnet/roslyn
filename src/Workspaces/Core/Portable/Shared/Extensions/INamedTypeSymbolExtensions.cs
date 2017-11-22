@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return null;
         }
 
-        internal static ISymbol GetOverriddenMember(ISymbol symbol)
+        internal static ISymbol GetOverriddenMember(this ISymbol symbol)
         {
             switch (symbol)
             {
