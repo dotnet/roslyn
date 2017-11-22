@@ -561,6 +561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         SubpatternElement = 9022,
         DeconstructionPattern = 9023,
         DiscardPattern = 9024,
+        SwitchExpression = 9025,
+        SwitchExpressionCase = 9026,
 
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
         // Please start with 9040 if you add more kinds below.

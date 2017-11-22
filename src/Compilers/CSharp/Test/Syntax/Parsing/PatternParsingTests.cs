@@ -1731,5 +1731,139 @@ case KeyValuePair<String, DateTime>[] pairs2:
             }
             EOF();
         }
+
+        [Fact]
+        public void SwitchExpression01()
+        {
+            UsingExpression("1 switch (a => b, c => d)",
+                // (1,1): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // 1 switch (a => b, c => d)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch (a => b, c => d)").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SwitchExpressionCase);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.SwitchExpressionCase);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpression02()
+        {
+            UsingExpression("1 switch (a?b:c => d)",
+                // (1,1): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // 1 switch (a?b:c => d)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch (a?b:c => d)").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1),
+                // (1,12): error CS1003: Syntax error, '=>' expected
+                // 1 switch (a?b:c => d)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(1, 12),
+                // (1,12): error CS1525: Invalid expression term '?'
+                // 1 switch (a?b:c => d)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 12)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression03()
+        {
+            UsingExpression("1 switch ((a, b, c) => d)",
+                // (1,1): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // 1 switch ((a, b, c) => d)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch ((a, b, c) => d)").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SwitchExpressionCase);
+                {
+                    N(SyntaxKind.DeconstructionPattern);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.SubpatternElement);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SubpatternElement);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SubpatternElement);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "c");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
     }
 }

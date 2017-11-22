@@ -736,6 +736,18 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a SwitchExpressionSyntax node.</summary>
+    public virtual TResult VisitSwitchExpression(SwitchExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SwitchExpressionCaseSyntax node.</summary>
+    public virtual TResult VisitSwitchExpressionCase(SwitchExpressionCaseSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a TryStatementSyntax node.</summary>
     public virtual TResult VisitTryStatement(TryStatementSyntax node)
     {
@@ -1989,6 +2001,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a DefaultSwitchLabelSyntax node.</summary>
     public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SwitchExpressionSyntax node.</summary>
+    public virtual void VisitSwitchExpression(SwitchExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SwitchExpressionCaseSyntax node.</summary>
+    public virtual void VisitSwitchExpressionCase(SwitchExpressionCaseSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -3498,6 +3522,24 @@ namespace Microsoft.CodeAnalysis.CSharp
       var keyword = this.VisitToken(node.Keyword);
       var colonToken = this.VisitToken(node.ColonToken);
       return node.Update(keyword, colonToken);
+    }
+
+    public override SyntaxNode VisitSwitchExpression(SwitchExpressionSyntax node)
+    {
+      var expression = (ExpressionSyntax)this.Visit(node.Expression);
+      var switchKeyword = this.VisitToken(node.SwitchKeyword);
+      var openParenToken = this.VisitToken(node.OpenParenToken);
+      var cases = this.VisitList(node.Cases);
+      var closeParenToken = this.VisitToken(node.CloseParenToken);
+      return node.Update(expression, switchKeyword, openParenToken, cases, closeParenToken);
+    }
+
+    public override SyntaxNode VisitSwitchExpressionCase(SwitchExpressionCaseSyntax node)
+    {
+      var pattern = (PatternSyntax)this.Visit(node.Pattern);
+      var equalsGreaterThanToken = this.VisitToken(node.EqualsGreaterThanToken);
+      var expression = (ExpressionSyntax)this.Visit(node.Expression);
+      return node.Update(pattern, equalsGreaterThanToken, expression);
     }
 
     public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
@@ -7999,6 +8041,72 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static DefaultSwitchLabelSyntax DefaultSwitchLabel(SyntaxToken colonToken)
     {
       return SyntaxFactory.DefaultSwitchLabel(SyntaxFactory.Token(SyntaxKind.DefaultKeyword), colonToken);
+    }
+
+    /// <summary>Creates a new SwitchExpressionSyntax instance.</summary>
+    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax expression, SyntaxToken switchKeyword, SyntaxToken openParenToken, SeparatedSyntaxList<SwitchExpressionCaseSyntax> cases, SyntaxToken closeParenToken)
+    {
+      if (expression == null)
+        throw new ArgumentNullException(nameof(expression));
+      switch (switchKeyword.Kind())
+      {
+        case SyntaxKind.SwitchKeyword:
+          break;
+        default:
+          throw new ArgumentException("switchKeyword");
+      }
+      switch (openParenToken.Kind())
+      {
+        case SyntaxKind.OpenParenToken:
+          break;
+        default:
+          throw new ArgumentException("openParenToken");
+      }
+      switch (closeParenToken.Kind())
+      {
+        case SyntaxKind.CloseParenToken:
+          break;
+        default:
+          throw new ArgumentException("closeParenToken");
+      }
+      return (SwitchExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpression(expression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)switchKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node, cases.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionCaseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node).CreateRed();
+    }
+
+
+    /// <summary>Creates a new SwitchExpressionSyntax instance.</summary>
+    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax expression, SeparatedSyntaxList<SwitchExpressionCaseSyntax> cases)
+    {
+      return SyntaxFactory.SwitchExpression(expression, SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), cases, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+    }
+
+    /// <summary>Creates a new SwitchExpressionSyntax instance.</summary>
+    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax expression)
+    {
+      return SyntaxFactory.SwitchExpression(expression, SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), default(SeparatedSyntaxList<SwitchExpressionCaseSyntax>), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+    }
+
+    /// <summary>Creates a new SwitchExpressionCaseSyntax instance.</summary>
+    public static SwitchExpressionCaseSyntax SwitchExpressionCase(PatternSyntax pattern, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    {
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+      switch (equalsGreaterThanToken.Kind())
+      {
+        case SyntaxKind.EqualsGreaterThanToken:
+          break;
+        default:
+          throw new ArgumentException("equalsGreaterThanToken");
+      }
+      if (expression == null)
+        throw new ArgumentNullException(nameof(expression));
+      return (SwitchExpressionCaseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionCase(pattern == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PatternSyntax)pattern.Green, (Syntax.InternalSyntax.SyntaxToken)equalsGreaterThanToken.Node, expression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new SwitchExpressionCaseSyntax instance.</summary>
+    public static SwitchExpressionCaseSyntax SwitchExpressionCase(PatternSyntax pattern, ExpressionSyntax expression)
+    {
+      return SyntaxFactory.SwitchExpressionCase(pattern, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), expression);
     }
 
     /// <summary>Creates a new TryStatementSyntax instance.</summary>

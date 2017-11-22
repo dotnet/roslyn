@@ -362,7 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 this.Reset(ref resetPoint);
-                return this.ParseSubExpression(Precedence.Expression);
+                var precedence = Precedence.Coalescing;  // exclude lambdas, assignments, and a ternary which could have a lambda on the right
+                return this.ParseSubExpression(precedence);
             }
             finally
             {

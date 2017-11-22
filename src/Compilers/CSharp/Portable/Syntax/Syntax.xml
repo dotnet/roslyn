@@ -2325,6 +2325,7 @@
       <summary>Creates a ElseClauseSyntax node</summary>
     </FactoryComment>
   </Node>
+
   <Node Name="SwitchStatementSyntax" Base="StatementSyntax">
     <Kind Name="SwitchStatement"/>
     <Field Name="SwitchKeyword" Type="SyntaxToken">
@@ -2494,6 +2495,30 @@
       <summary>Creates a DefaultSwitchLabelSyntax node.</summary>
     </FactoryComment>
   </Node>
+
+  <Node Name="SwitchExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="SwitchExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="SwitchKeyword" Type="SyntaxToken">
+      <Kind Name="SwitchKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Cases" Type="SeparatedSyntaxList&lt;SwitchExpressionCaseSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="SwitchExpressionCaseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SwitchExpressionCase"/>
+    <Field Name="Pattern" Type="PatternSyntax"/>
+    <Field Name="EqualsGreaterThanToken" Type="SyntaxToken">
+      <Kind Name="EqualsGreaterThanToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+
   <Node Name="TryStatementSyntax" Base="StatementSyntax">
     <Kind Name="TryStatement"/>
     <Field Name="TryKeyword" Type="SyntaxToken">
@@ -2545,6 +2570,7 @@
     </Field>
     <Field Name="Block" Type="BlockSyntax"/>
   </Node>
+
   <!-- Declarations -->
   <Node Name="CompilationUnitSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CompilationUnit"/>

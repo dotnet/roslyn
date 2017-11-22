@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
 
+        private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            throw new NotImplementedException();
+        }
+
         internal BoundPattern BindPattern(
             PatternSyntax node,
             TypeSymbol operandType,

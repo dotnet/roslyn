@@ -8792,8 +8792,11 @@ tryAgain:
                     return Precedence.PointerIndirection;
                 case SyntaxKind.AddressOfExpression:
                     return Precedence.AddressOf;
-                default:
+                case SyntaxKind.ConditionalExpression:
+                case SyntaxKind.SwitchExpression:
                     return Precedence.Expression;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(op);
             }
         }
 
@@ -9049,7 +9052,7 @@ tryAgain:
             // Only take the ternary if we're at a precedence less than the null coalescing
             // expression.
 
-            if (tk == SyntaxKind.QuestionToken && precedence <= Precedence.Ternary)
+            if (tk == SyntaxKind.QuestionToken && precedence < Precedence.Coalescing)
             {
                 var questionToken = this.EatToken();
                 var colonLeft = this.ParsePossibleRefExpression();
@@ -9058,7 +9061,64 @@ tryAgain:
                 leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
             }
 
+            // From the proposed language spec:
+            //
+            // switch-expression:
+            //  null-coalescing-expression switch ( switch-expression-case-list )
+            // switch-expression-case-list:
+            //  switch-expression-case
+            //  switch-expression-case , switch-expression-case-list
+            // switch-expression-case:
+            //  pattern => expression
+            //
+            // Only take the switch if we're at a precedence less than the null coalescing expression.
+
+            else if (tk == SyntaxKind.SwitchKeyword && precedence < Precedence.Coalescing)
+            {
+                // TODO(patterns2): for better error recovery when an expression is typed on a line before
+                // a switch statement, we should check if the cases between the parens look like cases with
+                // arrows, and whether the
+                // switch keyword is on the same line as the end of the expression. If those are not satisfied,
+                // we should refuse to consume the switch token here and instead let a "missing semicolon"
+                // occur in a caller. For now we just put up with poor error recovery in that case.
+                var switchKeyword = this.EatToken();
+                var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+                var cases = this.ParseSwitchExpressionCases();
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                leftOperand = _syntaxFactory.SwitchExpression(leftOperand, switchKeyword, openParen, cases, closeParen);
+                leftOperand = this.CheckFeatureAvailability(leftOperand, MessageID.IDS_FeatureRecursivePatterns);
+            }
+
             return leftOperand;
+        }
+
+        private SeparatedSyntaxList<SwitchExpressionCaseSyntax> ParseSwitchExpressionCases()
+        {
+            // TODO(patterns2): Error recovery here leaves much to be desired.
+            var cases = _pool.AllocateSeparated<SwitchExpressionCaseSyntax>();
+            do
+            {
+                var pattern = ParsePattern();
+                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                var expression = ParseExpressionCore();
+                var switchExpressionCase = _syntaxFactory.SwitchExpressionCase(pattern, arrow, expression);
+                cases.Add(switchExpressionCase);
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    var commaToken = this.EatToken();
+                    if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                    {
+                        commaToken = this.AddError(commaToken, ErrorCode.ERR_UnexpectedToken);
+                    }
+
+                    cases.AddSeparator(commaToken);
+                }
+            }
+            while (this.CurrentToken.Kind != SyntaxKind.CloseParenToken);
+
+            SeparatedSyntaxList<SwitchExpressionCaseSyntax> result = cases;
+            _pool.Free(cases);
+            return result;
         }
 
         private ExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature)
