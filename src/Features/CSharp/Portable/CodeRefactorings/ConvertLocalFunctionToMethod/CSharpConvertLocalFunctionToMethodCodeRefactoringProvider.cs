@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertLocalFunctionToMethodCodeRefactoringProvider)), Shared]
     internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static readonly SyntaxAnnotation DelegateToReplaceAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_delegateToReplaceAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -121,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
                 document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
 
-            var generator = CSharpSyntaxGenerator.Instance;
-            var editor = new SyntaxEditor(root, generator);
+            var editor = new SyntaxEditor(root, s_generator);
 
             var needsRename = methodName != declaredSymbol.Name;
             var identifierToken = needsRename ? methodName.ToIdentifierToken() : default;
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     var existingTypeArguments = symbol.TypeArguments.Select(x => x.GenerateTypeSyntax());
                     // Prepend additional type arguments to preserve lexical order in which they are defined
                     var typeArguments = additionalTypeArguments.Concat(existingTypeArguments);
-                    currentNode = generator.WithTypeArguments(currentNode, typeArguments);
+                    currentNode = s_generator.WithTypeArguments(currentNode, typeArguments);
                     currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                             !supportsNonTrailing && invocation.ArgumentList.Arguments.Any(arg => arg.NameColon != null);
 
                         var additionalArguments = capturesAsParameters.Select(parameter =>
-                            (ArgumentSyntax)GenerateArgument(generator, parameter, parameter.Name,
+                            (ArgumentSyntax)GenerateArgument(parameter, parameter.Name,
                                 shouldUseNamedArguments)).ToArray();
 
                         editor.ReplaceNode(invocation.ArgumentList,
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 else if (hasAdditionalArguments || hasAdditionalTypeArguments)
                 {
                     // Convert local function delegates to lambda if the signature no longer matches
-                    currentNode = currentNode.WithAdditionalAnnotations(DelegateToReplaceAnnotation);
+                    currentNode = currentNode.WithAdditionalAnnotations(s_delegateToReplaceAnnotation);
                     anyDelegatesToReplace = true;
                 }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             method = WithBodyFrom(method, localFunction);
 
-            editor = new SyntaxEditor(root, generator);
+            editor = new SyntaxEditor(root, s_generator);
             editor.InsertAfter(container, method);
             editor.RemoveNode(localFunction, SyntaxRemoveOptions.KeepNoTrivia);
 
@@ -215,17 +215,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 document = document.WithSyntaxRoot(editor.GetChangedRoot());
                 semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                editor = new SyntaxEditor(root, generator);
+                editor = new SyntaxEditor(root, s_generator);
 
-                foreach (var node in root.GetAnnotatedNodes(DelegateToReplaceAnnotation))
+                foreach (var node in root.GetAnnotatedNodes(s_delegateToReplaceAnnotation))
                 {
                     var reservedNames = GetReservedNames(node, semanticModel, cancellationToken);
                     var parameterNames = GenerateUniqueParameterNames(parameters, reservedNames);
-                    var lambdaParameters = parameters.Zip(parameterNames, (p, name) => GenerateParameter(name, p));
-                    var lambdaArguments = parameters.Zip(parameterNames, (p, name) => GenerateArgument(generator, p, name));
-                    var additionalArguments = capturesAsParameters.Select(p => GenerateArgument(generator, p, p.Name));
-                    var newNode = generator.ValueReturningLambdaExpression(lambdaParameters,
-                        generator.InvocationExpression(node, lambdaArguments.Concat(additionalArguments)));
+                    var lambdaParameters = parameters.Zip(parameterNames, (p, name) => GenerateParameter(p, name));
+                    var lambdaArguments = parameters.Zip(parameterNames, (p, name) => GenerateArgument(p, name));
+                    var additionalArguments = capturesAsParameters.Select(p => GenerateArgument(p, p.Name));
+                    var newNode = s_generator.ValueReturningLambdaExpression(lambdaParameters,
+                        s_generator.InvocationExpression(node, lambdaArguments.Concat(additionalArguments)));
 
                     newNode = newNode.WithAdditionalAnnotations(Simplifier.Annotation);
 
@@ -244,8 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private static bool SupportsNonTrailingNamedArguments(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
 
-        private static SyntaxNode GenerateArgument(SyntaxGenerator generator, IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
-            => generator.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
+        private static SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
+            => s_generator.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
 
         private static List<string> GenerateUniqueParameterNames(ImmutableArray<IParameterSymbol> parameters, List<string> reservedNames)
             => parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames)).ToList();
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private static List<string> GetReservedNames(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
             => semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken).Select(s => s.Name).ToList();
 
-        private static ParameterSyntax GenerateParameter(string name, IParameterSymbol p)
+        private static ParameterSyntax GenerateParameter(IParameterSymbol p, string name)
         {
             return SyntaxFactory.Parameter(name.ToIdentifierToken())
                 .WithModifiers(CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind))
