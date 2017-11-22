@@ -598,7 +598,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // at this point, we don't know whether it is a metadata reference added because 
             // we don't have enough information yet for p2p reference or user explicitly added it 
             // as a metadata reference.
-            AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(this, filePath, properties));
+            AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(filePath, properties));
 
             // here, we change behavior compared to old C# language service. regardless of file being exist or not, 
             // we will always return S_OK. this is to support cross language p2p reference better. 
@@ -1228,7 +1228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     projectReference.Aliases,
                     projectReference.EmbedInteropTypes);
 
-                AddMetadataReferenceCore(MetadataReferenceProvider.CreateMetadataReference(this, binPath, metadataReferenceProperties));
+                AddMetadataReferenceCore(MetadataReferenceProvider.CreateMetadataReference(binPath, metadataReferenceProperties));
 
                 Contract.ThrowIfFalse(RemoveMetadataFileNameToConvertedProjectReference(binPath));
             }
@@ -1255,7 +1255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 RemoveMetadataReferenceCore(existingReference, disposeReference: true);
 
-                AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(this, file, newProperties));
+                AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(file, newProperties));
             }
         }
 
