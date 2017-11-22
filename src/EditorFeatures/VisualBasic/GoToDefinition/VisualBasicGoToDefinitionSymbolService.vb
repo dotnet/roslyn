@@ -2,7 +2,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -17,12 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
             Return symbol.FindRelatedExplicitlyDeclaredSymbol(compilation)
         End Function
 
-        Protected Overrides Async Function GetDeclarationPositionIfOverride(syntaxTree As SyntaxTree,
-                                                                            position As Integer,
-                                                                            cancellationToken As CancellationToken) As Task(Of Integer?)
-
-            Dim token = Await CodeAnalysis.Shared.Extensions.SyntaxTreeExtensions.GetTouchingTokenAsync(syntaxTree, position, cancellationToken).
-                ConfigureAwait(False)
+        Protected Overrides Function GetDeclarationPositionIfOverride(token As SyntaxToken, cancellationToken As CancellationToken) As Integer?
 
             If token.Kind() = SyntaxKind.OverridesKeyword Then
                 Dim parent = token.Parent
@@ -36,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
                         Dim [property] = DirectCast(parent, PropertyStatementSyntax)
                         Return [property].Identifier.SpanStart
 
+                        ' TODO events
                 End Select
             End If
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
 
         // If the cursor is positioned on the keyword "override", returns the position for the declared/overridding member.
-        protected abstract Task<int?> GetDeclarationPositionIfOverride(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+        protected abstract int? GetDeclarationPositionIfOverride(SyntaxToken token, CancellationToken cancellationToken);
 
         public async Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -42,11 +42,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         private async Task<ISymbol> FindOverriddenSymbolIfOverride(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var overridePosition = await GetDeclarationPositionIfOverride(syntaxTree, position, cancellationToken).ConfigureAwait(false);
+
+            var token = await CodeAnalysis.Shared.Extensions.SyntaxTreeExtensions.GetTouchingTokenAsync(syntaxTree, position, cancellationToken)
+                .ConfigureAwait(false);
+
+            var overridePosition = GetDeclarationPositionIfOverride(token, cancellationToken);
+
             if (overridePosition.HasValue)
             {
-                var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-                var (overrideSymbol, _) = await symbolService.GetSymbolAndBoundSpanAsync(document, overridePosition.Value, cancellationToken)
+                var (overrideSymbol, _) = await this.GetSymbolAndBoundSpanAsync(document, overridePosition.Value, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (overrideSymbol != null)

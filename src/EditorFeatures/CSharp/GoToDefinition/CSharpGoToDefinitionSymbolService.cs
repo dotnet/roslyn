@@ -2,7 +2,6 @@
 
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,11 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
             return symbol;
         }
 
-        protected override async Task<int?> GetDeclarationPositionIfOverride(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        protected override int? GetDeclarationPositionIfOverride(SyntaxToken token, CancellationToken cancellationToken)
         {
-            var token = await CodeAnalysis.Shared.Extensions.SyntaxTreeExtensions.GetTouchingTokenAsync(syntaxTree, position, cancellationToken)
-                .ConfigureAwait(false);
-
             if (token.Kind() == SyntaxKind.OverrideKeyword && token.Parent is MemberDeclarationSyntax member)
             {
                 return member.GetNameToken().SpanStart;
