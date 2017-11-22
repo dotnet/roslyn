@@ -309,8 +309,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // there, they'll be able to see that they can convert it to an auto-prop.
             var diagnostic2 = Diagnostic.Create(
                 HiddenDescriptor, propertyDeclaration.GetLocation(),
-                additionalLocations: additionalLocations,
-                properties: ImmutableDictionary<string, string>.Empty.Add("LowPriority", ""));
+                additionalLocations: additionalLocations);
 
             context.ReportDiagnostic(diagnostic1);
             context.ReportDiagnostic(diagnostic2);

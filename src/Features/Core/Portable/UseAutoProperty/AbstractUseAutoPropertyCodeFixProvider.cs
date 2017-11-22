@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var priority = diagnostic.Properties.ContainsKey("LowPriority")
+                var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                     ? CodeActionPriority.Low
                     : CodeActionPriority.Medium;
 
