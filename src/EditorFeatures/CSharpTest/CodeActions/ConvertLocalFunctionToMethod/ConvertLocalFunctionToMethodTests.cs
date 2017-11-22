@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
             => new CSharpConvertLocalFunctionToMethodCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestCaptures()
+        public async Task TestCaptures1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -73,6 +73,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
         Use(this);
         LocalFunction1(param1, ref param2, local1, ref local2);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestCaptures2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static void M()
+    {
+        var s = default(S);
+        SetValue(3);
+        void [||]SetValue(int value) => s.Value = value;
+    }
+}
+struct S
+{
+    public int Value;
+}",
+@"class C
+{
+    public static void M()
+    {
+        var s = default(S);
+        SetValue(3, ref s);
+    }
+
+    private static void SetValue(int value, ref S s) => s.Value = value;
+}
+struct S
+{
+    public int Value;
 }");
         }
 
