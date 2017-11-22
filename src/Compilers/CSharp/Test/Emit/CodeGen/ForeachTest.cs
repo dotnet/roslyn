@@ -357,6 +357,70 @@ class Test
         }
 
         [Fact]
+        public void TestSpanSideeffectingLoopBody()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new Span<int>(new[] {1, 2, 3});
+        foreach(var i in sp)
+        {
+            Console.Write(i);
+            sp = default;
+        }
+
+        Console.Write(sp.Length);
+    }
+}
+
+", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "1230").VerifyIL("Test.Main", @"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (System.Span<int> V_0, //sp
+                System.Span<int> V_1,
+                int V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.3
+  IL_0003:  newarr     ""int""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  call       ""System.Span<int>..ctor(int[])""
+  IL_0018:  ldloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldc.i4.0
+  IL_001b:  stloc.2
+  IL_001c:  br.s       IL_0038
+  IL_001e:  ldloca.s   V_1
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0026:  ldind.i4
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  initobj    ""System.Span<int>""
+  IL_0034:  ldloc.2
+  IL_0035:  ldc.i4.1
+  IL_0036:  add
+  IL_0037:  stloc.2
+  IL_0038:  ldloc.2
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  call       ""int System.Span<int>.Length.get""
+  IL_0040:  blt.s      IL_001e
+  IL_0042:  ldloca.s   V_0
+  IL_0044:  call       ""int System.Span<int>.Length.get""
+  IL_0049:  call       ""void System.Console.Write(int)""
+  IL_004e:  ret
+}");
+        }
+
+        [Fact]
         public void TestReadOnlySpan()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
