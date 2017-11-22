@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -33,9 +34,19 @@ namespace Test.Utilities
             VerifyFix(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics, onlyFixFirstFixableDiagnostic, validationMode, false);
         }
 
+        protected void VerifyCSharpFixAll(string oldSource, string newSource, bool allowNewCompilerDiagnostics = false, TestValidationMode validationMode = DefaultTestValidationMode)
+        {
+            VerifyFixAll(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource, newSource, allowNewCompilerDiagnostics, validationMode, false);
+        }
+
         protected void VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false, bool onlyFixFirstFixableDiagnostic = false, TestValidationMode validationMode = DefaultTestValidationMode)
         {
             VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics, onlyFixFirstFixableDiagnostic, validationMode, false);
+        }
+
+        protected void VerifyBasicFixAll(string oldSource, string newSource, bool allowNewCompilerDiagnostics = false, TestValidationMode validationMode = DefaultTestValidationMode)
+        {
+            VerifyFixAll(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, allowNewCompilerDiagnostics, validationMode, false);
         }
 
         private void VerifyFix(string language, DiagnosticAnalyzer analyzerOpt, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics, bool onlyFixFirstFixableDiagnostic, TestValidationMode validationMode, bool allowUnsafeCode)
@@ -44,6 +55,14 @@ namespace Test.Utilities
             var newSourceFileName = document.Name;
 
             VerifyFix(document, analyzerOpt, codeFixProvider, newSource, newSourceFileName, ImmutableArray<TestAdditionalDocument>.Empty, codeFixIndex, allowNewCompilerDiagnostics, onlyFixFirstFixableDiagnostic, validationMode);
+        }
+
+        private void VerifyFixAll(string language, DiagnosticAnalyzer analyzerOpt, CodeFixProvider codeFixProvider, string oldSource, string newSource, bool allowNewCompilerDiagnostics, TestValidationMode validationMode, bool allowUnsafeCode)
+        {
+            Document document = CreateDocument(oldSource, language, allowUnsafeCode: allowUnsafeCode);
+            var newSourceFileName = document.Name;
+
+            VerifyFixAll(document, analyzerOpt, codeFixProvider, newSource, newSourceFileName, ImmutableArray<TestAdditionalDocument>.Empty, allowNewCompilerDiagnostics, validationMode);
         }
 
         protected void VerifyAdditionalFileFix(string language, DiagnosticAnalyzer analyzerOpt, CodeFixProvider codeFixProvider, string source,
@@ -118,7 +137,9 @@ namespace Test.Utilities
                 }
 
                 analyzerDiagnostics = GetSortedDiagnostics(analyzerOpt, new[] { document }, additionalFiles: additionalFiles, validationMode: validationMode);
-                var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, document.GetSemanticModelAsync().Result.GetDiagnostics());
+
+                var updatedCompilerDiagnostics = document.GetSemanticModelAsync().Result.GetDiagnostics();
+                var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, updatedCompilerDiagnostics);
                 if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
                 {
                     // Format and get the compiler diagnostics again so that the locations make sense in the output
@@ -131,7 +152,7 @@ namespace Test.Utilities
                             document.GetSyntaxRootAsync().Result.ToFullString()));
                 }
 
-                var newFixableDiagnostics = getFixableDiagnostics(analyzerDiagnostics.Concat(newCompilerDiagnostics));
+                var newFixableDiagnostics = getFixableDiagnostics(analyzerDiagnostics.Concat(updatedCompilerDiagnostics));
                 if (fixableDiagnostics.SetEquals(newFixableDiagnostics, DiagnosticComparer.Instance))
                 {
                     diagnosticIndexToFix++;
@@ -140,6 +161,53 @@ namespace Test.Utilities
                 {
                     fixableDiagnostics = newFixableDiagnostics;
                 }
+            }
+
+            var actualText = GetActualTextForNewDocument(document, newSourceFileName);
+            Assert.Equal(newSource, actualText.ToString());
+        }
+
+        private void VerifyFixAll(
+            Document document,
+            DiagnosticAnalyzer analyzerOpt,
+            CodeFixProvider codeFixProvider,
+            string newSource,
+            string newSourceFileName,
+            IEnumerable<TestAdditionalDocument> additionalFiles,
+            bool allowNewCompilerDiagnostics,
+            TestValidationMode validationMode)
+        {
+            var fixableDiagnosticIds = codeFixProvider.FixableDiagnosticIds.ToSet();
+            Func<IEnumerable<Diagnostic>, ImmutableArray<Diagnostic>> getFixableDiagnostics = diags =>
+                diags.Where(d => fixableDiagnosticIds.Contains(d.Id)).ToImmutableArrayOrEmpty();
+
+            var analyzerDiagnostics = GetSortedDiagnostics(analyzerOpt, new[] { document }, additionalFiles: additionalFiles, validationMode: validationMode);
+            var compilerDiagnostics = document.GetSemanticModelAsync().Result.GetDiagnostics();
+            var fixableDiagnostics = getFixableDiagnostics(analyzerDiagnostics.Concat(compilerDiagnostics));
+
+            var fixAllProvider = codeFixProvider.GetFixAllProvider();
+            var diagnosticProvider = new FixAllDiagnosticProvider(analyzerOpt, additionalFiles, validationMode, getFixableDiagnostics);
+            var fixAllContext = new FixAllContext(document, codeFixProvider, FixAllScope.Document, string.Empty, fixableDiagnostics.Select(d => d.Id), diagnosticProvider, CancellationToken.None);
+            var codeAction = fixAllProvider.GetFixAsync(fixAllContext).Result;
+            document = document.Apply(codeAction);
+            additionalFiles = document.Project.AdditionalDocuments.Select(a => new TestAdditionalDocument(a));
+
+            additionalFiles = document.Project.AdditionalDocuments.Select(a => new TestAdditionalDocument(a));
+
+            analyzerDiagnostics = GetSortedDiagnostics(analyzerOpt, new[] { document }, additionalFiles: additionalFiles, validationMode: validationMode);
+
+            var updatedCompilerDiagnostics = document.GetSemanticModelAsync().Result.GetDiagnostics();
+            var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, updatedCompilerDiagnostics);
+            if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
+            {
+                // Format and get the compiler diagnostics again so that the locations make sense in the output
+                document = document.WithSyntaxRoot(Formatter.Format(document.GetSyntaxRootAsync().Result, Formatter.Annotation, document.Project.Solution.Workspace));
+                newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, document.GetSemanticModelAsync().Result.GetDiagnostics());
+
+                Assert.True(false,
+                    string.Format("Fix introduced new compiler diagnostics:\r\n{0}\r\n\r\nNew document:\r\n{1}\r\n",
+                        newCompilerDiagnostics.Select(d => d.ToString()).Join("\r\n"),
+                        document.GetSyntaxRootAsync().Result.ToFullString()));
             }
 
             var actualText = GetActualTextForNewDocument(document, newSourceFileName);
@@ -168,6 +236,41 @@ namespace Test.Utilities
                     obj.Location.SourceSpan.GetHashCode(),
                     obj.Location.SourceTree?.ToString().GetHashCode() });
             }
+        }
+
+        private class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
+        {
+            private DiagnosticAnalyzer _analyzerOpt;
+            private IEnumerable<TestAdditionalDocument> _additionalFiles;
+            private TestValidationMode _testValidationMode;
+            private Func<IEnumerable<Diagnostic>, ImmutableArray<Diagnostic>> _getFixableDiagnostics;
+
+            public FixAllDiagnosticProvider(
+                DiagnosticAnalyzer analyzerOpt, 
+                IEnumerable<TestAdditionalDocument> additionalFiles, 
+                TestValidationMode testValidationMode,
+                Func<IEnumerable<Diagnostic>, ImmutableArray<Diagnostic>> getFixableDiagnostics)
+            {
+                _analyzerOpt = analyzerOpt;
+                _additionalFiles = additionalFiles;
+                _testValidationMode = testValidationMode;
+                _getFixableDiagnostics = getFixableDiagnostics;
+            }
+
+            public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            {
+                var analyzerDiagnostics = GetSortedDiagnostics(_analyzerOpt, new[] { document }, additionalFiles: _additionalFiles, validationMode: _testValidationMode);
+                var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+                var compilerDiagnostics = semanticModel.GetDiagnostics();
+                var fixableDiagnostics = _getFixableDiagnostics(analyzerDiagnostics.Concat(compilerDiagnostics));
+                return fixableDiagnostics;
+            }
+
+            public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
         }
 
         private static SourceText GetActualTextForNewDocument(Document documentInNewWorkspace, string newSourceFileName)
