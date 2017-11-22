@@ -3284,6 +3284,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a pattern. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. To match everything, use a discard pattern &apos;_&apos;..
+        /// </summary>
+        internal static string ERR_DefaultPattern {
+            get {
+                return ResourceManager.GetString("ERR_DefaultPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument of type &apos;{0}&apos; is not applicable for the DefaultParameterValue attribute.
         /// </summary>
         internal static string ERR_DefaultValueBadValueType {
@@ -12636,7 +12645,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (&apos;default:&apos;) rather than &apos;case default:&apos;? If you really mean to use the default value, use another literal (&apos;case 0:&apos; or &apos;case null:&apos;) as appropriate..
         /// </summary>
         internal static string WRN_DefaultInSwitch {
             get {
@@ -12645,7 +12654,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (&apos;default:&apos;) rather than &apos;case default:&apos;?.
         /// </summary>
         internal static string WRN_DefaultInSwitch_Title {
             get {

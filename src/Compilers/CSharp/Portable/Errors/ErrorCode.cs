@@ -1545,6 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_WrongNumberOfSubpatterns = 8402,
         ERR_PropertyPatternNameMissing = 8403,
         //ERR_FeatureIsUnimplemented = 8404,
+        ERR_DefaultPattern = 8405,
         #endregion diagnostics introduced for recursive patterns
 
     }

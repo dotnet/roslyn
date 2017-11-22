@@ -79,8 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            bool wasExpression;
-            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out wasExpression);
+            var innerExpression = node.Expression.SkipParens();
+            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
+            {
+                diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
+                hasErrors = true;
+            }
+
+            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out bool wasExpression);
         }
 
         internal BoundConstantPattern BindConstantPattern(
