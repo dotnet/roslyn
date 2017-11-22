@@ -113,8 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void UpdateText(SourceText newText);
 
         /// <summary>
-        /// Fetches the <see cref="ITextUndoHistory"/> that should be used to undo edits to this document.
+        /// Fetches the <see cref="ITextBuffer"/> that should be used to undo edits to this document.
         /// </summary>
-        ITextUndoHistory GetTextUndoHistory();
+        ITextBuffer GetTextUndoHistoryBuffer();
     }
 }

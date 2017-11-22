@@ -33,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVisualStudioHostProjectContainer _projectContainer;
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly IVsTextManager _textManager;
-        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
@@ -69,7 +68,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             this._runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             this._editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             this._contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
-            _textUndoHistoryRegistry = componentModel.GetService<ITextUndoHistoryRegistry>();
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
@@ -163,7 +161,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     documentKey,
                     getFolderNames,
                     sourceCodeKind,
-                    _textUndoHistoryRegistry,
                     _fileChangeService,
                     openTextBuffer,
                     id,
