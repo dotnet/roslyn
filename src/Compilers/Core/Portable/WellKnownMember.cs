@@ -423,6 +423,8 @@ namespace Microsoft.CodeAnalysis
 
         System_ObsoleteAttribute__ctor,
         System_Span_T__ctor,
+        System_Span_T__get_Item,
+        System_Span_T__get_Length,
 
         Count
     }
