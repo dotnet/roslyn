@@ -179,10 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                             !supportsNonTrailing && invocation.ArgumentList.Arguments.Any(arg => arg.NameColon != null);
 
                         var additionalArguments = capturesAsParameters.Select(parameter =>
-                            (ArgumentSyntax)generator.Argument(
-                                name: shouldUseNamedArguments ? parameter.Name : null,
-                                refKind: parameter.RefKind,
-                                expression: parameter.Name.ToIdentifierName())).ToArray();
+                            (ArgumentSyntax)GenerateArgument(generator, parameter, parameter.Name,
+                                shouldUseNamedArguments)).ToArray();
 
                         editor.ReplaceNode(invocation.ArgumentList,
                             invocation.ArgumentList.AddArguments(additionalArguments));
@@ -221,25 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
                 foreach (var node in root.GetAnnotatedNodes(DelegateToReplaceAnnotation))
                 {
-                    var existingSymbols =
-                        semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken);
-
-                    var reservedNames = existingSymbols.Select(s => s.Name).ToList();
-
-                    var parameterNames =
-                        parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames)).ToList();
-
-                    var lambdaParameters = parameters.Zip(parameterNames,
-                        (p, name) => SyntaxFactory.Parameter(name.ToIdentifierToken())
-                            .WithModifiers(CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind))
-                            .WithType(p.Type.GenerateTypeSyntax()));
-
-                    var lambdaArguments = parameters.Zip(parameterNames, (p, name) =>
-                        generator.Argument(name: null, refKind: p.RefKind, expression: name.ToIdentifierName()));
-
-                    var additionalArguments = capturesAsParameters.Select(p =>
-                        generator.Argument(name: null, refKind: p.RefKind, expression: p.Name.ToIdentifierName()));
-
+                    var reservedNames = GetReservedNames(node, semanticModel, cancellationToken);
+                    var parameterNames = GenerateUniqueParameterNames(parameters, reservedNames);
+                    var lambdaParameters = parameters.Zip(parameterNames, (p, name) => GenerateParameter(name, p));
+                    var lambdaArguments = parameters.Zip(parameterNames, (p, name) => GenerateArgument(generator, p, name));
+                    var additionalArguments = capturesAsParameters.Select(p => GenerateArgument(generator, p, p.Name));
                     var newNode = generator.ValueReturningLambdaExpression(lambdaParameters,
                         generator.InvocationExpression(node, lambdaArguments.Concat(additionalArguments)));
 
@@ -259,6 +243,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
         private static bool SupportsNonTrailingNamedArguments(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
+
+        private static SyntaxNode GenerateArgument(SyntaxGenerator generator, IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
+            => generator.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
+
+        private static List<string> GenerateUniqueParameterNames(ImmutableArray<IParameterSymbol> parameters, List<string> reservedNames)
+            => parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames)).ToList();
+
+        private static List<string> GetReservedNames(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken).Select(s => s.Name).ToList();
+
+        private static ParameterSyntax GenerateParameter(string name, IParameterSymbol p)
+        {
+            return SyntaxFactory.Parameter(name.ToIdentifierToken())
+                .WithModifiers(CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind))
+                .WithType(p.Type.GenerateTypeSyntax());
+        }
 
         private static MethodDeclarationSyntax WithBodyFrom(
             MethodDeclarationSyntax method, LocalFunctionStatementSyntax localFunction)
