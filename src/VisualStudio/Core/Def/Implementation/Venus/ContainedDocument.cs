@@ -181,8 +181,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 #pragma warning restore 67
 
-        IVisualStudioHostProject IVisualStudioHostDocument.Project { get { return this.Project; } }
-
         public ITextBuffer GetOpenTextBuffer()
         {
             return _containedLanguage.SubjectBuffer;

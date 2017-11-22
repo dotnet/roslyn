@@ -108,12 +108,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        internal IVisualStudioHostProject GetHostProject(ProjectId projectId)
+        internal AbstractProject GetHostProject(ProjectId projectId)
         {
             return DeferredState?.ProjectTracker.GetProject(projectId);
         }
 
-        private bool TryGetHostProject(ProjectId projectId, out IVisualStudioHostProject project)
+        private bool TryGetHostProject(ProjectId projectId, out AbstractProject project)
         {
             project = GetHostProject(projectId);
             return project != null;
@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private bool TryGetProjectData(ProjectId projectId, out IVisualStudioHostProject hostProject, out IVsHierarchy hierarchy, out EnvDTE.Project project)
+        private bool TryGetProjectData(ProjectId projectId, out AbstractProject hostProject, out IVsHierarchy hierarchy, out EnvDTE.Project project)
         {
             hierarchy = null;
             project = null;
@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 && hierarchy.TryGetProject(out project);
         }
 
-        internal void GetProjectData(ProjectId projectId, out IVisualStudioHostProject hostProject, out IVsHierarchy hierarchy, out EnvDTE.Project project)
+        internal void GetProjectData(ProjectId projectId, out AbstractProject hostProject, out IVsHierarchy hierarchy, out EnvDTE.Project project)
         {
             if (!TryGetProjectData(projectId, out hostProject, out hierarchy, out project))
             {
@@ -622,7 +622,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 #endif
 
         private ProjectItem AddDocumentToProject(
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             EnvDTE.Project project,
             DocumentId documentId,
             string documentName,
@@ -641,7 +641,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private ProjectItem AddDocumentToFolder(
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             EnvDTE.Project project,
             DocumentId documentId,
             IEnumerable<string> folders,
@@ -662,7 +662,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private ProjectItem AddDocumentToProjectItems(
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             ProjectItems projectItems,
             DocumentId documentId,
             string folderPath,
@@ -865,7 +865,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             hostDocument.UpdateText(newText);
         }
 
-        private static string GetPreferredExtension(IVisualStudioHostProject hostProject, SourceCodeKind sourceCodeKind)
+        private static string GetPreferredExtension(AbstractProject hostProject, SourceCodeKind sourceCodeKind)
         {
             // No extension was provided.  Pick a good one based on the type of host project.
             switch (hostProject.Language)

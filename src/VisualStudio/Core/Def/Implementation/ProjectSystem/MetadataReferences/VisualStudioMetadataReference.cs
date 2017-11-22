@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed partial class VisualStudioMetadataReference : IDisposable
     {
         private readonly VisualStudioMetadataReferenceManager _provider;
-        private readonly IVisualStudioHostProject _hostProject;
+        private readonly AbstractProject _hostProject;
         private readonly MetadataReferenceProperties _properties;
         private readonly FileChangeTracker _fileChangeTracker;
 
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioMetadataReference(
             VisualStudioMetadataReferenceManager provider,
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             string filePath,
             MetadataReferenceProperties properties)
         {
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get { return _fileChangeTracker.FilePath; }
         }
 
-        public IVisualStudioHostProject Project
+        public AbstractProject Project
         {
             get { return _hostProject; }
         }

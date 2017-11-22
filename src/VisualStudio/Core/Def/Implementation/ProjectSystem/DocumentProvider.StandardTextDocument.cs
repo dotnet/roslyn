@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public DocumentId Id { get; }
             public IReadOnlyList<string> Folders { get; }
-            public IVisualStudioHostProject Project { get; }
+            public AbstractProject Project { get; }
             public SourceCodeKind SourceCodeKind { get; }
             public DocumentKey Key { get; }
 
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
-                IVisualStudioHostProject project,
+                AbstractProject project,
                 DocumentKey documentKey,
                 Func<uint, IReadOnlyList<string>> getFolderNames,
                 SourceCodeKind sourceCodeKind,

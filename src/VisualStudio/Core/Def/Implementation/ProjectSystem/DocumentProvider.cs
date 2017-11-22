@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Immutable readonly fields/properties that can be accessed from foreground or background threads - do not need locking for access.
         private readonly object _gate = new object();
         private readonly uint _runningDocumentTableEventCookie;
-        private readonly IVisualStudioHostProjectContainer _projectContainer;
+        private readonly VisualStudioProjectTracker _projectTracker;
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly IVsTextManager _textManager;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
@@ -53,17 +53,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Creates a document provider.
         /// </summary>
-        /// <param name="projectContainer">Project container for the documents.</param>
         /// <param name="serviceProvider">Service provider</param>
         /// <param name="documentTrackingService">An optional <see cref="VisualStudioDocumentTrackingService"/> to track active and visible documents.</param>
         public DocumentProvider(
-            IVisualStudioHostProjectContainer projectContainer,
+            VisualStudioProjectTracker projectTracker,
             IServiceProvider serviceProvider,
             VisualStudioDocumentTrackingService documentTrackingService)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-            _projectContainer = projectContainer;
+            _projectTracker = projectTracker;
             this._documentTrackingServiceOpt = documentTrackingService;
             this._runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             this._editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
@@ -91,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// whenever <see cref="NotifyDocumentRegisteredToProjectAndStartToRaiseEvents"/> is invoked for the returned document.
         /// </summary>
         public IVisualStudioHostDocument TryGetDocumentForFile(
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             string filePath,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
@@ -331,7 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
             {
                 var hasAssociatedRoslynDocument = false;
-                foreach (var project in _projectContainer.GetProjects())
+                foreach (var project in _projectTracker.ImmutableProjects)
                 {
                     var documentKey = new DocumentKey(project, moniker);
 
@@ -388,11 +387,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // This is opening some other designer or property page. If it's tied to our IVsHierarchy, we should
                 // let the workspace know
-                foreach (var project in _projectContainer.GetProjects())
+                foreach (var project in _projectTracker.ImmutableProjects)
                 {
                     if (hierarchy == project.Hierarchy)
                     {
-                        _projectContainer.NotifyNonDocumentOpenedForProject(project);
+                        _projectTracker.NotifyNonDocumentOpenedForProject(project);
                     }
                 }
             }
