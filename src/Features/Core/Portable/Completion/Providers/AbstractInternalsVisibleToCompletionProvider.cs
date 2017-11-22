@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //[Attribute(""|
             //[Attribute("Text"|)
             var node = token.Parent;
-            if (syntaxFactsService.IsStringLiteralExpression(node))
+            if (node != null && syntaxFactsService.IsStringLiteralExpression(node))
             {
                 // Edge case: ElementAccessExpressionSyntax is present if the following statement is another attribute:
                 //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("|
