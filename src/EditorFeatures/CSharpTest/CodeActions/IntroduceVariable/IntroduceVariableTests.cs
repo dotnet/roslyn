@@ -36,6 +36,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() [||]=> { });
+    }
+}",
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        Action {|Rename:action1|} = () => { };
+        M(action1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(int a, int b)
+    {
+        var x = a [||]+ b + 3;
+    }
+}",
+@"using System;
+class C
+{
+    void M(int a, int b)
+    {
+        int {|Rename:v|} = a + b;
+        var x = v + 3;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan3()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    void M(int a)
+    {
+        var x = [||]a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan4()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() => { var x [||]= y; });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()
         {
             await TestInRegularAndScriptAsync(
@@ -4356,29 +4430,6 @@ struct TextSpan
     public TextSpan(int start, int length)
     {
 
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestEmptySpan1()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-class C
-{
-    void M(Action action)
-    {
-        M(() [||]=> { });
-    }
-}",
-@"using System;
-class C
-{
-    void M(Action action)
-    {
-        Action {|Rename:action1|} = () => { };
-        M(action1);
     }
 }");
         }

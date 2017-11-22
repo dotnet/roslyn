@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var root = tree.GetRoot(cancellationToken);
                 if (textSpan.Length == 0)
                 {
-                    return root.FindToken(textSpan.Start).GetAncestor<TExpressionSyntax>();
+                    return root.FindToken(textSpan.Start).Parent as TExpressionSyntax;
                 }
 
                 var startToken = root.FindToken(textSpan.Start);
