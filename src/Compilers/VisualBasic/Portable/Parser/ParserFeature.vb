@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case feature
                 Case Feature.IOperation
                     Return "IOperation"
-                Case Feature.OptionalParameterDefaultn
+                Case Feature.OptionalParameterDefault
                     Return "OptionalParameterDefault"
                 Case Else
                     Return Nothing
