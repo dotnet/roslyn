@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
                 document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
 
-            var editor = new SyntaxEditor(root, s_generator);
+            var generator = s_generator;
+            var editor = new SyntaxEditor(root, generator);
 
             var needsRename = methodName != declaredSymbol.Name;
             var identifierToken = needsRename ? methodName.ToIdentifierToken() : default;
@@ -164,10 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
                 if (hasAdditionalTypeArguments)
                 {
-                    var existingTypeArguments = symbol.TypeArguments.Select(x => x.GenerateTypeSyntax());
+                    var existingTypeArguments = symbol.TypeArguments.Select(s => s.GenerateTypeSyntax());
                     // Prepend additional type arguments to preserve lexical order in which they are defined
                     var typeArguments = additionalTypeArguments.Concat(existingTypeArguments);
-                    currentNode = s_generator.WithTypeArguments(currentNode, typeArguments);
+                    currentNode = generator.WithTypeArguments(currentNode, typeArguments);
                     currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
@@ -178,9 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                         var shouldUseNamedArguments =
                             !supportsNonTrailing && invocation.ArgumentList.Arguments.Any(arg => arg.NameColon != null);
 
-                        var additionalArguments = capturesAsParameters.Select(parameter =>
-                            (ArgumentSyntax)GenerateArgument(parameter, parameter.Name,
-                                shouldUseNamedArguments)).ToArray();
+                        var additionalArguments = capturesAsParameters.Select(p =>
+                            (ArgumentSyntax)GenerateArgument(p, p.Name, shouldUseNamedArguments)).ToArray();
 
                         editor.ReplaceNode(invocation.ArgumentList,
                             invocation.ArgumentList.AddArguments(additionalArguments));
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             method = WithBodyFrom(method, localFunction);
 
-            editor = new SyntaxEditor(root, s_generator);
+            editor = new SyntaxEditor(root, generator);
             editor.InsertAfter(container, method);
             editor.RemoveNode(localFunction, SyntaxRemoveOptions.KeepNoTrivia);
 
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 document = document.WithSyntaxRoot(editor.GetChangedRoot());
                 semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                editor = new SyntaxEditor(root, s_generator);
+                editor = new SyntaxEditor(root, generator);
 
                 foreach (var node in root.GetAnnotatedNodes(s_delegateToReplaceAnnotation))
                 {
@@ -224,8 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     var lambdaParameters = parameters.Zip(parameterNames, (p, name) => GenerateParameter(p, name));
                     var lambdaArguments = parameters.Zip(parameterNames, (p, name) => GenerateArgument(p, name));
                     var additionalArguments = capturesAsParameters.Select(p => GenerateArgument(p, p.Name));
-                    var newNode = s_generator.ValueReturningLambdaExpression(lambdaParameters,
-                        s_generator.InvocationExpression(node, lambdaArguments.Concat(additionalArguments)));
+                    var newNode = generator.ValueReturningLambdaExpression(lambdaParameters,
+                        generator.InvocationExpression(node, lambdaArguments.Concat(additionalArguments)));
 
                     newNode = newNode.WithAdditionalAnnotations(Simplifier.Annotation);
 
