@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Tuples
         IOperation
         InferredTupleNames
+
         LeadingDigitSeparator
         NonTrailingNamedArguments
         PrivateProtected
@@ -172,6 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_PrivateProtected
                 Case Feature.OptionalParameterDefault ' PROTOTYPE: VB Language Feature
                     Return ERRID.FEATURE_OptionalParameterDefault
+
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

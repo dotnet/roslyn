@@ -12116,7 +12116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ResourceManager.GetString("FEATURE_NullPropagatingOperator", resourceCulture)
             End Get
         End Property
-                
+
         '''<summary>
         '''  Looks up a localized string similar to Optional Parameter Default.
         '''</summary>
