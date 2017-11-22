@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Convert_to_regular_method, createChangedDocument)
+                : base(CSharpFeaturesResources.Convert_to_method, createChangedDocument)
             {
             }
         }

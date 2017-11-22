@@ -315,11 +315,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to regular method.
+        ///   Looks up a localized string similar to Convert to method.
         /// </summary>
-        internal static string Convert_to_regular_method {
+        internal static string Convert_to_method {
             get {
-                return ResourceManager.GetString("Convert_to_regular_method", resourceCulture);
+                return ResourceManager.GetString("Convert_to_method", resourceCulture);
             }
         }
         

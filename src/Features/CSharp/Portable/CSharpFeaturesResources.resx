@@ -530,4 +530,7 @@
   <data name="Convert_to_regular_method" xml:space="preserve">
     <value>Convert to regular method</value>
   </data>
+  <data name="Convert_to_method" xml:space="preserve">
+    <value>Convert to method</value>
+  </data>
 </root>
