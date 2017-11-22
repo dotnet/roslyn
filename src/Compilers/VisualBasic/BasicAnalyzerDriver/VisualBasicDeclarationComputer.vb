@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 Case SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement
                     Dim t = CType(node, DelegateStatementSyntax)
-                    Dim paramInitializers As IEnumerable(Of SyntaxNode) = GetParameterInitializers(t.ParameterList)
+                    Dim paramInitializers As IEnumerable(Of SyntaxNode) = GetParameterListInitializersAndAttributes(t.ParameterList)
                     Dim attributes = GetAttributes(t.AttributeLists)
                     Dim codeBlocks = paramInitializers.Concat(attributes)
                     builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
@@ -87,14 +87,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each decl In t.Accessors
                         ComputeDeclarationsCore(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
-                    Dim eventInitializers = GetParameterInitializers(t.EventStatement.ParameterList)
+                    Dim eventInitializers = GetParameterListInitializersAndAttributes(t.EventStatement.ParameterList)
                     Dim attributes = GetAttributes(t.EventStatement.AttributeLists)
                     Dim codeBlocks = eventInitializers.Concat(attributes)
                     builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
                     Return
                 Case SyntaxKind.EventStatement
                     Dim t = CType(node, EventStatementSyntax)
-                    Dim paramInitializers = GetParameterInitializers(t.ParameterList)
+                    Dim paramInitializers = GetParameterListInitializersAndAttributes(t.ParameterList)
                     Dim attributes = GetAttributes(t.AttributeLists)
                     Dim codeBlocks = paramInitializers.Concat(attributes)
                     builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
@@ -132,6 +132,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each decl In t.Members
                         ComputeDeclarationsCore(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
+
+                    If Not t.Attributes.IsEmpty Then
+                        Dim attributes = GetAttributes(t.Attributes)
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken))
+                    End If
                     Return
                 Case Else
                     Dim typeBlock = TryCast(node, TypeBlockSyntax)
@@ -153,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
                     If methodBlock IsNot Nothing Then
-                        Dim paramInitializers = GetParameterInitializers(methodBlock.BlockStatement.ParameterList)
+                        Dim paramInitializers = GetParameterListInitializersAndAttributes(methodBlock.BlockStatement.ParameterList)
                         Dim attributes = GetAttributes(methodBlock.BlockStatement.AttributeLists)
                         Dim codeBlocks = paramInitializers.Concat(methodBlock).Concat(attributes)
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
@@ -162,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim methodStatement = TryCast(node, MethodBaseSyntax)
                     If methodStatement IsNot Nothing Then
-                        Dim paramInitializers = GetParameterInitializers(methodStatement.ParameterList)
+                        Dim paramInitializers = GetParameterListInitializersAndAttributes(methodStatement.ParameterList)
                         Dim attributes = GetAttributes(methodStatement.AttributeLists)
                         Dim codeBlocks = paramInitializers.Concat(attributes)
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
@@ -173,6 +178,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Sub
 
+        Private Shared Function GetAttributes(attributeStatements As SyntaxList(Of AttributesStatementSyntax)) As IEnumerable(Of SyntaxNode)
+            Dim attributes = SpecializedCollections.EmptyEnumerable(Of SyntaxNode)
+            For Each attributeStatement In attributeStatements
+                attributes = attributes.Concat(GetAttributes(attributeStatement.AttributeLists))
+            Next
+
+            Return attributes
+        End Function
+
         Private Shared Iterator Function GetAttributes(attributeLists As SyntaxList(Of AttributeListSyntax)) As IEnumerable(Of SyntaxNode)
             For Each attributeList In attributeLists
                 For Each attribute In attributeList.Attributes
@@ -181,14 +195,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Function
 
-        Private Shared Function GetParameterInitializers(parameterList As ParameterListSyntax) As IEnumerable(Of SyntaxNode)
+        Private Shared Function GetParameterListInitializersAndAttributes(parameterList As ParameterListSyntax) As IEnumerable(Of SyntaxNode)
             Return If(parameterList IsNot Nothing,
-                parameterList.Parameters.Select(Function(p) p.Default),
+                parameterList.Parameters.SelectMany(Function(p) GetParameterInitializersAndAttributes(p)),
                 SpecializedCollections.EmptyEnumerable(Of SyntaxNode))
         End Function
 
+        Private Shared Function GetParameterInitializersAndAttributes(parameter As ParameterSyntax) As IEnumerable(Of SyntaxNode)
+            Return SpecializedCollections.SingletonEnumerable(Of SyntaxNode)(parameter.Default).Concat(GetAttributes(parameter.AttributeLists))
+        End Function
+
         Private Shared Function GetInitializerNodes(propertyStatement As PropertyStatementSyntax) As IEnumerable(Of SyntaxNode)
-            Dim parameterInitializers = GetParameterInitializers(propertyStatement.ParameterList)
+            Dim parameterInitializers = GetParameterListInitializersAndAttributes(propertyStatement.ParameterList)
             Dim initializer As SyntaxNode = propertyStatement.Initializer
             If initializer Is Nothing Then
                 initializer = GetAsNewClauseIntializer(propertyStatement.AsClause)

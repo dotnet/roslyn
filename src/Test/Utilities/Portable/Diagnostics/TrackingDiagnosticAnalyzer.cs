@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.StaticConstructor, ReturnsVoid = true },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.UserDefinedOperator, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Property, MethodKind = InvalidMethodKind, ReturnsVoid = false },
-                new { SymbolKind = SymbolKind.NamedType, MethodKind = InvalidMethodKind, ReturnsVoid = false }
+                new { SymbolKind = SymbolKind.NamedType, MethodKind = InvalidMethodKind, ReturnsVoid = false },
+                new { SymbolKind = SymbolKind.Namespace, MethodKind = InvalidMethodKind, ReturnsVoid = false }
             }.AsEnumerable();
 
             if (symbolKindsWithNoCodeBlocks != null)
