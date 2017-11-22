@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 aliasSymbol = null;
                 var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
                 var overriddenSymbol = overriddingSymbol.GetOverriddenMember();
-                type = overriddenSymbol as ITypeSymbol;
+                type = null;
                 declaredSymbol = null;
                 allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create(overriddenSymbol);
             }
