@@ -41,30 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {
-            ISymbol symbol = null;
+            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-
-            // If the cursor is on the keyword for overriding, we'll find the overridden symbol
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var syntaxService = document.GetLanguageService<ISyntaxFactsService>();
-            var overridePosition = syntaxService.GetDeclarationPositionIfOverride(syntaxTree, position, cancellationToken);
-            if (overridePosition >= 0)
-            {
-                var (overrideSymbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, overridePosition, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (overrideSymbol != null)
-                {
-                    symbol = INamedTypeSymbolExtensions.GetOverriddenMember(overrideSymbol);
-                }
-            }
-
+            var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
             if (symbol is null)
             {
-                // Try to compute the referenced symbol and attempt to go to definition for the symbol.
-                (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (symbol is null)
-                {
-                    return false;
-                }
+                return false;
             }
 
             var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);

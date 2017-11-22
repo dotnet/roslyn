@@ -1702,25 +1702,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw New NotImplementedException()
         End Function
 
-        Public Function GetDeclarationPositionIfOverride(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Integer Implements ISyntaxFactsService.GetDeclarationPositionIfOverride
-            Dim token = [Shared].Extensions.SyntaxTreeExtensions.GetTouchingTokenAsync(syntaxTree, position, cancellationToken).WaitAndGetResult(cancellationToken)
-
-            If token.Kind() = SyntaxKind.OverridesKeyword Then
-                Dim parent = token.Parent
-                Select Case parent.Kind()
-                    Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
-                        Dim method = DirectCast(parent, MethodStatementSyntax)
-                        Return method.Identifier.SpanStart
-
-                    Case SyntaxKind.PropertyStatement
-                        Dim [property] = DirectCast(parent, PropertyStatementSyntax)
-                        Return [property].Identifier.SpanStart
-
-                End Select
-            End If
-
-            Return -1
-        End Function
-
     End Class
 End Namespace
