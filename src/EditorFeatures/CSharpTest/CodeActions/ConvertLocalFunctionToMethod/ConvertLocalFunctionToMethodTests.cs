@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
         _ = typeof(T2);
         _ = typeof(T4);
         LocalFunction1<T2, T4, T5, T6>(a, b);
-        System.Action<T5, T6> x = (T5 a, T6 b) => LocalFunction1<T2, T4, T5, T6>(a, b);
+        System.Action<T5, T6> x = (T5 a1, T6 b1) => LocalFunction1<T2, T4, T5, T6>(a1, b1);
     }
 }");
         }

@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertLocalFunctionToMethodCodeRefactoringProvider)), Shared]
     internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
+        private static readonly SyntaxAnnotation DelegateToReplaceAnnotation = new SyntaxAnnotation();
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             var defaultOptions = CodeGenerationOptions.Default;
             var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
-                    document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
+                document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
 
             var generator = CSharpSyntaxGenerator.Instance;
             var editor = new SyntaxEditor(root, generator);
@@ -132,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 ? additionalTypeParameters.Select(p => (TypeSyntax)p.Name.ToIdentifierName()).ToArray()
                 : null;
 
+            var anyDelegatesToReplace = false;
             // Update callers' name, arguments and type arguments
             foreach (var node in parentBlock.DescendantNodes())
             {
@@ -188,22 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 else if (hasAdditionalArguments || hasAdditionalTypeArguments)
                 {
                     // Convert local function delegates to lambda if the signature no longer matches
-                    var arguments = parameters
-                        .Concat(capturesAsParameters)
-                        .Select(parameter => generator.Argument(
-                            name: null, refKind: parameter.RefKind,
-                            expression: parameter.Name.ToIdentifierName()));
-
-                    currentNode = generator.ValueReturningLambdaExpression(
-                        lambdaParameters: ParameterGenerator.GetParameters(parameters, isExplicit: true, options: defaultOptions),
-                        expression: generator.InvocationExpression(currentNode, arguments));
-
-                    currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
-
-                    if (node.IsParentKind(SyntaxKind.CastExpression))
-                    {
-                        currentNode = ((ExpressionSyntax)currentNode).Parenthesize();
-                    }
+                    currentNode = currentNode.WithAdditionalAnnotations(DelegateToReplaceAnnotation);
+                    anyDelegatesToReplace = true;
                 }
 
                 editor.ReplaceNode(node, currentNode);
@@ -222,6 +211,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             editor = new SyntaxEditor(root, generator);
             editor.InsertAfter(container, method);
             editor.RemoveNode(localFunction, SyntaxRemoveOptions.KeepNoTrivia);
+
+            if (anyDelegatesToReplace)
+            {
+                document = document.WithSyntaxRoot(editor.GetChangedRoot());
+                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                editor = new SyntaxEditor(root, generator);
+
+                foreach (var node in root.GetAnnotatedNodes(DelegateToReplaceAnnotation))
+                {
+                    var existingSymbols =
+                        semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken);
+
+                    var reservedNames = existingSymbols.Select(s => s.Name).ToList();
+
+                    var parameterNames =
+                        parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames)).ToList();
+
+                    var lambdaParameters = parameters.Zip(parameterNames,
+                        (p, name) => SyntaxFactory.Parameter(name.ToIdentifierToken())
+                            .WithModifiers(CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind))
+                            .WithType(p.Type.GenerateTypeSyntax()));
+
+                    var lambdaArguments = parameters.Zip(parameterNames, (p, name) =>
+                        generator.Argument(name: null, refKind: p.RefKind, expression: name.ToIdentifierName()));
+
+                    var additionalArguments = capturesAsParameters.Select(p =>
+                        generator.Argument(name: null, refKind: p.RefKind, expression: p.Name.ToIdentifierName()));
+
+                    var newNode = generator.ValueReturningLambdaExpression(lambdaParameters,
+                        generator.InvocationExpression(node, lambdaArguments.Concat(additionalArguments)));
+
+                    newNode = newNode.WithAdditionalAnnotations(Simplifier.Annotation);
+
+                    if (node.IsParentKind(SyntaxKind.CastExpression))
+                    {
+                        newNode = ((ExpressionSyntax)newNode).Parenthesize();
+                    }
+
+                    editor.ReplaceNode(node, newNode);
+                }
+            }
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
