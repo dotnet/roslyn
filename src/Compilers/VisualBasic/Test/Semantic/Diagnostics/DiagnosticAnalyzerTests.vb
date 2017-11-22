@@ -1290,7 +1290,8 @@ Friend Class C
         FieldForEvent As Integer = 11, FieldForAddHandler As Integer = 12, FieldForRemoveHandler As Integer = 13, FieldForRaiseHandler As Integer = 14, FieldForProperty As Integer = 15,
         FieldForPropertyGetter As Integer = 16, FieldForPropertySetter As Integer = 17, FieldForIndexer As Integer = 18, FieldForIndexerGetter As Integer = 19, FieldForIndexerSetter As Integer = 20,
         FieldForMethodParameter As Integer = 21, FieldForEventParameter As Integer = 22, FieldForDelegateSubParameter As Integer = 23, FieldForDelegateFunctionParameter As Integer = 24, FieldForIndexerParameter As Integer = 25,
-        FieldForAssembly As Integer = 26, FieldForModule As Integer = 27
+        FieldForAssembly As Integer = 26, FieldForModule As Integer = 27, FieldForMethodReturnType As Integer = 28, FieldForDelegateFunctionReturnType As Integer = 29, FieldForPropertyReturnType As Integer = 30,
+        FieldForIndexerReturnType = 31
 
     <MyAttribute(FieldForStruct)>
     Private Structure S
@@ -1304,8 +1305,9 @@ Friend Class C
     Private field2 As Integer = 0, field3 As Integer = 0
 
     <MyAttribute(FieldForMethod)>
-    Private Sub M1(<MyAttribute(FieldForMethodParameter)> p1 As Integer)
-    End Sub
+    Private Function M1(<MyAttribute(FieldForMethodParameter)> p1 As Integer) As <MyAttribute(FieldForMethodReturnType)> Integer
+        Return 0
+    End Function
 
     <MyAttribute(FieldForEnum)>
     Private Enum E
@@ -1317,7 +1319,7 @@ Friend Class C
     Public Delegate Sub [Delegate](<MyAttribute(FieldForDelegateSubParameter)> p1 As Integer)
 
     <MyAttribute(FieldForDelegateFunction)>
-    Public Delegate Function Delegate2(<MyAttribute(FieldForDelegateFunctionParameter)> p1 As Integer)
+    Public Delegate Function Delegate2(<MyAttribute(FieldForDelegateFunctionParameter)> p1 As Integer) As <MyAttribute(FieldForDelegateFunctionReturnType)> Integer
 
     <MyAttribute(FieldForEventField)>
     Public Event MyEvent(<MyAttribute(FieldForEventParameter)> p1 As Integer)
@@ -1336,7 +1338,7 @@ Friend Class C
     End Event
 
     <MyAttribute(FieldForProperty)>
-    Private Property P1() As Integer
+    Private Property P1() As <MyAttribute(FieldForPropertyReturnType)> Integer
         <MyAttribute(FieldForPropertyGetter)>
         Get
             Return 0
@@ -1347,7 +1349,7 @@ Friend Class C
     End Property
 
     <MyAttribute(FieldForIndexer)>
-    Default Property Item(<MyAttribute(FieldForIndexerParameter)> index As Integer) As Integer
+    Default Property Item(<MyAttribute(FieldForIndexerParameter)> index As Integer) As <MyAttribute(FieldForIndexerReturnType)> Integer
         <MyAttribute(FieldForIndexerGetter)>
         Get
             Return 0
@@ -1374,33 +1376,37 @@ End Class
         Private Shared Sub TestFieldReferenceAnalyzer_InAttributes_Core(comp As Compilation, doOperationBlockAnalysis As Boolean)
             comp.VerifyAnalyzerDiagnostics({New FieldReferenceOperationAnalyzer(doOperationBlockAnalysis)}, Nothing, Nothing, False,
                 Diagnostic("ID", "C.FieldForClass").WithArguments("FieldForClass", "1").WithLocation(16, 14),
-                Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(26, 18),
-                Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(30, 18),
-                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(34, 18),
-                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(34, 18),
-                Diagnostic("ID", "FieldForMethod").WithArguments("FieldForMethod", "5").WithLocation(37, 18),
-                Diagnostic("ID", "FieldForEnum").WithArguments("FieldForEnum", "6").WithLocation(41, 18),
-                Diagnostic("ID", "FieldForEnumMember").WithArguments("FieldForEnumMember", "7").WithLocation(43, 22),
-                Diagnostic("ID", "FieldForDelegateSub").WithArguments("FieldForDelegateSub", "8").WithLocation(47, 18),
-                Diagnostic("ID", "FieldForDelegateFunction").WithArguments("FieldForDelegateFunction", "9").WithLocation(50, 18),
-                Diagnostic("ID", "FieldForEventField").WithArguments("FieldForEventField", "10").WithLocation(53, 18),
-                Diagnostic("ID", "FieldForEvent").WithArguments("FieldForEvent", "11").WithLocation(56, 18),
-                Diagnostic("ID", "FieldForAddHandler").WithArguments("FieldForAddHandler", "12").WithLocation(58, 22),
-                Diagnostic("ID", "FieldForRemoveHandler").WithArguments("FieldForRemoveHandler", "13").WithLocation(61, 22),
-                Diagnostic("ID", "FieldForRaiseHandler").WithArguments("FieldForRaiseHandler", "14").WithLocation(64, 22),
-                Diagnostic("ID", "FieldForProperty").WithArguments("FieldForProperty", "15").WithLocation(69, 18),
-                Diagnostic("ID", "FieldForPropertyGetter").WithArguments("FieldForPropertyGetter", "16").WithLocation(71, 22),
-                Diagnostic("ID", "FieldForPropertySetter").WithArguments("FieldForPropertySetter", "17").WithLocation(75, 22),
-                Diagnostic("ID", "FieldForIndexer").WithArguments("FieldForIndexer", "18").WithLocation(80, 18),
-                Diagnostic("ID", "FieldForIndexerGetter").WithArguments("FieldForIndexerGetter", "19").WithLocation(82, 22),
-                Diagnostic("ID", "FieldForIndexerSetter").WithArguments("FieldForIndexerSetter", "20").WithLocation(86, 22),
-                Diagnostic("ID", "FieldForMethodParameter").WithArguments("FieldForMethodParameter", "21").WithLocation(38, 33),
-                Diagnostic("ID", "FieldForEventParameter").WithArguments("FieldForEventParameter", "22").WithLocation(54, 39),
-                Diagnostic("ID", "FieldForDelegateSubParameter").WithArguments("FieldForDelegateSubParameter", "23").WithLocation(48, 49),
-                Diagnostic("ID", "FieldForDelegateFunctionParameter").WithArguments("FieldForDelegateFunctionParameter", "24").WithLocation(51, 53),
-                Diagnostic("ID", "FieldForIndexerParameter").WithArguments("FieldForIndexerParameter", "25").WithLocation(81, 40),
+                Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(27, 18),
+                Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(31, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(35, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(35, 18),
+                Diagnostic("ID", "FieldForMethod").WithArguments("FieldForMethod", "5").WithLocation(38, 18),
+                Diagnostic("ID", "FieldForEnum").WithArguments("FieldForEnum", "6").WithLocation(43, 18),
+                Diagnostic("ID", "FieldForEnumMember").WithArguments("FieldForEnumMember", "7").WithLocation(45, 22),
+                Diagnostic("ID", "FieldForDelegateSub").WithArguments("FieldForDelegateSub", "8").WithLocation(49, 18),
+                Diagnostic("ID", "FieldForDelegateFunction").WithArguments("FieldForDelegateFunction", "9").WithLocation(52, 18),
+                Diagnostic("ID", "FieldForEventField").WithArguments("FieldForEventField", "10").WithLocation(55, 18),
+                Diagnostic("ID", "FieldForEvent").WithArguments("FieldForEvent", "11").WithLocation(58, 18),
+                Diagnostic("ID", "FieldForAddHandler").WithArguments("FieldForAddHandler", "12").WithLocation(60, 22),
+                Diagnostic("ID", "FieldForRemoveHandler").WithArguments("FieldForRemoveHandler", "13").WithLocation(63, 22),
+                Diagnostic("ID", "FieldForRaiseHandler").WithArguments("FieldForRaiseHandler", "14").WithLocation(66, 22),
+                Diagnostic("ID", "FieldForProperty").WithArguments("FieldForProperty", "15").WithLocation(71, 18),
+                Diagnostic("ID", "FieldForPropertyGetter").WithArguments("FieldForPropertyGetter", "16").WithLocation(73, 22),
+                Diagnostic("ID", "FieldForPropertySetter").WithArguments("FieldForPropertySetter", "17").WithLocation(77, 22),
+                Diagnostic("ID", "FieldForIndexer").WithArguments("FieldForIndexer", "18").WithLocation(82, 18),
+                Diagnostic("ID", "FieldForIndexerGetter").WithArguments("FieldForIndexerGetter", "19").WithLocation(84, 22),
+                Diagnostic("ID", "FieldForIndexerSetter").WithArguments("FieldForIndexerSetter", "20").WithLocation(88, 22),
+                Diagnostic("ID", "FieldForMethodParameter").WithArguments("FieldForMethodParameter", "21").WithLocation(39, 38),
+                Diagnostic("ID", "FieldForEventParameter").WithArguments("FieldForEventParameter", "22").WithLocation(56, 39),
+                Diagnostic("ID", "FieldForDelegateSubParameter").WithArguments("FieldForDelegateSubParameter", "23").WithLocation(50, 49),
+                Diagnostic("ID", "FieldForDelegateFunctionParameter").WithArguments("FieldForDelegateFunctionParameter", "24").WithLocation(53, 53),
+                Diagnostic("ID", "FieldForIndexerParameter").WithArguments("FieldForIndexerParameter", "25").WithLocation(83, 40),
                 Diagnostic("ID", "C.FieldForAssembly").WithArguments("FieldForAssembly", "26").WithLocation(3, 24),
-                Diagnostic("ID", "C.FieldForModule").WithArguments("FieldForModule", "27").WithLocation(4, 22))
+                Diagnostic("ID", "C.FieldForModule").WithArguments("FieldForModule", "27").WithLocation(4, 22),
+                Diagnostic("ID", "FieldForMethodReturnType").WithArguments("FieldForMethodReturnType", "28").WithLocation(39, 95),
+                Diagnostic("ID", "FieldForDelegateFunctionReturnType").WithArguments("FieldForDelegateFunctionReturnType", "29").WithLocation(53, 120),
+                Diagnostic("ID", "FieldForPropertyReturnType").WithArguments("FieldForPropertyReturnType", "30").WithLocation(72, 43),
+                Diagnostic("ID", "FieldForIndexerReturnType").WithArguments("FieldForIndexerReturnType", "31").WithLocation(83, 101))
         End Sub
     End Class
 End Namespace
