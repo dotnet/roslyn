@@ -1389,7 +1389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return expr
         End Function
 
-        Friend Function MakeRValueAndIgnoreDiagnostics(
+        Private Function MakeRValueAndIgnoreDiagnostics(
            expr As BoundExpression
         ) As BoundExpression
             Dim ignoreErrors = DiagnosticBag.GetInstance()
