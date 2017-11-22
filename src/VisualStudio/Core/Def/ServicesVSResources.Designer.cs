@@ -227,6 +227,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer auto properties.
+        /// </summary>
+        internal static string analyzer_Prefer_auto_properties {
+            get {
+                return ResourceManager.GetString("analyzer_Prefer_auto_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analyzer reference to &apos;{0}&apos; in project &apos;{1}&apos;.
         /// </summary>
         internal static string Analyzer_reference_to_0_in_project_1 {
@@ -459,6 +468,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Code_block_preferences_colon {
             get {
                 return ResourceManager.GetString("Code_block_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to prefer auto properties.
+        /// </summary>
+        internal static string codegen_prefer_auto_properties {
+            get {
+                return ResourceManager.GetString("codegen_prefer_auto_properties", resourceCulture);
             }
         }
         
@@ -1564,24 +1582,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Pick_members {
             get {
                 return ResourceManager.GetString("Pick_members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer auto properties.
-        /// </summary>
-        internal static string Prefer_auto_properties_1 {
-            get {
-                return ResourceManager.GetString("Prefer_auto_properties_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to prefer auto properties.
-        /// </summary>
-        internal static string prefer_auto_properties_2 {
-            get {
-                return ResourceManager.GetString("prefer_auto_properties_2", resourceCulture);
             }
         }
         

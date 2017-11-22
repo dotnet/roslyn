@@ -91,7 +91,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.When_generating_properties
 
         Public ReadOnly Property Option_prefer_auto_properties As String =
-            ServicesVSResources.prefer_auto_properties_2
+            ServicesVSResources.codegen_prefer_auto_properties
 
         Public ReadOnly Property Option_prefer_throwing_properties As String =
             ServicesVSResources.prefer_throwing_properties
