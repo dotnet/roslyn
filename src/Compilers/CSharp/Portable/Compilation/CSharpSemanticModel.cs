@@ -4539,6 +4539,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(selectOrGroupClause, cancellationToken);
                 case OrderByClauseSyntax orderByClauseSyntax when orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.Kind() == SyntaxKind.None:
                     return this.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken);
+                case FromClauseSyntax fromClauseSyntax:
+                    var qryInfo = this.GetQueryClauseInfo(fromClauseSyntax, cancellationToken);
+                    return qryInfo.CastInfo;
                 case QueryClauseSyntax queryClauseSyntax:
                     return this.GetSymbolInfo(queryClauseSyntax, cancellationToken);
                 case OrderingSyntax orderingSyntax:

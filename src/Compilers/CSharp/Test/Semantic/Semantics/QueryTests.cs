@@ -2419,7 +2419,7 @@ class Program
             var selectClause = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SelectClause)).Single() as SelectClauseSyntax;
             var symbolInfoForSelect = semanticModel.GetSemanticInfoSummary(selectClause);
 
-            Assert.Equal("Select", symbolInfoForSelect.Symbol.Name);
+            Assert.Null(symbolInfoForSelect.Symbol);
         }
 
         [WorkItem(528756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528756")]

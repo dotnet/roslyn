@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SymbolInfo GetSymbolInfoForQuery(BoundQueryClause bound)
         {
-            var call = (bound?.Operation as BoundCall) ?? (bound.UnoptimizedForm as BoundQueryClause)?.Operation as BoundCall;
+            var call = bound?.Operation as BoundCall;
             if (call == null)
             {
                 return SymbolInfo.None;
@@ -1602,7 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-done:
+            done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }
