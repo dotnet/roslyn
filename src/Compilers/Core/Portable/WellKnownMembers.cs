@@ -2947,7 +2947,7 @@ namespace Microsoft.CodeAnalysis
 
                  // System_ReadOnlySpan__get_Item
                  (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0,
@@ -2955,7 +2955,7 @@ namespace Microsoft.CodeAnalysis
 
                  // System_ReadOnlySpan__get_Length
                  (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,

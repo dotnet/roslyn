@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return RewriteMultiDimensionalArrayForEachStatement(node);
                 }
             }
-            else if (CanRewriteForeachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
+            else if (CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
             {
                 return RewriteForEachStatementAsFor(node, indexerGet, lengthGetter);
             }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CanRewriteForeachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, out MethodSymbol indexerGet, out MethodSymbol lengthGet)
+        private bool CanRewriteForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, out MethodSymbol indexerGet, out MethodSymbol lengthGet)
         {
             lengthGet = indexerGet = null;
             var origDefinition = nodeExpressionType.OriginalDefinition;
