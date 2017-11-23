@@ -502,7 +502,8 @@ End Namespace
                         Continue For
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
-                         WellKnownType.System_Span_T
+                         WellKnownType.System_Span_T,
+                         WellKnownType.System_ReadOnlySpan_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -540,7 +541,8 @@ End Namespace
                         Continue For
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
-                         WellKnownType.System_Span_T
+                         WellKnownType.System_Span_T,
+                         WellKnownType.System_ReadOnlySpan_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel

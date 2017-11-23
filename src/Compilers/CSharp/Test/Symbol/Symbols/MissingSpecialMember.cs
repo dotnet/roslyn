@@ -561,6 +561,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
+                    case WellKnownType.System_ReadOnlySpan_T:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
