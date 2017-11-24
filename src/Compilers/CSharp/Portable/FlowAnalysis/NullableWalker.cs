@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.EnsureCapacity(nextVariableSlot);
             for (int slot = oldNext; slot < nextVariableSlot; slot++)
             {
-                var value = !GetDefaultState(ref state, slot);
+                var value = GetDefaultState(ref state, slot);
                 state[slot] = value;
             }
         }
@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameter = (ParameterSymbol)symbol;
                         return (parameter.RefKind == RefKind.Out) ?
                             null :
-                            parameter.Type.IsNullable;
+                            !parameter.Type.IsNullable;
                     }
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                     return !IsContainerAssigned(ref state, variable.ContainingSlot) ?
                         null :
-                        symbol.GetTypeOrReturnType().IsNullable;
+                        !symbol.GetTypeOrReturnType().IsNullable;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
@@ -572,8 +572,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fieldOrPropertyType.IsNullable != false)
                 {
                     int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
-                    if (targetMemberSlot >= this.State.Capacity) Normalize(ref this.State);
-
                     bool? value = !fieldOrPropertyType.IsNullable;
                     if (isByRefTarget)
                     {
@@ -590,7 +588,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State[targetMemberSlot] = value;
                 }
 
-                InheritNullableStateOfTrackableFieldOrPropertyType(targetContainerSlot, valueContainerSlot, fieldOrProperty, isByRefTarget);
+                if (valueContainerSlot > 0)
+                {
+                    int valueSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
+                    if (valueSlot > 0)
+                    {
+                        int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
+                        InheritNullableStateOfTrackableType(targetMemberSlot, valueSlot, isByRefTarget);
+                    }
+                }
             }
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
             {
@@ -602,23 +608,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                           valueContainerSlot > 0 ? GetOrCreateSlot(fieldOrProperty, valueContainerSlot) : -1, isByRefTarget);
                 }
             }
-        }
-
-        private void InheritNullableStateOfTrackableFieldOrPropertyType(int targetContainerSlot, int valueContainerSlot, Symbol fieldOrProperty, bool isByRefTarget)
-        {
-            int valueSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
-            if (valueSlot < 0)
-            {
-                return;
-            }
-
-            int slot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
-            if (slot < 0)
-            {
-                return;
-            }
-
-            InheritNullableStateOfTrackableType(slot, valueSlot, isByRefTarget);
         }
 
         private void InheritDefaultState(int targetSlot)
