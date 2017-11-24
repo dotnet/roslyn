@@ -4,127 +4,127 @@
     <body>
       <trans-unit id="MissingAttributeMessage">
         <source>Missing '{0}' attribute.</source>
-        <target state="new">Missing '{0}' attribute.</target>
+        <target state="translated">缺少“{0}”特性。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
         <source>Missing diagnostic analyzer attribute.</source>
-        <target state="new">Missing diagnostic analyzer attribute.</target>
+        <target state="translated">缺少诊断分析器特性。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
         <source>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</source>
-        <target state="new">Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</target>
+        <target state="translated">DiagnosticAnalyzer 的非抽象子类型应使用 DiagnosticAnalyzerAttribute 标记。此特性的参数；如果有，则可确定分析器支持的语言。分析引擎将忽略未带此特性的分析器类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerMessage">
         <source>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</source>
-        <target state="new">Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</target>
+        <target state="translated">诊断分析器“{0}”可能可以支持 C# 和 Visual Basic。请考虑向“{1}”语言支持的 DiagnosticAnalyzerAttribute 添加一个参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerTitle">
         <source>Recommend adding language support to diagnostic analyzer.</source>
-        <target state="new">Recommend adding language support to diagnostic analyzer.</target>
+        <target state="translated">建议向诊断分析器添加语言支持。</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerDescription">
         <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
-        <target state="new">Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</target>
+        <target state="translated">诊断分析器标记为仅支持一种语言，但分析器程序集貌似未引用语言特定的任何 CodeAnalysis 程序集，因此可能会适用于多种语言。请考虑向 DiagnosticAnalyzerAttribute 添加其他语言参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
         <source>Apply DiagnosticAnalyzer attribute for '{0}'.</source>
-        <target state="new">Apply DiagnosticAnalyzer attribute for '{0}'.</target>
+        <target state="translated">为“{0}”应用 DiagnosticAnalyzer 特性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ApplyDiagnosticAnalyzerAttribute_2">
         <source>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</source>
-        <target state="new">Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</target>
+        <target state="translated">为“{0}”和“{1}”应用 DiagnosticAnalyzer 特性。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingSymbolKindArgumentToRegisterActionMessage">
         <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action.</source>
-        <target state="new">Specify at least one SymbolKind of interest when registering a symbol analyzer action.</target>
+        <target state="translated">注册符号分析器操作时，至少指定一个感兴趣的 SymbolKind。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingSyntaxKindArgumentToRegisterActionMessage">
         <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action.</source>
-        <target state="new">Specify at least one SyntaxKind of interest when registering a syntax node analyzer action.</target>
+        <target state="translated">注册语法节点分析器操作时，至少指定一个感兴趣的 SyntaxKind。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingOperationKindArgumentToRegisterActionMessage">
         <source>Specify at least one OperationKind of interest when registering an operation analyzer action.</source>
-        <target state="new">Specify at least one OperationKind of interest when registering an operation analyzer action.</target>
+        <target state="translated">注册操作分析器操作时，至少指定一个感兴趣的 OperationKind。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionTitle">
         <source>Missing kind argument when registering an analyzer action.</source>
-        <target state="new">Missing kind argument when registering an analyzer action.</target>
+        <target state="translated">注册分析器操作时缺少 kind 参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
-        <target state="new">You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</target>
+        <target state="translated">分别注册语法、符号或操作分析器动作时，必须至少指定一种语法、符号或操作类型。否则，分析过程中将不会调用已注册的操作。</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
         <source>SymbolKind '{0}' is not supported for symbol analyzer actions.</source>
-        <target state="new">SymbolKind '{0}' is not supported for symbol analyzer actions.</target>
+        <target state="translated">符号分析器操作不支持 SymbolKind“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
         <source>Unsupported SymbolKind argument when registering a symbol analyzer action.</source>
-        <target state="new">Unsupported SymbolKind argument when registering a symbol analyzer action.</target>
+        <target state="translated">注册符号分析器操作时不支持 SymbolKind 参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticMessage">
         <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'.</source>
-        <target state="new">ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'.</target>
+        <target state="translated">使用不受支持的 DiagnosticDescriptor“{0}”调用了 ReportDiagnostic。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticTitle">
         <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor.</source>
-        <target state="new">ReportDiagnostic invoked with an unsupported DiagnosticDescriptor.</target>
+        <target state="translated">使用不受支持的 DiagnosticDescriptor 调用了 ReportDiagnostic。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticDescription">
         <source>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</source>
-        <target state="new">ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</target>
+        <target state="translated">仅应使用从 DiagnosticAnalyzer.SupportedDiagnostics 属性返回的受支持的 DiagnosticDescriptors 调用 ReportDiagnostic。否则，分析引擎将过滤掉所报告的诊断。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
         <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum.</source>
-        <target state="new">Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum.</target>
+        <target state="translated">对方法“{2}”的类型形参“{1}”而言，类型实参“{0}”不是 SyntaxKind 枚举。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
         <source>Invalid type argument for DiagnosticAnalyzer's Register method.</source>
-        <target state="new">Invalid type argument for DiagnosticAnalyzer's Register method.</target>
+        <target state="translated">DiagnosticAnalyzer 的 Register 方法的类型参数无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
         <source>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</source>
-        <target state="new">DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</target>
+        <target state="translated">DiagnosticAnalyzer 的语言特定的 Register 方法，例如 RegisterSyntaxNodeAction、RegisterCodeBlockStartAction 和 RegisterCodeBlockEndAction，需要一个语言特定的 "SyntaxKind" 类型实参用于“{0}”类型形参。否则，分析过程中将不会调用已注册的分析器操作。</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionTitle">
         <source>Start action has no registered non-end actions.</source>
-        <target state="new">Start action has no registered non-end actions.</target>
+        <target state="translated">启动操作未注册有任何非结束操作。</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithNoRegisteredActionsMessage">
         <source>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</source>
-        <target state="new">'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</target>
+        <target state="translated">“{0}”没有注册任何分析器操作。请考虑将“{1}”中注册的依赖于此启动操作的操作移动到“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithNoRegisteredActionsTitle">
         <source>Start action has no registered actions.</source>
-        <target state="new">Start action has no registered actions.</target>
+        <target state="translated">启动操作未注册有任何操作。</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionMessage">
         <source>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</source>
-        <target state="new">'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</target>
+        <target state="translated">“{0}”没有注册除“{1}”以外的任何分析器操作。请考虑将此启动/结束操作对替换为“{2}”，或将“{3}”中注册的依赖于此启动操作的操作移动到“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="StatefulAnalyzerRegisterActionsDescription">
@@ -134,112 +134,97 @@
 3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
 4. If required, register an end action to report diagnostics based on the final state.
 </source>
-        <target state="new">An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
-1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
-2. If required, define and initialize state in the start action.
-3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
-4. If required, register an end action to report diagnostics based on the final state.
+        <target state="translated">分析器启动操作可以对给定的代码单元(如代码块、编译等)执行有状态分析。细致的设计是实现分析器高效执行和保证内存不泄露的必要条件。使用以下准则编写此类分析器:
+1.为已注册的启动操作定义新的作用域，可能需要一个私有嵌套类型用于分析每个代码单元。
+2.必要时，请在启动操作中定义和初始化状态。
+3.至少在启动操作中注册一个引用此状态的非结束操作。如果不需要此类操作，请考虑将启动操作替换为非启动操作。例如，未注册有操作或仅注册了一个 CodeBlockEndAction 的 CodeBlockStartAction 应替换为 CodeBlockAction。
+4.必要时，请注册一个结束操作，根据最终状态对诊断进行报告。
 </target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorMessage">
         <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable.</source>
-        <target state="new">Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable.</target>
+        <target state="translated">请考虑为诊断描述符构造函数提供类型“{0}”的可本地化参数，以确保描述符可本地化。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorTitle">
         <source>Provide localizable arguments to diagnostic descriptor constructor.</source>
-        <target state="new">Provide localizable arguments to diagnostic descriptor constructor.</target>
+        <target state="translated">为诊断描述符构造函数提供可本地化的参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorDescription">
         <source>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</source>
-        <target state="new">If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</target>
+        <target state="translated">如果诊断分析器及其报告的诊断需要能够本地化，则用于构建诊断的受支持 DiagnosticDescriptors 也必须可本地化。若是如此，必须为诊断描述符构造函数的 “title” 形参(和可选 “description”)提供可本地化的实参，确保描述符可本地化。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
         <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</source>
-        <target state="new">Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</target>
+        <target state="translated">不要将类型为“{0}”的每次编译的数据存储到诊断分析器的字段中。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
         <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer.</source>
-        <target state="new">Avoid storing per-compilation data into the fields of a diagnostic analyzer.</target>
+        <target state="translated">不要将每次编译的数据存储到诊断分析器的字段中。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
         <source>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</source>
-        <target state="new">Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</target>
+        <target state="translated">诊断分析器实例可能会超出编译的生存期。因此，如果将每次编译的数据(如符号)存储到诊断分析器的字段中，这可能导致过时的编译保持活动状态并导致内存泄漏。相反，应将此数据存储在使用“{0}.{1}”API 注册且在编译启动操作中实例化的单独类型中。此类型的实例将在每次编译时创建，并且它不会超出编译的生存期，因此避免了内存泄漏。</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyDescription">
         <source>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</source>
-        <target state="new">The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</target>
+        <target state="translated">此接口的作者不允许此接口的第三方实现，并保留更改此接口的权利。因此，实现此接口可能会导致此接口的未来版本发生源或二进制的兼容性问题。</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyMessage">
         <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation.</source>
-        <target state="new">Type {0} cannot implement interface {1} because {1} is not available for public implementation.</target>
+        <target state="translated">类型 {0} 无法实现接口 {1}，因为 {1} 不适用于公共实现。</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyTitle">
         <source>Only internal implementations of this interface are allowed.</source>
-        <target state="new">Only internal implementations of this interface are allowed.</target>
+        <target state="translated">只允许此接口的内部实现。</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="new">A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</target>
+        <target state="translated">支持修复所有事件的 CodeFixProvider 必须将注册的代码操作划分为等效类，方法是为其分配一个非 null 的显式等效键，且该键在此修复程序注册的所有代码操作中都是唯一的。这样，FixAllProvider 即可通过应用此修复程序的代码操作解决所有诊断问题，其中这些操作位于触发器代码操作的等效类中。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</source>
-        <target state="new">Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</target>
+        <target state="translated">为可选形参“{0}”提供一个显式实参，该形参在此修复程序创建的所有代码操作中均为非 null 且是唯一的。</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
         <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</source>
-        <target state="new">Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</target>
+        <target state="translated">创建代码操作应具备 FixAll 事件支持的唯一 EquivalenceKey。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
         <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
-        <target state="new">'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</target>
+        <target state="translated">“{0}”具有适用于属性“{1}”的默认值 "null"。可重写“{0}”上的此属性，以返回每个修复程序的所有代码操作中的唯一非 null 值，也可使用此类现有代码操作。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
         <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support.</source>
-        <target state="new">Use code actions that have a unique EquivalenceKey for FixAll occurrences support.</target>
+        <target state="translated">使用具备 FixAll 事件支持的唯一 EquivalenceKey 的代码操作。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription">
         <source>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</source>
-        <target state="new">Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</target>
+        <target state="translated">由 Roslyn 公开的多个对象不可变。通过对这些对象的方法调用得到的返回值不应被忽略。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage">
         <source>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</source>
-        <target state="new">'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</target>
+        <target state="translated">“{0}”不可变且“{1}”不对它产生任何影响。请考虑使用来自“{1}”的返回值。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
         <source>Do not ignore values returned by methods on immutable objects.</source>
-        <target state="new">Do not ignore values returned by methods on immutable objects.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ProvideHelpUriInDescriptorMessage">
-        <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
-        <target state="new">Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ProvideHelpUriInDescriptorTitle">
-        <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
-        <target state="new">Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ProvideHelpUriInDescriptorDescription">
-        <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
-        <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
+        <target state="translated">不要忽略通过不可变对象上的方法返回的值。</target>
         <note />
       </trans-unit>
     </body>
