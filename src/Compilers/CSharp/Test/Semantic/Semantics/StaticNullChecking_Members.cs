@@ -679,12 +679,86 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F2").WithLocation(25, 9));
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Support assignment of derived type instances.
+        [Fact(Skip = "TODO")]
         public void ObjectInitializer_DerivedType()
         {
-            // PROTOTYPE(NullableReferenceTypes): Test assigning base members in derived type initializer:
-            // Base b = new Derived() { BaseField = e1, DerivedField = e2 };
-            // b.BaseField.ToString();
+            var source =
+@"#pragma warning disable 0649
+class A
+{
+    internal object? F;
+}
+class B : A
+{
+    internal object? G;
+}
+class Program
+{
+    static void Main()
+    {
+        A a;
+        a = new B() { F = new object(), G = new object() };
+        a.F.ToString(); // 1
+        a = new A();
+        a.F.ToString(); // 2
+        a = new B() { F = new object() };
+        a.F.ToString(); // 3
+        a = new B() { G = new object() };
+        a.F.ToString(); // 4
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         a.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(18, 9),
+                // (22,9): warning CS8602: Possible dereference of a null reference.
+                //         a.F.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(22, 9));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Support assignment of derived type instances.
+        [Fact(Skip = "TODO")]
+        public void Assignment()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A
+{
+    internal object? F;
+}
+class B : A
+{
+    internal object? G;
+}
+class Program
+{
+    static void Main()
+    {
+        B b = new B();
+        A a;
+        a = b;
+        a.F.ToString(); // 1
+        b.F = new object();
+        a = b;
+        a.F.ToString(); // 2
+        b = new B() { F = new object() };
+        a = b;
+        a.F.ToString(); // 3
+        b = new B() { G = new object() };
+        a = b;
+        a.F.ToString(); // 4
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         a.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(17, 9),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         a.F.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(26, 9));
         }
 
         [Fact]
