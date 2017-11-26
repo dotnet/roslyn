@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     using DocumentToUpdateArgs = Dictionary<Document, DiagnosticsUpdatedArgs>;
-    using ProviderIdToBatchedUpdates = Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, Dictionary<Document, DiagnosticsUpdatedArgs> createArgs)>;
+    using ProviderIdToBatchedUpdates = Dictionary<object, (Dictionary<Document, DiagnosticsUpdatedArgs> removeArgs, Dictionary<Document, DiagnosticsUpdatedArgs> createArgs)>;
 
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     {
@@ -233,11 +233,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
+                var document = e.Solution.GetDocument(e.DocumentId);
+                if (document == null)
+                {
+                    // Not a diagnostic event for a document.  Not something we can handle.
+                    return;
+                }
+
                 lock (_gate)
                 {
                     if (!_idToBatchedUpdates.TryGetValue(e.Id, out var batchedUpdates))
                     {
-                        batchedUpdates = (removeArgs: null, createArgs: s_documentPool.Allocate());
+                        batchedUpdates = (removeArgs: s_documentPool.Allocate(), createArgs: s_documentPool.Allocate());
                     }
 
                     switch (e.Kind)
@@ -245,16 +252,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     case DiagnosticsUpdatedKind.DiagnosticsRemoved:
                         // we're being told about diagnostics going away because a document/project
                         // was removed.  This supercedes all previous removes and creates for this
-                        // id.
-                        batchedUpdates.removeArgs = e;
-
-                        // Clear all all creates for this provider. 
-                        batchedUpdates.createArgs.Clear();
+                        // document id.
+                        batchedUpdates.removeArgs[document] = e;
+                        batchedUpdates.createArgs.Remove(document);
                         break;
                     case DiagnosticsUpdatedKind.DiagnosticsCreated:
                         // We're creating diagnostics. This supercedes all existing creations for
                         // this id.  However, any existing removal for this id will still happen.
-                        var document = e.Solution.GetDocument(e.DocumentId);
                         batchedUpdates.createArgs[document] = e;
                         break;
                     default:
@@ -340,7 +344,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     {
                         // Process removes for this provider first, then process the creates for it for
                         // our document.
-                        OnDiagnosticsRemovedOnForeground(ourDocument, kvp.Value.removeArgs);
+                        foreach (var args in kvp.Value.removeArgs)
+                        {
+                            OnDiagnosticsRemovedOnForeground(ourDocument, args.Value);
+                        }
 
                         foreach (var args in kvp.Value.createArgs)
                         {
@@ -430,10 +437,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 Document ourDocument, DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
-                if (e == null)
-                {
-                    return;
-                }
 
                 Debug.Assert(!_disposed);
                 Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved);
