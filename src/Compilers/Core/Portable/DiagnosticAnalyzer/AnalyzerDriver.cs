@@ -244,13 +244,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             };
 
-            if (analysisOptions.LogAnalyzerExecutionTime)
-            {
-                // If we are reporting detailed analyzer performance numbers, then do a dummy invocation of Compilation.GetTypeByMetadataName API upfront.
-                // This API seems to cause a severe hit for the first analyzer invoking it and hence introduces lot of noise in the computed analyzer execution times.
-                var unused = compilation.GetTypeByMetadataName("System.Object");
-            }
-
             var analyzerExecutor = AnalyzerExecutor.Create(
                 compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnosticOpt, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
                 IsCompilerAnalyzer, analyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, GetAnalyzerGate,
