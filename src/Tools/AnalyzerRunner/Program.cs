@@ -329,6 +329,12 @@ namespace AnalyzerRunner
             {
                 WriteTelemetry(pair.Key.GetType().Name, pair.Value);
             }
+
+            WriteLine($"Execution times (ms):", ConsoleColor.DarkCyan);
+            foreach (var pair in telemetryInfoDictionary)
+            {
+                WriteExecutionTimes(pair.Key.GetType().Name, pair.Value);
+            }
         }
 
         private static void WriteTelemetry(string analyzerName, AnalyzerTelemetryInfo telemetry)
@@ -353,6 +359,11 @@ namespace AnalyzerRunner
             WriteLine($"Symbol Actions:                 {telemetry.SymbolActionsCount}", ConsoleColor.White);
             WriteLine($"Syntax Node Actions:            {telemetry.SyntaxNodeActionsCount}", ConsoleColor.White);
             WriteLine($"Syntax Tree Actions:            {telemetry.SyntaxTreeActionsCount}", ConsoleColor.White);
+        }
+
+        private static void WriteExecutionTimes(string analyzerName, AnalyzerTelemetryInfo telemetry)
+        {
+            WriteLine($"{analyzerName + ":",-60} {telemetry.ExecutionTime.TotalMilliseconds,7:0}", ConsoleColor.White);
         }
 
         internal static void WriteLine(string text, ConsoleColor color)
