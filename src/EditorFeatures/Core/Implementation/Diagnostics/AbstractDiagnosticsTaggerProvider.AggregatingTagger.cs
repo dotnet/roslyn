@@ -240,8 +240,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         batchedUpdates = (removeArgs: null, createArgs: s_documentPool.Allocate());
                     }
 
-                    if (e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
+                    switch (e.Kind)
                     {
+                    case DiagnosticsUpdatedKind.DiagnosticsRemoved:
                         // we're being told about diagnostics going away because a document/project
                         // was removed.  This supercedes all previous removes and creates for this
                         // id.
@@ -249,16 +250,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                         // Clear all all creates for this provider. 
                         batchedUpdates.createArgs.Clear();
-                    }
-                    else if (e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated)
-                    {
+                        break;
+                    case DiagnosticsUpdatedKind.DiagnosticsCreated:
                         // We're creating diagnostics. This supercedes all existing creations for
                         // this id.  However, any existing removal for this id will still happen.
                         var document = e.Solution.GetDocument(e.DocumentId);
                         batchedUpdates.createArgs[document] = e;
-                    }
-                    else
-                    {
+                        break;
+                    default:
                         throw ExceptionUtilities.UnexpectedValue(e);
                     }
 
