@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 lock (_gate)
                 {
-                    if (_idToBatchedUpdates.TryGetValue(e.Id, out var batchedUpdates))
+                    if (!_idToBatchedUpdates.TryGetValue(e.Id, out var batchedUpdates))
                     {
                         batchedUpdates = (removeArgs: null, createArgs: s_documentPool.Allocate());
                     }
