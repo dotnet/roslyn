@@ -264,6 +264,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                     _idToBatchedUpdates[e.Id] = batchedUpdates;
 
+                    // Check if there's already an in-flight update task.  If so, there's nothing we
+                    // need to do.  The in-flight task will pick up the work we enqueued.  Otherwise,
+                    // create a task to process this work (and anything else that comes in) for 50ms
+                    // from now.
                     if (_updateTask == null)
                     {
                         var token = _owner._listener.BeginAsyncOperation(GetType().Name + "OnDiagnosticsUpdatedOnBackground");
