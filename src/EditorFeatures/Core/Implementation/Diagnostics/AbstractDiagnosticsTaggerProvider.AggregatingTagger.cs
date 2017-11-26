@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             //
             // Because we're batching, we can optimize things such that we only store two pieces
             // of data per provider.  Specifically, if they were removing all diagnostics, and
-            // per-document, which diagnostics we've created.
+            // per-document, the latest diagnostics we've created for it.
             private static readonly ObjectPool<ProviderIdToBatchedUpdates> s_providerPool = new ObjectPool<ProviderIdToBatchedUpdates>(() => new  ProviderIdToBatchedUpdates());
             private static readonly ObjectPool<DocumentToUpdateArgs> s_documentPool = new ObjectPool<DocumentToUpdateArgs>(() => new DocumentToUpdateArgs());
 
@@ -245,7 +245,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         // we're being told about diagnostics going away because a document/project
                         // was removed.  This supercedes all previous removes and creates for this
                         // id.
-                        batchedUpdates = (removeArgs: e, createArgs: batchedUpdates.createArgs);
+                        batchedUpdates = (removeArgs: e, batchedUpdates.createArgs);
+
+                        // Clear all all creates for this provider. 
                         batchedUpdates.createArgs.Clear();
                     }
                     else if (e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated)
@@ -318,15 +320,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
 
                     _currentDocumentId = ourDocumentId;
-
+                    
                     if (ourDocument == null)
                     {
+                        // We're no longer associated with a workspace document.  Don't show any
+                        // diagnostic tags in this buffer.
                         return;
                     }
 
                     foreach (var kvp in batchedUpdates)
                     {
-                        // Process removes for this id first, then process all creates.
+                        // Process removes for this provider first, then process the creates for it for
+                        // our document.
                         OnDiagnosticsRemovedOnForeground(ourDocument, kvp.Value.removeArgs);
 
                         foreach (var args in kvp.Value.createArgs)
@@ -350,6 +355,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 Document ourDocument, object providerId, Document diagnosticDocument, DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
+
+                Debug.Assert(!_disposed);
+                Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated);
 
                 // Now see if the document we're tracking corresponds to the diagnostics
                 // we're hearing about.  If not, just ignore them.
@@ -419,6 +427,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
+                Debug.Assert(!_disposed);
+                Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved);
+
                 // Now see if the document we're tracking corresponds to the diagnostics
                 // we're hearing about.  If not, just ignore them.
                 if (ourDocument.Project.Solution.Workspace != e.Workspace ||
@@ -433,24 +444,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // First see if this is a document/project removal.  If so, clear out any state we
                 // have associated with any analyzers we have for that document/project.
-                ProcessRemovedDiagnostics(e);
-            }
-
-            private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
-            {
-                this.AssertIsForeground();
-                Debug.Assert(!_disposed);
-
-                if (e.Kind != DiagnosticsUpdatedKind.DiagnosticsRemoved)
-                {
-                    // Wasn't a removal.  We don't need to do anything here.
-                    return;
-                }
-
-                // See if we're being told about diagnostics going away because a document/project
-                // was removed.  If so, clear out any diagnostics we have associated with this
-                // diagnostic source ID and notify any listeners that 
-
                 var id = e.Id;
                 if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
