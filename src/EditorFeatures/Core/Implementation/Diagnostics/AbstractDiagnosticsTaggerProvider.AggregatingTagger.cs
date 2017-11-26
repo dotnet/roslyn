@@ -252,13 +252,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     case DiagnosticsUpdatedKind.DiagnosticsRemoved:
                         // we're being told about diagnostics going away because a document/project
                         // was removed.  This supercedes all previous removes and creates for this
-                        // document id.
+                        // provider+docid.
                         batchedUpdates.removeArgs[document] = e;
                         batchedUpdates.createArgs.Remove(document);
                         break;
                     case DiagnosticsUpdatedKind.DiagnosticsCreated:
-                        // We're creating diagnostics. This supercedes all existing creations for
-                        // this id.  However, any existing removal for this id will still happen.
+                        // We're creating diagnostics. This supercedes all existing creations for this
+                        // provider +docid.  However, any existing removal for this provider+docid will 
+                        // still happen.
                         batchedUpdates.createArgs[document] = e;
                         break;
                     default:
