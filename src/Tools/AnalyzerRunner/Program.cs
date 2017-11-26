@@ -59,7 +59,11 @@ namespace AnalyzerRunner
             var cancellationToken = cts.Token;
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-            using (MSBuildWorkspace workspace = MSBuildWorkspace.Create())
+            var properties = new Dictionary<string, string>
+            {
+                { "LangVersion", "latest" }
+            };
+            using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties))
             {
                 Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken).ConfigureAwait(false);
                 var projectIds = solution.ProjectIds;
