@@ -8,7 +8,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
+
+    <!-- Automatically generate the necessary assembly binding redirects -->
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +37,10 @@
     <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
 
   <Import Project="..\..\..\build\Targets\Imports.targets" />
