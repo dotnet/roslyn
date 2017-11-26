@@ -312,6 +312,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 try
                 {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+
                     // Do some quick checks to avoid doing any further work for diagnostics  we don't
                     // care about.
                     var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
