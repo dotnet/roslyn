@@ -253,7 +253,13 @@ namespace AnalyzerRunner
             ImmutableDictionary<ProjectId, AnalysisResult>.Builder projectDiagnosticBuilder = ImmutableDictionary.CreateBuilder<ProjectId, AnalysisResult>();
             foreach (var task in projectDiagnosticTasks)
             {
-                projectDiagnosticBuilder.Add(task.Key, await task.Value.ConfigureAwait(false));
+                var result = await task.Value.ConfigureAwait(false);
+                if (result == null)
+                {
+                    continue;
+                }
+
+                projectDiagnosticBuilder.Add(task.Key, result);
             }
 
             return projectDiagnosticBuilder.ToImmutable();
