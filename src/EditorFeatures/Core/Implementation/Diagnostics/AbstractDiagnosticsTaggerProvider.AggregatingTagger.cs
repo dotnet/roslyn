@@ -20,6 +20,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
+    using DocumentToUpdateArgs = Dictionary<Document, DiagnosticsUpdatedArgs>;
+    using ProviderIdToBatchedUpdates = Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, Dictionary<Document, DiagnosticsUpdatedArgs> createArgs)>;
+
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     {
         private class AggregatingTagger : ForegroundThreadAffinitizedObject, IAccurateTagger<TTag>, IDisposable
@@ -214,12 +217,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             //
             // Because we're batching, we can optimize things such that we only store two pieces
             // of data per provider.  Specifically, if they were removing all diagnostics, and
-            // then the last diagnostics they wanted to create.
-            private static readonly ObjectPool<Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>> s_dictionaryPool = new ObjectPool<Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>>(
-                () => new Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>());
+            // per-document, which diagnostics we've created.
+            private static readonly ObjectPool<ProviderIdToBatchedUpdates> s_providerPool = new ObjectPool<ProviderIdToBatchedUpdates>(() => new  ProviderIdToBatchedUpdates());
+            private static readonly ObjectPool<DocumentToUpdateArgs> s_documentPool = new ObjectPool<DocumentToUpdateArgs>(() => new DocumentToUpdateArgs());
 
             private readonly object _gate = new object();
-            private Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)> _idToUpdateArgs = s_dictionaryPool.Allocate();
+            private ProviderIdToBatchedUpdates _idToBatchedUpdates = s_providerPool.Allocate();
             private Task _updateTask = null;
 
             private void OnDiagnosticsUpdatedOnBackground(DiagnosticsUpdatedArgs e)
@@ -232,9 +235,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 lock (_gate)
                 {
-                    if (_idToUpdateArgs.TryGetValue(e.Id, out var updateArgs))
+                    if (_idToBatchedUpdates.TryGetValue(e.Id, out var batchedUpdates))
                     {
-                        updateArgs = (removeArgs: null, createArgs: null);
+                        batchedUpdates = (removeArgs: null, createArgs: s_documentPool.Allocate());
                     }
 
                     if (e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
@@ -242,20 +245,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         // we're being told about diagnostics going away because a document/project
                         // was removed.  This supercedes all previous removes and creates for this
                         // id.
-                        updateArgs = (removeArgs: e, createArgs: null);
+                        batchedUpdates = (removeArgs: e, createArgs: batchedUpdates.createArgs);
+                        batchedUpdates.createArgs.Clear();
                     }
                     else if (e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated)
                     {
                         // We're creating diagnostics. This supercedes all existing creations for
                         // this id.  However, any existing removal for this id will still happen.
-                        updateArgs = (updateArgs.removeArgs, createArgs: e);
+                        var document = e.Solution.GetDocument(e.DocumentId);
+                        batchedUpdates.createArgs[document] = e;
                     }
                     else
                     {
                         throw ExceptionUtilities.UnexpectedValue(e);
                     }
 
-                    _idToUpdateArgs[e.Id] = updateArgs;
+                    _idToBatchedUpdates[e.Id] = batchedUpdates;
 
                     if (_updateTask == null)
                     {
@@ -284,15 +289,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// </summary>
             private void OnDiagnosticsUpdatedOnForeground()
             {
-                Dictionary<object, (DiagnosticsUpdatedArgs removedArgs, DiagnosticsUpdatedArgs createdArgs)> idToArgs;
+                ProviderIdToBatchedUpdates batchedUpdates;
                 lock (_gate)
                 {
                     Debug.Assert(_updateTask != null);
-                    
+
                     // Grab the work we need to do.  Create a fresh dictionary for new work to be
                     // put into.
-                    idToArgs = _idToUpdateArgs;
-                    _idToUpdateArgs = s_dictionaryPool.Allocate();
+                    batchedUpdates = _idToBatchedUpdates;
+                    _idToBatchedUpdates = s_providerPool.Allocate();
 
                     // Clear out the task so that any new work that comes in will cause a new update
                     // task to be created.
@@ -319,20 +324,93 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         return;
                     }
 
-                    foreach (var kvp in idToArgs)
+                    foreach (var kvp in batchedUpdates)
                     {
                         // Process removes for this id first, then process all creates.
-                        OnDiagnosticsUpdatedOnForeground(ourDocument, kvp.Value.removedArgs);
-                        OnDiagnosticsUpdatedOnForeground(ourDocument, kvp.Value.createdArgs);
+                        OnDiagnosticsRemovedOnForeground(ourDocument, kvp.Value.removeArgs);
+
+                        foreach (var args in kvp.Value.createArgs)
+                        {
+                            OnDiagnosticsCreatedOnForeground(ourDocument, kvp.Key, args.Key, args.Value);
+                        }
                     }
                 }
                 finally
                 {
-                    s_dictionaryPool.ClearAndFree(idToArgs);
+                    foreach (var kvp in batchedUpdates)
+                    {
+                        s_documentPool.ClearAndFree(kvp.Value.createArgs);
+                    }
+
+                    s_providerPool.ClearAndFree(batchedUpdates);
                 }
             }
 
-            private void OnDiagnosticsUpdatedOnForeground(
+            private void OnDiagnosticsCreatedOnForeground(
+                Document ourDocument, object providerId, Document diagnosticDocument, DiagnosticsUpdatedArgs e)
+            {
+                this.AssertIsForeground();
+
+                // Now see if the document we're tracking corresponds to the diagnostics
+                // we're hearing about.  If not, just ignore them.
+                if (ourDocument.Project.Solution.Workspace != e.Workspace ||
+                    ourDocument.Id != e.DocumentId)
+                {
+                    return;
+                }
+
+                // We're hearing about diagnostics for our document.  We may be hearing
+                // about new diagnostics coming, or existing diagnostics being cleared
+                // out.
+
+                // Make sure we can find an editor snapshot for these errors.  Otherwise we won't
+                // be able to make ITagSpans for them.  If we can't, just bail out.  This happens
+                // when the solution crawler is very far behind.  However, it will have a more
+                // up to date document within it that it will eventually process.  Until then
+                // we just keep around the stale tags we have.
+                //
+                // Note: if the Solution or Document is null here, then that means the document
+                // was removed.  In that case, we do want to proceed so that we'll produce 0
+                // tags and we'll update the editor appropriately.
+                if (!diagnosticDocument.TryGetText(out var sourceText))
+                {
+                    return;
+                }
+
+                var editorSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+                if (editorSnapshot == null)
+                {
+                    return;
+                }
+
+                // Make sure the editor we've got associated with these diagnostics is the 
+                // same one we're a tagger for.  It is possible for us to hear about diagnostics
+                // for the *same* Document that are not from the *same* buffer.  For example,
+                // say we have the following chain of events:
+                //
+                //      Document is opened.
+                //      Diagnostics start analyzing.
+                //      Document is closed.
+                //      Document is opened.
+                //      Diagnostics finish and report for document.
+                //
+                // We'll hear about diagnostics for the original Document/Buffer that was 
+                // opened.  But we'll be trying to apply them to this current Document/Buffer.
+                // That won't work since these will be different buffers (and thus, we won't
+                // be able to map the diagnostic spans appropriately).  
+                //
+                // Note: returning here is safe.  Because the file is closed/opened, The 
+                // Diagnostics Service will reanalyze it.  It will then report the new results
+                // which we will hear about and use.
+                if (editorSnapshot.TextBuffer != _subjectBuffer)
+                {
+                    return;
+                }
+
+                OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
+            }
+
+            private void OnDiagnosticsRemovedOnForeground(
                 Document ourDocument, DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
@@ -356,61 +434,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // First see if this is a document/project removal.  If so, clear out any state we
                 // have associated with any analyzers we have for that document/project.
                 ProcessRemovedDiagnostics(e);
-
-                // Make sure we can find an editor snapshot for these errors.  Otherwise we won't
-                // be able to make ITagSpans for them.  If we can't, just bail out.  This happens
-                // when the solution crawler is very far behind.  However, it will have a more
-                // up to date document within it that it will eventually process.  Until then
-                // we just keep around the stale tags we have.
-                //
-                // Note: if the Solution or Document is null here, then that means the document
-                // was removed.  In that case, we do want to proceed so that we'll produce 0
-                // tags and we'll update the editor appropriately.
-                SourceText sourceText = null;
-                ITextSnapshot editorSnapshot = null;
-                if (e.Solution != null)
-                {
-                    var diagnosticDocument = e.Solution.GetDocument(e.DocumentId);
-                    if (diagnosticDocument != null)
-                    {
-                        if (!diagnosticDocument.TryGetText(out sourceText))
-                        {
-                            return;
-                        }
-
-                        editorSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-                        if (editorSnapshot == null)
-                        {
-                            return;
-                        }
-
-                        // Make sure the editor we've got associated with these diagnostics is the 
-                        // same one we're a tagger for.  It is possible for us to hear about diagnostics
-                        // for the *same* Document that are not from the *same* buffer.  For example,
-                        // say we have the following chain of events:
-                        //
-                        //      Document is opened.
-                        //      Diagnostics start analyzing.
-                        //      Document is closed.
-                        //      Document is opened.
-                        //      Diagnostics finish and report for document.
-                        //
-                        // We'll hear about diagnostics for the original Document/Buffer that was 
-                        // opened.  But we'll be trying to apply them to this current Document/Buffer.
-                        // That won't work since these will be different buffers (and thus, we won't
-                        // be able to map the diagnostic spans appropriately).  
-                        //
-                        // Note: returning here is safe.  Because the file is closed/opened, The 
-                        // Diagnostics Service will reanalyze it.  It will then report the new results
-                        // which we will hear about and use.
-                        if (editorSnapshot.TextBuffer != _subjectBuffer)
-                        {
-                            return;
-                        }
-                    }
-                }
-
-                OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
             private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
