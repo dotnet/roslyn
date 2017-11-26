@@ -20,8 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
-    using DocumentToUpdateArgs = Dictionary<Document, DiagnosticsUpdatedArgs>;
-    using ProviderIdToBatchedUpdates = Dictionary<object, (Dictionary<Document, DiagnosticsUpdatedArgs> removeArgs, Dictionary<Document, DiagnosticsUpdatedArgs> createArgs)>;
+    using ProviderAndDocumentToBatchedUpdates = Dictionary<(object providerId, Document document), (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>;
 
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     {
@@ -218,11 +217,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             // Because we're batching, we can optimize things such that we only store two pieces
             // of data per provider.  Specifically, if they were removing all diagnostics, and
             // per-document, the latest diagnostics we've created for it.
-            private static readonly ObjectPool<ProviderIdToBatchedUpdates> s_providerPool = new ObjectPool<ProviderIdToBatchedUpdates>(() => new  ProviderIdToBatchedUpdates());
-            private static readonly ObjectPool<DocumentToUpdateArgs> s_documentPool = new ObjectPool<DocumentToUpdateArgs>(() => new DocumentToUpdateArgs());
+            private static readonly ObjectPool<ProviderAndDocumentToBatchedUpdates> s_providerPool = new ObjectPool<ProviderAndDocumentToBatchedUpdates>(
+                () => new ProviderAndDocumentToBatchedUpdates());
 
             private readonly object _gate = new object();
-            private ProviderIdToBatchedUpdates _idToBatchedUpdates = s_providerPool.Allocate();
+            private ProviderAndDocumentToBatchedUpdates _idToBatchedUpdates = s_providerPool.Allocate();
             private Task _updateTask = null;
 
             private void OnDiagnosticsUpdatedOnBackground(DiagnosticsUpdatedArgs e)
@@ -242,9 +241,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 lock (_gate)
                 {
-                    if (!_idToBatchedUpdates.TryGetValue(e.Id, out var batchedUpdates))
+                    var key = (e.Id, document);
+                    if (!_idToBatchedUpdates.TryGetValue(key, out var batchedUpdates))
                     {
-                        batchedUpdates = (removeArgs: s_documentPool.Allocate(), createArgs: s_documentPool.Allocate());
+                        batchedUpdates = (removeArgs: null, createArgs: null);
                     }
 
                     switch (e.Kind)
@@ -253,20 +253,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         // we're being told about diagnostics going away because a document/project
                         // was removed.  This supercedes all previous removes and creates for this
                         // provider+docid.
-                        batchedUpdates.removeArgs[document] = e;
-                        batchedUpdates.createArgs.Remove(document);
+                        batchedUpdates.removeArgs = e;
+                        batchedUpdates.createArgs = null;
                         break;
                     case DiagnosticsUpdatedKind.DiagnosticsCreated:
                         // We're creating diagnostics. This supercedes all existing creations for this
                         // provider +docid.  However, any existing removal for this provider+docid will 
                         // still happen.
-                        batchedUpdates.createArgs[document] = e;
+                        batchedUpdates.createArgs = e;
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(e);
                     }
 
-                    _idToBatchedUpdates[e.Id] = batchedUpdates;
+                    _idToBatchedUpdates[key] = batchedUpdates;
 
                     // Check if there's already an in-flight update task.  If so, there's nothing we
                     // need to do.  The in-flight task will pick up the work we enqueued.  Otherwise,
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// </summary>
             private void OnDiagnosticsUpdatedOnForeground()
             {
-                ProviderIdToBatchedUpdates batchedUpdates;
+                ProviderAndDocumentToBatchedUpdates batchedUpdates;
                 lock (_gate)
                 {
                     Debug.Assert(_updateTask != null);
@@ -343,34 +343,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                     foreach (var kvp in batchedUpdates)
                     {
-                        // Process removes for this provider first, then process the creates for it for
-                        // our document.
-                        foreach (var args in kvp.Value.removeArgs)
+                        var providerId = kvp.Key.providerId;
+                        var diagnosticDocument = kvp.Key.document;
+
+                        if (diagnosticDocument.Id != ourDocument.Id ||
+                            diagnosticDocument.Project.Solution.Workspace != ourDocument.Project.Solution.Workspace)
                         {
-                            OnDiagnosticsRemovedOnForeground(ourDocument, args.Value);
+                            // Notification for some other document.  Just ignore it.
+                            continue;
                         }
 
-                        foreach (var args in kvp.Value.createArgs)
-                        {
-                            OnDiagnosticsCreatedOnForeground(ourDocument, kvp.Key, args.Key, args.Value);
-                        }
+                        // Process removes for this provider first, then process the creates for it for
+                        // our document.
+                        OnDiagnosticsRemovedOnForeground(ourDocument, kvp.Value.removeArgs);
+                        OnDiagnosticsCreatedOnForeground(ourDocument, diagnosticDocument, kvp.Value.createArgs);
                     }
                 }
                 finally
                 {
-                    foreach (var kvp in batchedUpdates)
-                    {
-                        s_documentPool.ClearAndFree(kvp.Value.createArgs);
-                    }
-
                     s_providerPool.ClearAndFree(batchedUpdates);
                 }
             }
 
             private void OnDiagnosticsCreatedOnForeground(
-                Document ourDocument, object providerId, Document diagnosticDocument, DiagnosticsUpdatedArgs e)
+                Document ourDocument, Document diagnosticDocument, DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
+
+                if (e == null)
+                {
+                    return;
+                }
 
                 Debug.Assert(!_disposed);
                 Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated);
@@ -439,16 +442,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 this.AssertIsForeground();
 
-                Debug.Assert(!_disposed);
-                Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved);
-
-                // Now see if the document we're tracking corresponds to the diagnostics
-                // we're hearing about.  If not, just ignore them.
-                if (ourDocument.Project.Solution.Workspace != e.Workspace ||
-                    ourDocument.Id != e.DocumentId)
+                if (e == null)
                 {
                     return;
                 }
+
+                Debug.Assert(!_disposed);
+                Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved);
 
                 // We're hearing about diagnostics for our document.  We may be hearing
                 // about new diagnostics coming, or existing diagnostics being cleared
