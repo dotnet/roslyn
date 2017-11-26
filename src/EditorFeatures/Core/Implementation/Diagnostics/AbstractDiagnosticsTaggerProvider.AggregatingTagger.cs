@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         // we're being told about diagnostics going away because a document/project
                         // was removed.  This supercedes all previous removes and creates for this
                         // id.
-                        batchedUpdates = (removeArgs: e, batchedUpdates.createArgs);
+                        batchedUpdates.removeArgs = e;
 
                         // Clear all all creates for this provider. 
                         batchedUpdates.createArgs.Clear();
