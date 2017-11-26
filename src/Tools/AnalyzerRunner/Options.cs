@@ -105,14 +105,14 @@ namespace AnalyzerRunner
             }
 
             return new Options(
-                analyzerPath,
-                solutionPath,
-                builder.ToImmutableHashSet(),
-                useAll,
-                showStats,
-                runConcurrent,
-                reportSuppressedDiagnostics,
-                logFileName);
+                analyzerPath: analyzerPath,
+                solutionPath: solutionPath,
+                analyzerIds: builder.ToImmutableHashSet(),
+                runConcurrent: runConcurrent,
+                reportSuppressedDiagnostics: reportSuppressedDiagnostics,
+                showStats: showStats,
+                useAll: useAll,
+                logFileName: logFileName);
         }
     }
 }
