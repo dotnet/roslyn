@@ -340,6 +340,7 @@ namespace AnalyzerRunner
         private static void WriteTelemetry(string analyzerName, AnalyzerTelemetryInfo telemetry)
         {
             WriteLine($"Statistics for {analyzerName}:", ConsoleColor.DarkCyan);
+            WriteLine($"Concurrent:                     {telemetry.Concurrent}", telemetry.Concurrent ? ConsoleColor.White : ConsoleColor.DarkRed);
             WriteLine($"Execution time (ms):            {telemetry.ExecutionTime.TotalMilliseconds}", ConsoleColor.White);
 
             WriteLine($"Code Block Actions:             {telemetry.CodeBlockActionsCount}", ConsoleColor.White);

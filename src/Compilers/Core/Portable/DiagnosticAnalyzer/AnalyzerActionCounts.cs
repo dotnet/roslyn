@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
                 analyzerActions?.OperationActionsCount ?? 0,
                 analyzerActions?.OperationBlockStartActionsCount ?? 0,
                 analyzerActions?.OperationBlockEndActionsCount ?? 0,
-                analyzerActions?.OperationBlockActionsCount ?? 0)
+                analyzerActions?.OperationBlockActionsCount ?? 0,
+                analyzerActions?.Concurrent ?? false)
         {
         }
 
@@ -42,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             int operationActionsCount,
             int operationBlockStartActionsCount,
             int operationBlockEndActionsCount,
-            int operationBlockActionsCount)
+            int operationBlockActionsCount,
+            bool concurrent)
         {
             CompilationStartActionsCount = compilationStartActionsCount;
             CompilationEndActionsCount = compilationEndActionsCount;
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             OperationBlockStartActionsCount = operationBlockStartActionsCount;
             OperationBlockEndActionsCount = operationBlockEndActionsCount;
             OperationBlockActionsCount = operationBlockActionsCount;
+            Concurrent = concurrent;
 
             HasAnyExecutableCodeActions = CodeBlockActionsCount > 0 ||
                 CodeBlockStartActionsCount > 0 ||
@@ -141,5 +144,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Returns true if there are any actions that need to run on executable code.
         /// </summary>
         public bool HasAnyExecutableCodeActions { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the analyzer supports concurrent execution.
+        /// </summary>
+        public bool Concurrent { get; }
     }
 }

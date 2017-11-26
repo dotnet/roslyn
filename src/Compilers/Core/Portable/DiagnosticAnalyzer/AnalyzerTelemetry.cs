@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// </summary>
         public TimeSpan ExecutionTime { get; set; } = TimeSpan.Zero;
 
+        /// <summary>
+        /// Gets a value indicating whether the analyzer supports concurrent execution.
+        /// </summary>
+        public bool Concurrent { get; set; }
+
         internal AnalyzerTelemetryInfo(AnalyzerActionCounts actionCounts, TimeSpan executionTime)
         {
             CompilationStartActionsCount = actionCounts.CompilationStartActionsCount;
@@ -105,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             OperationBlockActionsCount = actionCounts.OperationBlockActionsCount;
 
             ExecutionTime = executionTime;
+            Concurrent = actionCounts.Concurrent;
         }
 
         /// <summary>
