@@ -207,6 +207,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
+            // We may get a flood of diagnostic notificaitons on the BG.  In order to not overwhelm
+            // the UI thread with work to do, and to avoid excess allocations, we batch up these
+            // notifications, and attempt to process them all at once on the UI thread every 50ms
+            // or so.
+            //
+            // Because we're batching, we can optimize things such that we only store two pieces
+            // of data per provider.  Specifically, if they were removing all diagnostics, and
+            // then the last diagnostics they wanted to create.
             private static readonly ObjectPool<Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>> s_dictionaryPool = new ObjectPool<Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>>(
                 () => new Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>());
 
@@ -306,6 +314,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                     _currentDocumentId = ourDocumentId;
 
+                    if (ourDocument == null)
+                    {
+                        return;
+                    }
+
                     foreach (var kvp in idToArgs)
                     {
                         // Process removes for this id first, then process all creates.
@@ -330,8 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // Now see if the document we're tracking corresponds to the diagnostics
                 // we're hearing about.  If not, just ignore them.
-                if (ourDocument == null ||
-                    ourDocument.Project.Solution.Workspace != e.Workspace ||
+                if (ourDocument.Project.Solution.Workspace != e.Workspace ||
                     ourDocument.Id != e.DocumentId)
                 {
                     return;
