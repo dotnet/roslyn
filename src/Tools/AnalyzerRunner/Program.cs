@@ -325,13 +325,13 @@ namespace AnalyzerRunner
                 }
             }
 
-            foreach (var pair in telemetryInfoDictionary)
+            foreach (var pair in telemetryInfoDictionary.OrderBy(x => x.Key.GetType().Name, StringComparer.OrdinalIgnoreCase))
             {
                 WriteTelemetry(pair.Key.GetType().Name, pair.Value);
             }
 
             WriteLine($"Execution times (ms):", ConsoleColor.DarkCyan);
-            foreach (var pair in telemetryInfoDictionary)
+            foreach (var pair in telemetryInfoDictionary.OrderBy(x => x.Key.GetType().Name, StringComparer.OrdinalIgnoreCase))
             {
                 WriteExecutionTimes(pair.Key.GetType().Name, pair.Value);
             }
