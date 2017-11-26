@@ -30,6 +30,11 @@
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
 
     <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+
+    <!-- These aren't used by the build, but it allows the tool to locate dependencies of the built-in analyzers. -->
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
   </ItemGroup>
 
   <Import Project="..\..\..\build\Targets\Imports.targets" />
