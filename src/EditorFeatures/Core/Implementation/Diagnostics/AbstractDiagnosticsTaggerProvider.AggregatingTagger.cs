@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     if (_idToUpdateArgs.TryGetValue(e.Id, out var updateArgs))
                     {
-                        updateArgs = (null, null);
+                        updateArgs = (removeArgs: null, createArgs: null);
                     }
 
                     if (e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
