@@ -207,10 +207,57 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
+            private static readonly ObjectPool<Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>> s_dictionaryPool = new ObjectPool<Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>>(
+                () => new Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>());
+
+            private readonly object _gate = new object();
+            private Dictionary<object, (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)> _idToUpdateArgs = s_dictionaryPool.Allocate();
+            private Task _updateTask = null;
+
             private void OnDiagnosticsUpdatedOnBackground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsBackground();
-                RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e));
+                if (_disposed)
+                {
+                    return;
+                }
+
+                lock (_gate)
+                {
+                    if (_idToUpdateArgs.TryGetValue(e.Id, out var updateArgs))
+                    {
+                        updateArgs = (null, null);
+                    }
+
+                    if (e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
+                    {
+                        // we're being told about diagnostics going away because a document/project
+                        // was removed.  This supercedes all previous removes and creates for this
+                        // id.
+                        updateArgs = (removeArgs: e, createArgs: null);
+                    }
+                    else if (e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated)
+                    {
+                        // We're creating diagnostics. This supercedes all existing creations for
+                        // this id.  However, any existing removal for this id will still happen.
+                        updateArgs = (updateArgs.removeArgs, createArgs: e);
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(e);
+                    }
+
+                    _idToUpdateArgs[e.Id] = updateArgs;
+
+                    if (_updateTask == null)
+                    {
+                        var token = _owner._listener.BeginAsyncOperation(GetType().Name + "OnDiagnosticsUpdatedOnBackground");
+
+                        _updateTask = Task.Delay(50).ContinueWith(
+                            _ => OnDiagnosticsUpdatedOnForeground(),
+                            this.ForegroundTaskScheduler).CompletesAsyncOperation(token);
+                    }
+                }
             }
 
             /// <summary>
@@ -227,27 +274,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// Similarly, clearing out data is just a matter of us clearing our reference
             /// to the data.  
             /// </summary>
-            private void OnDiagnosticsUpdatedOnForeground(DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdatedOnForeground()
+            {
+                Dictionary<object, (DiagnosticsUpdatedArgs removedArgs, DiagnosticsUpdatedArgs createdArgs)> idToArgs;
+                lock (_gate)
+                {
+                    Debug.Assert(_updateTask != null);
+                    
+                    // Grab the work we need to do.  Create a fresh dictionary for new work to be
+                    // put into.
+                    idToArgs = _idToUpdateArgs;
+                    _idToUpdateArgs = s_dictionaryPool.Allocate();
+
+                    // Clear out the task so that any new work that comes in will cause a new update
+                    // task to be created.
+                    _updateTask = null;
+                }
+
+                try
+                {
+                    // Do some quick checks to avoid doing any further work for diagnostics  we don't
+                    // care about.
+                    var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                    var ourDocumentId = ourDocument?.Id;
+                    if (ourDocumentId != _currentDocumentId)
+                    {
+                        // Our buffer has started tracking some other document entirely.
+                        // We have to clear out all of the diagnostics we have currently stored.
+                        RemoveAllCachedDiagnostics();
+                    }
+
+                    _currentDocumentId = ourDocumentId;
+
+                    foreach (var kvp in idToArgs)
+                    {
+                        // Process removes for this id first, then process all creates.
+                        OnDiagnosticsUpdatedOnForeground(ourDocument, kvp.Value.removedArgs);
+                        OnDiagnosticsUpdatedOnForeground(ourDocument, kvp.Value.createdArgs);
+                    }
+                }
+                finally
+                {
+                    s_dictionaryPool.ClearAndFree(idToArgs);
+                }
+            }
+
+            private void OnDiagnosticsUpdatedOnForeground(
+                Document ourDocument, DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
-
-                if (_disposed)
+                if (e == null)
                 {
                     return;
                 }
-
-                // Do some quick checks to avoid doing any further work for diagnostics  we don't
-                // care about.
-                var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-                var ourDocumentId = ourDocument?.Id;
-                if (ourDocumentId != _currentDocumentId)
-                {
-                    // Our buffer has started tracking some other document entirely.
-                    // We have to clear out all of the diagnostics we have currently stored.
-                    RemoveAllCachedDiagnostics();
-                }
-
-                _currentDocumentId = ourDocumentId;
 
                 // Now see if the document we're tracking corresponds to the diagnostics
                 // we're hearing about.  If not, just ignore them.
