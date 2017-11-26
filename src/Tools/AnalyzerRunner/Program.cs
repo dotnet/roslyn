@@ -288,7 +288,9 @@ namespace AnalyzerRunner
 
                 // TODO some analyzer require additionaltext, we need to think about how to support such analyzer.
                 // https://github.com/dotnet/roslyn/issues/23108
-                CompilationWithAnalyzers compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(new AnalyzerOptions(ImmutableArray.Create<AdditionalText>()), null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
+                var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>());
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project.Solution.Options, project.Solution);
+                CompilationWithAnalyzers compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
                 var analystResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
                 return analystResult;
             }

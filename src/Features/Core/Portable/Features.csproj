@@ -44,6 +44,7 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="AnalyzerRunner" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />

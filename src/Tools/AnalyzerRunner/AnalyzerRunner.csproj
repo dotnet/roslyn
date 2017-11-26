@@ -28,6 +28,8 @@
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
+
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
   </ItemGroup>
 
   <Import Project="..\..\..\build\Targets\Imports.targets" />
