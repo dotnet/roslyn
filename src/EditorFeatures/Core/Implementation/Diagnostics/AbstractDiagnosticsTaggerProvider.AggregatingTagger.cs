@@ -355,8 +355,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                         // Process removes for this provider first, then process the creates for it for
                         // our document.
-                        OnDiagnosticsRemovedOnForeground(ourDocument, kvp.Value.removeArgs);
-                        OnDiagnosticsCreatedOnForeground(ourDocument, diagnosticDocument, kvp.Value.createArgs);
+                        OnDiagnosticsRemovedOnForeground(ourDocument, providerId, kvp.Value.removeArgs);
+                        OnDiagnosticsCreatedOnForeground(ourDocument, providerId, diagnosticDocument, kvp.Value.createArgs);
                     }
                 }
                 finally
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             private void OnDiagnosticsCreatedOnForeground(
-                Document ourDocument, Document diagnosticDocument, DiagnosticsUpdatedArgs e)
+                Document ourDocument, object providerId, Document diagnosticDocument, DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
 
@@ -377,6 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 Debug.Assert(!_disposed);
                 Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated);
+                Debug.Assert(providerId == e.Id);
 
                 // Now see if the document we're tracking corresponds to the diagnostics
                 // we're hearing about.  If not, just ignore them.
@@ -434,11 +435,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
-                OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
+                OnDiagnosticsUpdatedOnForeground(providerId, e, sourceText, editorSnapshot);
             }
 
             private void OnDiagnosticsRemovedOnForeground(
-                Document ourDocument, DiagnosticsUpdatedArgs e)
+                Document ourDocument, object providerId, DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
 
@@ -449,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 Debug.Assert(!_disposed);
                 Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved);
+                Debug.Assert(providerId == e.Id);
 
                 // We're hearing about diagnostics for our document.  We may be hearing
                 // about new diagnostics coming, or existing diagnostics being cleared
@@ -456,14 +458,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // First see if this is a document/project removal.  If so, clear out any state we
                 // have associated with any analyzers we have for that document/project.
-                var id = e.Id;
-                if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
+                if (!_idToProviderAndTagger.TryGetValue(providerId, out var providerAndTagger))
                 {
                     // Wasn't a diagnostic source we care about.
                     return;
                 }
 
-                _idToProviderAndTagger.Remove(id);
+                _idToProviderAndTagger.Remove(providerId);
                 DisconnectFromTagger(providerAndTagger.tagger);
 
                 OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
@@ -478,15 +479,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             private void OnDiagnosticsUpdatedOnForeground(
-                DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
+                object providerId, DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {
                 this.AssertIsForeground();
                 Debug.Assert(!_disposed);
 
                 // Find the appropriate async tagger for this diagnostics id, and let it know that
                 // there were new diagnostics produced for it.
-                var id = e.Id;
-                if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
+                if (!_idToProviderAndTagger.TryGetValue(providerId, out var providerAndTagger))
                 {
                     // We didn't have an existing tagger for this diagnostic id.  If there are no actual 
                     // diagnostics being reported, then don't bother actually doing anything.  This saves
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     var tagger = taggerProvider.CreateTagger<TTag>(_subjectBuffer);
                     providerAndTagger = (taggerProvider, tagger);
 
-                    _idToProviderAndTagger[id] = providerAndTagger;
+                    _idToProviderAndTagger[providerId] = providerAndTagger;
 
                     // Register for changes from the underlying tagger.  When it tells us about
                     // changes, we'll let anyone know who is registered with us.
