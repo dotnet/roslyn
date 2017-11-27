@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAssignmentOperator : BoundExpression
     {
-        public BoundAssignmentOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, RefKind refKind, TypeSymbol type, bool hasErrors = false)
+        public BoundAssignmentOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, bool isRef, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.AssignmentOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Left = left;
             this.Right = right;
-            this.RefKind = refKind;
+            this.IsRef = isRef;
         }
 
 
@@ -1141,18 +1141,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Right { get; }
 
-        public RefKind RefKind { get; }
+        public bool IsRef { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitAssignmentOperator(this);
         }
 
-        public BoundAssignmentOperator Update(BoundExpression left, BoundExpression right, RefKind refKind, TypeSymbol type)
+        public BoundAssignmentOperator Update(BoundExpression left, BoundExpression right, bool isRef, TypeSymbol type)
         {
-            if (left != this.Left || right != this.Right || refKind != this.RefKind || type != this.Type)
+            if (left != this.Left || right != this.Right || isRef != this.IsRef || type != this.Type)
             {
-                var result = new BoundAssignmentOperator(this.Syntax, left, right, refKind, type, this.HasErrors);
+                var result = new BoundAssignmentOperator(this.Syntax, left, right, isRef, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8586,7 +8586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(left, right, node.RefKind, type);
+            return node.Update(left, right, node.IsRef, type);
         }
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
@@ -9585,7 +9585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
                 new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
-                new TreeDumperNode("refKind", node.RefKind, null),
+                new TreeDumperNode("refKind", node.IsRef, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

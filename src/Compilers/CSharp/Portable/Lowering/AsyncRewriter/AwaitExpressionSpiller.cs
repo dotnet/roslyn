@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = leftBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.RefKind, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.IsRef, node.Type));
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)

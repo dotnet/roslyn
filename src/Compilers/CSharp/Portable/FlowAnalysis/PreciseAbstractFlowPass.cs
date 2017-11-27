@@ -1672,9 +1672,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Right);
 
             // byref assignment is also a potential write
-            if (node.RefKind != RefKind.None)
+            if (node.IsRef)
             {
-                WriteArgument(node.Right, node.RefKind, method: null);
+                WriteArgument(node.Right, node.Left.GetRefKind(), method: null);
             }
 
             return null;

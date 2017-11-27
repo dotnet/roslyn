@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(!IsMemberInitializer(boundAssignmentOperator));
 
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Left));
-            bool isRef = boundAssignmentOperator.RefKind != RefKind.None;
+            bool isRef = boundAssignmentOperator.IsRef;
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Right));
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol type = boundAssignmentOperator.Type;
