@@ -1013,8 +1013,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TrackNullableStateForAssignment(arguments[i], property, GetOrCreateSlot(property, receiverSlot), arguments[i], this.State.ResultIsNotNull);
                 }
 
-                if (_trackExceptions) NotePossibleException(node);
-
                 this.State.ResultIsNotNull = true;
                 return null;
             }

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If we are tracking exceptions, then by convention the first entry in the pending branches
         /// buffer contains a summary of the states that can arise from exceptions.
         /// </summary>
-        protected readonly bool _trackExceptions;
+        private readonly bool _trackExceptions;
 
         /// <summary>
         /// Pending escapes generated in the current scope (or more deeply nested scopes). When jump
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             target.AssertIsLabeledStatement();
         }
 
-        protected virtual void NotePossibleException(BoundNode node)
+        private void NotePossibleException(BoundNode node)
         {
             Debug.Assert(_trackExceptions);
             Debug.Assert(!IsConditionalState);
