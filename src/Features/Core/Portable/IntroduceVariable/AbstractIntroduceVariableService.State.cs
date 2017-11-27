@@ -186,6 +186,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private TExpressionSyntax GetExpressionUnderSpan(SyntaxTree tree, TextSpan textSpan, CancellationToken cancellationToken)
             {
                 var root = tree.GetRoot(cancellationToken);
+                if (textSpan.Length == 0)
+                {
+                    return root.FindToken(textSpan.Start).Parent as TExpressionSyntax;
+                }
+
                 var startToken = root.FindToken(textSpan.Start);
                 var stopToken = root.FindToken(textSpan.End);
 

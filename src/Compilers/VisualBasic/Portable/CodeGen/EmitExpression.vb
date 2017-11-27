@@ -1034,7 +1034,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' if the receiver is actually a value type it would need to be boxed.
                     ' let .constrained sort this out. 
 
-                    callKind = If(receiverType.IsReferenceType AndAlso Not AllowedToTakeRef(receiver, AddressKind.ReadOnly),
+                    Debug.Assert(Not receiverType.IsReferenceType OrElse receiver.Kind <> BoundKind.ComplexConditionalAccessReceiver)
+                    callKind = If(receiverType.IsReferenceType AndAlso
+                                   (receiver.Kind = BoundKind.ConditionalAccessReceiverPlaceholder OrElse Not AllowedToTakeRef(receiver, AddressKind.ReadOnly)),
                                     CallKind.CallVirt,
                                     CallKind.ConstrainedCallVirt)
 
