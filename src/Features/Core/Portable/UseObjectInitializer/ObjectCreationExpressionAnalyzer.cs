@@ -114,6 +114,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
+                var type = _semanticModel.GetSymbolInfo(_syntaxFacts.GetObjectCreationType(_objectCreationExpression), _cancellationToken).Symbol as INamedTypeSymbol;
+                if (IsExplicitlyImplemented(type, leftSymbol))
+                {
+                    break;
+                }
+
                 // Don't offer this fix if the value we're initializing is itself referenced
                 // on the RHS of the assignment.  For example:
                 //
@@ -161,6 +167,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 matches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                     statement, leftMemberAccess, rightExpression));
+            }
+        }
+
+        private static bool IsExplicitlyImplemented(
+            INamedTypeSymbol classOrStructType,
+            ISymbol member)
+        {
+            var implementation = classOrStructType?.FindImplementationForInterfaceMember(member);
+            switch (implementation)
+            {
+                case IPropertySymbol property: return property.ExplicitInterfaceImplementations.Length > 0 && property.DeclaredAccessibility == Accessibility.Private;
+                default: return false;
             }
         }
 
