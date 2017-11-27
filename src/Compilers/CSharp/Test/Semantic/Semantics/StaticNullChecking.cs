@@ -16809,33 +16809,31 @@ class A : System.Attribute
         }
 
         [Fact]
-        public void UnassignedParameterField()
+        public void UnassignedOutParameterClass()
         {
             var source =
 @"class C
 {
-    static void F(out S s)
+    static void G(out C? c)
     {
-        C c;
-        c = s.F;
-        s.F.ToString();
+        c.ToString(); // 1
+        c = null;
+        c.ToString(); // 2
+        c = new C();
+        c.ToString(); // 3
     }
-}
-struct S
-{
-    internal C? F;
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,13): error CS0170: Use of possibly unassigned field 'F'
-                //         c = s.F;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.F").WithArguments("F").WithLocation(6, 13),
-                // (3,17): error CS0177: The out parameter 's' must be assigned to before control leaves the current method
-                //     static void F(out S s)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("s").WithLocation(3, 17),
-                // (12,17): warning CS0649: Field 'S.F' is never assigned to, and will always have its default value null
-                //     internal C? F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S.F", "null").WithLocation(12, 17));
+                // (5,9): error CS0269: Use of unassigned out parameter 'c'
+                //         c.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "c").WithArguments("c").WithLocation(5, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 9));
         }
 
         [Fact]
