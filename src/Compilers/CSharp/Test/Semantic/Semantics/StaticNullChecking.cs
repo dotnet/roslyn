@@ -16857,7 +16857,13 @@ class A : System.Attribute
                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "c").WithArguments("c").WithLocation(7, 20),
                 // (5,17): error CS0177: The out parameter 'c' must be assigned to before control leaves the current method
                 //     static void G(out C c)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "G").WithArguments("c").WithLocation(5, 17));
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "G").WithArguments("c").WithLocation(5, 17),
+                // (7,20): warning CS8601: Possible null reference assignment.
+                //         object o = c.F;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F").WithLocation(7, 20),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         c.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F").WithLocation(8, 9));
         }
 
         [Fact]

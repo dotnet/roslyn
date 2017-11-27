@@ -147,25 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SymbolKind.Field:
                 case SymbolKind.Property:
-                    return !IsContainerAssigned(ref state, variable.ContainingSlot) ?
-                        null :
-                        !symbol.GetTypeOrReturnType().IsNullable;
+                    {
+                        int containingSlot = variable.ContainingSlot;
+                        if (variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct &&
+                            state[containingSlot] == null)
+                        {
+                            return null;
+                        }
+                        return !symbol.GetTypeOrReturnType().IsNullable;
+                    }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
-        }
-
-        private bool IsContainerAssigned(ref LocalState state, int containingSlot)
-        {
-            var variable = variableBySlot[containingSlot];
-            var containingSymbol = variable.Symbol;
-            var containingType = containingSymbol.GetTypeOrReturnType();
-            if (containingType.TypeKind == TypeKind.Class && (object)containingSymbol == MethodThisParameter)
-            {
-                return true;
-            }
-            var isNotNull = state[containingSlot];
-            return isNotNull != null;
         }
 
         protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
@@ -470,7 +463,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, (value ?? node).Syntax);
                         }
-                        this.State[slot] = valueIsNotNull;
                     }
                     else if (slot > 0)
                     {
