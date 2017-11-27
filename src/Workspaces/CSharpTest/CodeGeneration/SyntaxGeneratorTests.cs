@@ -263,6 +263,9 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             var genericType = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
             VerifySyntax<QualifiedNameSyntax>(_g.TypeExpression(genericType), "global::System.Collections.Generic.IEnumerable<T>");
 
+            var intType = _emptyCompilation.GetSpecialType(SpecialType.System_Int32);
+            VerifySyntax<TypeSyntax>(_g.TypeExpression(intType), "global::System.Int32");
+
             var arrayType = _emptyCompilation.CreateArrayTypeSymbol(_emptyCompilation.GetSpecialType(SpecialType.System_Int32));
             VerifySyntax<ArrayTypeSyntax>(_g.TypeExpression(arrayType), "global::System.Int32[]");
         }
@@ -350,7 +353,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<ObjectCreationExpressionSyntax>(
                 _g.ObjectCreationExpression(listOfIntType, _g.IdentifierName("y")),
-                "new global::System.Collections.Generic.List<global::System.Int32>(y)");  // should this be 'int' or if not shouldn't it have global::?
+                "new global::System.Collections.Generic.List<global::System.Int32>(y)"); 
         }
 
         [Fact]
