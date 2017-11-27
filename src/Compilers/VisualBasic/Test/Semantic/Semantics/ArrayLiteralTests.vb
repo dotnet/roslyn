@@ -100,6 +100,7 @@ End Module
         End Sub
 
         <Fact()>
+        <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub TestNestedEmptyArrayLiteralWithObject()
             Dim source =
 <compilation name="TestNestedEmptyArrayLiteral">
@@ -140,6 +141,24 @@ End Module
             CompileAndVerify(comp,
      expectedOutput:=<![CDATA[
                                ]]>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax)().ElementAt(7)
+
+            Assert.Equal("Dim j3(,) As Object = {}", node.ToString())
+
+            comp.VerifyOperationTree(node.Declarators.Last.Initializer.Value, expectedOperationTree:=
+            <![CDATA[
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object(,)) (Syntax: '{}')
+  Dimension Sizes(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{}')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{}')
+  Initializer: 
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{}')
+      Element Values(1):
+          IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{}')
+            Element Values(0)
+]]>.Value)
 
             comp = comp.WithOptions(_strictOn)
             comp.VerifyDiagnostics(

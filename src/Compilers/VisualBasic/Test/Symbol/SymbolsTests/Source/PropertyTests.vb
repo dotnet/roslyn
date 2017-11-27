@@ -3333,6 +3333,7 @@ BC30057: Too many arguments to 'Public Function ElementAtOrDefault() As B'.
         ''' </summary>
         <WorkItem(531372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531372")>
         <WorkItem(575547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575547")>
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessElementAtOrDefault03()
             ' Option Strict On
@@ -3376,6 +3377,23 @@ BC30574: Option Strict On disallows late binding.
         o(4) = value
         ~
 </expected>)
+
+            Dim tree = compilation1.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().ElementAt(2)
+
+            Assert.Equal("o(2)", node.ToString())
+
+            compilation1.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'o(2)')
+  Children(2):
+      IInvocationOperation ( Function C.ElementAtOrDefault() As System.Array) (OperationKind.Invocation, Type: System.Array, IsInvalid, IsImplicit) (Syntax: 'o')
+        Instance Receiver: 
+          IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'o')
+        Arguments(0)
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+]]>.Value)
+
             ' Option Strict Off
             Dim source2 =
                 <compilation>

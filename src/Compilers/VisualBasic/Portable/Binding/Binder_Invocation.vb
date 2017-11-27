@@ -429,7 +429,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     tmpDiagnostics.Clear()
 
                     If withoutArgs.Kind = BoundKind.PropertyAccess Then
+                        If DirectCast(withoutArgs, BoundPropertyAccess).ReceiverOpt?.Syntax Is withoutArgs.Syntax Then
+                            withoutArgs.MakeCompilerGenerated()
+                        End If
+
                         withoutArgs = MakeRValue(withoutArgs, diagnostics)
+
+                    ElseIf DirectCast(withoutArgs, BoundCall).ReceiverOpt?.Syntax Is withoutArgs.Syntax Then
+                        withoutArgs.MakeCompilerGenerated()
                     End If
 
                     If withoutArgs.Kind = BoundKind.BadExpression Then
@@ -3215,7 +3222,7 @@ ProduceBoundNode:
                     End If
 
                     If methodSymbol IsNot Nothing Then
-                        Dim argument = New BoundLiteral(syntax, ConstantValue.Null, param.Type)
+                        Dim argument = New BoundLiteral(syntax, ConstantValue.Null, param.Type).MakeCompilerGenerated()
                         defaultArgument = New BoundObjectCreationExpression(syntax, methodSymbol,
                                                                             ImmutableArray.Create(Of BoundExpression)(argument),
                                                                             Nothing,
@@ -3228,7 +3235,7 @@ ProduceBoundNode:
 
             End If
 
-            Return defaultArgument
+            Return defaultArgument?.MakeCompilerGenerated()
         End Function
 
         Private Shared Function GetCallerLocation(syntax As SyntaxNode) As TextSpan
