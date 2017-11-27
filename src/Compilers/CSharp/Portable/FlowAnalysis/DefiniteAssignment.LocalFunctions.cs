@@ -13,16 +13,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SmallDictionary<LocalFunctionSymbol, LocalFuncUsages> _localFuncVarUsages =
             new SmallDictionary<LocalFunctionSymbol, LocalFuncUsages>();
 
+        /// <summary>
+        /// Used to track unassignments of captured variables for region analysis. Unlike normal
+        /// definite assignment we also need to track unassignment, which means we need to know
+        /// when a captured variable starts out assigned and then becomes unassigned. This state
+        /// holds a set of captured variables for the current local function that start out
+        /// assigned and move towards unassigned.
+        /// </summary>
+        private LocalState _localFunctionUnassigns;
+
         private class LocalFuncUsages
         {
             public BitVector ReadVars = BitVector.Empty;
             public LocalState WrittenVars;
+            public LocalState UnassignedVars;
 
             public LocalFuncUsages(LocalState unreachableState)
             {
                 // If we have yet to analyze the local function
                 // definition, assume it definitely assigns everything
-                WrittenVars = unreachableState;
+                WrittenVars = unreachableState.Clone();
+                UnassignedVars = unreachableState.Clone();
             }
 
             public bool LocalFuncVisited { get; set; } = false;
@@ -47,6 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Now the writes
             if (writes)
             {
+                // Unassignments first
+                Join(ref this.State, ref usages.UnassignedVars);
+
+                // Writes should override previous unassignments if there were any
                 Meet(ref this.State, ref usages.WrittenVars);
             }
 
@@ -131,6 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var savedState = this.State;
             this.State = this.TopState();
 
+            // If we're tracking unassignments we need to also do the reverse of the normal analysis:
+            // Start captured variables as assigned and note when they move to unassigned.
+            LocalState savedUnassigns = default;
+            if (NonMonotonicTransfer)
+            {
+                savedUnassigns = _localFunctionUnassigns;
+                _localFunctionUnassigns = ReachableBottomState();
+            }
+
             if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
 
             // Captured variables are definitely assigned if they are assigned on
@@ -190,6 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of captured variables
             if (RecordChangedVars(ref usages.WrittenVars,
                                   ref stateAtReturn,
+                                  ref usages.UnassignedVars,
+                                  ref _localFunctionUnassigns,
                                   ref oldReads,
                                   ref usages.ReadVars) &&
                 usages.LocalFuncVisited)
@@ -205,6 +231,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             this.State = savedState;
+            if (NonMonotonicTransfer)
+            {
+                _localFunctionUnassigns = savedUnassigns;
+            }
             this.currentSymbol = oldSymbol;
 
             return null;
@@ -245,10 +275,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool RecordChangedVars(ref LocalState oldWrites,
                                        ref LocalState newWrites,
+                                       ref LocalState oldUnassignments,
+                                       ref LocalState newUnassignments,
                                        ref BitVector oldReads,
                                        ref BitVector newReads)
         {
             bool anyChanged = Join(ref oldWrites, ref newWrites);
+
+            if (NonMonotonicTransfer)
+            {
+                anyChanged |= Join(ref oldUnassignments, ref newUnassignments);
+            }
 
             anyChanged |= RecordCapturedChanges(ref oldReads, ref newReads);
 
@@ -259,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            ref BitVector newState)
         {
             // Build a list of variables that are both captured and assigned
-            var capturedMask = GetCapturedBitmask(ref newState);
+            var capturedMask = GetCapturedBitmask(newState);
             var capturedAndSet = newState;
             capturedAndSet.IntersectWith(capturedMask);
 
@@ -267,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return oldState.UnionWith(capturedAndSet);
         }
 
-        private BitVector GetCapturedBitmask(ref BitVector state)
+        private BitVector GetCapturedBitmask(in BitVector state)
         {
             BitVector mask = BitVector.Empty;
             for (int slot = 1; slot < state.Capacity; slot++)

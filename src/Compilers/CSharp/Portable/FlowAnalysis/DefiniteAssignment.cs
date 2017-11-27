@@ -1335,6 +1335,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetSlotUnassigned(slot, ref this.State);
+            if (IsCapturedInLocalFunction(slot))
+            {
+                SetSlotUnassigned(slot, ref _localFunctionUnassigns);
+            }
         }
 
         protected override LocalState TopState()

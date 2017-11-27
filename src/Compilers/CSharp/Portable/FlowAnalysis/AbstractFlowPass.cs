@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// without much loss of performance. In fact, this only affects the analysis of (relatively
         /// rare) try statements, and is only a slight optimization.
         /// </summary>
-        private readonly bool _nonMonotonicTransfer;
+        protected readonly bool NonMonotonicTransfer;
 
         protected void SetConditionalState(TLocalState whenTrue, TLocalState whenFalse)
         {
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.lastInRegion = lastInRegion;
             _loopHeadState = new Dictionary<BoundLoopStatement, TLocalState>(ReferenceEqualityComparer.Instance);
             _trackRegions = trackRegions;
-            _nonMonotonicTransfer = nonMonotonicTransferFunction;
+            NonMonotonicTransfer = nonMonotonicTransferFunction;
         }
 
         protected abstract string Dump(TLocalState state);
@@ -1460,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
                         Meet(ref pend.State, ref this.State);
-                        if (_nonMonotonicTransfer)
+                        if (NonMonotonicTransfer)
                         {
                             Join(ref pend.State, ref stateMovedUpInFinally);
                         }
@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RestorePending(tryAndCatchPending);
                 Meet(ref endState, ref this.State);
-                if (_nonMonotonicTransfer)
+                if (NonMonotonicTransfer)
                 {
                     Join(ref endState, ref stateMovedUpInFinally);
                 }
@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitTryBlockWithAnyTransferFunction(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
-            if (_nonMonotonicTransfer)
+            if (NonMonotonicTransfer)
             {
                 Optional<TLocalState> oldTryState = _tryState;
                 _tryState = ReachableBottomState();
@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitCatchBlockWithAnyTransferFunction(BoundCatchBlock catchBlock, ref TLocalState finallyState)
         {
-            if (_nonMonotonicTransfer)
+            if (NonMonotonicTransfer)
             {
                 Optional<TLocalState> oldTryState = _tryState;
                 _tryState = ReachableBottomState();
@@ -1553,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitFinallyBlockWithAnyTransferFunction(BoundStatement finallyBlock, ref TLocalState stateMovedUp)
         {
-            if (_nonMonotonicTransfer)
+            if (NonMonotonicTransfer)
             {
                 Optional<TLocalState> oldTryState = _tryState;
                 _tryState = ReachableBottomState();
