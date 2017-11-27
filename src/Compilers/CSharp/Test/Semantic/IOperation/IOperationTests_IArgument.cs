@@ -1251,11 +1251,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
         Children(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,24): error CS1525: Invalid expression term ')'
-                //         /*<bind>*/M2(1,)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24)
-            };
+            var expectedDiagnostics = new DiagnosticDescription[] {};
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

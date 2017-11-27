@@ -3250,11 +3250,7 @@ class Test1
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
-            compilation.VerifyDiagnostics(
-    // (34,32): error CS1525: Invalid expression term ')'
-    //         Test(ref1 => ref1.M(1, ));
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(34, 32)
-                );
+            compilation.VerifyDiagnostics();
         }
 
 
