@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 
         // If the member is already qualified with `base.`, it cannot be further qualified.
         protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
-            => !(node.IsKind(SyntaxKind.BaseExpression) || IsInPropertyOrFieldInitialization(containingSymbol, node));
+            => !(node.IsKind(SyntaxKind.BaseExpression) ||
+                node.Parent.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                IsInPropertyOrFieldInitialization(containingSymbol, node));
 
         private bool IsInPropertyOrFieldInitialization(ISymbol containingSymbol, SyntaxNode node)
         {
