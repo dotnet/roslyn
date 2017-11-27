@@ -1,6 +1,6 @@
 {
     "branches": {
-        "master": {
+        "master-vs-deps": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.7.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
