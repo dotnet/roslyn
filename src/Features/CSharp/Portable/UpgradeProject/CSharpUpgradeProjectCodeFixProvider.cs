@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UpgradeProject;
 using Roslyn.Utilities;
 
@@ -41,16 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics)
         {
             var required = RequiredVersion(diagnostics);
-            var builder = ArrayBuilder<string>.GetInstance(1);
-
-            var generic = required <= LanguageVersion.Default.MapSpecifiedToEffectiveVersion()
-               ? LanguageVersion.Default // for all versions prior to current Default
-               : LanguageVersion.Latest; // for more recent versions
-
-            builder.Add(generic.ToDisplayString());
-            builder.Add(required.ToDisplayString()); // also suggest the specific required version
-
-            return builder.ToImmutableAndFree();
+            return ImmutableArray.Create(required.ToDisplayString());
         }
 
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
