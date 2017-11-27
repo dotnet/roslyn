@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
         protected override bool IsAlreadyQualifiedMemberAccess(SyntaxNode node)
             => node.IsKind(SyntaxKind.ThisExpression);
 
-        // If the member is already qualified with `base.`, it cannot be further qualified.
+        // If the member is already qualified with `base.`,
+        // or member is in object initialization context,
+        // or member in property or field initialization, it cannot be qualified.
         protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
             => !(node.IsKind(SyntaxKind.BaseExpression) ||
                 node.Parent.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
