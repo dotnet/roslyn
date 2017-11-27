@@ -175,11 +175,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             ISymbol member)
         {
             var implementation = classOrStructType?.FindImplementationForInterfaceMember(member);
-            switch (implementation)
-            {
-                case IPropertySymbol property: return property.ExplicitInterfaceImplementations.Length > 0 && property.DeclaredAccessibility == Accessibility.Private;
-                default: return false;
-            }
+            return implementation is IPropertySymbol property && 
+                property.ExplicitInterfaceImplementations.Length > 0 
+                && property.DeclaredAccessibility == Accessibility.Private;
         }
 
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
