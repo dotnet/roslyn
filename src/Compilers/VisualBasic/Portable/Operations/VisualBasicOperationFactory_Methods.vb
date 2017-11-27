@@ -480,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         ''' is actually a delegate creation.
         ''' </summary>
         Private Function CreateConversionOperand(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode, targetType As TypeSymbol
-                                                 ) As (Operation As Lazy(Of IOperation), IsDelegateCreation As Boolean)
+                                                 ) As (Operation As Lazy(Of IOperation), ConversionKind As ConversionKind, IsDelegateCreation As Boolean)
             If IsDelegateCreation(conversionKind, conversionSyntax, operand, targetType) Then
                 Dim operandLazy As Lazy(Of IOperation)
                 If operand.Kind = BoundKind.DelegateCreationExpression Then
@@ -495,12 +495,14 @@ Namespace Microsoft.CodeAnalysis.Operations
                     ' Delegate to standard operation handling for this.
                     operandLazy = New Lazy(Of IOperation)(Function() Create(operand))
                 End If
-                Return (operandLazy, IsDelegateCreation:=True)
-            ElseIf IsNestedDelegateCreation(operand, conversionKind, conversionSyntax, targetType) Then
-                Return (CreateNestedDelegateCreationOperand(operand, conversionSyntax), IsDelegateCreation:=True)
+                Return (operandLazy, conversionKind, IsDelegateCreation:=True)
+            End If
+            Dim nestedInfo = GetNestedInfo(operand, conversionKind, conversionSyntax, targetType)
+            If nestedInfo.NestedType <> NestedType.None Then
+                Return (CreateNestedDelegateCreationOrExpressionTreeOperand(operand, conversionSyntax), nestedInfo.NestedConversionKind, IsDelegateCreation:=nestedInfo.NestedType = NestedType.DelegateCreation)
             Else
                 Dim methodSymbol As MethodSymbol = Nothing
-                Return (New Lazy(Of IOperation)(Function() Create(operand)), IsDelegateCreation:=False)
+                Return (New Lazy(Of IOperation)(Function() Create(operand)), conversionKind, IsDelegateCreation:=False)
             End If
         End Function
 
@@ -516,37 +518,53 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
         End Function
 
-        Private Shared Function IsNestedDelegateCreation(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode, targetType As TypeSymbol) As Boolean
+        Private Enum NestedType
+            None
+            DelegateCreation
+            ExpressionTree
+        End Enum
+
+        Private Shared Function GetNestedInfo(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode, targetType As TypeSymbol
+                                                                         ) As (NestedType As NestedType, NestedConversionKind As ConversionKind)
             If conversionKind = ConversionKind.Identity AndAlso operand.Kind = BoundKind.Parenthesized Then
                 Dim nestedOperand = operand
-                While nestedOperand IsNot Nothing And nestedOperand.Kind = BoundKind.Parenthesized
+                Do While nestedOperand.Kind = BoundKind.Parenthesized
                     nestedOperand = DirectCast(nestedOperand, BoundParenthesized).Expression
-                End While
+                Loop
 
                 Select Case nestedOperand.Kind
                     Case BoundKind.Conversion, BoundKind.DirectCast, BoundKind.TryCast
                         Dim nestedConversion = DirectCast(nestedOperand, BoundConversionOrCast)
-                        Return nestedConversion.Type = targetType AndAlso
-                               IsDelegateCreation(nestedConversion.ConversionKind, conversionSyntax, nestedConversion.Operand, targetType)
+                        If nestedConversion.Type <> targetType Then
+                            Return (NestedType.None, NestedConversionKind:=Nothing)
+                        End If
+
+                        If IsDelegateCreation(nestedConversion.ConversionKind, conversionSyntax, nestedConversion.Operand, targetType) Then
+                            Return (NestedType.DelegateCreation, nestedConversion.ConversionKind)
+                        ElseIf (nestedConversion.ConversionKind And ConversionKind.ConvertedToExpressionTree) = ConversionKind.ConvertedToExpressionTree Then
+                            Return (NestedType.ExpressionTree, nestedConversion.ConversionKind)
+                        End If
                     Case BoundKind.DelegateCreationExpression
                         Dim nestedDelegateCreation = DirectCast(nestedOperand, BoundDelegateCreationExpression)
-                        Return nestedDelegateCreation.Type = targetType
-                    Case Else
-                        Return False
+                        If nestedDelegateCreation.Type = targetType Then
+                            Return (NestedType.DelegateCreation, NestedConversionKind:=conversionKind)
+                        End If
                 End Select
             End If
-            Return False
+            Return (NestedType.None, NestedConversionKind:=Nothing)
         End Function
 
-        Private Function CreateNestedDelegateCreationOperand(operand As BoundNode, conversionSyntax As SyntaxNode) As Lazy(Of IOperation)
+        Private Function CreateNestedDelegateCreationOrExpressionTreeOperand(operand As BoundNode, conversionSyntax As SyntaxNode) As Lazy(Of IOperation)
             Select Case operand.Kind
                 Case BoundKind.Parenthesized
                     Dim boundParenthesized = DirectCast(operand, BoundParenthesized)
+                    ' Because we're in a delegate creation scenario, the underlying expression actually doesn't have a type.
+                    Dim type As ITypeSymbol = Nothing
                     Return New Lazy(Of IOperation)(Function() New LazyParenthesizedExpression(
-                        CreateNestedDelegateCreationOperand(boundParenthesized.Expression, conversionSyntax),
+                        CreateNestedDelegateCreationOrExpressionTreeOperand(boundParenthesized.Expression, conversionSyntax),
                         _semanticModel,
                         boundParenthesized.Syntax,
-                        boundParenthesized.Type,
+                        type,
                         ConvertToOptional(boundParenthesized.ConstantValueOpt),
                         boundParenthesized.WasCompilerGenerated))
                 Case BoundKind.Conversion, BoundKind.DirectCast, BoundKind.TryCast
