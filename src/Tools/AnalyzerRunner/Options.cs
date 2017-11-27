@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace AnalyzerRunner
 {
@@ -16,6 +17,9 @@ namespace AnalyzerRunner
         public readonly bool ReportSuppressedDiagnostics;
         public readonly bool ShowStats;
         public readonly bool UseAll;
+        public readonly bool TestDocuments;
+        public readonly Func<string, bool> TestDocumentMatch;
+        public readonly int TestDocumentIterations;
         public readonly string LogFileName;
 
         public Options(
@@ -26,6 +30,9 @@ namespace AnalyzerRunner
             bool reportSuppressedDiagnostics,
             bool showStats,
             bool useAll,
+            bool testDocuments,
+            Func<string, bool> testDocumentMatch,
+            int testDocumentIterations,
             string logFileName)
         {
             AnalyzerPath = analyzerPath;
@@ -35,6 +42,9 @@ namespace AnalyzerRunner
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             ShowStats = showStats;
             UseAll = useAll;
+            TestDocuments = testDocuments;
+            TestDocumentMatch = testDocumentMatch;
+            TestDocumentIterations = testDocumentIterations;
             LogFileName = logFileName;
         }
 
@@ -47,6 +57,9 @@ namespace AnalyzerRunner
             bool reportSuppressedDiagnostics = false;
             bool showStats = false;
             bool useAll = false;
+            bool testDocuments = false;
+            Func<string, bool> testDocumentMatch = _ => true;
+            int testDocumentIterations = 10;
             string logFileName = null;
 
             int i = 0;
@@ -65,6 +78,17 @@ namespace AnalyzerRunner
                         break;
                     case "/concurrent":
                         runConcurrent = true;
+                        break;
+                    case "/editperf":
+                        testDocuments = true;
+                        break;
+                    case var _ when arg.StartsWith("/editperf:"):
+                        testDocuments = true;
+                        var expression = new Regex(arg.Substring("/editperf:".Length), RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                        testDocumentMatch = documentPath => expression.IsMatch(documentPath);
+                        break;
+                    case var _ when arg.StartsWith("/edititer:"):
+                        testDocumentIterations = int.Parse(arg.Substring("/edititer:".Length));
                         break;
                     case "/suppressed":
                         reportSuppressedDiagnostics = true;
@@ -112,6 +136,9 @@ namespace AnalyzerRunner
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
                 showStats: showStats,
                 useAll: useAll,
+                testDocuments: testDocuments,
+                testDocumentMatch: testDocumentMatch,
+                testDocumentIterations: testDocumentIterations,
                 logFileName: logFileName);
         }
     }

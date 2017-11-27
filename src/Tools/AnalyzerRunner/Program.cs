@@ -99,6 +99,63 @@ namespace AnalyzerRunner
                 Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.ElapsedMilliseconds}ms");
                 WriteTelemetry(analysisResult);
 
+                if (options.TestDocuments)
+                {
+                    var projectPerformance = new Dictionary<ProjectId, double>();
+                    var documentPerformance = new Dictionary<DocumentId, DocumentAnalyzerPerformance>();
+                    foreach (var projectId in solution.ProjectIds)
+                    {
+                        var project = solution.GetProject(projectId);
+                        if (project.Language != LanguageNames.CSharp)
+                        {
+                            continue;
+                        }
+
+                        foreach (var documentId in project.DocumentIds)
+                        {
+                            var document = project.GetDocument(documentId);
+                            if (!options.TestDocumentMatch(document.FilePath))
+                            {
+                                continue;
+                            }
+
+                            var currentDocumentPerformance = await TestDocumentPerformanceAsync(analyzers, project, documentId, options, cancellationToken).ConfigureAwait(false);
+                            Console.WriteLine($"{document.FilePath ?? document.Name}: {currentDocumentPerformance.EditsPerSecond:0.00}");
+                            documentPerformance.Add(documentId, currentDocumentPerformance);
+                        }
+
+                        var sumOfDocumentAverages = documentPerformance.Where(x => x.Key.ProjectId == projectId).Sum(x => x.Value.EditsPerSecond);
+                        double documentCount = documentPerformance.Where(x => x.Key.ProjectId == projectId).Count();
+                        if (documentCount > 0)
+                        {
+                            projectPerformance[project.Id] = sumOfDocumentAverages / documentCount;
+                        }
+                    }
+
+                    var slowestFiles = documentPerformance.OrderBy(pair => pair.Value.EditsPerSecond).GroupBy(pair => pair.Key.ProjectId);
+                    Console.WriteLine("Slowest files in each project:");
+                    foreach (var projectGroup in slowestFiles)
+                    {
+                        Console.WriteLine($"  {solution.GetProject(projectGroup.Key).Name}");
+                        foreach (var pair in projectGroup.Take(5))
+                        {
+                            var document = solution.GetDocument(pair.Key);
+                            Console.WriteLine($"    {document.FilePath ?? document.Name}: {pair.Value.EditsPerSecond:0.00}");
+                        }
+                    }
+
+                    foreach (var projectId in solution.ProjectIds)
+                    {
+                        if (!projectPerformance.TryGetValue(projectId, out var averageEditsInProject))
+                        {
+                            continue;
+                        }
+
+                        var project = solution.GetProject(projectId);
+                        Console.WriteLine($"{project.Name} ({project.DocumentIds.Count} documents): {averageEditsInProject:0.00} edits per second");
+                    }
+                }
+
                 foreach (var group in allDiagnostics.GroupBy(diagnostic => diagnostic.Id).OrderBy(diagnosticGroup => diagnosticGroup.Key, StringComparer.OrdinalIgnoreCase))
                 {
                     Console.WriteLine($"  {group.Key}: {group.Count()} instances");
@@ -118,6 +175,31 @@ namespace AnalyzerRunner
                     WriteDiagnosticResults(analysisResult.SelectMany(pair => pair.Value.GetAllDiagnostics().Select(j => Tuple.Create(pair.Key, j))).ToImmutableArray(), options.LogFileName);
                 }
             }
+        }
+
+        private static async Task<DocumentAnalyzerPerformance> TestDocumentPerformanceAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, Project project, DocumentId documentId, Options analyzerOptionsInternal, CancellationToken cancellationToken)
+        {
+            // update the project compilation options
+            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions.Add("AD0001", ReportDiagnostic.Error);
+            // Report exceptions during the analysis process as errors
+            var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
+            var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
+
+            var stopwatch = Stopwatch.StartNew();
+            for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
+            {
+                Compilation compilation = await processedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>());
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project.Solution.Options, project.Solution);
+                CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
+
+                SyntaxTree tree = await project.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, cancellationToken).ConfigureAwait(false);
+                await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(tree), null, cancellationToken).ConfigureAwait(false);
+            }
+
+            return new DocumentAnalyzerPerformance(analyzerOptionsInternal.TestDocumentIterations / stopwatch.Elapsed.TotalSeconds);
         }
 
         private static void WriteDiagnosticResults(ImmutableArray<Tuple<ProjectId, Diagnostic>> diagnostics, string fileName)
@@ -388,6 +470,21 @@ namespace AnalyzerRunner
             Console.WriteLine("/concurrent          Executes analyzers in concurrent mode");
             Console.WriteLine("/suppressed          Reports suppressed diagnostics");
             Console.WriteLine("/log <logFile>       Write logs into the log file specified");
+            Console.WriteLine("/editperf[:<match>]     Test the incremental performance of analyzers to simulate the behavior of editing files. If <match> is specified, only files matching this regular expression are evaluated for editor performance.");
+            Console.WriteLine("/edititer:<iterations>  Specifies the number of iterations to use for testing documents with /editperf. When this is not specified, the default value is 10.");
+        }
+
+        private struct DocumentAnalyzerPerformance
+        {
+            public DocumentAnalyzerPerformance(double editsPerSecond)
+            {
+                EditsPerSecond = editsPerSecond;
+            }
+
+            public double EditsPerSecond
+            {
+                get;
+            }
         }
     }
 }
