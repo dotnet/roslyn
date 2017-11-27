@@ -6435,5 +6435,48 @@ internal class Program
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
+        public void TestArrayOfPointer()
+        {
+            var source =
+@"using System;
+class Program
+{
+    unsafe static void Main()
+    {
+        object o = new byte*[10];
+        Console.WriteLine(o is byte*[]); // True
+        Console.WriteLine(o is byte*[] _); // True
+        Console.WriteLine(o is byte*[] x1); // True
+        Console.WriteLine(o is byte**[]); // False
+        Console.WriteLine(o is byte**[] _); // False
+        Console.WriteLine(o is byte**[] x2); // False
+        o = new byte**[10];
+        Console.WriteLine(o is byte**[]); // True
+        Console.WriteLine(o is byte**[] _); // True
+        Console.WriteLine(o is byte**[] x3); // True
+        Console.WriteLine(o is byte*[]); // False
+        Console.WriteLine(o is byte*[] _); // False
+        Console.WriteLine(o is byte*[] x4); // False
+    }
+}
+";
+            var expectedOutput = @"True
+True
+True
+False
+False
+False
+True
+True
+True
+False
+False
+False";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
