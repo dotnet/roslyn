@@ -22,8 +22,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
             Await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial))
         End Function
 
-        Private Async Function TestFixOneAsync(initial As String, expected As String, refactoring As Refactoring) As Task
-            Await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index:=DirectCast(refactoring, Integer))
+        Private Async Function TestFixOneAsync(initial As String, expected As String, refactoring As Refactoring, Optional lagnaugeVersion As LanguageVersion = LanguageVersion.VisualBasic15) As Task
+            Await TestAsync(
+                initialMarkup:=CreateTreeText("[||]" + initial),
+                expectedMarkup:=CreateTreeText(expected),
+                index:=DirectCast(refactoring, Integer),
+                parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(lagnaugeVersion))
         End Function
 
         Private Shared Function CreateTreeText(initial As String) As String
@@ -68,6 +72,11 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
         Public Async Function TestSeparateNibbles() As Task
             Await TestFixOneAsync("&B10101010", "&B1010_1010", Refactoring.AddOrRemoveDigitSeparators)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
+        Public Async Function TestSeparateNibblesWithLeadingSeparator() As Task
+            Await TestFixOneAsync("&B10101010", "&B_1010_1010", Refactoring.AddOrRemoveDigitSeparators, LanguageVersion.VisualBasic15_5)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>

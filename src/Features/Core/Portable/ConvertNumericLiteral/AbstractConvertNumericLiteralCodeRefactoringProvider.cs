@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 {
     internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider : CodeRefactoringProvider
     {
+        private readonly string _hexPrefix;
+        private readonly string _binaryPrefix;
+
+        public AbstractConvertNumericLiteralCodeRefactoringProvider(string hexPrefix, string binaryPrefix)
+            => (_hexPrefix, _binaryPrefix) = (hexPrefix, binaryPrefix);
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -61,13 +67,8 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
             var value = IntegerUtilities.ToInt64(valueOpt.Value);
             var numericText = numericToken.ToString();
-            var (hexPrefix, binaryPrefix) = GetNumericLiteralPrefixes();
-            var (prefix, number, suffix) = GetNumericLiteralParts(numericText, hexPrefix, binaryPrefix);
-            var kind = string.IsNullOrEmpty(prefix) ? NumericKind.Decimal
-                : prefix.Equals(hexPrefix, StringComparison.OrdinalIgnoreCase) ? NumericKind.Hexadecimal
-                : prefix.Equals(binaryPrefix, StringComparison.OrdinalIgnoreCase) ? NumericKind.Binary
-                : NumericKind.Unknown;
-
+            var (prefix, number, suffix) = GetNumericLiteralParts(numericText);
+            var kind = GetNumericKind(prefix);
             if (kind == NumericKind.Unknown)
             {
                 return;
@@ -80,12 +81,12 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
             if (kind != NumericKind.Binary)
             {
-                RegisterRefactoringWithResult(binaryPrefix + Convert.ToString(value, 2), FeaturesResources.Convert_to_binary);
+                RegisterRefactoringWithResult(_binaryPrefix + Convert.ToString(value, 2), FeaturesResources.Convert_to_binary);
             }
 
             if (kind != NumericKind.Hexadecimal)
             {
-                RegisterRefactoringWithResult(hexPrefix + value.ToString("X"), FeaturesResources.Convert_to_hex);
+                RegisterRefactoringWithResult(_hexPrefix + value.ToString("X"), FeaturesResources.Convert_to_hex);
             }
 
             const string DigitSeparator = "_";
@@ -95,18 +96,20 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             }
             else
             {
+                var supportsLeadingUnderscore = this.SupportLeadingUnderscore(root.SyntaxTree.Options);
+
                 switch (kind)
                 {
                     case NumericKind.Decimal when number.Length > 3:
-                        RegisterRefactoringWithResult(AddSeparators(number, 3), FeaturesResources.Separate_thousands);
+                        RegisterRefactoringWithResult(AddSeparators(number, interval: 3, supportsLeadingUnderscore: false), FeaturesResources.Separate_thousands);
                         break;
 
                     case NumericKind.Hexadecimal when number.Length > 4:
-                        RegisterRefactoringWithResult(hexPrefix + AddSeparators(number, 4), FeaturesResources.Separate_words);
+                        RegisterRefactoringWithResult(_hexPrefix + AddSeparators(number, 4, supportsLeadingUnderscore), FeaturesResources.Separate_words);
                         break;
 
                     case NumericKind.Binary when number.Length > 4:
-                        RegisterRefactoringWithResult(binaryPrefix + AddSeparators(number, 4), FeaturesResources.Separate_nibbles);
+                        RegisterRefactoringWithResult(_binaryPrefix + AddSeparators(number, 4, supportsLeadingUnderscore), FeaturesResources.Separate_nibbles);
                         break;
                 }
             }
@@ -124,19 +127,39 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             }
         }
 
-        private static (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText, string hexPrefix, string binaryPrefix)
+        private NumericKind GetNumericKind(string prefix)
+        {
+            if (string.IsNullOrEmpty(prefix))
+            {
+                return NumericKind.Decimal;
+            }
+            else if (prefix.Equals(_hexPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return NumericKind.Hexadecimal;
+            }
+            else if (prefix.Equals(_binaryPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return NumericKind.Binary;
+            }
+            else
+            {
+                return NumericKind.Unknown;
+            }
+        }
+
+        private (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText)
         {
             // Match literal text and extract out base prefix, type suffix and the number itself.
-            var groups = Regex.Match(numericText, $"({hexPrefix}|{binaryPrefix})?([_0-9a-f]+)(.*)", RegexOptions.IgnoreCase).Groups;
+            var groups = Regex.Match(numericText, $"({_hexPrefix}|{_binaryPrefix})?([_0-9a-f]+)(.*)", RegexOptions.IgnoreCase).Groups;
             return (prefix: groups[1].Value, number: groups[2].Value, suffix: groups[3].Value);
         }
 
-        private static string AddSeparators(string numericText, int interval)
+        private static string AddSeparators(string numericText, int interval, bool supportsLeadingUnderscore)
         {
             // Insert digit separators in the given interval.
             var result = Regex.Replace(numericText, $"(.{{{interval}}})", "_$1", RegexOptions.RightToLeft);
-            // Fix for the case "0x_1111" that is not supported yet.
-            return result[0] == '_' ? result.Substring(1) : result;
+            // Fix for the case "0x_1111" if it's not supported
+            return result[0] == '_' && !supportsLeadingUnderscore ? result.Substring(1) : result;
         }
 
         private static bool IsIntegral(SpecialType specialType)
@@ -158,7 +181,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             }
         }
 
-        protected abstract (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes();
+        protected abstract bool SupportLeadingUnderscore(ParseOptions options);
 
         private enum NumericKind { Unknown, Decimal, Binary, Hexadecimal }
 
