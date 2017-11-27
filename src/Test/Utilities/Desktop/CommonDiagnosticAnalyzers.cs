@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -865,6 +866,57 @@ namespace Microsoft.CodeAnalysis
                         c.ReportDiagnostic(diagnostic);
                     }
                 });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class FieldReferenceOperationAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _doOperationBlockAnalysis;
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title",
+                "Field {0} = {1}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public FieldReferenceOperationAnalyzer(bool doOperationBlockAnalysis)
+            {
+                _doOperationBlockAnalysis = doOperationBlockAnalysis;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_doOperationBlockAnalysis)
+                {
+                    context.RegisterOperationBlockAction(operationBlockAnalysisContext =>
+                    {
+                        foreach (var operationBlock in operationBlockAnalysisContext.OperationBlocks)
+                        {
+                            foreach (var operation in operationBlock.DescendantsAndSelf().OfType<IFieldReferenceOperation>())
+                            {
+                                AnalyzerFieldReferenceOperation(operation, operationBlockAnalysisContext.ReportDiagnostic);
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    context.RegisterOperationAction(AnalyzerOperation, OperationKind.FieldReference);
+                }
+            }
+
+            private static void AnalyzerOperation(OperationAnalysisContext operationAnalysisContext)
+            {
+                AnalyzerFieldReferenceOperation((IFieldReferenceOperation)operationAnalysisContext.Operation, operationAnalysisContext.ReportDiagnostic);
+            }
+
+            private static void AnalyzerFieldReferenceOperation(IFieldReferenceOperation operation, Action<Diagnostic> reportDiagnostic)
+            {
+                var diagnostic = Diagnostic.Create(Descriptor, operation.Syntax.GetLocation(), operation.Field.Name, operation.Field.ConstantValue);
+                reportDiagnostic(diagnostic);
             }
         }
 

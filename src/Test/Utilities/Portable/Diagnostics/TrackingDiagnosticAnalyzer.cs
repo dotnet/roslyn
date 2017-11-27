@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             const MethodKind InvalidMethodKind = (MethodKind)(-1);
             var expectedArguments = new[]
             {
-                new { SymbolKind = SymbolKind.Event,  MethodKind = InvalidMethodKind, ReturnsVoid = false }, // C# only
+                new { SymbolKind = SymbolKind.Event,  MethodKind = InvalidMethodKind, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Field,  MethodKind = InvalidMethodKind, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.Constructor, ReturnsVoid = true },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.Conversion, ReturnsVoid = false },
@@ -126,6 +126,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.StaticConstructor, ReturnsVoid = true },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.UserDefinedOperator, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Property, MethodKind = InvalidMethodKind, ReturnsVoid = false },
+                new { SymbolKind = SymbolKind.NamedType, MethodKind = InvalidMethodKind, ReturnsVoid = false },
+                new { SymbolKind = SymbolKind.Namespace, MethodKind = InvalidMethodKind, ReturnsVoid = false }
             }.AsEnumerable();
 
             if (symbolKindsWithNoCodeBlocks != null)
