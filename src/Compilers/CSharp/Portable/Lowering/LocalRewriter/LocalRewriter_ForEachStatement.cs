@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   RewriteEnumeratorForEachStatement
         ///   RewriteSingleDimensionalArrayForEachStatement
         ///   RewriteMultiDimensionalArrayForEachStatement
-        ///   RewriteStringForEachStatement
+        ///   CanRewriteForEachAsFor
         /// </summary>
         /// <remarks>
         /// We are diverging from the C# 4 spec (and Dev10) to follow the C# 5 spec.
