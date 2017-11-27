@@ -40,7 +40,7 @@ namespace TestHelper
         /// <param name="oldSource">A class in the form of a string before the CodeFix was applied to it</param>
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
-        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
+        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will ignore any new warnings intoduced by CodeFix application; 'true' means ignore any new warning during assertion; 'false' means the test will fail if new compiler warnings are introduced</param>
         protected void VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
         {
             VerifyFix(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
@@ -52,7 +52,7 @@ namespace TestHelper
         /// <param name="oldSource">A class in the form of a string before the CodeFix was applied to it</param>
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
-        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
+        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will ignore any new warnings intoduced by CodeFix application; 'true' means ignore any new warning during assertion; 'false' means the test will fail if new compiler warnings are introduced</param>
         protected void VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
         {
             VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
@@ -70,7 +70,7 @@ namespace TestHelper
         /// <param name="oldSource">A class in the form of a string before the CodeFix was applied to it</param>
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
-        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
+        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will ignore any new warnings intoduced by CodeFix application; 'true' means ignore any new warning during assertion; 'false' means the test will fail if new compiler warnings are introduced</param>
         private void VerifyFix(string language, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
         {
             var document = CreateDocument(oldSource, language);
