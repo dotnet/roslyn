@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
         }
 
-        private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
+        private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
             // fields that are static or belong to reference types can ref escape anywhere
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckRefEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
         }
 
-        private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
+        private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
             var eventSymbol = eventAccess.EventSymbol;
 
@@ -1858,7 +1858,7 @@ moreArguments:
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
-                    return CheckFieldRefEscape(node, fieldAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    return CheckFieldRefEscape(node, fieldAccess, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
@@ -1868,7 +1868,7 @@ moreArguments:
                         break;
                     }
 
-                    return CheckFieldLikeEventRefEscape(node, eventAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    return CheckFieldLikeEventRefEscape(node, eventAccess, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
