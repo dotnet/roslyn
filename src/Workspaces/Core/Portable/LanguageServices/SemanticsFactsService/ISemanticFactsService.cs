@@ -94,5 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
+
+        SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
     }
 }

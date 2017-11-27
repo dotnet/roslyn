@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override IDocumentationCommentService DocumentationCommentService
             => CSharpDocumentationCommentService.Instance;
 
-        public bool SupportsIndexingInitializer(ParseOptions options) 
+        public bool SupportsIndexingInitializer(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
         public bool SupportsThrowExpression(ParseOptions options)
@@ -259,10 +259,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsStatement(SyntaxNode node)
             => node is StatementSyntax;
- 
+
         public bool IsParameter(SyntaxNode node)
             => node is ParameterSyntax;
- 
+
         public bool IsVariableDeclarator(SyntaxNode node)
             => node is VariableDeclaratorSyntax;
 
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsBindableToken(SyntaxToken token)
         {
-            if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
+            if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token) || token.Kind() == SyntaxKind.CommaToken)
             {
                 switch ((SyntaxKind)token.RawKind)
                 {
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         public void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode, 
+            SyntaxNode root, SyntaxNode contextNode,
             out SyntaxNode newRoot, out SyntaxNode newContextNode)
         {
             // First, annotate the context node in the tree so that we can find it again
@@ -1587,9 +1587,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
+        private class AddFirstMissingCloseBaceRewriter : CSharpSyntaxRewriter
         {
-            private readonly SyntaxNode _contextNode; 
+            private readonly SyntaxNode _contextNode;
             private bool _seenContextNode = false;
             private bool _addedFirstCloseCurly = false;
 
@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // then still ask to format its close curly to make sure all the 
                 // curlies up the stack are properly formatted.
                 var braces = rewritten.GetBraces();
-                if (braces.openBrace.Kind() == SyntaxKind.None && 
+                if (braces.openBrace.Kind() == SyntaxKind.None &&
                     braces.closeBrace.Kind() == SyntaxKind.None)
                 {
                     // Not an item with braces.  Just pass it up.

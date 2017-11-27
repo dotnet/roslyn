@@ -254,5 +254,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SpecializedCollections.SingletonEnumerable(
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
+
+        public SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            var node = token.Parent;
+            switch (node)
+            {
+                case FromClauseSyntax fromClauseSyntax:
+                case JoinClauseSyntax joinClauseSyntax:
+                    var queryClauseSyntax = (QueryClauseSyntax)node;
+                    var qryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
+                    var hasCastInfo = qryInfo.CastInfo.Symbol != null;
+                    var hasOperationInfo = qryInfo.OperationInfo.Symbol != null;
+                    if (hasCastInfo && hasOperationInfo)
+                    {
+                        return token.IsKind(SyntaxKind.InKeyword) ? qryInfo.CastInfo : qryInfo.OperationInfo;
+                    }
+                    if (hasCastInfo)
+                    {
+                        return qryInfo.CastInfo;
+                    }
+                    return qryInfo.OperationInfo;
+
+                case OrderByClauseSyntax orderByClauseSyntax:
+                    if (token.Kind() == SyntaxKind.CommaToken)
+                    {
+                        var separators = orderByClauseSyntax.Orderings.GetSeparators().ToImmutableList();
+                        var index = separators.IndexOf(token);
+                        if (index >= 0 && (index + 1) < (orderByClauseSyntax.Orderings.Count))
+                        {
+                            var ordering = orderByClauseSyntax.Orderings[index + 1];
+                            if (ordering.AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
+                            {
+                                return semanticModel.GetSymbolInfo(ordering, cancellationToken);
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            return semanticModel.GetSymbolInfo(node, cancellationToken);
+        }
     }
 }
