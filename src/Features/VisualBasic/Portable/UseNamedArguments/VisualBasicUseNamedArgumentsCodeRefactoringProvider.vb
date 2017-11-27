@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.UseNamedArguments
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
@@ -32,8 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
             End Function
 
             Protected Overrides Function WithName(argument As SimpleArgumentSyntax, name As String) As SimpleArgumentSyntax
-                Return argument.WithNameColonEquals(
-                    SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(name)))
+                Return argument.WithNameColonEquals(SyntaxFactory.NameColonEquals(name.ToIdentifierName()))
             End Function
 
             Protected Overrides Function WithArguments(argumentList As ArgumentListSyntax, namedArguments As IEnumerable(Of ArgumentSyntax), separators As IEnumerable(Of SyntaxToken)) As ArgumentListSyntax
