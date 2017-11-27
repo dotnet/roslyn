@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     Contract.ThrowIfNull(text);
 
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
-                    Contract.ThrowIfNull(textSnapshot);
-                    Contract.ThrowIfNull(textSnapshot.TextBuffer);
-
-                    openBuffers.Add(textSnapshot.TextBuffer);
+                    if (textSnapshot != null)
+                    {
+                        openBuffers.Add(textSnapshot.TextBuffer);
+                    }
                 }
 
                 foreach (var buffer in openBuffers)
