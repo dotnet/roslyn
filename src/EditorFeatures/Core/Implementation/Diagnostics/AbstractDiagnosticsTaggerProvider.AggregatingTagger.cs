@@ -142,7 +142,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 Contract.ThrowIfFalse(document == null || document.Project.Solution.Workspace == _workspace);
 
                 // Safe to read _currentDocumentId here, we are the fg thread.
-                if (document.Id == _currentDocumentId)
+                if (document.Id == _currentDocumentId &&
+                    document.Project.Solution.Workspace == _workspace)
                 {
                     // Nothing changed.
                     return;
