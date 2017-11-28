@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveStack _directives;
         private readonly LexerCache _cache;
         private readonly bool _allowPreprocessorDirectives;
+        private readonly bool _interpolationFollowedByColon;
         private DocumentationCommentParser _xmlParser;
         private int _badTokenCount; // cumulative count of bad tokens produced
 
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal bool IsVerbatim;
         }
 
-        public Lexer(SourceText text, CSharpParseOptions options, bool allowPreprocessorDirectives = true)
+        public Lexer(SourceText text, CSharpParseOptions options, bool allowPreprocessorDirectives = true, bool interpolationFollowedByColon = false)
             : base(text)
         {
             Debug.Assert(options != null);
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _cache = new LexerCache();
             _createQuickTokenFunction = this.CreateQuickToken;
             _allowPreprocessorDirectives = allowPreprocessorDirectives;
+            _interpolationFollowedByColon = interpolationFollowedByColon;
         }
 
         public override void Dispose()
@@ -139,6 +141,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public DirectiveStack Directives
         {
             get { return _directives; }
+        }
+
+        /// <summary>
+        /// The lexer is for the contents of an interpolation that is followed by a colon that signals the start of the format string.
+        /// </summary>
+        public bool InterpolationFollowedByColon
+        {
+            get
+            {
+                return _interpolationFollowedByColon;
+            }
         }
 
         public void Reset(int position, DirectiveStack directives)
