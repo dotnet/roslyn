@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Execution
             WriteOptionTo(options, language, CodeStyleOptions.QualifyPropertyAccess, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.QualifyMethodAccess, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.QualifyEventAccess, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferAutoProperties, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferCoalesceExpression, writer, cancellationToken);
@@ -244,6 +245,7 @@ namespace Microsoft.CodeAnalysis.Execution
             options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyPropertyAccess, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyMethodAccess, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyEventAccess, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferAutoProperties, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCoalesceExpression, reader, cancellationToken);
