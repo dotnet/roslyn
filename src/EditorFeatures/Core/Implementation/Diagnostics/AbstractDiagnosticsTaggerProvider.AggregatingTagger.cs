@@ -38,11 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
+            // Data that is used from both threads and needs to be protected by _gate.
+            private readonly object _gate = new object();
+
             // Use a chain of tasks to make sure that we process each diagnostic event serially.
             // This also ensures that the first diagnostic event we hear about will be processed
             // after the initial background work to get the first group of diagnostics.
-            private readonly object _gate = new object();
-
             private Task _taskChain;
 
             /// <summary>
