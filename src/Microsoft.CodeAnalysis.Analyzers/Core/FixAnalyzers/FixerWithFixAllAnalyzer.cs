@@ -167,12 +167,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             internal void AnalyzeNamedTypeSymbol(SymbolAnalysisContext context)
             {
                 var namedType = (INamedTypeSymbol)context.Symbol;
-
-                if (namedType.IsAbstract)
-                {
-                    return;
-                }
-
                 if (namedType.DerivesFrom(_codeFixProviderSymbol))
                 {
                     _codeFixProviders = _codeFixProviders ?? new HashSet<INamedTypeSymbol>();

@@ -44,6 +44,29 @@ public class MyCodeActionWithEquivalenceKey : CodeAction
         }
     }
 }
+
+public abstract class MyAbstractCodeActionWithEquivalenceKey : CodeAction
+{
+    public override string Title
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public override string EquivalenceKey
+    {
+        get
+        {
+            return ""DummyEquivalenceKey"";
+        }
+    }
+}
+
+public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEquivalenceKey
+{
+}
 ";
         private void TestCSharpCore(string source, DiagnosticResult missingGetFixAllProviderOverrideDiagnostic, bool withCustomCodeActions = false, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
         {
@@ -226,6 +249,48 @@ class C1 : CodeFixProvider
         }
 
         [Fact]
+        public void CSharp_CodeActionCreate_DiagnosticsOnAbstractType()
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeActions;
+
+class C2 : C1
+{
+}
+
+abstract class C1 : CodeFixProvider
+{
+    public override ImmutableArray<string> FixableDiagnosticIds
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        var codeAction1_1 = CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document));
+        return null;
+    }
+";
+            var expected = new DiagnosticResult[]
+            {
+                // Test0.cs(24,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(24, 29)
+            };
+
+            // Test0.cs(12,16): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(12, 16, "C1");
+
+            TestCSharpCore(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
+        }
+
+        [Fact]
         public void CSharp_CustomCodeAction_VerifyDiagnostics()
         {
             var source = @"
@@ -286,7 +351,10 @@ class C1 : CodeFixProvider
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var codeAction = new MyCodeActionWithEquivalenceKey();        
+        CodeAction codeAction = new MyCodeActionWithEquivalenceKey();        
+        context.RegisterCodeFix(codeAction, context.Diagnostics);
+        
+        codeAction = new MyDerivedCodeActionWithEquivalenceKey();        
         context.RegisterCodeFix(codeAction, context.Diagnostics);
         return null;
     }
@@ -330,6 +398,25 @@ Public Class MyCodeActionWithEquivalenceKey
 			Return ""DummyEquivalenceKey""
 		End Get
 	End Property
+End Class
+
+Public MustInherit Class MyAbstractCodeActionWithEquivalenceKey
+	Inherits CodeAction
+	Public Overrides ReadOnly Property Title() As String
+		Get
+			Throw New NotImplementedException()
+		End Get
+	End Property
+
+	Public Overrides ReadOnly Property EquivalenceKey() As String
+		Get
+			Return ""DummyEquivalenceKey""
+		End Get
+	End Property
+End Class
+
+Public Class MyDerivedCodeActionWithEquivalenceKey
+	Inherits MyAbstractCodeActionWithEquivalenceKey
 End Class
 ";
         private void TestBasicCore(string source, DiagnosticResult missingGetFixAllProviderOverrideDiagnostic, bool withCustomCodeActions = false, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
@@ -507,6 +594,49 @@ Class C1
         }
 
         [Fact]
+        public void VisualBasic_CodeActionCreate_DiagnosticsOnAbstractType()
+        {
+            var source = @"
+Imports System
+Imports System.Collections.Immutable
+Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeActions
+
+Class C2
+    Inherits C1
+End Class
+
+MustInherit Class C1
+	Inherits CodeFixProvider
+	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
+		Get
+			Throw New NotImplementedException()
+		End Get
+	End Property
+
+	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
+		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Return Nothing
+	End Function
+
+	Private Function GetKey() As String
+		Return Nothing
+	End Function
+";
+            var expected = new DiagnosticResult[]
+            {                
+                // Test0.vb(21,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(21, 23)
+            };
+
+            // Test0.vb(12,19): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(12, 19, "C1");
+
+            TestBasicCore(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
+        }
+
+        [Fact]
         public void VisualBasic_CustomCodeAction_VerifyDiagnostics()
         {
             var source = @"
@@ -561,8 +691,12 @@ Class C1
 	End Property
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-		Dim codeAction = New MyCodeActionWithEquivalenceKey()
+		Dim codeAction As CodeAction = New MyCodeActionWithEquivalenceKey()
 		context.RegisterCodeFix(codeAction, context.Diagnostics)
+
+        codeAction = New MyDerivedCodeActionWithEquivalenceKey()
+		context.RegisterCodeFix(codeAction, context.Diagnostics)
+
 		Return Nothing
 	End Function
 
