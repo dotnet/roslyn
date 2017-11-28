@@ -46,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
             ]]>,
             alwaysAssigned:={"f", "x"},
             captured:={"x"},
+            capturedInside:={"x"},
             variablesDeclared:={"f"},
             dataFlowsIn:={"x"},
             readInside:={"x"},
