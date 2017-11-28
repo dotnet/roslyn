@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
 
+                // We started tracking another document.  Clear out everything we've stored up so far.
                 ResetCurrentDocumentIdIfNecessary();
             }
 
