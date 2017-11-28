@@ -286,6 +286,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteGoToImplementation(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
+                case ID.RoslynCommands.GoToDisassembly:
+                    ExecuteGoToDisassembly(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
                 default:
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
@@ -898,6 +902,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new GoToImplementationCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteGoToDisassembly(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new GoToDisassemblyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 

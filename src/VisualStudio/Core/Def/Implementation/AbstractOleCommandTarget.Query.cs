@@ -123,6 +123,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case ID.RoslynCommands.GoToImplementation:
                     return QueryGoToImplementationStatus(prgCmds);
 
+                case ID.RoslynCommands.GoToDisassembly:
+                    return QueryGoToImplementationStatus(prgCmds);
+
                 default:
                     return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }

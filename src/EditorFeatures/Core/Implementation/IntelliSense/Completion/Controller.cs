@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _isDebugger = isDebugger;
             _isImmediateWindow = isImmediateWindow;
-            _roles = textView.Roles.ToImmutableHashSet();
+            _roles = ImmutableHashSet.Create<string>(textView.TextBuffer.ContentType.TypeName);
         }
 
         internal static Controller GetInstance(

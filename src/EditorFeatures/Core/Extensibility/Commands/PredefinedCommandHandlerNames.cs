@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Command handler name for Go to Implementation.
         /// </summary>
+        public const string GoToDisassembly = "Go To Disassembly Command Handler";
+
+        /// <summary>
+        /// Command handler name for Go to Implementation.
+        /// </summary>
         public const string GoToImplementation = "Go To Implementation Command Handler";
 
         /// <summary>
