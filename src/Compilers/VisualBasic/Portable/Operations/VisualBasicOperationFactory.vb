@@ -474,18 +474,21 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundUserDefinedShortCircuitingOperatorOperation(boundUserDefinedShortCircuitingOperator As BoundUserDefinedShortCircuitingOperator) As IBinaryOperation
-            Dim operatorKind As BinaryOperatorKind = If((boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And VisualBasic.BinaryOperatorKind.And) <> 0, BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr)
-            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.LeftOperand))
-            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.BitwiseOperator.Right))
-            Dim operatorMethod As IMethodSymbol = boundUserDefinedShortCircuitingOperator.BitwiseOperator.Call.Method
+            Dim bitwiseOperator As BoundUserDefinedBinaryOperator = boundUserDefinedShortCircuitingOperator.BitwiseOperator
+            Dim binaryOperatorInfo As BinaryOperatorInfo = GetUserDefinedBinaryOperatorInfo(bitwiseOperator)
+            Dim operatorKind As BinaryOperatorKind = If(binaryOperatorInfo.OperatorKind = BinaryOperatorKind.And, BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr)
+
+            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() If(boundUserDefinedShortCircuitingOperator.LeftOperand IsNot Nothing,
+                                                                                           Create(boundUserDefinedShortCircuitingOperator.LeftOperand), ' Possibly dropping conversions https://github.com/dotnet/roslyn/issues/23236
+                                                                                           GetUserDefinedBinaryOperatorChild(bitwiseOperator, binaryOperatorInfo.LeftOperand)))
+            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(bitwiseOperator, binaryOperatorInfo.RightOperand))
             Dim syntax As SyntaxNode = boundUserDefinedShortCircuitingOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedShortCircuitingOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedShortCircuitingOperator.ConstantValueOpt)
-            Dim isLifted As Boolean = (boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And VisualBasic.BinaryOperatorKind.Lifted) <> 0
             Dim isChecked As Boolean = False
             Dim isCompareText As Boolean = False
             Dim isImplicit As Boolean = boundUserDefinedShortCircuitingOperator.WasCompilerGenerated
-            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, binaryOperatorInfo.IsLifted, isChecked, isCompareText, binaryOperatorInfo.OperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidOperation
@@ -1377,38 +1380,36 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundRaiseEventStatement.WasCompilerGenerated
 
+            Dim eventSymbol = boundRaiseEventStatement.EventSymbol
             Dim eventInvocation = TryCast(boundRaiseEventStatement.EventInvocation, BoundCall)
 
             ' Return an invalid statement for invalid raise event statement
-            If eventInvocation Is Nothing OrElse eventInvocation.ReceiverOpt Is Nothing Then
+            If eventInvocation Is Nothing OrElse (eventInvocation.ReceiverOpt Is Nothing AndAlso Not eventSymbol.IsShared) Then
                 Debug.Assert(boundRaiseEventStatement.HasErrors)
                 Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() ImmutableArray.Create(Create(boundRaiseEventStatement.EventInvocation)))
                 Return New LazyInvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
 
-            Dim receiver = eventInvocation.ReceiverOpt
-            Dim eventSymbol = boundRaiseEventStatement.EventSymbol
-            Dim eventReferenceSyntax = receiver.Syntax
+            Dim receiverOpt = eventInvocation.ReceiverOpt
+            Dim eventReferenceSyntax = If(receiverOpt?.Syntax,
+                                          If(TryCast(syntax, RaiseEventStatementSyntax)?.Name,
+                                             syntax))
             Dim eventReferenceType As ITypeSymbol = eventSymbol.Type
-            Dim eventReferenceConstantValue As [Optional](Of Object) = ConvertToOptional(receiver.ConstantValueOpt)
+            Dim eventReferenceConstantValue As [Optional](Of Object) = ConvertToOptional(receiverOpt?.ConstantValueOpt)
             ' EventReference in a raise event statement is never implicit. However, the way it is implemented, we don't get
             ' a "BoundEventAccess" for either field backed event or custom event, and the bound nodes we get are marked as
             ' generated by compiler. As a result, we have to explicitly set IsImplicit to false.
             Dim eventReferenceIsImplicit As Boolean = False
 
-            Dim boundInstance As BoundNode
-            If receiver.Kind = BoundKind.FieldAccess Then
+            If receiverOpt?.Kind = BoundKind.FieldAccess Then
                 ' For raising a field backed event, we will only get a field access node in bound tree.
-                Dim eventFieldAccess = DirectCast(receiver, BoundFieldAccess)
+                Dim eventFieldAccess = DirectCast(receiverOpt, BoundFieldAccess)
                 Debug.Assert(eventFieldAccess.FieldSymbol.AssociatedSymbol = eventSymbol)
 
-                boundInstance = eventFieldAccess.ReceiverOpt
-            Else
-                ' This is for a custom event
-                boundInstance = receiver
+                receiverOpt = eventFieldAccess.ReceiverOpt
             End If
 
-            Dim eventReferenceInstance As Lazy(Of IOperation) = CreateReceiverOperation(boundInstance, eventSymbol)
+            Dim eventReferenceInstance As Lazy(Of IOperation) = CreateReceiverOperation(receiverOpt, eventSymbol)
 
             Dim eventReference As Lazy(Of IEventReferenceOperation) = New Lazy(Of IEventReferenceOperation)(Function() As IEventReferenceOperation
                                                                                                                 Return New LazyEventReferenceExpression(eventSymbol,

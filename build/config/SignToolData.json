@@ -110,8 +110,7 @@
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
-        "Vsix\\Templates\\Roslyn SDK.vsix",
-        "Vsix\\CodeAnalysisCompilers\\Microsoft.CodeAnalysis.Compilers.vsix"
+        "Vsix\\Templates\\Roslyn SDK.vsix"
       ]
     },
     {

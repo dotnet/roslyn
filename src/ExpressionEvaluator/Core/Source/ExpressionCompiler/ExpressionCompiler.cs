@@ -173,7 +173,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     },
                     out error);
 
-                Debug.Assert((r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
+                Debug.Assert(
+                    r.CompileResult == null && r.ResultProperties.Flags == default ||
+                    (r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
+
                 result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))

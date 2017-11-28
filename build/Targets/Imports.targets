@@ -501,20 +501,6 @@
     <!-- Special items in VSSDK projects -->
     <None Include="@(VSCTCompile)" />
   </ItemGroup>
-  
-  <!-- Work around https://github.com/dotnet/roslyn/issues/20945 -->
-  <Target Name="_CheckForUnsupportedNETCoreVersion" />
-
-  <!-- This is a work around to force the deployment of certain runtime specific DLLs contained 
-       in lib folders. Lacking this DLLs like System.Security.Cryptography.Algorithms won't deploy
-       on net461 projects. 
-       
-       https://github.com/dotnet/sdk/issues/1552 -->
-  <Target Name="WorkaroundConflictResolution" AfterTargets="_ComputeActiveTFMFileDependencies" Condition="'$(PlatformTarget)' == 'AnyCPU' AND '$(TargetFrameworkIdentifier)' == '.NETFramework' AND '$(_NeedRuntimeAssets)' == 'true'" >
-    <ItemGroup>
-      <_ActiveTFMFileDependencies Remove="@(_ActiveTFMFileDependencies->WithMetadataValue('FileGroup', 'RuntimeTarget'))" />
-    </ItemGroup>
-  </Target>
 
   <!-- 
     Prepare inputs for Symbol Store publishing.

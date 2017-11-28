@@ -7335,5 +7335,107 @@ class Program
   IL_0036:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")]
+        public void ConditionalAccessOffConstrainedTypeParameter_Property()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj2 = new MyObject2<MyObject1>(obj1);
+
+        System.Console.WriteLine(obj1.MyDate.Ticks);
+        System.Console.WriteLine(obj2.CurrentDate.Value.Ticks);
+        System.Console.WriteLine(new MyObject2<MyObject1>(null).CurrentDate.HasValue);
+    }
+}
+
+abstract class MyBaseObject1
+{
+    public DateTime MyDate { get; set; }
+}
+
+class MyObject1 : MyBaseObject1
+{ }
+
+class MyObject2<MyObjectType> where MyObjectType : MyBaseObject1, new()
+{
+    public MyObject2(MyObjectType obj)
+    {
+        m_CurrentObject1 = obj;
+    }
+
+    private MyObjectType m_CurrentObject1 = null;
+    public MyObjectType CurrentObject1 => m_CurrentObject1;
+    public DateTime? CurrentDate => CurrentObject1?.MyDate;
+}
+";
+
+            var expectedOutput =
+@"
+636461511000000000
+636461511000000000
+False
+";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")]
+        public void ConditionalAccessOffConstrainedTypeParameter_Field()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj2 = new MyObject2<MyObject1>(obj1);
+
+        System.Console.WriteLine(obj1.MyDate.Ticks);
+        System.Console.WriteLine(obj2.CurrentDate.Value.Ticks);
+        System.Console.WriteLine(new MyObject2<MyObject1>(null).CurrentDate.HasValue);
+    }
+}
+
+abstract class MyBaseObject1
+{
+    public DateTime MyDate;
+}
+
+class MyObject1 : MyBaseObject1
+{ }
+
+class MyObject2<MyObjectType> where MyObjectType : MyBaseObject1, new()
+{
+    public MyObject2(MyObjectType obj)
+    {
+        m_CurrentObject1 = obj;
+    }
+
+    private MyObjectType m_CurrentObject1 = null;
+    public MyObjectType CurrentObject1 => m_CurrentObject1;
+    public DateTime? CurrentDate => CurrentObject1?.MyDate;
+}
+";
+
+            var expectedOutput =
+@"
+636461511000000000
+636461511000000000
+False
+";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
     }
 }

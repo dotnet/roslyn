@@ -142,6 +142,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_explicit_tuple_names"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames") });
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferAutoProperties = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferAutoProperties),
+            defaultValue: TrueWithNoneEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_auto_properties"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferAutoProperties") });
+
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIsNullCheckOverReferenceEqualityMethod = new PerLanguageOption<CodeStyleOption<bool>>(
             nameof(CodeStyleOptions),
             nameof(PreferIsNullCheckOverReferenceEqualityMethod),

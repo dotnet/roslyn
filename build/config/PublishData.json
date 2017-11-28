@@ -27,6 +27,13 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn-nonnull/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn-nonnull/vsix/upload" ],
             "channels": [ "nonnull" ]
+        },
+        "features/vs-for-mac-packages": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.6.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn-for-vs-for-mac/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn-for-vs-for-mac/vsix/upload" ],
+            "channels": [ "vs-for-mac" ]
         }
     },
     "releases": {
