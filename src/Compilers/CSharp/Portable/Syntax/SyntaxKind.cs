@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         QuestionToken = 8219,
         HashToken = 8220,
         SlashToken = 8221,
+        DotDotToken = 8222,
 
         // additional xml tokens
         SlashGreaterThanToken = 8232, // xml empty element end
@@ -357,6 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SimpleMemberAccessExpression = 8689,  // dot access:   a.b
         PointerMemberAccessExpression = 8690,  // arrow access:   a->b
         ConditionalAccessExpression = 8691,    // question mark access:   a?.b , a?[1]
+        RangeExpression = 8692,
 
         // binding expressions
         MemberBindingExpression = 8707,

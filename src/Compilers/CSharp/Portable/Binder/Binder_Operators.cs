@@ -376,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SubtractExpression:
                 case SyntaxKind.DivideExpression:
                 case SyntaxKind.ModuloExpression:
+                case SyntaxKind.RangeExpression:
                 case SyntaxKind.EqualsExpression:
                 case SyntaxKind.NotEqualsExpression:
                 case SyntaxKind.GreaterThanExpression:
@@ -627,6 +628,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
+            if (resultKind == LookupResultKind.Empty && operatorToken.Kind() == SyntaxKind.DotDotToken)
+            {
+                var leftSpecialType = left.Type.SpecialType;
+                var rightSpecialType = right.Type.SpecialType;
+                if (leftSpecialType.IsIntegralType() && rightSpecialType.IsIntegralType() &&
+                    leftSpecialType != SpecialType.System_UInt64 && rightSpecialType != SpecialType.System_UInt64)
+                {
+                    // User meant to use the built-in range type, but it was missing
+                    if (leftSpecialType == SpecialType.System_Int64 || leftSpecialType == SpecialType.System_UInt32 ||
+                        rightSpecialType == SpecialType.System_Int64 || rightSpecialType == SpecialType.System_UInt32)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RangeNotFound, node, WellKnownTypes.GetMetadataName(WellKnownType.System_LongRange));
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RangeNotFound, node, WellKnownTypes.GetMetadataName(WellKnownType.System_Range));
+                    }
+                    return;
+                }
+                else
+                {
+                    // User meant to use a custom range operator: fall through to ERR_BadBinaryOps
+                }
+            }
+
             if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken) &&
                 (left.IsLiteralDefault() && right.IsLiteralDefault()))
             {
@@ -1879,6 +1905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AddExpression: return BinaryOperatorKind.Addition;
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.SubtractExpression: return BinaryOperatorKind.Subtraction;
+                case SyntaxKind.RangeExpression: return BinaryOperatorKind.Range;
                 case SyntaxKind.RightShiftAssignmentExpression:
                 case SyntaxKind.RightShiftExpression: return BinaryOperatorKind.RightShift;
                 case SyntaxKind.LeftShiftAssignmentExpression:

@@ -557,6 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedULongOr,
                         (int)BinaryOperatorKind.LiftedBoolOr,
                     }),
+                    GetSignatureForRangeOperators(),
                 };
 
                 var allOperators = new[] { nonLogicalOperators, logicalOperators };
@@ -713,6 +714,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             Debug.Assert(false, "Bad operator kind in lifted type");
             return null;
+        }
+
+        private ImmutableArray<BinaryOperatorSignature> GetSignatureForRangeOperators()
+        {
+            var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
+
+            MethodSymbol createIntRange = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__Create);
+            MethodSymbol createLongRange = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_LongRange__Create);
+            var nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
+
+            if (createIntRange != null)
+            {
+                var left = createIntRange.ParameterTypes[0];
+                var right = createIntRange.ParameterTypes[1];
+                var ret = createIntRange.ReturnType;
+                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefinedRange, left, right, ret, createIntRange));
+                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUserDefinedRange, nullable.Construct(left), nullable.Construct(right), nullable.Construct(ret), createIntRange));
+            }
+
+            if (createLongRange != null)
+            {
+                var left = createLongRange.ParameterTypes[0];
+                var right = createLongRange.ParameterTypes[1];
+                var ret = createLongRange.ReturnType;
+                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefinedRange, left, right, ret, createLongRange));
+                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUserDefinedRange, nullable.Construct(left), nullable.Construct(right), nullable.Construct(ret), createLongRange));
+            }
+
+            // If the members are missing, errors will be reported in Binder_Operators.cs ReportBinaryOperatorError
+
+            return builder.ToImmutableAndFree();
         }
 
         internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, TypeSymbol rightType, bool rightIsNull, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

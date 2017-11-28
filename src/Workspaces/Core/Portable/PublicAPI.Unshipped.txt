@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsRef.get -> bool
+Microsoft.CodeAnalysis.Editing.OperatorKind.Range = 26 -> Microsoft.CodeAnalysis.Editing.OperatorKind
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleElementExpression(Microsoft.CodeAnalysis.ITypeSymbol type, string name = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Generic.IEnumerable<string> elementNames = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> elements) -> Microsoft.CodeAnalysis.SyntaxNode

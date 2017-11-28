@@ -241,6 +241,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 case WellKnownMemberNames.ModulusOperatorName: return OperatorKind.Modulus;
                 case WellKnownMemberNames.MultiplyOperatorName: return OperatorKind.Multiply;
                 case WellKnownMemberNames.OnesComplementOperatorName: return OperatorKind.OnesComplement;
+                case WellKnownMemberNames.RangeOperatorName: return OperatorKind.Range;
                 case WellKnownMemberNames.RightShiftOperatorName: return OperatorKind.RightShift;
                 case WellKnownMemberNames.SubtractionOperatorName: return OperatorKind.Subtraction;
                 case WellKnownMemberNames.TrueOperatorName: return OperatorKind.True;

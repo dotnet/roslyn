@@ -199,6 +199,11 @@ namespace Microsoft.CodeAnalysis
         public const string OnesComplementOperatorName = "op_OnesComplement";
 
         /// <summary>
+        /// The name assigned to the Modulus operator.
+        /// </summary>
+        public const string RangeOperatorName = "op_Range";
+
+        /// <summary>
         /// The name assigned to the RightShift operator.
         /// </summary>
         public const string RightShiftOperatorName = "op_RightShift";

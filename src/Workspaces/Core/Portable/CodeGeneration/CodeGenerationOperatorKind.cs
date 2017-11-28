@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         Subtraction = 24,
         True = 25,
         UnaryPlus = 26,
-        UnaryNegation = 27
+        UnaryNegation = 27,
+        Range = 28,
     }
 }

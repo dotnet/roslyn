@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // Example: int & int is legal, but int && int is not, so we can't use the same
                 // table for both operators.
-                if (!kind.IsLogical() || (leftIndex == (int)BinaryOperatorKind.Bool && rightIndex == (int)BinaryOperatorKind.Bool))
+                if ((!kind.IsLogical() || (leftIndex == (int)BinaryOperatorKind.Bool && rightIndex == (int)BinaryOperatorKind.Bool)) && kind != BinaryOperatorKind.Range)
                 {
                     result = s_opkind[kind.OperatorIndex()][leftIndex.Value, rightIndex.Value];
                 }

@@ -402,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SubtractExpression:
                 case SyntaxKind.DivideExpression:
                 case SyntaxKind.ModuloExpression:
+                case SyntaxKind.RangeExpression:
                 case SyntaxKind.EqualsExpression:
                 case SyntaxKind.NotEqualsExpression:
                 case SyntaxKind.GreaterThanExpression:
