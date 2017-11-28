@@ -7,6 +7,10 @@ Imports System.Reflection.PortableExecutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 
+' Set the global XML namespace to be the NuSpec namespace. This will simplify 
+' the building of xml literals in this file
+Imports <xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+
 Public Class BuildDevDivInsertionFiles
     Private Const DevDivInsertionFilesDirName = "DevDivInsertionFiles"
     Private Const DevDivPackagesDirName = "DevDivPackages"
@@ -19,11 +23,15 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _outputPackageDirectory As String
     Private ReadOnly _setupDirectory As String
     Private ReadOnly _nugetPackageRoot As String
+    Private ReadOnly _nuspecDirectory As String
     Private ReadOnly _pathMap As Dictionary(Of String, String)
 
     Private Sub New(args As String())
         _binDirectory = Path.GetFullPath(args(0))
-        _setupDirectory = Path.GetFullPath(args(1))
+
+        Dim repoDirectory = Path.GetFullPath(args(1))
+        _setupDirectory = Path.Combine(repoDirectory, "src\Setup")
+        _nuspecDirectory = Path.Combine(repoDirectory, "src\Nuget")
         _nugetPackageRoot = Path.GetFullPath(args(2))
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
@@ -1033,7 +1041,7 @@ Public Class BuildDevDivInsertionFiles
         Next
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
-                  <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+                  <package>
                       <metadata>
                           <id><%= PackageName %></id>
                           <summary>Roslyn binaries for the VS build.</summary>
@@ -1045,7 +1053,7 @@ Public Class BuildDevDivInsertionFiles
                           <%= filesToInsert.
                               OrderBy(Function(f) f.Path).
                               Distinct().
-                              Select(Function(f) <file src=<%= f.Path %> target=<%= f.Target %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= f.Path %> target=<%= f.Target %>/>) %>
                       </files>
                   </package>
 
@@ -1094,7 +1102,7 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Next
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
-                  <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+                  <package>
                       <metadata>
                           <id><%= PackageName %></id>
                           <summary>Roslyn compiler binaries used to build VS</summary>
@@ -1106,7 +1114,7 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                           <file src="Init.cmd"/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
-                              Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= f %>/>) %>
                       </files>
                   </package>
 
