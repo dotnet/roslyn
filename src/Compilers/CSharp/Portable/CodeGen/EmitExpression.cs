@@ -1481,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // if method is defined in the struct itself it is assumed to be mutating, unless 
                         // it is a member of a readonly struct and is not a constructor
-                        var receiverAddresskind = methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor ?
+                        var receiverAddresskind = IsReadOnlyCall(method, methodContainingType) ?
                                                                         AddressKind.ReadOnly :
                                                                         AddressKind.Writeable;
                         if (MayUseCallForStructMethod(method))
@@ -1657,6 +1657,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             FreeOptTemp(tempOpt);
+        }
+
+        private bool IsReadOnlyCall(MethodSymbol method, NamedTypeSymbol methodContainingType)
+        {
+            Debug.Assert(methodContainingType.IsVerifierValue(), "only struct calls can be readonly");
+
+            if (methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor)
+            {
+                return true;
+            }
+
+            if (methodContainingType.IsNullableType())
+            {
+                var originalMethod = method.OriginalDefinition;
+
+                if ((object)originalMethod == this._module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault) ||
+                    (object)originalMethod == this._module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value) ||
+                    (object)originalMethod == this._module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // returns true when receiver is already a ref.
