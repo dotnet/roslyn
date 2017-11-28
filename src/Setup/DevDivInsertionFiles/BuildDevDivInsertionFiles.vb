@@ -1117,7 +1117,7 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
     Private Function GetCompilerToolsetNuspecFiles() As List(Of String)
         Dim files As New List(Of String)
         Dim nuspecFilePath = Path.Combine(_nuspecDirectory, "Microsoft.Net.Compilers.nuspec")
-        Dim document = XDocument.Parse(File.ReadAllText(nuspecFilePath))
+        Dim document = XDocument.Load(nuspecFilePath)
         For Each fileElement In document.<package>.<files>.<file>
             If fileElement.Attribute("target").Value = "tools" Then
                 files.Add(fileElement.Attribute("src").Value)
