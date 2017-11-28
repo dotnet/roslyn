@@ -417,8 +417,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                     foreach (var kvp in latestArgs)
                     {
-                        var providerId = kvp.Key;
                         var updateArgs = kvp.Value;
+                        Debug.Assert(kvp.Key == updateArgs.Id);
 
                         if (updateArgs.DocumentId != ourDocument.Id ||
                             updateArgs.Workspace != ourDocument.Project.Solution.Workspace)
@@ -433,11 +433,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         // our document.
                         if (updateArgs.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
                         {
-                            OnDiagnosticsRemovedOnForeground(providerId);
+                            OnDiagnosticsRemovedOnForeground(updateArgs);
                         }
                         else
                         {
-                            OnDiagnosticsCreatedOnForeground(providerId, updateArgs);
+                            OnDiagnosticsCreatedOnForeground(updateArgs);
                         }
                     }
                 }
@@ -447,14 +447,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
-            private void OnDiagnosticsCreatedOnForeground(
-                object providerId, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsCreatedOnForeground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
 
                 Debug.Assert(!_disposed);
                 Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated);
-                Debug.Assert(providerId == e.Id);
 
                 var diagnosticDocument = e.Solution.GetDocument(e.DocumentId);
 
@@ -509,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
-            private void OnDiagnosticsRemovedOnForeground(object providerId)
+            private void OnDiagnosticsRemovedOnForeground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
 
@@ -521,13 +519,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // First see if this is a document/project removal.  If so, clear out any state we
                 // have associated with any analyzers we have for that document/project.
-                if (!_idToProviderAndTagger.TryGetValue(providerId, out var providerAndTagger))
+                var id = e.Id;
+                if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
                     // Wasn't a diagnostic source we care about.
                     return;
                 }
 
-                _idToProviderAndTagger.Remove(providerId);
+                _idToProviderAndTagger.Remove(id);
                 DisconnectFromTagger(providerAndTagger.tagger);
 
                 OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
