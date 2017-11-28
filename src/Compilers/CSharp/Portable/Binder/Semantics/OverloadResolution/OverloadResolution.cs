@@ -1222,20 +1222,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             worse.Free();
         }
 
-        // Return the parameter type corresponding to the given argument index.
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        // Return the parameter type (considering params).
+        private static TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
-            RefKind discarded;
-            return GetParameterType(argIndex, result, parameters, out discarded);
-        }
-
-        // Return the parameter type corresponding to the given argument index.
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out RefKind refKind)
-        {
-            int paramIndex = result.ParameterFromArgument(argIndex);
-            ParameterSymbol parameter = parameters[paramIndex];
-            refKind = parameter.RefKind;
-
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
                 parameter.IsParams && parameter.Type.IsSZArray())
             {
@@ -1245,6 +1234,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return parameter.Type;
             }
+        }
+
+        // Return the parameter corresponding to the given argument index.
+        private static ParameterSymbol GetParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        {
+            int paramIndex = result.ParameterFromArgument(argIndex);
+            return parameters[paramIndex];
         }
 
         private BetterResult BetterFunctionMember<TMember>(
@@ -1308,6 +1304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // implicit conversion from EX to PX, and for at least one argument, the conversion from
             // EX to PX is better than the conversion from EX to QX.
 
+            var m1LeastOverridenParameters = m1.LeastOverriddenMember.GetParameters();
+            var m2LeastOverridenParameters = m2.LeastOverriddenMember.GetParameters();
+
             bool allSame = true; // Are all parameter types equivalent by identify conversions, ignoring Task-like differences?
             int i;
             for (i = 0; i < arguments.Count; ++i)
@@ -1323,9 +1322,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                RefKind refKind1, refKind2;
-                var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
-                var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
+                var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                var type1 = GetParameterType(parameter1, m1.Result);
+
+                var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                var type2 = GetParameterType(parameter2, m2.Result);
 
                 bool okToDowngradeToNeither;
                 BetterResult r;
@@ -1333,10 +1334,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 r = BetterConversionFromExpression(arguments[i],
                                                    type1,
                                                    m1.Result.ConversionForArg(i),
-                                                   refKind1,
+                                                   parameter1.RefKind,
                                                    type2,
                                                    m2.Result.ConversionForArg(i),
-                                                   refKind2,
+                                                   parameter2.RefKind,
                                                    considerRefKinds,
                                                    ref useSiteDiagnostics,
                                                    out okToDowngradeToNeither);
@@ -1454,11 +1455,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    RefKind refKind1, refKind2;
-                    var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
-                    var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
-
+                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                    var type1 = GetParameterType(parameter1, m1.Result);
                     var type1Normalized = type1.NormalizeTaskTypes(Compilation);
+
+                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                    var type2 = GetParameterType(parameter2, m2.Result);
                     var type2Normalized = type2.NormalizeTaskTypes(Compilation);
 
                     if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
@@ -1515,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return BetterResult.Neither;
+                return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
@@ -1608,8 +1610,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                uninst1.Add(GetParameterType(i, m1.Result, m1Original));
-                uninst2.Add(GetParameterType(i, m2.Result, m2Original));
+                var parameter1 = GetParameter(i, m1.Result, m1Original);
+                uninst1.Add(GetParameterType(parameter1, m1.Result));
+
+                var parameter2 = GetParameter(i, m2.Result, m2Original);
+                uninst2.Add(GetParameterType(parameter2, m2.Result));
             }
 
             result = MoreSpecificType(uninst1, uninst2, ref useSiteDiagnostics);
@@ -1653,24 +1658,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters.
-            Debug.Assert(m1Original.Length == m2Original.Length, "Unequal parameters counts are handled in an earlier stage");
-            for (i = 0; i < m1Original.Length; i++)
-            {
-                var p1 = m1Original[i];
-                var p2 = m2Original[i];
+            return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
+        }
 
-                if (p1.RefKind == RefKind.None && p2.RefKind == RefKind.In)
+        private static BetterResult PreferValOverInParameters<TMember>(
+            ArrayBuilder<BoundExpression> arguments,
+            MemberResolutionResult<TMember> m1,
+            ImmutableArray<ParameterSymbol> parameters1,
+            MemberResolutionResult<TMember> m2,
+            ImmutableArray<ParameterSymbol> parameters2)
+            where TMember : Symbol
+        {
+            BetterResult valOverInPreference = BetterResult.Neither;
+
+            for (int i = 0; i < arguments.Count; ++i)
+            {
+                if (arguments[i].Kind != BoundKind.ArgListOperator)
                 {
-                    return BetterResult.Left;
-                }
-                else if (p2.RefKind == RefKind.None && p1.RefKind == RefKind.In)
-                {
-                    return BetterResult.Right;
+                    var p1 = GetParameter(i, m1.Result, parameters1);
+                    var p2 = GetParameter(i, m2.Result, parameters2);
+
+                    if (p1.RefKind == RefKind.None && p2.RefKind == RefKind.In)
+                    {
+                        if (valOverInPreference == BetterResult.Right)
+                        {
+                            return BetterResult.Neither;
+                        }
+                        else
+                        {
+                            valOverInPreference = BetterResult.Left;
+                        }
+                    }
+                    else if (p2.RefKind == RefKind.None && p1.RefKind == RefKind.In)
+                    {
+                        if (valOverInPreference == BetterResult.Left)
+                        {
+                            return BetterResult.Neither;
+                        }
+                        else
+                        {
+                            valOverInPreference = BetterResult.Right;
+                        }
+                    }
                 }
             }
 
-            // Otherwise, neither function member is better.
-            return BetterResult.Neither;
+            return valOverInPreference;
         }
 
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
