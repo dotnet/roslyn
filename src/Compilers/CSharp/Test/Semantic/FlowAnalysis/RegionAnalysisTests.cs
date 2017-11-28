@@ -1593,6 +1593,8 @@ unsafe public class Test
 ");
             Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
             Assert.Equal("p", GetSymbolNamesJoined(analysis.Captured));
+            Assert.Equal("p", GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedOutside));
             Assert.Equal("i", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("<p0>", GetSymbolNamesJoined(analysis.VariablesDeclared));
 

@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<Symbol> _capturedVariables = PooledHashSet<Symbol>.GetInstance();
 
+        private readonly PooledHashSet<Symbol> _capturedInside = PooledHashSet<Symbol>.GetInstance();
+        private readonly PooledHashSet<Symbol> _capturedOutside = PooledHashSet<Symbol>.GetInstance();
+
         /// <summary>
         /// The current source assembly.
         /// </summary>
@@ -434,11 +437,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="variable"></param>
         private void NoteCaptured(Symbol variable)
         {
-            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == PreciseAbstractFlowPass<LocalState>.RegionPlace.Inside)
+            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == RegionPlace.Inside)
             {
                 _capturedVariables.Add(variable);
             }
+
+            (IsInside ? _capturedInside : _capturedOutside).Add(variable);
         }
+
+        protected IEnumerable<Symbol> GetCapturedInside() => _capturedInside.ToArray();
+        protected IEnumerable<Symbol> GetCapturedOutside() => _capturedOutside.ToArray();
 
         protected IEnumerable<Symbol> GetCaptured()
         {

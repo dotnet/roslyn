@@ -9510,7 +9510,9 @@ End Module
                 Optional readOutside() As String = Nothing,
                 Optional variablesDeclared() As String = Nothing,
                 Optional writtenInside() As String = Nothing,
-                Optional writtenOutside() As String = Nothing)
+                Optional writtenOutside() As String = Nothing,
+                Optional capturedInside() As String = Nothing,
+                Optional capturedOutside() As String = Nothing)
             VerifyDataFlowAnalysis(GetSourceXElementFromTemplate(code),
                                    alwaysAssigned,
                                    captured,
@@ -9520,7 +9522,9 @@ End Module
                                    readOutside,
                                    variablesDeclared,
                                    writtenInside,
-                                   writtenOutside)
+                                   writtenOutside,
+                                   capturedInside,
+                                   capturedOutside)
         End Sub
 
 #End Region
