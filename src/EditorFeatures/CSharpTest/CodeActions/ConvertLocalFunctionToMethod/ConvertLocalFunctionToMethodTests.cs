@@ -110,6 +110,35 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestCaptures3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static void M()
+    {
+        LocalFunction(3);
+        void [||]LocalFunction(int value)
+        {
+            System.Func<int> x = () => value;
+        }
+    }
+}",
+@"class C
+{
+    public static void M()
+    {
+        LocalFunction(3);
+    }
+
+    private static void LocalFunction(int value)
+    {
+        System.Func<int> x = () => value;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
         public async Task TestTypeParameters1()
         {
             await TestInRegularAndScriptAsync(
