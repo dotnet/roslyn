@@ -440,7 +440,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         if (diagnosticDocument.Id != ourDocument.Id ||
                             diagnosticDocument.Project.Solution.Workspace != ourDocument.Project.Solution.Workspace)
                         {
-                            // Notification for some other document.  Just ignore it.
+                            // Notification for some other document.  Just ignore it. This can happen
+                            // if the active document we were tracking changed between when we got
+                            // the diagnostic notification on the BG and now.
                             continue;
                         }
 
