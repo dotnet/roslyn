@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
-    using ProviderAndDocumentToBatchedUpdates = Dictionary<(object providerId, Document document), (DiagnosticsUpdatedArgs removeArgs, DiagnosticsUpdatedArgs createArgs)>;
+    using ProviderAndDocumentToBatchedUpdates = Dictionary<(object providerId, Document document), (bool removed, DiagnosticsUpdatedArgs createArgs)>;
 
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     {
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     var key = (e.Id, document);
                     if (!_idToBatchedUpdates.TryGetValue(key, out var batchedUpdates))
                     {
-                        batchedUpdates = (removeArgs: null, createArgs: null);
+                        batchedUpdates = (removed: false, createArgs: null);
                     }
 
                     switch (e.Kind)
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         // we're being told about diagnostics going away because a document/project
                         // was removed.  This supercedes all previous removes and creates for this
                         // provider+docid.
-                        batchedUpdates.removeArgs = e;
+                        batchedUpdates.removed = true;
                         batchedUpdates.createArgs = null;
                         break;
                     case DiagnosticsUpdatedKind.DiagnosticsCreated:
@@ -463,7 +463,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                         // Process removes for this provider first, then process the creates for it for
                         // our document.
-                        OnDiagnosticsRemovedOnForeground(ourDocument, providerId, kvp.Value.removeArgs);
+                        if (kvp.Value.removed)
+                        {
+                            OnDiagnosticsRemovedOnForeground(providerId);
+                        }
+
                         OnDiagnosticsCreatedOnForeground(ourDocument, providerId, diagnosticDocument, kvp.Value.createArgs);
                     }
                 }
@@ -546,19 +550,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 OnDiagnosticsUpdatedOnForeground(providerId, e, sourceText, editorSnapshot);
             }
 
-            private void OnDiagnosticsRemovedOnForeground(
-                Document ourDocument, object providerId, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsRemovedOnForeground(object providerId)
             {
                 this.AssertIsForeground();
 
-                if (e == null)
-                {
-                    return;
-                }
-
                 Debug.Assert(!_disposed);
-                Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved);
-                Debug.Assert(providerId == e.Id);
 
                 // We're hearing about diagnostics for our document.  We may be hearing
                 // about new diagnostics coming, or existing diagnostics being cleared
