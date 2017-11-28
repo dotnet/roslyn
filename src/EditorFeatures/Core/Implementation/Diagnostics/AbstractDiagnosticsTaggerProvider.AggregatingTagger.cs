@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                             return;
                         }
 
-                OnDiagnosticsUpdatedOnForeground(providerId, e, sourceText, editorSnapshot);
+                OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
             private void OnDiagnosticsRemovedOnForeground(object providerId)
@@ -542,14 +542,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             private void OnDiagnosticsUpdatedOnForeground(
-                object providerId, DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
+                DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {
                 this.AssertIsForeground();
                 Debug.Assert(!_disposed);
 
                 // Find the appropriate async tagger for this diagnostics id, and let it know that
                 // there were new diagnostics produced for it.
-                if (!_idToProviderAndTagger.TryGetValue(providerId, out var providerAndTagger))
+                var id = e.Id;
+                if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
                     // We didn't have an existing tagger for this diagnostic id.  If there are no actual 
                     // diagnostics being reported, then don't bother actually doing anything.  This saves
@@ -566,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     var tagger = taggerProvider.CreateTagger<TTag>(_subjectBuffer);
                     providerAndTagger = (taggerProvider, tagger);
 
-                    _idToProviderAndTagger[providerId] = providerAndTagger;
+                    _idToProviderAndTagger[id] = providerAndTagger;
 
                     // Register for changes from the underlying tagger.  When it tells us about
                     // changes, we'll let anyone know who is registered with us.
