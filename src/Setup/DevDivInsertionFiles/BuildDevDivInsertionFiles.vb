@@ -422,14 +422,7 @@ Public Class BuildDevDivInsertionFiles
             End If
         Next
 
-        ' VS.Tools.Roslyn CoreXT package needs to contain all dependencies.
-        Dim vsToolsetFiles = CompilerFiles.Concat({
-            "System.Collections.Immutable.dll",
-            "System.Reflection.Metadata.dll",
-            "Microsoft.DiaSymReader.Native.amd64.dll",
-            "Microsoft.DiaSymReader.Native.x86.dll"})
-
-        GenerateVSToolsRoslynCoreXTNuspec(vsToolsetFiles)
+        GenerateVSToolsRoslynCoreXTNuspec()
 
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
         ' These are for msvsmon, whose setup authoring is done by the debugger.
@@ -1060,51 +1053,52 @@ Public Class BuildDevDivInsertionFiles
         xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
     End Sub
 
+    ''' <summary>
+    ''' Generates the nuspec + supporting file layout for the Roslyn toolset nupkg file. This is the toolset
+    ''' which will be used during the VS build. This will exactly match the layout of the toolset used 
+    ''' by the Microsoft.Net.Compilers package + some devdiv environment files.
+    ''' </summary>
+    Private Sub GenerateVSToolsRoslynCoreXTNuspec()
+        Const packageName As String = "VS.Tools.Roslyn"
+        Dim outputDir = GetAbsolutePathInOutputDirectory(packageName)
+        Dim nuspecFiles As New List(Of String)
+        Directory.CreateDirectory(outputDir)
 
-    Private Sub GenerateVSToolsRoslynCoreXTNuspec(filesToInsert As IEnumerable(Of String))
-        Const PackageName As String = "VS.Tools.Roslyn"
+        ' First copy over all the files from the compilers toolset. 
+        For Each fileRelativePath In GetCompilerToolsetNuspecFiles()
+            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
+            Dim fileName = Path.GetFileName(fileRelativePath)
+            Dim destFilepath = Path.Combine(_outputDirectory, fileName)
+            File.Copy(filePath, destFilepath)
+            nuspecFiles.Add(fileName)
 
-        ' No duplicates are allowed
-        filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
-
-        Dim outputFolder = GetAbsolutePathInOutputDirectory(PackageName)
-
-        Directory.CreateDirectory(outputFolder)
+            ' A bug in VS forces all of our exes to use the prefer 32 bit mode. Mark the copies added 
+            ' to this nuspec as such. They are isolated and hence allow our binaries shipped to customers
+            ' to remain executable as 64 bit apps
+            ' See https://github.com/dotnet/roslyn/issues/17864
+            If Path.GetExtension(fileName) = ".exe" Then
+                MarkFile32BitPref(destFilepath)
+            End If
+        Next
 
         ' Write an Init.cmd that sets DEVPATH to the toolset location. This overrides
         ' assembly loading during the VS build to always look in the Roslyn toolset
         ' first. This is necessary because there are various incompatible versions
         ' of Roslyn littered throughout the DEVPATH already and this one should always
         ' take precedence.
+        Dim initFileName = "Init.cmd"
         Dim fileContents = "@echo off
 
 set RoslynToolsRoot=%~dp0
 set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
 
-        File.WriteAllText(
-            Path.Combine(outputFolder, "Init.cmd"),
-            fileContents)
-
-        ' Copy all dependent compiler files to the output directory
-        ' It is most important to have isolated copies of the compiler
-        ' exes (csc, vbc, vbcscompiler) since we are going to mark them
-        ' 32-bit only to work around problems with the VS build.
-        ' These binaries should never ship anywhere other than the VS toolset
-        ' See https://github.com/dotnet/roslyn/issues/17864
-        For Each fileName In filesToInsert
-            Dim srcPath = Path.Combine(_binDirectory, GetMappedPath(fileName))
-            Dim dstPath = Path.Combine(outputFolder, fileName)
-            File.Copy(srcPath, dstPath)
-
-            If Path.GetExtension(fileName) = ".exe" Then
-                MarkFile32BitPref(dstPath)
-            End If
-        Next
+        File.WriteAllText(Path.Combine(outputDir, initFileName), fileContents)
+        nuspecFiles.Add(initFileName)
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package>
                       <metadata>
-                          <id><%= PackageName %></id>
+                          <id><%= packageName %></id>
                           <summary>Roslyn compiler binaries used to build VS</summary>
                           <description>CoreXT package for Roslyn compiler toolset.</description>
                           <authors>Managed Language Compilers</authors>
@@ -1112,13 +1106,13 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                       </metadata>
                       <files>
                           <file src="Init.cmd"/>
-                          <%= filesToInsert.
+                          <%= nuspecFiles.
                               OrderBy(Function(f) f).
                               Select(Function(f) <file src=<%= f %>/>) %>
                       </files>
                   </package>
 
-        xml.Save(Path.Combine(outputFolder, PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
+        xml.Save(Path.Combine(outputDir, packageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
     End Sub
 
     Private Sub MarkFile32BitPref(filePath As String)
@@ -1165,5 +1159,22 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Directory.CreateDirectory(Path.GetDirectoryName(absolutePath))
 
         Return absolutePath
+    End Function
+
+    ''' <summary>
+    ''' Get the list of files that appear in the compiler toolset nuspec file. This is the authorative
+    ''' list of files that make up the compiler toolset layout. 
+    ''' </summary>
+    Private Function GetCompilerToolsetNuspecFiles() As List(Of String)
+        Dim files As New List(Of String)
+        Dim nuspecFilePath = Path.Combine(_nuspecDirectory, "Microsoft.Net.Compilers.nuspec")
+        Dim document = XDocument.Parse(File.ReadAllText(nuspecFilePath))
+        For Each fileElement In document.<package>.<files>.<file>
+            If fileElement.Attribute("target").Value = "tools" Then
+                files.Add(fileElement.Attribute("src").Value)
+            End If
+        Next
+
+        Return files
     End Function
 End Class
