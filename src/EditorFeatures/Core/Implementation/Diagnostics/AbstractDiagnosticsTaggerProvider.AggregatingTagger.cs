@@ -435,7 +435,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         if (updateArgs.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
                         {
                             OnDiagnosticsRemovedOnForeground(providerId);
-                            continue;
                         }
                         else
                         {
