@@ -429,8 +429,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                             continue;
                         }
 
-                        // Process removes for this provider first, then process the creates for it for
-                        // our document.
                         if (updateArgs.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
                         {
                             OnDiagnosticsRemovedOnForeground(updateArgs);
