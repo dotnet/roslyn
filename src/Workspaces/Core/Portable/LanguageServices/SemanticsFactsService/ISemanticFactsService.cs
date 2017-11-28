@@ -95,6 +95,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
-        SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
+        SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
     }
 }

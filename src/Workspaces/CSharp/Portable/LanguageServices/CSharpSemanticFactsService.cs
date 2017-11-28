@@ -255,9 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
 
-        public SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+        public SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
-            var node = token.Parent;
             switch (node)
             {
                 case FromClauseSyntax fromClauseSyntax:
@@ -270,12 +269,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return token.IsKind(SyntaxKind.InKeyword) ? qryInfo.CastInfo : qryInfo.OperationInfo;
                     }
+
                     if (hasCastInfo)
                     {
                         return qryInfo.CastInfo;
                     }
-                    return qryInfo.OperationInfo;
 
+                    return qryInfo.OperationInfo;
                 case OrderByClauseSyntax orderByClauseSyntax:
                     if (token.Kind() == SyntaxKind.CommaToken)
                     {

@@ -279,8 +279,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
         End Function
 
-        Public Function GetSymbolInfo(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFactsService.GetSymbolInfo
-            Return semanticModel.GetSymbolInfo(token.Parent, cancellationToken)
+        Public Function GetSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFactsService.GetSymbolInfo
+            Return semanticModel.GetSymbolInfo(node, cancellationToken)
         End Function
     End Class
 End Namespace

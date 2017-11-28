@@ -293,6 +293,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.QueryExpression
         End Function
 
+        Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsQueryKeyword
+            Return token.IsKind(
+                SyntaxKind.FromKeyword,
+                SyntaxKind.GroupKeyword,
+                SyntaxKind.JoinKeyword,
+                SyntaxKind.IntoKeyword,
+                SyntaxKind.LetKeyword,
+                SyntaxKind.ByKeyword,
+                SyntaxKind.SelectKeyword,
+                SyntaxKind.OrderKeyword,
+                SyntaxKind.OnKeyword,
+                SyntaxKind.EqualsKeyword,
+                SyntaxKind.AscendingKeyword,
+                SyntaxKind.DescendingKeyword) OrElse
+                (token.IsKind(SyntaxKind.InKeyword) AndAlso
+                token.Parent IsNot Nothing AndAlso
+                token.Parent.IsKind(SyntaxKind.FromClause, SyntaxKind.SimpleJoinClause, SyntaxKind.GroupJoinClause))
+        End Function
+
         Public Function IsThrowExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThrowExpression
             ' VB does not support throw expressions currently.
             Return False

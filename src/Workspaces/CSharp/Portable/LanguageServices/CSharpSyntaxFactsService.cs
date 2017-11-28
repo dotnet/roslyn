@@ -296,6 +296,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsQueryExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.QueryExpression;
 
+        public bool IsQueryKeyword(SyntaxToken token)
+            => token.IsKind(
+                SyntaxKind.FromKeyword,
+                SyntaxKind.GroupKeyword,
+                SyntaxKind.JoinKeyword,
+                SyntaxKind.IntoKeyword,
+                SyntaxKind.LetKeyword,
+                SyntaxKind.ByKeyword,
+                SyntaxKind.SelectKeyword,
+                SyntaxKind.OrderByKeyword,
+                SyntaxKind.OnKeyword,
+                SyntaxKind.EqualsKeyword,
+                SyntaxKind.AscendingKeyword,
+                SyntaxKind.DescendingKeyword) ||
+            (token.IsKind(SyntaxKind.InKeyword) && (token.Parent?.IsKind(SyntaxKind.FromClause, SyntaxKind.JoinClause, SyntaxKind.JoinIntoClause) == true));
+
         public bool IsThrowExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.ThrowExpression;
 

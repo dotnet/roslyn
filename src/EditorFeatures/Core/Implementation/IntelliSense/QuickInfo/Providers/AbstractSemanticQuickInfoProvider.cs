@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
@@ -299,17 +300,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             if (symbols.Any())
             {
-                var typeParameter = symbols.First() as ITypeParameterSymbol;
+                var discardSymbols =
+                    (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref ||
+                    (symbols.Length == 1 && symbols.First() is ITypeSymbol && syntaxFacts.IsQueryKeyword(token));
                 return ValueTuple.Create(
                     semanticModel,
-                    typeParameter != null && typeParameter.TypeParameterKind == TypeParameterKind.Cref
+                    discardSymbols
                         ? ImmutableArray<ISymbol>.Empty
                         : symbols);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
             // least bind it to a type.
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token))
             {
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
