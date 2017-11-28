@@ -4103,63 +4103,6 @@ unsafe class C
                 // (6,10): error CS1525: Invalid expression term 'int'
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 10),
-                // (8,10): error CS1525: Invalid expression term 'int'
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 10),
-                // (8,14): error CS1525: Invalid expression term '['
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(8, 14),
-                // (8,15): error CS0443: Syntax error; value expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(8, 15),
-                // (8,17): error CS1026: ) expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x3").WithLocation(8, 17),
-                // (8,17): error CS1002: ; expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x3").WithLocation(8, 17),
-                // (8,19): error CS1002: ; expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(8, 19),
-                // (8,19): error CS1513: } expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 19),
-                // (8,27): error CS1002: ; expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 27),
-                // (8,27): error CS1513: } expected
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 27),
-                // (8,29): error CS1525: Invalid expression term '='
-                //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 29),
-                // (9,14): error CS1525: Invalid expression term '['
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(9, 14),
-                // (9,15): error CS0443: Syntax error; value expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(9, 15),
-                // (9,17): error CS1026: ) expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x4").WithLocation(9, 17),
-                // (9,17): error CS1002: ; expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x4").WithLocation(9, 17),
-                // (9,19): error CS1002: ; expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(9, 19),
-                // (9,19): error CS1513: } expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(9, 19),
-                // (9,27): error CS1002: ; expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 27),
-                // (9,27): error CS1513: } expected
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 27),
-                // (9,29): error CS1525: Invalid expression term '='
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(9, 29),
                 // (6,15): error CS0103: The name 'x1' does not exist in the current context
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 15),
@@ -4181,21 +4124,24 @@ unsafe class C
                 // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var* x2, int y2)").WithLocation(7, 9),
-                // (8,17): error CS0103: The name 'x3' does not exist in the current context
+                // (8,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'int*[]'. An explicit conversion exists (are you missing a cast?)
                 //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(8, 17),
-                // (9,10): error CS0103: The name 'var' does not exist in the current context
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 10),
-                // (9,17): error CS0103: The name 'x4' does not exist in the current context
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(9, 17),
-                // (8,25): warning CS0168: The variable 'y3' is declared but never used
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int*[] x3").WithArguments("dynamic", "int*[]").WithLocation(8, 10),
+                // (8,21): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (int*[] x3, int y3) = c;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y3").WithArguments("y3").WithLocation(8, 25),
-                // (9,25): warning CS0168: The variable 'y4' is declared but never used
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y3").WithArguments("dynamic", "int").WithLocation(8, 21),
+                // (9,10): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y4").WithArguments("y4").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(9, 10),
+                // (9,10): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
+                // (9,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'var*[]'. An explicit conversion exists (are you missing a cast?)
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "var*[] x4").WithArguments("dynamic", "var*[]").WithLocation(9, 10),
+                // (9,21): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y4").WithArguments("dynamic", "int").WithLocation(9, 21)
                 );
         }
 
