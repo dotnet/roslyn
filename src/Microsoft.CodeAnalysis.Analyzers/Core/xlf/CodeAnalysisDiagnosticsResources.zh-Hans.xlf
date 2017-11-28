@@ -242,6 +242,26 @@
         <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
         <note />
       </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderTitle">
+        <source>Code fix providers should provide FixAll support.</source>
+        <target state="new">Code fix providers should provide FixAll support.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderMessage">
+        <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
+        <target state="new">'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderDescription">
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="new">A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
+        <source>Override GetFixAllProvider.</source>
+        <target state="new">Override GetFixAllProvider.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
