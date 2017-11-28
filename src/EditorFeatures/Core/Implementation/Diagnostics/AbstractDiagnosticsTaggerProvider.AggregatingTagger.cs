@@ -513,12 +513,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 Debug.Assert(!_disposed);
 
-                // We're hearing about diagnostics for our document.  We may be hearing
-                // about new diagnostics coming, or existing diagnostics being cleared
-                // out.
-
-                // First see if this is a document/project removal.  If so, clear out any state we
-                // have associated with any analyzers we have for that document/project.
+                // This is a document removal.  Clear out any state we have associated with 
+                // this analyzer. 
                 var id = e.Id;
                 if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
