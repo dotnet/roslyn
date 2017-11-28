@@ -79,6 +79,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             // nothing on the UI itself (we just push the data into our providers, and inform the
             // editor that we have changed).
             private ProviderAndDocumentToBatchedUpdates _idToBatchedUpdates = s_providerPool.Allocate();
+
+            /// <summary>
+            /// The task we use to actuall process all the diagnostic notifications we've gotten.
+            /// We only ever have one of these in flight at a time.  If the task is in flight and
+            /// we get new diagnostic events, we just add them to <see cref="_idToBatchedUpdates"/>
+            /// to be processed when the task finally executes.
+            /// </summary>
             private Task _updateTask = null;
 
             public AggregatingTagger(
