@@ -1160,26 +1160,65 @@ class C
 ";
 
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case ((o.GetType().Name.Length)):").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
+                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
+                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
+                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
+                // (8,31): error CS1003: Syntax error, ',' expected
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
+                // (8,32): error CS1003: Syntax error, ',' expected
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Name").WithArguments(",", "").WithLocation(8, 32),
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((o.GetType().Name.Length))").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "((o.GetType().Name.Length))").WithArguments("recursive pattern").WithLocation(8, 18),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 0:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 M();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M").WithLocation(9, 17)
                 );
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
+                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case ((o.GetType().Name.Length)):").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
+                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
+                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
+                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
+                // (8,31): error CS1003: Syntax error, ',' expected
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
+                // (8,32): error CS1003: Syntax error, ',' expected
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Name").WithArguments(",", "").WithLocation(8, 32),
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((o.GetType().Name.Length))").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "((o.GetType().Name.Length))").WithArguments("recursive pattern").WithLocation(8, 18),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
@@ -1191,9 +1230,24 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "M").WithLocation(9, 17)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((o.GetType().Name.Length))").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
+                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
+                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
+                // (8,31): error CS1003: Syntax error, ',' expected
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
+                // (8,32): error CS1003: Syntax error, ',' expected
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Name").WithArguments(",", "").WithLocation(8, 32),
+                // (8,18): error CS0570: 'recursive pattern' is not supported by the language
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_BindToBogus, "((o.GetType().Name.Length))").WithArguments("recursive pattern").WithLocation(8, 18),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),

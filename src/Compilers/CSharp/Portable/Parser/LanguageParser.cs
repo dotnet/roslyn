@@ -4859,7 +4859,7 @@ tryAgain:
             InTypeList = 1 << 1, // Allows attributes to appear within the generic type argument list. Used during ParseInstantiation.
             PossiblePattern = 1 << 2, // Used to influence parser ambiguity around "<" and generics vs. expressions on the right of 'is'
             AfterIs = 1 << 3,
-            AfterCase = 1 << 4,
+            DefinitePattern = 1 << 4,
             AfterOut = 1 << 5,
             AfterTupleComma = 1 << 6,
             FirstElementOfPossibleTupleLiteral = 1 << 7,
@@ -5154,7 +5154,7 @@ tryAgain:
                     // subsequent element of a tuple literal (in which case the tokens are preceded by `,` and the
                     // identifier is followed by a `,` or `)`).
                     // Note that we treat query contextual keywords (which appear here as identifiers) as disambiguating tokens as well.
-                    if ((options & (NameOptions.AfterIs | NameOptions.AfterCase | NameOptions.AfterOut)) != 0 ||
+                    if ((options & (NameOptions.AfterIs | NameOptions.DefinitePattern | NameOptions.AfterOut)) != 0 ||
                         (options & NameOptions.AfterTupleComma) != 0 && (this.PeekToken(1).Kind == SyntaxKind.CommaToken || this.PeekToken(1).Kind == SyntaxKind.CloseParenToken) ||
                         (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken
                         )
@@ -5824,15 +5824,15 @@ tryAgain:
             return this.IsTrueIdentifier();
         }
 
-        private ScanTypeFlags ScanType()
+        private ScanTypeFlags ScanType(bool forPattern = false)
         {
             SyntaxToken lastTokenOfType;
             return ScanType(out lastTokenOfType);
         }
 
-        private ScanTypeFlags ScanType(out SyntaxToken lastTokenOfType)
+        private ScanTypeFlags ScanType(out SyntaxToken lastTokenOfType, bool forPattern = false)
         {
-            return ScanType(ParseTypeMode.Normal, out lastTokenOfType);
+            return ScanType(forPattern ? ParseTypeMode.DefinitePattern : ParseTypeMode.Normal, out lastTokenOfType);
         }
 
         private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
@@ -5950,7 +5950,7 @@ tryAgain:
                 lastTokenOfType = this.EatToken();
                 result = ScanTypeFlags.MustBeType;
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && mode != ParseTypeMode.DefinitePattern)
             {
                 lastTokenOfType = this.EatToken();
 
@@ -5980,6 +5980,9 @@ tryAgain:
                 case ParseTypeMode.AfterTupleComma:
                     // We are parsing the type for a declaration expression in a tuple, which does
                     // not permit pointer types. In that context a `*` is parsed as a multiplication.
+                    break;
+                case ParseTypeMode.DefinitePattern:
+                    // pointer type syntax is not supported in patterns.
                     break;
                 default:
                     while (this.CurrentToken.Kind == SyntaxKind.AsteriskToken)
@@ -6110,7 +6113,7 @@ tryAgain:
             Normal,
             Parameter,
             AfterIs,
-            AfterCase,
+            DefinitePattern,
             AfterOut,
             AfterTupleComma,
             AsExpression,
@@ -6152,8 +6155,8 @@ tryAgain:
                 case ParseTypeMode.AfterIs:
                     nameOptions = NameOptions.InExpression | NameOptions.AfterIs | NameOptions.PossiblePattern;
                     break;
-                case ParseTypeMode.AfterCase:
-                    nameOptions = NameOptions.InExpression | NameOptions.AfterCase | NameOptions.PossiblePattern;
+                case ParseTypeMode.DefinitePattern:
+                    nameOptions = NameOptions.InExpression | NameOptions.DefinitePattern | NameOptions.PossiblePattern;
                     break;
                 case ParseTypeMode.AfterOut:
                     nameOptions = NameOptions.InExpression | NameOptions.AfterOut;
@@ -6178,7 +6181,7 @@ tryAgain:
 
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
                 // we do not permit nullable types in a declaration pattern
-                (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.AfterCase || !IsTrueIdentifier(this.PeekToken(1))))
+                (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.DefinitePattern || !IsTrueIdentifier(this.PeekToken(1))))
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -6206,7 +6209,7 @@ tryAgain:
             switch (mode)
             {
                 case ParseTypeMode.AfterIs:
-                case ParseTypeMode.AfterCase:
+                case ParseTypeMode.DefinitePattern:
                 case ParseTypeMode.AfterTupleComma:
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                     // these contexts do not permit a pointer type.
@@ -7964,7 +7967,7 @@ tryAgain:
                         }
                         else
                         {
-                            var node = ParseExpressionOrPatternForCase();
+                            var node = ParseExpressionOrPattern(forCase: true);
                             if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.
@@ -9444,10 +9447,7 @@ tryAgain:
                 return (ArgumentListSyntax)this.EatNode();
             }
 
-            SyntaxToken openToken, closeToken;
-            SeparatedSyntaxList<ArgumentSyntax> arguments;
-            ParseArgumentList(out openToken, out arguments, out closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
-
+            ParseArgumentList(out var openToken, out var arguments, out var closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
             return _syntaxFactory.ArgumentList(openToken, arguments, closeToken);
         }
 
@@ -9458,10 +9458,7 @@ tryAgain:
                 return (BracketedArgumentListSyntax)this.EatNode();
             }
 
-            SyntaxToken openToken, closeToken;
-            SeparatedSyntaxList<ArgumentSyntax> arguments;
-            ParseArgumentList(out openToken, out arguments, out closeToken, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken);
-
+            ParseArgumentList(out var openToken, out var arguments, out var closeToken, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken);
             return _syntaxFactory.BracketedArgumentList(openToken, arguments, closeToken);
         }
 
@@ -10006,7 +10003,7 @@ tryAgain:
             }
         }
 
-        private bool ScanCast()
+        private bool ScanCast(bool forPattern = false)
         {
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
             {
@@ -10015,7 +10012,7 @@ tryAgain:
 
             this.EatToken();
 
-            var type = this.ScanType();
+            var type = this.ScanType(forPattern: forPattern);
             if (type == ScanTypeFlags.NotType)
             {
                 return false;
@@ -10142,6 +10139,7 @@ tryAgain:
                 case SyntaxKind.MinusGreaterThanToken:
                 case SyntaxKind.QuestionQuestionToken:
                 case SyntaxKind.EndOfFileToken:
+                case SyntaxKind.EqualsGreaterThanToken:
                     return false;
                 default:
                     return true;

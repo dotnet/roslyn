@@ -1512,69 +1512,63 @@ class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
+                // (21,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int, int):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int)").WithArguments("recursive patterns", "patterns2").WithLocation(21, 18),
                 // (21,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 19),
                 // (21,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 24),
+                // (22,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int x, int y)").WithArguments("recursive patterns", "patterns2").WithLocation(22, 18),
+                // (23,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) z").WithArguments("recursive patterns", "patterns2").WithLocation(23, 18),
                 // (23,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 19),
                 // (23,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 24),
-                // (23,29): error CS1003: Syntax error, ':' expected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(23, 29),
-                // (23,31): error CS1525: Invalid expression term 'case'
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(23, 31),
-                // (23,31): error CS1002: ; expected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(23, 31),
-                // (24,33): error CS1003: Syntax error, ':' expected
+                // (24,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(":", "").WithLocation(24, 33),
-                // (24,35): error CS1525: Invalid expression term 'case'
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(24, 35),
-                // (24,35): error CS1002: ; expected
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(24, 35),
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int a, int b) c").WithArguments("recursive patterns", "patterns2").WithLocation(24, 18),
+                // (25,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(long, long) d").WithArguments("recursive patterns", "patterns2").WithLocation(25, 18),
                 // (25,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 19),
                 // (25,25): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 25),
-                // (25,31): error CS1003: Syntax error, ':' expected
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(25, 31),
+                // (30,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) z").WithArguments("recursive patterns", "patterns2").WithLocation(30, 18),
                 // (30,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 19),
                 // (30,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 24),
-                // (30,29): error CS1003: Syntax error, ':' expected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(30, 29),
+                // (32,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(long, long) d").WithArguments("recursive patterns", "patterns2").WithLocation(32, 18),
                 // (32,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 19),
                 // (32,25): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 25),
-                // (32,31): error CS1003: Syntax error, ':' expected
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(32, 31),
-                // (37,47): error CS1003: Syntax error, ':' expected
+                // (37,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(37, 47),
-                // (39,47): error CS1003: Syntax error, ':' expected
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32, System.Int32) z").WithArguments("recursive patterns", "patterns2").WithLocation(37, 18),
+                // (39,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(39, 47),
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int64, System.Int64) d").WithArguments("recursive patterns", "patterns2").WithLocation(39, 18),
                 // (43,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 23),
@@ -1623,51 +1617,33 @@ class Program
                 // (52,56): error CS1513: } expected
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(52, 56),
-                // (21,18): error CS0150: A constant value is expected
+                // (21,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (int, int):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(21, 18),
-                // (22,19): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(int, int)").WithArguments("recursive pattern").WithLocation(21, 18),
+                // (22,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(22, 19),
-                // (22,26): error CS8185: A declaration is not allowed in this context.
-                //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(22, 26),
-                // (22,18): error CS0150: A constant value is expected
-                //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int x, int y)").WithLocation(22, 18),
-                // (23,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(int x, int y)").WithArguments("recursive pattern").WithLocation(22, 18),
+                // (23,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(23, 18),
-                // (24,19): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(int, int) z").WithArguments("recursive pattern").WithLocation(23, 18),
+                // (24,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(24, 19),
-                // (24,26): error CS8185: A declaration is not allowed in this context.
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(24, 26),
-                // (24,18): error CS0150: A constant value is expected
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(24, 18),
-                // (25,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(int a, int b) c").WithArguments("recursive pattern").WithLocation(24, 18),
+                // (25,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(long, long)").WithLocation(25, 18),
-                // (30,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(long, long) d").WithArguments("recursive pattern").WithLocation(25, 18),
+                // (30,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(30, 18),
-                // (32,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(int, int) z").WithArguments("recursive pattern").WithLocation(30, 18),
+                // (32,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(long, long)").WithLocation(32, 18),
-                // (37,19): error CS0119: 'int' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(long, long) d").WithArguments("recursive pattern").WithLocation(32, 18),
+                // (37,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 19),
-                // (37,33): error CS0119: 'int' is a type, which is not valid in the given context
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 33),
-                // (39,19): error CS0119: 'long' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(System.Int32, System.Int32) z").WithArguments("recursive pattern").WithLocation(37, 18),
+                // (39,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 19),
-                // (39,33): error CS0119: 'long' is a type, which is not valid in the given context
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 33),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(System.Int64, System.Int64) d").WithArguments("recursive pattern").WithLocation(39, 18),
                 // (43,22): error CS0150: A constant value is expected
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(43, 22),
@@ -1734,48 +1710,21 @@ class Program
                 // (52,55): error CS0103: The name 'c' does not exist in the current context
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(52, 55),
-                // (23,29): warning CS0162: Unreachable code detected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(23, 29),
-                // (24,33): warning CS0162: Unreachable code detected
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "c").WithLocation(24, 33),
-                // (25,31): warning CS0162: Unreachable code detected
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(25, 31),
-                // (30,29): warning CS0162: Unreachable code detected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(30, 29),
-                // (32,31): warning CS0162: Unreachable code detected
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(32, 31),
-                // (37,47): warning CS0162: Unreachable code detected
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(37, 47),
-                // (39,47): warning CS0162: Unreachable code detected
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(39, 47),
-                // (23,29): warning CS0164: This label has not been referenced
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(23, 29),
-                // (24,33): warning CS0164: This label has not been referenced
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(24, 33),
-                // (25,31): warning CS0164: This label has not been referenced
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(25, 31),
-                // (30,29): warning CS0164: This label has not been referenced
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(30, 29),
-                // (32,31): warning CS0164: This label has not been referenced
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(32, 31),
-                // (37,47): warning CS0164: This label has not been referenced
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(37, 47),
-                // (39,47): warning CS0164: This label has not been referenced
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(39, 47),
+                // (26,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(26, 17),
+                // (31,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(31, 17),
+                // (33,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(33, 17),
+                // (38,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(38, 17),
+                // (40,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(40, 17),
                 // (44,23): error CS0165: Use of unassigned local variable 'x'
                 //             if (o is (int x, int y)) {}
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(44, 23),

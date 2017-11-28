@@ -1720,10 +1720,50 @@
   <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
     <Kind Name="DeclarationPattern" />
-    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="Type" Type="TypeSyntax"/>
     <Field Name="Designation" Type="VariableDesignationSyntax">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
+    </Field>
+  </Node>
+  <Node Name="DeconstructionPatternSyntax" Base="PatternSyntax">
+    <Kind Name="DeconstructionPattern" />
+    <Field Name="Type" Type="TypeSyntax" Optional="true" />
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubpatternElementSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="PropertySubpattern" Type="PropertySubpatternSyntax" Optional="true" />
+    <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
+      <Kind Name="SingleVariableDesignation"/>
+      <Kind Name="DiscardDesignation"/>
+    </Field>
+  </Node>
+  <Node Name="SubpatternElementSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubpatternElement"/>
+    <Field Name="NameColon" Type="NameColonSyntax" Optional="true" />
+    <Field Name="Pattern" Type="PatternSyntax" />
+  </Node>
+  <Node Name="PropertyPatternSyntax" Base="PatternSyntax">
+    <Kind Name="PropertyPattern" />
+    <Field Name="Type" Type="TypeSyntax" Optional="true" />
+    <Field Name="PropertySubpattern" Type="PropertySubpatternSyntax"/>
+    <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
+      <Kind Name="SingleVariableDesignation"/>
+      <Kind Name="DiscardDesignation"/>
+    </Field>
+  </Node>
+  <Node Name="PropertySubpatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="PropertySubpattern"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubpatternElementSyntax&gt;"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
     </Field>
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
@@ -1851,7 +1891,6 @@
     </Field>
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
-
   <AbstractNode Name="VariableDesignationSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <Node Name="SingleVariableDesignationSyntax" Base="VariableDesignationSyntax">
@@ -1876,7 +1915,6 @@
       <Kind Name="CloseParenToken"/>
     </Field>
   </Node>
-
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
     <Kind Name="ExpressionStatement"/>
     <Field Name="Expression" Type="ExpressionSyntax"/>

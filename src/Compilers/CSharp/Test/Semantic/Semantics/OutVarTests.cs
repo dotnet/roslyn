@@ -30353,7 +30353,7 @@ class Program
     {
         switch (true)
         {
-            case TakeOutParam(3, out var x1):
+            case 1+TakeOutParam(3, out var x1):
                 System.Console.WriteLine(x1);
                 break;
         }
@@ -30368,9 +30368,9 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
-                //             case TakeOutParam(3, out var x1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "TakeOutParam(3, out var x1)").WithLocation(8, 18),
+                // (8,18): error CS0019: Operator '+' cannot be applied to operands of type 'int' and 'bool'
+                //             case 1+TakeOutParam(3, out var x1):
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1+TakeOutParam(3, out var x1)").WithArguments("+", "int", "bool").WithLocation(8, 18),
                 // (9,17): warning CS0162: Unreachable code detected
                 //                 System.Console.WriteLine(x1);
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
@@ -30394,7 +30394,7 @@ class Program
     {
         switch (true)
         {
-            case TakeOutParam(3, out UndelcaredType x1):
+            case 1+TakeOutParam(3, out UndelcaredType x1):
                 System.Console.WriteLine(x1);
                 break;
         }
@@ -30404,12 +30404,12 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
-                // (8,38): error CS0246: The type or namespace name 'UndelcaredType' could not be found (are you missing a using directive or an assembly reference?)
-                //             case TakeOutParam(3, out UndelcaredType x1):
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndelcaredType").WithArguments("UndelcaredType").WithLocation(8, 38),
-                // (8,18): error CS0103: The name 'TakeOutParam' does not exist in the current context
-                //             case TakeOutParam(3, out UndelcaredType x1):
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(8, 18),
+                // (8,20): error CS0103: The name 'TakeOutParam' does not exist in the current context
+                //             case 1+TakeOutParam(3, out UndelcaredType x1):
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(8, 20),
+                // (8,40): error CS0246: The type or namespace name 'UndelcaredType' could not be found (are you missing a using directive or an assembly reference?)
+                //             case 1+TakeOutParam(3, out UndelcaredType x1):
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndelcaredType").WithArguments("UndelcaredType").WithLocation(8, 40),
                 // (9,17): warning CS0162: Unreachable code detected
                 //                 System.Console.WriteLine(x1);
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
@@ -32138,10 +32138,10 @@ class C
     {
         switch ((object)args.Length)
         {
-            case M(nameof(M(out int z1)), z1):
+            case 1+M(nameof(M(out int z1)), z1):
                 System.Console.WriteLine(z1);
                 break;
-            case M(nameof(M(out var z2)), z2):
+            case 1+M(nameof(M(out var z2)), z2):
                 System.Console.WriteLine(z2);
                 break;
         }
@@ -32152,18 +32152,18 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
-                // (8,27): error CS8081: Expression does not have a name.
-                //             case M(nameof(M(out int z1)), z1):
-                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(8, 27),
-                // (8,18): error CS0150: A constant value is expected
-                //             case M(nameof(M(out int z1)), z1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out int z1)), z1)").WithLocation(8, 18),
-                // (11,27): error CS8081: Expression does not have a name.
-                //             case M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(11, 27),
-                // (11,18): error CS0150: A constant value is expected
-                //             case M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
+                // (8,29): error CS8081: Expression does not have a name.
+                //             case 1+M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(8, 29),
+                // (8,18): error CS0019: Operator '+' cannot be applied to operands of type 'int' and 'bool'
+                //             case 1+M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1+M(nameof(M(out int z1)), z1)").WithArguments("+", "int", "bool").WithLocation(8, 18),
+                // (11,29): error CS8081: Expression does not have a name.
+                //             case 1+M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(11, 29),
+                // (11,18): error CS0019: Operator '+' cannot be applied to operands of type 'int' and 'bool'
+                //             case 1+M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1+M(nameof(M(out var z2)), z2)").WithArguments("+", "int", "bool").WithLocation(11, 18),
                 // (9,17): warning CS0162: Unreachable code detected
                 //                 System.Console.WriteLine(z1);
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17),

@@ -145,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefExtensionMethods = MessageBase + 12728,
         IDS_StackAllocExpression = MessageBase + 12729,
         IDS_FeaturePrivateProtected = MessageBase + 12730,
+
+        IDS_FeatureRecursivePatterns = MessageBase + 12731,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -190,6 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case MessageID.IDS_FeatureIOperation:
                     return "IOperation";
+                case MessageID.IDS_FeatureRecursivePatterns:
+                    return "patterns2";
                 default:
                     return null;
             }
@@ -197,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
+            Debug.Assert(RequiredFeature(feature) == null);
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
