@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
                 indexerGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
             }
-            return lengthGet != null && indexerGet != null;
+
+            return (object)lengthGet != null && (object)indexerGet != null;
         }
 
         /// <summary>
@@ -381,6 +382,125 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenType: convertedReceiverType),
                     method: method);
             }
+        }
+
+        /// <summary>
+        /// Lower a foreach loop that will enumerate a collection via indexing.
+        /// 
+        /// <![CDATA[
+        /// 
+        /// Indexable a = x;
+        /// for (int p = 0; p < a.Length; p = p + 1) {
+        ///     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
+        ///     // body
+        /// }
+        /// 
+        /// ]]>
+        /// </summary>
+        /// <remarks>
+        /// NOTE: We're assuming that sequence points have already been generated.
+        /// Otherwise, lowering to for-loops would generated spurious ones.
+        /// </remarks>
+        private BoundStatement RewriteForEachStatementAsFor(BoundForEachStatement node, MethodSymbol indexerGet, MethodSymbol lengthGet)
+        {
+            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
+
+            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
+            NamedTypeSymbol collectionType = (NamedTypeSymbol)collectionExpression.Type;
+
+            TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
+
+            BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
+            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+
+            // Collection a
+            LocalSymbol collectionTemp = _factory.SynthesizedLocal(collectionType, forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
+
+            // Collection a = /*node.Expression*/;
+            BoundStatement arrayVarDecl = MakeLocalDeclaration(forEachSyntax, collectionTemp, rewrittenExpression);
+
+            InstrumentForEachStatementCollectionVarDeclaration(node, ref arrayVarDecl);
+
+            // Reference to a.
+            BoundLocal boundArrayVar = MakeBoundLocal(forEachSyntax, collectionTemp, collectionType);
+
+            // int p
+            LocalSymbol positionVar = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
+
+            // Reference to p.
+            BoundLocal boundPositionVar = MakeBoundLocal(forEachSyntax, positionVar, intType);
+
+            // int p = 0;
+            BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
+                MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
+
+            // (V)a[p]
+            BoundExpression iterationVarInitValue = MakeConversionNode(
+                syntax: forEachSyntax,
+                rewrittenOperand: BoundCall.Synthesized(
+                    syntax: forEachSyntax,
+                    receiverOpt: boundArrayVar,
+                    indexerGet,
+                    boundPositionVar),
+                conversion: node.ElementConversion,
+                rewrittenType: node.IterationVariableType.Type,
+                @checked: node.Checked);
+
+            // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarInitValue);
+
+            InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVariableDecl);
+
+            BoundStatement initializer = new BoundStatementList(forEachSyntax,
+                        statements: ImmutableArray.Create<BoundStatement>(arrayVarDecl, positionVarDecl));
+
+            // a.Length
+            BoundExpression arrayLength = BoundCall.Synthesized(
+                syntax: forEachSyntax,
+                receiverOpt: boundArrayVar,
+                lengthGet);
+
+            // p < a.Length
+            BoundExpression exitCondition = new BoundBinaryOperator(
+                syntax: forEachSyntax,
+                operatorKind: BinaryOperatorKind.IntLessThan,
+                left: boundPositionVar,
+                right: arrayLength,
+                constantValueOpt: null,
+                methodOpt: null,
+                resultKind: LookupResultKind.Viable,
+                type: boolType);
+
+            // p = p + 1;
+            BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar, intType);
+
+            // {
+            //     V v = (V)a[p];    /* OR */   (D1 d1, ...) = (V)a[p];
+            //     /*node.Body*/
+            // }
+
+            BoundStatement loopBody = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVariableDecl, rewrittenBody, forEachSyntax);
+
+            // for (Collection a = /*node.Expression*/, int p = 0; p < a.Length; p = p + 1) {
+            //     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
+            //     /*node.Body*/
+            // }
+            BoundStatement result = RewriteForStatementWithoutInnerLocals(
+                original: node,
+                outerLocals: ImmutableArray.Create<LocalSymbol>(collectionTemp, positionVar),
+                rewrittenInitializer: initializer,
+                rewrittenCondition: exitCondition,
+                rewrittenIncrement: positionIncrement,
+                rewrittenBody: loopBody,
+                breakLabel: node.BreakLabel,
+                continueLabel: node.ContinueLabel,
+                hasErrors: node.HasErrors);
+
+            InstrumentForEachStatement(node, ref result);
+
+            return result;
         }
 
         /// <summary>
@@ -748,125 +868,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 forEachSyntax,
                 ImmutableArray.Create(arrayVar).Concat(upperVar.AsImmutableOrNull()),
                 ImmutableArray.Create(arrayVarDecl).Concat(upperVarDecl.AsImmutableOrNull()).Add(forLoop));
-
-            InstrumentForEachStatement(node, ref result);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Lower a foreach loop that will enumerate a collection via indexing.
-        /// 
-        /// <![CDATA[
-        /// 
-        /// Indexable a = x;
-        /// for (int p = 0; p < a.Length; p = p + 1) {
-        ///     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
-        ///     // body
-        /// }
-        /// 
-        /// ]]>
-        /// </summary>
-        /// <remarks>
-        /// NOTE: We're assuming that sequence points have already been generated.
-        /// Otherwise, lowering to for-loops would generated spurious ones.
-        /// </remarks>
-        private BoundStatement RewriteForEachStatementAsFor(BoundForEachStatement node, MethodSymbol indexerGet, MethodSymbol lengthGet)
-        {
-            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
-
-            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
-            NamedTypeSymbol collectionType = (NamedTypeSymbol)collectionExpression.Type;
-
-            TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
-            TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-
-            BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
-
-            // Collection a
-            LocalSymbol collectionTemp = _factory.SynthesizedLocal(collectionType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
-
-            // Collection a = /*node.Expression*/;
-            BoundStatement arrayVarDecl = MakeLocalDeclaration(forEachSyntax, collectionTemp, rewrittenExpression);
-
-            InstrumentForEachStatementCollectionVarDeclaration(node, ref arrayVarDecl);
-
-            // Reference to a.
-            BoundLocal boundArrayVar = MakeBoundLocal(forEachSyntax, collectionTemp, collectionType);
-
-            // int p
-            LocalSymbol positionVar = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
-
-            // Reference to p.
-            BoundLocal boundPositionVar = MakeBoundLocal(forEachSyntax, positionVar, intType);
-
-            // int p = 0;
-            BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
-                MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
-
-            // (V)a[p]
-            BoundExpression iterationVarInitValue = MakeConversionNode(
-                syntax: forEachSyntax,
-                rewrittenOperand: BoundCall.Synthesized(
-                    syntax: forEachSyntax,
-                    receiverOpt: boundArrayVar,
-                    indexerGet,
-                    boundPositionVar),
-                conversion: node.ElementConversion,
-                rewrittenType: node.IterationVariableType.Type,
-                @checked: node.Checked);
-
-            // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
-            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
-            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarInitValue);
-
-            InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVariableDecl);
-
-            BoundStatement initializer = new BoundStatementList(forEachSyntax,
-                        statements: ImmutableArray.Create<BoundStatement>(arrayVarDecl, positionVarDecl));
-
-            // a.Length
-            BoundExpression arrayLength = BoundCall.Synthesized(
-                syntax: forEachSyntax,
-                receiverOpt: boundArrayVar,
-                lengthGet);
-
-            // p < a.Length
-            BoundExpression exitCondition = new BoundBinaryOperator(
-                syntax: forEachSyntax,
-                operatorKind: BinaryOperatorKind.IntLessThan,
-                left: boundPositionVar,
-                right: arrayLength,
-                constantValueOpt: null,
-                methodOpt: null,
-                resultKind: LookupResultKind.Viable,
-                type: boolType);
-
-            // p = p + 1;
-            BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar, intType);
-
-            // {
-            //     V v = (V)a[p];    /* OR */   (D1 d1, ...) = (V)a[p];
-            //     /*node.Body*/
-            // }
-
-            BoundStatement loopBody = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVariableDecl, rewrittenBody, forEachSyntax);
-
-            // for (Collection a = /*node.Expression*/, int p = 0; p < a.Length; p = p + 1) {
-            //     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
-            //     /*node.Body*/
-            // }
-            BoundStatement result = RewriteForStatementWithoutInnerLocals(
-                original: node,
-                outerLocals: ImmutableArray.Create<LocalSymbol>(collectionTemp, positionVar),
-                rewrittenInitializer: initializer,
-                rewrittenCondition: exitCondition,
-                rewrittenIncrement: positionIncrement,
-                rewrittenBody: loopBody,
-                breakLabel: node.BreakLabel,
-                continueLabel: node.ContinueLabel,
-                hasErrors: node.HasErrors);
 
             InstrumentForEachStatement(node, ref result);
 

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -490,7 +491,6 @@ class Test
         }
     }
 }
-
 ", TestOptions.ReleaseExe);
 
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
@@ -520,6 +520,102 @@ class Test
   IL_0031:  call       ""bool System.Span<int>.Enumerator.MoveNext()""
   IL_0036:  brtrue.s   IL_0022
   IL_0038:  ret
+}");
+        }
+
+        [Fact]
+        public void TestSpanValIndexer()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = new ReadOnlySpan<int>(new[] {1, 2, 3});
+        foreach(var i in sp)
+        {
+            Console.Write(i);
+        }
+    }
+}
+
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] arr;
+
+        public T this[int i] => arr[i];
+        public int Length { get; }
+
+        public ReadOnlySpan(T[] arr)
+        {
+            this.arr = arr;
+            this.Length = arr.Length;
+        }
+
+        public Enumerator GetEnumerator() => new Enumerator(this);
+
+        public ref struct Enumerator
+        {
+            private readonly ReadOnlySpan<T> _span;
+            private int _index;
+
+            internal Enumerator(ReadOnlySpan<T> span)
+            {
+                _span = span;
+                _index = -1;
+            }
+
+            public bool MoveNext()
+            {
+                int index = _index + 1;
+                if (index < _span.Length)
+                {
+                    _index = index;
+                    return true;
+                }
+
+                return false;
+            }
+
+            public T Current
+            {
+                get => _span[_index];
+            }
+        }
+    }
+}
+
+", references: new[] { MscorlibRef_v4_0_30316_17626 }, TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  4
+  .locals init (System.ReadOnlySpan<int> V_0, //sp
+                System.ReadOnlySpan<int>.Enumerator V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.3
+  IL_0003:  newarr     ""int""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  call       ""System.ReadOnlySpan<int>..ctor(int[])""
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       ""System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()""
+  IL_001f:  stloc.1
+  IL_0020:  br.s       IL_002e
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  call       ""int System.ReadOnlySpan<int>.Enumerator.Current.get""
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  call       ""bool System.ReadOnlySpan<int>.Enumerator.MoveNext()""
+  IL_0035:  brtrue.s   IL_0022
+  IL_0037:  ret
 }");
         }
 
