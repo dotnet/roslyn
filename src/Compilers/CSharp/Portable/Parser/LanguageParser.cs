@@ -9055,9 +9055,23 @@ tryAgain:
             {
                 var questionToken = this.EatToken();
                 var colonLeft = this.ParsePossibleRefExpression();
-                var colon = this.EatToken(SyntaxKind.ColonToken);
-                var colonRight = this.ParsePossibleRefExpression();
-                leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken && this.lexer.InterpolationFollowedByColon)
+                {
+                    // We have an interpolated string with an interpolation that contains a conditional expression.
+                    // Unfortunately, the precedence demands that the colon is considered to signal the start of the
+                    // format string. Without this code, the compiler would complain about a missing colon, and point
+                    // to the colon that is present, which would be confusing. We aim to give a better error message.
+                    var colon = SyntaxFactory.MissingToken(SyntaxKind.ColonToken);
+                    var colonRight = _syntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
+                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                    leftOperand = this.AddError(leftOperand, ErrorCode.ERR_ConditionalInInterpolation);
+                }
+                else
+                {
+                    var colon = this.EatToken(SyntaxKind.ColonToken);
+                    var colonRight = this.ParsePossibleRefExpression();
+                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                }
             }
 
             return leftOperand;

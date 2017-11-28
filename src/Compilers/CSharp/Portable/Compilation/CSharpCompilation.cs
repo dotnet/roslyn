@@ -1998,10 +1998,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _declarationDiagnosticsFrozen = true;
 
-            // Also freeze generated attribute flags by observing them
-            // symbols bound after getting the declaration diagnostics shouldn't need to modify the flags
-            _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
-            _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
+            // Also freeze generated attribute flags.
+            // Symbols bound after getting the declaration
+            // diagnostics shouldn't need to modify the flags.
+            _needsGeneratedAttributes_IsFrozen = true;
 
             var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
             return result;

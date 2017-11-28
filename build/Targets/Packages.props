@@ -42,12 +42,14 @@
     <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
+    <MicrosoftDotNetBuildTasksFeedVersion>1.0.0-prerelease-02202-02</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.0.26606-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
-    <MicrosoftNETTestSdkVersion>15.3.0</MicrosoftNETTestSdkVersion>
+    <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/373 -->
+    <MicrosoftNETTestSdkVersion>15.6.0-dev</MicrosoftNETTestSdkVersion>
     <MicrosoftNetCompilersVersion>2.6.0-beta3-62227-02</MicrosoftNetCompilersVersion>
     <MicrosoftNetRoslynDiagnosticsVersion>2.6.0-beta1-62231-02</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
@@ -141,7 +143,6 @@
     <Pdb2PdbVersion>1.1.0-beta1-62301-01</Pdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
-    <RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>14.0.983-pre-ge167e81694</RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>
     <RoslynDependenciesOptimizationDataVersion>2.3.0-beta3-61801-06</RoslynDependenciesOptimizationDataVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.3.7-beta</RoslynToolsMicrosoftSignToolVersion>

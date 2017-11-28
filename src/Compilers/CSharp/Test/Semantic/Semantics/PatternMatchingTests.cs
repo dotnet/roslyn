@@ -6403,5 +6403,37 @@ class Program
                 );
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(22619, "https://github.com/dotnet/roslyn/issues/22619")]
+        public void MissingSideEffect()
+        {
+            var source =
+@"using System;
+internal class Program
+{
+    private static void Main()
+    {
+        try
+        {
+            var test = new Program();
+            var result = test.IsVarMethod();
+            Console.WriteLine($""Result = {result}"");
+            Console.Read();
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""Exception"");
+        }
+    }
+
+    private int IsVarMethod() => ThrowingMethod() is var _ ? 1 : 0;
+    private bool ThrowingMethod() => throw new Exception(""Oh"");
+}
+";
+            var expectedOutput = @"Exception";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

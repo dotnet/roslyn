@@ -34,6 +34,7 @@ efforts behind them.
 | [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Proposal | None | | [jaredpar](https://github.com/jaredpar) |
 | strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | In Progress | [Ty Overby](https://github.com/tyoverby) | | [jaredpar](https://github.com/jaredpar) |
 | [Attributes on backing fields](https://github.com/dotnet/csharplang/blob/master/proposals/auto-prop-field-attrs.md) | [PR](https://github.com/dotnet/roslyn/pull/22664) | In Progress | [jcouv](https://github.com/jcouv) | | [jcouv](https://github.com/jcouv) |
+| [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | Prototype | [Ashley](https://github.com/khyperia) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
 
 # C# 8.0
 

@@ -1539,6 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OutAttrOnInParam = 8355,
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
 
+        #region diagnostics introduced for C# 7.3
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
         ERR_AttributeCtorInParameter = 8358,
@@ -1548,7 +1549,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_FilterIsConstantFalseRedundantTryCatch = 8360,
         #endregion diagnostics for FilterIsConstant warning message fix
 
-        #region diagnostics introduced for C# 7.3
+        ERR_ConditionalInInterpolation = 8361,
+
         ERR_FeatureNotAvailableInVersion7_3 = 8370,
         WRN_AttributesOnBackingFieldsNotAvailable = 8371,
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
