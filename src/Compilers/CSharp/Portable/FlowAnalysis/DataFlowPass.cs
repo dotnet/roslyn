@@ -437,12 +437,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="variable"></param>
         private void NoteCaptured(Symbol variable)
         {
-            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == RegionPlace.Inside)
+            if (this.regionPlace == RegionPlace.Inside)
             {
+                _capturedInside.Add(variable);
                 _capturedVariables.Add(variable);
             }
-
-            (IsInside ? _capturedInside : _capturedOutside).Add(variable);
+            else if (variable.Kind != SymbolKind.RangeVariable)
+            {
+                _capturedOutside.Add(variable);
+                _capturedVariables.Add(variable);
+            }
         }
 
         protected IEnumerable<Symbol> GetCapturedInside() => _capturedInside.ToArray();

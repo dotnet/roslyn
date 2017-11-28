@@ -92,28 +92,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        ' range variables are only returned in the captured set if inside the region
         Private Sub NoteCaptured(variable As Symbol)
-            If variable.Kind <> SymbolKind.RangeVariable Then
+            If _regionPlace = RegionPlace.Inside Then
+                _capturedInside.Add(variable)
                 _captured.Add(variable)
-            Else
-                Select Case Me._regionPlace
-                    Case RegionPlace.Before, RegionPlace.After
-                        ' range variables are only returned in the captured set if inside the region
-                    Case RegionPlace.Inside
-                        _captured.Add(variable)
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(Me._regionPlace)
-                End Select
+            ElseIf variable.Kind <> SymbolKind.RangeVariable Then
+                _capturedOutside.Add(variable)
+                _captured.Add(variable)
             End If
-
-            Select Case Me._regionPlace
-                Case RegionPlace.Before, RegionPlace.After
-                    _capturedOutside.Add(variable)
-                Case RegionPlace.Inside
-                    _capturedInside.Add(variable)
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(Me._regionPlace)
-            End Select
         End Sub
 
         Protected Overrides Sub NoteRead(fieldAccess As BoundFieldAccess)
