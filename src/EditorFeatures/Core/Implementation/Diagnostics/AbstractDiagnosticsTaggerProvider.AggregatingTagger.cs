@@ -157,11 +157,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 this.AssertIsForeground();
 
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-                Contract.ThrowIfFalse(document == null || document.Project.Solution.Workspace == _workspace);
 
                 // Safe to read _currentDocumentId here, we are the fg thread.
-                if (document.Id == _currentDocumentId &&
-                    document.Project.Solution.Workspace == _workspace)
+                if (document?.Id == _currentDocumentId &&
+                    document?.Project.Solution.Workspace == _workspace)
                 {
                     // Nothing changed.
                     return;
