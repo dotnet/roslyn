@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                             return;
                         }
 
-                        OnDiagnosticsUpdatedOnForeground(providerId, e, sourceText, editorSnapshot);
+                OnDiagnosticsUpdatedOnForeground(providerId, e, sourceText, editorSnapshot);
             }
 
             private void OnDiagnosticsRemovedOnForeground(
