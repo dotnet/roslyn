@@ -858,6 +858,8 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
         add("Vsix\VisualStudioSetup\System.Composition.TypedParts.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.dll")
+        add("Vsix\VisualStudioSetup\ICSharpCode.Decompiler.dll")
         add("Dlls\BasicExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\BasicResultProvider.Portable\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\CSharpExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
