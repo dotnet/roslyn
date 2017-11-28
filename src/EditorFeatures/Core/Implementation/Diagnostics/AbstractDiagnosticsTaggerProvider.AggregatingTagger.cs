@@ -47,9 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private Task _taskChain;
 
             /// <summary>
-            /// The current Document that our <see cref="_subjectBuffer"/> is associated with.
-            /// If our buffer becomes associated with another document, we will clear out any
-            /// cached diagnostic information we've collected so far as it's no longer valid.
+            /// The current Document and Workspace that our <see cref="_subjectBuffer"/> is 
+            /// associated with.  If our buffer becomes associated with another document or
+            /// workspace, we will clear out any cached diagnostic information we've collected 
+            /// so far as they're no longer valid.
             /// 
             /// Note: we fundamentally have a race condition here.  While we will update this
             /// whenever our ITextBuffer changes which document it is associated with, there
