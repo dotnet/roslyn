@@ -69,15 +69,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private DocumentId _currentDocumentId;
             private Workspace _workspace;
 
-            // We may hear about diagnostics in a flurry. For example, we'll get notifications
-            // in batches as the diagnostics infrastructure runs all analyzers against a particular
-            // document.  To help lower overhead and not enqueue many UI thread requests, we batch
-            // notifications we hear about the document we're tracking and attempt to process them
-            // at the same time.  This means less notification allocations, and less UI timeslices
-            // needed.  This does mean we may spend a little more time on the UI processing all
-            // those notifications.  However, that time should still be very brief as we do almost
-            // nothing on the UI itself (we just push the data into our providers, and inform the
-            // editor that we have changed).
+            /// <summary>
+            /// We may get a flood of diagnostic notificaitons on the BG.  In order to not overwhelm
+            /// the UI thread with work to do, and to avoid excess allocations, we batch up these
+            /// notifications, and attempt to process them all at once on the UI thread every 50ms
+            /// or so.
+            /// 
+            /// This means less notification allocations, and less UI timeslices
+            /// needed.  This does mean we may spend a little more time on the UI processing all
+            /// those notifications.  However, that time should still be very brief as we do almost
+            /// nothing on the UI itself (we just push the data into our providers, and inform the
+            /// editor that we have changed).
+            ///
+            /// Because we're batching, we can optimize things such that we only store two pieces
+            /// of data per provider.  Specifically, if they were removing all diagnostics, and
+            /// per-document, the latest diagnostics we've created for it.
+            /// </summary>
             private ProviderAndDocumentToBatchedUpdates _idToBatchedUpdates = s_providerPool.Allocate();
 
             /// <summary>
@@ -87,6 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// to be processed when the task finally executes.
             /// </summary>
             private Task _updateTask = null;
+
+            private static readonly ObjectPool<ProviderAndDocumentToBatchedUpdates> s_providerPool = new ObjectPool<ProviderAndDocumentToBatchedUpdates>(
+                () => new ProviderAndDocumentToBatchedUpdates());
 
             public AggregatingTagger(
                 AbstractDiagnosticsTaggerProvider<TTag> owner,
@@ -315,17 +325,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     _taskChain.CompletesAsyncOperation(asyncToken);
                 }
             }
-
-            // We may get a flood of diagnostic notificaitons on the BG.  In order to not overwhelm
-            // the UI thread with work to do, and to avoid excess allocations, we batch up these
-            // notifications, and attempt to process them all at once on the UI thread every 50ms
-            // or so.
-            //
-            // Because we're batching, we can optimize things such that we only store two pieces
-            // of data per provider.  Specifically, if they were removing all diagnostics, and
-            // per-document, the latest diagnostics we've created for it.
-            private static readonly ObjectPool<ProviderAndDocumentToBatchedUpdates> s_providerPool = new ObjectPool<ProviderAndDocumentToBatchedUpdates>(
-                () => new ProviderAndDocumentToBatchedUpdates());
 
             private void OnDiagnosticsUpdatedOnBackground(DiagnosticsUpdatedArgs e)
             {
