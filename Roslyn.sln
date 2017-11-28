@@ -359,6 +359,8 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeStyleTests", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynPublish", "src\Tools\RoslynPublish\RoslynPublish.csproj", "{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ILAsm", "src\Tools\ILAsm\ILAsm.csproj", "{DA8522ED-02BC-499C-AC71-1DF884F63987}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
@@ -953,6 +955,10 @@ Global
 		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA8522ED-02BC-499C-AC71-1DF884F63987}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA8522ED-02BC-499C-AC71-1DF884F63987}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA8522ED-02BC-499C-AC71-1DF884F63987}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA8522ED-02BC-499C-AC71-1DF884F63987}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1123,6 +1129,7 @@ Global
 		{5018D049-5870-465A-889B-C742CE1E31CB} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
 		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{DA8522ED-02BC-499C-AC71-1DF884F63987} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
