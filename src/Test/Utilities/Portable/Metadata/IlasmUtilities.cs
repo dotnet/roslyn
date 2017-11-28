@@ -29,15 +29,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                string ilasmExeName;
-                if (PlatformInformation.IsWindows)
-                {
-                    ilasmExeName = "ilasm.exe";
-                }
-                else
-                {
-                    ilasmExeName = "ilasm";
-                }
+                var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
 
                 var directory = AppContext.BaseDirectory;
                 string path = null;
