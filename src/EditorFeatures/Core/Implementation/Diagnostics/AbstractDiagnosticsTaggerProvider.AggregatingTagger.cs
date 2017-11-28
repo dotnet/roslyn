@@ -69,6 +69,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private DocumentId _currentDocumentId;
             private Workspace _workspace;
 
+            // We may hear about diagnostics in a flurry. For example, we'll get notifications
+            // in batches as the diagnostics infrastructure runs all analyzers against a particular
+            // document.  To help lower overhead and not enqueue many UI thread requests, we batch
+            // notifications we hear about the document we're tracking and attempt to process them
+            // at the same time.  This means less notification allocations, and less UI timeslices
+            // needed.  This does mean we may spend a little more time on the UI processing all
+            // those notifications.  However, that time should still be very brief as we do almost
+            // nothing on the UI itself (we just push the data into our providers, and inform the
+            // editor that we have changed).
             private ProviderAndDocumentToBatchedUpdates _idToBatchedUpdates = s_providerPool.Allocate();
             private Task _updateTask = null;
 
