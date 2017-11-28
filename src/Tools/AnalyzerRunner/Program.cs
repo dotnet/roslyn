@@ -61,6 +61,7 @@ namespace AnalyzerRunner
             Stopwatch stopwatch = Stopwatch.StartNew();
             var properties = new Dictionary<string, string>
             {
+                { "VSToolsPath", Environment.GetEnvironmentVariable("VSToolsPath") },
                 { "LangVersion", "latest" }
             };
             using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties))

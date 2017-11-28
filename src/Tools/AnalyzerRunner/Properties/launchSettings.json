@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "CSharpEditorFeatures Analyzers": {
+      "commandName": "Project",
+      "commandLineArgs": "$(SolutionDir)Binaries\\$(Configuration)\\Exes\\AnalyzerRunner\\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll $(SolutionDir)..\\Orchard\\src\\Orchard.sln /stats",
+      "environmentVariables": {
+        "VisualStudioVersion": "$(VisualStudioVersion)",
+        "VSToolsPath": "$(VSAPPIDDIR)..\\..\\MSBuild\\Microsoft\\VisualStudio\\v15.0"
+      }
+    },
+    "CSharpFeatures Analyzers": {
+      "commandName": "Project",
+      "commandLineArgs": "$(SolutionDir)Binaries\\$(Configuration)\\Exes\\AnalyzerRunner\\Microsoft.CodeAnalysis.CSharp.Features.dll $(SolutionDir)..\\Orchard\\src\\Orchard.sln /stats",
+      "environmentVariables": {
+        "VisualStudioVersion": "$(VisualStudioVersion)",
+        "VSToolsPath": "$(VSAPPIDDIR)..\\..\\MSBuild\\Microsoft\\VisualStudio\\v15.0"
+      }
+    },
+    "Profile CSharpSimplifyTypeNamesDiagnosticAnalyzer": {
+      "commandName": "Project",
+      "commandLineArgs": "$(SolutionDir)Binaries\\$(Configuration)\\Exes\\AnalyzerRunner\\Microsoft.CodeAnalysis.CSharp.Features.dll $(SolutionDir)..\\Orchard\\src\\Orchard.sln /stats /a CSharpSimplifyTypeNamesDiagnosticAnalyzer /editperf:ContentQueryExtensions /edititer:300",
+      "environmentVariables": {
+        "VisualStudioVersion": "$(VisualStudioVersion)",
+        "VSToolsPath": "$(VSAPPIDDIR)..\\..\\MSBuild\\Microsoft\\VisualStudio\\v15.0"
+      }
+    }
+  }
+}
