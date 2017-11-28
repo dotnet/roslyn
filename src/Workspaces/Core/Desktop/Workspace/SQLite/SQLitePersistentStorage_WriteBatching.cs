@@ -129,8 +129,13 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // performed by FlushAllPendingWritesAsync.
                 using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    // Get the writes we need to process.
-                    writesToProcess.AddRange(keyToWriteActions[key]);
+                    // Get the writes we need to process. 
+                    // Note: explicitly foreach so we operate on the struct enumerator for
+                    // MultiDictionary.ValueSet.
+                    foreach (var action in keyToWriteActions[key])
+                    {
+                        writesToProcess.Add(action);
+                    }
 
                     // and clear them from the queues so we don't process things multiple times.
                     keyToWriteActions.Remove(key);
