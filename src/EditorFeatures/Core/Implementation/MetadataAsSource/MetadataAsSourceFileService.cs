@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.TypeSystem;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -111,10 +112,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var temporaryDocument = _workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
                                                                      .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
 
-                    //var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
-                    //temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
-
-                    temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                    {
+                        var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
+                        temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                    }
 
                     // We have the content, so write it out to disk
                     var text = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
