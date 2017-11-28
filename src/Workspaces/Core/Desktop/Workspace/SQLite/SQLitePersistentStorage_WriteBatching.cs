@@ -132,7 +132,9 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // Get the writes we need to process. 
                     // Note: explicitly foreach so we operate on the struct enumerator for
                     // MultiDictionary.ValueSet.
-                    foreach (var action in keyToWriteActions[key])
+                    var actions = keyToWriteActions[key];
+                    writesToProcess.EnsureCapacity(writesToProcess.Count + actions.Count);
+                    foreach (var action in actions)
                     {
                         writesToProcess.Add(action);
                     }
