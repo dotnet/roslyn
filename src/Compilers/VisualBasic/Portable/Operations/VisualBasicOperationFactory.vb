@@ -507,7 +507,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundTryCast.WasCompilerGenerated
 
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
-            Dim conversionInformation = CreateConversionOperand(boundTryCast.Operand, boundTryCast.ConversionKind, boundTryCast.Syntax, boundTryCast.Type)
+            Dim conversionInformation = CreateConversionOperand(boundTryCast.Operand, CreateConversion(boundTryCast), boundTryCast.Syntax, boundTryCast.Type)
+            Dim conversion = conversionInformation.ConversionStruct
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
             Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
 
@@ -515,14 +516,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
                 ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
-            End If
-
-            Dim conversion As Conversion = CreateConversion(boundTryCast)
-
-            If conversionInformation.ConversionKind <> boundTryCast.ConversionKind Then
-                ' If the conversionInformation has a different conversion kind, we had a nested conversion of an expression tree
-                ' and we need to use the nested information for our final conversion
-                conversion = New Conversion(KeyValuePair.Create(conversionInformation.ConversionKind, conversion.Method))
             End If
 
             Dim isTryCast As Boolean = True
@@ -536,7 +529,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
             Dim isImplicit As Boolean = boundDirectCast.WasCompilerGenerated
 
-            Dim conversionInformation = CreateConversionOperand(boundDirectCast.Operand, boundDirectCast.ConversionKind, boundDirectCast.Syntax, boundDirectCast.Type)
+            Dim conversionInformation = CreateConversionOperand(boundDirectCast.Operand, CreateConversion(boundDirectCast), boundDirectCast.Syntax, boundDirectCast.Type)
+            Dim conversion As Conversion = conversionInformation.ConversionStruct
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
             Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
 
@@ -544,14 +538,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
                 ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
-            End If
-
-            Dim conversion As Conversion = CreateConversion(boundDirectCast)
-
-            If conversionInformation.ConversionKind <> boundDirectCast.ConversionKind Then
-                ' If the conversionInformation has a different conversion kind, we had a nested conversion of an expression tree
-                ' and we need to use the nested information for our final conversion
-                conversion = New Conversion(KeyValuePair.Create(conversionInformation.ConversionKind, conversion.Method))
             End If
 
             Dim isTryCast As Boolean = False
@@ -613,7 +599,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                 End If
             End If
 
-            Dim conversionInformation = CreateConversionOperand(boundOperand, conversion.Kind, boundConversion.Syntax, boundConversion.Type)
+            Dim conversionInformation = CreateConversionOperand(boundOperand, conversion, boundConversion.Syntax, boundConversion.Type)
+            conversion = conversionInformation.ConversionStruct
             Dim methodSymbol As MethodSymbol = conversionOperandAndMethod.Method
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
             Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
@@ -622,12 +609,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
                 ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
-            End If
-
-            If conversionInformation.ConversionKind <> boundConversion.ConversionKind Then
-                ' If the conversionInformation has a different conversion kind, we had a nested conversion of an expression tree
-                ' and we need to use the nested information for our final conversion
-                conversion = New Conversion(KeyValuePair.Create(conversionInformation.ConversionKind, conversion.Method))
             End If
 
             Dim isTryCast As Boolean = False
