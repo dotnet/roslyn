@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// editor that we have changed).
             ///
             /// Because we're batching, we can optimize things such that we only store two pieces
-            /// of data per provider.  Specifically, if they were removing all diagnostics, and
-            /// per-document, the latest diagnostics we've created for it.
+            /// of data per provider and coument.  Specifically, if they were removing all diagnostics
+            /// and whatever the latest diagnostics are for for it.
             /// </summary>
             private ProviderAndDocumentToBatchedUpdates _idToBatchedUpdates = s_providerPool.Allocate();
 
