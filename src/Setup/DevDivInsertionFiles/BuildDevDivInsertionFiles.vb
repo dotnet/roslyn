@@ -1017,7 +1017,7 @@ Public Class BuildDevDivInsertionFiles
         For Each fileRelativePath In GetCompilerToolsetNuspecFiles()
             Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
             Dim fileName = Path.GetFileName(fileRelativePath)
-            Dim destFilepath = Path.Combine(_outputDirectory, fileName)
+            Dim destFilepath = Path.Combine(outputDir, fileName)
             File.Copy(filePath, destFilepath)
             nuspecFiles.Add(fileName)
 
