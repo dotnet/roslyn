@@ -328,8 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
-                var document = e.Solution.GetDocument(e.DocumentId);
-                if (document == null)
+                if (e.DocumentId == null)
                 {
                     // Not a diagnostic event for a document.  Not something we can handle.
                     return;
