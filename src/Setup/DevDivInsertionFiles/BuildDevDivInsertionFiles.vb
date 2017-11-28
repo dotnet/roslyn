@@ -105,59 +105,6 @@ Public Class BuildDevDivInsertionFiles
         "VisualBasicInteractivePackageRegistration.pkgdef"
     }
 
-    ' N.B. This list of facades must be kept in-sync with the &
-    ' other facades used by the compiler. Facades are listed in
-    ' the src/NuGet/Microsoft.Net.Compilers.nuspec file, the
-    ' src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
-    ' and src/Compilers/Extension/CompilerExtension.csproj file.
-    '
-    ' Note: Microsoft.DiaSymReader.Native.amd64.dll and Microsoft.DiaSymReader.Native.x86.dll
-    ' are installed by msbuild setup, not Roslyn.
-    Private ReadOnly CompilerFiles As String() = {
-        "Microsoft.CodeAnalysis.dll",
-        "Microsoft.CodeAnalysis.CSharp.dll",
-        "Microsoft.CodeAnalysis.Scripting.dll",
-        "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.dll",
-        "System.AppContext.dll",
-        "System.Console.dll",
-        "System.Diagnostics.FileVersionInfo.dll",
-        "System.Diagnostics.Process.dll",
-        "System.Diagnostics.StackTrace.dll",
-        "System.IO.Compression.dll",
-        "System.IO.FileSystem.dll",
-        "System.IO.FileSystem.DriveInfo.dll",
-        "System.IO.FileSystem.Primitives.dll",
-        "System.IO.Pipes.dll",
-        "System.Security.AccessControl.dll",
-        "System.Security.Claims.dll",
-        "System.Security.Cryptography.Algorithms.dll",
-        "System.Security.Cryptography.Encoding.dll",
-        "System.Security.Cryptography.Primitives.dll",
-        "System.Security.Cryptography.X509Certificates.dll",
-        "System.Security.Principal.Windows.dll",
-        "System.Text.Encoding.CodePages.dll",
-        "System.Threading.Thread.dll",
-        "System.ValueTuple.dll",
-        "System.Xml.ReaderWriter.dll",
-        "System.Xml.XmlDocument.dll",
-        "System.Xml.XPath.dll",
-        "System.Xml.XPath.XDocument.dll",
-        "csc.exe",
-        "csc.exe.config",
-        "csc.rsp",
-        "csi.exe",
-        "csi.rsp",
-        "vbc.exe",
-        "vbc.exe.config",
-        "vbc.rsp",
-        "VBCSCompiler.exe",
-        "VBCSCompiler.exe.config",
-        "Microsoft.Build.Tasks.CodeAnalysis.dll",
-        "Microsoft.CSharp.Core.targets",
-        "Microsoft.VisualBasic.Core.targets"
-    }
-
     Private ReadOnly VsixesToInstall As String() = {
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
@@ -414,7 +361,7 @@ Public Class BuildDevDivInsertionFiles
 
         ' And now copy over all our core compiler binaries and related files
         ' Build tools setup authoring depends on these files being inserted.
-        For Each fileName In CompilerFiles
+        For Each fileName In GetCompilerInsertFiles()
             Dim dependency As DependencyInfo = Nothing
             If Not dependencies.TryGetValue(fileName, dependency) Then
                 AddXmlDocumentationFile(filesToInsert, fileName)
@@ -854,6 +801,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\VBCSCompiler\net46\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
         add("Exes\csi\net46\csi.rsp")
+        add("Exes\csi\net46\csi.exe.config")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
         add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
@@ -912,6 +860,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.Xml.XmlDocument.dll")
         add("Exes\Toolset\System.Xml.XPath.dll")
         add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
+        add("Exes\Toolset\Microsoft.Win32.Primitives.dll")
         add("Vsix\VisualStudioSetup\Humanizer.dll")
         Return map
     End Function
@@ -1176,5 +1125,25 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Next
 
         Return files
+    End Function
+
+    ''' <summary>
+    ''' Get the set of compiler files that need to be copied over during insertion. 
+    ''' </summary>
+    Private Function GetCompilerInsertFiles() As IEnumerable(Of String)
+        Return GetCompilerToolsetNuspecFiles().
+            Select(AddressOf Path.GetFileName).
+            Where(Function(f)
+                      Select Case f
+                          ' These files are inserted by MSBuild setup 
+                          Case "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll"
+                              Return False
+                          ' Do not truly understand why these are excluded here. Just maintaining compat
+                          Case "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll"
+                              Return False
+                          Case Else
+                              Return True
+                      End Select
+                  End Function)
     End Function
 End Class
