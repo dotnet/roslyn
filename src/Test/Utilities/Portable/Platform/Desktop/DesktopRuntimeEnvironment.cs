@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -291,43 +292,50 @@ namespace Roslyn.Test.Utilities.Desktop
             return GetEmitData().AllModuleData;
         }
 
-        public void IlVerify()
+        private class Resolver : ILVerify.IResolver
         {
-            var emitData = GetEmitData();
-            var verifier = ILVerify.InMemoryVerifier.Create();
-            var builder = PooledStringBuilder.GetInstance();
+            private Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
 
-            try
+            internal Resolver(EmitData emitData)
             {
                 foreach (var module in emitData.AllModuleData)
                 {
-                    var image = module.SimpleName == "mscorlib"
+                    string name = module.SimpleName;
+
+                    var image = name == "mscorlib"
                         ? TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
                         : module.Image;
 
-                    if (!verifier.AddModule(image, builder))
-                    {
-                        string message = builder.ToStringAndFree();
-                        builder = null;
-                        throw new IlVerifyException(message, emitData.MainModule.SimpleName);
-                    }
-                }
-
-                bool success = verifier.VerifyModule(emitData.MainModule.SimpleName, builder); // TODO using SimpleName instead of FullName
-                if (!success)
-                {
-                    string message = builder.ToStringAndFree();
-                    builder = null;
-                    throw new IlVerifyException(message, emitData.MainModule.SimpleName);
-                }
-                else
-                {
-                    Debug.Assert(builder.Length == 0);
+                    imagesByName.Add(name, image);
                 }
             }
-            finally
+
+            public PEReader Resolve(string name)
             {
-                builder?.Free();
+                if (imagesByName.TryGetValue(name, out var image))
+                {
+                    return new PEReader(image);
+                }
+
+                return null;
+            }
+        }
+
+        public void IlVerify()
+        {
+            var emitData = GetEmitData();
+
+            var resolver = new Resolver(emitData);
+            var verifier = new ILVerify.Verifier(resolver);
+            if (emitData.AllModuleData.Any(m => m.SimpleName == "mscorlib"))
+            {
+                verifier.SystemModuleName = "mscorlib";
+            }
+
+            var result = verifier.Verify(emitData.MainModule.SimpleName); // TODO using SimpleName instead of FullName
+            if (result.NumErrors > 0)
+            {
+                throw new IlVerifyException(result.Message, emitData.MainModule.SimpleName);
             }
         }
 
