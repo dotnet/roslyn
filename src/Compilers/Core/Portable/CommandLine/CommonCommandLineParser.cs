@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis
     public abstract class CommandLineParser
     {
         private readonly CommonMessageProvider _messageProvider;
-        internal readonly bool IsScript;
+        internal readonly bool IsScriptCommandLineParser;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
 
-        internal CommandLineParser(CommonMessageProvider messageProvider, bool isScript)
+        internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
         {
             Debug.Assert(messageProvider != null);
             _messageProvider = messageProvider;
-            IsScript = isScript;
+            IsScriptCommandLineParser = isScriptCommandLineParser;
         }
 
         internal CommonMessageProvider MessageProvider
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis
             string extension = PathUtilities.GetExtension(resolvedPath);
 
             bool isScriptFile;
-            if (IsScript)
+            if (IsScriptCommandLineParser)
             {
                 isScriptFile = !string.Equals(extension, RegularFileExtension, StringComparison.OrdinalIgnoreCase);
             }
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
-            Debug.Assert(IsScript || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
+            Debug.Assert(IsScriptCommandLineParser || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
 
             // We remove all doubles quotes from a file name. So that, for example:
             //   "Path With Spaces"\goo.cs
