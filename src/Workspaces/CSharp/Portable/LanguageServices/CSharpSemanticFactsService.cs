@@ -292,6 +292,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
             }
+            if (token.IsKind(SyntaxKind.CommaToken)) //Only in the orderby clause a comma can bind to a symbol.
+            {
+                return new SymbolInfo();
+            }
 
             return semanticModel.GetSymbolInfo(node, cancellationToken);
         }
