@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            CompilationAnalyzer compilationAnalyzer = new CompilationAnalyzer(codeFixProviderSymbol, codeActionSymbol, createMethods: ImmutableHashSet.CreateRange(createSymbols));
+            CompilationAnalyzer compilationAnalyzer = new CompilationAnalyzer(codeFixProviderSymbol, codeActionSymbol, context.Compilation.Assembly, createMethods: ImmutableHashSet.CreateRange(createSymbols));
 
             context.RegisterSymbolAction(compilationAnalyzer.AnalyzeNamedTypeSymbol, SymbolKind.NamedType);
             context.RegisterOperationBlockStartAction(compilationAnalyzer.OperationBlockStart);
@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             private readonly INamedTypeSymbol _codeFixProviderSymbol;
             private readonly INamedTypeSymbol _codeActionSymbol;
             private readonly ImmutableHashSet<IMethodSymbol> _createMethods;
+            private readonly IAssemblySymbol _sourceAssembly;
 
             /// <summary>
             /// Set of all non-abstract sub-types of <see cref="CodeFixProvider"/> in this compilation.
@@ -152,10 +153,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             public CompilationAnalyzer(
                 INamedTypeSymbol codeFixProviderSymbol,
                 INamedTypeSymbol codeActionSymbol,
+                IAssemblySymbol sourceAssembly,
                 ImmutableHashSet<IMethodSymbol> createMethods)
             {
                 _codeFixProviderSymbol = codeFixProviderSymbol;
                 _codeActionSymbol = codeActionSymbol;
+                _sourceAssembly = sourceAssembly;
                 _createMethods = createMethods;
 
                 _codeFixProviders = null;
@@ -172,14 +175,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     _codeFixProviders = _codeFixProviders ?? new HashSet<INamedTypeSymbol>();
                     _codeFixProviders.Add(namedType);
                 }
-                else if (namedType.DerivesFrom(_codeActionSymbol))
+                else if (IsCodeActionWithOverriddenEquivlanceKeyCore(namedType))
                 {
-                    IPropertySymbol equivalenceKeyProperty = namedType.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().SingleOrDefault();
-                    if (equivalenceKeyProperty != null && equivalenceKeyProperty.IsOverride)
-                    {
-                        _codeActionsWithEquivalenceKey = _codeActionsWithEquivalenceKey ?? new HashSet<INamedTypeSymbol>();
-                        _codeActionsWithEquivalenceKey.Add(namedType);
-                    }
+                    _codeActionsWithEquivalenceKey = _codeActionsWithEquivalenceKey ?? new HashSet<INamedTypeSymbol>();
+                    _codeActionsWithEquivalenceKey.Add(namedType);
                 }
             }
 
@@ -334,8 +333,36 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
             private bool IsViolatingCodeActionObjectCreation(IObjectCreationOperation objectCreation)
             {
-                return _codeActionsWithEquivalenceKey == null ||
-                    !objectCreation.Constructor.ContainingType.GetBaseTypesAndThis().Any(_codeActionsWithEquivalenceKey.Contains);
+                return objectCreation.Constructor.ContainingType.GetBaseTypesAndThis().All(namedType => !IsCodeActionWithOverriddenEquivalenceKey(namedType));
+            }
+
+            private bool IsCodeActionWithOverriddenEquivlanceKeyCore(INamedTypeSymbol namedType)
+            {
+                if (!namedType.DerivesFrom(_codeActionSymbol))
+                {
+                    // Not a CodeAction.
+                    return false;
+                }
+
+                IPropertySymbol equivalenceKeyProperty = namedType.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().SingleOrDefault();
+                return equivalenceKeyProperty != null && equivalenceKeyProperty.IsOverride;
+            }
+
+            private bool IsCodeActionWithOverriddenEquivalenceKey(INamedTypeSymbol namedType)
+            {
+                if (namedType == null || namedType.Equals(_codeActionSymbol))
+                {
+                    return false;
+                }
+
+                // We are already tracking CodeActions with equivalence key in this compilation.
+                if (namedType.ContainingAssembly.Equals(_sourceAssembly))
+                {
+                    return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
+                }
+
+                // For types in different compilation, perfom the check.
+                return IsCodeActionWithOverriddenEquivlanceKeyCore(namedType);
             }
         }
     }
