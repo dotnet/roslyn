@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         private static CSharpCommandLineArguments ScriptParse(IEnumerable<string> args, string baseDirectory)
         {
-            return CSharpCommandLineParser.ScriptRunner.Parse(args, baseDirectory, s_defaultSdkDirectory);
+            return CSharpCommandLineParser.Script.Parse(args, baseDirectory, s_defaultSdkDirectory);
         }
 
         private static CSharpCommandLineArguments FullParse(string commandLine, string baseDirectory, string sdkDirectory = null, string additionalReferenceDirectories = null)
@@ -1092,53 +1092,53 @@ d.cs
         [Fact]
         public void ArgumentParsing()
         {
-            var parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "a + b" }, _baseDirectory, s_defaultSdkDirectory);
+            var parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "a + b" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "a + b; c" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "a + b; c" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/help" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/help" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayHelp);
             Assert.False(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/version" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayVersion);
             Assert.False(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/langversion:?" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/langversion:?" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/langversion:?'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:?").WithLocation(1, 1)
                 );
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/version", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayVersion);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version:something" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/version:something" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayVersion);
             Assert.False(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/?" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/?" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayHelp);
             Assert.False(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c.csx  /langversion:6" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "c.csx  /langversion:6" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/langversion:-1", "c.csx", }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/langversion:-1", "c.csx", }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/langversion:-1'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:-1"));
@@ -1146,12 +1146,12 @@ d.cs
             Assert.False(parsedArgs.DisplayHelp);
             Assert.Equal(1, parsedArgs.SourceFiles.Length);
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c.csx  /r:s=d /r:d.dll" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "c.csx  /r:s=d /r:d.dll" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "@roslyn_test_non_existing_file" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "@roslyn_test_non_existing_file" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2011: Error opening response file 'D:\R0\Main\Binaries\Debug\dd'
                 Diagnostic(ErrorCode.ERR_OpenResponseFile).WithArguments(Path.Combine(_baseDirectory, @"roslyn_test_non_existing_file")));
@@ -1159,34 +1159,34 @@ d.cs
             Assert.False(parsedArgs.DisplayHelp);
             Assert.False(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c /define:DEBUG" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "c /define:DEBUG" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "\\" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "\\" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/r:d.dll", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/r:d.dll", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/define:goo", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/define:goo", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/define:goo'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/define:goo"));
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "\"/r d.dll\"" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "\"/r d.dll\"" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/r: d.dll", "a.cs" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/r: d.dll", "a.cs" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
@@ -4041,19 +4041,19 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         {
             CSharpCommandLineArguments parsedArgs;
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Goo.Bar" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new string[] { "/u:Goo.Bar" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             AssertEx.Equal(new[] { "Goo.Bar" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Goo.Bar;Baz", "/using:System.Core;System" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new string[] { "/u:Goo.Bar;Baz", "/using:System.Core;System" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             AssertEx.Equal(new[] { "Goo.Bar", "Baz", "System.Core", "System" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Goo;;Bar" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new string[] { "/u:Goo;;Bar" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             AssertEx.Equal(new[] { "Goo", "Bar" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new string[] { "/u:" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<namespace>' for '/u:' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<namespace>", "/u:"));
