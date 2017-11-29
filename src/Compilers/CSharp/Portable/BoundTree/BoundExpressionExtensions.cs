@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal static partial class BoundExpressionExtensions
     {
         /// <summary>
-        /// Only legal for expressions that can produce l-values.
+        /// Returns the RefKind if the expression represents a symbol
+        /// that has a RefKind. This method is ILLEGAL to call for
+        /// other expressions.
         /// </summary>
         public static RefKind GetRefKind(this BoundExpression node)
         {
