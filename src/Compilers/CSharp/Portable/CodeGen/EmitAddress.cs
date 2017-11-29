@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var ternary = (BoundConditionalOperator)expression;
                     
                     // only ref ternary may be referenced as a variable
-                    if (!ternary.IsByRef)
+                    if (!ternary.IsRef)
                     {
                         return false;
                     }

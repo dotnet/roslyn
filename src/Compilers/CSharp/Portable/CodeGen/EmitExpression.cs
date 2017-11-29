@@ -2274,7 +2274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ConditionalOperator:
                     {
                         var left = (BoundConditionalOperator)assignmentTarget;
-                        Debug.Assert(left.IsByRef);
+                        Debug.Assert(left.IsRef);
 
                         var temp = EmitAddress(left, AddressKind.Writeable);
                         Debug.Assert(temp == null, "taking ref of this should not create a temp");
@@ -2477,7 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ConditionalOperator:
-                    Debug.Assert(((BoundConditionalOperator)expression).IsByRef);
+                    Debug.Assert(((BoundConditionalOperator)expression).IsRef);
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 

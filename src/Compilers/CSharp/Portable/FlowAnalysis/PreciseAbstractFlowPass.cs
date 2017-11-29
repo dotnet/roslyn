@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            var isByRef = node.IsByRef;
+            var isByRef = node.IsRef;
 
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;

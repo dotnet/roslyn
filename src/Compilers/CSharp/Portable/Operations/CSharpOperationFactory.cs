@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundConditionalOperator.Condition));
             Lazy<IOperation> whenTrue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Consequence));
             Lazy<IOperation> whenFalse = new Lazy<IOperation>(() => Create(boundConditionalOperator.Alternative));
-            bool isRef = boundConditionalOperator.IsByRef;
+            bool isRef = boundConditionalOperator.IsRef;
             SyntaxNode syntax = boundConditionalOperator.Syntax;
             ITypeSymbol type = boundConditionalOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundConditionalOperator.ConstantValue);
