@@ -479,8 +479,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         InheritDefaultState(slot);
 
-                        // PROTOTYPE(NullableReferenceTypes): We're copying fields of anonymous type assignments,
-                        // even if the RHS is an alias. Is that the expected behavior or should we ignore aliases in this case?
+                        // PROTOTYPE(NullableReferenceTypes): We should copy all tracked state from `value`,
+                        // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
+                        // assignment to C.F below. See also StaticNullChecking_Members.FieldCycle_01.)
+                        // class C
+                        // {
+                        //     C? F;
+                        //     C() { F = this; }
+                        // }
+                        // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
                         if (value != null &&
                             (value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
                             targetType.TypeSymbol == value.Type) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
