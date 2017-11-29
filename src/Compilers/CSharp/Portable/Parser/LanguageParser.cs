@@ -2943,6 +2943,11 @@ parse_member_name:;
                 opToken = ConvertToMissingWithTrailingTrivia(opToken, SyntaxKind.PlusToken);
             }
 
+            if (opKind == SyntaxKind.DotDotToken)
+            {
+                opToken = CheckFeatureAvailability(opToken, MessageID.IDS_FeatureRange);
+            }
+
             return _syntaxFactory.OperatorDeclaration(
                 attributes,
                 modifiers.ToList(),
@@ -9037,6 +9042,11 @@ tryAgain:
                 if ((newPrecedence == precedence) && IsNonAssociative(opKind))
                 {
                     opToken = this.AddError(opToken, ErrorCode.ERR_UnexpectedToken, opToken.Text);
+                }
+
+                if (opKind == SyntaxKind.RangeExpression)
+                {
+                    opToken = CheckFeatureAvailability(opToken, MessageID.IDS_FeatureRange);
                 }
 
                 if (opKind == SyntaxKind.AsExpression)
