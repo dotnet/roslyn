@@ -410,11 +410,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 this.AssertIsForeground();
 
-                if (e == null)
-                {
-                    return;
-                }
-
                 Debug.Assert(!_disposed);
                 Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved);
 
