@@ -1208,8 +1208,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var savedState = this.State.Clone();
-            if (savedState.ResultType?.IsNullable == false)
+            var leftState = this.State.Clone();
+            if (leftState.ResultType?.IsNullable == false)
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_ExpressionIsProbablyNeverNull, node.LeftOperand.Syntax);
             }
@@ -1221,13 +1221,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             VisitRvalue(node.RightOperand);
 
-            bool? isNullable = this.State.ResultType?.IsNullable & savedState.ResultType?.IsNullable;
-            IntersectWith(ref this.State, ref savedState);
-            // PROTOTYPE(NullableReferenceTypes): Use flow analysis type rather than node.Type
-            // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
-            this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
-            Debug.Assert(!IsConditionalState);
+            var leftType = InferResultNullability(node.LeftConversion, node.LeftOperand.Type, node.Type, leftState.ResultType);
+            var rightType = this.State.ResultType;
+
+            IntersectWith(ref this.State, ref leftState);
+
+            if (node.HasErrors)
+            {
+                this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
+            }
+            else
+            {
+                Debug.Assert((object)leftType == null || leftType.TypeSymbol.Equals(node.Type, TypeCompareKind.ConsiderEverything));
+                Debug.Assert((object)rightType == null || rightType.TypeSymbol.Equals(node.Type, TypeCompareKind.ConsiderEverything));
+
+                var resultType = TypeSymbolWithAnnotations.Create((leftType ?? rightType)?.TypeSymbol, isNullableIfReferenceType: rightType?.IsNullable & leftType?.IsNullable);
+                this.State.ResultType = resultType;
+
+                ReportNullabilityMismatchIfAny(node.LeftOperand, resultType, leftType);
+                ReportNullabilityMismatchIfAny(node.RightOperand, resultType, rightType);
+            }
             return null;
+        }
+
+        private void ReportNullabilityMismatchIfAny(BoundExpression node, TypeSymbolWithAnnotations expectedType, TypeSymbolWithAnnotations actualType)
+        {
+            if ((object)expectedType != null &&
+                (object)actualType != null &&
+                IsNullabilityMismatch(expectedType.TypeSymbol, actualType.TypeSymbol))
+            {
+                // PROTOTYPE(NullableReferenceTypes): Create a distinct warning rather than using WRN_NullabilityMismatchInAssignment.
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, actualType.TypeSymbol, expectedType.TypeSymbol);
+            }
         }
 
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
@@ -1241,11 +1266,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitRvalue(node.Receiver);
-            var savedState = this.State.Clone();
+            var receiverState = this.State.Clone();
 
             BoundExpression operandComparedToNull = node.Receiver;
 
-            if (savedState.ResultIsNullable == false)
+            if (receiverState.ResultIsNullable == false)
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_ExpressionIsProbablyNeverNull, node.Receiver.Syntax);
             }
@@ -1262,10 +1287,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitRvalue(node.AccessExpression);
 
-            IntersectWith(ref this.State, ref savedState);
+            IntersectWith(ref this.State, ref receiverState);
             // PROTOTYPE(NullableReferenceTypes): Use flow analysis type rather than node.Type
             // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
-            this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: savedState.ResultType?.IsNullable | this.State.ResultType?.IsNullable);
+            this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: receiverState.ResultType?.IsNullable | this.State.ResultType?.IsNullable);
             // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
             return null;
         }

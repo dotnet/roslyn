@@ -568,6 +568,44 @@ class C
         }
 
         [Fact]
+        public void NullCoalescingOperator_06()
+        {
+            var source =
+@"class C
+{
+    static void F(object? o, object[]? a, object?[]? b)
+    {
+        if (o == null)
+        {
+            var c = new[] { o };
+            (a ?? c)[0].ToString();
+            (b ?? c)[0].ToString();
+        }
+        else
+        {
+            var c = new[] { o };
+            (a ?? c)[0].ToString();
+            (b ?? c)[0].ToString();
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,19): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
+                //             (a ?? c)[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("object?[]", "object[]").WithLocation(8, 19),
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             (b ?? c)[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ?? c)[0]").WithLocation(9, 13),
+                // (15,19): warning CS8619: Nullability of reference types in value of type 'object[]' doesn't match target type 'object?[]'.
+                //             (b ?? c)[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("object[]", "object?[]").WithLocation(15, 19),
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             (b ?? c)[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ?? c)[0]").WithLocation(15, 13));
+        }
+
+        [Fact]
         public void LambdaReturnValue_01()
         {
             var source =
