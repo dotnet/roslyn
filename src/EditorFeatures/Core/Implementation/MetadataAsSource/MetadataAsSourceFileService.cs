@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.TypeSystem;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -112,11 +113,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var temporaryDocument = _workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
                                                                      .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
 
-                    try
+                    var useDecompiler = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
+                    if (useDecompiler)
                     {
-                        temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                        try
+                        {
+                            temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        {
+                            useDecompiler = false;
+                        }
                     }
-                    catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+
+                    if (!useDecompiler)
                     {
                         var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
                         temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);

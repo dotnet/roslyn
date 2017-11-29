@@ -697,6 +697,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable navigation to decompiled sources (experimental).
+        /// </summary>
+        internal static string Enable_navigation_to_decompiled_sources {
+            get {
+                return ResourceManager.GetString("Enable_navigation_to_decompiled_sources", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
         /// </summary>
         internal static string End_of_inner_exception_stack {

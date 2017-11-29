@@ -977,4 +977,7 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
+  <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
+    <value>Enable navigation to decompiled sources (experimental)</value>
+  </data>
 </root>
