@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeaturePrivateProtected = MessageBase + 12730,
 
         IDS_FeatureAttributesOnBackingFields = MessageBase + 12731,
-        IDS_FeatureRange = MessageBase + 12732,
+        IDS_FeatureRange = MessageBase + 12733,
     }
 
     // Message IDs may refer to strings that need to be localized.

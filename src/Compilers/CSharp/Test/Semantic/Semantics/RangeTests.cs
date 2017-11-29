@@ -145,7 +145,7 @@ class C
     }
 }
 ";
-            CreateCSharpCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,20): error CS1001: Identifier expected
                 //         var a = 0. .1;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ".1").WithLocation(6, 20),
