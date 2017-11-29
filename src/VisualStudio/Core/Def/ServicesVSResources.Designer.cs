@@ -589,6 +589,27 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IMPORTANT:  VISUAL STUDIO INCLUDES DECOMPILING FUNCTIONALITY (“DECOMPILER”) THAT ENABLES REPRODUCING SOURCE CODE FROM BINARY CODE. BY ACCESSING AND USING THE DECOMPILER, YOU AGREE TO THE TERMS AND CONDITIONS IN THE VISUAL STUDIO LICENSE TERMS AND THE TERMS FOR THE DECOMPILER BELOW.  
+        ///IF YOU DO NOT AGREE WITH THESE COMBINED TERMS AND CONDITIONS, DO NOT ACCESS OR USE THE DECOMPILER.
+        /// 
+        ///You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Deco [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Decompiler_Legal_Notice_Message {
+            get {
+                return ResourceManager.GetString("Decompiler_Legal_Notice_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decompiler Legal Notice.
+        /// </summary>
+        internal static string Decompiler_Legal_Notice_Title {
+            get {
+                return ResourceManager.GetString("Decompiler_Legal_Notice_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Default.
         /// </summary>
         internal static string Default_ {
