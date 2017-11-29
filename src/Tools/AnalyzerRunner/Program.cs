@@ -181,7 +181,9 @@ namespace AnalyzerRunner
         private static async Task<DocumentAnalyzerPerformance> TestDocumentPerformanceAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, Project project, DocumentId documentId, Options analyzerOptionsInternal, CancellationToken cancellationToken)
         {
             // update the project compilation options
-            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions.Add("AD0001", ReportDiagnostic.Error);
+            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
+                .Add("AD0001", ReportDiagnostic.Error)
+                .Add("AD0002", ReportDiagnostic.Error);
             // Report exceptions during the analysis process as errors
             var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
             var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
@@ -369,7 +371,9 @@ namespace AnalyzerRunner
             WriteLine($"Running analyzers for {project.Name}", ConsoleColor.Gray);
 
             // update the project compilation options
-            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions.Add("AD0001", ReportDiagnostic.Error);
+            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
+                .Add("AD0001", ReportDiagnostic.Error)
+                .Add("AD0002", ReportDiagnostic.Error);
             // Report exceptions during the analysis process as errors
             var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
             var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
