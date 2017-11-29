@@ -422,8 +422,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         return;
                     }
 
-                    foreach (((var providerId, var diagnosticDocument), var updateArgs) in latestUpdates)
+                    foreach ((var idAndDocument, var updateArgs) in latestUpdates)
                     {
+                        var diagnosticDocument = idAndDocument.document;
+
                         if (diagnosticDocument.Id != ourDocument.Id ||
                             diagnosticDocument.Project.Solution.Workspace != ourDocument.Project.Solution.Workspace)
                         {
@@ -437,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         // our document.
                         if (updateArgs.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
                         {
-                            OnDiagnosticsRemovedOnForeground(providerId);
+                            OnDiagnosticsRemovedOnForeground(updateArgs);
                         }
                         else
                         {
@@ -510,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
-            private void OnDiagnosticsRemovedOnForeground(object providerId)
+            private void OnDiagnosticsRemovedOnForeground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
 
@@ -522,13 +524,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // First see if this is a document/project removal.  If so, clear out any state we
                 // have associated with any analyzers we have for that document/project.
-                if (!_idToProviderAndTagger.TryGetValue(providerId, out var providerAndTagger))
+                var id = e.Id;
+                if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
                     // Wasn't a diagnostic source we care about.
                     return;
                 }
 
-                _idToProviderAndTagger.Remove(providerId);
+                _idToProviderAndTagger.Remove(id);
                 DisconnectFromTagger(providerAndTagger.tagger);
 
                 OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
