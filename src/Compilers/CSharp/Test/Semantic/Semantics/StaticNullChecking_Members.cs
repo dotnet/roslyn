@@ -777,7 +777,7 @@ class Program
 @"#pragma warning disable 0649
 class A
 {
-    internal object? F;
+    internal A? F;
 }
 class B : A
 {
@@ -788,12 +788,13 @@ class Program
     static void Main()
     {
         A a;
-        a = new B() { F = new object(), G = new object() };
+        a = new B() { F = new A(), G = new object() };
         a.F.ToString(); // 1
         a = new A();
         a.F.ToString(); // 2
-        a = new B() { F = new object() };
+        a = new B() { F = new B() { F = new A() } };
         a.F.ToString(); // 3
+        a.F.F.ToString(); // 3
         a = new B() { G = new object() };
         a.F.ToString(); // 4
     }
@@ -803,9 +804,12 @@ class Program
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(18, 9),
-                // (22,9): warning CS8602: Possible dereference of a null reference.
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         a.F.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(20, 9),
+                // (23,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(22, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(23, 9));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Support assignment of derived type instances.
@@ -816,7 +820,7 @@ class Program
 @"#pragma warning disable 0649
 class A
 {
-    internal object? F;
+    internal A? F;
 }
 class B : A
 {
@@ -830,12 +834,13 @@ class Program
         A a;
         a = b;
         a.F.ToString(); // 1
-        b.F = new object();
+        b.F = new A();
         a = b;
         a.F.ToString(); // 2
-        b = new B() { F = new object() };
+        b = new B() { F = new B() { F = new A() } };
         a = b;
         a.F.ToString(); // 3
+        a.F.F.ToString(); // 3
         b = new B() { G = new object() };
         a = b;
         a.F.ToString(); // 4
@@ -846,9 +851,9 @@ class Program
                 // (17,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(17, 9),
-                // (26,9): warning CS8602: Possible dereference of a null reference.
+                // (27,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(26, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(27, 9));
         }
 
         [Fact]
@@ -931,6 +936,28 @@ class Program
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F.F.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F.F.F").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void FieldCycle_03()
+        {
+            var source =
+@"class C
+{
+    C? F;
+    static void M()
+    {
+        var x = new C();
+        x.F = x;
+        var y = new C() { F = x };
+        y.F.F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F.F").WithLocation(9, 9));
         }
 
         [Fact]

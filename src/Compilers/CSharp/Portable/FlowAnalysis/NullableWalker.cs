@@ -480,6 +480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (slot > 0)
                     {
+                        // PROTOTYPE(NullableReferenceTypes): Might this clear state that
+                        // should be copied in InheritNullableStateOfTrackableType?
                         InheritDefaultState(slot);
 
                         // PROTOTYPE(NullableReferenceTypes): We should copy all tracked state from `value`,
