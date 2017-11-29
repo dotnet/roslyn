@@ -376,9 +376,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if ((object)_implicitReceiver != null && !memberSymbol.IsStatic)
                             {
                                 // PROTOTYPE(NullableReferenceTypes): Do we need to handle events?
-                                if (memberSymbol.Kind == SymbolKind.Field)
+                                switch (memberSymbol.Kind)
                                 {
-                                    slot = GetOrCreateSlot(memberSymbol, GetOrCreateSlot(_implicitReceiver));
+                                    case SymbolKind.Field:
+                                    case SymbolKind.Property:
+                                        slot = GetOrCreateSlot(memberSymbol, GetOrCreateSlot(_implicitReceiver));
+                                        break;
                                 }
                             }
 

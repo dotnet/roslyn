@@ -543,6 +543,42 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F.P").WithLocation(12, 13));
         }
 
+        // Calling a method should reset the state for members.
+        [Fact]
+        public void CallMethod()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A
+{
+    internal object? P { get; set; }
+}
+class B
+{
+    internal A? Q { get; set; }
+}
+class Program
+{
+    static void M()
+    {
+        object o;
+        B b = new B() { Q = new A() { P = new object() } };
+        o = b.Q.P; // 1
+        b.Q.P.ToString();
+        o = b.Q.P; // 2
+        b.Q.ToString();
+        o = b.Q.P; // 3
+        b = new B() { Q = new A() { P = new object() } };
+        o = b.Q.P; // 4
+        b.ToString();
+        o = b.Q.P; // 5
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report warnings.
+            comp.VerifyDiagnostics(/*...*/);
+        }
+
         [Fact]
         public void ModifyMembers_Conditional()
         {
@@ -555,6 +591,13 @@ class C
         {
             // PROTOTYPE(NullableReferenceTypes): Invalidate
             // by passing one of the members by reference.
+        }
+
+        [Fact]
+        public void ModifyMembers_In()
+        {
+            // PROTOTYPE(NullableReferenceTypes): Members should not
+            // be invalidated by passing container to `in` parameter.
         }
 
         [Fact]
@@ -677,6 +720,53 @@ class Program
                 // (25,9): warning CS8602: Possible dereference of a null reference.
                 //         b.G.F2.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F2").WithLocation(25, 9));
+        }
+
+        [Fact]
+        public void ObjectInitializer_Properties()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A
+{
+    internal object? P1 { get; set; }
+    internal object? P2 { get; set; }
+}
+class B
+{
+    internal A? Q { get; set; }
+}
+class Program
+{
+    static void F()
+    {
+        (new B() { Q = new A() { P1 = new object() } }).Q.P1.ToString();
+        B b;
+        b = new B() { Q = new A() { P1 = new object() } };
+        b.Q.P1.ToString(); // 1
+        b.Q.P2.ToString(); // 1
+        b = new B() { Q = new A() { P2 = new object() } };
+        b.Q.P1.ToString(); // 2
+        b.Q.P2.ToString(); // 2
+        b = new B() { Q = new A() };
+        b.Q.P1.ToString(); // 3
+        b.Q.P2.ToString(); // 3
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         b.Q.P2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Q.P2").WithLocation(19, 9),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         b.Q.P1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Q.P1").WithLocation(21, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         b.Q.P1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Q.P1").WithLocation(24, 9),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         b.Q.P2.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Q.P2").WithLocation(25, 9));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Support assignment of derived type instances.
