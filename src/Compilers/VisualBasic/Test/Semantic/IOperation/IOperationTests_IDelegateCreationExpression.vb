@@ -1984,13 +1984,104 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_InvalidNonDelegateTargetType()
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_InvalidNonDelegateTargetType_SuccessfulConversion()
             Dim source = <![CDATA[
 Imports System
 
 Public Class C
     Public Sub M1()
-        CType(((Sub() Console.WriteLine())), Object)'BIND:"CType(((Sub() Console.WriteLine())), Object)"
+        Dim a = CType(((Sub() Console.WriteLine())), Object)'BIND:"CType(((Sub() Console.WriteLine())), Object)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'CType(((Sub ... )), Object)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Object) (Syntax: '((Sub() Con ... iteLine()))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Object) (Syntax: '(Sub() Cons ... riteLine())')
+          Operand: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+              Operand: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  Target: 
+                    IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                      IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                          Expression: 
+                            IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                              Instance Receiver: 
+                                null
+                              Arguments(0)
+                        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                          Statement: 
+                            null
+                        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                          ReturnedValue: 
+                            null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_Implicit_InvalidNonDelegateTargetType_SuccessfulConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a As Object = ((Sub() Console.WriteLine()))'BIND:"= ((Sub() Console.WriteLine()))"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ((Sub() C ... iteLine()))')
+  IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Object) (Syntax: '((Sub() Con ... iteLine()))')
+    Operand: 
+      IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Object) (Syntax: '(Sub() Cons ... riteLine())')
+        Operand: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                Target: 
+                  IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                        Expression: 
+                          IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                            Instance Receiver: 
+                              null
+                            Arguments(0)
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                        Statement: 
+                          null
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                        ReturnedValue: 
+                          null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_InvalidNonDelegateTargetType_InvalidConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Public Class C
+    Public Sub M1()
+        Dim a = CType(((Sub() Console.WriteLine())), String)'BIND:"CType(((Sub() Console.WriteLine())), String)"
     End Sub
 End Class]]>.Value
 
@@ -2024,9 +2115,9 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC30454: Expression is not a method.
-        CType(((Sub() Console.WriteLine())), Object)'BIND:"CType(((Sub() Console.WriteLine())), Object)"
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36625: Lambda expression cannot be converted to 'String' because 'String' is not a delegate type.
+        Dim a = CType(((Sub() Console.WriteLine())), String)'BIND:"CType(((Sub() Console.WriteLine())), String)"
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
