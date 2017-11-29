@@ -146,6 +146,8 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeStyleFixes", "src\
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeStyleTests", "src\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj", "{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ILAsm", "src\Tools\ILAsm\ILAsm.csproj", "{46B3E63A-C462-4133-9F27-3B85DA5E7D37}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{06b26dcb-7a12-48ef-ae50-708593abd05f}*SharedItemsImports = 4
@@ -402,6 +404,10 @@ Global
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46B3E63A-C462-4133-9F27-3B85DA5E7D37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46B3E63A-C462-4133-9F27-3B85DA5E7D37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46B3E63A-C462-4133-9F27-3B85DA5E7D37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46B3E63A-C462-4133-9F27-3B85DA5E7D37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -469,6 +475,7 @@ Global
 		{2531A8C4-97DD-47BC-A79C-B7846051E137} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
 		{0141285D-8F6C-42C7-BAF3-3C0CCD61C716} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
+		{46B3E63A-C462-4133-9F27-3B85DA5E7D37} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}
