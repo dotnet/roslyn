@@ -1869,7 +1869,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool asLvalue = (object)fieldSymbol != null &&
                 (fieldSymbol.IsFixed ||
-                !fieldSymbol.IsStatic && fieldSymbol.ContainingType.TypeKind == TypeKind.Struct);
+                !fieldSymbol.IsStatic &&
+                fieldSymbol.ContainingType.TypeKind == TypeKind.Struct &&
+                receiverOpt != null &&
+                receiverOpt.Kind != BoundKind.TypeExpression &&
+                (object)receiverOpt.Type != null &&
+                !receiverOpt.Type.IsPrimitiveRecursiveStruct());
             VisitFieldReceiver(receiverOpt, fieldSymbol, asLvalue);
         }
 

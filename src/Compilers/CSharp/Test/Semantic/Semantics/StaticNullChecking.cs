@@ -17070,5 +17070,58 @@ struct S
                 //         object z = y.F;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y.F").WithLocation(8, 20));
         }
+
+        [Fact]
+        public void InstanceFieldStructTypeExpressionReceiver()
+        {
+            var source =
+@"struct S
+{
+#pragma warning disable 0649
+    object? F;
+    void M()
+    {
+        S.F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'S.F'
+                //         S.F.ToString();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "S.F").WithArguments("S.F").WithLocation(7, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         S.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "S.F").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void InstanceFieldPrimitiveRecursiveStruct()
+        {
+            var source =
+@"#pragma warning disable 0649
+namespace System
+{
+    public class Object
+    {
+        public int GetHashCode() => 0;
+    }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Int32
+    {
+        Int32 _value;
+        object? _f;
+        void M()
+        {
+            _value = _f.GetHashCode();
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (16,22): warning CS8602: Possible dereference of a null reference.
+                //             _value = _f.GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_f").WithLocation(16, 22));
+        }
     }
 }
