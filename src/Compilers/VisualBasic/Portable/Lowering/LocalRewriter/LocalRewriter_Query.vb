@@ -171,12 +171,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function CreateReturnStatementForQueryLambdaBody(
             rewrittenBody As BoundExpression,
-            originalNode As BoundQueryLambda) As BoundStatement
+            originalNode As BoundQueryLambda,
+            Optional hasErrors As Boolean = False) As BoundStatement
 
             Return New BoundReturnStatement(originalNode.Syntax,
                                             rewrittenBody,
                                             Nothing,
-                                            Nothing).MakeCompilerGenerated()
+                                            Nothing,
+                                            hasErrors).MakeCompilerGenerated()
         End Function
 
         Friend Shared Sub RemoveRangeVariables(originalNode As BoundQueryLambda, rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression))
