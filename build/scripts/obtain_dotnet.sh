@@ -13,7 +13,7 @@ install_dotnet () {
     source "${THIS_DIR}"/build-utils.sh
 
     local DOTNET_VERSION="$(get_tool_version dotnetSdk)"
-    local DOTNET_PATH="${THIS_DIR}"/../../Binaries/dotnet-cli
+    local DOTNET_PATH="${THIS_DIR}"/../../Binaries/Tools/dotnet
 
     # check if the correct `dotnet` is already on the PATH
     if command -v dotnet >/dev/null 2>&1
