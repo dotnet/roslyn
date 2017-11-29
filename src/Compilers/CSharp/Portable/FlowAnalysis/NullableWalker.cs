@@ -1223,6 +1223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool? isNullable = this.State.ResultType?.IsNullable & savedState.ResultType?.IsNullable;
             IntersectWith(ref this.State, ref savedState);
+            // PROTOTYPE(NullableReferenceTypes): Use flow analysis type rather than node.Type
+            // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
             this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
             Debug.Assert(!IsConditionalState);
             return null;
@@ -1261,6 +1263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.AccessExpression);
 
             IntersectWith(ref this.State, ref savedState);
+            // PROTOTYPE(NullableReferenceTypes): Use flow analysis type rather than node.Type
+            // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
             this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: savedState.ResultType?.IsNullable | this.State.ResultType?.IsNullable);
             // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
             return null;

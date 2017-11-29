@@ -493,15 +493,19 @@ class C
 {
     static void F(object x, object? y)
     {
+        (null ?? null).ToString();
         (null ?? x).ToString();
         (null ?? y).ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,10): warning CS8602: Possible dereference of a null reference.
+                // (5,10): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and '<null>'
+                //         (null ?? null).ToString();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>").WithLocation(5, 10),
+                // (7,10): warning CS8602: Possible dereference of a null reference.
                 //         (null ?? y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null ?? y").WithLocation(6, 10));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null ?? y").WithLocation(7, 10));
         }
 
         [Fact]
@@ -518,6 +522,49 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCoalescingOperator_05()
+        {
+            var source =
+@"class C
+{
+    static void F(C x, Unknown? y)
+    {
+        (x ?? y).ToString();
+        (y ?? x).ToString();
+        (null ?? y).ToString();
+        (y ?? null).ToString();
+    }
+    static void G(C? x, Unknown y)
+    {
+        (x ?? y).ToString();
+        (y ?? x).ToString();
+        (null ?? y).ToString();
+        (y ?? null).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void G(C? x, Unknown y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(10, 25),
+                // (3,24): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F(C x, Unknown? y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(3, 24),
+                // (5,10): hidden CS8607: Expression is probably never null.
+                //         (x ?? y).ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x").WithLocation(5, 10),
+                // (7,10): warning CS8602: Possible dereference of a null reference.
+                //         (null ?? y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null ?? y").WithLocation(7, 10),
+                // (13,10): hidden CS8607: Expression is probably never null.
+                //         (y ?? x).ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(13, 10),
+                // (15,10): hidden CS8607: Expression is probably never null.
+                //         (y ?? null).ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(15, 10));
         }
 
         [Fact]
