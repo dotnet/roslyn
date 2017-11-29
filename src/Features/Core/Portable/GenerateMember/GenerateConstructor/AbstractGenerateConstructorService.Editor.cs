@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             // We need ensure that delegating constructor won't cause circular dependency.
             // The chain of dependency can not exceed the number for constructors
-            var constructorsCount = delegatedConstructor.ContainingType.Constructors.Count(c => !c.IsStaticConstructor());
+            var constructorsCount = delegatedConstructor.ContainingType.InstanceConstructors.Length;
             for (var i = 0; i < constructorsCount; i++)
             {
                 delegatedConstructor = GetDelegatedConstructor(document.SemanticModel, delegatedConstructor, cancellationToken);
