@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
-    using ProviderAndDocumentToBatchedUpdates = Dictionary<(object providerId, Document document), (bool removed, DiagnosticsUpdatedArgs createArgs)>;
+    using ProviderAndDocumentToLatestUpdate = Dictionary<(object providerId, Document document), DiagnosticsUpdatedArgs>;
 
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     {
@@ -85,18 +85,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// of data per provider and coument.  Specifically, if they were removing all diagnostics
             /// and whatever the latest diagnostics are for for it.
             /// </summary>
-            private ProviderAndDocumentToBatchedUpdates _idToBatchedUpdates = s_providerPool.Allocate();
+            private ProviderAndDocumentToLatestUpdate _idAndDocToLatestUpdates = s_pool.Allocate();
 
             /// <summary>
             /// The task we use to actuall process all the diagnostic notifications we've gotten.
             /// We only ever have one of these in flight at a time.  If the task is in flight and
-            /// we get new diagnostic events, we just add them to <see cref="_idToBatchedUpdates"/>
+            /// we get new diagnostic events, we just add them to <see cref="_idAndDocToLatestUpdates"/>
             /// to be processed when the task finally executes.
             /// </summary>
             private Task _updateTask = null;
 
-            private static readonly ObjectPool<ProviderAndDocumentToBatchedUpdates> s_providerPool = new ObjectPool<ProviderAndDocumentToBatchedUpdates>(
-                () => new ProviderAndDocumentToBatchedUpdates());
+            private static readonly ObjectPool<ProviderAndDocumentToLatestUpdate> s_pool = new ObjectPool<ProviderAndDocumentToLatestUpdate>(
+                () => new ProviderAndDocumentToLatestUpdate());
 
             public AggregatingTagger(
                 AbstractDiagnosticsTaggerProvider<TTag> owner,
@@ -356,32 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         return;
                     }
 
-                    var key = (e.Id, document);
-                    if (!_idToBatchedUpdates.TryGetValue(key, out var batchedUpdates))
-                    {
-                        batchedUpdates = (removed: false, createArgs: null);
-                    }
-
-                    switch (e.Kind)
-                    {
-                    case DiagnosticsUpdatedKind.DiagnosticsRemoved:
-                        // we're being told about diagnostics going away because a document/project
-                        // was removed.  This supercedes all previous removes and creates for this
-                        // provider+docid.
-                        batchedUpdates.removed = true;
-                        batchedUpdates.createArgs = null;
-                        break;
-                    case DiagnosticsUpdatedKind.DiagnosticsCreated:
-                        // We're creating diagnostics. This supercedes all existing creations for this
-                        // provider +docid.  However, any existing removal for this provider+docid will 
-                        // still happen.
-                        batchedUpdates.createArgs = e;
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(e);
-                    }
-
-                    _idToBatchedUpdates[key] = batchedUpdates;
+                    _idAndDocToLatestUpdates[(e.Id, document)] = e;
 
                     // Check if there's already an in-flight update task.  If so, there's nothing we
                     // need to do.  The in-flight task will pick up the work we enqueued.  Otherwise,
@@ -416,15 +391,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 this.AssertIsForeground();
 
-                ProviderAndDocumentToBatchedUpdates batchedUpdates;
+                ProviderAndDocumentToLatestUpdate latestUpdates;
                 lock (_gate)
                 {
                     Debug.Assert(_updateTask != null);
 
                     // Grab the work we need to do.  Create a fresh dictionary for new work to be
                     // put into.
-                    batchedUpdates = _idToBatchedUpdates;
-                    _idToBatchedUpdates = s_providerPool.Allocate();
+                    latestUpdates = _idAndDocToLatestUpdates;
+                    _idAndDocToLatestUpdates = s_pool.Allocate();
 
                     // Clear out the task so that any new work that comes in will cause a new update
                     // task to be created.
@@ -447,11 +422,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         return;
                     }
 
-                    foreach (var kvp in batchedUpdates)
+                    foreach (((var providerId, var diagnosticDocument), var updateArgs) in latestUpdates)
                     {
-                        var providerId = kvp.Key.providerId;
-                        var diagnosticDocument = kvp.Key.document;
-
                         if (diagnosticDocument.Id != ourDocument.Id ||
                             diagnosticDocument.Project.Solution.Workspace != ourDocument.Project.Solution.Workspace)
                         {
@@ -463,41 +435,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                         // Process removes for this provider first, then process the creates for it for
                         // our document.
-                        if (kvp.Value.removed)
+                        if (updateArgs.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
                         {
                             OnDiagnosticsRemovedOnForeground(providerId);
                         }
-
-                        OnDiagnosticsCreatedOnForeground(ourDocument, providerId, diagnosticDocument, kvp.Value.createArgs);
+                        else
+                        {
+                            OnDiagnosticsCreatedOnForeground(diagnosticDocument, updateArgs);
+                        }
                     }
                 }
                 finally
                 {
-                    s_providerPool.ClearAndFree(batchedUpdates);
+                    s_pool.ClearAndFree(latestUpdates);
                 }
             }
 
             private void OnDiagnosticsCreatedOnForeground(
-                Document ourDocument, object providerId, Document diagnosticDocument, DiagnosticsUpdatedArgs e)
+                Document diagnosticDocument, DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
 
-                if (e == null)
-                {
-                    return;
-                }
-
                 Debug.Assert(!_disposed);
                 Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated);
-                Debug.Assert(providerId == e.Id);
-
-                // Now see if the document we're tracking corresponds to the diagnostics
-                // we're hearing about.  If not, just ignore them.
-                if (ourDocument.Project.Solution.Workspace != e.Workspace ||
-                    ourDocument.Id != e.DocumentId)
-                {
-                    return;
-                }
 
                 // We're hearing about diagnostics for our document.  We may be hearing
                 // about new diagnostics coming, or existing diagnostics being cleared
@@ -547,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                             return;
                         }
 
-                OnDiagnosticsUpdatedOnForeground(providerId, e, sourceText, editorSnapshot);
+                OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
             private void OnDiagnosticsRemovedOnForeground(object providerId)
@@ -583,14 +543,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             private void OnDiagnosticsUpdatedOnForeground(
-                object providerId, DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
+                DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {
                 this.AssertIsForeground();
                 Debug.Assert(!_disposed);
 
                 // Find the appropriate async tagger for this diagnostics id, and let it know that
                 // there were new diagnostics produced for it.
-                if (!_idToProviderAndTagger.TryGetValue(providerId, out var providerAndTagger))
+                var id = e.Id;
+                if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
                     // We didn't have an existing tagger for this diagnostic id.  If there are no actual 
                     // diagnostics being reported, then don't bother actually doing anything.  This saves
@@ -607,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     var tagger = taggerProvider.CreateTagger<TTag>(_subjectBuffer);
                     providerAndTagger = (taggerProvider, tagger);
 
-                    _idToProviderAndTagger[providerId] = providerAndTagger;
+                    _idToProviderAndTagger[id] = providerAndTagger;
 
                     // Register for changes from the underlying tagger.  When it tells us about
                     // changes, we'll let anyone know who is registered with us.
