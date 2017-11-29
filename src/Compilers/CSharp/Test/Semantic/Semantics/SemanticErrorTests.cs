@@ -23588,6 +23588,57 @@ class Program
                );
         }
 
+        [WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")]
+        [Fact]
+        public void ConditionalMemberAccessRefLike()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var o = new Program();
+
+        o?.F(); // this is ok
+
+        var x = o?.F();
+
+        var y = o?.F() ?? default;
+
+        var z = o?.F().field ?? default;
+    }
+
+    S2 F() => throw null;
+}
+
+public ref struct S1
+{
+
+}
+
+public ref struct S2
+{
+    public S1 field;
+}
+";
+            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (12,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                //         var x = o?.F();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(12, 18),
+                // (14,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                //         var y = o?.F() ?? default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(14, 18),
+                // (16,18): error CS0023: Operator '?' cannot be applied to operand of type 'S1'
+                //         var z = o?.F().field ?? default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S1").WithLocation(16, 18),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
+               );
+        }
+
         [Fact]
         [WorkItem(1179322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179322")]
         public void LabelSameNameAsParameter()

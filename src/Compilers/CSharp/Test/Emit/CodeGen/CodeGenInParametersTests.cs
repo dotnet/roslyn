@@ -1819,6 +1819,7 @@ class Program
 }", expectedOutput: "5-9");
         }
 
+        [WorkItem(23338, "https://github.com/dotnet/roslyn/issues/23338")]
         [Fact]
         public void InParamsNullable()
         {

@@ -7073,7 +7073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // access cannot have unconstrained generic type
             // access cannot be a pointer
-            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType())
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType() || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.
                 // For improved diagnostics we detect the cases where the value will be used and produce a
