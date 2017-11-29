@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -113,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (!delegateType.IsDelegateType() ||
-                delegateType.DelegateInvokeMethod == null)
+                delegateType.DelegateInvokeMethod == null || 
+                !CanReplaceDelegateWithLocalFunction(delegateType, localDeclaration, semanticModel, cancellationToken))
             {
                 return;
             }
@@ -355,6 +357,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             localDeclaration = null;
+            return false;
+        }
+
+        private static bool CanReplaceDelegateWithLocalFunction(
+            INamedTypeSymbol delegateType, 
+            LocalDeclarationStatementSyntax localDeclaration,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var delegateTypeParamNames = delegateType.GetAllTypeParameters().Select(p => p.Name).ToImmutableHashSet();
+            var delegateContainingType = delegateType.ContainingType;
+            if (delegateTypeParamNames.Count == 0 || delegateContainingType == null)
+            {
+                return true;
+            }
+
+            var localEnclosingSymbol = semanticModel.GetEnclosingSymbol(localDeclaration.SpanStart, cancellationToken);
+            while (localEnclosingSymbol != null)
+            {
+                if (localEnclosingSymbol.Equals(delegateContainingType))
+                {
+                    return true;
+                }
+
+                var typeParams = localEnclosingSymbol.GetTypeParameters();
+                if (typeParams.Any())
+                {
+                    return !typeParams.Any(p => delegateTypeParamNames.Contains(p.Name));
+                }
+
+                localEnclosingSymbol = localEnclosingSymbol.ContainingType;
+            }
+
             return false;
         }
 

@@ -1675,5 +1675,75 @@ class Enclosing<T> where T : class
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestNotAvaliableIfTypeParameterChanged1()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Enclosing<T>
+{
+    delegate T MyDelegate(T t);
+    static void Callee(MyDelegate d) => d(default);
+
+    public class Class<T>
+    {
+        public void Caller()
+        {
+            MyDelegate [||]local = x => x;
+            Callee(local);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestNotAvaliableIfTypeParameterChanged2()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Enclosing<T>
+{
+    delegate T MyDelegate(T t);
+    static void Callee(MyDelegate d) => d(default);
+
+    public class Foo<T>
+    {
+        public class Class
+        {
+            public void Caller()
+            {
+                MyDelegate [||]local = x => x;
+                Callee(local);
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestNotAvaliableIfTypeParameterChanged3()
+        {
+            await TestMissingAsync(
+@"public class Class<T>
+{
+    delegate T MyDelegate(T t);
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        void Some<T>(T t)
+        {
+            MyDelegate [||]local = x => x;
+            Callee(local);
+        }
+    }
+}");
+        }
     }
 }
