@@ -32,16 +32,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var id = Tuple.Create(workspace, document);
                 var diagnostic = RaiseDiagnosticEvent(set, source, workspace, document.Project.Id, document.Id, id);
 
-                var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, false, CancellationToken.None);
+                var data1 = diagnosticService.GetCachedDiagnostics(workspace, null, null, null, false, CancellationToken.None);
                 Assert.Equal(diagnostic, data1.Single());
 
-                var data2 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, null, null, false, CancellationToken.None);
+                var data2 = diagnosticService.GetCachedDiagnostics(workspace, document.Project.Id, null, null, false, CancellationToken.None);
                 Assert.Equal(diagnostic, data2.Single());
 
-                var data3 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, null, false, CancellationToken.None);
+                var data3 = diagnosticService.GetCachedDiagnostics(workspace, document.Project.Id, document.Id, null, false, CancellationToken.None);
                 Assert.Equal(diagnostic, data3.Single());
 
-                var data4 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, id, false, CancellationToken.None);
+                var data4 = diagnosticService.GetCachedDiagnostics(workspace, document.Project.Id, document.Id, id, false, CancellationToken.None);
                 Assert.Equal(diagnostic, data4.Single());
             }
         }
@@ -73,19 +73,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 RaiseDiagnosticEvent(set, source, workspace, document.Project.Id, null, id3);
                 RaiseDiagnosticEvent(set, source, workspace, null, null, Tuple.Create(workspace));
 
-                var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, false, CancellationToken.None);
+                var data1 = diagnosticService.GetCachedDiagnostics(workspace, null, null, null, false, CancellationToken.None);
                 Assert.Equal(5, data1.Count());
 
-                var data2 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, null, null, false, CancellationToken.None);
+                var data2 = diagnosticService.GetCachedDiagnostics(workspace, document.Project.Id, null, null, false, CancellationToken.None);
                 Assert.Equal(4, data2.Count());
 
-                var data3 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, null, id3, false, CancellationToken.None);
+                var data3 = diagnosticService.GetCachedDiagnostics(workspace, document.Project.Id, null, id3, false, CancellationToken.None);
                 Assert.Equal(1, data3.Count());
 
-                var data4 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, null, false, CancellationToken.None);
+                var data4 = diagnosticService.GetCachedDiagnostics(workspace, document.Project.Id, document.Id, null, false, CancellationToken.None);
                 Assert.Equal(2, data4.Count());
 
-                var data5 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, id, false, CancellationToken.None);
+                var data5 = diagnosticService.GetCachedDiagnostics(workspace, document.Project.Id, document.Id, id, false, CancellationToken.None);
                 Assert.Equal(1, data5.Count());
             }
         }

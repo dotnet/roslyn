@@ -26,7 +26,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
-    public class ErrorSquiggleProducerTests 
+    public class ErrorSquiggleProducerTests
     {
         private readonly DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>();
 

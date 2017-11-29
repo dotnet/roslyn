@@ -791,7 +791,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetDiagnostics(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+            Public Function GetDiagnostics(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetCachedDiagnostics
                 Assert.NotNull(workspace)
 
                 Dim diagnostics As IEnumerable(Of DiagnosticData)
@@ -872,6 +872,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                     New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId))
             End Sub
+
+            Public Function Subscribe(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId, action As Action(Of DiagnosticsUpdatedArgs)) As IDisposable Implements IDiagnosticService.Subscribe
+                Throw New NotImplementedException()
+            End Function
 
             Private Class ErrorId
                 Inherits BuildToolId.Base(Of TestDiagnosticService, Object)

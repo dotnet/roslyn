@@ -15,20 +15,35 @@ namespace Microsoft.CodeAnalysis
         public Workspace Workspace => _registeredWorkspace;
         public event EventHandler WorkspaceChanged;
 
-        internal void SetWorkspaceAndRaiseEvents(Workspace workspace)
-        {
-            SetWorkspace(workspace);
-            RaiseEvents();
-        }
-
         internal void SetWorkspace(Workspace workspace)
         {
             _registeredWorkspace = workspace;
         }
 
-        internal void RaiseEvents()
+        internal void RaiseEvents(Workspace oldWorkspace, Workspace newWorkspace)
         {
-            WorkspaceChanged?.Invoke(this, EventArgs.Empty);
+            WorkspaceChanged?.Invoke(this, new WorkspaceChangedEventArgs(oldWorkspace, newWorkspace));
+        }
+    }
+
+    public sealed class WorkspaceChangedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Point to old workspace it was associated with. it can be null
+        /// if it was never associated with a workspace before
+        /// </summary>
+        public readonly Workspace OldWorkspace;
+
+        /// <summary>
+        /// Point to new workspace it is associated with. it can be null
+        /// if it is being removed.
+        /// </summary>
+        public readonly Workspace NewWorkspace;
+
+        internal WorkspaceChangedEventArgs(Workspace oldWorkspace, Workspace newWorkspace)
+        {
+            OldWorkspace = oldWorkspace;
+            NewWorkspace = newWorkspace;
         }
     }
 }

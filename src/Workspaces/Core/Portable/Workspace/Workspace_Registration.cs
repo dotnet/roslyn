@@ -39,11 +39,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             var registration = GetWorkspaceRegistration(textContainer);
-            registration.SetWorkspace(this);
-            this.ScheduleTask(() =>
-            {
-                registration.RaiseEvents();
-            }, "Workspace.RegisterText");
+
+            SetAndRaiseTextRegistrationChangedEvents(registration, newWorkspace: this);
         }
 
         /// <summary>
@@ -58,10 +55,22 @@ namespace Microsoft.CodeAnalysis
 
             var registration = GetWorkspaceRegistration(textContainer);
 
+            // guard us from being called with wrong text container.
             if (registration.Workspace == this)
             {
-                registration.SetWorkspaceAndRaiseEvents(null);
+                SetAndRaiseTextRegistrationChangedEvents(registration, newWorkspace: null);
             }
+        }
+
+        private void SetAndRaiseTextRegistrationChangedEvents(WorkspaceRegistration registration, Workspace newWorkspace, [CallerMemberName] string eventName = null)
+        {
+            var oldWorkspace = registration.Workspace;
+            registration.SetWorkspace(newWorkspace);
+
+            // workspace change event is synchronous events. and it doesn't use workspace events queue since 
+            // WorkspaceRegistration is not associated with 1 specific workspace. workspace events queue is specific to 1 workspace
+            // using multiple queues that belong to multiple workspace will cause events to be out of order
+            registration.RaiseEvents(oldWorkspace, newWorkspace);
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)

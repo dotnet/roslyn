@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             private readonly Workspace _workspace;
             private DiagnosticData _diagnostic;
 
+            public Action<DiagnosticsUpdatedArgs> _action;
             public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
             public MockDiagnosticService(Workspace workspace)
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _workspace = workspace;
             }
 
-            public IEnumerable<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            public IEnumerable<DiagnosticData> GetCachedDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
                 Assert.Equal(workspace, _workspace);
                 Assert.Equal(projectId, GetProjectId());
@@ -241,6 +242,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
             }
 
+            public IDisposable Subscribe(Workspace workspace, DocumentId documentId, Action<DiagnosticsUpdatedArgs> action)
+            {
+                if (documentId == GetDocumentId())
+                {
+                    _action = action;
+                }
+
+                return null;
+            }
+
             internal void CreateDiagnosticAndFireEvents(Location location)
             {
                 var document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -248,10 +259,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
                     location: location));
 
-                DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     this, _workspace, _workspace.CurrentSolution,
                     GetProjectId(), GetDocumentId(),
-                    ImmutableArray.Create(_diagnostic)));
+                    ImmutableArray.Create(_diagnostic));
+
+                DiagnosticsUpdated?.Invoke(this, args);
+
+                _action?.Invoke(args);
             }
 
             private DocumentId GetDocumentId()
