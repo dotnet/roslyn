@@ -169,6 +169,26 @@ class C
             );
         }
 
+
+        [Fact]
+        public void ParsingBad()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var a = 0..1..2;
+    }
+}
+";
+            CreateStandardCompilation(new[] { RangeStruct, source }).VerifyDiagnostics(
+                // (6,21): error CS1073: Unexpected token '..'
+                //         var a = 0..1..2;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments("..").WithLocation(6, 21)
+            );
+        }
+
         [Fact]
         public void Typed()
         {

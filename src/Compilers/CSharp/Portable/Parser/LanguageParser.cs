@@ -8706,6 +8706,17 @@ tryAgain:
             }
         }
 
+        internal static bool IsNonAssociative(SyntaxKind op)
+        {
+            switch (op)
+            {
+                case SyntaxKind.RangeExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         enum Precedence : uint
         {
             Expression = 0, // Loosest possible precedence, used to accept all expressions
@@ -9007,7 +9018,7 @@ tryAgain:
                 }
 
                 // Same precedence, but not right-associative -- deal with this "later"
-                if ((newPrecedence == precedence) && !IsRightAssociative(opKind))
+                if ((newPrecedence == precedence) && !IsRightAssociative(opKind) && !IsNonAssociative(opKind))
                 {
                     break;
                 }
@@ -9020,6 +9031,12 @@ tryAgain:
                     var opToken2 = this.EatToken();
                     var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken;
                     opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
+                }
+
+                // Parse non-associative operators as if they were right-associative (and put an error on the operator)
+                if ((newPrecedence == precedence) && IsNonAssociative(opKind))
+                {
+                    opToken = this.AddError(opToken, ErrorCode.ERR_UnexpectedToken, opToken.Text);
                 }
 
                 if (opKind == SyntaxKind.AsExpression)
