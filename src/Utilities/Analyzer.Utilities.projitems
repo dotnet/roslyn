@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractVersionCheckAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommonAccessibilityUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentChangeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IDictionaryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableOfIMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamedTypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IOperationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolVisibility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\UriExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SyntaxGeneratorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WordParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WordParserOptions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzerUtilitiesResources.resx">
+      <GenerateSource>true</GenerateSource>
+	  <ManifestResourceName>Analyzer.Utilities.AnalyzerUtilitiesResources</ManifestResourceName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.cs.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.de.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.es.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.fr.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.it.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.ja.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.ko.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.pl.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.pt-BR.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.ru.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.tr.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.zh-Hans.xlf" />
+    <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.zh-Hant.xlf" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+</Project>

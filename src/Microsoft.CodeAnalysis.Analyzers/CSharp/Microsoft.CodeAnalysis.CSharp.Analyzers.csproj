@@ -4,7 +4,6 @@
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj" />
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.csproj" />
   </ItemGroup>
 </Project>

@@ -9,11 +9,9 @@
     <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
   </ItemGroup>
+  <Import Project="..\..\Utilities\Analyzer.Utilities.projitems" Label="Shared" />
 </Project>
