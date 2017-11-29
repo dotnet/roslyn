@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// </summary>
             private void OnDiagnosticsUpdatedOnForeground()
             {
+                this.AssertIsForeground();
+
                 ProviderAndDocumentToLatestUpdate latestUpdates;
                 lock (_gate)
                 {
