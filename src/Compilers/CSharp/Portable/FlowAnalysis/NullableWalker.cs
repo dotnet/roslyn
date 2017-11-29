@@ -574,7 +574,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (valueContainerSlot > 0)
                     {
                         int valueMemberSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
-                        value = valueMemberSlot > 0 ? this.State[valueMemberSlot] : null;
+                        value = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
+                            this.State[valueMemberSlot] :
+                            null;
                     }
 
                     this.State[targetMemberSlot] = value;
