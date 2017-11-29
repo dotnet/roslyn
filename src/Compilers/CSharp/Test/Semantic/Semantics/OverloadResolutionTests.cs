@@ -10091,8 +10091,7 @@ class Program
 }
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
-            );
+            CompileAndVerify(code, expectedOutput: @"2");
         }
 
         [Fact]
@@ -10123,7 +10122,8 @@ class Program
 }
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: @"1", verify: Verification.Fails);
+
         }
 
         [Fact]
