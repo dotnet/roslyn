@@ -5,11 +5,38 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class BoundExpressionExtensions
     {
+        /// <summary>
+        /// Returns the RefKind if the expression represents a symbol
+        /// that has a RefKind. This method is ILLEGAL to call for
+        /// other expressions.
+        /// </summary>
+        public static RefKind GetRefKind(this BoundExpression node)
+        {
+            switch (node.Kind)
+            {
+                case BoundKind.Local:
+                    return ((BoundLocal)node).LocalSymbol.RefKind;
+
+                case BoundKind.Parameter:
+                    return ((BoundParameter)node).ParameterSymbol.RefKind;
+
+                case BoundKind.Call:
+                    return ((BoundCall)node).Method.RefKind;
+
+                case BoundKind.PropertyAccess:
+                    return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
+            }
+        }
+
         public static bool IsLiteralNull(this BoundExpression node)
         {
             return node.Kind == BoundKind.Literal && node.ConstantValue.Discriminator == ConstantValueTypeDiscriminator.Null;
