@@ -183,31 +183,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         private async Task<Document> DecompileSymbolAsync(Document temporaryDocument, ISymbol symbol, CancellationToken cancellationToken)
         {
-            // Get the name of the type the symbol is in:
+            // Get the name of the type the symbol is in
             var containingOrThis = symbol.GetContainingTypeOrThis();
-            var total = GetFullReflectionName(containingOrThis);
+            var fullName = GetFullReflectionName(containingOrThis);
 
-            var model = await temporaryDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            // TODO : retrieve path to actual assembly instead of reference assembly:
-            var reference = model.Compilation.GetMetadataReference(symbol.ContainingAssembly);
+            var compilation = await temporaryDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            // TODO: retrieve path to actual assembly instead of reference assembly
+            var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
             // Load the assembly.
-            var ad = AssemblyDefinition.ReadAssembly(reference.Display, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(model.Compilation) });
+            var ad = AssemblyDefinition.ReadAssembly(reference.Display, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
 
             // Initialize a decompiler with default settings.
-            CSharpDecompiler decompiler = new CSharpDecompiler(ad.MainModule, new DecompilerSettings());
-            var fullTypeName = new FullTypeName(total);
+            var decompiler = new CSharpDecompiler(ad.MainModule, new DecompilerSettings());
+            var fullTypeName = new FullTypeName(fullName);
 
-            // Try to decompile
-            // If it fails, display stack trace and assembly file name.
-            string text;
-            try
-            {
-                text = decompiler.DecompileTypeAsString(fullTypeName);
-            }
-            catch (Exception ex)
-            {
-                text = ad.MainModule.FileName + "\n" + ex.ToString();
-            }
+            // Try to decompile; if an exception is thrown the caller will handle it
+            var text = decompiler.DecompileTypeAsString(fullTypeName);
             return temporaryDocument.WithText(SourceText.From(text));
         }
 
@@ -231,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 {
                     if (assembly.Identity.Name == name.Name
                         && assembly.Identity.Version == name.Version
-                        && assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? new byte[0]))
+                        && assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
                     {
                         // reference assemblies should be fine here...
                         var reference = parentCompilation.GetMetadataReference(assembly);
@@ -249,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         private string GetFullReflectionName(INamedTypeSymbol containingType)
         {
-            Stack<string> stack = new Stack<string>();
+            var stack = new Stack<string>();
             stack.Push(containingType.MetadataName);
             var ns = containingType.ContainingNamespace;
             do
@@ -418,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 {
                     if (Directory.Exists(_rootTemporaryPath))
                     {
-                        bool deletedEverything = true;
+                        var deletedEverything = true;
 
                         // Let's look through directories to delete.
                         foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
