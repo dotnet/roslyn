@@ -29,6 +29,9 @@ install_dotnet () {
         echo "Downloading and installing .NET CLI version ${DOTNET_VERSION} to ${DOTNET_PATH}"
         curl https://dot.net/v1/dotnet-install.sh | \
             /usr/bin/env bash -s -- --version "${DOTNET_VERSION}" --install-dir "${DOTNET_PATH}"
+
+        curl https://dot.net/v1/dotnet-install.sh | \
+            /usr/bin/env bash -s -- --version "2.0.3" --sharedruntime --install-dir "${DOTNET_PATH}"
     else
         echo "Skipping download of .NET CLI: Already installed at ${DOTNET_PATH}"
     fi

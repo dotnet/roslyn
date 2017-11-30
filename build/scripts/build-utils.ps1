@@ -136,6 +136,7 @@ function Ensure-NuGet() {
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
 # SDK.
 function Ensure-SdkInPathAndData() { 
+
     $sdkVersion = Get-ToolVersion "dotnetSdk"
 
     # Get the path to dotnet.exe. This is the first path on %PATH% that contains the 
@@ -176,6 +177,7 @@ function Ensure-SdkInPathAndData() {
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
+        Exec-Block { & $destFile -Version 2.0.3 -SharedRuntime -InstallDir $cliDir } | Out-Null
     }
 
     ${env:PATH} = "$cliDir;${env:PATH}"
