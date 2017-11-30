@@ -490,7 +490,7 @@ End Module
             End If
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/23483")>
         <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub GroupBy_Lookup1()
             Dim compilation = CreateCompilationWithMscorlib(
