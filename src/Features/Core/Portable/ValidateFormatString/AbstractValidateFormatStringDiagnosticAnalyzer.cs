@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
             context.RegisterCompilationStartAction(startContext =>
             {
                 var formatProviderType = startContext.Compilation.GetTypeByMetadataName(typeof(System.IFormatProvider).FullName);

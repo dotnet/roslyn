@@ -1789,5 +1789,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             type = cast.Type;
             expression = cast.Expression;
         }
+
+        public SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token)
+        {
+            if (token.Kind() == SyntaxKind.OverrideKeyword && token.Parent is MemberDeclarationSyntax member)
+            {
+                return member.GetNameToken();
+            }
+
+            return null;
+        }
     }
 }

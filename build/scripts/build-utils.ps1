@@ -409,7 +409,7 @@ function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir)
         $filePath = Join-Path $repoDir $fileName
     }
 
-    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath } | Write-Host
+    Exec-Console $nuget "restore $filePath -verbosity quiet -configfile $nugetConfig -MSBuildPath ""$msbuildDir"" -Project2ProjectTimeOut 1200"
 }
 
 # Restore all of the projects that the repo consumes
@@ -427,8 +427,7 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
     }
     else {
         $all = @(
-            "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
-            "CoreClr Toolset:build\ToolsetPackages\CoreToolset.csproj",
+            "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
             "Roslyn:Roslyn.sln",
             "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",
