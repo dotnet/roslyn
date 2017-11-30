@@ -15,7 +15,7 @@ namespace Roslyn.Diagnostics.Analyzers
         // public const string OverrideObjectEqualsRuleId = "RS0009";                   // Now CA1815 => Microsoft.ApiDesignGuidelines.Analyzers.OverrideEqualsAndOperatorEqualsOnValueTypesAnalyzer
         // public const string DoNotUseVerbatimCrefsRuleId = "RS0010";                  // Now RS0010 => XmlDocumentationComments.Analyzers.AvoidUsingCrefTagsWithAPrefixAnalyzer
         // public const string CancellationTokenMustBeLastRuleId = "RS0011";            // Now CA1068 => Microsoft.ApiDesignGuidelines.Analyzers.CancellationTokenParametersMustComeLastAnalyzer
-        // public const string DoNotCallToImmutableArrayRuleId = "RS0012";              // Now RS0012 => System.Collections.Immutable.Analyzers.DoNotCallToImmutableArrayOnAnImmutableArrayValueAnalyzer
+        // public const string DoNotCallToImmutableArrayRuleId = "RS0012";              // Now RS0012 => System.Collections.Immutable.Analyzers.DoNotCallToImmutableCollectionOnAnImmutableCollectionValueAnalyzer
         public const string DoNotAccessDiagnosticDescriptorRuleId = "RS0013";
         // public const string DoNotCallLinqOnIndexable = "RS0014";                     // Now RS0014 => System.Runtime.Analyzers.DoNotUseEnumerableMethodsOnIndexableCollectionsInsteadUseTheCollectionDirectlyAnalyzer
         // public const string ConsumePreserveSigRuleId = "RS0015";                     // Now RS0015 => System.Runtime.InteropServices.Analyzers.AlwaysConsumeTheValueReturnedByMethodsMarkedWithPreserveSigAttributeAnalyzer
