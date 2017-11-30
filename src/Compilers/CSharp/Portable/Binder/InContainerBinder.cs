@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Func<ConsList<Symbol>, Imports> _computeImports;
         private Imports _lazyImports;
         private ImportChain _lazyImportChain;
-        private QuickTypeIdentifierAttributeChecker _lazyQuickTypeIdentifierAttributeChecker;
+        private QuickAttributeChecker _lazyQuickAttributeChecker;
 
         /// <summary>
         /// Creates a binder for a container with imports (usings and extern aliases) that can be
@@ -103,26 +103,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get <see cref="QuickTypeIdentifierAttributeChecker"/> that can be used to quickly
-        /// check for TypeIdentifier attribute applications in context of this binder.
+        /// Get <see cref="QuickAttributeChecker"/> that can be used to quickly
+        /// check for certain attribute applications in context of this binder.
         /// </summary>
-        internal override QuickTypeIdentifierAttributeChecker QuickTypeIdentifierAttributeChecker
+        internal override QuickAttributeChecker QuickAttributeChecker
         {
             get
             {
-                if (_lazyQuickTypeIdentifierAttributeChecker == null)
+                if (_lazyQuickAttributeChecker == null)
                 {
-                    QuickTypeIdentifierAttributeChecker result = this.Next.QuickTypeIdentifierAttributeChecker;
+                    QuickAttributeChecker result = this.Next.QuickAttributeChecker;
 
                     if ((object)_container == null || _container.Kind == SymbolKind.Namespace)
                     {
                         result = result.AddAliasesIfAny(GetImports(basesBeingResolved: null).UsingAliases);
                     }
 
-                    _lazyQuickTypeIdentifierAttributeChecker = result;
+                    _lazyQuickAttributeChecker = result;
                 }
 
-                return _lazyQuickTypeIdentifierAttributeChecker;
+                return _lazyQuickAttributeChecker;
             }
         }
 

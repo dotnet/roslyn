@@ -261,13 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag,
             AttributeLocation symbolPart = AttributeLocation.None,
             bool earlyDecodingOnly = false,
-            Binder binderOpt = null)
+            Binder binderOpt = null,
+            Func<AttributeSyntax, bool> attributeMatchesOpt = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
-            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, binderOpt, out binders);
+            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, attributeMatchesOpt, binderOpt, out binders);
             Debug.Assert(!attributesToBind.IsDefault);
 
             ImmutableArray<CSharpAttributeData> boundAttributes;
@@ -382,6 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart,
             DiagnosticBag diagnostics,
             CSharpCompilation compilation,
+            Func<AttributeSyntax, bool> attributeMatchesOpt,
             Binder rootBinderOpt,
             out ImmutableArray<Binder> binders)
         {
@@ -409,8 +411,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var attributesToBind = attributeDeclarationSyntax.Attributes;
-                            syntaxBuilder.AddRange(attributesToBind);
-                            attributesToBindCount += attributesToBind.Count;
+                            foreach (var attribute in attributesToBind)
+                            {
+                                if (attributeMatchesOpt is null || attributeMatchesOpt(attribute))
+                                {
+                                    syntaxBuilder.Add(attribute);
+                                    attributesToBindCount += 1;
+                                }
+                            }
                         }
                     }
 

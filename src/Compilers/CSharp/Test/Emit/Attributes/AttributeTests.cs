@@ -22,6 +22,278 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #region Function Tests
 
         [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void CircularTypeReferenceNotFound_WithIrrelevantType()
+        {
+            var origLib_cs = @"public class C { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib' (during overload resolution of attribute constructors) albeit irrelevant
+// but C won't exist
+";
+
+            var reference_cs =
+@"using System;
+public class RefersToLibAttribute : Attribute
+{
+    public RefersToLibAttribute() { }
+    public RefersToLibAttribute(C c) { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void CircularTypeReferenceNotFound_WithRelevantType()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll need to find type C in 'lib'
+// but C won't exist
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics(
+                // (2,12): error CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules
+                // [assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib'
+                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "RefersToLib").WithArguments("C").WithLocation(2, 12)
+                );
+        }
+
+        [Fact(Skip = "TODO File bug before merging")]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void CircularTypeReferenceNotFound_WithStaticUsing()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+using static RefersToLibAttribute;
+[assembly: System.Reflection.AssemblyTitleAttribute(""title"")]
+    // We'll be looking for type 'C' in 'lib' at some point, so we'll want to bind the attributes that may be 'TypeForwardedTo'.
+    // But to decide whether of not to bind this attribute, the QuickAttributeFinder will have to bind the using statements.
+    // That restarts a cycle of looking for type 'C'...
+
+public class Ignore
+{
+    public void UseStaticUsing() { Method(); }
+}
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+    public static void Method() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void CircularTypeReferenceIsForwarded_WithIrrelevantType()
+        {
+            var origLib_cs = @"public class C { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib' (during overload resolution of attribute constructors) albeit irrelevant
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))] // but C is forwarded
+";
+
+            var reference_cs =
+@"using System;
+public class RefersToLibAttribute : Attribute
+{
+    public RefersToLibAttribute() { }
+    public RefersToLibAttribute(C c) { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void CircularTypeReferenceIsForwarded_WithRelevantType()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll need to find type C in 'lib'
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))] // but C is forwarded
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void CircularTypeReferenceIsForwarded_WithRelevantType_WithAlias()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+using alias1 = System.Runtime.CompilerServices.TypeForwardedToAttribute;
+[assembly: RefersToLib] // to bind this, we'll need to find type C in 'lib'
+[assembly: alias1(typeof(C))] // but C is forwarded via alias
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void CircularTypeReferenceExists_WithIrrelevantType()
+        {
+            var origLib_cs = @"public class C { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib' (during overload resolution of attribute constructors) albeit irrelevant
+public class C { } // and C exists here
+";
+
+            var reference_cs =
+@"using System;
+public class RefersToLibAttribute : Attribute
+{
+    public RefersToLibAttribute() { }
+    public RefersToLibAttribute(C c) { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void CircularTypeReferenceExists_WithRelevantType()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll need to find type C in 'lib'
+public class C : System.Attribute { } // and C exists here
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestAssemblyAttributes()
         {
             var source = CreateStandardCompilation(@"
