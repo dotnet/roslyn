@@ -6187,33 +6187,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundValuePlaceholder : BoundExpression
     {
-        public BoundValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+        public BoundValuePlaceholder(SyntaxNode syntax, bool? isNullable, TypeSymbol type, bool hasErrors)
             : base(BoundKind.ValuePlaceholder, syntax, type, hasErrors)
         {
 
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.IsNullable = isNullable;
         }
 
-        public BoundValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+        public BoundValuePlaceholder(SyntaxNode syntax, bool? isNullable, TypeSymbol type)
             : base(BoundKind.ValuePlaceholder, syntax, type)
         {
 
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.IsNullable = isNullable;
         }
 
+
+        public bool? IsNullable { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitValuePlaceholder(this);
         }
 
-        public BoundValuePlaceholder Update(TypeSymbol type)
+        public BoundValuePlaceholder Update(bool? isNullable, TypeSymbol type)
         {
-            if (type != this.Type)
+            if (isNullable != this.IsNullable || type != this.Type)
             {
-                var result = new BoundValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundValuePlaceholder(this.Syntax, isNullable, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9441,7 +9445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(type);
+            return node.Update(node.IsNullable, type);
         }
     }
 
@@ -11023,6 +11027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("valuePlaceholder", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("isNullable", node.IsNullable, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

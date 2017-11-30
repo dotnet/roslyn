@@ -227,6 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Literal:
                 case BoundKind.UnboundLambda:
                     break;
+                case BoundKind.ValuePlaceholder:
+                    return ((BoundValuePlaceholder)expr).IsNullable;
                 default:
                     // PROTOTYPE(NullableReferenceTypes): Handle all expression kinds.
                     //Debug.Assert(false, "Unhandled expression: " + expr.Kind);

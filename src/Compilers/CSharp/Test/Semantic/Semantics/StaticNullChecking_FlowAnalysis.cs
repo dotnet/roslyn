@@ -690,6 +690,46 @@ class C
         }
 
         [Fact]
+        public void TypeInference_01()
+        {
+            var source =
+@"class C<T>
+{
+    internal T F;
+}
+class C
+{
+    static C<T> Create<T>(T t)
+    {
+        return new C<T>();
+    }
+    static void F(object? x)
+    {
+        if (x == null)
+        {
+            Create(x).F = null;
+            var y = Create(x);
+            y.F = null;
+        }
+        else
+        {
+            Create(x).F = null;
+            var y = Create(x);
+            y.F = null;
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (21,27): warning CS8600: Cannot convert null to non-nullable reference.
+                //             Create(x).F = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 27),
+                // (23,19): warning CS8600: Cannot convert null to non-nullable reference.
+                //             y.F = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 19));
+        }
+
+        [Fact]
         public void LambdaReturnValue_01()
         {
             var source =

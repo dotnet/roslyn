@@ -1214,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected virtual void UpdateStateForCall(BoundCall node)
+        protected void UpdateStateForCall(BoundCall node)
         {
             if (_trackExceptions) NotePossibleException(node);
         }
@@ -1227,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitReceiverAfterCall(BoundExpression receiverOpt, MethodSymbol method)
+        protected void VisitReceiverAfterCall(BoundExpression receiverOpt, MethodSymbol method)
         {
             NamedTypeSymbol containingType;
             if (receiverOpt != null && ((object)method == null || method.MethodKind == MethodKind.Constructor || (object)(containingType = method.ContainingType) != null && !method.IsStatic && !containingType.IsReferenceType && !TypeIsImmutable(containingType)))
@@ -1328,13 +1328,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitArgumentAsRvalue(ImmutableArray<BoundExpression> arguments, int i, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        protected void VisitArgumentAsRvalue(ImmutableArray<BoundExpression> arguments, int i, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
             ParameterSymbol parameter = GetCorrespondingParameter(i, method, argsToParamsOpt, ref expanded);
             VisitArgumentAsRvalue(arguments[i], parameter, expanded);
         }
 
-        private static ParameterSymbol GetCorrespondingParameter(int argumentOrdinal, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, ref bool expanded)
+        protected static ParameterSymbol GetCorrespondingParameter(int argumentOrdinal, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, ref bool expanded)
         {
             ParameterSymbol parameter;
             if ((object)method != null)
