@@ -29,6 +29,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             _tokenComparer = tokenComparer;
         }
 
+        private enum UsingKind
+        {
+            Extern,
+            Namespace,
+            UsingStatic,
+            Alias
+        }
+
+        private static UsingKind GetUsingKind(UsingDirectiveSyntax usingDirective, ExternAliasDirectiveSyntax externDirective)
+        {
+            if (externDirective != null)
+            {
+                return UsingKind.Extern;
+            }
+            if (usingDirective.Alias != null)
+            {
+                return UsingKind.Alias;
+            }
+            if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
+            {
+                return UsingKind.UsingStatic;
+            }
+            return UsingKind.Namespace;
+        }
+
         public int Compare(SyntaxNode directive1, SyntaxNode directive2)
         {
             if (directive1 == directive2)
@@ -41,17 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var extern1 = directive1 as ExternAliasDirectiveSyntax;
             var extern2 = directive2 as ExternAliasDirectiveSyntax;
 
-            var directive1IsExtern = extern1 != null;
-            var directive2IsExtern = extern2 != null;
-
-            var directive1IsNamespace = using1 != null && using1.Alias == null && !using1.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
-            var directive2IsNamespace = using2 != null && using2.Alias == null && !using2.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
-
-            var directive1IsUsingStatic = using1 != null && using1.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
-            var directive2IsUsingStatic = using2 != null && using2.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
-
-            var directive1IsAlias = using1 != null && using1.Alias != null;
-            var directive2IsAlias = using2 != null && using2.Alias != null;
+            var directive1Kind = GetUsingKind(using1, extern1);
+            var directive2Kind = GetUsingKind(using2, extern2);
 
             // different types of usings get broken up into groups.
             //  * externs
@@ -59,46 +75,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             //  * using statics
             //  * aliases
 
-            if (directive1IsExtern && !directive2IsExtern)
+            if (directive1Kind < directive2Kind)
             {
                 return -1;
             }
-            else if (directive2IsExtern && !directive1IsExtern)
-            {
-                return 1;
-            }
-            else if (directive1IsNamespace && !directive2IsNamespace)
-            {
-                return -1;
-            }
-            else if (directive2IsNamespace && !directive1IsNamespace)
-            {
-                return 1;
-            }
-            else if (directive1IsUsingStatic && !directive2IsUsingStatic)
-            {
-                return -1;
-            }
-            else if (directive2IsUsingStatic && !directive1IsUsingStatic)
-            {
-                return 1;
-            }
-            else if (directive1IsAlias && !directive2IsAlias)
-            {
-                return -1;
-            }
-            else if (directive2IsAlias && !directive1IsAlias)
+            if (directive1Kind > directive2Kind)
             {
                 return 1;
             }
 
             // ok, it's the same type of using now.
-            if (directive1IsExtern)
+            if (directive1Kind == UsingKind.Extern)
             {
                 // they're externs, sort by the alias
                 return _tokenComparer.Compare(extern1.Identifier, extern2.Identifier);
             }
-            else if (directive1IsAlias)
+            if (directive1Kind == UsingKind.Alias)
             {
                 var aliasComparisonResult = _tokenComparer.Compare(using1.Alias.Name.Identifier, using2.Alias.Name.Identifier);
 
@@ -107,15 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     // They both use the same alias, so compare the names.
                     return _nameComparer.Compare(using1.Name, using2.Name);
                 }
-                else
-                {
-                    return aliasComparisonResult;
-                }
+
+                return aliasComparisonResult;
             }
-            else
-            {
-                return _nameComparer.Compare(using1.Name, using2.Name);
-            }
+
+            return _nameComparer.Compare(using1.Name, using2.Name);
         }
     }
 }
