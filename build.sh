@@ -21,9 +21,7 @@ usage()
     echo "  --bootstrap           Implies --build-bootstrap and --use-bootstrap"
 }
 
-this_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${this_dir}"/build/scripts/build-utils.sh
-root_path="$(get_repo_dir)"
+root_path="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 binaries_path="${root_path}"/Binaries
 bootstrap_path="${binaries_path}"/Bootstrap
 bootstrap_framework=netcoreapp2.0
@@ -55,15 +53,15 @@ do
         build_configuration=Release
         shift 1
         ;;
-        --restore)
+        --restore|-r)
         restore=true
         shift 1
         ;;
-        --build)
+        --build|-b)
         build=true
         shift 1
         ;;
-        --test)
+        --test|-t)
         test_=true
         shift 1
         ;;
@@ -86,6 +84,8 @@ do
         ;;
     esac
 done
+
+source "${root_path}"/build/scripts/obtain_dotnet.sh
 
 if [[ "$restore" == true ]]
 then
@@ -117,5 +117,5 @@ fi
 
 if [[ "${test_}" == true ]]
 then
-    "${root_path}"/build/scripts/tests.sh
+    "${root_path}"/build/scripts/tests.sh "${build_configuration}"
 fi

@@ -33,8 +33,6 @@ install_dotnet () {
 
         curl https://dot.net/v1/dotnet-install.sh | \
             /usr/bin/env bash -s -- --version "${DOTNET_RUNTIME_VERSION}" --shared-runtime --install-dir "${DOTNET_PATH}"
-    else
-        echo "Skipping download of .NET CLI: Already installed at ${DOTNET_PATH}"
     fi
 
     export PATH="${DOTNET_PATH}:${PATH}"
