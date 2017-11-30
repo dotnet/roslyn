@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = TypeMap.SubstituteType(local.Type).Type;
                 var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
                 Debug.Assert(type == replacement.Type);
-                return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, refKind: RefKind.Ref));
+                return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));
             }
 
             if (sideEffects.Count == 0)
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
                     if (isRef)
                     {
-                        Debug.Assert(conditional.IsByRef);
+                        Debug.Assert(conditional.IsRef);
                         F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
                         isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
                     }
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (proxies.ContainsKey(leftLocal))
             {
-                Debug.Assert(node.RefKind == RefKind.None);
+                Debug.Assert(!node.IsRef);
                 return base.VisitAssignmentOperator(node);
             }
 
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // being used in any other way.
 
             Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
-            Debug.Assert(node.RefKind != RefKind.None);
+            Debug.Assert(node.IsRef);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
             // So we assign the proxy before translating the assignment.

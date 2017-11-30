@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
-                    if (conditional.IsByRef &&
+                    if (conditional.IsRef &&
                         (CheckValueKind(conditional.Consequence.Syntax, conditional.Consequence, valueKind, checkingReceiver: false, diagnostics: diagnostics) &
                         CheckValueKind(conditional.Alternative.Syntax, conditional.Alternative, valueKind, checkingReceiver: false, diagnostics: diagnostics)))
                     {
@@ -1659,7 +1659,7 @@ moreArguments:
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         // ref conditional defers to its operands
                         return Math.Max(GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression),
@@ -1847,7 +1847,7 @@ moreArguments:
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         return CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                                CheckRefEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
@@ -2036,7 +2036,7 @@ moreArguments:
 
                     var consEscape = GetValEscape(conditional.Consequence, scopeOfTheContainingExpression);
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         // ref conditional defers to one operand. 
                         // the other one is the same or we will be reporting errors anyways.
@@ -2320,7 +2320,7 @@ moreArguments:
 
                     var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                    if (!consValid || conditional.IsByRef)
+                    if (!consValid || conditional.IsRef)
                     {
                         // ref conditional defers to one operand. 
                         // the other one is the same or we will be reporting errors anyways.

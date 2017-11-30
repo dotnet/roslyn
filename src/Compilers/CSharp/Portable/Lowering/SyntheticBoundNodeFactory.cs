@@ -363,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (PropertySymbol)SpecialMember(sm);
         }
 
-        public BoundExpressionStatement Assignment(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
+        public BoundExpressionStatement Assignment(BoundExpression left, BoundExpression right, bool isRef = false)
         {
-            return ExpressionStatement(AssignmentExpression(left, right, refKind));
+            return ExpressionStatement(AssignmentExpression(left, right, isRef));
         }
 
         public BoundExpressionStatement ExpressionStatement(BoundExpression expr)
@@ -373,12 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundExpressionStatement(Syntax, expr) { WasCompilerGenerated = true };
         }
 
-        public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
+        public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
         {
             Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
                     right.Type.IsErrorType() || left.Type.IsErrorType());
 
-            return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
+            return new BoundAssignmentOperator(Syntax, left, right, left.Type, isRef: isRef) { WasCompilerGenerated = true };
         }
 
         public BoundBlock Block()
@@ -1299,7 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 local,
                 argument,
-                refKind,
+                refKind != RefKind.None,
                 type);
 
             return local;
