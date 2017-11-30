@@ -806,8 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 binder = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node);
                             }
 
-                            string nameWithAttribute = name + "Attribute";
-
+                            string nameWithAttribute = null;
                             Binder current = binder;
 
                             do
@@ -822,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                (aliasAndDirective.Alias.Target as NamedTypeSymbol)?.Name == AttributeDescription.TypeIdentifierAttribute.Name;
                                     }
 
-                                    if (isAliasForTypeIdentifierAttribute(name) || isAliasForTypeIdentifierAttribute(nameWithAttribute))
+                                    if (isAliasForTypeIdentifierAttribute(name) || isAliasForTypeIdentifierAttribute(nameWithAttribute ?? (nameWithAttribute = name + "Attribute")))
                                     {
                                         // This attribute syntax might be a valid application of TypeIdentifierAttribute.
                                         // Let's bind it.
