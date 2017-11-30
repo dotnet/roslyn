@@ -519,9 +519,109 @@ namespace System
                 );
         }
 
+        [Fact]
+        public void SwitchExpression_05()
+        {
+            // test throw expression in match arm.
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var x = 1 switch { 1 => 1, _ => throw null };
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_06()
+        {
+            // test common type vs delegate in match expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
+        x();
+    }
+    public static void M() {}
+    public delegate void D();
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_07()
+        {
+            // test flow analysis of the switch expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int q = 1;
+        int u;
+        var x = q switch { 0 => u=0, 1 => u=1, _ => u=2 };
+        System.Console.WriteLine(u);
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_08()
+        {
+            // test flow analysis of the switch expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int q = 1;
+        int u;
+        var x = q switch { 0 => u=0, 1 => 1, _ => u=2 };
+        System.Console.WriteLine(u);
+    }
+    static int M(int i) => i;
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (8,34): error CS0165: Use of unassigned local variable 'u'
+                //         System.Console.WriteLine(u);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u").WithArguments("u").WithLocation(8, 34)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_09()
+        {
+            // test flow analysis of the switch expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int q = 1;
+        int u;
+        var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
+        System.Console.WriteLine(u);
+    }
+    static int M(int i) => i;
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (7,47): error CS0165: Use of unassigned local variable 'u'
+                //         var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u").WithArguments("u").WithLocation(7, 47)
+                );
+        }
+
+
         // PROTOTYPE(patterns2): test lazily inferring variables in the pattern
         // PROTOTYPE(patterns2): test lazily inferring variables in the when clause
         // PROTOTYPE(patterns2): test lazily inferring variables in the arrow expression
-        // PROTOTYPE(patterns2): test flow analysis of the switch expression
     }
 }
