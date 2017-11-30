@@ -233,10 +233,6 @@
    -->
   <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == '' AND '$(OS)' == 'Windows_NT'" />
 
-  <ItemGroup>
-    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" />
-  </ItemGroup>
-
   <!-- 
     Language specifc settings 
     

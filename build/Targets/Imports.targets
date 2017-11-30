@@ -122,10 +122,9 @@
   </Choose>
 
   <!-- Settings for localization -->
-  <PropertyGroup>
-    <!-- Only turn on localization for shipping binaries. -->
-    <EnableXlfLocalization Condition="'$(NonShipping)' == 'true'">false</EnableXlfLocalization>
-  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" Condition="'$(NonShipping)' != 'true'" />
+  </ItemGroup>
 
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
