@@ -10674,6 +10674,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to range.
+        /// </summary>
+        internal static string IDS_FeatureRange {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to readonly automatically implemented properties.
         /// </summary>
         internal static string IDS_FeatureReadonlyAutoImplementedProperties {

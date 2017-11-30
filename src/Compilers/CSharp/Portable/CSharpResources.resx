@@ -186,6 +186,9 @@
   <data name="IDS_FeatureSwitchOnBool" xml:space="preserve">
     <value>switch on boolean type</value>
   </data>
+  <data name="IDS_FeatureRange" xml:space="preserve">
+    <value>range</value>
+  </data>
   <data name="IDS_MethodGroup" xml:space="preserve">
     <value>method group</value>
   </data>

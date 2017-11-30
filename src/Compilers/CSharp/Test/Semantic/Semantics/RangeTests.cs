@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -144,7 +145,7 @@ class C
     }
 }
 ";
-            CreateCSharpCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,20): error CS1001: Identifier expected
                 //         var a = 0. .1;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ".1").WithLocation(6, 20),
@@ -166,6 +167,48 @@ class C
                 // (7,17): error CS0019: Operator '..' cannot be applied to operands of type 'int' and 'double'
                 //         var b = 0...1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "0...1").WithArguments("..", "int", "double").WithLocation(7, 17)
+            );
+        }
+
+        [Fact]
+        public void ParsingBad()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var a = 0..1..2;
+    }
+}
+";
+            CreateStandardCompilation(new[] { RangeStruct, source }).VerifyDiagnostics(
+                // (6,21): error CS1073: Unexpected token '..'
+                //         var a = 0..1..2;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments("..").WithLocation(6, 21)
+            );
+        }
+
+        [Fact]
+        public void NotInCSharp72()
+        {
+            var source = @"
+class C
+{
+    public static C operator..(C l, C r) => null;
+    static void Main()
+    {
+        var a = 0..1;
+    }
+}
+";
+            CreateStandardCompilation(new[] { RangeStruct, source }, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_2)).VerifyDiagnostics(
+                // (4,29): error CS8320: Feature 'range' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //     public static C operator..(C l, C r) => null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "..").WithArguments("range", "7.3").WithLocation(4, 29),
+                // (7,18): error CS8320: Feature 'range' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var a = 0..1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "..").WithArguments("range", "7.3").WithLocation(7, 18)
             );
         }
 
