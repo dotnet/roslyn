@@ -899,6 +899,22 @@ namespace Microsoft.CodeAnalysis
             SearchOption searchOption,
             IList<Diagnostic> errors)
         {
+            var sources = ExpandFileNamePatternNonDeterministic(path, baseDirectory, searchOption, errors);
+
+            // Use StringComparer.Ordinal because other comparers may behave
+            // differently depending on the platform.
+            return sources.OrderBy(sf => sf.Path, StringComparer.Ordinal);
+        }
+
+        // This function returns results in non-deterministic order due to
+        // usage of things like Directory.EnumerateFiles. Some example sources
+        // of differentiation are file systems and operating systems.
+        private IEnumerable<CommandLineSourceFile> ExpandFileNamePatternNonDeterministic(
+            string path,
+            string baseDirectory,
+            SearchOption searchOption,
+            IList<Diagnostic> errors)
+        {
             string directory = PathUtilities.GetDirectoryName(path);
             string pattern = PathUtilities.GetFileName(path);
 
