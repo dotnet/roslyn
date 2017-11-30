@@ -92,7 +92,7 @@
     <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
     <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
 
-    <DisableTransitiveProjectReferences Condition="'$(RoslynProjectType)' == 'Vsix')">true</DisableTransitiveProjectReferences>
+    <DisableTransitiveProjectReferences Condition="'$(RoslynProjectType)' == 'Vsix'">true</DisableTransitiveProjectReferences>
 
   </PropertyGroup>
 
