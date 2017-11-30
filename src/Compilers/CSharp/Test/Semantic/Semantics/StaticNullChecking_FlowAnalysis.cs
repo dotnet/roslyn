@@ -53,7 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         b[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(8, 9),
+                // (9,28): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
+                //         var c = new[] { a, b };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("object?[]", "object[]").WithLocation(9, 28));
         }
 
         [Fact]
@@ -191,6 +194,87 @@ class C
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         d[0].F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0].F").WithLocation(19, 9));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedArrayCreation_08()
+        {
+            var source =
+@"class C<T> { }
+class C
+{
+    static void F(C<object>? a, C<object?> b)
+    {
+        if (a == null)
+        {
+            var c = new[] { a, b };
+            c[0].ToString();
+            var d = new[] { b, a };
+            d[0].ToString();
+        }
+        else
+        {
+            var c = new[] { a, b };
+            c[0].ToString();
+            var d = new[] { b, a };
+            d[0].ToString();
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                //             var c = new[] { a, b };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("C<object?>", "C<object>").WithLocation(8, 32),
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             c[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0]").WithLocation(9, 13),
+                // (10,32): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
+                //             var d = new[] { b, a };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a").WithArguments("C<object>", "C<object?>").WithLocation(10, 32),
+                // (11,13): warning CS8602: Possible dereference of a null reference.
+                //             d[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0]").WithLocation(11, 13),
+                // (15,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                //             var c = new[] { a, b };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("C<object?>", "C<object>").WithLocation(15, 32),
+                // (17,32): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
+                //             var d = new[] { b, a };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a").WithArguments("C<object>", "C<object?>").WithLocation(17, 32));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedArrayCreation_09()
+        {
+            var source =
+@"class C
+{
+    static void F(C x, Unknown? y)
+    {
+        var a = new[] { x, y };
+        a[0].ToString();
+        var b = new[] { y, x };
+        b[0].ToString();
+    }
+    static void G(C? x, Unknown y)
+    {
+        var a = new[] { x, y };
+        a[0].ToString();
+        var b = new[] { y, x };
+        b[0].ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void G(C? x, Unknown y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(10, 25),
+                // (3,24): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F(C x, Unknown? y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(3, 24),
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         a[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a[0]").WithLocation(6, 9));
         }
 
         [Fact]

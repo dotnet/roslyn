@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.State.ResultType = null;
             bool isImplicitArrayCreation = arrayCreation.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression;
-            var elementTypes = isImplicitArrayCreation ? ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance() : null;
+            var builder = isImplicitArrayCreation ? ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance() : null;
 
             foreach (var child in node.Initializers)
             {
@@ -986,20 +986,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                if (elementTypes != null)
+                if (builder != null)
                 {
-                    elementTypes.Add(this.State.ResultType);
+                    builder.Add(this.State.ResultType);
                 }
             }
 
             var arrayType = (ArrayTypeSymbol)arrayCreation.Type;
-            if (elementTypes != null)
+            if (builder != null)
             {
+                var initializerTypes = builder.ToImmutableAndFree();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var elementType = BestTypeInferrer.InferBestType(elementTypes.ToImmutableAndFree(), compilation.Conversions, includeNullability: true, useSiteDiagnostics: ref useSiteDiagnostics);
-                // PROTOTYPE(NullableReferenceTypes): Should report conversion warnings.
+                var elementType = BestTypeInferrer.InferBestType(initializerTypes, compilation.Conversions, includeNullability: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                for (int i = 0; i < initializerTypes.Length; i++)
+                {
+                    ReportNullabilityMismatchIfAny(node.Initializers[i], elementType, initializerTypes[i]);
+                }
                 arrayType = arrayType.WithElementType(elementType);
             }
+
             this.State.ResultType = TypeSymbolWithAnnotations.Create(arrayType, isNullableIfReferenceType: false);
         }
 
