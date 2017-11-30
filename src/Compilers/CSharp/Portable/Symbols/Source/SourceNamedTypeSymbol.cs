@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                 {
-                    GetAttributes();
+                    CheckPresenceOfTypeIdentifierAttribute();
 
                     if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                     {
@@ -767,6 +767,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(_lazyIsExplicitDefinitionOfNoPiaLocalType != ThreeState.Unknown);
                 return _lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.True;
+            }
+        }
+
+        private void CheckPresenceOfTypeIdentifierAttribute()
+        {
+            // We want this function to be as cheap as possible, it is called for every top level type
+            // and we don't want to bind attributes attached to the declaration unless there is a chance
+            // that one of them is TypeIdentifier attribute.
+            ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists = GetAttributeDeclarations();
+
+            foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
+            {
+                var syntaxTree = list.Node.SyntaxTree;
+                Binder binder = null;
+
+                foreach (AttributeListSyntax attrList in list)
+                {
+                    foreach (AttributeSyntax attr in attrList.Attributes)
+                    {
+                        SimpleNameSyntax simpleName = attr.Name.GetUnqualifiedName();
+                        string name = simpleName.Identifier.ValueText;
+
+                        if (name == "TypeIdentifier" || name == AttributeDescription.TypeIdentifierAttribute.Name)
+                        {
+                            // This attribute syntax might be an application of TypeIdentifierAttribute.
+                            // Let's bind it.
+                            // For simplicity we bind all attributes.
+                            GetAttributes();
+                            return;
+                        }
+
+                        if (attr.Name == simpleName)
+                        {
+                            // Check if the name matches an alias bound to the TypeIdentifierAttribute
+                            if (binder == null)
+                            {
+                                binder = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node);
+                            }
+
+                            string nameWithAttribute = name + "Attribute";
+
+                            Binder current = binder;
+
+                            do
+                            {
+                                ImmutableDictionary<string, AliasAndUsingDirective> usingAliases = current.GetImports(basesBeingResolved: null).UsingAliases;
+
+                                if (!usingAliases.IsEmpty)
+                                {
+                                    bool isAliasForTypeIdentifierAttribute(string aliasName)
+                                    {
+                                        return usingAliases.TryGetValue(aliasName, out AliasAndUsingDirective aliasAndDirective) &&
+                                               (aliasAndDirective.Alias.Target as NamedTypeSymbol)?.Name == AttributeDescription.TypeIdentifierAttribute.Name;
+                                    }
+
+                                    if (isAliasForTypeIdentifierAttribute(name) || isAliasForTypeIdentifierAttribute(nameWithAttribute))
+                                    {
+                                        // This attribute syntax might be a valid application of TypeIdentifierAttribute.
+                                        // Let's bind it.
+                                        // For simplicity we bind all attributes.
+                                        GetAttributes();
+                                        return;
+                                    }
+                                }
+
+                                current = current.Next;
+                            }
+                            while (current != null);
+                        }
+                    }
+                }
             }
         }
 
