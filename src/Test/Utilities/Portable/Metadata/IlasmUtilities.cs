@@ -29,7 +29,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                return Path.Combine(AppContext.BaseDirectory, "ilasm");
+                var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
+
+                var directory = AppContext.BaseDirectory;
+                string path = null;
+                while (directory != null && !File.Exists(path = Path.Combine(directory, "Binaries", "Tools", "ILAsm", ilasmExeName)))
+                {
+                    directory = Path.GetDirectoryName(directory);
+                }
+
+                if (directory == null)
+                {
+                    throw new NotSupportedException("Unable to find CoreCLR ilasm tool. Has the Microsoft.NETCore.ILAsm package been published to ./Binaries/Tools?");
+                }
+
+                return path;
             }
         }
 

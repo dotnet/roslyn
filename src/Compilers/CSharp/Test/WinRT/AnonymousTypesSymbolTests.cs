@@ -746,7 +746,7 @@ class Query
                 expectedOutput: "{ ToString = Field }-Field");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [Fact]
         public void AnonymousTypeSymbol_StandardNames3()
         {
             var source = @"
@@ -846,11 +846,7 @@ class Query
 @"{
   // Code size       75 (0x4b)
   .maxstack  3
-" +
-  (IntPtr.Size == 4 ?
-    "  IL_0000:  ldc.i4     0x78ce6eb1" :
-    "  IL_0000:  ldc.i4     0x983c2cef") +
-@"
+  IL_0000:  ldc.i4     0x3711624
   IL_0005:  ldc.i4     0xa5555529
   IL_000a:  mul
   IL_000b:  call       ""System.Collections.Generic.EqualityComparer<<ToString>j__TPar> System.Collections.Generic.EqualityComparer<<ToString>j__TPar>.Default.get""
@@ -1003,7 +999,7 @@ class Query
             int init = 0;
             foreach (var name in names)
             {
-                init = unchecked(init * HASH_FACTOR + name.GetHashCode());
+                init = unchecked(init * HASH_FACTOR + Hash.GetFNVHashCode(name));
             }
             return "0x" + init.ToString("X").ToLower();
         }

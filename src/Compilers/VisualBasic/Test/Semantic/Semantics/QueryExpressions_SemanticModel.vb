@@ -2830,6 +2830,7 @@ End Module
         End Sub
 
         <Fact()>
+        <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub GroupJoin1()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -2963,6 +2964,209 @@ End Module
             Assert.Equal("Function QueryAble(Of System.Int32).GroupJoin(Of System.Byte, System.Int32, <anonymous type: Key s As System.Int32, Key Group As QueryAble(Of System.Byte)>)(inner As QueryAble(Of System.Byte), outerKey As System.Func(Of System.Int32, System.Int32), innerKey As System.Func(Of System.Byte, System.Int32), x As System.Func(Of System.Int32, QueryAble(Of System.Byte), <anonymous type: Key s As System.Int32, Key Group As QueryAble(Of System.Byte)>)) As QueryAble(Of <anonymous type: Key s As System.Int32, Key Group As QueryAble(Of System.Byte)>)", symbolInfo.Symbol.ToTestDisplayString())
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of QueryExpressionSyntax)().First()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'From s In q ... Into Group')
+  Expression: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+      Children(5):
+          IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+            Children(1):
+                IInvocationOperation ( Function QueryAble(Of <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>).GroupJoin(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>, System.Int32, <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>)(inner As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), outerKey As System.Func(Of <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, System.Int32), innerKey As System.Func(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>, System.Int32), x As System.Func(Of <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>)) As QueryAble(Of <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>)) (OperationKind.Invocation, Type: QueryAble(Of <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>), IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                  Instance Receiver: 
+                    IInvocationOperation ( Function QueryAble(Of System.Int32).GroupJoin(Of System.Byte, System.Int32, <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>)(inner As QueryAble(Of System.Byte), outerKey As System.Func(Of System.Int32, System.Int32), innerKey As System.Func(Of System.Byte, System.Int32), x As System.Func(Of System.Int32, QueryAble(Of System.Byte), <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>)) As QueryAble(Of <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>)) (OperationKind.Invocation, Type: QueryAble(Of <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>), IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                      Instance Receiver: 
+                        ILocalReferenceOperation: qi (OperationKind.LocalReference, Type: QueryAble(Of System.Int32)) (Syntax: 'qi')
+                      Arguments(4):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'qb')
+                            ILocalReferenceOperation: qb (OperationKind.LocalReference, Type: QueryAble(Of System.Byte)) (Syntax: 'qb')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: outerKey) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's')
+                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
+                              Target: 
+                                IAnonymousFunctionOperation (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 's')
+                                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's')
+                                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's')
+                                      ReturnedValue: 
+                                        IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: innerKey) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x + 1')
+                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Byte, System.Int32), IsImplicit) (Syntax: 'x + 1')
+                              Target: 
+                                IAnonymousFunctionOperation (Symbol: Function (x As System.Byte) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x + 1')
+                                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + 1')
+                                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + 1')
+                                      ReturnedValue: 
+                                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + 1')
+                                          Left: 
+                                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              Operand: 
+                                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'x')
+                                          Right: 
+                                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, QueryAble(Of System.Byte), <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>), IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                              Target: 
+                                IAnonymousFunctionOperation (Symbol: Function (s As System.Int32, $VB$ItAnonymous As QueryAble(Of System.Byte)) As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                                      ReturnedValue: 
+                                        IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                                          Initializers(2):
+                                              IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's')
+                                              IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Arguments(4):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                        IInvocationOperation ( Function QueryAble(Of System.Int16).GroupJoin(Of System.UInt32, System.Int64, <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)(inner As QueryAble(Of System.UInt32), outerKey As System.Func(Of System.Int16, System.Int64), innerKey As System.Func(Of System.UInt32, System.Int64), x As System.Func(Of System.Int16, QueryAble(Of System.UInt32), <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)) As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)) (OperationKind.Invocation, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                          Instance Receiver: 
+                            ILocalReferenceOperation: qs (OperationKind.LocalReference, Type: QueryAble(Of System.Int16)) (Syntax: 'qs')
+                          Arguments(4):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'qu')
+                                ILocalReferenceOperation: qu (OperationKind.LocalReference, Type: QueryAble(Of System.UInt32)) (Syntax: 'qu')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: outerKey) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'y + 1')
+                                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int16, System.Int64), IsImplicit) (Syntax: 'y + 1')
+                                  Target: 
+                                    IAnonymousFunctionOperation (Symbol: Function (y As System.Int16) As System.Int64) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'y + 1')
+                                      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'y + 1')
+                                        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'y + 1')
+                                          ReturnedValue: 
+                                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'y + 1')
+                                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              Operand: 
+                                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'y + 1')
+                                                  Left: 
+                                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                      Operand: 
+                                                        IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int16) (Syntax: 'y')
+                                                  Right: 
+                                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: innerKey) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.UInt32, System.Int64), IsImplicit) (Syntax: 'x')
+                                  Target: 
+                                    IAnonymousFunctionOperation (Symbol: Function (x As System.UInt32) As System.Int64) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
+                                      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
+                                        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                                          ReturnedValue: 
+                                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'x')
+                                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              Operand: 
+                                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.UInt32) (Syntax: 'x')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int16, QueryAble(Of System.UInt32), <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                  Target: 
+                                    IAnonymousFunctionOperation (Symbol: Function (y As System.Int16, $VB$ItAnonymous As QueryAble(Of System.UInt32)) As <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                          ReturnedValue: 
+                                            IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                              Initializers(2):
+                                                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int16, IsImplicit) (Syntax: 'y')
+                                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of System.UInt32), IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: outerKey) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'y')
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, System.Int32), IsImplicit) (Syntax: 'y')
+                          Target: 
+                            IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'y')
+                              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'y')
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'y')
+                                  ReturnedValue: 
+                                    IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.s As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's')
+                                      Instance Receiver: 
+                                        IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'y')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: innerKey) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's')
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>, System.Int32), IsImplicit) (Syntax: 's')
+                          Target: 
+                            IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 's')
+                              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's')
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's')
+                                  ReturnedValue: 
+                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      Operand: 
+                                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>.y As System.Int16 (OperationKind.PropertyReference, Type: System.Int16) (Syntax: 'y')
+                                          Instance Receiver: 
+                                            IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>, IsImplicit) (Syntax: 's')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>), IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                          Target: 
+                            IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, $VB$ItAnonymous As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)) As <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                  ReturnedValue: 
+                                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                      Initializers(2):
+                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                          IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          ILocalReferenceOperation: ql (OperationKind.LocalReference, Type: QueryAble(Of System.Int64)) (Syntax: 'ql')
+          IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>) As ?) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: 'w')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'w')
+              IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'w')
+                ReturnedValue: 
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                    Children(2):
+                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>) (OperationKind.PropertyReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsInvalid) (Syntax: 'y')
+                          Instance Receiver: 
+                            IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'w')
+                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.x As QueryAble(Of System.Byte) (OperationKind.PropertyReference, Type: QueryAble(Of System.Byte), IsInvalid) (Syntax: 'x')
+                          Instance Receiver: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.$VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)> (OperationKind.PropertyReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsInvalid, IsImplicit) (Syntax: 'w')
+                              Instance Receiver: 
+                                IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'w')
+          IAnonymousFunctionOperation (Symbol: Function (w As System.Int64) As ?) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: 'y')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'y')
+              IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'y')
+                ReturnedValue: 
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                    Children(2):
+                        IParameterReferenceOperation: w (OperationKind.ParameterReference, Type: System.Int64, IsInvalid) (Syntax: 'w')
+                        IParameterReferenceOperation: w (OperationKind.ParameterReference, Type: System.Int64, IsInvalid) (Syntax: 'w')
+          IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, $VB$ItAnonymous As ?) As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+              IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                ReturnedValue: 
+                  IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                    Initializers(4):
+                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.s As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's')
+                          Instance Receiver: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.$VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)> (OperationKind.PropertyReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                              Instance Receiver: 
+                                IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.x As QueryAble(Of System.Byte) (OperationKind.PropertyReference, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'x')
+                          Instance Receiver: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.$VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)> (OperationKind.PropertyReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                              Instance Receiver: 
+                                IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>) (OperationKind.PropertyReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'y')
+                          Instance Receiver: 
+                            IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                        IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+]]>.Value)
         End Sub
 
         <Fact()>
