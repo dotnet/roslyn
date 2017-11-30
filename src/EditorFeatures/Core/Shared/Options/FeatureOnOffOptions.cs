@@ -79,11 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption<bool> StreamingGoToImplementation = new PerLanguageOption<bool>(
             nameof(FeatureOnOffOptions), nameof(StreamingGoToImplementation), defaultValue: true);
 
-        private const string LocalRegistryPath = @"Roslyn\Features\";
-
         public static readonly Option<bool> NavigateToDecompiledSources = new Option<bool>(
             nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NavigateToDecompiledSources)));
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
     }
 
     [ExportOptionProvider, Shared]
