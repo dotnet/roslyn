@@ -103,8 +103,6 @@
       "values": [
         "Vsix\\ExpressionEvaluatorPackage\\ExpressionEvaluatorPackage.vsix",
         "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.vsix",
-        "Vsix\\Roslyn.Deployment.Full\\Roslyn.Deployment.Full.vsix",
-        "Vsix\\Roslyn.Deployment.Full.Next\\Roslyn.Deployment.Full.Next.vsix",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
