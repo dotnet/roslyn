@@ -211,7 +211,7 @@ public class X
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (10,29): error CS0128: A local variable named 't' is already defined in this scope
                 //         if (null is dynamic t) { } // null not allowed
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "t").WithArguments("t").WithLocation(10, 29),
@@ -3647,7 +3647,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 38),
                 // (7,17): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //             if (null is()) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
                 // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
                 //             if ((1, object.Equals) is()) {}
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
@@ -3681,7 +3681,7 @@ public class Vec
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is 1) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
                 // (7,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (Main is 2) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Main is 2").WithLocation(7, 13),
@@ -3696,7 +3696,7 @@ public class Vec
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is var x1) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (11,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (Main is var x2) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Main is var x2").WithLocation(11, 13),
@@ -4647,7 +4647,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         System.Console.Write(null is Missing x);
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 30),
                 // (6,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(null is Missing x);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 38),
@@ -4743,7 +4743,7 @@ public class Program401
             CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is M) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
                 // (6,21): error CS0150: A constant value is expected
                 //         if (null is M) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(6, 21)
@@ -6271,7 +6271,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var x) { }
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
                 );
         }
 
@@ -6292,7 +6292,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var _) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
                 );
         }
 

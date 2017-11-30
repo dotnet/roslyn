@@ -550,6 +550,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override void VisitSwitchExpression(SwitchExpressionSyntax node)
+        {
+            var switchExpressionBinder = new SwitchExpressionBinder(node, _enclosing);
+            AddToMap(node, switchExpressionBinder);
+            Visit(node.GoverningExpression, switchExpressionBinder);
+            foreach (var arm in node.Arms)
+            {
+                var caseBinder = new ExpressionVariableBinder(arm, switchExpressionBinder);
+                AddToMap(arm, caseBinder);
+                Visit(arm.Pattern, caseBinder);
+                if (arm.WhenClause != null)
+                {
+                    Visit(arm.WhenClause, caseBinder);
+                }
+
+                Visit(arm.Expression, caseBinder);
+            }
+        }
+
         public override void VisitIfStatement(IfStatementSyntax node)
         {
             Visit(node.Condition, _enclosing);

@@ -611,12 +611,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionSyntax GenerateSwitchExpression()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpression(GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.SwitchKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionCaseSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpression(GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.SwitchKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionArmSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
         
-        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionCaseSyntax GenerateSwitchExpressionCase()
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionArmSyntax GenerateSwitchExpressionArm()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionCase(GenerateDiscardPattern(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm(GenerateDiscardPattern(), null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TryStatementSyntax GenerateTryStatement()
@@ -2521,21 +2521,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSwitchExpression();
             
-            Assert.NotNull(node.Expression);
+            Assert.NotNull(node.GoverningExpression);
             Assert.Equal(SyntaxKind.SwitchKeyword, node.SwitchKeyword.Kind);
-            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Cases);
-            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
+            Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
+            Assert.NotNull(node.Arms);
+            Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
         }
         
         [Fact]
-        public void TestSwitchExpressionCaseFactoryAndProperties()
+        public void TestSwitchExpressionArmFactoryAndProperties()
         {
-            var node = GenerateSwitchExpressionCase();
+            var node = GenerateSwitchExpressionArm();
             
             Assert.NotNull(node.Pattern);
+            Assert.Null(node.WhenClause);
             Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.EqualsGreaterThanToken.Kind);
             Assert.NotNull(node.Expression);
             
@@ -6887,9 +6888,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestSwitchExpressionCaseTokenDeleteRewriter()
+        public void TestSwitchExpressionArmTokenDeleteRewriter()
         {
-            var oldNode = GenerateSwitchExpressionCase();
+            var oldNode = GenerateSwitchExpressionArm();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -6903,9 +6904,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestSwitchExpressionCaseIdentityRewriter()
+        public void TestSwitchExpressionArmIdentityRewriter()
         {
-            var oldNode = GenerateSwitchExpressionCase();
+            var oldNode = GenerateSwitchExpressionArm();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -9833,12 +9834,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static SwitchExpressionSyntax GenerateSwitchExpression()
         {
-            return SyntaxFactory.SwitchExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<SwitchExpressionCaseSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+            return SyntaxFactory.SwitchExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SwitchExpressionArmSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
         
-        private static SwitchExpressionCaseSyntax GenerateSwitchExpressionCase()
+        private static SwitchExpressionArmSyntax GenerateSwitchExpressionArm()
         {
-            return SyntaxFactory.SwitchExpressionCase(GenerateDiscardPattern(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
+            return SyntaxFactory.SwitchExpressionArm(GenerateDiscardPattern(), default(WhenClauseSyntax), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
         }
         
         private static TryStatementSyntax GenerateTryStatement()
@@ -11743,24 +11744,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSwitchExpression();
             
-            Assert.NotNull(node.Expression);
+            Assert.NotNull(node.GoverningExpression);
             Assert.Equal(SyntaxKind.SwitchKeyword, node.SwitchKeyword.Kind());
-            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Cases);
-            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
-            var newNode = node.WithExpression(node.Expression).WithSwitchKeyword(node.SwitchKeyword).WithOpenParenToken(node.OpenParenToken).WithCases(node.Cases).WithCloseParenToken(node.CloseParenToken);
+            Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
+            Assert.NotNull(node.Arms);
+            Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
+            var newNode = node.WithGoverningExpression(node.GoverningExpression).WithSwitchKeyword(node.SwitchKeyword).WithOpenBraceToken(node.OpenBraceToken).WithArms(node.Arms).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
         }
         
         [Fact]
-        public void TestSwitchExpressionCaseFactoryAndProperties()
+        public void TestSwitchExpressionArmFactoryAndProperties()
         {
-            var node = GenerateSwitchExpressionCase();
+            var node = GenerateSwitchExpressionArm();
             
             Assert.NotNull(node.Pattern);
+            Assert.Null(node.WhenClause);
             Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.EqualsGreaterThanToken.Kind());
             Assert.NotNull(node.Expression);
-            var newNode = node.WithPattern(node.Pattern).WithEqualsGreaterThanToken(node.EqualsGreaterThanToken).WithExpression(node.Expression);
+            var newNode = node.WithPattern(node.Pattern).WithWhenClause(node.WhenClause).WithEqualsGreaterThanToken(node.EqualsGreaterThanToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
         }
         
@@ -16109,9 +16111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestSwitchExpressionCaseTokenDeleteRewriter()
+        public void TestSwitchExpressionArmTokenDeleteRewriter()
         {
-            var oldNode = GenerateSwitchExpressionCase();
+            var oldNode = GenerateSwitchExpressionArm();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -16125,9 +16127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestSwitchExpressionCaseIdentityRewriter()
+        public void TestSwitchExpressionArmIdentityRewriter()
         {
-            var oldNode = GenerateSwitchExpressionCase();
+            var oldNode = GenerateSwitchExpressionArm();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             

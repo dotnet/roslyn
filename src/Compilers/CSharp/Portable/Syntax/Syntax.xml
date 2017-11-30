@@ -2498,21 +2498,22 @@
 
   <Node Name="SwitchExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="SwitchExpression"/>
-    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="GoverningExpression" Type="ExpressionSyntax"/>
     <Field Name="SwitchKeyword" Type="SyntaxToken">
       <Kind Name="SwitchKeyword"/>
     </Field>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
-      <Kind Name="OpenParenToken"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="Cases" Type="SeparatedSyntaxList&lt;SwitchExpressionCaseSyntax&gt;"/>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
-      <Kind Name="CloseParenToken"/>
+    <Field Name="Arms" Type="SeparatedSyntaxList&lt;SwitchExpressionArmSyntax&gt;"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
     </Field>
   </Node>
-  <Node Name="SwitchExpressionCaseSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="SwitchExpressionCase"/>
+  <Node Name="SwitchExpressionArmSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SwitchExpressionArm"/>
     <Field Name="Pattern" Type="PatternSyntax"/>
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
     <Field Name="EqualsGreaterThanToken" Type="SyntaxToken">
       <Kind Name="EqualsGreaterThanToken"/>
     </Field>

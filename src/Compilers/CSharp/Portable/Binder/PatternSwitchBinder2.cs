@@ -38,15 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
-            if (!UseV8SwitchBinder) return base.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
+            if (!UseV8SwitchBinder) return base.BindSwitchStatementCore(node, originalBinder, diagnostics);
 
             Debug.Assert(SwitchSyntax.Equals(node));
 
             // Bind switch expression and set the switch governing type.
-            var boundSwitchExpression = SwitchGoverningExpression;
+            var boundSwitchGoverningExpression = SwitchGoverningExpression;
             diagnostics.AddRange(SwitchGoverningDiagnostics);
 
             ImmutableArray<BoundPatternSwitchSection> switchSections = BindPatternSwitchSections(originalBinder, diagnostics, out BoundPatternSwitchLabel defaultLabel);
@@ -54,13 +54,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var functions = GetDeclaredLocalFunctionsForScope(node);
             BoundDecisionDag decisionDag = new DecisionDagBuilder(this.Compilation).CreateDecisionDag(
                 syntax: node,
-                switchExpression: boundSwitchExpression,
+                switchExpression: boundSwitchGoverningExpression,
                 switchSections: switchSections,
                 defaultLabel: defaultLabel?.Label ?? BreakLabel);
-            var hasErrors = CheckSwitchErrors(node, boundSwitchExpression, switchSections, decisionDag, diagnostics);
+            var hasErrors = CheckSwitchErrors(node, boundSwitchGoverningExpression, switchSections, decisionDag, diagnostics);
             return new BoundPatternSwitchStatement2(
                 syntax: node,
-                expression: boundSwitchExpression,
+                expression: boundSwitchGoverningExpression,
                 innerLocals: locals,
                 innerLocalFunctions: functions,
                 switchSections: switchSections,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckSwitchErrors(
             SwitchStatementSyntax node,
-            BoundExpression boundSwitchExpression,
+            BoundExpression boundSwitchGoverningExpression,
             ImmutableArray<BoundPatternSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
             DiagnosticBag diagnostics)

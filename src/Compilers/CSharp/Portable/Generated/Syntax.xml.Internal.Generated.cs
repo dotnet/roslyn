@@ -18213,87 +18213,87 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class SwitchExpressionSyntax : ExpressionSyntax
   {
-    internal readonly ExpressionSyntax expression;
+    internal readonly ExpressionSyntax governingExpression;
     internal readonly SyntaxToken switchKeyword;
-    internal readonly SyntaxToken openParenToken;
-    internal readonly GreenNode cases;
-    internal readonly SyntaxToken closeParenToken;
+    internal readonly SyntaxToken openBraceToken;
+    internal readonly GreenNode arms;
+    internal readonly SyntaxToken closeBraceToken;
 
-    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken switchKeyword, SyntaxToken openParenToken, GreenNode cases, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 5;
-        this.AdjustFlagsAndWidth(expression);
-        this.expression = expression;
+        this.AdjustFlagsAndWidth(governingExpression);
+        this.governingExpression = governingExpression;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
-        if (cases != null)
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (arms != null)
         {
-            this.AdjustFlagsAndWidth(cases);
-            this.cases = cases;
+            this.AdjustFlagsAndWidth(arms);
+            this.arms = arms;
         }
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
     }
 
 
-    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken switchKeyword, SyntaxToken openParenToken, GreenNode cases, SyntaxToken closeParenToken, SyntaxFactoryContext context)
+    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
         this.SlotCount = 5;
-        this.AdjustFlagsAndWidth(expression);
-        this.expression = expression;
+        this.AdjustFlagsAndWidth(governingExpression);
+        this.governingExpression = governingExpression;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
-        if (cases != null)
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (arms != null)
         {
-            this.AdjustFlagsAndWidth(cases);
-            this.cases = cases;
+            this.AdjustFlagsAndWidth(arms);
+            this.arms = arms;
         }
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
     }
 
 
-    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken switchKeyword, SyntaxToken openParenToken, GreenNode cases, SyntaxToken closeParenToken)
+    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken)
         : base(kind)
     {
         this.SlotCount = 5;
-        this.AdjustFlagsAndWidth(expression);
-        this.expression = expression;
+        this.AdjustFlagsAndWidth(governingExpression);
+        this.governingExpression = governingExpression;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
-        if (cases != null)
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (arms != null)
         {
-            this.AdjustFlagsAndWidth(cases);
-            this.cases = cases;
+            this.AdjustFlagsAndWidth(arms);
+            this.arms = arms;
         }
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
     }
 
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax GoverningExpression { get { return this.governingExpression; } }
     public SyntaxToken SwitchKeyword { get { return this.switchKeyword; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionCaseSyntax> Cases { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionCaseSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.cases)); } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> Arms { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arms)); } }
+    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
 
     internal override GreenNode GetSlot(int index)
     {
         switch (index)
         {
-            case 0: return this.expression;
+            case 0: return this.governingExpression;
             case 1: return this.switchKeyword;
-            case 2: return this.openParenToken;
-            case 3: return this.cases;
-            case 4: return this.closeParenToken;
+            case 2: return this.openBraceToken;
+            case 3: return this.arms;
+            case 4: return this.closeBraceToken;
             default: return null;
         }
     }
@@ -18313,11 +18313,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitSwitchExpression(this);
     }
 
-    public SwitchExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken switchKeyword, SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionCaseSyntax> cases, SyntaxToken closeParenToken)
+    public SwitchExpressionSyntax Update(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
     {
-        if (expression != this.Expression || switchKeyword != this.SwitchKeyword || openParenToken != this.OpenParenToken || cases != this.Cases || closeParenToken != this.CloseParenToken)
+        if (governingExpression != this.GoverningExpression || switchKeyword != this.SwitchKeyword || openBraceToken != this.OpenBraceToken || arms != this.Arms || closeBraceToken != this.CloseBraceToken)
         {
-            var newNode = SyntaxFactory.SwitchExpression(expression, switchKeyword, openParenToken, cases, closeParenToken);
+            var newNode = SyntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -18332,23 +18332,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new SwitchExpressionSyntax(this.Kind, this.expression, this.switchKeyword, this.openParenToken, this.cases, this.closeParenToken, diagnostics, GetAnnotations());
+         return new SwitchExpressionSyntax(this.Kind, this.governingExpression, this.switchKeyword, this.openBraceToken, this.arms, this.closeBraceToken, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new SwitchExpressionSyntax(this.Kind, this.expression, this.switchKeyword, this.openParenToken, this.cases, this.closeParenToken, GetDiagnostics(), annotations);
+         return new SwitchExpressionSyntax(this.Kind, this.governingExpression, this.switchKeyword, this.openBraceToken, this.arms, this.closeBraceToken, GetDiagnostics(), annotations);
     }
 
     internal SwitchExpressionSyntax(ObjectReader reader)
         : base(reader)
     {
       this.SlotCount = 5;
-      var expression = (ExpressionSyntax)reader.ReadValue();
-      if (expression != null)
+      var governingExpression = (ExpressionSyntax)reader.ReadValue();
+      if (governingExpression != null)
       {
-         AdjustFlagsAndWidth(expression);
-         this.expression = expression;
+         AdjustFlagsAndWidth(governingExpression);
+         this.governingExpression = governingExpression;
       }
       var switchKeyword = (SyntaxToken)reader.ReadValue();
       if (switchKeyword != null)
@@ -18356,34 +18356,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          AdjustFlagsAndWidth(switchKeyword);
          this.switchKeyword = switchKeyword;
       }
-      var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
+      var openBraceToken = (SyntaxToken)reader.ReadValue();
+      if (openBraceToken != null)
       {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
+         AdjustFlagsAndWidth(openBraceToken);
+         this.openBraceToken = openBraceToken;
       }
-      var cases = (GreenNode)reader.ReadValue();
-      if (cases != null)
+      var arms = (GreenNode)reader.ReadValue();
+      if (arms != null)
       {
-         AdjustFlagsAndWidth(cases);
-         this.cases = cases;
+         AdjustFlagsAndWidth(arms);
+         this.arms = arms;
       }
-      var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
+      var closeBraceToken = (SyntaxToken)reader.ReadValue();
+      if (closeBraceToken != null)
       {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
+         AdjustFlagsAndWidth(closeBraceToken);
+         this.closeBraceToken = closeBraceToken;
       }
     }
 
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
-      writer.WriteValue(this.expression);
+      writer.WriteValue(this.governingExpression);
       writer.WriteValue(this.switchKeyword);
-      writer.WriteValue(this.openParenToken);
-      writer.WriteValue(this.cases);
-      writer.WriteValue(this.closeParenToken);
+      writer.WriteValue(this.openBraceToken);
+      writer.WriteValue(this.arms);
+      writer.WriteValue(this.closeBraceToken);
     }
 
     static SwitchExpressionSyntax()
@@ -18392,18 +18392,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
   }
 
-  internal sealed partial class SwitchExpressionCaseSyntax : CSharpSyntaxNode
+  internal sealed partial class SwitchExpressionArmSyntax : CSharpSyntaxNode
   {
     internal readonly PatternSyntax pattern;
+    internal readonly WhenClauseSyntax whenClause;
     internal readonly SyntaxToken equalsGreaterThanToken;
     internal readonly ExpressionSyntax expression;
 
-    internal SwitchExpressionCaseSyntax(SyntaxKind kind, PatternSyntax pattern, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(pattern);
         this.pattern = pattern;
+        if (whenClause != null)
+        {
+            this.AdjustFlagsAndWidth(whenClause);
+            this.whenClause = whenClause;
+        }
         this.AdjustFlagsAndWidth(equalsGreaterThanToken);
         this.equalsGreaterThanToken = equalsGreaterThanToken;
         this.AdjustFlagsAndWidth(expression);
@@ -18411,13 +18417,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal SwitchExpressionCaseSyntax(SyntaxKind kind, PatternSyntax pattern, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression, SyntaxFactoryContext context)
+    internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(pattern);
         this.pattern = pattern;
+        if (whenClause != null)
+        {
+            this.AdjustFlagsAndWidth(whenClause);
+            this.whenClause = whenClause;
+        }
         this.AdjustFlagsAndWidth(equalsGreaterThanToken);
         this.equalsGreaterThanToken = equalsGreaterThanToken;
         this.AdjustFlagsAndWidth(expression);
@@ -18425,12 +18436,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal SwitchExpressionCaseSyntax(SyntaxKind kind, PatternSyntax pattern, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
         : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(pattern);
         this.pattern = pattern;
+        if (whenClause != null)
+        {
+            this.AdjustFlagsAndWidth(whenClause);
+            this.whenClause = whenClause;
+        }
         this.AdjustFlagsAndWidth(equalsGreaterThanToken);
         this.equalsGreaterThanToken = equalsGreaterThanToken;
         this.AdjustFlagsAndWidth(expression);
@@ -18438,6 +18454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public PatternSyntax Pattern { get { return this.pattern; } }
+    public WhenClauseSyntax WhenClause { get { return this.whenClause; } }
     public SyntaxToken EqualsGreaterThanToken { get { return this.equalsGreaterThanToken; } }
     public ExpressionSyntax Expression { get { return this.expression; } }
 
@@ -18446,32 +18463,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         switch (index)
         {
             case 0: return this.pattern;
-            case 1: return this.equalsGreaterThanToken;
-            case 2: return this.expression;
+            case 1: return this.whenClause;
+            case 2: return this.equalsGreaterThanToken;
+            case 3: return this.expression;
             default: return null;
         }
     }
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new CSharp.Syntax.SwitchExpressionCaseSyntax(this, parent, position);
+      return new CSharp.Syntax.SwitchExpressionArmSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
     {
-        return visitor.VisitSwitchExpressionCase(this);
+        return visitor.VisitSwitchExpressionArm(this);
     }
 
     public override void Accept(CSharpSyntaxVisitor visitor)
     {
-        visitor.VisitSwitchExpressionCase(this);
+        visitor.VisitSwitchExpressionArm(this);
     }
 
-    public SwitchExpressionCaseSyntax Update(PatternSyntax pattern, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
     {
-        if (pattern != this.Pattern || equalsGreaterThanToken != this.EqualsGreaterThanToken || expression != this.Expression)
+        if (pattern != this.Pattern || whenClause != this.WhenClause || equalsGreaterThanToken != this.EqualsGreaterThanToken || expression != this.Expression)
         {
-            var newNode = SyntaxFactory.SwitchExpressionCase(pattern, equalsGreaterThanToken, expression);
+            var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -18486,23 +18504,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new SwitchExpressionCaseSyntax(this.Kind, this.pattern, this.equalsGreaterThanToken, this.expression, diagnostics, GetAnnotations());
+         return new SwitchExpressionArmSyntax(this.Kind, this.pattern, this.whenClause, this.equalsGreaterThanToken, this.expression, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new SwitchExpressionCaseSyntax(this.Kind, this.pattern, this.equalsGreaterThanToken, this.expression, GetDiagnostics(), annotations);
+         return new SwitchExpressionArmSyntax(this.Kind, this.pattern, this.whenClause, this.equalsGreaterThanToken, this.expression, GetDiagnostics(), annotations);
     }
 
-    internal SwitchExpressionCaseSyntax(ObjectReader reader)
+    internal SwitchExpressionArmSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 3;
+      this.SlotCount = 4;
       var pattern = (PatternSyntax)reader.ReadValue();
       if (pattern != null)
       {
          AdjustFlagsAndWidth(pattern);
          this.pattern = pattern;
+      }
+      var whenClause = (WhenClauseSyntax)reader.ReadValue();
+      if (whenClause != null)
+      {
+         AdjustFlagsAndWidth(whenClause);
+         this.whenClause = whenClause;
       }
       var equalsGreaterThanToken = (SyntaxToken)reader.ReadValue();
       if (equalsGreaterThanToken != null)
@@ -18522,13 +18546,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       base.WriteTo(writer);
       writer.WriteValue(this.pattern);
+      writer.WriteValue(this.whenClause);
       writer.WriteValue(this.equalsGreaterThanToken);
       writer.WriteValue(this.expression);
     }
 
-    static SwitchExpressionCaseSyntax()
+    static SwitchExpressionArmSyntax()
     {
-       ObjectBinder.RegisterTypeReader(typeof(SwitchExpressionCaseSyntax), r => new SwitchExpressionCaseSyntax(r));
+       ObjectBinder.RegisterTypeReader(typeof(SwitchExpressionArmSyntax), r => new SwitchExpressionArmSyntax(r));
     }
   }
 
@@ -35311,7 +35336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return this.DefaultVisit(node);
     }
 
-    public virtual TResult VisitSwitchExpressionCase(SwitchExpressionCaseSyntax node)
+    public virtual TResult VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
     {
       return this.DefaultVisit(node);
     }
@@ -36370,7 +36395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       this.DefaultVisit(node);
     }
 
-    public virtual void VisitSwitchExpressionCase(SwitchExpressionCaseSyntax node)
+    public virtual void VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -37795,20 +37820,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitSwitchExpression(SwitchExpressionSyntax node)
     {
-      var expression = (ExpressionSyntax)this.Visit(node.Expression);
+      var governingExpression = (ExpressionSyntax)this.Visit(node.GoverningExpression);
       var switchKeyword = (SyntaxToken)this.Visit(node.SwitchKeyword);
-      var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
-      var cases = this.VisitList(node.Cases);
-      var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
-      return node.Update(expression, switchKeyword, openParenToken, cases, closeParenToken);
+      var openBraceToken = (SyntaxToken)this.Visit(node.OpenBraceToken);
+      var arms = this.VisitList(node.Arms);
+      var closeBraceToken = (SyntaxToken)this.Visit(node.CloseBraceToken);
+      return node.Update(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
     }
 
-    public override CSharpSyntaxNode VisitSwitchExpressionCase(SwitchExpressionCaseSyntax node)
+    public override CSharpSyntaxNode VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
     {
       var pattern = (PatternSyntax)this.Visit(node.Pattern);
+      var whenClause = (WhenClauseSyntax)this.Visit(node.WhenClause);
       var equalsGreaterThanToken = (SyntaxToken)this.Visit(node.EqualsGreaterThanToken);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
-      return node.Update(pattern, equalsGreaterThanToken, expression);
+      return node.Update(pattern, whenClause, equalsGreaterThanToken, expression);
     }
 
     public override CSharpSyntaxNode VisitTryStatement(TryStatementSyntax node)
@@ -42642,11 +42668,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public SwitchExpressionSyntax SwitchExpression(ExpressionSyntax expression, SyntaxToken switchKeyword, SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionCaseSyntax> cases, SyntaxToken closeParenToken)
+    public SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
     {
 #if DEBUG
-      if (expression == null)
-        throw new ArgumentNullException(nameof(expression));
+      if (governingExpression == null)
+        throw new ArgumentNullException(nameof(governingExpression));
       if (switchKeyword == null)
         throw new ArgumentNullException(nameof(switchKeyword));
       switch (switchKeyword.Kind)
@@ -42656,30 +42682,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("switchKeyword");
       }
-      if (openParenToken == null)
-        throw new ArgumentNullException(nameof(openParenToken));
-      switch (openParenToken.Kind)
+      if (openBraceToken == null)
+        throw new ArgumentNullException(nameof(openBraceToken));
+      switch (openBraceToken.Kind)
       {
-        case SyntaxKind.OpenParenToken:
+        case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException("openBraceToken");
       }
-      if (closeParenToken == null)
-        throw new ArgumentNullException(nameof(closeParenToken));
-      switch (closeParenToken.Kind)
+      if (closeBraceToken == null)
+        throw new ArgumentNullException(nameof(closeBraceToken));
+      switch (closeBraceToken.Kind)
       {
-        case SyntaxKind.CloseParenToken:
+        case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException("closeBraceToken");
       }
 #endif
 
-      return new SwitchExpressionSyntax(SyntaxKind.SwitchExpression, expression, switchKeyword, openParenToken, cases.Node, closeParenToken, this.context);
+      return new SwitchExpressionSyntax(SyntaxKind.SwitchExpression, governingExpression, switchKeyword, openBraceToken, arms.Node, closeBraceToken, this.context);
     }
 
-    public SwitchExpressionCaseSyntax SwitchExpressionCase(PatternSyntax pattern, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    public SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
     {
 #if DEBUG
       if (pattern == null)
@@ -42697,17 +42723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(expression));
 #endif
 
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.SwitchExpressionCase, pattern, equalsGreaterThanToken, expression, this.context, out hash);
-      if (cached != null) return (SwitchExpressionCaseSyntax)cached;
-
-      var result = new SwitchExpressionCaseSyntax(SyntaxKind.SwitchExpressionCase, pattern, equalsGreaterThanToken, expression, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new SwitchExpressionArmSyntax(SyntaxKind.SwitchExpressionArm, pattern, whenClause, equalsGreaterThanToken, expression, this.context);
     }
 
     public TryStatementSyntax TryStatement(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
@@ -49764,11 +49780,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax expression, SyntaxToken switchKeyword, SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionCaseSyntax> cases, SyntaxToken closeParenToken)
+    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
     {
 #if DEBUG
-      if (expression == null)
-        throw new ArgumentNullException(nameof(expression));
+      if (governingExpression == null)
+        throw new ArgumentNullException(nameof(governingExpression));
       if (switchKeyword == null)
         throw new ArgumentNullException(nameof(switchKeyword));
       switch (switchKeyword.Kind)
@@ -49778,30 +49794,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("switchKeyword");
       }
-      if (openParenToken == null)
-        throw new ArgumentNullException(nameof(openParenToken));
-      switch (openParenToken.Kind)
+      if (openBraceToken == null)
+        throw new ArgumentNullException(nameof(openBraceToken));
+      switch (openBraceToken.Kind)
       {
-        case SyntaxKind.OpenParenToken:
+        case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException("openBraceToken");
       }
-      if (closeParenToken == null)
-        throw new ArgumentNullException(nameof(closeParenToken));
-      switch (closeParenToken.Kind)
+      if (closeBraceToken == null)
+        throw new ArgumentNullException(nameof(closeBraceToken));
+      switch (closeBraceToken.Kind)
       {
-        case SyntaxKind.CloseParenToken:
+        case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException("closeBraceToken");
       }
 #endif
 
-      return new SwitchExpressionSyntax(SyntaxKind.SwitchExpression, expression, switchKeyword, openParenToken, cases.Node, closeParenToken);
+      return new SwitchExpressionSyntax(SyntaxKind.SwitchExpression, governingExpression, switchKeyword, openBraceToken, arms.Node, closeBraceToken);
     }
 
-    public static SwitchExpressionCaseSyntax SwitchExpressionCase(PatternSyntax pattern, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
     {
 #if DEBUG
       if (pattern == null)
@@ -49819,17 +49835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(expression));
 #endif
 
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SwitchExpressionCase, pattern, equalsGreaterThanToken, expression, out hash);
-      if (cached != null) return (SwitchExpressionCaseSyntax)cached;
-
-      var result = new SwitchExpressionCaseSyntax(SyntaxKind.SwitchExpressionCase, pattern, equalsGreaterThanToken, expression);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new SwitchExpressionArmSyntax(SyntaxKind.SwitchExpressionArm, pattern, whenClause, equalsGreaterThanToken, expression);
     }
 
     public static TryStatementSyntax TryStatement(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
@@ -53004,7 +53010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
            typeof(CaseSwitchLabelSyntax),
            typeof(DefaultSwitchLabelSyntax),
            typeof(SwitchExpressionSyntax),
-           typeof(SwitchExpressionCaseSyntax),
+           typeof(SwitchExpressionArmSyntax),
            typeof(TryStatementSyntax),
            typeof(CatchClauseSyntax),
            typeof(CatchDeclarationSyntax),

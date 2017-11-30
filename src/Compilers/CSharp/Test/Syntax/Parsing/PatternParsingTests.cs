@@ -1735,10 +1735,10 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void SwitchExpression01()
         {
-            UsingExpression("1 switch (a => b, c => d)",
+            UsingExpression("1 switch {a => b, c => d}",
                 // (1,1): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                // 1 switch (a => b, c => d)
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch (a => b, c => d)").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1)
+                // 1 switch {a => b, c => d}
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch {a => b, c => d}").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -1747,8 +1747,8 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.NumericLiteralToken, "1");
                 }
                 N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.SwitchExpressionCase);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
                 {
                     N(SyntaxKind.ConstantPattern);
                     {
@@ -1764,7 +1764,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.SwitchExpressionCase);
+                N(SyntaxKind.SwitchExpressionArm);
                 {
                     N(SyntaxKind.ConstantPattern);
                     {
@@ -1779,7 +1779,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.IdentifierToken, "d");
                     }
                 }
-                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }
@@ -1787,26 +1787,16 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void SwitchExpression02()
         {
-            UsingExpression("1 switch (a?b:c => d)",
+            UsingExpression("1 switch { a?b:c => d }",
                 // (1,1): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                // 1 switch (a?b:c => d)
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch (a?b:c => d)").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1),
-                // (1,12): error CS1003: Syntax error, '=>' expected
-                // 1 switch (a?b:c => d)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(1, 12),
-                // (1,12): error CS1525: Invalid expression term '?'
-                // 1 switch (a?b:c => d)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 12)
-                );
-        }
-
-        [Fact]
-        public void SwitchExpression03()
-        {
-            UsingExpression("1 switch ((a, b, c) => d)",
-                // (1,1): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                // 1 switch ((a, b, c) => d)
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch ((a, b, c) => d)").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1)
+                // 1 switch { a?b:c => d }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { a?b:c => d }").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1),
+                // (1,13): error CS1003: Syntax error, '=>' expected
+                // 1 switch { a?b:c => d }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term '?'
+                // 1 switch { a?b:c => d }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 13)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -1815,8 +1805,65 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.NumericLiteralToken, "1");
                 }
                 N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.SwitchExpressionCase);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleLambdaExpression);
+                        {
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpression03()
+        {
+            UsingExpression("1 switch { (a, b, c) => d }",
+                // (1,1): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // 1 switch { (a, b, c) => d }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns", "patterns2").WithLocation(1, 1)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
                 {
                     N(SyntaxKind.DeconstructionPattern);
                     {
@@ -1861,7 +1908,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.IdentifierToken, "d");
                     }
                 }
-                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }

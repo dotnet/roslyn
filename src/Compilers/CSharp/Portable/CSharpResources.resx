@@ -4931,7 +4931,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
   </data>
-  <data name="ERR_BadIsPatternExpression" xml:space="preserve">
+  <data name="ERR_BadPatternExpression" xml:space="preserve">
     <value>Invalid operand for pattern match; value required, but found '{0}'.</value>
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
@@ -5227,5 +5227,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DefaultPattern" xml:space="preserve">
     <value>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</value>
+  </data>
+  <data name="ERR_SwitchExpressionNoBestType" xml:space="preserve">
+    <value>No best type was found for the switch expression.</value>
   </data>
 </root>

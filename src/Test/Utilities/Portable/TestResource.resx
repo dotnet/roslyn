@@ -331,6 +331,7 @@ namespace My
                         return;
                     }
             }
+            var z7 = 1 switch { 1 => 1 };
             while (i &lt; 10)
             {
                 ++i;

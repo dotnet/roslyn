@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors)
                 {
                     // value expected
-                    diagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Expression.Location, expression.Display);
+                    diagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Expression.Location, expression.Display);
                     hasErrors = true;
                 }
             }
@@ -41,7 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            throw new NotImplementedException();
+            Debug.Assert(node != null);
+            Binder switchBinder = this.GetBinder(node);
+            return switchBinder.BindSwitchExpressionCore(node, switchBinder, diagnostics);
+        }
+
+        internal virtual BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        {
+            return this.Next.BindSwitchExpressionCore(node, originalBinder, diagnostics);
         }
 
         internal BoundPattern BindPattern(

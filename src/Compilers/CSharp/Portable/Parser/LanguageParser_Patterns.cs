@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         /// <param name="forCase">prevents the use of "when" for the identifier</param>
         /// <returns></returns>
-        private CSharpSyntaxNode ParseExpressionOrPattern(bool forCase)
+        private CSharpSyntaxNode ParseExpressionOrPattern(bool forCase, Precedence precedence)
         {
             // handle common error recovery situations during typing
             var tk = this.CurrentToken.Kind;
@@ -362,7 +362,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 this.Reset(ref resetPoint);
-                var precedence = Precedence.Coalescing;  // exclude lambdas, assignments, and a ternary which could have a lambda on the right
                 return this.ParseSubExpression(precedence);
             }
             finally
@@ -458,9 +457,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return null;
         }
 
-        private PatternSyntax ParsePattern()
+        private PatternSyntax ParsePattern(Precedence precedence)
         {
-            var node = ParseExpressionOrPattern(forCase: false);
+            var node = ParseExpressionOrPattern(forCase: false, precedence: precedence);
             switch (node)
             {
                 case PatternSyntax pattern:
@@ -551,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 nameColon = _syntaxFactory.NameColon(name, colon);
             }
 
-            var pattern = ParsePattern();
+            var pattern = ParsePattern(Precedence.Ternary);
             return this._syntaxFactory.SubpatternElement(nameColon, pattern);
         }
 

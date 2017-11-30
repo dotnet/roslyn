@@ -365,5 +365,163 @@ namespace System
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36)
                 );
         }
+
+        [Fact]
+        public void SwitchExpression_01()
+        {
+            // test appropriate language version or feature flag
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var r = 1 switch { _ => 0 };
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+                // (5,17): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //         var r = 1 switch ( _ => 0 );
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { _ => 0 }").WithArguments("recursive patterns", "patterns2").WithLocation(5, 17)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_02()
+        {
+            // test switch expression's governing expression has no type
+            // test switch expression's governing expression has type void
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var r1 = (1, null) switch { _ => 0 };
+        var r2 = System.Console.Write(1) switch { _ => 0 };
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (5,18): error CS8117: Invalid operand for pattern match; value required, but found '(int, <null>)'.
+                //         var r1 = (1, null) switch ( _ => 0 );
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "(1, null)").WithArguments("(int, <null>)").WithLocation(5, 18),
+                // (6,18): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
+                //         var r2 = System.Console.Write(1) switch ( _ => 0 );
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "System.Console.Write(1)").WithArguments("void").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_03()
+        {
+            // test that a ternary expression is not at an appropriate precedence
+            // for the constant expression of a constant pattern in a switch expression arm.
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        bool b = true;
+        var r1 = b switch { true ? true : true => true, false => false };
+        var r2 = b switch { (true ? true : true) => true, false => false };
+    }
+}";
+            // PROTOTYPE(patterns2): This is admittedly poor syntax error recovery (for the line declaring r2),
+            // but this test demonstrates that it is a syntax error.
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (6,34): error CS1003: Syntax error, '=>' expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(6, 34),
+                // (6,34): error CS1525: Invalid expression term '?'
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(6, 34),
+                // (6,48): error CS1513: } expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 48),
+                // (6,48): error CS1003: Syntax error, ',' expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
+                // (6,51): error CS1002: ; expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "true").WithLocation(6, 51),
+                // (6,55): error CS1002: ; expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 55),
+                // (6,55): error CS1513: } expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 55),
+                // (6,63): error CS1002: ; expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 63),
+                // (6,63): error CS1513: } expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 63),
+                // (6,72): error CS1002: ; expected
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 72),
+                // (6,73): error CS1597: Semicolon after method or accessor block is not valid
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 73),
+                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
+                // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         var r2 = b switch { (true ? true : true) => true, false => false };
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9),
+                // (7,18): error CS0103: The name 'b' does not exist in the current context
+                //         var r2 = b switch { (true ? true : true) => true, false => false };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpression_04()
+        {
+            // test that a ternary expression is permitted as a constant pattern in recursive contexts and the case expression.
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var b = (true, false);
+        var r1 = b switch { (true ? true : true, _) => true, _ => false };
+        var r2 = b is (true ? true : true, _);
+        switch (b.Item1) { case true ? true : true: break; }
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                );
+        }
+
+        // PROTOTYPE(patterns2): test lazily inferring variables in the pattern
+        // PROTOTYPE(patterns2): test lazily inferring variables in the when clause
+        // PROTOTYPE(patterns2): test lazily inferring variables in the arrow expression
+        // PROTOTYPE(patterns2): test flow analysis of the switch expression
     }
 }

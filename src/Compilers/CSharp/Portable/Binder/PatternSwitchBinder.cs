@@ -37,15 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
-            if (!UseV7SwitchBinder) return base.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
+            if (!UseV7SwitchBinder) return base.BindSwitchStatementCore(node, originalBinder, diagnostics);
 
             Debug.Assert(SwitchSyntax.Equals(node));
 
             // Bind switch expression and set the switch governing type.
-            var boundSwitchExpression = SwitchGoverningExpression;
+            var boundSwitchGoverningExpression = SwitchGoverningExpression;
             diagnostics.AddRange(SwitchGoverningDiagnostics);
 
             BoundPatternSwitchLabel defaultLabel;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(
-                node, boundSwitchExpression, someCaseMatches,
+                node, boundSwitchGoverningExpression, someCaseMatches,
                 locals, functions, switchSections, defaultLabel, this.BreakLabel, isComplete);
         }
 

@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.VariableDeclarator:
+                case SyntaxKind.SwitchExpressionArm:
                     break;
                 case SyntaxKind.ArgumentList:
                     Debug.Assert(node.Parent is ConstructorInitializerSyntax);
@@ -64,6 +65,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // no stackguard
                 ((CSharpSyntaxNode)node).Accept(this);
             }
+        }
+
+        public override void VisitSwitchExpression(SwitchExpressionSyntax node)
+        {
+            Visit(node.GoverningExpression);
+            // Each case has its own scope.
+        }
+
+        public override void VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
+        {
+            var previousNodeToBind = _nodeToBind;
+            _nodeToBind = node;
+            Visit(node.Pattern);
+            Visit(node.WhenClause?.Condition);
+            Visit(node.Expression);
+            _nodeToBind = previousNodeToBind;
         }
 
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)

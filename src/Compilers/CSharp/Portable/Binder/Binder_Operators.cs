@@ -2675,7 +2675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!operandHasErrors)
                     {
-                        isPatternDiagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Left.Location, operand.Display);
+                        isPatternDiagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Left.Location, operand.Display);
                     }
 
                     operand = ToBadExpression(operand);

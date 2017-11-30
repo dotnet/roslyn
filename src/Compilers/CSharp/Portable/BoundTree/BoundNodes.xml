@@ -763,7 +763,7 @@
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>    
+    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
     <!-- Well-known member populated during lowering -->
     <Field Name="StringEquality" Type="MethodSymbol" Null="allow" />
@@ -819,6 +819,18 @@
     <!-- A directed acyclic decision graph for the switch statement. It can be traversed
     to determine if all labels are reachable, and if every input is handled. -->
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>
+  </Node>
+
+  <Node Name="BoundSwitchExpression" Base="BoundExpression">
+    <Field Name="GoverningExpression" Type="BoundExpression"/>
+    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchExpressionCase&gt;"/>
+    <!--<Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>-->
+  </Node>
+  <Node Name="BoundSwitchExpressionCase" Base="BoundNode">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundDecisionDag" Base="BoundNode">

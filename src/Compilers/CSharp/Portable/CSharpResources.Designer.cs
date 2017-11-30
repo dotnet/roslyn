@@ -1610,15 +1610,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid operand for pattern match; value required, but found &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_BadIsPatternExpression {
-            get {
-                return ResourceManager.GetString("ERR_BadIsPatternExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Iterators cannot have ref or out parameters.
         /// </summary>
         internal static string ERR_BadIteratorArgType {
@@ -1831,6 +1822,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadParamType {
             get {
                 return ResourceManager.GetString("ERR_BadParamType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid operand for pattern match; value required, but found &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_BadPatternExpression {
+            get {
+                return ResourceManager.GetString("ERR_BadPatternExpression", resourceCulture);
             }
         }
         
@@ -9157,6 +9157,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SubexpressionNotInNameof {
             get {
                 return ResourceManager.GetString("ERR_SubexpressionNotInNameof", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best type was found for the switch expression..
+        /// </summary>
+        internal static string ERR_SwitchExpressionNoBestType {
+            get {
+                return ResourceManager.GetString("ERR_SwitchExpressionNoBestType", resourceCulture);
             }
         }
         
