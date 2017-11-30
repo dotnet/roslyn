@@ -1701,5 +1701,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetDeconstructionReferenceLocation(node As SyntaxNode) As Location Implements ISyntaxFactsService.GetDeconstructionReferenceLocation
             Throw New NotImplementedException()
         End Function
+
+        Public Function GetDeclarationIdentifierIfOverride(token As SyntaxToken) As SyntaxToken? Implements ISyntaxFactsService.GetDeclarationIdentifierIfOverride
+            If token.Kind() = SyntaxKind.OverridesKeyword Then
+                Dim parent = token.Parent
+
+                Select Case parent.Kind()
+                    Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
+                        Dim method = DirectCast(parent, MethodStatementSyntax)
+                        Return method.Identifier
+
+                    Case SyntaxKind.PropertyStatement
+                        Dim [property] = DirectCast(parent, PropertyStatementSyntax)
+                        Return [property].Identifier
+                End Select
+            End If
+
+            Return Nothing
+        End Function
     End Class
 End Namespace
