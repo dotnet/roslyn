@@ -4,192 +4,192 @@
     <body>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="new">Use SpecializedCollections.EmptyEnumerable()</target>
+        <target state="translated">SpecializedCollections.EmptyEnumerable() verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#Nicht zutreffend</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="new">Use SpecializedCollections.EmptyEnumerable()</target>
+        <target state="translated">SpecializedCollections.EmptyEnumerable() verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
         <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="new">Use SpecializedCollections.SingletonEnumerable()</target>
+        <target state="translated">SpecializedCollections.SingletonEnumerable() verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#Nicht zutreffend</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
         <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="new">Use SpecializedCollections.SingletonEnumerable()</target>
+        <target state="translated">SpecializedCollections.SingletonEnumerable() verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
         <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="new">Invoke the correct property to ensure correct use site diagnostics.</target>
+        <target state="translated">Rufen Sie die richtige Eigenschaft auf, um eine korrekte Nutzung der Sitediagnose sicherzustellen.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#Nicht zutreffend</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
         <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="new">Invoke the correct property to ensure correct use site diagnostics.</target>
+        <target state="translated">Rufen Sie die richtige Eigenschaft auf, um eine korrekte Nutzung der Sitediagnose sicherzustellen.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
         <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="new">Do not use generic CodeAction.Create to create CodeAction</target>
+        <target state="translated">Generisches CodeAction.Create nicht zum Erstellen von CodeAction verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#Nicht zutreffend</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
         <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="new">Do not use generic CodeAction.Create to create CodeAction</target>
+        <target state="translated">Generisches CodeAction.Create nicht zum Erstellen von CodeAction verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
         <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="new">Override Object.Equals(object) when implementing Iequatable</target>
+        <target state="translated">"Object.Equals(object)" bei Implementierung von "IEquatable" außer Kraft setzen</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#Nicht zutreffend</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
         <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="new">Override Object.Equals(object) when implementing Iequatable</target>
+        <target state="translated">"Object.Equals(object)" bei Implementierung von "IEquatable" außer Kraft setzen</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
         <source>Do not invoke Diagnostic.Descriptor</source>
-        <target state="new">Do not invoke Diagnostic.Descriptor</target>
+        <target state="translated">Diagnostic.Descriptor nicht aufrufen</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
         <source>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</source>
-        <target state="new">Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</target>
+        <target state="translated">Der Zugriff auf die Descriptor-Eigenschaft der Diagnose auf Compilerebene führt zu unnötigen Zeichenfolgenzuweisungen für Felder des Deskriptors, die bei der Befehlszeilenkompilierung nicht verwendet werden. Vermeiden Sie daher an dieser Stelle den Zugriff auf den Deskriptor der Compilerdiagnose. Greifen Sie stattdessen direkt vom Diagnosetyp aus auf diese Eigenschaften zu.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
         <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="new">Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</target>
+        <target state="translated">Rufen Sie nicht die Eigenschaft "{0}" für den Typ "{1}" auf. Greifen Sie stattdessen direkt auf den erforderlichen Member "{2}" in "{1}" zu.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="new">SymbolDeclaredEvent must be generated for source symbols</target>
+        <target state="translated">SymbolDeclaredEvent muss für Quellsymbole generiert werden</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
         <source>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</source>
-        <target state="new">Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</target>
+        <target state="translated">Die Warteschlange für das Kompilierungsereignis ist erforderlich, um für alle deklarierten Quellsymbole Symboldeklarationsereignisse zu generieren. Daher muss jeder Quellsymboltyp oder einer der zugehörigen Basistypen ein Symboldeklarationsereignis generieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
         <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="new">SymbolDeclaredEvent must be generated for source symbols</target>
+        <target state="translated">SymbolDeclaredEvent muss für Quellsymbole generiert werden</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
         <source>Add public types and members to the declared API</source>
-        <target state="new">Add public types and members to the declared API</target>
+        <target state="translated">Der deklarierten API öffentliche Typen und Member hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared API.</source>
-        <target state="new">Symbol '{0}' is not part of the declared API.</target>
+        <target state="translated">Das Symbol "{0}" gehört nicht zur deklarierten API.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">Alle öffentlichen Typen und Member müssen in "PublicAPI.txt" deklariert werden. In Code Reviews und im Verlauf der Quellcodeverwaltung wird so die Aufmerksamkeit auf API-Änderungen gelenkt, und fehlerhafte Änderungen werden verhindert.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
-        <target state="new">Remove deleted types and members from the declared API</target>
+        <target state="translated">Gelöschte Typen und Member aus der deklarierten API entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="new">Symbol '{0}' is part of the declared API, but is either not public or could not be found</target>
+        <target state="translated">Das Symbol "{0}" gehört zur deklarierten API, ist jedoch entweder nicht öffentlich oder wurde nicht gefunden.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
         <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">Beim Entfernen eines öffentlichen Typs oder Members muss der entsprechende Eintrag in "PublicAPI.txt" ebenfalls entfernt werden. In Code Reviews und im Verlauf der Quellcodeverwaltung wird so die Aufmerksamkeit auf API-Änderungen gelenkt, und fehlerhafte Änderungen werden verhindert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
-        <target state="new">Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</target>
+        <target state="translated">Der Konstruktor legt die zugehörige nicht vererbbare Basisklasse als vererbbar fest und macht damit die zugehörigen geschützten Member verfügbar.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
-        <target state="new">Constructor make noninheritable base class inheritable</target>
+        <target state="translated">Konstruktor macht nicht vererbbare Basisklasse vererbbar</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
-        <target state="new">The contents of the public API files are invalid</target>
+        <target state="translated">Der Inhalt der öffentlichen API-Dateien ist ungültig</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
-        <target state="new">The contents of the public API files are invalid: {0}</target>
+        <target state="translated">Der Inhalt der öffentlichen API-Dateien ist ungültig: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
-        <target state="new">Do not duplicate symbols in public API files</target>
+        <target state="translated">Keine Symbole in öffentlichen API-Dateien duplizieren</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files.</source>
-        <target state="new">The symbol '{0}' appears more than once in the public API files.</target>
+        <target state="translated">Das Symbol "{0}" ist in den öffentlichen API-Dateien mehrmals enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for {0}</source>
-        <target state="new">implicit constructor for {0}</target>
+        <target state="translated">Impliziter Konstruktor für "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
         <source>Do not add multiple public overloads with optional parameters</source>
-        <target state="new">Do not add multiple public overloads with optional parameters</target>
+        <target state="translated">Nicht mehrere öffentliche Überladungen mit optionalen Parametern hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</target>
+        <target state="translated">Das Symbol "{0}" verstößt gegen die Anforderung der Abwärtskompatibilität: Nicht mehrere öffentliche Überladungen mit optionalen Parametern hinzufügen. Informationen hierzu finden Sie unter "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="new">Public API with optional parameter(s) should have the most parameters amongst its public overloads.</target>
+        <target state="translated">Die öffentliche API mit optionalen Parametern muss die meisten Parameter bei den öffentlichen Überladungen aufweisen</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
+        <target state="translated">Das Symbol "{0}" verstößt gegen die Anforderung der Abwärtskompatibilität: Die öffentliche API mit optionalen Parametern muss die meisten Parameter bei den öffentlichen Überladungen aufweisen. Informationen hierzu finden Sie unter "{1}".</target>
         <note />
       </trans-unit>
     </body>

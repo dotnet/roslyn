@@ -4,192 +4,192 @@
     <body>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="new">Use SpecializedCollections.EmptyEnumerable()</target>
+        <target state="translated">SpecializedCollections.EmptyEnumerable() を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="new">Use SpecializedCollections.EmptyEnumerable()</target>
+        <target state="translated">SpecializedCollections.EmptyEnumerable() を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
         <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="new">Use SpecializedCollections.SingletonEnumerable()</target>
+        <target state="translated">SpecializedCollections.SingletonEnumerable() を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
         <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="new">Use SpecializedCollections.SingletonEnumerable()</target>
+        <target state="translated">SpecializedCollections.SingletonEnumerable() を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
         <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="new">Invoke the correct property to ensure correct use site diagnostics.</target>
+        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出します。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
         <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="new">Invoke the correct property to ensure correct use site diagnostics.</target>
+        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出します。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
         <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="new">Do not use generic CodeAction.Create to create CodeAction</target>
+        <target state="translated">CodeAction を作成するために、ジェネリック CodeAction.Create を使用しないでください</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
         <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="new">Do not use generic CodeAction.Create to create CodeAction</target>
+        <target state="translated">CodeAction を作成するために、ジェネリック CodeAction.Create を使用しないでください</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
         <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="new">Override Object.Equals(object) when implementing Iequatable</target>
+        <target state="translated">Iequatable を実装するときに Object.Equals(object) をオーバーライドします</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
         <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="new">Override Object.Equals(object) when implementing Iequatable</target>
+        <target state="translated">Iequatable を実装するときに Object.Equals(object) をオーバーライドします</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
         <source>Do not invoke Diagnostic.Descriptor</source>
-        <target state="new">Do not invoke Diagnostic.Descriptor</target>
+        <target state="translated">Diagnostic.Descriptor を呼び出さないでください</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
         <source>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</source>
-        <target state="new">Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</target>
+        <target state="translated">コンパイラ レイヤーで診断の Descriptor プロパティにアクセスすると、コマンド ライン コンパイルでは使用されない、記述子のフィールドに不要な文字列が割り当てられます。そのため、ここではコンパイラ診断の Descriptor にアクセスしないようにする必要があります。代わりに、Diagnostic 型のこれらのプロパティに直接アクセスする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
         <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="new">Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</target>
+        <target state="translated">型 '{1}' のプロパティ '{0}' を呼び出さないでください。代わりに、'{1}' の必要なメンバー {2} に直接アクセスしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="new">SymbolDeclaredEvent must be generated for source symbols</target>
+        <target state="translated">ソース シンボルに対して SymbolDeclaredEvent を生成する必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
         <source>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</source>
-        <target state="new">Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</target>
+        <target state="translated">すべての宣言済みソース シンボルのシンボル宣言イベントを生成するには、コンパイル イベント キューが必要です。そのため、各ソース シンボル型、またはその基本型の 1 つは、シンボル宣言イベントを生成する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
         <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="new">SymbolDeclaredEvent must be generated for source symbols</target>
+        <target state="translated">ソース シンボルに対して SymbolDeclaredEvent を生成する必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
         <source>Add public types and members to the declared API</source>
-        <target state="new">Add public types and members to the declared API</target>
+        <target state="translated">パブリック型とメンバーを宣言済み API に追加します</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared API.</source>
-        <target state="new">Symbol '{0}' is not part of the declared API.</target>
+        <target state="translated">シンボル '{0}' は、宣言済み API の一部ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">すべてのパブリック型およびメンバーは、PublicAPI.txt 内で宣言する必要があります。これにより、コード レビューとソース管理履歴では API の変更に注意が向けられるため、重大な変更を回避できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
-        <target state="new">Remove deleted types and members from the declared API</target>
+        <target state="translated">削除済みの型とメンバーを宣言済み API から削除します</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="new">Symbol '{0}' is part of the declared API, but is either not public or could not be found</target>
+        <target state="translated">シンボル '{0}' は宣言済み API の一部ですが、パブリックでないか、見つかりませんでした</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
         <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">パブリック型またはパブリック メンバーを削除する場合、PublicAPI.txt 内の対応するエントリも削除する必要があります。これにより、コード レビューとソース管理履歴では API の変更に注意が向けられるため、重大な変更を回避できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
-        <target state="new">Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</target>
+        <target state="translated">コンストラクターにより、その継承不可能な基底クラスが継承可能になり、そのプロテクト メンバーが公開されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
-        <target state="new">Constructor make noninheritable base class inheritable</target>
+        <target state="translated">コンストラクターにより、継承不可能な基底クラスが継承可能になります</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
-        <target state="new">The contents of the public API files are invalid</target>
+        <target state="translated">パブリック API ファイルの内容が無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
-        <target state="new">The contents of the public API files are invalid: {0}</target>
+        <target state="translated">パブリック API ファイルの内容が無効です: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
-        <target state="new">Do not duplicate symbols in public API files</target>
+        <target state="translated">パブリック API ファイル内でシンボルを重複させない</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files.</source>
-        <target state="new">The symbol '{0}' appears more than once in the public API files.</target>
+        <target state="translated">シンボル '{0}' がパブリック API ファイル内に複数回出現します。</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for {0}</source>
-        <target state="new">implicit constructor for {0}</target>
+        <target state="translated">{0} の暗黙的なコンストラクターです</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
         <source>Do not add multiple public overloads with optional parameters</source>
-        <target state="new">Do not add multiple public overloads with optional parameters</target>
+        <target state="translated">省略可能なパラメーターを持つ複数のパブリック オーバーロードを追加しない</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</target>
+        <target state="translated">シンボル '{0}' が、下位互換性要件 '省略可能なパラメーターを持つ複数のオーバーロードを追加しない' に違反しています。詳細については、'{1}' を参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="new">Public API with optional parameter(s) should have the most parameters amongst its public overloads.</target>
+        <target state="translated">省略可能なパラメーターを持つパブリック API には、そのパブリック オーバーロードの中で最も多くのパラメーターが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
+        <target state="translated">シンボル '{0}' が、下位互換性要件 '省略可能なパラメーターを持つパブリック API には、そのパブリック オーバーロードの中で最も多くのパラメーターが必要です' に違反しています。詳細については、'{1}' を参照してください。</target>
         <note />
       </trans-unit>
     </body>

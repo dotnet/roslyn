@@ -4,72 +4,72 @@
     <body>
       <trans-unit id="CategoryApiDesign">
         <source>ApiDesign</source>
-        <target state="new">ApiDesign</target>
+        <target state="translated">ApiDesign</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryDesign">
         <source>Design</source>
-        <target state="new">Design</target>
+        <target state="translated">디자인</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryGlobalization">
         <source>Globalization</source>
-        <target state="new">Globalization</target>
+        <target state="translated">세계화</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryInteroperability">
         <source>Interoperability</source>
-        <target state="new">Interoperability</target>
+        <target state="translated">상호 운용성</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryLibrary">
         <source>Library</source>
-        <target state="new">Library</target>
+        <target state="translated">라이브러리</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryNaming">
         <source>Naming</source>
-        <target state="new">Naming</target>
+        <target state="translated">명명</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryPerformance">
         <source>Performance</source>
-        <target state="new">Performance</target>
+        <target state="translated">성능</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryReliability">
         <source>Reliability</source>
-        <target state="new">Reliability</target>
+        <target state="translated">안정성</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryUsage">
         <source>Usage</source>
-        <target state="new">Usage</target>
+        <target state="translated">사용법</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryMobility">
         <source>Mobility</source>
-        <target state="new">Mobility</target>
+        <target state="translated">이동성</target>
         <note />
       </trans-unit>
       <trans-unit id="CategorySecurity">
         <source>Security</source>
-        <target state="new">Security</target>
+        <target state="translated">보안</target>
         <note />
       </trans-unit>
       <trans-unit id="VersionCheckDescription">
         <source>Analyzers in this package are preview version and are tied to a specific API version of Microsoft.CodeAnalysis. You have a mismatch between the analyzer and Microsoft.CodeAnalysis version and should switch your analyzer NuGet package/VSIX to a matching version of the Microsoft.CodeAnalysis.</source>
-        <target state="new">Analyzers in this package are preview version and are tied to a specific API version of Microsoft.CodeAnalysis. You have a mismatch between the analyzer and Microsoft.CodeAnalysis version and should switch your analyzer NuGet package/VSIX to a matching version of the Microsoft.CodeAnalysis.</target>
+        <target state="translated">이 패키지의 분석기는 미리 보기 버전이며 Microsoft.CodeAnalysis의 특정 API 버전에 연결됩니다. 분석기와 Microsoft.CodeAnalysis 버전이 일치하지 않으며 분석기 NuGet 패키지/VSIX를 일치하는 Microsoft.CodeAnalysis 버전으로 전환해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="VersionCheckMessage">
         <source>Version mismatch between the analyzer package '{0}' and Microsoft.CodeAnalysis '{1}'. Certain analyzers in this package will not run until the version mismatch is fixed. Analyzers in this package are preview version and are tied to a specific API version of Microsoft.CodeAnalysis. Please switch your analyzer NuGet package/VSIX to a matching version of the Microsoft.CodeAnalysis.</source>
-        <target state="new">Version mismatch between the analyzer package '{0}' and Microsoft.CodeAnalysis '{1}'. Certain analyzers in this package will not run until the version mismatch is fixed. Analyzers in this package are preview version and are tied to a specific API version of Microsoft.CodeAnalysis. Please switch your analyzer NuGet package/VSIX to a matching version of the Microsoft.CodeAnalysis.</target>
+        <target state="translated">'{0}' 분석기 패키지와 Microsoft.CodeAnalysis '{1}'의 버전이 일치하지 않습니다. 이 패키지의 특정 분석기는 버전 불일치 문제가 해결되어야 실행됩니다. 이 패키지의 분석기는 미리 보기 버전이며 Microsoft.CodeAnalysis의 특정 API 버전에 연결됩니다. 분석기 NuGet 패키지/VSIX를 일치하는 Microsoft.CodeAnalysis 버전으로 전환하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="VersionCheckTitle">
         <source>Analyzer version mismatch</source>
-        <target state="new">Analyzer version mismatch</target>
+        <target state="translated">분석기 버전 불일치</target>
         <note />
       </trans-unit>
     </body>
