@@ -677,5 +677,57 @@ namespace System
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 18)
                 );
         }
+
+        [Fact]
+        public void Patterns2_04()
+        {
+            // Test that a single-element deconstruct pattern is an error if no further elements disambiguate.
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var t = new System.ValueTuple<int>(1);
+        if (t is (int x)) { }                           // error 1
+        switch (t) { case (_): break; }                 // error 2
+        var u = t switch { (int y) => y, _ => 2 };      // error 3
+        if (t is (int z1) _) { }                     // ok
+        if (t is (Item1: int z2)) { }                // ok
+        if (t is (int z3) { }) { }                   // ok
+        if (t is ValueTuple<int>(int z4)) { }        // ok
+    }
+    private static bool Check<T>(T expected, T actual)
+    {
+        if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
+        return true;
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T>
+    {
+        public T Item1;
+
+        public ValueTuple(T item1)
+        {
+            this.Item1 = item1;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                //         if (t is (int x)) { }                           // error 1
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int x)").WithLocation(8, 18),
+                // (9,27): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                //         switch (t) { case (_): break; }                 // error 2
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(_)").WithLocation(9, 27),
+                // (10,28): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                //         var u = t switch { (int y) => y, _ => 2 };      // error 3
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int y)").WithLocation(10, 28)
+                );
+        }
     }
 }

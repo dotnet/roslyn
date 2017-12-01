@@ -1373,9 +1373,15 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_04()
         {
             UsingStatement(@"switch (e) { case (((x: 3))): ; }",
+                // (1,19): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                // switch (e) { case (((x: 3))): ; }
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(((x: 3)))").WithLocation(1, 19),
                 // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(((x: 3)))").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(((x: 3)))").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19),
+                // (1,20): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                // switch (e) { case (((x: 3))): ; }
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "((x: 3))").WithLocation(1, 20)
                 );
             N(SyntaxKind.SwitchStatement);
             {

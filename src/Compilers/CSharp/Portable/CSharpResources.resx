@@ -5231,4 +5231,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchExpressionNoBestType" xml:space="preserve">
     <value>No best type was found for the switch expression.</value>
   </data>
+  <data name="ERR_SingleElementPositionalPattern" xml:space="preserve">
+    <value>A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.</value>
+  </data>
 </root>

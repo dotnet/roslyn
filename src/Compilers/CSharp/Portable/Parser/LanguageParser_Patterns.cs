@@ -415,11 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     closeToken: out SyntaxToken closeParenToken,
                     openKind: SyntaxKind.OpenParenToken,
                     closeKind: SyntaxKind.CloseParenToken);
-                //if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
-                //{
-                //    // Testers do the darndest things, in this case putting a lambda expression where a pattern is expected.
-                //    return null;
-                //}
 
                 parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern0);
                 parseDesignation(out VariableDesignationSyntax designation0);
@@ -428,15 +423,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     propertySubpattern0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
-                    subPatterns[0].NameColon == null &&
-                    subPatterns[0].Pattern is ConstantPatternSyntax cp)
+                    subPatterns[0].NameColon == null)
                 {
-                    // There is an ambiguity between a deconstruction pattern `(` pattern `)`
-                    // and a constant expression pattern that happens to be parenthesized.
-                    // We normalize to the parenthesized expression, and semantic analysis
-                    // will notice the parens and treat it whichever way is semantically sensible,
-                    // giving priority to its treatment as a constant expression.
-                    return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
+                    if (subPatterns[0].Pattern is ConstantPatternSyntax cp)
+                    {
+                        // There is an ambiguity between a deconstruction pattern `(` pattern `)`
+                        // and a constant expression pattern that happens to be parenthesized.
+                        // We treat such syntax as a parenthseized expression always.
+                        return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
+                    }
+
+                    // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
+                    // single subpattern but for which the type is omitted. We'll look at other ways of disambiguating later,
+                    // such as perhaps permitting `var` to infer the type, or a trailing comma. This also keeps the design
+                    // space open for using parens for grouping patterns in the future, e.g. if we introduce `or` and
+                    // `and` patterns.
+
+                    var result = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
+                    return this.AddError(result, ErrorCode.ERR_SingleElementPositionalPattern);
                 }
 
                 return _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);

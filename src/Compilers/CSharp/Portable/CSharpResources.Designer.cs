@@ -8918,6 +8918,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add &apos;{}&apos; after the close paren to disambiguate..
+        /// </summary>
+        internal static string ERR_SingleElementPositionalPattern {
+            get {
+                return ResourceManager.GetString("ERR_SingleElementPositionalPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A single-line comment may not be used in an interpolated string..
         /// </summary>
         internal static string ERR_SingleLineCommentInExpressionHole {
