@@ -304,6 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal virtual HashSet<string> QuickTypeIdentifierAttributeCheckSet
+        {
+            get
+            {
+                return _next.QuickTypeIdentifierAttributeCheckSet;
+            }
+        }
+
         internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
         {
             return _next.GetImports(basesBeingResolved);

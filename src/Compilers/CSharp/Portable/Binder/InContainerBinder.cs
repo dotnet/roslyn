@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Func<ConsList<Symbol>, Imports> _computeImports;
         private Imports _lazyImports;
         private ImportChain _lazyImportChain;
+        private HashSet<string> _lazyQuickTypeIdentifierAttributeCheckSet;
 
         /// <summary>
         /// Creates a binder for a container with imports (usings and extern aliases) that can be
@@ -98,6 +99,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_lazyImportChain != null);
 
                 return _lazyImportChain;
+            }
+        }
+
+        internal override HashSet<string> QuickTypeIdentifierAttributeCheckSet
+        {
+            get
+            {
+                if (_lazyQuickTypeIdentifierAttributeCheckSet == null)
+                {
+                    HashSet<string> previousSet = this.Next.QuickTypeIdentifierAttributeCheckSet;
+                    HashSet<string> newSet = null;
+
+                    if ((object)_container == null || _container.Kind == SymbolKind.Namespace)
+                    {
+                        foreach (KeyValuePair<string, AliasAndUsingDirective> pair in GetImports(basesBeingResolved: null).UsingAliases)
+                        {
+                            if (previousSet.Contains(pair.Value.UsingDirective.Name.GetUnqualifiedName().Identifier.ValueText))
+                            {
+                                (newSet ?? (newSet = new HashSet<string>(previousSet))).Add(pair.Key);
+                            }
+                        }
+                    }
+
+                    _lazyQuickTypeIdentifierAttributeCheckSet = (newSet ?? previousSet);
+                }
+
+                return _lazyQuickTypeIdentifierAttributeCheckSet;
             }
         }
 

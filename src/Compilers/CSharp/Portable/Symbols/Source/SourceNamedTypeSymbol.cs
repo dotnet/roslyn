@@ -780,60 +780,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
             {
                 var syntaxTree = list.Node.SyntaxTree;
-                Binder binder = null;
+                HashSet<string> quickCheckSet = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickTypeIdentifierAttributeCheckSet;
 
                 foreach (AttributeListSyntax attrList in list)
                 {
                     foreach (AttributeSyntax attr in attrList.Attributes)
                     {
-                        SimpleNameSyntax simpleName = attr.Name.GetUnqualifiedName();
-                        string name = simpleName.Identifier.ValueText;
+                        string name = attr.Name.GetUnqualifiedName().Identifier.ValueText;
 
-                        if (name == "TypeIdentifier" || name == AttributeDescription.TypeIdentifierAttribute.Name)
+                        if (quickCheckSet.Contains(name) || quickCheckSet.Contains(name + "Attribute"))
                         {
                             // This attribute syntax might be an application of TypeIdentifierAttribute.
                             // Let's bind it.
                             // For simplicity we bind all attributes.
                             GetAttributes();
                             return;
-                        }
-
-                        if (attr.Name == simpleName)
-                        {
-                            // Check if the name matches an alias bound to the TypeIdentifierAttribute
-                            if (binder == null)
-                            {
-                                binder = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node);
-                            }
-
-                            string nameWithAttribute = null;
-                            Binder current = binder;
-
-                            do
-                            {
-                                ImmutableDictionary<string, AliasAndUsingDirective> usingAliases = current.GetImports(basesBeingResolved: null).UsingAliases;
-
-                                if (!usingAliases.IsEmpty)
-                                {
-                                    bool isAliasForTypeIdentifierAttribute(string aliasName)
-                                    {
-                                        return usingAliases.TryGetValue(aliasName, out AliasAndUsingDirective aliasAndDirective) &&
-                                               (aliasAndDirective.Alias.Target as NamedTypeSymbol)?.Name == AttributeDescription.TypeIdentifierAttribute.Name;
-                                    }
-
-                                    if (isAliasForTypeIdentifierAttribute(name) || isAliasForTypeIdentifierAttribute(nameWithAttribute ?? (nameWithAttribute = name + "Attribute")))
-                                    {
-                                        // This attribute syntax might be a valid application of TypeIdentifierAttribute.
-                                        // Let's bind it.
-                                        // For simplicity we bind all attributes.
-                                        GetAttributes();
-                                        return;
-                                    }
-                                }
-
-                                current = current.Next;
-                            }
-                            while (current != null);
                         }
                     }
                 }
