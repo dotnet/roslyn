@@ -585,6 +585,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDefaultExpression(node, constantValueOpt: null, type: null);
         }
 
+        internal virtual BoundSwitchExpressionCase BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
+        {
+            return this.Next.BindSwitchExpressionArm(node, diagnostics);
+        }
+
         private BoundExpression BindRefExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var firstToken = node.GetFirstToken();

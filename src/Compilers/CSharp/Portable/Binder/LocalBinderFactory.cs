@@ -557,15 +557,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.GoverningExpression, switchExpressionBinder);
             foreach (var arm in node.Arms)
             {
-                var caseBinder = new ExpressionVariableBinder(arm, switchExpressionBinder);
-                AddToMap(arm, caseBinder);
-                Visit(arm.Pattern, caseBinder);
+                var armScopeBinder = new ExpressionVariableBinder(arm, switchExpressionBinder);
+                var armBinder = new SwitchExpressionArmBinder(arm, armScopeBinder, switchExpressionBinder);
+                AddToMap(arm, armBinder);
+                Visit(arm.Pattern, armBinder);
                 if (arm.WhenClause != null)
                 {
-                    Visit(arm.WhenClause, caseBinder);
+                    Visit(arm.WhenClause, armBinder);
                 }
 
-                Visit(arm.Expression, caseBinder);
+                Visit(arm.Expression, armBinder);
             }
         }
 

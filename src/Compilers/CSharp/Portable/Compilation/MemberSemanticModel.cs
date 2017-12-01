@@ -242,6 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (kind == SyntaxKind.SwitchExpressionArm)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else if ((current as ExpressionSyntax).IsValidScopeDesignator())
                 {
                     binder = rootBinder.GetBinder(current);

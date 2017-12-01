@@ -176,6 +176,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override BoundSwitchExpressionCase BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
+        {
+            // There's supposed to be an overrider of this method (e.g. SwitchExpressionArmBinder) for the arm in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal override BoundForStatement BindForParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForLoopBinder (or other overrider of this method) in the chain.

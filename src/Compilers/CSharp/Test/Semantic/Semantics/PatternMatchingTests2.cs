@@ -619,9 +619,42 @@ namespace System
                 );
         }
 
-
-        // PROTOTYPE(patterns2): test lazily inferring variables in the pattern
-        // PROTOTYPE(patterns2): test lazily inferring variables in the when clause
-        // PROTOTYPE(patterns2): test lazily inferring variables in the arrow expression
+        [Fact]
+        public void SwitchExpression_10()
+        {
+            // test lazily inferring variables in the pattern
+            // test lazily inferring variables in the when clause
+            // test lazily inferring variables in the arrow expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int a = 1;
+        var b = a switch { var x1 => x1 };
+        var c = a switch { var x2 when x2 is var x3 => x3 };
+        var d = a switch { var x4 => x4 is var x5 ? x5 : 1 };
+    }
+    static int M(int i) => i;
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                );
+            var names = new[] { "x1", "x2", "x3", "x4", "x5" };
+            var tree = compilation.SyntaxTrees[0];
+            foreach (var designation in tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>())
+            {
+                var model = compilation.GetSemanticModel(tree);
+                var symbol = model.GetDeclaredSymbol(designation);
+                Assert.Equal(SymbolKind.Local, symbol.Kind);
+                Assert.Equal("int", ((LocalSymbol)symbol).Type.ToDisplayString());
+            }
+            foreach (var ident in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
+            {
+                var model = compilation.GetSemanticModel(tree);
+                var typeInfo = model.GetTypeInfo(ident);
+                Assert.Equal("int", typeInfo.Type.ToDisplayString());
+            }
+        }
     }
 }

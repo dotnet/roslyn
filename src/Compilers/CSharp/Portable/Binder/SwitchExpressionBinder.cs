@@ -92,21 +92,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSwitchExpressionCase>.GetInstance();
             foreach (var arm in node.Arms)
             {
-                var caseBinder = originalBinder.GetBinder(arm);
-                var locals = caseBinder.Locals;
-                var pattern = caseBinder.BindPattern(arm.Pattern, SwitchGoverningType, hasErrors, diagnostics);
-                var guard = arm.WhenClause != null
-                    ? caseBinder.BindBooleanExpression(arm.WhenClause.Condition, diagnostics)
-                    : null;
-                var result = caseBinder.BindValue(arm.Expression, diagnostics, BindValueKind.RValue);
-                var boundCase = new BoundSwitchExpressionCase(arm, locals, pattern, guard, result, hasErrors);
-                builder.Add(boundCase);
+                var armBinder = originalBinder.GetBinder(arm);
+                var boundArm = armBinder.BindSwitchExpressionArm(arm, diagnostics);
+                builder.Add(boundArm);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        protected BoundExpression SwitchGoverningExpression
+        internal BoundExpression SwitchGoverningExpression
         {
             get
             {
@@ -120,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected TypeSymbol SwitchGoverningType => SwitchGoverningExpression.Type;
+        internal TypeSymbol SwitchGoverningType => SwitchGoverningExpression.Type;
 
         protected DiagnosticBag SwitchGoverningDiagnostics
         {
