@@ -729,6 +729,62 @@ public static class C
 }");
         }
 
+        [WorkItem(23504, "https://github.com/dotnet/roslyn/issues/23504")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task DoNotChangeOriginalFormatting1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object obj = ""test"";
+
+        [|var|] str = obj as string;
+        var title = str != null
+            ? str
+            : "";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object obj = ""test"";
+
+        var title = obj is string str
+            ? str
+            : "";
+    }
+}");
+        }
+
+        [WorkItem(23504, "https://github.com/dotnet/roslyn/issues/23504")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task DoNotChangeOriginalFormatting2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object obj = ""test"";
+
+        [|var|] str = obj as string;
+        var title = str != null ? str : "";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object obj = ""test"";
+
+        var title = obj is string str ? str : "";
+    }
+}");
+        }
+
         [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestMissingWithDynamic()

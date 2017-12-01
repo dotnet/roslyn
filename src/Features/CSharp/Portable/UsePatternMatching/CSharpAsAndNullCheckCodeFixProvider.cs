@@ -76,12 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var targetStatement = (StatementSyntax)targetStatementLocation.FindNode(cancellationToken);
             var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
+            var newIdentifier = localDeclaration.Declaration.Variables[0].Identifier
+                .WithoutTrivia().WithTrailingTrivia(conditionPart.Right.GetTrailingTrivia());
 
             var updatedConditionPart = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
-                    SyntaxFactory.SingleVariableDesignation(
-                        localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
+                    SyntaxFactory.SingleVariableDesignation(newIdentifier)));
 
             var currentCondition = GetCondition(targetStatement);
             var updatedCondition = currentCondition.ReplaceNode(conditionPart, updatedConditionPart);
