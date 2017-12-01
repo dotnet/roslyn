@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ImmutableArray<SingleTypeDeclaration> _declarations;
         private ImmutableArray<MergedTypeDeclaration> _lazyChildren;
+        private ImmutableArray<SyntaxReference> _lazySyntaxReferences;
         private ICollection<string> _lazyMemberNames;
 
         internal MergedTypeDeclaration(ImmutableArray<SingleTypeDeclaration> declarations)
@@ -36,7 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _declarations.SelectAsArray(r => r.SyntaxReference);
+                if (_lazySyntaxReferences.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazySyntaxReferences, _declarations.SelectAsArray(r => r.SyntaxReference));
+                }
+
+                return _lazySyntaxReferences;
             }
         }
 
