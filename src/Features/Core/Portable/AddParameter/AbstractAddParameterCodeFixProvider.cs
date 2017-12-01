@@ -19,7 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractAddParameterCodeFixProvider<
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
         TArgumentSyntax,
         TAttributeArgumentSyntax,
         TArgumentListSyntax,

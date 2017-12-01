@@ -89,10 +89,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
+#pragma warning disable RS0012 // Do not call ToImmutableCollection on an ImmutableCollection value https://github.com/dotnet/roslyn-analyzers/issues/1430
             return DiagnosticAnalysisResultMap.Create(
                 builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
                 analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
                 _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+#pragma warning restore RS0012 // Do not call ToImmutableCollection on an ImmutableCollection value
         }
 
         private void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
