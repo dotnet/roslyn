@@ -109,18 +109,14 @@ End Module")
 #endif
         }
 
-        private static readonly object s_createFilesLock = new object();
         private static void CreateFiles(TempDirectory currentDirectory, IEnumerable<KeyValuePair<string, string>> files)
         {
             if (files != null)
             {
-                lock (s_createFilesLock)
+                foreach (var pair in files)
                 {
-                    foreach (var pair in files)
-                    {
-                        TempFile file = currentDirectory.CreateFile(pair.Key);
-                        file.WriteAllText(pair.Value);
-                    }
+                    TempFile file = currentDirectory.CreateFile(pair.Key);
+                    file.WriteAllText(pair.Value);
                 }
             }
         }
