@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal struct NameDeclarationInfo
         {
+            private static readonly ImmutableArray<SymbolKind> parameterSyntaxKind = ImmutableArray.Create(SymbolKind.Parameter);
+
             public NameDeclarationInfo(
                 ImmutableArray<SymbolKind> possibleSymbolKinds,
                 Accessibility accessibility,
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<ExpressionStatementSyntax>(
                     token, semanticModel,
                     e => e.Expression,
-                    _ => default(SyntaxTokenList),
+                    _ => default,
                     _ => ImmutableArray.Create(SymbolKind.Local),
                     cancellationToken);
                 return result.Type != null;
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 SyntaxToken token,
                 SemanticModel semanticModel,
                 Func<TSyntaxNode, SyntaxNode> typeSyntaxGetter,
-                Func<TSyntaxNode, SyntaxTokenList?> modifierGetter,
+                Func<TSyntaxNode, SyntaxTokenList> modifierGetter,
                 Func<DeclarationModifiers, ImmutableArray<SymbolKind>> possibleDeclarationComputer,
                 CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
             {
@@ -214,15 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var modifiers = modifierGetter(target);
-                if (modifiers == null)
-                {
-                    return default;
-                }
 
                 return new NameDeclarationInfo(
-                    possibleDeclarationComputer(GetDeclarationModifiers(modifiers.Value)),
-                    GetAccessibility(modifiers.Value),
-                    GetDeclarationModifiers(modifiers.Value),
+                    possibleDeclarationComputer(GetDeclarationModifiers(modifiers)),
+                    GetAccessibility(modifiers),
+                    GetDeclarationModifiers(modifiers),
                     semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type,
                     semanticModel.GetAliasInfo(typeSyntax, cancellationToken));
             }
@@ -286,8 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<ParameterSyntax>(
                     token, semanticModel,
                     p => p.Type,
-                    _ => default(SyntaxTokenList),
-                    _ => ImmutableArray.Create(SymbolKind.Parameter),
+                    _ => default,
+                    _ => parameterSyntaxKind,
                     cancellationToken);
                 return result.Type != null;
             }
@@ -301,8 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     result = IsLastTokenOfType<BinaryExpressionSyntax>(
                         token, semanticModel,
                         b => b.Right,
-                        _ => default(SyntaxTokenList),
-                        _ => ImmutableArray.Create(SymbolKind.Parameter),
+                        _ => default,
+                        _ => parameterSyntaxKind,
                         cancellationToken);
                 }
                 else if (token.Parent.IsParentKind(SyntaxKind.CaseSwitchLabel))
@@ -310,8 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     result = IsLastTokenOfType<CaseSwitchLabelSyntax>(
                         token, semanticModel,
                         b => b.Value,
-                        _ => default(SyntaxTokenList),
-                        _ => ImmutableArray.Create(SymbolKind.Parameter),
+                        _ => default,
+                        _ => parameterSyntaxKind,
                         cancellationToken);
                 }
                 else if (token.Parent.IsParentKind(SyntaxKind.DeclarationPattern))
@@ -319,8 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     result = IsLastTokenOfType<DeclarationPatternSyntax>(
                         token, semanticModel,
                         b => b.Type,
-                        _ => default(SyntaxTokenList),
-                        _ => ImmutableArray.Create(SymbolKind.Parameter),
+                        _ => default,
+                        _ => parameterSyntaxKind,
                         cancellationToken);
                 }
 
