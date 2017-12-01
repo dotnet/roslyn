@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -146,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(symbol.GlobalNamespace);
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry = false)]
         public override void VisitNamespace(NamespaceSymbol symbol)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -158,22 +158,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckMemberDistinctness(symbol);
             }
 
-            if (_compilation.Options.ConcurrentBuild)
+            foreach (var m in symbol.GetMembersUnordered())
             {
-                var options = _cancellationToken.CanBeCanceled
-                    ? new ParallelOptions() { CancellationToken = _cancellationToken }
-                    : CSharpCompilation.DefaultParallelOptions; // i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
-            }
-            else
-            {
-                foreach (var m in symbol.GetMembersUnordered())
-                {
-                    Visit(m);
-                }
+                Visit(m);
             }
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry = false)]
         public override void VisitNamedType(NamedTypeSymbol symbol)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -204,19 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // You may assume we could skip the members if this type is inaccessible,
             // but dev11 reports that they are inaccessible as well.
-            if (_compilation.Options.ConcurrentBuild)
+            foreach (var m in symbol.GetMembersUnordered())
             {
-                var options = _cancellationToken.CanBeCanceled
-                    ? new ParallelOptions() { CancellationToken = _cancellationToken }
-                    : CSharpCompilation.DefaultParallelOptions; //i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
-            }
-            else
-            {
-                foreach (var m in symbol.GetMembersUnordered())
-                {
-                    Visit(m);
-                }
+                Visit(m);
             }
         }
 

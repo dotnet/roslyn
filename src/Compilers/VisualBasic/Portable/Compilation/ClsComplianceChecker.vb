@@ -3,7 +3,6 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -16,8 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Partial Friend Class ClsComplianceChecker
         Inherits VisualBasicSymbolVisitor
-
-        Private Shared ReadOnly s_defaultParallelOptions As New ParallelOptions
 
         Private ReadOnly _compilation As VisualBasicCompilation
 
@@ -60,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry:=False)>
         Public Overrides Sub VisitAssembly(symbol As AssemblySymbol)
             Me._cancellationToken.ThrowIfCancellationRequested()
             Debug.Assert(TypeOf symbol Is SourceAssemblySymbol)
@@ -68,21 +66,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The regular attribute code handles conflicting attributes from included netmodules.
 
-            If symbol.Modules.Length > 1 AndAlso _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
-                Parallel.ForEach(symbol.Modules, options, UICultureUtilities.WithCurrentUICulture(Of ModuleSymbol)(AddressOf VisitModule))
-            Else
-                For Each m In symbol.Modules
-                    VisitModule(m)
-                Next
-            End If
-
+            For Each m In symbol.Modules
+                VisitModule(m)
+            Next
         End Sub
 
         Public Overrides Sub VisitModule(symbol As ModuleSymbol)
             Visit(symbol.GlobalNamespace)
         End Sub
 
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry:=False)>
         Public Overrides Sub VisitNamespace(symbol As NamespaceSymbol)
             Me._cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
@@ -94,16 +87,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CheckMemberDistinctness(symbol)
             End If
 
-            If _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
-            Else
-                For Each m In symbol.GetMembersUnordered()
-                    Visit(m)
-                Next
-            End If
+            For Each m In symbol.GetMembersUnordered()
+                Visit(m)
+            Next
         End Sub
 
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry:=False)>
         Public Overrides Sub VisitNamedType(symbol As NamedTypeSymbol)
             Me._cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
@@ -121,14 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
-            Else
-                For Each m In symbol.GetMembersUnordered()
-                    Visit(m)
-                Next
-            End If
+            For Each m In symbol.GetMembersUnordered()
+                Visit(m)
+            Next
         End Sub
 
         Private Function HasAcceptableAttributeConstructor(attributeType As NamedTypeSymbol) As Boolean
