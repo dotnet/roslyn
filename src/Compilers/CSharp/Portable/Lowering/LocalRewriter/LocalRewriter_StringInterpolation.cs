@@ -158,7 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // TODO don't test for null if we know the expression is a string concatenation
                             result = _factory.Coalesce(part, _factory.StringLiteral(""));
                         }
                     }
