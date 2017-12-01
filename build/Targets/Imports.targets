@@ -476,6 +476,10 @@
       <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) &lt;= 0 ">$(dotnetSdkVersion)</ShortSdkVersion>
     </PropertyGroup>
 
+    <!-- The $(UsingMicrosoftNETSdk) property is set when we are using a 2.0 SDK or newer (non-legacy). This means
+         we can depend on global.json having enforced the minimum version we require for our build. If it's not
+         set though we need to error out and provide a link to get the correct SDK installed.
+      -->
     <Error 
       Text="The $(ShortSdkVersion) SDK is required to build this repo. It can be install here https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe"
       Condition="'$(UsingMicrosoftNETSdk)' == '' AND '$(RoslynSdkProject)' == 'true'" />
