@@ -3720,6 +3720,38 @@ BC30182: Type expected.
  ~~~~~~
 ]]></expected>)
         End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_15()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+<System.Runtime.InteropServices.TypeIdentifier>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_16()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+<System.Runtime.InteropServices.TypeIdentifierAttribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
     End Class
 
 End Namespace

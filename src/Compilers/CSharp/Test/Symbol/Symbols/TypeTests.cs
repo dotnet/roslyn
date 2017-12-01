@@ -2232,5 +2232,33 @@ namespace NS1
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "alias1").WithArguments("System.Runtime.InteropServices").WithLocation(6, 6)
                 );
         }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_15()
+        {
+            var code = @"
+[System.Runtime.InteropServices.TypeIdentifier]
+public interface I1
+{
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_16()
+        {
+            var code = @"
+[System.Runtime.InteropServices.TypeIdentifierAttribute]
+public interface I1
+{
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
     }
 }
