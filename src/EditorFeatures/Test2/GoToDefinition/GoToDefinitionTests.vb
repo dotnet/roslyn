@@ -765,6 +765,54 @@ class C
 
             Test(workspace)
         End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOverriddenDefinition_FromOverride()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Origin { public virtual void Method() { } }
+            class Base : Origin { public override void [|Method|]() { } }
+            class Derived : Base { }
+            class Derived2 : Derived { public ove$$rride void Method() { }  }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOverriddenDefinition_FromOverride2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Origin { public virtual void [|Method|]() { } }
+            class Base : Origin { public ove$$rride void Method() { } }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOverriddenProperty_FromOverride()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Origin { public virtual int [|Property|] { get; set; } }
+            class Base : Origin { public ove$$rride int Property { get; set; } }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
 #End Region
 
 #Region "CSharp TupleTests"
@@ -1712,6 +1760,75 @@ Class C
     Private Sub Goo()
     End Sub
 End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicGoToOverridenSubDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Base
+                Overridable Sub [|Method|]()
+                End Sub
+            End Class
+            Class Derived
+                Inherits Base
+
+                Overr$$ides Sub Method()
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicGoToOverridenFunctionDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Base
+                Overridable Function [|Method|]() As Integer
+                    Return 1
+                End Function
+            End Class
+            Class Derived
+                Inherits Base
+
+                Overr$$ides Function Method() As Integer
+                    Return 1
+                End Function
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicGoToOverridenPropertyDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Base
+                Overridable Property [|Number|] As Integer
+            End Class
+            Class Derived
+                Inherits Base
+
+                Overr$$ides Property Number As Integer
+            End Class
         </Document>
     </Project>
 </Workspace>

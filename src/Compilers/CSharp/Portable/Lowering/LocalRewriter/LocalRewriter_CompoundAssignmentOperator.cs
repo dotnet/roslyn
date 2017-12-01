@@ -551,11 +551,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ConditionalOperator:
-                    Debug.Assert(((BoundConditionalOperator)originalLHS).IsByRef);
+                    Debug.Assert(((BoundConditionalOperator)originalLHS).IsRef);
                     break;
 
                 case BoundKind.AssignmentOperator:
-                    Debug.Assert(((BoundAssignmentOperator)originalLHS).RefKind != RefKind.None);
+                    Debug.Assert(((BoundAssignmentOperator)originalLHS).IsRef);
                     break;
 
                 case BoundKind.PointerElementAccess:

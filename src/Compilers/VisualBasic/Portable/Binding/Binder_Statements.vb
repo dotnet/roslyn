@@ -742,12 +742,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindEraseStatement(node As EraseStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
             Dim clauses = ArrayBuilder(Of BoundAssignmentOperator).GetInstance()
 
-            Dim nothingLiteral = New BoundLiteral(node, ConstantValue.Nothing, Nothing).MakeCompilerGenerated()
-
             For Each operand As ExpressionSyntax In node.Expressions
                 Dim target As BoundExpression = BindAssignmentTarget(operand, diagnostics)
                 Debug.Assert(target IsNot Nothing)
 
+                Dim nothingLiteral = New BoundLiteral(operand, ConstantValue.Nothing, Nothing).MakeCompilerGenerated()
                 Dim clause As BoundAssignmentOperator
 
                 If target.HasErrors Then
