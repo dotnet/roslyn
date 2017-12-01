@@ -11,6 +11,7 @@
     <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />

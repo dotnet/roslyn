@@ -8,6 +8,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures</AssemblyName>
     <TargetFramework>net46</TargetFramework>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />

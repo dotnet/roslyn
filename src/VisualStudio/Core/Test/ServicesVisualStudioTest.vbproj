@@ -13,6 +13,7 @@
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />

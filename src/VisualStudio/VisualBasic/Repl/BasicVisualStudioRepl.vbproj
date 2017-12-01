@@ -12,6 +12,7 @@
     <DeployExtension>false</DeployExtension>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFramework>net461</TargetFramework>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

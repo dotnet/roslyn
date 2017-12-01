@@ -17,6 +17,7 @@
          contains a reference to C# + VB CodeAnalysis. This ensures that the project
          reference is a higher version than the NuGet reference. -->
     <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">

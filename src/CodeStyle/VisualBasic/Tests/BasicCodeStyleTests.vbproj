@@ -10,6 +10,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests</AssemblyName>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />

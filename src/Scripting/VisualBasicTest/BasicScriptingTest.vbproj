@@ -10,6 +10,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests</AssemblyName>
     <TargetFramework>net461</TargetFramework>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

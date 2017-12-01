@@ -12,6 +12,7 @@
     <OptionStrict>Off</OptionStrict>
     <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
     <NonShipping>true</NonShipping>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

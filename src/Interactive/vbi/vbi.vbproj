@@ -10,6 +10,7 @@
     <StartupObject>Sub Main</StartupObject>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
