@@ -29,30 +29,16 @@ else
     exit 1
 fi
 
+echo "Publishing ILAsm.csproj"
+dotnet publish "${root_path}/src/Tools/ILAsm" --no-restore --runtime ${runtime_id} --self-contained -o "${binaries_path}/Tools/ILAsm"
+
 echo "Using ${xunit_console}"
-
-# Need to publish projects that have runtime assets before running tests
-need_publish=(
-    'src/Compilers/CSharp/Test/Symbol/CSharpCompilerSymbolTest.csproj'
-)
-
-for project in "${need_publish[@]}"
-do
-    echo "Publishing ${project}"
-    dotnet publish --no-restore "${root_path}"/"${project}" -r "${runtime_id}" -f "${target_framework}" -p:SelfContained=true
-done
 
 # Discover and run the tests
 mkdir -p "${log_dir}"
 
 for test_path in "${unittest_dir}"/*/"${target_framework}"
 do
-    publish_test_path="${test_path}"/"${runtime_id}"/publish
-    if [[ -d "${publish_test_path}" ]]
-    then
-        test_path="${publish_test_path}"
-    fi
-
     file_name=( "${test_path}"/*.UnitTests.dll )
     log_file="${log_dir}"/"$(basename "${file_name%.*}.xml")"
     deps_json="${file_name%.*}".deps.json

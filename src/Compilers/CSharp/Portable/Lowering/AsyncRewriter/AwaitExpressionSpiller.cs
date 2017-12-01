@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                         if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                         {
-                            Debug.Assert(conditional.IsByRef);
+                            Debug.Assert(conditional.IsRef);
                             _F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, _F.Syntax.Location);
                         }
                         refKind = RefKind.None;
@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = leftBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.RefKind, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.IsRef, node.Type));
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (consequenceBuilder == null && alternativeBuilder == null)
             {
-                return UpdateExpression(conditionBuilder, node.Update(node.IsByRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
+                return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
             }
 
             if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder();
