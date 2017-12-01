@@ -20,7 +20,7 @@ If a stack trace is displayed on .NET Framework older than 4.7.1 (e.g. by xUnit 
 
 ## Developing with Visual Studio 2017
 
-1. [Visual Studio 2017 Update 3](https://www.visualstudio.com/vs/)
+1. [Visual Studio 2017 Update 4](https://www.visualstudio.com/vs/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "15.3" or greater
 1. [.NET Core SDK 2.2](https://www.microsoft.com/net/download/core) (if you don't see the 2.2 SDK binaries there yet, the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x86.exe))
