@@ -32,6 +32,7 @@ build=false
 test_=false
 build_bootstrap=false
 use_bootstrap=false
+stop_vbcscompiler=false
 
 # LTTNG is the logging infrastructure used by coreclr.  Need this variable set
 # so it doesn't output warnings to the console.
@@ -78,6 +79,10 @@ do
         use_bootstrap=true
         shift 1
         ;;
+        --stop-vbcscompiler)
+        stop_vbcscompiler=true
+        shift 1
+        ;;
         *)
         usage
         exit 1
@@ -113,6 +118,12 @@ if [[ "${build}" == true ]]
 then
     echo "Building Compilers.sln"
     dotnet build "${root_path}"/Compilers.sln ${build_args} "/bl:${binaries_path}/Build.binlog"
+fi
+
+if [[ "${stop_vbcscompiler}" == true ]]
+then
+    echo "Stopping VBCSCompiler"
+    dotnet "${bootstrap_path}"/bincore/VBCSCompiler.dll -shutdown
 fi
 
 if [[ "${test_}" == true ]]
