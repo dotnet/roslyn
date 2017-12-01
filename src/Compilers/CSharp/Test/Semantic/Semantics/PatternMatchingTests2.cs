@@ -656,5 +656,26 @@ namespace System
                 Assert.Equal("int", typeInfo.Type.ToDisplayString());
             }
         }
+
+        [Fact]
+        public void ShortDiscardInIsPattern()
+        {
+            // test that we forbid a short discard at the top level of an is-pattern expression
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int a = 1;
+        if (a is _) { }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         if (a is _) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 18)
+                );
+        }
     }
 }
