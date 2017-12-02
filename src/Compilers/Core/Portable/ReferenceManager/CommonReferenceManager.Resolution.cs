@@ -416,6 +416,7 @@ namespace Microsoft.CodeAnalysis
             {
                 lazyModulesBuilder.ReverseContents();
                 modules = lazyModulesBuilder.ToImmutableAndFree();
+                while (true);
             }
 
             return ImmutableArray.CreateRange(referenceMap);
