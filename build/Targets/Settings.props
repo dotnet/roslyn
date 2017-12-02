@@ -150,6 +150,9 @@
          This avoids a couple of issues in al.exe (see https://github.com/dotnet/roslyn/issues/23190 and https://github.com/dotnet/roslyn/issues/23191
          for details on those issues). -->
     <GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
+
+    <CustomBeforeMicrosoftCommonTargets>$(MSBuildThisFileDirectory)\BeforeCommonTargets.targets</CustomBeforeMicrosoftCommonTargets>
+    <CustomAfterMicrosoftCommonTargets>$(MSBuildThisFileDirectory)\AfterCommonTargets.targets</CustomAfterMicrosoftCommonTargets>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
