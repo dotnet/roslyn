@@ -136,6 +136,8 @@
 
     <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 
     <!-- It is only intended to automatically run update during dev cycle. However, It will fail the build on CI if the XLF file is not updated.
          XLF file should be checked in and loc team will update the XLF it with translated version.
@@ -163,20 +165,6 @@
 
     <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
     <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>
-  </PropertyGroup>
-
-  <!--
-    If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
-    Use the latest Framework toolset to build, but set msbuild properties below
-    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
-  -->
-  <PropertyGroup Condition="'$(TargetNetFX20)' == 'true'">
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
-    <NoStdLib>true</NoStdLib>
-    <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\$(MicrosoftNetFX20Version)\lib\net20</FrameworkPathOverride>
-    <ExecuteAsTool>false</ExecuteAsTool>
-    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
@@ -210,8 +198,6 @@
   <UsingTask TaskName="Roslyn.MSBuild.Util.ValidateBuildEnvironment"
              AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
              Condition="'$(OS)' == 'Windows_NT'" />
-
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
 
