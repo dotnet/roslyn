@@ -107,7 +107,7 @@ End Module
             Assert.Equal("", output.ToString().Trim())
         End Sub
 
-        <Fact>
+        <Fact(Skip = "https://github.com/dotnet/roslyn/pull/23529")>
         Public Sub CreateCompilationWithKeyFile()
             Dim source = "
 Public Class C
