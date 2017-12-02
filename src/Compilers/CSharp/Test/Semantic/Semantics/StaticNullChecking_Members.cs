@@ -462,6 +462,33 @@ class C
         }
 
         [Fact]
+        public void ModifyMembers_StructProperty()
+        {
+            var source =
+@"#pragma warning disable 0649
+public struct S
+{
+    public object? P { get; set; }
+}
+class C
+{
+    S F;
+    void M()
+    {
+        object o;
+        o = F.P; // 1
+        F.P = new object();
+        o = F.P; // 2
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8601: Possible null reference assignment.
+                //         o = F.P; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F.P").WithLocation(12, 13));
+        }
+
+        [Fact]
         public void ModifyMembers_StructPropertyFromMetadata()
         {
             var source0 =

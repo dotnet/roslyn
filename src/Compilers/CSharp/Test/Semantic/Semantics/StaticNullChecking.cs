@@ -16808,7 +16808,9 @@ class A : System.Attribute
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17));
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Should not report warning for
+        // c.ToString(); // 3
+        [Fact(Skip = "TODO")]
         public void UnassignedOutParameterClass()
         {
             var source =
@@ -16830,10 +16832,7 @@ class A : System.Attribute
                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "c").WithArguments("c").WithLocation(5, 9),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         c.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9),
-                // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         c.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9));
         }
 
         [Fact]
@@ -16990,6 +16989,29 @@ struct S
 @"class C
 {
     object? P { get; }
+    void M(out object o)
+    {
+        o = P;
+        P.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8601: Possible null reference assignment.
+                //         o = P;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void UnassignedClassAutoProperty_Constructor()
+        {
+            var source =
+@"class C
+{
+    object? P { get; }
     C(out object o)
     {
         o = P;
@@ -17008,6 +17030,29 @@ struct S
 
         [Fact]
         public void UnassignedStructAutoProperty()
+        {
+            var source =
+@"struct S
+{
+    object? P { get; }
+    void M(out object o)
+    {
+        o = P;
+        P.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8601: Possible null reference assignment.
+                //         o = P;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void UnassignedStructAutoProperty_Constructor()
         {
             var source =
 @"struct S

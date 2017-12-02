@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false)
-            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments)
+            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
             HashSet<Symbol> initiallyAssignedVariables = null)
-            : base(compilation, member, node, emptyStructs ?? new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments)
+            : base(compilation, member, node, emptyStructs ?? new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
