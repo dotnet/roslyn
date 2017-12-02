@@ -73,11 +73,6 @@
     <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
 
-    <!-- When building WPF / VSIX projects MSBuild will create a temporary project with an extension of
-         tmp_proj.  In that case the SDK is unable to determine the target language and cannot pick
-         the correct import.  Need to set it explicitly here. -->
-    <LanguageTargets Condition="'$(ProjectLanguage)' != ''">$(MSBuildToolsPath)\Microsoft.$(ProjectLanguage).targets</LanguageTargets>
-
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
          that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
          Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
@@ -235,6 +230,31 @@
     https://github.com/dotnet/roslyn/issues/21725
    -->
   <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == '' AND '$(OS)' == 'Windows_NT'" />
+
+  <!--
+      When building WPF projects MSBuild will create a temporary project with an extension of
+      tmp_proj.  In that case the SDK is unable to determine the target language and cannot pick
+      the correct import. Need to set it explicitly here.
+      See https://github.com/dotnet/project-system/issues/1467
+    -->
+  <Choose>
+    <When Condition="'$(MSBuildProjectExtension)' != '.csproj' and '$(MSBuildProjectExtension)' != '.vbproj' and '$(MSBuildProjectExtension)' != '.shproj'">
+      <Choose>
+        <When Condition="$(AssemblyName.Contains('Basic'))">
+          <PropertyGroup>
+            <Language>VB</Language>
+            <LanguageTargets>$(MSBuildToolsPath)\Microsoft.VisualBasic.targets</LanguageTargets>
+          </PropertyGroup>
+        </When>
+        <Otherwise>
+          <PropertyGroup>
+            <Language>C#</Language>
+            <LanguageTargets>$(MSBuildToolsPath)\Microsoft.CSharp.targets</LanguageTargets>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+  </Choose>
 
   <!-- 
     Language specifc settings 
