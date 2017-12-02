@@ -208,8 +208,7 @@
     </SuggestedBindingRedirects>
   </ItemGroup>
 
-  <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(RoslynSdkProject)' == 'true'" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\'to '/', even when the '\'
@@ -523,7 +522,7 @@
       -->
     <Error 
       Text="The $(ShortSdkVersion) SDK is required to build this repo. It can be install here https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe"
-      Condition="'$(UsingMicrosoftNETSdk)' == '' AND '$(RoslynSdkProject)' == 'true'" />
+      Condition="'$(UsingMicrosoftNETSdk)' == ''" />
   </Target> 
 
   <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around

@@ -135,6 +135,7 @@
     <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
 
     <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
 
     <!-- It is only intended to automatically run update during dev cycle. However, It will fail the build on CI if the XLF file is not updated.
          XLF file should be checked in and loc team will update the XLF it with translated version.
@@ -210,11 +211,7 @@
              AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
              Condition="'$(OS)' == 'Windows_NT'" />
 
-  <!-- This file is imported by all projects at the beginning of the project files -->
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
-          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(RoslynSdkProject)' != 'true'" />
-
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(RoslynSdkProject)' == 'true'" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
 

@@ -183,7 +183,7 @@ function Make-BootstrapBuild() {
 function Build-Artifacts() { 
     Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
 
-    if ($testDesktop) { 
+    if ($testDesktop -or $buildAll) { 
         Run-MSBuild "src\Samples\Samples.sln" "/p:DeployExtension=false"
     }
 
