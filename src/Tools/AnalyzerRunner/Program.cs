@@ -94,7 +94,7 @@ namespace AnalyzerRunner
 
                 stopwatch.Restart();
 
-                var analysisResult = await GetAnalysisResultAsync(solution, options.SolutionPath, analyzers, options, cancellationToken).ConfigureAwait(true);
+                var analysisResult = await GetAnalysisResultAsync(solution, analyzers, options, cancellationToken).ConfigureAwait(true);
                 var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectMany(pair => pair.Value.GetAllDiagnostics()).ToImmutableArray();
 
                 Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.ElapsedMilliseconds}ms");
@@ -312,7 +312,6 @@ namespace AnalyzerRunner
 
         private static async Task<ImmutableDictionary<ProjectId, AnalysisResult>> GetAnalysisResultAsync(
             Solution solution,
-            string solutionPath,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             Options options,
             CancellationToken cancellationToken)
