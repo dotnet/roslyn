@@ -17,6 +17,7 @@ namespace AnalyzerRunner
         public readonly bool ReportSuppressedDiagnostics;
         public readonly bool ShowStats;
         public readonly bool UseAll;
+        public readonly int Iterations;
         public readonly bool TestDocuments;
         public readonly Func<string, bool> TestDocumentMatch;
         public readonly int TestDocumentIterations;
@@ -30,6 +31,7 @@ namespace AnalyzerRunner
             bool reportSuppressedDiagnostics,
             bool showStats,
             bool useAll,
+            int iterations,
             bool testDocuments,
             Func<string, bool> testDocumentMatch,
             int testDocumentIterations,
@@ -42,6 +44,7 @@ namespace AnalyzerRunner
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             ShowStats = showStats;
             UseAll = useAll;
+            Iterations = iterations;
             TestDocuments = testDocuments;
             TestDocumentMatch = testDocumentMatch;
             TestDocumentIterations = testDocumentIterations;
@@ -57,6 +60,7 @@ namespace AnalyzerRunner
             bool reportSuppressedDiagnostics = false;
             bool showStats = false;
             bool useAll = false;
+            int iterations = 1;
             bool testDocuments = false;
             Func<string, bool> testDocumentMatch = _ => true;
             int testDocumentIterations = 10;
@@ -89,6 +93,9 @@ namespace AnalyzerRunner
                         break;
                     case var _ when arg.StartsWith("/edititer:"):
                         testDocumentIterations = int.Parse(arg.Substring("/edititer:".Length));
+                        break;
+                    case var _ when arg.StartsWith("/iter:"):
+                        iterations = int.Parse(arg.Substring("/iter:".Length));
                         break;
                     case "/suppressed":
                         reportSuppressedDiagnostics = true;
@@ -136,6 +143,7 @@ namespace AnalyzerRunner
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
                 showStats: showStats,
                 useAll: useAll,
+                iterations: iterations,
                 testDocuments: testDocuments,
                 testDocumentMatch: testDocumentMatch,
                 testDocumentIterations: testDocumentIterations,

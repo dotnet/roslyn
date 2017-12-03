@@ -317,37 +317,49 @@ namespace AnalyzerRunner
             Options options,
             CancellationToken cancellationToken)
         {
-            List<KeyValuePair<ProjectId, Task<AnalysisResult>>> projectDiagnosticTasks = new List<KeyValuePair<ProjectId, Task<AnalysisResult>>>();
+            var projectDiagnosticBuilder = ImmutableDictionary.CreateBuilder<ProjectId, AnalysisResult>();
 
-            // Make sure we analyze the projects in parallel
-            foreach (var project in solution.Projects)
+            for (var i = 0; i < options.Iterations; i++)
             {
-                // TODO The tool support CSharp projects for now. It should support VB/FSharp as well
-                // https://github.com/dotnet/roslyn/issues/23108
-                if (project.Language != LanguageNames.CSharp)
+                var projectDiagnosticTasks = new List<KeyValuePair<ProjectId, Task<AnalysisResult>>>();
+
+                // Make sure we analyze the projects in parallel
+                foreach (var project in solution.Projects)
                 {
-                    continue;
+                    // TODO The tool support CSharp projects for now. It should support VB/FSharp as well
+                    // https://github.com/dotnet/roslyn/issues/23108
+                    if (project.Language != LanguageNames.CSharp)
+                    {
+                        continue;
+                    }
+
+                    projectDiagnosticTasks.Add(new KeyValuePair<ProjectId, Task<AnalysisResult>>(
+                        project.Id,
+                        GetProjectAnalysisResultAsync(
+                            analyzers,
+                            project,
+                            options,
+                            cancellationToken)));
                 }
 
-                projectDiagnosticTasks.Add(new KeyValuePair<ProjectId, Task<AnalysisResult>>(
-                    project.Id,
-                    GetProjectAnalysisResultAsync(
-                        analyzers,
-                        project,
-                        options,
-                        cancellationToken)));
-            }
-
-            ImmutableDictionary<ProjectId, AnalysisResult>.Builder projectDiagnosticBuilder = ImmutableDictionary.CreateBuilder<ProjectId, AnalysisResult>();
-            foreach (var task in projectDiagnosticTasks)
-            {
-                var result = await task.Value.ConfigureAwait(false);
-                if (result == null)
+                foreach (var task in projectDiagnosticTasks)
                 {
-                    continue;
-                }
+                    var result = await task.Value.ConfigureAwait(false);
+                    if (result == null)
+                    {
+                        continue;
+                    }
 
-                projectDiagnosticBuilder.Add(task.Key, result);
+                    if (projectDiagnosticBuilder.TryGetValue(task.Key, out var previousResult))
+                    {
+                        foreach (var pair in previousResult.AnalyzerTelemetryInfo)
+                        {
+                            result.AnalyzerTelemetryInfo[pair.Key].ExecutionTime += pair.Value.ExecutionTime;
+                        }
+                    }
+
+                    projectDiagnosticBuilder[task.Key] = result;
+                }
             }
 
             return projectDiagnosticBuilder.ToImmutable();
