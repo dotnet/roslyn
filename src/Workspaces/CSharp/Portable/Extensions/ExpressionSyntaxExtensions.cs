@@ -1009,6 +1009,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            // Avoid the TryReplaceWithAlias algorithm if the tree has no using alias directives. Since the input node
+            // might be a speculative node (not fully rooted in a tree), we use the position of the evaluation to find
+            // the equivalent node in the original tree, and from there determine if the tree has any using alias
+            // directives.
+            if (semanticModel.SyntaxTree.TryGetRoot(out var root))
+            {
+                var token = root.FindTokenOnLeftOfPosition(node.SpanStart);
+                var tokenParent = token.Parent;
+                var aliasContainer = tokenParent?.FirstAncestorOrSelf<SyntaxNode>(
+                    syntax =>
+                    {
+                        SyntaxList<UsingDirectiveSyntax> usings;
+                        if (syntax.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
+                        {
+                            usings = namespaceDeclaration.Usings;
+                        }
+                        else if (syntax.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
+                        {
+                            usings = compilationUnit.Usings;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
+                        foreach (var usingDirective in usings)
+                        {
+                            if (usingDirective.Alias != null)
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    });
+                if (tokenParent != null && aliasContainer == null)
+                {
+                    return false;
+                }
+            }
+
             var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
             // If the Symbol is a constructor get its containing type
