@@ -235,12 +235,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async Task<PinnedRemotableDataScope> GetPinnedScopeAsync(this Solution solution, CancellationToken cancellationToken)
+        public static Task<PinnedRemotableDataScope> GetPinnedScopeAsync(this Solution solution, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
 
             var service = solution.Workspace.Services.GetService<IRemotableDataService>();
-            return await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+            return service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken);
         }
 
         public static Task<SessionWithSolution> TryCreateCodeAnalysisSessionAsync(

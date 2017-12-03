@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return workspace.CurrentSolution;
         }
 
-        async Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, CancellationToken cancellationToken)
+        Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, CancellationToken cancellationToken)
         {
-            return await GetSolutionInternalAsync(solutionChecksum, primary, cancellationToken).ConfigureAwait(false);
+            return GetSolutionInternalAsync(solutionChecksum, primary, cancellationToken);
         }
 
         async Task ISolutionController.UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)

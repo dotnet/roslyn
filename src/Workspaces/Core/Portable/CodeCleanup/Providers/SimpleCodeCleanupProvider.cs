@@ -31,13 +31,18 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         public string Name { get; }
 
-        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+        public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             if (_documentDelegatee != null)
             {
-                return await _documentDelegatee(document, spans, cancellationToken).ConfigureAwait(false);
+                return _documentDelegatee(document, spans, cancellationToken);
             }
 
+            return CleanupCoreAsync(document, spans, cancellationToken);
+        }
+
+        private async Task<Document> CleanupCoreAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+        {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = _syntaxDelegatee(root, spans, document.Project.Solution.Workspace, cancellationToken);
 
