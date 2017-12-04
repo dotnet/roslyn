@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -80,25 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-            if (this.ReturnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
-            }
-
-            if (ReturnType.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
-                compilation.CanEmitSpecialType(SpecialType.System_String))
-            {
-                AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(ReturnType));
-            }
-        }
-
         internal sealed override bool GenerateDebugInfo
         {
             get { return _generateDebugInfo; }
@@ -114,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _interfaceMethod.RefKind; }
         }

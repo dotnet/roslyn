@@ -448,6 +448,7 @@ namespace BuildBoss
                     case "netcoreapp1.1":
                     case "netcoreapp2.0":
                     case "$(RoslynPortableTargetFrameworks)":
+                    case "$(RoslynPortableTargetFrameworks46)":
                         break;
                     default:
                         textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");

@@ -135,6 +135,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
         End Sub
 
+        Public Overloads Sub SendTypeChars(typeChars As String)
+            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TypeCharCommandArgs))
+            MyBase.SendTypeChars(typeChars, AddressOf handler.ExecuteCommand)
+        End Sub
+
         Private Class MockOrderableContentTypeMetadata
             Inherits OrderableContentTypeMetadata
 

@@ -11272,7 +11272,7 @@ Class C
 End Class
     ]]></file>
 </compilation>)
-            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=False)
+            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=Verification.Passes)
         End Sub
 
         <Fact()>
@@ -13664,6 +13664,173 @@ End Module
   IL_002f:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestExplicitDoubleConversionEmitted()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Double = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return CDbl(dValue) > CDbl(dValue + CDbl(10 ^ -mbytDeciWgt))
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (Double V_0, //dValue
+                Byte V_1) //mbytDeciWgt
+  IL_0000:  ldc.r8     600.1
+  IL_0009:  stloc.0
+  IL_000a:  ldc.i4.1
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.0
+  IL_000d:  conv.r8
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.r8     10
+  IL_0018:  ldloc.1
+  IL_0019:  neg
+  IL_001a:  conv.ovf.i2
+  IL_001b:  conv.r8
+  IL_001c:  call       "Function System.Math.Pow(Double, Double) As Double"
+  IL_0021:  conv.r8
+  IL_0022:  add
+  IL_0023:  conv.r8
+  IL_0024:  cgt
+  IL_0026:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestImplicitDoubleConversionEmitted()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Double = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return dValue > dValue + (10 ^ -mbytDeciWgt)
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  4
+  .locals init (Byte V_0) //mbytDeciWgt
+  IL_0000:  ldc.r8     600.1
+  IL_0009:  ldc.i4.1
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  ldc.r8     10
+  IL_0015:  ldloc.0
+  IL_0016:  neg
+  IL_0017:  conv.ovf.i2
+  IL_0018:  conv.r8
+  IL_0019:  call       "Function System.Math.Pow(Double, Double) As Double"
+  IL_001e:  add
+  IL_001f:  cgt
+  IL_0021:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestExplicitSingleConversionEmitted()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Single = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return CSng(dValue) > CSng(dValue + CSng(10 ^ -mbytDeciWgt))
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (Single V_0, //dValue
+                Byte V_1) //mbytDeciWgt
+  IL_0000:  ldc.r4     600.1
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  conv.r4
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.r8     10
+  IL_0014:  ldloc.1
+  IL_0015:  neg
+  IL_0016:  conv.ovf.i2
+  IL_0017:  conv.r8
+  IL_0018:  call       "Function System.Math.Pow(Double, Double) As Double"
+  IL_001d:  conv.r4
+  IL_001e:  add
+  IL_001f:  conv.r4
+  IL_0020:  cgt
+  IL_0022:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestExplicitSingleConversionNotEmittedOnConstantValue()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Single = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return CSng(dValue) > CSng(CSng(600) + CSng(0.1))
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldc.r4     600.1
+  IL_0005:  conv.r4
+  IL_0006:  ldc.r4     600.1
+  IL_000b:  cgt
+  IL_000d:  ret
+}
+]]>)
+
         End Sub
     End Class
 End Namespace

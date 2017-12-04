@@ -1095,5 +1095,91 @@ class Program
             string expectedOutput = @"1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")]
+        public void TestDoubleConversionEmitted()
+        {
+            var source = @"
+class Program
+{
+
+    static bool M()
+    {
+        double dValue = 600.1;
+        int iValue = 600;
+        byte mbytDeciWgt = 1;
+        bool value = (dValue > iValue + (10 ^ -mbytDeciWgt));
+        return value;
+    }
+}
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyIL("Program.M",
+@"{
+  // Code size       28 (0x1c)
+  .maxstack  4
+  .locals init (int V_0, //iValue
+                byte V_1) //mbytDeciWgt
+  IL_0000:  ldc.r8     600.1
+  IL_0009:  ldc.i4     0x258
+  IL_000e:  stloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.0
+  IL_0012:  ldc.i4.s   10
+  IL_0014:  ldloc.1
+  IL_0015:  neg
+  IL_0016:  xor
+  IL_0017:  add
+  IL_0018:  conv.r8
+  IL_0019:  cgt
+  IL_001b:  ret
+}");
+        }
+
+        [Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")]
+        public void TestExplicitDoubleConversionEmitted()
+        {
+            var source = @"
+class Program
+{
+
+    static bool M()
+    {
+        double dValue = 600.1;
+        int iValue = 600;
+        byte mbytDeciWgt = 1;
+        bool value = ((double)dValue > (double)((double)iValue + (double)System.Math.Pow(10, -mbytDeciWgt)));
+        return value;
+    }
+}
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyIL("Program.M",
+@"{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (int V_0, //iValue
+                byte V_1) //mbytDeciWgt
+  IL_0000:  ldc.r8     600.1
+  IL_0009:  ldc.i4     0x258
+  IL_000e:  stloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  stloc.1
+  IL_0011:  conv.r8
+  IL_0012:  ldloc.0
+  IL_0013:  conv.r8
+  IL_0014:  ldc.r8     10
+  IL_001d:  ldloc.1
+  IL_001e:  neg
+  IL_001f:  conv.r8
+  IL_0020:  call       ""double System.Math.Pow(double, double)""
+  IL_0025:  conv.r8
+  IL_0026:  add
+  IL_0027:  conv.r8
+  IL_0028:  cgt
+  IL_002a:  ret
+}");
+        }
     }
 }

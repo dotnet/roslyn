@@ -92,5 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return _attributes;
         }
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
     }
 }

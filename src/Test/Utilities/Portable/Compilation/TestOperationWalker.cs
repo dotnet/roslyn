@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Semantics;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -37,55 +41,56 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var syntax = operation.Syntax;
                 var type = operation.Type;
                 var constantValue = operation.ConstantValue;
-                var isInvlid = operation.IsInvalid;
+                var language = operation.Language;
             }
             base.Visit(operation);
         }
 
-        public override void VisitBlockStatement(IBlockStatement operation)
+        public override void VisitBlock(IBlockOperation operation)
         {
             foreach (var local in operation.Locals)
             {
                 // empty loop body, just want to make sure it won't crash.
             }
 
-            base.VisitBlockStatement(operation);
+            base.VisitBlock(operation);
         }
 
-        public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
+        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
-            base.VisitVariableDeclarationStatement(operation);
+            base.VisitVariableDeclarationGroup(operation);
         }
 
-        public override void VisitVariableDeclaration(IVariableDeclaration operation)
+        public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
         {
-            foreach (var symbol in operation.Variables)
-            {
-                // empty loop body, just want to make sure it won't crash.
-            }
+            var symbol = operation.Symbol;
 
+            base.VisitVariableDeclarator(operation);
+        }
+
+        public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
+        {
             base.VisitVariableDeclaration(operation);
         }
 
-        public override void VisitSwitchStatement(ISwitchStatement operation)
+        public override void VisitSwitch(ISwitchOperation operation)
         {
-            base.VisitSwitchStatement(operation);
+            base.VisitSwitch(operation);
         }
 
-        public override void VisitSwitchCase(ISwitchCase operation)
+        public override void VisitSwitchCase(ISwitchCaseOperation operation)
         {
             base.VisitSwitchCase(operation);
         }
 
-        public override void VisitSingleValueCaseClause(ISingleValueCaseClause operation)
+        public override void VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation)
         {
             var caseKind = operation.CaseKind;
-            var equality = operation.Equality;
 
             base.VisitSingleValueCaseClause(operation);
         }
 
-        public override void VisitRelationalCaseClause(IRelationalCaseClause operation)
+        public override void VisitRelationalCaseClause(IRelationalCaseClauseOperation operation)
         {
             var caseKind = operation.CaseKind;
             var relation = operation.Relation;
@@ -93,126 +98,133 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitRelationalCaseClause(operation);
         }
 
-        public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
+        public override void VisitDefaultCaseClause(IDefaultCaseClauseOperation operation)
         {
-            var loopKind = operation.LoopKind;
-            var isTopTest = operation.IsTopTest;
-            var isWhile = operation.IsWhile;
-
-            base.VisitWhileUntilLoopStatement(operation);
+            base.VisitDefaultCaseClause(operation);
         }
 
-        public override void VisitForLoopStatement(IForLoopStatement operation)
+        private void WalkLoop(ILoopOperation operation)
         {
             var loopKind = operation.LoopKind;
             foreach (var local in operation.Locals)
             {
                 // empty loop body, just want to make sure it won't crash.
             }
-
-            base.VisitForLoopStatement(operation);
         }
 
-        public override void VisitForEachLoopStatement(IForEachLoopStatement operation)
+        public override void VisitWhileLoop(IWhileLoopOperation operation)
         {
-            var loopKind = operation.LoopKind;
-            var iteraionVariable = operation.IterationVariable;
+            var conditionIsTop = operation.ConditionIsTop;
+            var conditionIsUntil = operation.ConditionIsUntil;
+            WalkLoop(operation);
 
-            base.VisitForEachLoopStatement(operation);
+            base.VisitWhileLoop(operation);
         }
 
-        public override void VisitLabelStatement(ILabelStatement operation)
+        public override void VisitForLoop(IForLoopOperation operation)
+        {
+            WalkLoop(operation);
+
+            base.VisitForLoop(operation);
+        }
+
+        public override void VisitForToLoop(IForToLoopOperation operation)
+        {
+            WalkLoop(operation);
+
+            base.VisitForToLoop(operation);
+        }
+
+        public override void VisitForEachLoop(IForEachLoopOperation operation)
+        {
+            WalkLoop(operation);
+
+            base.VisitForEachLoop(operation);
+        }
+
+        public override void VisitLabeled(ILabeledOperation operation)
         {
             var label = operation.Label;
 
-            base.VisitLabelStatement(operation);
+            base.VisitLabeled(operation);
         }
 
-        public override void VisitBranchStatement(IBranchStatement operation)
+        public override void VisitBranch(IBranchOperation operation)
         {
             var target = operation.Target;
             var branchKind = operation.BranchKind;
 
-            base.VisitBranchStatement(operation);
+            base.VisitBranch(operation);
         }
 
-        public override void VisitYieldBreakStatement(IReturnStatement operation)
+        public override void VisitEmpty(IEmptyOperation operation)
         {
-            base.VisitYieldBreakStatement(operation);
+            base.VisitEmpty(operation);
         }
 
-        public override void VisitEmptyStatement(IEmptyStatement operation)
+        public override void VisitReturn(IReturnOperation operation)
         {
-            base.VisitEmptyStatement(operation);
+            base.VisitReturn(operation);
         }
 
-        public override void VisitThrowStatement(IThrowStatement operation)
+        public override void VisitLock(ILockOperation operation)
         {
-            base.VisitThrowStatement(operation);
+            base.VisitLock(operation);
         }
 
-        public override void VisitReturnStatement(IReturnStatement operation)
+        public override void VisitTry(ITryOperation operation)
         {
-            base.VisitReturnStatement(operation);
+            base.VisitTry(operation);
         }
 
-        public override void VisitLockStatement(ILockStatement operation)
+        public override void VisitCatchClause(ICatchClauseOperation operation)
         {
-            base.VisitLockStatement(operation);
-        }
-
-        public override void VisitTryStatement(ITryStatement operation)
-        {
-            base.VisitTryStatement(operation);
-        }
-
-        public override void VisitCatchClause(ICatchClause operation)
-        {
-            var caughtType = operation.CaughtType;
-            var exceptionLocal = operation.ExceptionLocal;
+            var exceptionType = operation.ExceptionType;
+            var locals = operation.Locals;
 
             base.VisitCatchClause(operation);
         }
 
-        public override void VisitUsingStatement(IUsingStatement operation)
+        public override void VisitUsing(IUsingOperation operation)
         {
-            base.VisitUsingStatement(operation);
+            base.VisitUsing(operation);
         }
 
-        public override void VisitFixedStatement(IFixedStatement operation)
+        // https://github.com/dotnet/roslyn/issues/21281
+        internal override void VisitFixed(IFixedOperation operation)
         {
-            base.VisitFixedStatement(operation);
+            base.VisitFixed(operation);
         }
 
-        public override void VisitExpressionStatement(IExpressionStatement operation)
+        public override void VisitExpressionStatement(IExpressionStatementOperation operation)
         {
             base.VisitExpressionStatement(operation);
         }
 
-        public override void VisitWithStatement(IWithStatement operation)
+        internal override void VisitWith(IWithOperation operation)
         {
-            base.VisitWithStatement(operation);
+            base.VisitWith(operation);
         }
 
-        public override void VisitStopStatement(IStopStatement operation)
+        public override void VisitStop(IStopOperation operation)
         {
-            base.VisitStopStatement(operation);
+            base.VisitStop(operation);
         }
 
-        public override void VisitEndStatement(IEndStatement operation)
+        public override void VisitEnd(IEndOperation operation)
         {
-            base.VisitEndStatement(operation);
+            base.VisitEnd(operation);
         }
 
-        public override void VisitInvocationExpression(IInvocationExpression operation)
+        public override void VisitInvocation(IInvocationOperation operation)
         {
             var targetMethod = operation.TargetMethod;
             var isVirtual = operation.IsVirtual;
 
-            base.VisitInvocationExpression(operation);
+            base.VisitInvocation(operation);
         }
 
-        public override void VisitArgument(IArgument operation)
+        public override void VisitArgument(IArgumentOperation operation)
         {
             var argumentKind = operation.ArgumentKind;
             var parameter = operation.Parameter;
@@ -220,204 +232,267 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitArgument(operation);
         }
 
-        public override void VisitOmittedArgumentExpression(IOmittedArgumentExpression operation)
+        public override void VisitOmittedArgument(IOmittedArgumentOperation operation)
         {
-            base.VisitOmittedArgumentExpression(operation);
+            base.VisitOmittedArgument(operation);
         }
 
-        public override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        public override void VisitArrayElementReference(IArrayElementReferenceOperation operation)
         {
-            base.VisitArrayElementReferenceExpression(operation);
+            base.VisitArrayElementReference(operation);
         }
 
-        public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
         {
-            base.VisitPointerIndirectionReferenceExpression(operation);
+            base.VisitPointerIndirectionReference(operation);
         }
 
-        public override void VisitLocalReferenceExpression(ILocalReferenceExpression operation)
+        public override void VisitLocalReference(ILocalReferenceOperation operation)
         {
             var local = operation.Local;
+            var isDeclaration = operation.IsDeclaration;
 
-            base.VisitLocalReferenceExpression(operation);
+            base.VisitLocalReference(operation);
         }
 
-        public override void VisitParameterReferenceExpression(IParameterReferenceExpression operation)
+        public override void VisitParameterReference(IParameterReferenceOperation operation)
         {
             var parameter = operation.Parameter;
 
-            base.VisitParameterReferenceExpression(operation);
+            base.VisitParameterReference(operation);
         }
 
-        public override void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
+        public override void VisitInstanceReference(IInstanceReferenceOperation operation)
         {
-            var syntheticLocalKind = operation.SyntheticLocalKind;
-            var containingStatement = operation.ContainingStatement;
-
-            base.VisitSyntheticLocalReferenceExpression(operation);
+            base.VisitInstanceReference(operation);
         }
 
-        public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
-        {
-            var instanceReferenceKind = operation.InstanceReferenceKind;
-
-            base.VisitInstanceReferenceExpression(operation);
-        }
-
-        public override void VisitFieldReferenceExpression(IFieldReferenceExpression operation)
+        public override void VisitFieldReference(IFieldReferenceOperation operation)
         {
             var member = operation.Member;
             var field = operation.Field;
 
-            base.VisitFieldReferenceExpression(operation);
+            base.VisitFieldReference(operation);
         }
 
-        public override void VisitMethodBindingExpression(IMethodBindingExpression operation)
+        public override void VisitMethodReference(IMethodReferenceOperation operation)
         {
             var member = operation.Member;
             var method = operation.Method;
 
-            base.VisitMethodBindingExpression(operation);
+            base.VisitMethodReference(operation);
         }
 
-        public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
+        public override void VisitPropertyReference(IPropertyReferenceOperation operation)
         {
             var member = operation.Member;
             var property = operation.Property;
 
-            base.VisitPropertyReferenceExpression(operation);
+            base.VisitPropertyReference(operation);
         }
 
-        public override void VisitEventReferenceExpression(IEventReferenceExpression operation)
+        public override void VisitEventReference(IEventReferenceOperation operation)
         {
             var member = operation.Member;
             var eventSymbol = operation.Event;
 
-            base.VisitEventReferenceExpression(operation);
+            base.VisitEventReference(operation);
         }
 
-        public override void VisitEventAssignmentExpression(IEventAssignmentExpression operation)
+        public override void VisitEventAssignment(IEventAssignmentOperation operation)
         {
-            var eventSymbol = operation.Event;
             var adds = operation.Adds;
 
-            base.VisitEventAssignmentExpression(operation);
+            base.VisitEventAssignment(operation);
         }
 
-        public override void VisitConditionalAccessExpression(IConditionalAccessExpression operation)
+        public override void VisitConditionalAccess(IConditionalAccessOperation operation)
         {
-            base.VisitConditionalAccessExpression(operation);
+            base.VisitConditionalAccess(operation);
         }
 
-        public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
+        public override void VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation)
         {
-            base.VisitConditionalAccessInstanceExpression(operation);
+            base.VisitConditionalAccessInstance(operation);
         }
 
-        public override void VisitPlaceholderExpression(IPlaceholderExpression operation)
+        internal override void VisitPlaceholder(IPlaceholderOperation operation)
         {
-            base.VisitPlaceholderExpression(operation);
+            base.VisitPlaceholder(operation);
         }
 
-        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
+        public override void VisitUnaryOperator(IUnaryOperation operation)
         {
-            var member = operation.Member;
-            var property = operation.Property;
-
-            base.VisitIndexedPropertyReferenceExpression(operation);
-        }
-
-        public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
-        {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var unaryOperationKind = operation.UnaryOperationKind;
+            var unaryOperationKind = operation.OperatorKind;
+            var isLifted = operation.IsLifted;
+            var isChecked = operation.IsChecked;
 
-            base.VisitUnaryOperatorExpression(operation);
+            base.VisitUnaryOperator(operation);
         }
 
-        public override void VisitBinaryOperatorExpression(IBinaryOperatorExpression operation)
+        public override void VisitBinaryOperator(IBinaryOperation operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
+            var binaryOperationKind = operation.OperatorKind;
+            var isLifted = operation.IsLifted;
+            var isChecked = operation.IsChecked;
+            var isCompareText = operation.IsCompareText;
 
-            base.VisitBinaryOperatorExpression(operation);
+            base.VisitBinaryOperator(operation);
         }
 
-        public override void VisitConversionExpression(IConversionExpression operation)
+        public override void VisitConversion(IConversionOperation operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var converisionKind = operation.ConversionKind;
-            var isExplicit = operation.IsExplicit;
+            var conversion = operation.Conversion;
+            var isChecked = operation.IsChecked;
+            var isTryCast = operation.IsTryCast;
+            switch (operation.Language)
+            {
+                case LanguageNames.CSharp:
+                    CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
+                    break;
+                case LanguageNames.VisualBasic:
+                    VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
+                    break;
+                default:
+                    Debug.Fail($"Language {operation.Language} is unknown!");
+                    break;
+            }
 
-            base.VisitConversionExpression(operation);
+            base.VisitConversion(operation);
         }
 
-        public override void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public override void VisitConditional(IConditionalOperation operation)
         {
-            base.VisitConditionalChoiceExpression(operation);
+            bool isRef = operation.IsRef;
+            base.VisitConditional(operation);
         }
 
-        public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public override void VisitCoalesce(ICoalesceOperation operation)
         {
-            base.VisitNullCoalescingExpression(operation);
+            base.VisitCoalesce(operation);
         }
 
-        public override void VisitIsTypeExpression(IIsTypeExpression operation)
+        public override void VisitIsType(IIsTypeOperation operation)
         {
-            var isType = operation.IsType;
+            var isType = operation.TypeOperand;
 
-            base.VisitIsTypeExpression(operation);
+            base.VisitIsType(operation);
         }
 
-        public override void VisitSizeOfExpression(ISizeOfExpression operation)
+        public override void VisitSizeOf(ISizeOfOperation operation)
         {
             var typeOperand = operation.TypeOperand;
 
-            base.VisitSizeOfExpression(operation);
+            base.VisitSizeOf(operation);
         }
 
-        public override void VisitTypeOfExpression(ITypeOfExpression operation)
+        public override void VisitTypeOf(ITypeOfOperation operation)
         {
             var typeOperand = operation.TypeOperand;
 
-            base.VisitTypeOfExpression(operation);
+            base.VisitTypeOf(operation);
         }
 
-        public override void VisitLambdaExpression(ILambdaExpression operation)
+        public override void VisitAnonymousFunction(IAnonymousFunctionOperation operation)
         {
-            var signature = operation.Signature;
+            var signature = operation.Symbol;
 
-            base.VisitLambdaExpression(operation);
+            base.VisitAnonymousFunction(operation);
         }
 
-        public override void VisitLiteralExpression(ILiteralExpression operation)
+        public override void VisitLocalFunction(ILocalFunctionOperation operation)
         {
-            var text = operation.Text;
+            var localFunction = operation.Symbol;
 
-            base.VisitLiteralExpression(operation);
+            base.VisitLocalFunction(operation);
         }
 
-        public override void VisitAwaitExpression(IAwaitExpression operation)
+        public override void VisitLiteral(ILiteralOperation operation)
         {
-            base.VisitAwaitExpression(operation);
+            base.VisitLiteral(operation);
         }
 
-        public override void VisitAddressOfExpression(IAddressOfExpression operation)
+        public override void VisitAwait(IAwaitOperation operation)
         {
-            base.VisitAddressOfExpression(operation);
+            base.VisitAwait(operation);
         }
 
-        public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
+        public override void VisitNameOf(INameOfOperation operation)
+        {
+            base.VisitNameOf(operation);
+        }
+
+        public override void VisitThrow(IThrowOperation operation)
+        {
+            base.VisitThrow(operation);
+        }
+
+        public override void VisitAddressOf(IAddressOfOperation operation)
+        {
+            base.VisitAddressOf(operation);
+        }
+
+        public override void VisitObjectCreation(IObjectCreationOperation operation)
         {
             var ctor = operation.Constructor;
 
-            base.VisitObjectCreationExpression(operation);
+            base.VisitObjectCreation(operation);
         }
 
-        public override void VisitFieldInitializer(IFieldInitializer operation)
+        public override void VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation)
+        {
+            base.VisitAnonymousObjectCreation(operation);
+        }
+
+        private void VisitDynamicArguments(HasDynamicArgumentsExpression operation)
+        {
+            var names = operation.ArgumentNames;
+            var refKinds = operation.ArgumentRefKinds;
+        }
+
+        public override void VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicObjectCreation(operation);
+        }
+
+        public override void VisitDynamicInvocation(IDynamicInvocationOperation operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicInvocation(operation);
+        }
+
+        public override void VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicIndexerAccess(operation);
+        }
+
+        public override void VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation)
+        {
+            base.VisitObjectOrCollectionInitializer(operation);
+        }
+
+        public override void VisitMemberInitializer(IMemberInitializerOperation operation)
+        {
+            base.VisitMemberInitializer(operation);
+        }
+
+        public override void VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation)
+        {
+            var addMethod = operation.AddMethod;
+            var isDynamic = operation.IsDynamic;
+
+            base.VisitCollectionElementInitializer(operation);
+        }
+
+        public override void VisitFieldInitializer(IFieldInitializerOperation operation)
         {
             foreach (var field in operation.InitializedFields)
             {
@@ -426,91 +501,150 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitFieldInitializer(operation);
         }
 
-        public override void VisitPropertyInitializer(IPropertyInitializer operation)
+        public override void VisitVariableInitializer(IVariableInitializerOperation operation)
         {
-            var initializedProperty = operation.InitializedProperty;
+            base.VisitVariableInitializer(operation);
+        }
+
+        public override void VisitPropertyInitializer(IPropertyInitializerOperation operation)
+        {
+            var initializedProperty = operation.InitializedProperties;
 
             base.VisitPropertyInitializer(operation);
         }
 
-        public override void VisitParameterInitializer(IParameterInitializer operation)
+        public override void VisitParameterInitializer(IParameterInitializerOperation operation)
         {
             var parameter = operation.Parameter;
 
             base.VisitParameterInitializer(operation);
         }
 
-        public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
+        public override void VisitArrayCreation(IArrayCreationOperation operation)
         {
-            var elementType = operation.ElementType;
-
-            base.VisitArrayCreationExpression(operation);
+            base.VisitArrayCreation(operation);
         }
 
-        public override void VisitArrayInitializer(IArrayInitializer operation)
+        public override void VisitArrayInitializer(IArrayInitializerOperation operation)
         {
             base.VisitArrayInitializer(operation);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
         {
-            base.VisitAssignmentExpression(operation);
+            bool isRef = operation.IsRef;
+            base.VisitSimpleAssignment(operation);
         }
 
-        public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
+        public override void VisitCompoundAssignment(ICompoundAssignmentOperation operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
+            var binaryOperationKind = operation.OperatorKind;
+            var inConversion = operation.InConversion;
+            var outConversion = operation.OutConversion;
 
-            base.VisitCompoundAssignmentExpression(operation);
+            if (operation.Syntax.Language == LanguageNames.CSharp)
+            {
+                Assert.Throws<ArgumentException>("compoundAssignment", () => VisualBasic.VisualBasicExtensions.GetInConversion(operation));
+                Assert.Throws<ArgumentException>("compoundAssignment", () => VisualBasic.VisualBasicExtensions.GetOutConversion(operation));
+                var inConversionInteranl = CSharp.CSharpExtensions.GetInConversion(operation);
+                var outConversionInteranl = CSharp.CSharpExtensions.GetOutConversion(operation);
+            }
+            else
+            {
+                Assert.Throws<ArgumentException>("compoundAssignment", () => CSharp.CSharpExtensions.GetInConversion(operation));
+                Assert.Throws<ArgumentException>("compoundAssignment", () => CSharp.CSharpExtensions.GetOutConversion(operation));
+                var inConversionInternal = VisualBasic.VisualBasicExtensions.GetInConversion(operation);
+                var outConversionInternal = VisualBasic.VisualBasicExtensions.GetOutConversion(operation);
+            }
+
+            base.VisitCompoundAssignment(operation);
         }
 
-        public override void VisitIncrementExpression(IIncrementExpression operation)
+        public override void VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
-            var incrementOperationKind = operation.IncrementOperationKind;
+            var isPostFix = operation.IsPostfix;
 
-            base.VisitIncrementExpression(operation);
+            base.VisitIncrementOrDecrement(operation);
         }
 
-        public override void VisitParenthesizedExpression(IParenthesizedExpression operation)
+        public override void VisitParenthesized(IParenthesizedOperation operation)
         {
-            base.VisitParenthesizedExpression(operation);
+            base.VisitParenthesized(operation);
         }
 
-        public override void VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        public override void VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation)
         {
             var memberName = operation.MemberName;
+            var typeArgs = operation.TypeArguments;
+            var containingType = operation.ContainingType;
 
-            base.VisitLateBoundMemberReferenceExpression(operation);
+            base.VisitDynamicMemberReference(operation);
         }
 
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
+        public override void VisitDefaultValue(IDefaultValueOperation operation)
         {
-            base.VisitUnboundLambdaExpression(operation);
+            base.VisitDefaultValue(operation);
         }
 
-        public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
+        public override void VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation)
         {
-            base.VisitDefaultValueExpression(operation);
+            base.VisitTypeParameterObjectCreation(operation);
         }
 
-        public override void VisitTypeParameterObjectCreationExpression(ITypeParameterObjectCreationExpression operation)
+        public override void VisitInvalid(IInvalidOperation operation)
         {
-            base.VisitTypeParameterObjectCreationExpression(operation);
+            base.VisitInvalid(operation);
         }
 
-        public override void VisitInvalidStatement(IInvalidStatement operation)
+        public override void VisitTuple(ITupleOperation operation)
         {
-            base.VisitInvalidStatement(operation);
+            base.VisitTuple(operation);
         }
 
-        public override void VisitInvalidExpression(IInvalidExpression operation)
+        public override void VisitInterpolatedString(IInterpolatedStringOperation operation)
         {
-            base.VisitInvalidExpression(operation);
+            base.VisitInterpolatedString(operation);
+        }
+
+        public override void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation)
+        {
+            base.VisitInterpolatedStringText(operation);
+        }
+
+        public override void VisitInterpolation(IInterpolationOperation operation)
+        {
+            base.VisitInterpolation(operation);
+        }
+
+        public override void VisitConstantPattern(IConstantPatternOperation operation)
+        {
+            base.VisitConstantPattern(operation);
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
+        {
+            var declaredSymbol = operation.DeclaredSymbol;
+
+            base.VisitDeclarationPattern(operation);
+        }
+
+        public override void VisitIsPattern(IIsPatternOperation operation)
+        {
+            base.VisitIsPattern(operation);
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClauseOperation operation)
+        {
+            var label = operation.Label;
+
+            base.VisitPatternCaseClause(operation);
+        }
+
+        public override void VisitTranslatedQuery(ITranslatedQueryOperation operation)
+        {
+            base.VisitTranslatedQuery(operation);
         }
     }
 }

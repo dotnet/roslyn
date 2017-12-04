@@ -6,7 +6,7 @@ usage()
 	echo "setup-pcl.sh <path-to-mono-install>" 
 }
 
-XBUILD_FRAMEWORKS=$1/lib/mono/xbuild-frameworks
+XBUILD_FRAMEWORKS="$1"/lib/mono/xbuild-frameworks
 if [ ! -d "$XBUILD_FRAMEWORKS" ]; then
 	echo "$XBUILD_FRAMEWORKS does not exist"
 	usage
@@ -14,7 +14,7 @@ if [ ! -d "$XBUILD_FRAMEWORKS" ]; then
 fi
 
 PCL_NAME=PortableReferenceAssemblies-2014-04-14
-PCL_TARGET=$XBUILD_FRAMEWORKS/.NETPortable
+PCL_TARGET="$XBUILD_FRAMEWORKS"/.NETPortable
 
 # Now to install the PCL on the snapshot 
 pushd /tmp 
@@ -28,9 +28,9 @@ if [ ! -d "/tmp/$PCL_NAME" ]; then
 fi
 
 echo "Installing to $PCL_TARGET"
-mkdir $PCL_TARGET
-cp -r /tmp/$PCL_NAME/* $PCL_TARGET
+mkdir "$PCL_TARGET"
+cp -r /tmp/"$PCL_NAME"/* "$PCL_TARGET"
 
-rm -rf /tmp/$PCL_NAME
+rm -rf /tmp/"$PCL_NAME"
 rm /tmp/pcl.zip
 

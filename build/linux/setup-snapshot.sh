@@ -19,4 +19,4 @@ if [ ! -d "$MONO_PREFIX" ]; then
 fi
 
 # Now install the PCL assemblies on the snapshot
-source setup-pcl $MONO_PREFIX
+source setup-pcl "$MONO_PREFIX"

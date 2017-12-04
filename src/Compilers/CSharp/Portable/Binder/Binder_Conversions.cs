@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -91,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
+            }
+
+            if (conversion.IsStackAlloc)
+            {
+                return CreateStackAllocConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
             if (conversion.IsTupleLiteralConversion ||
@@ -310,6 +317,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
+        }
+
+        private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(conversion.IsStackAlloc);
+
+            var boundStackAlloc = (BoundStackAllocArrayCreation)source;
+            var elementType = boundStackAlloc.ElementType;
+            TypeSymbol stackAllocType;
+
+            switch (conversion.Kind)
+            {
+                case ConversionKind.StackAllocToPointerType:
+                    stackAllocType = new PointerTypeSymbol(elementType);
+                    break;
+                case ConversionKind.StackAllocToSpanType:
+                    stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
+            }
+
+            var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, stackAllocType, boundStackAlloc.HasErrors);
+
+            var underlyingConversion = conversion.UnderlyingConversions.Single();
+            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast, destination, diagnostics);
         }
 
         private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
@@ -551,10 +584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (invokedAsExtensionMethod)
                 {
-                    if (receiverOpt?.Kind == BoundKind.QueryClause && IsMemberAccessedThroughType(receiverOpt))
+                    if (IsMemberAccessedThroughType(receiverOpt))
                     {
-                        // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
-                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        if (receiverOpt.Kind == BoundKind.QueryClause)
+                        {
+                            // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                            diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        }
+                        else
+                        {
+                            // An object reference is required for the non-static field, method, or property '{0}'
+                            diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
+                        }
                         return true;
                     }
                 }

@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Try
 
-            Dim compilationDef =
+                Dim compilationDef =
 <compilation name="VBBinaryOperators1">
     <file name="lib.vb">
         <%= My.Resources.Resource.PrintResultTestSource %>
@@ -35,17 +35,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
-            Assert.True(compilation.Options.CheckOverflow)
+                Assert.True(compilation.Options.CheckOverflow)
 
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
+                compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
 
-            Assert.False(compilation.Options.CheckOverflow)
+                Assert.False(compilation.Options.CheckOverflow)
 
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
 
             Catch ex As Exception
                 Assert.Null(ex)
@@ -802,6 +802,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(531531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531531")>
+        <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub Bug18257()
             Dim source =
 <compilation name="ErrorHandling">
@@ -841,6 +842,28 @@ End Module
 Expected: .
 Expected: 0.
 ]]>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax)().First()
+
+            Assert.Equal("Dim s = ""Expected: "" & line & "".""", node.ToString())
+
+            compilation.VerifyOperationTree(node.Declarators.Last.Initializer.Value, expectedOperationTree:=
+            <![CDATA[
+IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected:  ...  line & "."')
+  Left: 
+    IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected: " & line')
+      Left: 
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Expected: ") (Syntax: '"Expected: "')
+      Right: 
+        ICoalesceOperation (OperationKind.Coalesce, Type: System.String, IsImplicit) (Syntax: 'line')
+          Expression: 
+            IParameterReferenceOperation: line (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'line')
+          WhenNull: 
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'line')
+  Right: 
+    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ".") (Syntax: '"."')
+]]>.Value)
         End Sub
 
         <Fact()>

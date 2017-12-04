@@ -1684,6 +1684,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to indexer.
+        /// </summary>
+        internal static string indexer_ {
+            get {
+                return ResourceManager.GetString("indexer_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initialize field &apos;{0}&apos;.
         /// </summary>
         internal static string Initialize_field_0 {
@@ -1923,6 +1932,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string local_constant {
             get {
                 return ResourceManager.GetString("local_constant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local function.
+        /// </summary>
+        internal static string local_function {
+            get {
+                return ResourceManager.GetString("local_function", resourceCulture);
             }
         }
         
@@ -3623,6 +3641,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string Variable_declaration_can_be_deconstructed {
             get {
                 return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_readonly_references_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using readonly structs will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_readonly_structs_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_readonly_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using ref structs will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         

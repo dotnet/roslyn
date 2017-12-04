@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -6924,8 +6925,8 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       48 (0x30)
-  .maxstack  1
+  // Code size       45 (0x2d)
+  .maxstack  2
   .locals init (T V_0,
                 string V_1)
   IL_0000:  nop
@@ -6935,18 +6936,16 @@ class Program
   IL_000a:  box        ""T""
   IL_000f:  brtrue.s   IL_0014
   IL_0011:  ldnull
-  IL_0012:  br.s       IL_002b
+  IL_0012:  br.s       IL_0028
   IL_0014:  ldloca.s   V_0
-  IL_0016:  initobj    ""T""
-  IL_001c:  ldloc.0
-  IL_001d:  stloc.0
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  constrained. ""T""
-  IL_0026:  callvirt   ""string object.ToString()""
-  IL_002b:  stloc.1
-  IL_002c:  br.s       IL_002e
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_0016:  dup
+  IL_0017:  initobj    ""T""
+  IL_001d:  constrained. ""T""
+  IL_0023:  callvirt   ""string object.ToString()""
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.1
+  IL_002c:  ret
 }");
         }
 
@@ -7043,8 +7042,8 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       48 (0x30)
-  .maxstack  1
+  // Code size       45 (0x2d)
+  .maxstack  2
   .locals init (T V_0,
                 string V_1)
   IL_0000:  nop
@@ -7054,18 +7053,16 @@ class Program
   IL_000a:  box        ""T""
   IL_000f:  brtrue.s   IL_0014
   IL_0011:  ldnull
-  IL_0012:  br.s       IL_002b
+  IL_0012:  br.s       IL_0028
   IL_0014:  ldloca.s   V_0
-  IL_0016:  initobj    ""T""
-  IL_001c:  ldloc.0
-  IL_001d:  stloc.0
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  constrained. ""T""
-  IL_0026:  callvirt   ""string object.ToString()""
-  IL_002b:  stloc.1
-  IL_002c:  br.s       IL_002e
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_0016:  dup
+  IL_0017:  initobj    ""T""
+  IL_001d:  constrained. ""T""
+  IL_0023:  callvirt   ""string object.ToString()""
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.1
+  IL_002c:  ret
 }");
         }
 
@@ -7222,6 +7219,223 @@ class Program
   IL_001e:  ldloc.1
   IL_001f:  ret
 }");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void ConditionalAccessOffReadOnlyNullable1()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    private static readonly Guid? g = null;
+
+    static void Main()
+    {
+        Console.WriteLine(g?.ToString());
+    }
+}
+";
+            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", verify: Verification.Fails);
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (System.Guid V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""System.Guid? Program.g""
+  IL_0006:  dup
+  IL_0007:  call       ""bool System.Guid?.HasValue.get""
+  IL_000c:  brtrue.s   IL_0012
+  IL_000e:  pop
+  IL_000f:  ldnull
+  IL_0010:  br.s       IL_0025
+  IL_0012:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""System.Guid""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  nop
+  IL_002b:  ret
+}");
+
+            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
+
+            comp.VerifyIL("Program.Main", @"
+{
+	// Code size       47 (0x2f)
+	.maxstack  2
+	.locals init (System.Guid? V_0,
+	            System.Guid V_1)
+	IL_0000:  nop
+	IL_0001:  ldsfld     ""System.Guid? Program.g""
+	IL_0006:  stloc.0
+	IL_0007:  ldloca.s   V_0
+	IL_0009:  dup
+	IL_000a:  call       ""bool System.Guid?.HasValue.get""
+	IL_000f:  brtrue.s   IL_0015
+	IL_0011:  pop
+	IL_0012:  ldnull
+	IL_0013:  br.s       IL_0028
+	IL_0015:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+	IL_001a:  stloc.1
+	IL_001b:  ldloca.s   V_1
+	IL_001d:  constrained. ""System.Guid""
+	IL_0023:  callvirt   ""string object.ToString()""
+	IL_0028:  call       ""void System.Console.WriteLine(string)""
+	IL_002d:  nop
+	IL_002e:  ret
+}");
+        }
+
+        [Fact]
+        public void ConditionalAccessOffReadOnlyNullable2()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(default(Guid?)?.ToString());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"");
+
+            verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.Guid? V_0,
+                System.Guid V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  dup
+  IL_0004:  initobj    ""System.Guid?""
+  IL_000a:  call       ""bool System.Guid?.HasValue.get""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0030
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  dup
+  IL_0017:  initobj    ""System.Guid?""
+  IL_001d:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+  IL_0022:  stloc.1
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  constrained. ""System.Guid""
+  IL_002b:  callvirt   ""string object.ToString()""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  nop
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")]
+        public void ConditionalAccessOffConstrainedTypeParameter_Property()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj2 = new MyObject2<MyObject1>(obj1);
+
+        System.Console.WriteLine(obj1.MyDate.Ticks);
+        System.Console.WriteLine(obj2.CurrentDate.Value.Ticks);
+        System.Console.WriteLine(new MyObject2<MyObject1>(null).CurrentDate.HasValue);
+    }
+}
+
+abstract class MyBaseObject1
+{
+    public DateTime MyDate { get; set; }
+}
+
+class MyObject1 : MyBaseObject1
+{ }
+
+class MyObject2<MyObjectType> where MyObjectType : MyBaseObject1, new()
+{
+    public MyObject2(MyObjectType obj)
+    {
+        m_CurrentObject1 = obj;
+    }
+
+    private MyObjectType m_CurrentObject1 = null;
+    public MyObjectType CurrentObject1 => m_CurrentObject1;
+    public DateTime? CurrentDate => CurrentObject1?.MyDate;
+}
+";
+
+            var expectedOutput =
+@"
+636461511000000000
+636461511000000000
+False
+";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")]
+        public void ConditionalAccessOffConstrainedTypeParameter_Field()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj2 = new MyObject2<MyObject1>(obj1);
+
+        System.Console.WriteLine(obj1.MyDate.Ticks);
+        System.Console.WriteLine(obj2.CurrentDate.Value.Ticks);
+        System.Console.WriteLine(new MyObject2<MyObject1>(null).CurrentDate.HasValue);
+    }
+}
+
+abstract class MyBaseObject1
+{
+    public DateTime MyDate;
+}
+
+class MyObject1 : MyBaseObject1
+{ }
+
+class MyObject2<MyObjectType> where MyObjectType : MyBaseObject1, new()
+{
+    public MyObject2(MyObjectType obj)
+    {
+        m_CurrentObject1 = obj;
+    }
+
+    private MyObjectType m_CurrentObject1 = null;
+    public MyObjectType CurrentObject1 => m_CurrentObject1;
+    public DateTime? CurrentDate => CurrentObject1?.MyDate;
+}
+";
+
+            var expectedOutput =
+@"
+636461511000000000
+636461511000000000
+False
+";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
     }
 }

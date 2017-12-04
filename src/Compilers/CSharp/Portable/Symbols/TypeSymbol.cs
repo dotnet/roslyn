@@ -640,6 +640,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
+        /// <summary>
+        /// Returns true if the type may contain embedded references
+        /// </summary>
+        internal abstract bool IsByRefLikeType { get; }
+
+        /// <summary>
+        /// Returns true if the type is a readonly sruct
+        /// </summary>
+        internal abstract bool IsReadOnly { get; }
+
         #region ITypeSymbol Members
 
         INamedTypeSymbol ITypeSymbol.BaseType
@@ -1164,11 +1174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (closestMismatch.Kind)
                 {
                     case SymbolKind.Method:
-                        hasRefReturnMismatch = (((MethodSymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        hasRefReturnMismatch = ((MethodSymbol)closestMismatch).RefKind != interfaceMemberRefKind;
                         break;
 
                     case SymbolKind.Property:
-                        hasRefReturnMismatch = (((PropertySymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        hasRefReturnMismatch = ((PropertySymbol)closestMismatch).RefKind != interfaceMemberRefKind;
                         break;
                 }
 
@@ -1181,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (hasRefReturnMismatch)
                 {
-                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberRefKind != RefKind.None ? "reference" : "value");
+                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch);
                 }
                 else
                 {

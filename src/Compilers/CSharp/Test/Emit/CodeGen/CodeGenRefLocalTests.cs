@@ -139,7 +139,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -172,7 +172,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -243,7 +243,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -395,7 +395,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       10 (0xa)
@@ -462,7 +462,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       10 (0xa)
@@ -810,7 +810,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M()", @"
 {
   // Code size       13 (0xd)
   .maxstack  1
@@ -847,7 +847,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       14 (0xe)
@@ -918,7 +918,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       14 (0xe)
@@ -1015,7 +1015,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program<T>.M()", @"
 {
   // Code size       25 (0x19)
@@ -1085,7 +1085,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M(ref int, ref int, object)", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       16 (0x10)
   .maxstack  3
@@ -1125,7 +1125,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
@@ -1202,7 +1202,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
@@ -1308,7 +1308,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program<T>.M(ref int, ref int, object)", @"
 {
   // Code size       28 (0x1c)
@@ -1417,7 +1417,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M(D, ref int, ref int, object)", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M(D, ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
   .maxstack  4
@@ -1597,7 +1597,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int rl = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(6, 9),
                 // (6,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int rl = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(6, 22)

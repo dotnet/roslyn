@@ -55,7 +55,7 @@ public class Vec
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(12, 13),
                 // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
                 // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 22),
@@ -3598,6 +3598,7 @@ unsafe struct S
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
         public void MethodGroupAsExpressionInIsPatternBrokenCode()
         {
@@ -3613,7 +3614,7 @@ unsafe struct S
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (7,29): error CS1525: Invalid expression term ')'
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 29),
@@ -3627,6 +3628,27 @@ unsafe struct S
                 //             if (object.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "object.Equals is()").WithLocation(8, 17)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().First();
+
+            Assert.Equal("o.Equals is()", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
+  Expression: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
+      Children(1):
+          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
+            Children(1):
+                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+  Pattern: 
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '()')
+      Value: 
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
+");
         }
 
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
@@ -4675,7 +4697,7 @@ class C
                 // (7,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(null is Missing);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(7, 38),
-                // (8,16): error CS8119: The switch expression must be a value; found <null>.
+                // (8,16): error CS8119: The switch expression must be a value; found '<null>'.
                 //         switch(null)
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(8, 16),
                 // (10,18): error CS0103: The name 'Missing' does not exist in the current context
@@ -4683,7 +4705,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
                 // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //             case Missing y:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -4709,7 +4734,7 @@ public class Program46
     private static object M() => null;
 }";
             CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+                // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (10,18): error CS0150: A constant value is expected
@@ -4717,7 +4742,10 @@ public class Program46
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
                 // (11,18): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -5939,8 +5967,10 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        if (null as string is string) { }
         if (null as string is string s1) { }
         const string s = null;
+        if (s is string) { }
         if (s is string s2) { }
         if (""goo"" is string s3) { }
     }
@@ -5954,15 +5984,24 @@ public class Program
 ";
             var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
-                // (12,13): warning CS0184: The given expression is never of the provided ('long') type
+                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(8, 13),
+                // (9,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string s2) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string s2").WithArguments("string").WithLocation(9, 13),
+                // (14,13): warning CS0184: The given expression is never of the provided ('long') type
                 //         if (i is long) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(12, 13),
-                // (13,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'long'.
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(14, 13),
+                // (15,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'long'.
                 //         if (i is long l) { }
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(13, 18),
-                // (14,17): error CS0103: The name 'b' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(15, 18),
+                // (16,17): error CS0103: The name 'b' does not exist in the current context
                 //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(14, 17)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17),
+                // (16,35): warning CS0162: Unreachable code detected
+                //         switch (b) { case long m: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(16, 35)
                 );
         }
 
@@ -6335,6 +6374,109 @@ class Program
                 //         switch (Console.WriteLine("Hello"))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 17)
                 );
+        }
+
+        [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
+        public void TestNullInInPattern()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const string s = null;
+        if (s is string) {} else { Console.Write(""Hello ""); }
+        if (s is string t) {} else { Console.WriteLine(""World""); }
+    }
+}
+";
+            var expectedOutput = @"Hello World";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string) {} else { Console.Write("Hello "); }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(7, 13),
+                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string t) {} else { Console.WriteLine("World"); }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string t").WithArguments("string").WithLocation(8, 13)
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(22619, "https://github.com/dotnet/roslyn/issues/22619")]
+        public void MissingSideEffect()
+        {
+            var source =
+@"using System;
+internal class Program
+{
+    private static void Main()
+    {
+        try
+        {
+            var test = new Program();
+            var result = test.IsVarMethod();
+            Console.WriteLine($""Result = {result}"");
+            Console.Read();
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""Exception"");
+        }
+    }
+
+    private int IsVarMethod() => ThrowingMethod() is var _ ? 1 : 0;
+    private bool ThrowingMethod() => throw new Exception(""Oh"");
+}
+";
+            var expectedOutput = @"Exception";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
+        public void TestArrayOfPointer()
+        {
+            var source =
+@"using System;
+class Program
+{
+    unsafe static void Main()
+    {
+        object o = new byte*[10];
+        Console.WriteLine(o is byte*[]); // True
+        Console.WriteLine(o is byte*[] _); // True
+        Console.WriteLine(o is byte*[] x1); // True
+        Console.WriteLine(o is byte**[]); // False
+        Console.WriteLine(o is byte**[] _); // False
+        Console.WriteLine(o is byte**[] x2); // False
+        o = new byte**[10];
+        Console.WriteLine(o is byte**[]); // True
+        Console.WriteLine(o is byte**[] _); // True
+        Console.WriteLine(o is byte**[] x3); // True
+        Console.WriteLine(o is byte*[]); // False
+        Console.WriteLine(o is byte*[] _); // False
+        Console.WriteLine(o is byte*[] x4); // False
+    }
+}
+";
+            var expectedOutput = @"True
+True
+True
+False
+False
+False
+True
+True
+True
+False
+False
+False";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

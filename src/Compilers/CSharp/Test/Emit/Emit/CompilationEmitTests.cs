@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -157,17 +158,21 @@ namespace N.Goo;
 
             emitResult.Diagnostics.Verify(
                 // (13,16): error CS1514: { expected
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";"),
+                // namespace N.Foo;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(13, 16),
                 // (13,17): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
+                // namespace N.Foo;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 17),
                 // (4,16): error CS0246: The type or namespace name 'Blah' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah"),
+                //         public Blah field;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah").WithLocation(4, 16),
                 // (8,13): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "ro"),
-                // (4,21): warning CS0649: Field 'N.X.field' is never assigned to, and will always have its default value null
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null"),
-                // (5,37): warning CS0414: The field 'N.X.ro' is assigned but its value is never used
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "ro").WithArguments("N.X.ro"));
+                //             ro = 4;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "ro").WithLocation(8, 13),
+                // (4,21): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value null
+                //         public Blah field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null").WithLocation(4, 21)
+                );
         }
 
         // Check that EmitMetadataOnly works
@@ -853,6 +858,50 @@ public class C
         }
 
         [Fact]
+        public void RefAssemblyClient_RefReadonlyParameters()
+        {
+            VerifyRefAssemblyClient(@"
+public class C
+{
+    public void RR_input(in int x) => throw null;
+    public ref readonly int RR_output() => throw null;
+    public ref readonly int P => throw null;
+    public ref readonly int this[in int i] => throw null;
+    public delegate ref readonly int Delegate(in int i);
+}
+public static class Extensions
+{
+    public static void RR_extension(in this int x) => throw null;
+    public static void R_extension(ref this int x) => throw null;
+}",
+@"class D
+{
+    void M(C c, in int y)
+    {
+        c.RR_input(y);
+        VerifyRR(c.RR_output());
+        VerifyRR(c.P);
+        VerifyRR(c[y]);
+        C.Delegate x = VerifyDelegate;
+        y.RR_extension();
+        1.RR_extension();
+        y.R_extension(); // error 1
+        1.R_extension(); // error 2
+    }
+    void VerifyRR(in int y) => throw null;
+    ref readonly int VerifyDelegate(in int y) => throw null;
+}",
+comp => comp.VerifyDiagnostics(
+                // (12,9): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                //         y.R_extension(); // error 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(12, 9),
+                // (13,9): error CS1510: A ref or out value must be an assignable variable
+                //         1.R_extension(); // error 2
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(13, 9)
+                ));
+        }
+
+        [Fact]
         public void RefAssemblyClient_StructWithPrivateReferenceTypeField()
         {
             VerifyRefAssemblyClient(@"
@@ -1352,7 +1401,7 @@ comp => comp.VerifyDiagnostics(
         private static void VerifyRefAssemblyClient(string lib_cs, string source, Action<CSharpCompilation> validator, EmitOptions emitOptions)
         {
             string name = GetUniqueName();
-            var libComp = CreateStandardCompilation(Parse(lib_cs), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
+            var libComp = CreateStandardCompilation(lib_cs, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             libComp.VerifyDiagnostics();
             var libImage = libComp.EmitToImageReference(emitOptions);
@@ -1481,7 +1530,7 @@ comp => comp.VerifyDiagnostics(
         {
             var signedDllOptions = TestOptions.ReleaseDll.
                  WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                 WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+                 WithStrongNameProvider(s_defaultDesktopProvider);
 
             var comp = CreateStandardCompilation("public class C{}", options: signedDllOptions);
 
@@ -1501,7 +1550,7 @@ comp => comp.VerifyDiagnostics(
             var signedDllOptions = TestOptions.ReleaseDll
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile)
                 .WithDelaySign(true)
-                .WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+                .WithStrongNameProvider(s_defaultDesktopProvider);
 
             var comp = CreateStandardCompilation("public class C{}", options: signedDllOptions);
 
@@ -1575,7 +1624,7 @@ public class PublicClass
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
-            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
@@ -1606,7 +1655,7 @@ public class PublicClass
             // In this case, IncludePrivateMembers is silently set to true when emitting
             // See https://github.com/dotnet/roslyn/issues/20873
             var emitRegularWithoutPrivateMembers = EmitOptions.Default.WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRegularWithoutPrivateMembers, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRegularWithoutPrivateMembers, verify: Verification.Passes);
 
             var realImage2 = comp.EmitToImageReference(emitRegularWithoutPrivateMembers);
             var compWithReal2 = CreateCompilation("", references: new[] { MscorlibRef, realImage2 },
@@ -1634,7 +1683,7 @@ public class PublicClass
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
-            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
@@ -1663,7 +1712,7 @@ public class PublicClass
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1711,7 +1760,7 @@ public class C : I
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
-            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
@@ -1721,7 +1770,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
-            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
@@ -1733,7 +1782,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1777,7 +1826,7 @@ public class C : I
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
-            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
@@ -1787,7 +1836,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
-            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
@@ -1799,7 +1848,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1843,7 +1892,7 @@ public class C : I
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
-            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
@@ -1853,7 +1902,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
-            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
@@ -1865,7 +1914,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1903,7 +1952,7 @@ internal struct InternalStruct
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1932,7 +1981,7 @@ struct S
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -4028,7 +4077,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateStandardCompilation(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: false);
+            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
         [Fact]
@@ -4443,7 +4492,7 @@ public interface IUsePlatform
         {
             var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify(comp, verify: false);
+            CompileAndVerify(comp, verify: Verification.Fails);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }

@@ -12,13 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     internal sealed class RazorLangaugeServiceClient
     {
-        private const string RazorServiceName = "razorLanguageService";
-
         private readonly RemoteHostClient _client;
+        private readonly string _serviceName;
 
-        internal RazorLangaugeServiceClient(RemoteHostClient client)
+        internal RazorLangaugeServiceClient(RemoteHostClient client, string serviceName)
         {
             _client = client;
+            _serviceName = serviceName;
         }
 
         public async Task<Session> CreateSessionAsync(Solution solution, object callbackTarget = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var innerSession = await _client.TryCreateSessionAsync(RazorServiceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
+            var innerSession = await _client.TryCreateSessionAsync(_serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (innerSession == null)
             {
                 return null;

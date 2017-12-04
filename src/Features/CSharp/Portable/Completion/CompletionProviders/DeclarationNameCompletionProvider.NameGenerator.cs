@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using Humanizer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -13,11 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal class NameGenerator
         {
-            internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type)
+            internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
                 var baseName = TryRemoveInterfacePrefix(type);
                 var parts = StringBreaker.GetWordParts(baseName);
-                var result = GetInterleavedPatterns(parts, baseName);
+                var result = GetInterleavedPatterns(parts, baseName, pluralize);
+
                 parts.Free();
                 return result;
             }
@@ -32,48 +35,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var breaks = StringBreaker.GetWordParts(name);
-                var result = GetInterleavedPatterns(breaks, name);
+                var result = GetInterleavedPatterns(breaks, name, pluralize: false);
                 breaks.Free();
                 return result;
             }
 
-            private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName)
+            private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var result = ArrayBuilder<Words>.GetInstance();
                 var breakCount = breaks.Count;
-                result.Add(GetWords(0, breakCount, breaks, baseName));
+                result.Add(GetWords(0, breakCount, breaks, baseName, pluralize));
 
                 for (var length = breakCount - 1; length > 0; length--)
                 {
                     // going forward
-                    result.Add(GetLongestForwardSubsequence(length, breaks, baseName));
+                    result.Add(GetLongestForwardSubsequence(length, breaks, baseName, pluralize));
 
                     // going backward
-                    result.Add(GetLongestBackwardSubsequence(length, breaks, baseName));
+                    result.Add(GetLongestBackwardSubsequence(length, breaks, baseName, pluralize));
                 }
 
                 return result.ToImmutable();
             }
 
-            private static Words GetLongestBackwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName)
+            private static Words GetLongestBackwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var breakCount = breaks.Count;
                 var start = breakCount - length;
-                return GetWords(start, breakCount, breaks, baseName);
+                return GetWords(start, breakCount, breaks, baseName, pluralize);
             }
 
-            private static Words GetLongestForwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName)
+            private static Words GetLongestForwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
-                return GetWords(0, length, breaks, baseName);
+                return GetWords(0, length, breaks, baseName, pluralize);
             }
 
-            private static Words GetWords(int start, int end, ArrayBuilder<TextSpan> breaks, string baseName)
+            private static Words GetWords(int start, int end, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var result = ArrayBuilder<string>.GetInstance();
+                // Add all the words but the last one
                 for (; start < end; start++)
                 {
                     var @break = breaks[start];
-                    result.Add(baseName.Substring(@break.Start, @break.Length));
+                    var text = baseName.Substring(@break.Start, @break.Length);
+                    if (pluralize && start == end - 1)
+                    {
+                        // Pluralize the last word if neccessary
+                        result.Add(text.Pluralize());
+                    }
+                    else
+                    {
+                        result.Add(text);
+                    }
                 }
 
                 return result.ToImmutableAndFree();

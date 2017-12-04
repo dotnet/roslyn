@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 argumentList.Arguments, reservedNames: null, cancellationToken: cancellationToken);
         }
 
-        public static IList<ParameterName> GenerateParameterNames(
+        public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             AttributeArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 .Skip(reservedNames.Count).ToImmutableArray();
         }
 
-        public static IList<ParameterName> GenerateParameterNames(
+        public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             IEnumerable<AttributeArgumentSyntax> arguments,
             IList<string> reservedNames,

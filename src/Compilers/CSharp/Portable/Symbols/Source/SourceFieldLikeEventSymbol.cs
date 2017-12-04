@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
+            if (!IsStatic && ContainingType.IsReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.Locations[0]);
+            }
+
             // Accessors will assume that Type is available.
             _addMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: true);
             _removeMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: false);

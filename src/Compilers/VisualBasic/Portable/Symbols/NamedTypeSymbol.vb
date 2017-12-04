@@ -272,9 +272,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property MightContainExtensionMethods As Boolean Implements INamedTypeSymbol.MightContainExtensionMethods
 
         ''' <summary>
+        ''' Returns True if the type is marked by 'Microsoft.CodeAnalysis.Embedded' attribute. 
+        ''' </summary>
+        Friend MustOverride ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+
+        ''' <summary>
         ''' Returns True if the type is marked by 'Microsoft.VisualBasic.Embedded' attribute. 
         ''' </summary>
-        Friend MustOverride ReadOnly Property HasEmbeddedAttribute As Boolean
+        Friend MustOverride ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
 
         ''' <summary>
         ''' A Named type is an extensible interface if both the following are true:

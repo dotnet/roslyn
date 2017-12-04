@@ -1113,7 +1113,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            if (WrongArity(symbol, arity, diagnose, options, out diagInfo))
+            // Check for symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
+            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            {
+                return LookupResult.Empty();
+            }
+            else if (WrongArity(symbol, arity, diagnose, options, out diagInfo))
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }

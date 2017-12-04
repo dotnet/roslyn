@@ -809,6 +809,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         metadataOnly: true,
                         isDeterministic: false,
                         emitTestCoverageData: false,
+                        privateKeyOpt: null,
                         cancellationToken: default(CancellationToken));
 
                     peBytes = peStream.ToImmutable();

@@ -70,12 +70,11 @@ namespace Roslyn.Compilers.Extension
                     $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <!-- If we're not using the compiler server, set ToolPath/Exe to direct to the exes in this package -->
-  <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}' and '$(UseSharedCompilation)' != 'true'"">
+  <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}' and '$(UseSharedCompilation)' == 'false'"">
     <CscToolPath>{packagePath}</CscToolPath>
     <CscToolExe>csc.exe</CscToolExe>
     <VbcToolPath>{packagePath}</VbcToolPath>
     <VbcToolExe>vbc.exe</VbcToolExe>
-    <UseSharedCompilation>false</UseSharedCompilation>
   </PropertyGroup>
 </Project>";
 

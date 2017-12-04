@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
             DocumentId documentId, string searchPattern, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async () =>
+            return await RunServiceAsync(async token =>
             {
                 using (UserOperationBooster.Boost())
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
 
                     var project = solution.GetDocument(documentId);
                     var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                        project, searchPattern, cancellationToken).ConfigureAwait(false);
+                        project, searchPattern, token).ConfigureAwait(false);
 
                     return Convert(result);
                 }
@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
             ProjectId projectId, string searchPattern, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async () =>
+            return await RunServiceAsync(async token =>
             {
                 using (UserOperationBooster.Boost())
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
 
                     var project = solution.GetProject(projectId);
                     var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                        project, searchPattern, cancellationToken).ConfigureAwait(false);
+                        project, searchPattern, token).ConfigureAwait(false);
 
                     return Convert(result);
                 }

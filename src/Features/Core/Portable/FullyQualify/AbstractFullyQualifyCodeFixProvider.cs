@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private static IEnumerable<SymbolResult> GetContainers(
-            IEnumerable<SymbolResult> symbols, Compilation compilation)
+            ImmutableArray<SymbolResult> symbols, Compilation compilation)
         {
             foreach (var symbolResult in symbols)
             {

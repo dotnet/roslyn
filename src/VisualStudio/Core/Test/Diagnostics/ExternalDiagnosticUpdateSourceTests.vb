@@ -160,6 +160,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
+        <Fact>
+        Public Async Function TestExternalDiagnostics_AddDuplicatedErrors() As Task
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim waiter = New Waiter()
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+                Dim diagnostic = GetDiagnosticData(workspace, project.Id)
+
+                Dim service = New TestDiagnosticAnalyzerService()
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
+
+                ' we shouldn't crash here
+                source.AddNewErrors(project.Id, diagnostic)
+                source.AddNewErrors(project.Id, diagnostic)
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+
+                AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                          Assert.Equal(1, a.Diagnostics.Length)
+                                                      End Sub
+                Await waiter.CreateWaitTask()
+            End Using
+        End Function
+
         Private Function GetDiagnosticData(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False) As DiagnosticData
             Dim properties = If(isBuildDiagnostic, DiagnosticData.PropertiesForBuildDiagnostic, ImmutableDictionary(Of String, String).Empty)
             Return New DiagnosticData(

@@ -1440,7 +1440,7 @@ A.F
 
         <Fact>
         <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
-        Public Sub LambdaCallingByRefFunctionKeepingVsDropingByRef()
+        Public Sub LambdaCallingByRefFunctionKeepingVsDroppingByRef()
             Dim comp1 = CreateCSharpCompilation(
 "
 public delegate T D1<T>();
@@ -1571,14 +1571,14 @@ End Module",
                 compilationOptions:=TestOptions.DebugExe)
 
             comp2.AssertTheseDiagnostics(
-<expexcted>
+<expected>
 BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate ByRef Function D(Of Integer)(x As Integer) As Integer'.
         B.F(AddressOf o.F, 2)
                       ~~~
 BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate ByRef Function D(Of Integer)(x As Integer) As Integer'.
         B.F(New D(Of Integer)(AddressOf o.F), 3)
                                         ~~~
-</expexcted>)
+</expected>)
         End Sub
 
         <Fact>
@@ -2218,7 +2218,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Object' does not have a 
 
         <Fact>
         <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
-        Public Sub DelegateToByRefFunctionKeepingVsDropingByRef()
+        Public Sub DelegateToByRefFunctionKeepingVsDroppingByRef()
             Dim comp1 = CreateCSharpCompilation(
 "
 public delegate T D1<T>();
@@ -2272,7 +2272,7 @@ End Module",
 
         <Fact>
         <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
-        Public Sub DelegateToByRefFunctionDropingByRefVsDroppingReturn()
+        Public Sub DelegateToByRefFunctionDroppingByRefVsDroppingReturn()
             Dim comp1 = CreateCSharpCompilation(
 "
 public delegate T D1<T>();

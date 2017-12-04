@@ -144,4 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return (object)this.Type ?? "default"; }
         }
     }
+
+    internal partial class BoundStackAllocArrayCreation
+    {
+        public override object Display
+        {
+            get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType, Count.Syntax); }
+        }
+    }
 }

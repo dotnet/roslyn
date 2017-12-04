@@ -63,6 +63,54 @@ End Class
             CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
+        <Fact>
+        <WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")>
+        Public Sub TestNamedArgumentOnStringParamsArgument()
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Imports System
+
+Class MarkAttribute
+    Inherits Attribute
+
+    Public Sub New(ByVal otherArg As Boolean, ParamArray args As Object())
+    End Sub
+End Class
+
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+Module Program
+
+    Private Sub Test(ByVal otherArg As Boolean, ParamArray args As Object())
+    End Sub
+
+    Sub Main()
+        Console.WriteLine("Method call")
+        Test(args:=New String() {"Hello", "World"}, otherArg:=True)
+    End Sub
+End Module
+]]>
+                    </file>
+                </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30455: Argument not specified for parameter 'otherArg' of 'Public Sub New(otherArg As Boolean, ParamArray args As Object())'.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+ ~~~~
+BC30661: Field or property 'args' is not found.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+      ~~~~
+BC30661: Field or property 'otherArg' is not found.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+                                             ~~~~~~~~
+BC30587: Named argument cannot match a ParamArray parameter.
+        Test(args:=New String() {"Hello", "World"}, otherArg:=True)
+             ~~~~
+                                        ]]></errors>)
+        End Sub
+
         ''' <summary>
         ''' This function is the same as PEParameterSymbolParamArray
         ''' except that we check attributes first (to check for race
@@ -3538,7 +3586,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         <Fact()>
         Public Sub TestFriendEnumInAttribute()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
         ' Friend Enum in an array in an attribute should be an error.
@@ -3563,7 +3611,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         End Namespace
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeNonPublicType1, "MyAttr1").WithArguments("e2()"))
@@ -3574,7 +3622,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         <Fact()>
         Public Sub TestUndefinedEnumInAttribute()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System.ComponentModel
@@ -3586,7 +3634,7 @@ Module Program
 End Module
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotMember2, "EditorBrowsableState.n").WithArguments("n", "System.ComponentModel.EditorBrowsableState"))
@@ -3597,7 +3645,7 @@ End Module
         <Fact>
         Public Sub TestUnboundLambdaInNamedAttributeArgument()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System
@@ -3615,7 +3663,7 @@ Module Program
 End Module
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_UndefinedType1, "A").WithArguments("A"),
@@ -3628,7 +3676,7 @@ End Module
         <Fact>
         Public Sub SpecialNameAttributeFromSource()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System.Runtime.CompilerServices
@@ -3649,7 +3697,7 @@ Public Structure S
 End Structure
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim globalNS = comp.SourceAssembly.GlobalNamespace
@@ -4335,6 +4383,238 @@ BC30002: Type 'xyz' is not defined.
 <DiagnosticAnalyzer(LanguageNames.CSharp)>
                     ~~~~~~~~~~~~~~~~~~~~
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Internal()
+
+            Dim reference =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Source")>
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Friend Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Friend Class TestType2
+    End Class
+    Friend Class TestType3
+    End Class
+End Namespace
+]]>
+    </file>
+</compilation>
+
+            Dim referenceCompilation = CreateCompilationWithMscorlib(reference).ToMetadataReference()
+
+            Dim code = "
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3() ' This should be fine
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilationWithMscorlib(code, references:={referenceCompilation}, assemblyName:="Source")
+
+            AssertTheseDiagnostics(compilation, <![CDATA[
+BC30002: Type 'TestReference.TestType1' is not defined.
+        Dim obj1 = New TestReference.TestType1()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'TestReference.TestType2' is not defined.
+        Dim obj2 = New TestReference.TestType2()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Public()
+
+            Dim reference =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Public Class TestType2
+    End Class
+    Public Class TestType3
+    End Class
+End Namespace
+]]>
+    </file>
+</compilation>
+
+            Dim referenceCompilation = CreateCompilationWithMscorlib(reference).ToMetadataReference()
+
+            Dim code = "
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3() ' This should be fine
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilationWithMscorlib(code, references:={referenceCompilation})
+
+            AssertTheseDiagnostics(compilation, <![CDATA[
+BC30002: Type 'TestReference.TestType1' is not defined.
+        Dim obj1 = New TestReference.TestType1()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'TestReference.TestType2' is not defined.
+        Dim obj2 = New TestReference.TestType2()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Module()
+
+            Dim moduleCode = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseModule, source:="
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Public Class TestType2
+    End Class
+    Public Class TestType3
+    End Class
+End Namespace")
+
+            Dim reference = ModuleMetadata.CreateFromImage(moduleCode.EmitToArray()).GetReference()
+
+            Dim code = "
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3() ' This should be fine
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilationWithMscorlib(code, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <![CDATA[
+BC30002: Type 'TestReference.TestType1' is not defined.
+        Dim obj1 = New TestReference.TestType1()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'TestReference.TestType2' is not defined.
+        Dim obj2 = New TestReference.TestType2()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromTheSameAssemblySucceeds()
+
+            Dim compilation = CreateCompilationWithMscorlib(source:="
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Public Class TestType2
+    End Class
+    Public Class TestType3
+    End Class
+End Namespace
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3()
+    End Sub
+End Class")
+
+            AssertTheseEmitDiagnostics(compilation)
+
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeInSourceIsAllowedIfCompilerDoesNotNeedToGenerateOne()
+
+            Dim compilation = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseExe, sources:=
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace OtherNamespace
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestReference
+        Public Shared Function GetValue() As Integer
+            Return 3
+        End Function
+    End Class
+End Namespace
+Public Class Program
+    Public Shared Sub Main()
+        ' This should be fine, as the compiler doesn't need to use an embedded attribute for this compilation
+        System.Console.Write(OtherNamespace.TestReference.GetValue())
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>)
+
+            CompileAndVerify(compilation, expectedOutput:="3")
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedTypesInAnAssemblyAreNotExposedExternally()
+
+            Dim compilation1 = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseDll, sources:=
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+<Microsoft.CodeAnalysis.Embedded>
+Public Class TestReference1
+End Class
+Public Class TestReference2
+End Class
+]]>
+    </file>
+</compilation>)
+
+            Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference1"))
+            Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference2"))
+
+            Dim compilation2 = CreateCompilationWithMscorlib("", references:={compilation1.EmitToImageReference()})
+
+            Assert.Null(compilation2.GetTypeByMetadataName("TestReference1"))
+            Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"))
         End Sub
 
     End Class

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.TypeofDynamicOperationContextType()
             });
 
-            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, ImmutableArray<RefKind>.Empty, null, resultType);
+            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
         }
 
         internal LoweredDynamicOperation MakeDynamicUnaryOperator(
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, ImmutableArray<RefKind>.Empty, null, resultType);
+            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
         }
 
         internal LoweredDynamicOperation MakeDynamicBinaryOperator(
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, ImmutableArray<RefKind>.Empty, null, resultType);
+            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
         }
 
         internal LoweredDynamicOperation MakeDynamicMemberInvocation(
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver, loweredRight: loweredHandler)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, ImmutableArray<RefKind>.Empty, loweredHandler, resultType);
+            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), loweredHandler, resultType);
         }
 
         internal LoweredDynamicOperation MakeDynamicInvocation(
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, ImmutableArray<RefKind>.Empty, null, resultType);
+            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
         }
 
         internal LoweredDynamicOperation MakeDynamicSetMember(
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver, loweredRight: loweredRight)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, ImmutableArray<RefKind>.Empty, loweredRight, AssemblySymbol.DynamicType);
+            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), loweredRight, AssemblySymbol.DynamicType);
         }
 
         internal LoweredDynamicOperation MakeDynamicGetIndex(
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.TypeofDynamicOperationContextType()
             });
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, ImmutableArray<BoundExpression>.Empty, ImmutableArray<RefKind>.Empty, null, resultType);
+            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, ImmutableArray<BoundExpression>.Empty, default(ImmutableArray<RefKind>), null, resultType);
         }
 
         private MethodSymbol GetArgumentInfoFactory()

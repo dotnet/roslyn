@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     NonParamsParameterCount(constructor) < arguments.Count)
                 {
                     var argumentToAdd = DetermineFirstArgumentToAdd(
-                        semanticModel, syntaxFacts, comparer, constructor, 
+                        semanticModel, syntaxFacts, comparer, constructor,
                         arguments, argumentOpt);
 
                     if (argumentToAdd != null)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
         private async Task<Document> FixAsync(
-            Document invocationDocument, 
+            Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             AddParameter(
                 syntaxFacts, editor, methodDeclaration, argument,
                 insertionIndex, parameterDeclaration, cancellationToken);
-            
+
             var newRoot = editor.GetChangedRoot();
             var newDocument = methodDocument.WithSyntaxRoot(newRoot);
 
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
-            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, 
+            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts,
             SyntaxNode node, bool includeLeadingNewLine)
         {
             var triviaList = new List<SyntaxTrivia>();
@@ -346,8 +346,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 triviaList.Add(generator.ElasticCarriageReturnLineFeed);
             }
 
-            var lastWhitespace = default(SyntaxTrivia); 
-            foreach(var trivia in node.GetLeadingTrivia().Reverse())
+            var lastWhitespace = default(SyntaxTrivia);
+            foreach (var trivia in node.GetLeadingTrivia().Reverse())
             {
                 if (syntaxFacts.IsWhitespaceTrivia(trivia))
                 {

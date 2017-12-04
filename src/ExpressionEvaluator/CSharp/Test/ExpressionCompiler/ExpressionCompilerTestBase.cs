@@ -191,9 +191,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             int atLineNumber = -1,
             bool includeSymbols = true)
         {
-            ResultProperties resultProperties;
-            string error;
-            var result = Evaluate(source, outputKind, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
+            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
+            Assert.Null(error);
+            return result;
+        }
+
+        internal CompilationTestData Evaluate(
+            CSharpCompilation compilation,
+            string methodName,
+            string expr,
+            int atLineNumber = -1,
+            bool includeSymbols = true)
+        {
+            var result = Evaluate(compilation, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
             Assert.Null(error);
             return result;
         }
@@ -208,11 +218,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             int atLineNumber = -1,
             bool includeSymbols = true)
         {
-            var compilation0 = CreateStandardCompilation(
+            var compilation = CreateStandardCompilation(
                 source,
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
 
-            var runtime = CreateRuntimeInstance(compilation0, debugFormat: includeSymbols ? DebugInformationFormat.Pdb : 0);
+            return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
+        }
+
+        internal CompilationTestData Evaluate(
+            CSharpCompilation compilation,
+            string methodName,
+            string expr,
+            out ResultProperties resultProperties,
+            out string error,
+            int atLineNumber = -1,
+            bool includeSymbols = true)
+        {
+            var runtime = CreateRuntimeInstance(compilation, debugFormat: includeSymbols ? DebugInformationFormat.Pdb : 0);
             var context = CreateMethodContext(runtime, methodName, atLineNumber);
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
@@ -376,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         internal static SynthesizedAttributeData GetAttributeIfAny(IMethodSymbol method, string typeName)
         {
-            return method.GetSynthesizedAttributes(forReturnType: true).
+            return ((MethodSymbol)method).GetSynthesizedAttributes(forReturnType: true).
                 Where(a => a.AttributeClass.ToTestDisplayString() == typeName).
                 SingleOrDefault();
         }

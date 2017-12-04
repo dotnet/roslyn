@@ -1227,6 +1227,73 @@ unsafe class C
         }
 
         [Fact]
+        public void FixedStatementThis()
+        {
+            var text = @"
+public class Program
+{
+    public static void Main()
+    {
+        S1 s = default;
+        s.Test();
+    }
+
+    unsafe readonly struct S1
+    {
+        readonly int x;
+
+        public void Test()
+        {
+            fixed(void* p = &this)
+            {
+                *(int*)p = 123;
+            }
+
+            ref readonly S1 r = ref this;
+
+            fixed (S1* p = &r)
+            {
+                System.Console.WriteLine(p->x);
+            }
+        }
+    }
+}
+";
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123");
+
+            compVerifier.VerifyIL("Program.S1.Test()", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (void* V_0, //p
+                pinned Program.S1& V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  conv.u
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.s   123
+  IL_0008:  stind.i4
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.1
+  IL_000c:  ldarg.0
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  conv.u
+  IL_0010:  ldfld      ""int Program.S1.x""
+  IL_0015:  call       ""void System.Console.WriteLine(int)""
+  IL_001a:  ldc.i4.0
+  IL_001b:  conv.u
+  IL_001c:  stloc.1
+  IL_001d:  ret
+}
+");
+        }
+
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
+        [Fact]
         public void FixedStatementMultipleFields()
         {
             var text = @"
@@ -1235,7 +1302,7 @@ using System;
 unsafe class C
 {
     int x;
-    int y;
+    readonly int y;
     
     static void Main()
     {
@@ -1288,6 +1355,77 @@ unsafe class C
   IL_002e:  ldfld      ""int C.y""
   IL_0033:  call       ""void System.Console.Write(int)""
   IL_0038:  ret
+}
+");
+        }
+
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
+        [Fact]
+        public void FixedStatementMultipleMethods()
+        {
+            var text = @"
+using System;
+
+unsafe class C
+{
+    int x;
+    readonly int y;
+    
+    ref int X()=>ref x;
+    ref readonly int this[int i]=>ref y;
+
+    static void Main()
+    {
+        C c = new C();
+        fixed (int* p = &c.X(), q = &c[3])
+        {
+            *p = 1;
+            *q = 2;
+        }
+        Console.Write(c.x);
+        Console.Write(c.y);
+    }
+}
+";
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12");
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  4
+  .locals init (int* V_0, //p
+                pinned int& V_1,
+                pinned int& V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  callvirt   ""ref int C.X()""
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  conv.u
+  IL_000e:  stloc.0
+  IL_000f:  dup
+  IL_0010:  ldc.i4.3
+  IL_0011:  callvirt   ""ref readonly int C.this[int].get""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.2
+  IL_0018:  conv.u
+  IL_0019:  ldloc.0
+  IL_001a:  ldc.i4.1
+  IL_001b:  stind.i4
+  IL_001c:  ldc.i4.2
+  IL_001d:  stind.i4
+  IL_001e:  ldc.i4.0
+  IL_001f:  conv.u
+  IL_0020:  stloc.1
+  IL_0021:  ldc.i4.0
+  IL_0022:  conv.u
+  IL_0023:  stloc.2
+  IL_0024:  dup
+  IL_0025:  ldfld      ""int C.x""
+  IL_002a:  call       ""void System.Console.Write(int)""
+  IL_002f:  ldfld      ""int C.y""
+  IL_0034:  call       ""void System.Console.Write(int)""
+  IL_0039:  ret
 }
 ");
         }
@@ -7914,50 +8052,67 @@ unsafe class C
         {
             int* p = stackalloc int[2];
             char* q = stackalloc char[count];
+
+            Use(p);
+            Use(q);
         }
         unchecked
         {
             int* p = stackalloc int[2];
             char* q = stackalloc char[count];
+
+            Use(p);
+            Use(q);
         }
+    }
+
+    static void Use(int * ptr)
+    {        
+    }
+
+    static void Use(char * ptr)
+    {        
     }
 }
 ";
             // NOTE: conversion is always unchecked, multiplication is always checked.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
 {
-  // Code size       31 (0x1f)
+  // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (int V_0) //count
+  .locals init (int V_0, //count
+                int* V_1, //p
+                int* V_2) //p
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.2
+  IL_0002:  ldc.i4.8
   IL_0003:  conv.u
-  IL_0004:  ldc.i4.4
-  IL_0005:  mul.ovf.un
-  IL_0006:  localloc
-  IL_0008:  pop
-  IL_0009:  ldloc.0
-  IL_000a:  conv.u
-  IL_000b:  ldc.i4.2
-  IL_000c:  mul.ovf.un
-  IL_000d:  localloc
-  IL_000f:  pop
-  IL_0010:  ldc.i4.2
-  IL_0011:  conv.u
-  IL_0012:  ldc.i4.4
-  IL_0013:  mul.ovf.un
-  IL_0014:  localloc
-  IL_0016:  pop
-  IL_0017:  ldloc.0
-  IL_0018:  conv.u
-  IL_0019:  ldc.i4.2
-  IL_001a:  mul.ovf.un
-  IL_001b:  localloc
-  IL_001d:  pop
-  IL_001e:  ret
+  IL_0004:  localloc
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.2
+  IL_000a:  mul.ovf.un
+  IL_000b:  localloc
+  IL_000d:  ldloc.1
+  IL_000e:  call       ""void C.Use(int*)""
+  IL_0013:  call       ""void C.Use(char*)""
+  IL_0018:  ldc.i4.8
+  IL_0019:  conv.u
+  IL_001a:  localloc
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.0
+  IL_001e:  conv.u
+  IL_001f:  ldc.i4.2
+  IL_0020:  mul.ovf.un
+  IL_0021:  localloc
+  IL_0023:  ldloc.2
+  IL_0024:  call       ""void C.Use(int*)""
+  IL_0029:  call       ""void C.Use(char*)""
+  IL_002e:  ret
 }
 ");
+
         }
 
         [Fact]
@@ -7980,23 +8135,54 @@ unsafe class C
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
 {
-  // Code size       20 (0x14)
-  .maxstack  2
+  // Code size       16 (0x10)
+  .maxstack  1
   .locals init (void* V_0) //p
-  IL_0000:  ldc.i4.2
+  IL_0000:  ldc.i4.8
   IL_0001:  conv.u
-  IL_0002:  ldc.i4.4
-  IL_0003:  mul.ovf.un
-  IL_0004:  localloc
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.2
-  IL_0008:  conv.u
-  IL_0009:  ldc.i4.4
-  IL_000a:  mul.ovf.un
-  IL_000b:  localloc
-  IL_000d:  call       ""C C.op_Implicit(int*)""
-  IL_0012:  pop
-  IL_0013:  ret
+  IL_0002:  localloc
+  IL_0004:  stloc.0
+  IL_0005:  ldc.i4.8
+  IL_0006:  conv.u
+  IL_0007:  localloc
+  IL_0009:  call       ""C C.op_Implicit(int*)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void StackAllocConversionZero()
+        {
+            var text = @"
+unsafe class C
+{
+    void M()
+    {
+        void* p = stackalloc int[0];
+        C q = stackalloc int[0];
+    }
+
+    public static implicit operator C(int* p)
+    {
+        return null;
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (void* V_0) //p
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  conv.u
+  IL_0005:  call       ""C C.op_Implicit(int*)""
+  IL_000a:  pop
+  IL_000b:  ret
 }
 ");
         }
@@ -8059,7 +8245,15 @@ unsafe class C
                 p = null; //capture p
                 r = null; //capture r
             };
+            
+            Use(s);
         };
+
+        Use(q);
+    }
+
+    static void Use(int * ptr)
+    {        
     }
 }
 ";
@@ -8075,21 +8269,17 @@ unsafe class C
                 int* V_1)
   IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  ldc.i4.2
+  IL_0006:  ldc.i4.8
   IL_0007:  conv.u
-  IL_0008:  ldc.i4.4
-  IL_0009:  mul.ovf.un
-  IL_000a:  localloc
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* C.<>c__DisplayClass0_0.p""
-  IL_0014:  ldc.i4.2
-  IL_0015:  conv.u
-  IL_0016:  ldc.i4.4
-  IL_0017:  mul.ovf.un
-  IL_0018:  localloc
-  IL_001a:  pop
+  IL_0008:  localloc
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  stfld      ""int* C.<>c__DisplayClass0_0.p""
+  IL_0012:  ldc.i4.8
+  IL_0013:  conv.u
+  IL_0014:  localloc
+  IL_0016:  call       ""void C.Use(int*)""
   IL_001b:  ret
 }
 ");
@@ -8106,21 +8296,17 @@ unsafe class C
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
   IL_0008:  stfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
-  IL_000d:  ldc.i4.2
+  IL_000d:  ldc.i4.8
   IL_000e:  conv.u
-  IL_000f:  ldc.i4.4
-  IL_0010:  mul.ovf.un
-  IL_0011:  localloc
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.0
-  IL_0015:  ldloc.1
-  IL_0016:  stfld      ""int* C.<>c__DisplayClass0_1.r""
-  IL_001b:  ldc.i4.2
-  IL_001c:  conv.u
-  IL_001d:  ldc.i4.4
-  IL_001e:  mul.ovf.un
-  IL_001f:  localloc
-  IL_0021:  pop
+  IL_000f:  localloc
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  stfld      ""int* C.<>c__DisplayClass0_1.r""
+  IL_0019:  ldc.i4.8
+  IL_001a:  conv.u
+  IL_001b:  localloc
+  IL_001d:  call       ""void C.Use(int*)""
   IL_0022:  ret
 }
 ");
@@ -8146,52 +8332,48 @@ unsafe class T
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0").VerifyIL("T.Main", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (T.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
                 int* V_1)
   IL_0000:  newobj     ""T.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  ldc.i4.1
+  IL_0006:  ldc.i4.4
   IL_0007:  conv.u
-  IL_0008:  ldc.i4.4
-  IL_0009:  mul.ovf.un
-  IL_000a:  localloc
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* T.<>c__DisplayClass1_0.v""
-  IL_0014:  ldloc.0
-  IL_0015:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
-  IL_001b:  newobj     ""T.D..ctor(object, System.IntPtr)""
-  IL_0020:  callvirt   ""int T.D.Invoke()""
-  IL_0025:  call       ""void System.Console.WriteLine(int)""
-  IL_002a:  ret
+  IL_0008:  localloc
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  stfld      ""int* T.<>c__DisplayClass1_0.v""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
+  IL_0019:  newobj     ""T.D..ctor(object, System.IntPtr)""
+  IL_001e:  callvirt   ""int T.D.Invoke()""
+  IL_0023:  call       ""void System.Console.WriteLine(int)""
+  IL_0028:  ret
 }
 ");
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0").VerifyIL("T.Main", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (T.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
                 int* V_1)
   IL_0000:  newobj     ""T.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  ldc.i4.1
+  IL_0006:  ldc.i4.4
   IL_0007:  conv.u
-  IL_0008:  ldc.i4.4
-  IL_0009:  mul.ovf.un
-  IL_000a:  localloc
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* T.<>c__DisplayClass1_0.v""
-  IL_0014:  ldloc.0
-  IL_0015:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
-  IL_001b:  newobj     ""T.D..ctor(object, System.IntPtr)""
-  IL_0020:  callvirt   ""int T.D.Invoke()""
-  IL_0025:  call       ""void System.Console.WriteLine(int)""
-  IL_002a:  ret
+  IL_0008:  localloc
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  stfld      ""int* T.<>c__DisplayClass1_0.v""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
+  IL_0019:  newobj     ""T.D..ctor(object, System.IntPtr)""
+  IL_001e:  callvirt   ""int T.D.Invoke()""
+  IL_0023:  call       ""void System.Console.WriteLine(int)""
+  IL_0028:  ret
 }
 ");
         }
@@ -8217,7 +8399,7 @@ public class C
     private static unsafe int Main()
     {
         Int64* intArray = stackalloc Int64[0x7fffffff];
-        return 0;
+        return (int)intArray[0];
     }
 }
 ";
@@ -8231,8 +8413,8 @@ public class C
   IL_0006:  ldc.i4.8
   IL_0007:  mul.ovf.un
   IL_0008:  localloc
-  IL_000a:  pop
-  IL_000b:  ldc.i4.0
+  IL_000a:  ldind.i8
+  IL_000b:  conv.i4
   IL_000c:  ret
 }
 ");
@@ -8532,7 +8714,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: false).VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
@@ -8546,7 +8728,7 @@ class C
     unsafe int* p = (int*)2;
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: false).VerifyDiagnostics(
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
                 // (4,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -8563,7 +8745,7 @@ class C
     int x = 1;
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: false).VerifyDiagnostics(
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
                 // (5,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -8636,7 +8818,7 @@ public struct OuterStruct
     override public string ToString() { return (ES.ToString() + FS.ToString()); }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: false).VerifyDiagnostics(
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyDiagnostics(
                 // (8,17): warning CS0649: Field 'OuterStruct.FS' is never assigned to, and will always have its default value 
                 //     FixedStruct FS;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "FS").WithArguments("OuterStruct.FS", "").WithLocation(8, 17),
@@ -8659,7 +8841,7 @@ unsafe public struct FixedStruct
     }
 }
 ";
-            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: false).VerifyDiagnostics();
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics();
 
             comp.VerifyIL("FixedStruct.ToString", @"
 {
@@ -8712,7 +8894,7 @@ unsafe public struct FixedStruct
             }
         }
     }";
-            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"ABC", verify: false).VerifyDiagnostics();
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"ABC", verify: Verification.Fails).VerifyDiagnostics();
 
             comp.VerifyIL("FixedStruct.ToString", @"
 {

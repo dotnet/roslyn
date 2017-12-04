@@ -1039,23 +1039,60 @@ void G6(int a)
                 { "{      int G5(int c) => /*1*/d;     F(G5);      void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     };     F(G4); }",
                     "{      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     };     F(G4); }" },
                 { "int G5(int c) => /*1*/d;", "int G5(int c) => /*1*/d + 1;" },
-                { "=> /*1*/d", "=> /*1*/d + 1" },
                 { "F(G5);", "F(G5);" },
                 { "void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     }",
                     "void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }" },
                 { "{         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     }",
                     "{         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }" },
                 { "void G1(int x) => x;", "int G6(int p) => p *2;" },
-                { "=> x", "=> p *2" },
                 { "int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }",
                     "int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }" },
                 { "{              int G2(int c) => /*2*/d;             return G2(w);         }", "{              int G2(int c) => /*2*/d + 1; return G2(w);         }" },
                 { "int G2(int c) => /*2*/d;", "int G2(int c) => /*2*/d + 1;" },
-                { "=> /*2*/d", "=> /*2*/d + 1" },
                 { "return G2(w);", "return G2(w);" },
                 { "F(G3);", "F(G3);" },
                 { "F(G1);", "F(G1);" },
                 { "F(G4);", "F(G4);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LocalFunctions6()
+        {
+            var src1 = @"int f() { return local(); int local() { return 1; }}";
+            var src2 = @"int f() { return local(); int local() => 2; }";
+
+            var matches = GetMethodMatches(src1, src2);
+            var actual = ToMatchingPairs(matches);
+
+            var expected = new MatchingPairs
+            {
+                { "int f() { return local(); int local() { return 1; }}", "int f() { return local(); int local() => 2; }" },
+                { "{ return local(); int local() { return 1; }}", "{ return local(); int local() => 2; }" },
+                { "return local();", "return local();" },
+                { "int local() { return 1; }", "int local() => 2;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LocalFunctions6Reverse()
+        {
+            var src1 = @"int f() { return local(); int local() => 2; }";
+            var src2 = @"int f() { return local(); int local() { return 1; }}";
+
+            var matches = GetMethodMatches(src1, src2);
+            var actual = ToMatchingPairs(matches);
+
+            var expected = new MatchingPairs
+            {
+                { "int f() { return local(); int local() => 2; }", "int f() { return local(); int local() { return 1; }}" },
+                { "{ return local(); int local() => 2; }", "{ return local(); int local() { return 1; }}" },
+                { "return local();", "return local();" },
+                { "int local() => 2;", "int local() { return 1; }" }
             };
 
             expected.AssertEqual(actual);

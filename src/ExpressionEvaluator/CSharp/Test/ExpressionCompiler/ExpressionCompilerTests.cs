@@ -18,6 +18,7 @@ using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
@@ -5437,7 +5438,7 @@ public class C
         {
             var signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
+                WithStrongNameProvider(s_defaultDesktopProvider);
 
             var libBTemplate = @"
 [assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
@@ -6308,6 +6309,105 @@ class C
   IL_0001:  ret
 }");
         });
+        }
+
+        [Fact]
+        public void InLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate void D(in int p);");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var comp = CreateStandardCompilation(@"
+public class Test
+{
+    void M(D lambda)
+    {
+    }
+}", references: new[] { reference.EmitToImageReference() });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var testData = Evaluate(
+                comp,
+                methodName: "Test.M",
+                expr: "M((in int p) => {})");
+
+            var methodsGenerated = testData.GetMethodsByName().Keys;
+            Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
+            Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
+        }
+
+        [Fact]
+        public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate ref readonly int D();");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var comp = CreateStandardCompilation(@"
+public class Test
+{
+    private int x = 0;
+    void M(D lambda)
+    {
+    }
+}", references: new[] { reference.EmitToImageReference() });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var testData = Evaluate(
+                comp,
+                methodName: "Test.M",
+                expr: "M(() => ref x)");
+
+            var methodsGenerated = testData.GetMethodsByName().Keys;
+            Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
+            Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
+        }
+
+        [Fact]
+        [WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
+        public void RefReturnNonRefLocal()
+        {
+            var source = @"
+delegate ref int D();
+class C
+{
+    static void Main()
+    {
+        int local = 0;
+    }
+    static ref int M(D d)
+    {
+        return ref d();
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                context.CompileExpression("M(() => ref local)", out var error);
+                Assert.Equal("error CS8168: Cannot return local 'local' by reference because it is not a ref local", error);
+            });
         }
     }
 }

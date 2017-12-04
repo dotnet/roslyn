@@ -2351,5 +2351,52 @@ class C
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]
+        public void AssignedInFinallyUsedInTry()
+        {
+            var source =
+@"  
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            Test();
+        }
+
+        public static void Test()
+        {
+            object obj; 
+
+            try
+            {
+                goto l3;
+
+                l1:
+                goto l2;
+
+                l3:
+                goto l1;
+
+
+                l2:
+
+                // Should be compile error
+                // 'obj' is uninitialized
+                obj.ToString();
+            }
+            finally
+            {
+                obj = 1;
+            }
+        }
+    }
+";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (28,17): error CS0165: Use of unassigned local variable 'obj'
+                //                 obj.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "obj").WithArguments("obj").WithLocation(28, 17)
+                );
+        }
     }
 }

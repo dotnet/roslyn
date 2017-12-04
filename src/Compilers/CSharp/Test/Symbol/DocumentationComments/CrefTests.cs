@@ -4369,8 +4369,8 @@ public partial class D { }
 public partial class E { }
 ";
 
-            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = Parse(source2, options: TestOptions.Regular);
+            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Latest));
+            var tree2 = Parse(source2, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
 
             // This scenario does not exist in dev11, but the diagnostics seem reasonable.
             CreateStandardCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(

@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     }
 
                     break;
+                case CS1955:
+                    break;
 
                 default:
                     return false;
@@ -159,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS0616:
                 case CS1580:
                 case CS1581:
+                case CS1955:
                     break;
 
                 case CS1574:

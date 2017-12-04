@@ -129,6 +129,7 @@
          RootNamespace="$(RootNamespace)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
          SdkPath="$(FrameworkPathOverride)"
+         SharedCompilationId="$(SharedCompilationId)"
          SkipCompilerExecution="$(SkipCompilerExecution)"
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"

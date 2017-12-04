@@ -1403,13 +1403,13 @@ public class Class1
             var d1 = class1.GetMember<FieldSymbol>("d1");
             var m1 = class1.GetMember<MethodSymbol>("M1");
 
-            var state = new ModuleCompilationState();
+            var builder = GetDefaultPEBuilder(c1);
 
             Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(state).Single().ToString());
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(builder).Single().ToString());
             Assert.Equal(d1.ConstantValue, -7m);
             Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(state).Single().ToString());
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(builder).Single().ToString());
             Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
 
             var c2 = CreateCompilationWithCustomILSource("", ilSource);
@@ -1420,16 +1420,16 @@ public class Class1
             m1 = class1.GetMember<MethodSymbol>("M1");
 
             Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(state).Single().ToString());
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(builder).Single().ToString());
             Assert.Equal(d1.ConstantValue, -7m);
             Assert.Equal(2, d2.GetAttributes().Length);
-            Assert.Equal(2, d2.GetCustomAttributesToEmit(state).Count());
+            Assert.Equal(2, d2.GetCustomAttributesToEmit(builder).Count());
             Assert.Null(d2.ConstantValue);
             Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(state).Single().ToString());
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(builder).Single().ToString());
             Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
             Assert.Empty(m1.Parameters[1].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(state).Single().ToString());
+            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(builder).Single().ToString());
             Assert.Equal(m1.Parameters[1].ExplicitDefaultValue, new DateTime(2013, 1, 1));
 
             var c3 = CreateCompilationWithCustomILSource("", ilSource);
@@ -1441,16 +1441,16 @@ public class Class1
 
             Assert.Equal(d1.ConstantValue, -7m);
             Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(state).Single().ToString());
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(builder).Single().ToString());
             Assert.Null(d2.ConstantValue);
             Assert.Equal(2, d2.GetAttributes().Length);
-            Assert.Equal(2, d2.GetCustomAttributesToEmit(state).Count());
+            Assert.Equal(2, d2.GetCustomAttributesToEmit(builder).Count());
             Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
             Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(state).Single().ToString());
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(builder).Single().ToString());
             Assert.Equal(m1.Parameters[1].ExplicitDefaultValue, new DateTime(2013, 1, 1));
             Assert.Empty(m1.Parameters[1].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(state).Single().ToString());
+            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(builder).Single().ToString());
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

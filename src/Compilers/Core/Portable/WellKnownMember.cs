@@ -418,6 +418,11 @@ namespace Microsoft.CodeAnalysis
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
 
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
+        System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+        System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+
+        System_ObsoleteAttribute__ctor,
+        System_Span_T__ctor,
 
         Count
     }

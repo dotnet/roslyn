@@ -134,6 +134,7 @@
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
          ResponseFiles="$(CompilerResponseFile)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
+         SharedCompilationId="$(SharedCompilationId)"
          SkipCompilerExecution="$(SkipCompilerExecution)"
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"

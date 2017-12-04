@@ -2415,7 +2415,7 @@ class C
       </customDebugInfo>
     </method>
   </methods>
-</symbols>", options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints);
+</symbols>", options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints);
 
             v0.VerifyIL("C.M", @"
 {

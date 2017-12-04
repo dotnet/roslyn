@@ -520,12 +520,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // We use the parent node as a root:
                 // - for field/property initializers the root is EqualsValueClause. 
-                // - for expression-bodies the root is ArrowExpressionClauseSyntax. 
+                // - for member expression-bodies the root is ArrowExpressionClauseSyntax.
                 // - for block bodies the root is a method/operator/accessor declaration (only happens when matching expression body with a block body)
                 // - for lambdas the root is a LambdaExpression.
                 // - for query lambdas the root is the query clause containing the lambda (e.g. where).
+                // - for local functions the root is LocalFunctionStatement.
 
-                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                SyntaxNode GetMatchingRoot(SyntaxNode body)
+                {
+                    var parent = body.Parent;
+                    // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents
+                    // but it would require an essential refactoring. 
+                    return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
+                }
+
+                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
@@ -564,6 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     // TODO: Consider mapping an expression body to an equivalent statement expression or return statement and vice versa.
                     // It would benefit transformations of expression bodies to block bodies of lambdas, methods, operators and properties.
+                    // See https://github.com/dotnet/roslyn/issues/22696
 
                     // field initializer, lambda and query expressions:
                     if (oldStatement == oldBody && !newBody.IsKind(SyntaxKind.Block))
@@ -1589,6 +1599,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    return FeaturesResources.local_function;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
@@ -1893,18 +1906,31 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
-                        ClassifyTypeWithPossibleExternMembersInsert((TypeDeclarationSyntax)node);
+                        var typeDeclaration = (TypeDeclarationSyntax)node;
+                        ClassifyTypeWithPossibleExternMembersInsert(typeDeclaration);
+                        ClassifyPossibleEmbeddedAttributesForType(typeDeclaration);
                         return;
 
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.EnumDeclaration:
+                        return;
+
                     case SyntaxKind.DelegateDeclaration:
+                        var delegateDeclaration = (DelegateDeclarationSyntax)node;
+                        ClassifyPossibleReadOnlyRefAttributesForType(delegateDeclaration, delegateDeclaration.ReturnType);
+                        ClassifyPossibleInModifierForParameters(delegateDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
                     case SyntaxKind.EventDeclaration:
                         ClassifyModifiedMemberInsert(((BasePropertyDeclarationSyntax)node).Modifiers);
+                        return;
+
+                    case SyntaxKind.IndexerDeclaration:
+                        var indexerDeclaration = (IndexerDeclarationSyntax)node;
+                        ClassifyModifiedMemberInsert(indexerDeclaration.Modifiers);
+                        ClassifyPossibleReadOnlyRefAttributesForType(indexerDeclaration, indexerDeclaration.Type);
+                        ClassifyPossibleInModifierForParameters(indexerDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.ConversionOperatorDeclaration:
@@ -1920,11 +1946,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // Allow adding parameterless constructor.
                         // Semantic analysis will determine if it's an actual addition or 
                         // just an update of an existing implicit constructor.
-                        var modifiers = ((BaseMethodDeclarationSyntax)node).Modifiers;
-                        if (SyntaxUtilities.IsParameterlessConstructor(node))
+                        var method = (BaseMethodDeclarationSyntax)node;
+                        if (SyntaxUtilities.IsParameterlessConstructor(method))
                         {
                             // Disallow adding an extern constructor
-                            if (modifiers.Any(SyntaxKind.ExternKeyword))
+                            if (method.Modifiers.Any(SyntaxKind.ExternKeyword))
                             {
                                 ReportError(RudeEditKind.InsertExtern);
                             }
@@ -1932,7 +1958,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             return;
                         }
 
-                        ClassifyModifiedMemberInsert(modifiers);
+                        ClassifyModifiedMemberInsert(method.Modifiers);
+                        ClassifyPossibleInModifierForParameters(method.ParameterList);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -1994,6 +2021,48 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
+            private void ClassifyPossibleEmbeddedAttributesForType(TypeDeclarationSyntax type)
+            {
+                if (type.Keyword.IsKind(SyntaxKind.StructKeyword))
+                {
+                    foreach (var modifier in type.Modifiers)
+                    {
+                        switch (modifier.Kind())
+                        {
+                            case SyntaxKind.RefKeyword:
+                                ReportError(RudeEditKind.RefStruct, type, type);
+                                return;
+                            case SyntaxKind.ReadOnlyKeyword:
+                                ReportError(RudeEditKind.ReadOnlyStruct, type, type);
+                                return;
+                        }
+                    }
+                }
+            }
+
+            private void ClassifyPossibleInModifierForParameters(BaseParameterListSyntax list)
+            {
+                foreach (var parameter in list.Parameters)
+                {
+                    foreach (var modifier in parameter.Modifiers)
+                    {
+                        if (modifier.IsKind(SyntaxKind.InKeyword))
+                        {
+                            ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            private void ClassifyPossibleReadOnlyRefAttributesForType(SyntaxNode owner, TypeSyntax type)
+            {
+                if (type is RefTypeSyntax refType && refType.RefKeyword != default && refType.ReadOnlyKeyword != default)
+                {
+                    ReportError(RudeEditKind.ReadOnlyReferences, owner, owner);
+                }
+            }
+
             private void ClassifyTypeWithPossibleExternMembersInsert(TypeDeclarationSyntax type)
             {
                 // extern members are not allowed, even in a new type
@@ -2032,6 +2101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     ReportError(RudeEditKind.InsertGenericMethod);
                 }
+
+                ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
+                ClassifyPossibleInModifierForParameters(method.ParameterList);
             }
 
             private void ClassifyAccessorInsert(AccessorDeclarationSyntax accessor)
@@ -2799,6 +2871,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         case SyntaxKind.StackAllocArrayCreationExpression:
                             ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
                             return;
+
+                        case SyntaxKind.LocalFunctionStatement:
+                            var localFunction = (LocalFunctionStatementSyntax)node;
+                            ClassifyPossibleReadOnlyRefAttributesForType(localFunction, localFunction.ReturnType);
+                            ClassifyPossibleInModifierForParameters(localFunction.ParameterList);
+                            break;
                     }
                 }
             }

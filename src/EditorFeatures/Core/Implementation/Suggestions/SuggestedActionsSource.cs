@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// always show up last after all other fixes (and refactorings) for the selected line of code.
             /// </remarks>
             private static ImmutableArray<SuggestedActionSet> PrioritizeFixGroups(
-                IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order)
+                ImmutableDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, ImmutableArray<CodeFixGroupKey> order)
             {
                 var sets = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
