@@ -2370,11 +2370,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Retain those temps for the extent of the encompassing expression.
                 AddExpressionTemp(temp);
 
-                // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
-                if (assignmentOperator.Left.Kind == BoundKind.Local && ((BoundLocal)lhs).LocalSymbol.SynthesizedKind.IsLongLived())
-                {
-                    var exprTempsAfter = _expressionTemps?.Count ?? 0;
+                var exprTempsAfter = _expressionTemps?.Count ?? 0;
 
+                // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
+                Debug.Assert(lhs.Kind != BoundKind.Parameter || exprTempsAfter <= exprTempsBefore);
+
+                if (lhs.Kind == BoundKind.Local && ((BoundLocal)lhs).LocalSymbol.SynthesizedKind.IsLongLived())
+                {
                     // This situation is extremely rare. We are assigning a ref to a local with unknown lifetime
                     // while computing that ref required expression temps.
                     //
