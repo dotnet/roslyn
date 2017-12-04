@@ -389,6 +389,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t apply changes -- module &apos;{0}&apos; has been unloaded..
+        /// </summary>
+        internal static string CantApplyChangesModuleHasBeenUnloaded {
+            get {
+                return ResourceManager.GetString("CantApplyChangesModuleHasBeenUnloaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Capitalization:.
         /// </summary>
         internal static string Capitalization_colon {
@@ -767,6 +776,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Error_while_reading_0_colon_1 {
             get {
                 return ResourceManager.GetString("Error_while_reading_0_colon_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while reading a file.
+        /// </summary>
+        internal static string ErrorReadingFile {
+            get {
+                return ResourceManager.GetString("ErrorReadingFile", resourceCulture);
             }
         }
         
@@ -1239,6 +1257,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Modifiers_must_match_all {
             get {
                 return ResourceManager.GetString("Modifiers_must_match_all", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Module has been unloaded..
+        /// </summary>
+        internal static string ModuleHasBeenUnloaded {
+            get {
+                return ResourceManager.GetString("ModuleHasBeenUnloaded", resourceCulture);
             }
         }
         
