@@ -38,6 +38,14 @@ stop_vbcscompiler=false
 # so it doesn't output warnings to the console.
 export LTTNG_HOME="$HOME"
 
+if [[ $# = 0 ]]
+then
+    usage
+    echo ""
+    echo "To build and test this repo, try: ./build.sh --restore --build --test"
+    exit 1
+fi
+
 while [[ $# > 0 ]]
 do
     opt="$(echo "$1" | awk '{print tolower($0)}')"
@@ -122,8 +130,13 @@ fi
 
 if [[ "${stop_vbcscompiler}" == true ]]
 then
-    echo "Stopping VBCSCompiler"
-    dotnet "${bootstrap_path}"/bincore/VBCSCompiler.dll -shutdown
+    if [[ "${use_bootstrap}" == true ]]
+    then
+        echo "Stopping VBCSCompiler"
+        dotnet "${bootstrap_path}"/bincore/VBCSCompiler.dll -shutdown
+    else
+        echo "--stop-vbcscompiler requires --use-bootstrap. Ignoring and continuing anyway..."
+    fi
 fi
 
 if [[ "${test_}" == true ]]

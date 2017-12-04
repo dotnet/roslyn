@@ -19,13 +19,13 @@ install_dotnet () {
     # check if the correct `dotnet` is already on the PATH
     if command -v dotnet >/dev/null 2>&1
     then
-        if [[ "${FORCE_DOWNLOAD:-false}" != true && "$(dotnet --version)" = "${DOTNET_VERSION}" ]]
+        if [[ "${FORCE_DOWNLOAD:-false}" != true && "$(dotnet --version)" = "${DOTNET_SDK_VERSION}" ]]
         then
             return 0
         fi
     fi
 
-    if [[ ! -x "${DOTNET_PATH}/dotnet" || "$(${DOTNET_PATH}/dotnet --version)" != "${DOTNET_VERSION}" ]]
+    if [[ ! -x "${DOTNET_PATH}/dotnet" || "$(${DOTNET_PATH}/dotnet --version)" != "${DOTNET_SDK_VERSION}" ]]
     then
         echo "Downloading and installing .NET CLI version ${DOTNET_SDK_VERSION} to ${DOTNET_PATH}"
         curl https://dot.net/v1/dotnet-install.sh | \
