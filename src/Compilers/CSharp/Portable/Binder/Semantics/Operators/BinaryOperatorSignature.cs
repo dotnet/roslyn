@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -69,6 +70,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(LeftType,
                    Hash.Combine(RightType,
                    Hash.Combine(Method, (int)Kind))));
+        }
+
+        public RefKind LeftRefKind
+        {
+            get
+            {
+                Debug.Assert(
+                    Method != null &&
+                    Method.ParameterCount == 2 &&
+                    (Method.ParameterRefKinds.IsDefaultOrEmpty || Method.ParameterRefKinds.Length == 2));
+
+                return Method.ParameterRefKinds.IsDefaultOrEmpty
+                    ? RefKind.None
+                    : Method.ParameterRefKinds[0];
+            }
+        }
+
+        public RefKind RightRefKind
+        {
+            get
+            {
+                Debug.Assert(
+                    Method != null &&
+                    Method.ParameterCount == 2 &&
+                    (Method.ParameterRefKinds.IsDefaultOrEmpty || Method.ParameterRefKinds.Length == 2));
+
+                return Method.ParameterRefKinds.IsDefaultOrEmpty
+                    ? RefKind.None
+                    : Method.ParameterRefKinds[1];
+            }
         }
     }
 }

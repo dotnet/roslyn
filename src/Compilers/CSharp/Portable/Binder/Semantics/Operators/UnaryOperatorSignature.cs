@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,6 +25,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override string ToString()
         {
             return $"kind: {this.Kind} operand: {this.OperandType} return: {this.ReturnType}";
+        }
+
+        public RefKind RefKind
+        {
+            get
+            {
+                Debug.Assert(
+                    Method != null &&
+                    Method.ParameterCount == 1 &&
+                    (Method.ParameterRefKinds.IsDefaultOrEmpty || Method.ParameterRefKinds.Length == 1));
+
+                return Method.ParameterRefKinds.IsDefaultOrEmpty
+                    ? RefKind.None
+                    : Method.ParameterRefKinds[0];
+            }
         }
     }
 }
