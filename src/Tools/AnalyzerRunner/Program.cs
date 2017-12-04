@@ -92,6 +92,9 @@ namespace AnalyzerRunner
                     Console.WriteLine("Number of syntax trivia:\t" + statistics.NumberOfTrivia);
                 }
 
+                Console.WriteLine("Pausing 5 seconds before starting analysis...");
+                await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+
                 stopwatch.Restart();
 
                 var analysisResult = await GetAnalysisResultAsync(solution, analyzers, options, cancellationToken).ConfigureAwait(true);
