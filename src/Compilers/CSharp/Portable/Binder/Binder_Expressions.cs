@@ -7071,7 +7071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
-            // The resultin type must be either a reference type T or Nullable<T>
+            // The resulting type must be either a reference type T or Nullable<T>
             // Therefore we must reject cases resulting in types that are not reference types and cannot be lifted into nullable.
             // - access cannot have unconstrained generic type
             // - access cannot be a pointer
