@@ -2122,7 +2122,6 @@ FullWidthRepeat2:
                ByRef Here As Integer
            ) As Boolean
             Debug.Assert(Here >= 0)
-
             If Not CanGet(Here) Then
                 Return False
             End If
@@ -2311,14 +2310,12 @@ FullWidthRepeat2:
                 ' // Check AM/PM
 
                 If CanGet(Here) Then
-                    If Peek(Here) = "A"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
-                        Peek(Here) = "a"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_A Then
+                    If IsLetterA(Peek(Here)) Then
 
                         HaveAM = True
                         Here += 1
 
-                    ElseIf Peek(Here) = "P"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
-                           Peek(Here) = "p"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_P Then
+                    ElseIf IsLetterP(Peek(Here)) Then
 
                         HavePM = True
                         Here += 1
@@ -2326,8 +2323,7 @@ FullWidthRepeat2:
                     End If
 
                     If CanGet(Here) AndAlso (HaveAM OrElse HavePM) Then
-                        If Peek(Here) = "M"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
-                           Peek(Here) = "m"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_M Then
+                        If IsLetterM(Peek(Here)) Then
 
                             Here = GetWhitespaceLength(Here + 1)
 

@@ -419,6 +419,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ch = "c"c Or ch = "C"c Or ch = FULLWIDTH_LATIN_CAPITAL_LETTER_C Or ch = FULLWIDTH_LATIN_SMALL_LETTER_C
         End Function
 
+        Friend Shared Function IsLetterP(ch As Char) As Boolean
+            Return ch = "C"c Or ch = "c"c Or ch = FULLWIDTH_LATIN_CAPITAL_LETTER_C Or ch = FULLWIDTH_LATIN_SMALL_LETTER_C
+        End Function
+
+        Friend Shared Function IsLetterA(ch As Char) As Boolean
+            Return ch = "A"c Or ch = "a"c Or ch = FULLWIDTH_LATIN_CAPITAL_LETTER_A Or ch = FULLWIDTH_LATIN_SMALL_LETTER_A
+        End Function
+
+        Friend Shared Function IsLetterM(ch As Char) As Boolean
+            Return ch = "M"c Or ch = "m"c Or ch = FULLWIDTH_LATIN_CAPITAL_LETTER_M Or ch = FULLWIDTH_LATIN_SMALL_LETTER_M
+        End Function
         ''' <summary>
         ''' matches one char or another.
         ''' Typical usage is for matching lowercase and uppercase.
