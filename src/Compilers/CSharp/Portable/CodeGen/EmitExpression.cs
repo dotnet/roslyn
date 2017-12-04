@@ -2404,9 +2404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // int sum = addr + 10;
                     // addr = sum;
                     //
-                    // In "Redhawk" we can write this sort of code directly as well. However, we should
-                    // never have a case where the value of the assignment is "used", either in our own
-                    // lowering passes or in Redhawk. We never have something like:
+                    // If we have something like:
                     //
                     // ref int t1 = (ref int t2 = ref M().s); 
                     //
@@ -2414,24 +2412,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     //
                     // int t1 = (ref int t2 = ref M().s);
                     //
-                    // Therefore we don't have to worry about what if the temporary value we are stashing
-                    // away is of ref type.
-                    //
-                    // If we ever do implement this sort of feature then we will need to figure out which
-                    // of the situations above we are in, and ensure that the correct kind of temporary
-                    // is created here. And also that either its value or its indirected value is read out
-                    // after the store, in EmitAssignmentPostfix, below.
+                    // We need to figure out which of the situations above we are in, and ensure that the
+                    // correct kind of temporary is created here. And also that either its value or its
+                    // indirected value is read out after the store, in EmitAssignmentPostfix, below.
 
-                    if (!assignmentOperator.IsRef)
-                    {
-                        temp = AllocateTemp(assignmentOperator.Left.Type, assignmentOperator.Left.Syntax);
-                        _builder.EmitLocalStore(temp);
-                    }
-                    else
-                    {
-                        temp = AllocateTemp(assignmentOperator.Left.Type, assignmentOperator.Left.Syntax, LocalSlotConstraints.ByRef);
-                        _builder.EmitLocalStore(temp);
-                    }
+                    temp = AllocateTemp(
+                        assignmentOperator.Left.Type,
+                        assignmentOperator.Left.Syntax,
+                        assignmentOperator.IsRef ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
+                    _builder.EmitLocalStore(temp);
                 }
             }
             return temp;
