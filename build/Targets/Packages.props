@@ -10,7 +10,7 @@
     <dotnetxunitVersion>2.3.0-beta4-build3742</dotnetxunitVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
-    <ICSharpCodeDecompilerVersion>3.0.0.3367-beta3</ICSharpCodeDecompilerVersion>
+    <ICSharpCodeDecompilerVersion>3.0.0.3403-beta4</ICSharpCodeDecompilerVersion>
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
@@ -131,6 +131,7 @@
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioVsInteractiveWindowVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
+    <MonoCecilVersion>0.10.0-beta7</MonoCecilVersion>
     <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
     <MoqVersion>4.7.99</MoqVersion>
     <NerdbankFullDuplexStreamVersion>1.0.1</NerdbankFullDuplexStreamVersion>
