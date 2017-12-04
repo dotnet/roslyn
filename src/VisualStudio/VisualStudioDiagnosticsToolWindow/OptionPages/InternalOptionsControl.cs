@@ -52,6 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         // hide it
                         item.Visibility = Visibility.Collapsed;
                     }
+                    else
+                    {
+                        item.Visibility = Visibility.Visible;
+                    }
                 }
             };
 
