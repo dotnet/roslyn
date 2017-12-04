@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private readonly ConcurrentBag<IDisposable> _temps = new ConcurrentBag<IDisposable>();
         public static readonly string Root;
+        private bool _disposed;
 
         static TempRoot()
         {
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void Dispose()
         {
+            _disposed = true;
             while (_temps.TryTake(out var temp))
             {
                 try
@@ -36,8 +38,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        private void CheckDisposed()
+        {
+            if (this._disposed)
+            {
+                throw new ObjectDisposedException(nameof(TempRoot));
+            }
+        }
+
         public TempDirectory CreateDirectory()
         {
+            CheckDisposed();
             var dir = new DisposableDirectory(this);
             _temps.Add(dir);
             return dir;
@@ -45,11 +56,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public TempFile CreateFile(string prefix = null, string extension = null, string directory = null, [CallerFilePath]string callerSourcePath = null, [CallerLineNumber]int callerLineNumber = 0)
         {
+            CheckDisposed();
             return AddFile(new DisposableFile(prefix, extension, directory, callerSourcePath, callerLineNumber));
         }
 
         public DisposableFile AddFile(DisposableFile file)
         {
+            CheckDisposed();
             _temps.Add(file);
             return file;
         }
