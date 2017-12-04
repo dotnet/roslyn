@@ -748,10 +748,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameterType = delegateParameters[i].Type;
-                var methodParameterType = methodParameters[isExtensionMethod ? i + 1 : i].Type;
+                var delegateParameter = delegateParameters[i];
+                var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
-                if (!Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameterType, methodParameterType, ref useSiteDiagnostics))
+                if (delegateParameter.RefKind != methodParameter.RefKind ||
+                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
@@ -760,14 +761,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (delegateMethod.ReturnsByRef != method.ReturnsByRef)
+            if (delegateMethod.RefKind != method.RefKind)
             {
                 Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
 
-            bool returnsMatch = delegateMethod.ReturnsByRef?
+            bool returnsMatch = delegateMethod.RefKind != RefKind.None ?
                                     // - Return types identity-convertible
                                     Conversions.HasIdentityConversion(method.ReturnType, delegateMethod.ReturnType):
                                     // - Return types "match"
