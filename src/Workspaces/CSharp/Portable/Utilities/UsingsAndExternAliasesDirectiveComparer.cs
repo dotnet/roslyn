@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return UsingKind.Alias;
             }
-            if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
+            if (usingDirective.StaticKeyword != default)
             {
                 return UsingKind.UsingStatic;
             }
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var extern1 = directive1 as ExternAliasDirectiveSyntax;
             var extern2 = directive2 as ExternAliasDirectiveSyntax;
 
-            var directive1Kind = GetUsingKind(using1, extern1);
-            var directive2Kind = GetUsingKind(using2, extern2);
+            UsingKind directive1Kind = GetUsingKind(using1, extern1);
+            UsingKind directive2Kind = GetUsingKind(using2, extern2);
 
             // different types of usings get broken up into groups.
             //  * externs
@@ -75,32 +75,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             //  * using statics
             //  * aliases
 
-            if (directive1Kind < directive2Kind)
+            int directiveKindDifference = directive1Kind - directive2Kind;
+            if (directiveKindDifference != 0)
             {
-                return -1;
-            }
-            if (directive1Kind > directive2Kind)
-            {
-                return 1;
+                return directiveKindDifference;
             }
 
             // ok, it's the same type of using now.
-            if (directive1Kind == UsingKind.Extern)
+            switch (directive1Kind)
             {
-                // they're externs, sort by the alias
-                return _tokenComparer.Compare(extern1.Identifier, extern2.Identifier);
-            }
-            if (directive1Kind == UsingKind.Alias)
-            {
-                var aliasComparisonResult = _tokenComparer.Compare(using1.Alias.Name.Identifier, using2.Alias.Name.Identifier);
+                case UsingKind.Extern:
+                    // they're externs, sort by the alias
+                    return _tokenComparer.Compare(extern1.Identifier, extern2.Identifier);
 
-                if (aliasComparisonResult == 0)
-                {
-                    // They both use the same alias, so compare the names.
-                    return _nameComparer.Compare(using1.Name, using2.Name);
-                }
+                case UsingKind.Alias:
+                    var aliasComparisonResult = _tokenComparer.Compare(using1.Alias.Name.Identifier, using2.Alias.Name.Identifier);
 
-                return aliasComparisonResult;
+                    if (aliasComparisonResult == 0)
+                    {
+                        // They both use the same alias, so compare the names.
+                        return _nameComparer.Compare(using1.Name, using2.Name);
+                    }
+
+                    return aliasComparisonResult;
             }
 
             return _nameComparer.Compare(using1.Name, using2.Name);
