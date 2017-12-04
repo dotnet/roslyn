@@ -336,6 +336,7 @@
     Workaround until we can move to a version of MSBuild that includes the change in https://github.com/Microsoft/msbuild/pull/2726.
     We want to opt into the Microsoft.NET.Sdk approach to generating satellite assemblies, which means we also need to opt out of
     default approach. We do this by turning GenerateSatelliteAssemblies into a no-op.
+    This should be removed as part of fixing https://github.com/dotnet/roslyn/issues/23566.
   -->
   <Target Name="GenerateSatelliteAssemblies" />
 
