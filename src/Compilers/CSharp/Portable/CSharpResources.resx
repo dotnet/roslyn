@@ -1554,6 +1554,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PropertyWithNoAccessors" xml:space="preserve">
     <value>'{0}': property or indexer must have at least one accessor</value>
   </data>
+  <data name="ERR_CantUseVoidInArglist" xml:space="preserve">
+    <value>__arglist cannot have an argument of void type</value>
+  </data>
   <data name="ERR_NewVirtualInSealed" xml:space="preserve">
     <value>'{0}' is a new virtual member in sealed class '{1}'</value>
   </data>

@@ -139,12 +139,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expression;
-                    if (assignment.RefKind == RefKind.None)
+                    if (!assignment.IsRef)
                     {
                         goto default;
                     }
 
-                    throw ExceptionUtilities.UnexpectedValue(assignment.RefKind);
+                    throw ExceptionUtilities.UnexpectedValue(assignment.IsRef);
 
                 case BoundKind.ThrowExpression:
                     // emit value or address is the same here.
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return HasHome(((BoundSequence)expression).Value, addressKind);
 
                 case BoundKind.AssignmentOperator:
-                    return ((BoundAssignmentOperator)expression).RefKind != RefKind.None;
+                    return ((BoundAssignmentOperator)expression).IsRef;
 
                 case BoundKind.ComplexConditionalReceiver:
                     Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ValueTypeReceiver, addressKind));
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var ternary = (BoundConditionalOperator)expression;
                     
                     // only ref ternary may be referenced as a variable
-                    if (!ternary.IsByRef)
+                    if (!ternary.IsRef)
                     {
                         return false;
                     }
