@@ -1013,9 +1013,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // might be a speculative node (not fully rooted in a tree), we use the position of the evaluation to find
             // the equivalent node in the original tree, and from there determine if the tree has any using alias
             // directives.
-            if (semanticModel.SyntaxTree.TryGetRoot(out var root))
+            var originalModel = semanticModel;
+            var originalPosition = node.SpanStart;
+            while (originalModel.IsSpeculativeSemanticModel)
             {
-                var token = root.FindTokenOnLeftOfPosition(node.SpanStart);
+                originalPosition = originalModel.OriginalPositionForSpeculation;
+                originalModel = originalModel.ParentModel;
+            }
+
+            if (originalModel.SyntaxTree.TryGetRoot(out var root))
+            {
+                var token = root.FindTokenOnLeftOfPosition(originalPosition);
                 var tokenParent = token.Parent;
                 var aliasContainer = tokenParent?.FirstAncestorOrSelf<SyntaxNode>(
                     syntax =>
