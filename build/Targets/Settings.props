@@ -136,6 +136,13 @@
 
     <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+
+    <!-- 
+      Goal is to remove these in a future change and make it simpler to adopt new SDK 
+      drops
+
+      https://github.com/dotnet/roslyn/issues/23547
+    -->
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 

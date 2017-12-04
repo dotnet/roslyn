@@ -49,6 +49,15 @@
     </When>
   </Choose>
 
+  <PropertyGroup>
+    <!-- 
+         Have to hand specify PublishDir since we suppress the addition of the runtime
+         identifier to the end of the output path
+         https://github.com/dotnet/roslyn/issues/23547
+    -->
+    <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != ''">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
+  </PropertyGroup>
+
   <!-- 
     DocumentationFile needs to be set before importing common targets. 
 
