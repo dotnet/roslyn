@@ -10,7 +10,7 @@
     },
     "CSharpFeatures Analyzers": {
       "commandName": "Project",
-      "commandLineArgs": "$(SolutionDir)Binaries\\$(Configuration)\\Exes\\AnalyzerRunner\\Microsoft.CodeAnalysis.CSharp.Features.dll $(SolutionDir)..\\Orchard\\src\\Orchard.sln /stats",
+      "commandLineArgs": "$(SolutionDir)Binaries\\$(Configuration)\\Exes\\AnalyzerRunner\\Microsoft.CodeAnalysis.CSharp.Features.dll $(SolutionDir)..\\Orchard\\src\\Orchard.sln /concurrent /iter:4 /stats",
       "environmentVariables": {
         "VisualStudioVersion": "$(VisualStudioVersion)",
         "VSToolsPath": "$(VSAPPIDDIR)..\\..\\MSBuild\\Microsoft\\VisualStudio\\v15.0"
