@@ -1303,11 +1303,6 @@ Additional information: {1}</target>
         <target state="new">VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</target>
         <note />
       </trans-unit>
-      <trans-unit id="prefer_auto_properties">
-        <source>prefer auto properties</source>
-        <target state="new">prefer auto properties</target>
-        <note />
-      </trans-unit>
       <trans-unit id="prefer_throwing_properties">
         <source>prefer throwing properties</source>
         <target state="new">prefer throwing properties</target>
@@ -1425,6 +1420,16 @@ Additional information: {1}</target>
       <trans-unit id="Search_found_no_results">
         <source>Search found no results</source>
         <target state="new">Search found no results</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="analyzer_Prefer_auto_properties">
+        <source>Prefer auto properties</source>
+        <target state="new">Prefer auto properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="codegen_prefer_auto_properties">
+        <source>prefer auto properties</source>
+        <target state="new">prefer auto properties</target>
         <note />
       </trans-unit>
     </body>

@@ -8580,6 +8580,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">Filter expression is a constant 'false'. </target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantUseVoidInArglist">
+        <source>__arglist cannot have an argument of void type</source>
+        <target state="new">__arglist cannot have an argument of void type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConditionalInInterpolation">
+        <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
+        <target state="new">A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
