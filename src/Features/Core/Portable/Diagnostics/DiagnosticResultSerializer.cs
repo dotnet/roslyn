@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             writer.WriteInt32(telemetryInfo.OperationBlockStartActionsCount);
             writer.WriteInt32(telemetryInfo.OperationBlockEndActionsCount);
             writer.WriteInt64(telemetryInfo.ExecutionTime.Ticks);
+            writer.WriteBoolean(telemetryInfo.Concurrent);
         }
 
         private static AnalyzerTelemetryInfo Deserialize(ObjectReader reader, CancellationToken cancellationToken)
@@ -188,6 +189,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var operationBlockStartActionsCount = reader.ReadInt32();
             var operationBlockEndActionsCount = reader.ReadInt32();
             var executionTime = new TimeSpan(reader.ReadInt64());
+            var concurrent = reader.ReadBoolean();
 
             return new AnalyzerTelemetryInfo()
             {
@@ -209,7 +211,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 OperationBlockEndActionsCount = operationBlockEndActionsCount,
                 OperationBlockActionsCount = operationBlockActionsCount,
 
-                ExecutionTime = executionTime
+                ExecutionTime = executionTime,
+
+                Concurrent = concurrent
             };
         }
 
