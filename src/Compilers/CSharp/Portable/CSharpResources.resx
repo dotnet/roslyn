@@ -1738,7 +1738,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Array initializers can only be used in a variable or field initializer. Try using a new expression instead.</value>
   </data>
   <data name="ERR_MissingStructOffset" xml:space="preserve">
-    <value>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</value>
+    <value>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</value>
   </data>
   <data name="WRN_ExternMethodNoImplementation" xml:space="preserve">
     <value>Method, operator, or accessor '{0}' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.</value>
@@ -2201,9 +2201,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_RecursivelyTypedVariable" xml:space="preserve">
     <value>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</value>
-  </data>
-  <data name="ERR_ExplicitLayoutAndAutoImplementedProperty" xml:space="preserve">
-    <value>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
     <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
@@ -3088,6 +3085,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_DoNotUseFixedBufferAttr" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.</value>
+  </data>
+  <data name="ERR_DoNotUseFixedBufferAttrOnProperty" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</value>
   </data>
   <data name="WRN_AssignmentToSelf" xml:space="preserve">
     <value>Assignment made to same variable; did you mean to assign something else?</value>
@@ -5130,6 +5130,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7_2" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.2. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion7_3" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
     <value>Specified language version '{0}' cannot have leading zeroes</value>
   </data>
@@ -5150,6 +5153,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
+  <data name="WRN_AttributesOnBackingFieldsNotAvailable" xml:space="preserve">
+    <value>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</value>
+  </data>
+  <data name="WRN_AttributesOnBackingFieldsNotAvailable_Title" xml:space="preserve">
+    <value>Field-targeted attributes on auto-properties are not supported in this version of the language.</value>
   </data>
   <data name="WRN_DefaultInSwitch" xml:space="preserve">
     <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>
