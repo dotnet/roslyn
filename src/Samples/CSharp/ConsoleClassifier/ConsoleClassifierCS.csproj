@@ -14,7 +14,7 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <ScrubbedSamplePath>CSharp\ConsoleClassifier</ScrubbedSamplePath>
+    <ScrubbedSamplePath>CSharp\ConsoleClassifier</ScrubbedSamplePath>\
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
