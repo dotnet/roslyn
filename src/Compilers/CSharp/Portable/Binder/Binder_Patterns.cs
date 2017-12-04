@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PropertyPattern:
                     return BindPropertyPattern((PropertyPatternSyntax)node, operandType, hasErrors, diagnostics);
 
+                case SyntaxKind.VarPattern:
+                    return BindVarPattern((VarPatternSyntax)node, operandType, hasErrors, diagnostics);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
@@ -265,9 +268,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeSyntax = node.Type;
             var boundDeclType = BindPatternType(typeSyntax, operandType, ref hasErrors, out bool isVar, diagnostics);
-            var declType = boundDeclType.Type;
+            if (typeSyntax.ToString() == "var" && !isVar)
+            {
+                // For compatibility, we temporarily parse the var pattern with a simple designator as a declaration pattern.
+                // So we implement the semantics of the var pattern here, forbidding "var" to bind to a user-declared type.
+                if (!hasErrors)
+                {
+                    diagnostics.Add(ErrorCode.ERR_VarMayNotBindToType, typeSyntax.Location, (boundDeclType.AliasOpt ?? (Symbol)boundDeclType.Type).ToDisplayString());
+                }
 
+                boundDeclType = new BoundTypeExpression(typeSyntax, null, inferredType: true, type: operandType, hasErrors: true);
+            }
+
+            var declType = boundDeclType.Type;
             BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
+            // PROTOTYPE(patterns2): We could bind the "var" declaration pattern as a var pattern in preparation for changing the parser to parse it as a var pattern.
+            // PROTOTYPE(patterns2): Eventually we will want to remove "isVar" from the declaration pattern.
             return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar, hasErrors);
         }
 
@@ -423,7 +439,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // It is not a tuple type. Seek an appropriate Deconstruct method.
-
                 var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
                 var deconstruct = MakeDeconstructInvocationExpression(
                     node.SubPatterns.Count, inputPlaceholder, node, diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, requireTwoOrMoreElements: false);
@@ -454,6 +469,92 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, inputType: declType, deconstructMethodOpt: deconstructMethod,
                 deconstruction: patterns.ToImmutableAndFree(), propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
+        }
+
+        private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
+        {
+            TypeSymbol declType = operandType;
+            var foundType = BindVarType(node.VarIdentifier, diagnostics, out bool isVar, null);
+            if (!isVar)
+            {
+                // Give an error if there is a bindable type "var" in scope
+                diagnostics.Add(ErrorCode.ERR_VarMayNotBindToType, node.VarIdentifier.GetLocation(), foundType.ToDisplayString());
+                hasErrors = true;
+            }
+
+            return BindVarDesignation(node, node.Designation, operandType, hasErrors, diagnostics);
+        }
+
+        private BoundPattern BindVarDesignation(VarPatternSyntax node, VariableDesignationSyntax designation, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.DiscardDesignation:
+                    {
+                        //return new BoundDiscardPattern(designation);
+                        // PROTOTYPE(patterns2): this should bind as a discard pattern, but for now we'll bind it as a declaration
+                        // pattern for compatibility with the later phases of the compiler that do not yet handle the discard pattern.
+                        var boundOperandType = new BoundTypeExpression(node, null, operandType); // fake a type expression for the variable's type
+                        return new BoundDeclarationPattern(designation, null, null, boundOperandType, isVar: true, hasErrors: hasErrors);
+                    }
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        BindPatternDesignation(node, designation, operandType, null, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
+                        var boundOperandType = new BoundTypeExpression(node, null, operandType); // fake a type expression for the variable's type
+                        return new BoundDeclarationPattern(designation, variableSymbol, variableAccess, boundOperandType, isVar: true, hasErrors: hasErrors);
+                    }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tupleDesignation = (ParenthesizedVariableDesignationSyntax)designation;
+                        var patterns = ArrayBuilder<BoundPattern>.GetInstance();
+                        MethodSymbol deconstructMethod = null;
+                        if (operandType.IsTupleType)
+                        {
+                            // It is a tuple type. Work according to its elements
+                            var elementTypes = operandType.TupleElementTypes;
+                            if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
+                            {
+                                var location = new SourceLocation(node.SyntaxTree, new Text.TextSpan(tupleDesignation.OpenParenToken.SpanStart, tupleDesignation.CloseParenToken.Span.End - tupleDesignation.OpenParenToken.SpanStart));
+                                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, operandType.TupleElementTypes, elementTypes.Length, tupleDesignation.Variables.Count);
+                                hasErrors = true;
+                            }
+                            for (int i = 0; i < tupleDesignation.Variables.Count; i++)
+                            {
+                                bool isError = i >= elementTypes.Length;
+                                var elementType = isError ? CreateErrorType() : elementTypes[i];
+                                var boundSubpattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
+                                patterns.Add(boundSubpattern);
+                            }
+                        }
+                        else
+                        {
+                            // It is not a tuple type. Seek an appropriate Deconstruct method.
+                            var inputPlaceholder = new BoundImplicitReceiver(node, operandType); // A fake receiver expression to permit us to reuse binding logic
+                            var deconstruct = MakeDeconstructInvocationExpression(
+                                tupleDesignation.Variables.Count, inputPlaceholder, node, diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, requireTwoOrMoreElements: false);
+                            deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
+                            // PROTOTYPE(patterns2): Set and check the deconstructMethod
+
+                            for (int i = 0; i < tupleDesignation.Variables.Count; i++)
+                            {
+                                bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
+                                var elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
+                                var boundSubpattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
+                                patterns.Add(boundSubpattern);
+                            }
+
+                            // PROTOTYPE(patterns2): If no Deconstruct method is found, try casting to `ITuple`.
+                        }
+
+                        return new BoundRecursivePattern(
+                            syntax: node, declaredType: null, inputType: operandType, deconstructMethodOpt: deconstructMethod,
+                            deconstruction: patterns.ToImmutableAndFree(), propertiesOpt: default, variable: null, variableAccess: null, hasErrors: hasErrors);
+                    }
+                default:
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+                    }
+            }
         }
 
         private BoundPattern BindPropertyPattern(PropertyPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)

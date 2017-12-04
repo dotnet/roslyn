@@ -9944,6 +9944,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The syntax &apos;var&apos; for a pattern is not permitted to bind to a type, but it binds to &apos;{0}&apos; here..
+        /// </summary>
+        internal static string ERR_VarMayNotBindToType {
+            get {
+                return ResourceManager.GetString("ERR_VarMayNotBindToType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: virtual or abstract members cannot be private.
         /// </summary>
         internal static string ERR_VirtualPrivate {
@@ -11390,15 +11399,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TypeArgumentCannotBeNull {
             get {
                 return ResourceManager.GetString("TypeArgumentCannotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The type must be &apos;var&apos;..
-        /// </summary>
-        internal static string TypeMustBeVar {
-            get {
-                return ResourceManager.GetString("TypeMustBeVar", resourceCulture);
             }
         }
         

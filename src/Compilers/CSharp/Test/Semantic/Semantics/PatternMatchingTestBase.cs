@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected IEnumerable<SingleVariableDesignationSyntax> GetPatternDeclarations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Parent.Kind() == SyntaxKind.DeclarationPattern);
+            return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Parent.Kind() == SyntaxKind.DeclarationPattern || p.Parent.Kind() == SyntaxKind.VarPattern);
         }
 
         protected static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
@@ -48,17 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
         }
 
-        protected static void VerifyModelForDeclarationPattern(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        protected static void VerifyModelForDeclarationOrVarSimplePattern(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForDeclarationPattern(model, decl, false, references);
+            VerifyModelForDeclarationOrVarSimplePattern(model, decl, false, references);
         }
 
-        protected static void VerifyModelForDeclarationPatternWithoutDataFlow(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        protected static void VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForDeclarationPattern(model, decl, false, references);
+            VerifyModelForDeclarationOrVarSimplePattern(model, decl, false, references);
         }
 
-        protected static void VerifyModelForDeclarationPattern(
+        protected static void VerifyModelForDeclarationOrVarSimplePattern(
             SemanticModel model,
             SingleVariableDesignationSyntax designation,
             bool isShadowed,
@@ -82,22 +82,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
-            var decl = (DeclarationPatternSyntax)designation.Parent;
-            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(decl.Type));
-            Assert.True(SyntaxFacts.IsInTypeOnlyContext(decl.Type));
-
-            var local = ((SourceLocalSymbol)symbol);
-            var type = local.Type;
-            if (type.IsErrorType())
+            switch (designation.Parent)
             {
-                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
-            }
-            else
-            {
-                Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
-            }
+                case DeclarationPatternSyntax decl:
+                    {
+                        var typeSyntax = decl.Type;
+                        Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
+                        Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-            AssertTypeInfo(model, decl.Type, type);
+                        var local = ((SourceLocalSymbol)symbol);
+                        var type = local.Type;
+                        if (type.IsErrorType())
+                        {
+                            Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
+                        }
+                        else
+                        {
+                            Assert.Equal(type, model.GetSymbolInfo(typeSyntax).Symbol);
+                        }
+
+                        AssertTypeInfo(model, typeSyntax, type);
+                        break;
+                    }
+            }
 
             foreach (var reference in references)
             {
@@ -308,30 +315,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(model.LookupSymbols(designation.SpanStart, name: identifierText).Any());
 
             Assert.False(model.LookupNames(designation.SpanStart).Contains(identifierText));
-            var decl = (DeclarationPatternSyntax)designation.Parent;
-            Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
-
             Assert.Null(model.GetSymbolInfo(designation).Symbol);
             Assert.Null(model.GetTypeInfo(designation).Type);
             Assert.Null(model.GetDeclaredSymbol(designation));
 
             var symbol = (Symbol)model.GetDeclaredSymbol(designation);
 
-            TypeInfo typeInfo = model.GetTypeInfo(decl.Type);
-
-            if ((object)symbol != null)
+            if (designation.Parent is DeclarationPatternSyntax decl)
             {
-                Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.Type);
-                Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.ConvertedType);
-            }
-            else
-            {
-                Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
-                Assert.Equal(SymbolKind.ErrorType, typeInfo.ConvertedType.Kind);
-            }
+                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
-            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl.Type));
-            Assert.True(model.GetConversion(decl.Type).IsIdentity);
+                TypeInfo typeInfo = model.GetTypeInfo(decl.Type);
+
+                if ((object)symbol != null)
+                {
+                    Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.Type);
+                    Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.ConvertedType);
+                }
+                else
+                {
+                    Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
+                    Assert.Equal(SymbolKind.ErrorType, typeInfo.ConvertedType.Kind);
+                }
+
+                Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl.Type));
+                Assert.True(model.GetConversion(decl.Type).IsIdentity);
+            }
+            else if (designation.Parent is VarPatternSyntax varp)
+            {
+                // Do we want to add any tests for the var pattern?
+            }
 
             VerifyModelNotSupported(model, references);
         }

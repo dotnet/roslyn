@@ -326,6 +326,8 @@ namespace My
                     break;
                 case Type (int x, 3) { A: _, B: 7 } identifier:
                     break;
+                case var (x, y, (z, w)):
+                    break;
                 default:
                     {
                         return;

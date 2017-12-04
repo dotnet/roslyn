@@ -5003,9 +5003,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DeconstructTooFewElements" xml:space="preserve">
     <value>Deconstruction must contain at least two variables.</value>
   </data>
-  <data name="TypeMustBeVar" xml:space="preserve">
-    <value>The type must be 'var'.</value>
-  </data>
   <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
     <value>The tuple element name '{0}' is ignored because a different name or no name is specified by the target type '{1}'.</value>
   </data>
@@ -5233,5 +5230,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_SingleElementPositionalPattern" xml:space="preserve">
     <value>A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.</value>
+  </data>
+  <data name="ERR_VarMayNotBindToType" xml:space="preserve">
+    <value>The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</value>
   </data>
 </root>

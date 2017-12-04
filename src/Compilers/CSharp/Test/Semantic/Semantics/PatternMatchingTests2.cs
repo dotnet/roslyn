@@ -729,5 +729,123 @@ namespace System
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int y)").WithLocation(10, 28)
                 );
         }
+
+        [Fact]
+        public void Patterns2_05()
+        {
+            // Test parsing the var pattern
+            // Test binding the var pattern
+            // Test lowering the var pattern for the is-expression
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var t = (1, 2);
+        { Check(true, t is var (x, y) && x == 1 && y == 2); }
+        { Check(false, t is var (x, y) && x == 1 && y == 3); }
+    }
+    private static void Check<T>(T expected, T actual)
+    {
+        if (!object.Equals(expected, actual)) throw new Exception($""Expected: '{expected}', Actual: '{actual}'"");
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"");
+        }
+
+        [Fact]
+        public void Patterns2_06()
+        {
+            // Test that 'var' does not bind to a type
+            var source =
+@"
+using System;
+namespace N
+{
+    class Program
+    {
+        public static void Main()
+        {
+            var t = (1, 2);
+            { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+            { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+            { Check(true, t is var x); }                           // error 3
+        }
+        private static void Check<T>(T expected, T actual)
+        {
+            if (!object.Equals(expected, actual)) throw new Exception($""Expected: '{expected}', Actual: '{actual}'"");
+        }
+    }
+    class var { }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                // (9,21): error CS0029: Cannot implicitly convert type '(int, int)' to 'N.var'
+                //             var t = (1, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "N.var").WithLocation(9, 21),
+                // (10,32): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(10, 32),
+                // (10,32): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var (x, y)").WithArguments("N.var", "Deconstruct").WithLocation(10, 32),
+                // (10,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "var (x, y)").WithArguments("N.var", "2").WithLocation(10, 32),
+                // (11,33): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(11, 33),
+                // (11,33): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var (x, y)").WithArguments("N.var", "Deconstruct").WithLocation(11, 33),
+                // (11,33): error CS8129: No suitable Deconstruct instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "var (x, y)").WithArguments("N.var", "2").WithLocation(11, 33),
+                // (12,32): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                //             { Check(true, t is var x); }                           // error 3
+                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
+                );
+        }
+
+        // PROTOTYPE(patterns2): Need to have tests that exercise:
+        // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
+        // PROTOTYPE(patterns2): Definite assignment for the var-pattern
+        // PROTOTYPE(patterns2): Variable finder for the var-pattern
+        // PROTOTYPE(patterns2): Scope binder contains an approprate scope for the var-pattern
+        // PROTOTYPE(patterns2): Lazily binding types for variables declared in the var-pattern
+        // PROTOTYPE(patterns2): Error when there is a type or constant named var in scope where the var pattern is used
     }
 }

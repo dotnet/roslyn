@@ -1732,6 +1732,13 @@
       <Kind Name="DiscardDesignation"/>
     </Field>
   </Node>
+  <Node Name="VarPatternSyntax" Base="PatternSyntax">
+    <Kind Name="VarPattern" />
+    <Field Name="VarIdentifier" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="Designation" Type="VariableDesignationSyntax"/>
+  </Node>
   <Node Name="DeconstructionPatternSyntax" Base="PatternSyntax">
     <Kind Name="DeconstructionPattern" />
     <Field Name="Type" Type="TypeSyntax" Optional="true" />

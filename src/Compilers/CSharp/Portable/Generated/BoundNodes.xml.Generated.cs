@@ -2934,19 +2934,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchExpression : BoundExpression
     {
-        public BoundSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionCase> switchSections, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.SwitchExpression, syntax, type, hasErrors || expression.HasErrors() || switchSections.HasErrors())
+        public BoundSwitchExpression(SyntaxNode syntax, BoundExpression governingExpression, ImmutableArray<BoundSwitchExpressionCase> switchSections, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.SwitchExpression, syntax, type, hasErrors || governingExpression.HasErrors() || switchSections.HasErrors())
         {
 
-            Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(governingExpression != null, "Field 'governingExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!switchSections.IsDefault, "Field 'switchSections' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.Expression = expression;
+            this.GoverningExpression = governingExpression;
             this.SwitchSections = switchSections;
         }
 
 
-        public BoundExpression Expression { get; }
+        public BoundExpression GoverningExpression { get; }
 
         public ImmutableArray<BoundSwitchExpressionCase> SwitchSections { get; }
 
@@ -2955,11 +2955,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitSwitchExpression(this);
         }
 
-        public BoundSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionCase> switchSections, TypeSymbol type)
+        public BoundSwitchExpression Update(BoundExpression governingExpression, ImmutableArray<BoundSwitchExpressionCase> switchSections, TypeSymbol type)
         {
-            if (expression != this.Expression || switchSections != this.SwitchSections || type != this.Type)
+            if (governingExpression != this.GoverningExpression || switchSections != this.SwitchSections || type != this.Type)
             {
-                var result = new BoundSwitchExpression(this.Syntax, expression, switchSections, type, this.HasErrors);
+                var result = new BoundSwitchExpression(this.Syntax, governingExpression, switchSections, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8830,7 +8830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
-            this.Visit(node.Expression);
+            this.Visit(node.GoverningExpression);
             this.VisitList(node.SwitchSections);
             return null;
         }
@@ -9743,10 +9743,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
-            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundExpression governingExpression = (BoundExpression)this.Visit(node.GoverningExpression);
             ImmutableArray<BoundSwitchExpressionCase> switchSections = (ImmutableArray<BoundSwitchExpressionCase>)this.VisitList(node.SwitchSections);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(expression, switchSections, type);
+            return node.Update(governingExpression, switchSections, type);
         }
         public override BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionCase node)
         {
@@ -11033,7 +11033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("switchExpression", null, new TreeDumperNode[]
             {
-                new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+                new TreeDumperNode("governingExpression", null, new TreeDumperNode[] { Visit(node.GoverningExpression, null) }),
                 new TreeDumperNode("switchSections", null, from x in node.SwitchSections select Visit(x, null)),
                 new TreeDumperNode("type", node.Type, null)
             }

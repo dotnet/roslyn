@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.DeconstructionPattern:
                 case SyntaxKind.DiscardPattern:
                 case SyntaxKind.PropertyPattern:
+                case SyntaxKind.VarPattern when ((VarPatternSyntax)node).Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation:
                     return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
                 default:
                     return node;
@@ -403,6 +404,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
                 return result;
+            }
+
+            if (type?.Kind == SyntaxKind.IdentifierName)
+            {
+                var typeIdentifier = (IdentifierNameSyntax)type;
+                var typeIdentifierToken = typeIdentifier.Identifier;
+                if (typeIdentifierToken.Text == "var")
+                {
+                    // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
+                    var varIdentifier = typeIdentifierToken;
+                    var wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
+                    var varDesignation = ParseDesignation();
+                    if (wasTupleDesignator)
+                    {
+                        return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
+                    }
+                    else
+                    {
+                        // PROTOTYPE(patterns2): we parse it as a declaration pattern when we have simple designation, for compatibility.
+                        // PROTOTYPE(patterns2): can we change it to use a var pattern in all cases?
+                        //return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
+                        return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(varIdentifier), varDesignation);
+                    }
+                }
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && (type != null || !looksLikeCast()))

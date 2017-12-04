@@ -384,6 +384,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DeclarationPattern(GenerateIdentifierName(), GenerateSingleVariableDesignation());
         }
         
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VarPatternSyntax GenerateVarPattern()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.VarPattern(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("VarIdentifier"), GenerateSingleVariableDesignation());
+        }
+        
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DeconstructionPatternSyntax GenerateDeconstructionPattern()
         {
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DeconstructionPattern(null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), null, null);
@@ -1946,6 +1951,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateDeclarationPattern();
             
             Assert.NotNull(node.Type);
+            Assert.NotNull(node.Designation);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestVarPatternFactoryAndProperties()
+        {
+            var node = GenerateVarPattern();
+            
+            Assert.Equal(SyntaxKind.IdentifierToken, node.VarIdentifier.Kind);
             Assert.NotNull(node.Designation);
             
             AttachAndCheckDiagnostics(node);
@@ -5685,6 +5701,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDeclarationPatternIdentityRewriter()
         {
             var oldNode = GenerateDeclarationPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestVarPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateVarPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestVarPatternIdentityRewriter()
+        {
+            var oldNode = GenerateVarPattern();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -9607,6 +9649,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.DeclarationPattern(GenerateIdentifierName(), GenerateSingleVariableDesignation());
         }
         
+        private static VarPatternSyntax GenerateVarPattern()
+        {
+            return SyntaxFactory.VarPattern(SyntaxFactory.Identifier("VarIdentifier"), GenerateSingleVariableDesignation());
+        }
+        
         private static DeconstructionPatternSyntax GenerateDeconstructionPattern()
         {
             return SyntaxFactory.DeconstructionPattern(default(TypeSyntax), SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<SubpatternElementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), default(PropertySubpatternSyntax), default(VariableDesignationSyntax));
@@ -11171,6 +11218,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             Assert.NotNull(node.Designation);
             var newNode = node.WithType(node.Type).WithDesignation(node.Designation);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestVarPatternFactoryAndProperties()
+        {
+            var node = GenerateVarPattern();
+            
+            Assert.Equal(SyntaxKind.IdentifierToken, node.VarIdentifier.Kind());
+            Assert.NotNull(node.Designation);
+            var newNode = node.WithVarIdentifier(node.VarIdentifier).WithDesignation(node.Designation);
             Assert.Equal(node, newNode);
         }
         
@@ -14908,6 +14966,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDeclarationPatternIdentityRewriter()
         {
             var oldNode = GenerateDeclarationPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestVarPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateVarPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestVarPatternIdentityRewriter()
+        {
+            var oldNode = GenerateVarPattern();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             

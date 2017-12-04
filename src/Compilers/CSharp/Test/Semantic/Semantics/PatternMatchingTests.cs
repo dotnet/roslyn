@@ -719,7 +719,7 @@ false
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(4, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -763,8 +763,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -801,7 +801,7 @@ True");
 
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").Single();
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -905,7 +905,7 @@ public class X
                 var id = "y" + i;
                 var yDecl = GetPatternDeclarations(tree, id).Single();
                 var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
-                VerifyModelForDeclarationPattern(model, yDecl, yRef);
+                VerifyModelForDeclarationOrVarSimplePattern(model, yDecl, yRef);
             }
         }
 
@@ -949,7 +949,7 @@ public class X
 
             var yDecl = GetPatternDeclaration(tree, "y1");
             var yRef = GetReferences(tree, "y1").Single();
-            VerifyModelForDeclarationPattern(model, yDecl, yRef);
+            VerifyModelForDeclarationOrVarSimplePattern(model, yDecl, yRef);
         }
 
         [Fact]
@@ -1328,7 +1328,7 @@ Test1 {0}");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1372,8 +1372,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1487,7 +1487,7 @@ b");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1537,7 +1537,7 @@ class C
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1595,7 +1595,7 @@ b");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1648,7 +1648,7 @@ class C
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1714,19 +1714,19 @@ f");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
 
             var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
         [Fact]
@@ -1792,19 +1792,19 @@ f");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
 
             var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
         [Fact]
@@ -1845,7 +1845,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1889,8 +1889,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1943,7 +1943,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1997,7 +1997,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2054,7 +2054,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2092,7 +2092,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2138,8 +2138,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2192,7 +2192,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2239,17 +2239,17 @@ public class X
             var x0Decl = GetPatternDeclarations(tree, "x0").Single();
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl, x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -2295,17 +2295,17 @@ public class X
             var x0Decl = GetPatternDeclarations(tree, "x0").Single();
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl, x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -2356,13 +2356,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2414,13 +2414,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2475,13 +2475,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(5, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2519,7 +2519,7 @@ public class X
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -2559,7 +2559,7 @@ lock");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2603,8 +2603,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2675,7 +2675,7 @@ yield1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2723,8 +2723,8 @@ yield2");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2761,7 +2761,7 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2806,8 +2806,8 @@ public class Cls
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2850,7 +2850,7 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2902,8 +2902,8 @@ throw 2");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2943,7 +2943,7 @@ System.InvalidOperationException");
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -3099,7 +3099,7 @@ a:      Test1(2 is var x1);
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -3146,7 +3146,7 @@ a:          Test2(2 is var x1, x1);
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact, WorkItem(10465, "https://github.com/dotnet/roslyn/issues/10465")]
@@ -4281,7 +4281,7 @@ public class C
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", model.GetTypeInfo(x2Ref).Type.ToTestDisplayString());
         }
 
@@ -4492,9 +4492,24 @@ unsafe public class Typ
                 // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 22),
+                // (9,25): error CS1001: Identifier expected
+                //             if (c is var* d) {}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(9, 25),
                 // (13,31): error CS1525: Invalid expression term 'int'
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
+                // (14,34): error CS1001: Identifier expected
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(14, 34),
+                // (14,34): error CS1003: Syntax error, ':' expected
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(":", "*").WithLocation(14, 34),
+                // (14,37): error CS1002: ; expected
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(14, 37),
+                // (14,37): error CS1513: } expected
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(14, 37),
                 // (5,37): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
                 //     public static void Main(int* a, var* c, Typ* e)
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(5, 37),
@@ -4504,9 +4519,9 @@ unsafe public class Typ
                 // (8,27): error CS0103: The name 'b' does not exist in the current context
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
-                // (9,22): error CS0119: 'var' is a type, which is not valid in the given context
+                // (9,22): error CS0244: Neither 'is' nor 'as' is valid on pointer types
                 //             if (c is var* d) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(9, 22),
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "var").WithLocation(9, 22),
                 // (9,27): error CS0103: The name 'd' does not exist in the current context
                 //             if (c is var* d) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(9, 27),
@@ -4519,9 +4534,9 @@ unsafe public class Typ
                 // (13,36): error CS0103: The name 'b' does not exist in the current context
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(13, 36),
-                // (14,31): error CS0119: 'var' is a type, which is not valid in the given context
+                // (14,31): error CS0244: Neither 'is' nor 'as' is valid on pointer types
                 //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(14, 31),
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "var").WithLocation(14, 31),
                 // (14,36): error CS0103: The name 'd' does not exist in the current context
                 //             switch (c) { case var* d: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(14, 36),
@@ -4825,7 +4840,7 @@ public class Program5815
             Assert.Equal(1, colorDecl.Length);
             Assert.Equal(2, colorRef.Length);
             Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
-            VerifyModelForDeclarationPattern(model, colorDecl[0], colorRef[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, colorDecl[0], colorRef[1]);
         }
 
         [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
@@ -4857,7 +4872,7 @@ public class Program5815
             var x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(1, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]

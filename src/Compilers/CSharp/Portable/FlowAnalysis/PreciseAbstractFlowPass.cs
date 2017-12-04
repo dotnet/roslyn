@@ -2720,13 +2720,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
-            VisitRvalue(node.Expression);
+            VisitRvalue(node.GoverningExpression);
             var dispatchState = this.State;
             var endState = UnreachableState();
             foreach (var section in node.SwitchSections)
             {
                 SetState(dispatchState.Clone());
-                VisitPattern(node.Expression, section.Pattern);
+                VisitPattern(node.GoverningExpression, section.Pattern);
                 SetState(StateWhenTrue);
                 if (section.Guard != null)
                 {

@@ -6848,6 +6848,80 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
+  public sealed partial class VarPatternSyntax : PatternSyntax
+  {
+    private VariableDesignationSyntax designation;
+
+    internal VarPatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken VarIdentifier 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VarPatternSyntax)this.Green).varIdentifier, this.Position, 0); }
+    }
+
+    public VariableDesignationSyntax Designation 
+    {
+        get
+        {
+            return this.GetRed(ref this.designation, 1);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.GetRed(ref this.designation, 1);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.designation;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitVarPattern(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitVarPattern(this);
+    }
+
+    public VarPatternSyntax Update(SyntaxToken varIdentifier, VariableDesignationSyntax designation)
+    {
+        if (varIdentifier != this.VarIdentifier || designation != this.Designation)
+        {
+            var newNode = SyntaxFactory.VarPattern(varIdentifier, designation);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public VarPatternSyntax WithVarIdentifier(SyntaxToken varIdentifier)
+    {
+        return this.Update(varIdentifier, this.Designation);
+    }
+
+    public VarPatternSyntax WithDesignation(VariableDesignationSyntax designation)
+    {
+        return this.Update(this.VarIdentifier, designation);
+    }
+  }
+
   public sealed partial class DeconstructionPatternSyntax : PatternSyntax
   {
     private TypeSyntax type;
