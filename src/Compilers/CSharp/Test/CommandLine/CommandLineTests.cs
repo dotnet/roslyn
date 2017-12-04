@@ -5826,7 +5826,7 @@ public class C
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/23529")]
         public void CreateCompilationWithKeyFile()
         {
             string source = @"
