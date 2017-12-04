@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class DataFlowPassBase<TLocalState>
     {
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         protected struct VariableIdentifier : IEquatable<VariableIdentifier>
         {
             public readonly Symbol Symbol;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Parameter ||
                     (symbol as MethodSymbol)?.MethodKind == MethodKind.LocalFunction ||
-                    (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType));
+                    symbol.Kind == SymbolKind.Property);
                 Symbol = symbol;
                 ContainingSlot = containingSlot;
             }
@@ -46,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static bool operator !=(VariableIdentifier left, VariableIdentifier right)
             {
                 return !left.Equals(right);
+            }
+
+            internal string GetDebuggerDisplay()
+            {
+                return $"ContainingSlot={ContainingSlot}, Symbol={Symbol}";
             }
         }
     }

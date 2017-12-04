@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             bool includeNonNullableWarnings)
-            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: false, trackClassFields: false)
+            : base(compilation, member, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
         {
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this._currentMethodOrLambda = member as MethodSymbol;
@@ -115,33 +115,112 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Normalize(ref LocalState state)
         {
+            int oldNext = state.Capacity;
             state.EnsureCapacity(nextVariableSlot);
+            for (int slot = oldNext; slot < nextVariableSlot; slot++)
+            {
+                var value = GetDefaultState(ref state, slot);
+                state[slot] = value;
+            }
+        }
+
+        private bool? GetDefaultState(ref LocalState state, int slot)
+        {
+            if (slot == 0)
+            {
+                return null;
+            }
+
+            var variable = variableBySlot[slot];
+            var symbol = variable.Symbol;
+
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Local:
+                    return null;
+                case SymbolKind.Parameter:
+                    {
+                        var parameter = (ParameterSymbol)symbol;
+                        return (parameter.RefKind == RefKind.Out) ?
+                            null :
+                            !parameter.Type.IsNullable;
+                    }
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                    {
+                        int containingSlot = variable.ContainingSlot;
+                        if (variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct &&
+                            state[containingSlot] == null)
+                        {
+                            return null;
+                        }
+                        return !symbol.GetTypeOrReturnType().IsNullable;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
         }
 
         protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
         {
-            if (expr.Kind == BoundKind.PropertyAccess)
+            receiver = null;
+            member = null;
+
+            switch (expr.Kind)
             {
-                var propAccess = (BoundPropertyAccess)expr;
-                if (!Binder.AccessingAutoPropertyFromConstructor(propAccess, this._currentMethodOrLambda))
-                {
-                    var propSymbol = propAccess.PropertySymbol;
-                    if (IsTrackableAnonymousTypeProperty(propSymbol))
+                case BoundKind.FieldAccess:
                     {
-                        Debug.Assert(!propSymbol.Type.IsReferenceType || propSymbol.Type.IsNullable == true);
-                        receiver = propAccess.ReceiverOpt;
-                        if ((object)receiver != null && receiver.Kind != BoundKind.TypeExpression)
+                        var fieldAccess = (BoundFieldAccess)expr;
+                        var fieldSymbol = fieldAccess.FieldSymbol;
+                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
+                        {
+                            return false;
+                        }
+                        member = fieldSymbol;
+                        receiver = fieldAccess.ReceiverOpt;
+                        break;
+                    }
+                case BoundKind.EventAccess:
+                    {
+                        var eventAccess = (BoundEventAccess)expr;
+                        var eventSymbol = eventAccess.EventSymbol;
+                        if (eventSymbol.IsStatic)
+                        {
+                            return false;
+                        }
+                        member = eventSymbol.AssociatedField;
+                        receiver = eventAccess.ReceiverOpt;
+                        break;
+                    }
+                case BoundKind.PropertyAccess:
+                    {
+                        var propAccess = (BoundPropertyAccess)expr;
+                        var propSymbol = propAccess.PropertySymbol;
+                        if (propSymbol.IsStatic)
+                        {
+                            return false;
+                        }
+                        // PROTOTYPE(NullableReferenceTypes): Use backing field for struct property
+                        // for now, to avoid cycles if the struct type contains a property of the struct type.
+                        // Remove this and populate struct members lazily to match classes.
+                        if (propSymbol.ContainingType.TypeKind == TypeKind.Struct)
+                        {
+                            var fieldName = GeneratedNames.MakeBackingFieldName(propSymbol.Name);
+                            member = _emptyStructTypeCache.GetStructInstanceFields(propSymbol.ContainingType).FirstOrDefault(f => f.Name == fieldName);
+                        }
+                        else
                         {
                             member = propSymbol;
-                            return true;
                         }
-                        receiver = null;
-                        member = null;
-                        return false;
+                        receiver = propAccess.ReceiverOpt;
+                        break;
                     }
-                }
             }
-            return base.TryGetReceiverAndMember(expr, out receiver, out member);
+
+            return (object)member != null &&
+                (object)receiver != null &&
+                receiver.Kind != BoundKind.TypeExpression &&
+                (object)receiver.Type != null;
         }
 
         protected override int MakeSlot(BoundExpression node)
@@ -157,25 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
             return base.MakeSlot(node);
-        }
-
-        private bool IsTrackableAnonymousTypeProperty(PropertySymbol propSymbol)
-        {
-            return !propSymbol.IsStatic &&
-                   propSymbol.IsReadOnly &&
-                   propSymbol.ContainingType.IsAnonymousType &&
-                   (propSymbol.Type.IsReferenceType || EmptyStructTypeCache.IsTrackableStructType(propSymbol.Type.TypeSymbol));
-        }
-
-        private Symbol GetNonFieldSymbol(int slot)
-        {
-            VariableIdentifier variableId = variableBySlot[slot];
-            while (variableId.ContainingSlot > 0)
-            {
-                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || (variableId.Symbol.Kind == SymbolKind.Property));
-                variableId = variableBySlot[variableId.ContainingSlot];
-            }
-            return variableId.Symbol;
         }
 
         private void Assign(BoundNode node, BoundExpression value, bool? valueIsNotNull, RefKind refKind = RefKind.None, bool read = true)
@@ -316,9 +376,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if ((object)_implicitReceiver != null && !memberSymbol.IsStatic)
                             {
                                 // PROTOTYPE(NullableReferenceTypes): Do we need to handle events?
-                                if (memberSymbol.Kind == SymbolKind.Field)
+                                switch (memberSymbol.Kind)
                                 {
-                                    slot = GetOrCreateSlot(memberSymbol, GetOrCreateSlot(_implicitReceiver));
+                                    case SymbolKind.Field:
+                                    case SymbolKind.Property:
+                                        slot = GetOrCreateSlot(memberSymbol, GetOrCreateSlot(_implicitReceiver));
+                                        break;
                                 }
                             }
 
@@ -415,10 +478,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             valueIsNotNull;
                     }
 
-                    if (slot > 0 && targetType.TypeSymbol.IsAnonymousType && targetType.TypeSymbol.IsClassType() &&
-                        (value == null || targetType.TypeSymbol == value.Type))
+                    if (slot > 0)
                     {
-                        InheritNullableStateOfAnonymousTypeInstance(targetType.TypeSymbol, slot, GetValueSlotForAssignment(value), isByRefTarget);
+                        // PROTOTYPE(NullableReferenceTypes): Might this clear state that
+                        // should be copied in InheritNullableStateOfTrackableType?
+                        InheritDefaultState(slot);
+
+                        // PROTOTYPE(NullableReferenceTypes): We should copy all tracked state from `value`,
+                        // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
+                        // assignment to C.F below. See also StaticNullChecking_Members.FieldCycle_01.)
+                        // class C
+                        // {
+                        //     C? F;
+                        //     C() { F = this; }
+                        // }
+                        // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
+                        if (value != null &&
+                            (value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
+                            targetType.TypeSymbol == value.Type) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
+                        {
+                            int valueSlot = GetValueSlotForAssignment(value);
+                            if (valueSlot > 0)
+                            {
+                                InheritNullableStateOfTrackableType(slot, valueSlot, isByRefTarget);
+                            }
+                        }
                     }
                 }
                 else if (slot > 0 && EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
@@ -438,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot > 0)
             {
-                Symbol associatedNonMemberSymbol = GetNonFieldSymbol(slot);
+                Symbol associatedNonMemberSymbol = GetNonMemberSymbol(slot);
 
                 switch (associatedNonMemberSymbol.Kind)
                 {
@@ -473,6 +557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetSlot > 0);
             Debug.Assert(EmptyStructTypeCache.IsTrackableStructType(targetType));
 
+            // PROTOTYPE(NullableReferenceTypes): Handle properties not backed by fields.
+            // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
                 InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, field, isByRefTarget);
@@ -490,37 +576,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fieldOrPropertyType.IsNullable != false)
                 {
                     int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
-                    if (targetMemberSlot >= this.State.Capacity) Normalize(ref this.State);
-
+                    bool? value = !fieldOrPropertyType.IsNullable;
                     if (isByRefTarget)
                     {
-                        // This is a property/field acesses through a by ref entity and it isn't considered declared as not-nullable. 
+                        // This is a property/field access through a by ref entity and it isn't considered declared as not-nullable. 
                         // Since reference can point to the heap, we cannot assume the property/field doesn't have null value after this assignment,
                         // regardless of what value is being assigned.
-                        this.State[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true) ? (bool?)false : null;
                     }
                     else if (valueContainerSlot > 0)
                     {
                         int valueMemberSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
-                        this.State[targetMemberSlot] = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
+                        value = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
                             this.State[valueMemberSlot] :
                             null;
                     }
-                    else
-                    {
-                        // No tracking information for the value. We need to fill tracking state for the target
-                        // with information inferred from the declaration. 
-                        Debug.Assert(fieldOrPropertyType.IsNullable != false);
 
-                        this.State[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true) ? (bool?)false : null;
-                    }
+                    this.State[targetMemberSlot] = value;
                 }
 
-                if (fieldOrPropertyType.TypeSymbol.IsAnonymousType && fieldOrPropertyType.TypeSymbol.IsClassType())
+                if (valueContainerSlot > 0)
                 {
-                    InheritNullableStateOfAnonymousTypeInstance(fieldOrPropertyType.TypeSymbol,
-                                                                GetOrCreateSlot(fieldOrProperty, targetContainerSlot),
-                                                                valueContainerSlot > 0 ? GetOrCreateSlot(fieldOrProperty, valueContainerSlot) : -1, isByRefTarget);
+                    int valueSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
+                    if (valueSlot > 0)
+                    {
+                        int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
+                        InheritNullableStateOfTrackableType(targetMemberSlot, valueSlot, isByRefTarget);
+                    }
                 }
             }
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
@@ -535,26 +616,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfAnonymousTypeInstance(TypeSymbol targetType, int targetSlot, int valueSlot, bool isByRefTarget)
+        private void InheritDefaultState(int targetSlot)
         {
             Debug.Assert(targetSlot > 0);
-            Debug.Assert(targetType.IsAnonymousType && targetType.IsClassType());
 
-            foreach (var member in targetType.GetMembersUnordered())
+            // Reset the state of any members of the target.
+            for (int slot = targetSlot + 1; slot < nextVariableSlot; slot++)
             {
-                if (member.Kind != SymbolKind.Property)
+                var variable = variableBySlot[slot];
+                if (variable.ContainingSlot != targetSlot)
                 {
                     continue;
                 }
+                this.State[slot] = !variable.Symbol.GetTypeOrReturnType().IsNullable;
+                InheritDefaultState(slot);
+            }
+        }
 
-                var propertySymbol = (PropertySymbol)member;
+        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, bool isByRefTarget)
+        {
+            Debug.Assert(targetSlot > 0);
+            Debug.Assert(valueSlot > 0);
 
-                if (!IsTrackableAnonymousTypeProperty(propertySymbol))
+            // Clone the state for members that have been set on the value.
+            for (int slot = valueSlot + 1; slot < nextVariableSlot; slot++)
+            {
+                var variable = variableBySlot[slot];
+                if (variable.ContainingSlot != valueSlot)
                 {
                     continue;
                 }
-
-                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, propertySymbol, isByRefTarget);
+                var member = variable.Symbol;
+                Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
+                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, member, isByRefTarget);
             }
         }
 
@@ -593,31 +687,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!IsConditionalState);
                 if (slot > 0 && parameter.RefKind != RefKind.Out)
                 {
-                    TypeSymbolWithAnnotations paramType = parameter.Type;
-
-                    if (paramType.IsReferenceType)
+                    var paramType = parameter.Type.TypeSymbol;
+                    if (EmptyStructTypeCache.IsTrackableStructType(paramType))
                     {
-                        if (paramType.IsNullable != false)
-                        {
-                            if (slot >= this.State.Capacity) Normalize(ref this.State);
-
-                            this.State[slot] = (paramType.IsNullable == true) ? (bool?)false : null;
-                        }
-
-                        if (paramType.TypeSymbol.IsAnonymousType && paramType.TypeSymbol.IsClassType())
-                        {
-                            InheritNullableStateOfAnonymousTypeInstance(paramType.TypeSymbol, slot, -1, parameter.RefKind != RefKind.None);
-                        }
-                    }
-                    else if (EmptyStructTypeCache.IsTrackableStructType(paramType.TypeSymbol))
-                    {
-                        InheritNullableStateOfTrackableStruct(paramType.TypeSymbol, slot, -1, parameter.RefKind != RefKind.None);
+                        InheritNullableStateOfTrackableStruct(paramType, slot, -1, parameter.RefKind != RefKind.None);
                     }
                 }
             }
         }
 
-#region Visitors
+        #region Visitors
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
@@ -849,14 +928,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             _implicitReceiver = null;
 
             Debug.Assert(!IsConditionalState);
-            if (this.State.Reachable &&
-                EmptyStructTypeCache.IsTrackableStructType(node.Type))
+            if (this.State.Reachable)
             {
-                _implicitReceiver = GetOrCreateObjectCreationPlaceholder(node);
-                var slot = MakeSlot(node);
-                if (slot > 0)
+                var type = node.Type;
+                if ((object)type != null)
                 {
-                    InheritNullableStateOfTrackableStruct(node.Type, slot, -1, false);
+                    bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
+                    if (type.IsReferenceType || isTrackableStructType)
+                    {
+                        _implicitReceiver = GetOrCreateObjectCreationPlaceholder(node);
+                        var slot = MakeSlot(node);
+                        if (slot > 0 && isTrackableStructType)
+                        {
+                            InheritNullableStateOfTrackableStruct(node.Type, slot, -1, false);
+                        }
+                    }
                 }
             }
 
@@ -925,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitArgumentAsRvalue(arguments[i], constructor.Parameters[i], expanded: false);
 
                     // PROTOTYPE(NullableReferenceTypes): node.Declarations includes
-                    // explicitly -named properties only. For now, skip expressions
+                    // explicitly-named properties only. For now, skip expressions
                     // with implicit names. See StaticNullChecking.AnonymousTypes_05.
                     if (node.Declarations.Length < arguments.Length)
                     {
@@ -933,19 +1019,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     PropertySymbol property = node.Declarations[i].Property;
-
-                    if (IsTrackableAnonymousTypeProperty(property))
+                    if (receiverSlot <= 0)
                     {
-                        if (receiverSlot <= 0)
-                        {
-                            receiverSlot = GetOrCreateSlot(implicitReceiver);
-                        }
-
-                        TrackNullableStateForAssignment(arguments[i], property, GetOrCreateSlot(property, receiverSlot), arguments[i], this.State.ResultIsNotNull);
+                        receiverSlot = GetOrCreateSlot(implicitReceiver);
                     }
-                }
 
-                if (_trackExceptions) NotePossibleException(node);
+                    TrackNullableStateForAssignment(arguments[i], property, GetOrCreateSlot(property, receiverSlot), arguments[i], this.State.ResultIsNotNull);
+                }
 
                 this.State.ResultIsNotNull = true;
                 return null;
@@ -1305,7 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    return (slot < this.State.Capacity) ? this.State[slot] : null;
+                    return this.State[slot];
                 }
 
                 // The node is not trackable, use information from the declaration.
@@ -1329,9 +1409,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitFieldReceiverAsRvalue(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
+        protected override void VisitFieldReceiver(BoundExpression receiverOpt, FieldSymbol fieldSymbol, bool asLvalue)
         {
-            base.VisitFieldReceiverAsRvalue(receiverOpt, fieldSymbol);
+            base.VisitFieldReceiver(receiverOpt, fieldSymbol, asLvalue);
 
             Debug.Assert(!IsConditionalState);
             if ((object)fieldSymbol != null && !fieldSymbol.IsStatic)
@@ -1883,6 +1963,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method, ParameterSymbol parameter)
         {
             Debug.Assert(!IsConditionalState);
+            Debug.Assert(refKind != RefKind.None);
+
+            // Accessors are treated as not mutating `this`.
+            if (method?.IsAccessor() == true && (object)parameter == null)
+            {
+                return;
+            }
+
             bool? valueIsNotNull = null;
             BoundValuePlaceholder value = null;
 
@@ -1949,8 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (this.State.Reachable)
             {
-                var property = node.PropertySymbol;
-                this.State.ResultIsNotNull = IsResultNotNull(node, property);
+                this.State.ResultIsNotNull = IsResultNotNull(node, node.PropertySymbol);
             }
 
             return result;
@@ -1972,7 +2059,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitEventAccess(BoundEventAccess node)
         {
             var result = base.VisitEventAccess(node);
-            // special definite assignment behavior for events of struct local variables.
 
             Debug.Assert(!IsConditionalState);
             if (this.State.Reachable)
@@ -1983,12 +2069,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove if not needed.
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             // declare and assign all iteration variables
             foreach (var iterationVariable in node.IterationVariables)
             {
+                // PROTOTYPE(NullableReferenceTypes): Mark as assigned.
             }
         }
 
@@ -2732,36 +2818,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #endregion Visitors
 
-        // PROTOTYPE(NullableReferenceTypes): Implement.
         protected override string Dump(LocalState state)
         {
             return string.Empty;
-        }
-
-        private void AppendBitNames(BitVector a, StringBuilder builder)
-        {
-            bool any = false;
-            foreach (int bit in a.TrueBits())
-            {
-                if (any) builder.Append(", ");
-                any = true;
-                AppendBitName(bit, builder);
-            }
-        }
-
-        private void AppendBitName(int bit, StringBuilder builder)
-        {
-            VariableIdentifier id = variableBySlot[bit];
-            if (id.ContainingSlot > 0)
-            {
-                AppendBitName(id.ContainingSlot, builder);
-                builder.Append(".");
-            }
-
-            builder.Append(
-                bit == 0 ? "<unreachable>" :
-                string.IsNullOrEmpty(id.Symbol.Name) ? "<anon>" + id.Symbol.GetHashCode() :
-                id.Symbol.Name);
         }
 
         protected override void UnionWith(ref LocalState self, ref LocalState other)
@@ -2883,7 +2942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns></returns>
             public LocalState Clone()
             {
-                return new LocalState( _knownNullState.Clone(), _notNull.Clone(), this.ResultIsNotNull);
+                return new LocalState(_knownNullState.Clone(), _notNull.Clone(), this.ResultIsNotNull);
             }
 
             public bool Reachable

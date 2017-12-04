@@ -3221,9 +3221,6 @@ struct S2
                 // (95,15): warning CS8601: Possible null reference assignment.
                 //         u11 = x11.F2;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x11.F2").WithLocation(95, 15),
-                // (99,15): warning CS8601: Possible null reference assignment.
-                //         u11 = x11.F2;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x11.F2").WithLocation(99, 15),
                 // (101,15): warning CS8602: Possible dereference of a null reference.
                 //         v11 = y11.F1;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y11").WithLocation(101, 15),
@@ -7005,13 +7002,7 @@ struct S1
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P3").WithLocation(33, 14),
                  // (22,14): warning CS8601: Possible null reference assignment.
                  //         x2 = P2;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P2").WithLocation(22, 14),
-                 // (44,14): warning CS8601: Possible null reference assignment.
-                 //         x4 = P4;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P4").WithLocation(44, 14),
-                 // (55,14): warning CS8601: Possible null reference assignment.
-                 //         x5 = P5.F1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P5.F1").WithLocation(55, 14)
+                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P2").WithLocation(22, 14)
                 );
         }
 
@@ -16055,37 +16046,6 @@ End Class";
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "a.P").WithArguments("A.P").WithLocation(7, 20));
         }
 
-        // PROTOTYPE(NullableReferenceTypes)
-        [Fact(Skip = "TODO")]
-        public void TrackMembers()
-        {
-            var source =
-@"class Person
-{
-    internal string FirstName { get; set; }
-    internal string LastName { get; set; }
-    internal string? MiddleName { get; set; }
-}
-class Program
-{
-    static void F(Person p)
-    {
-        G(p.MiddleName);
-        if (p.MiddleName != null) G(p.MiddleName);
-    }
-    static void G(string s)
-    {
-    }
-}";
-            var comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (11,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.G(string s)'.
-                //         G(p.MiddleName);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName").WithArguments("s", "void Program.G(string s)").WithLocation(11, 11));
-        }
-
         [Fact]
         public void LocalTypeInference()
         {
@@ -16784,6 +16744,26 @@ class Program
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(5, 17));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Error is reported on `type 'T'` rather than `type 'Func<T>'`.
+        [Fact(Skip = "TODO")]
+        public void ConditionalAccessDelegateInvoke()
+        {
+            var source =
+@"using System;
+class C<T>
+{
+    static T F(Func<T>? f)
+    {
+        return f?.Invoke();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0023: Operator '?' cannot be applied to operand of type 'Func<T>'
+                //         return f?.Invoke();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "Func<T>").WithLocation(6, 17));
+        }
+
         [Fact]
         public void NullableOptOut_DecodeAttributeCycle_01()
         {
@@ -16828,34 +16808,85 @@ class A : System.Attribute
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17));
         }
 
-        [Fact]
-        public void UnassignedParameterField()
+        // PROTOTYPE(NullableReferenceTypes): Should not report warning for
+        // c.ToString(); // 3
+        [Fact(Skip = "TODO")]
+        public void UnassignedOutParameterClass()
         {
             var source =
 @"class C
 {
-    static void F(out S s)
+    static void G(out C? c)
     {
-        C c;
-        c = s.F;
-        s.F.ToString();
+        c.ToString(); // 1
+        c = null;
+        c.ToString(); // 2
+        c = new C();
+        c.ToString(); // 3
     }
-}
-struct S
-{
-    internal C? F;
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,13): error CS0170: Use of possibly unassigned field 'F'
-                //         c = s.F;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.F").WithArguments("F").WithLocation(6, 13),
-                // (3,17): error CS0177: The out parameter 's' must be assigned to before control leaves the current method
-                //     static void F(out S s)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("s").WithLocation(3, 17),
-                // (12,17): warning CS0649: Field 'S.F' is never assigned to, and will always have its default value null
-                //     internal C? F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S.F", "null").WithLocation(12, 17));
+                // (5,9): error CS0269: Use of unassigned out parameter 'c'
+                //         c.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "c").WithArguments("c").WithLocation(5, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void UnassignedOutParameterClassField()
+        {
+            var source =
+@"class C
+{
+#pragma warning disable 0649
+    object? F;
+    static void G(out C c)
+    {
+        object o = c.F;
+        c.F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0269: Use of unassigned out parameter 'c'
+                //         object o = c.F;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "c").WithArguments("c").WithLocation(7, 20),
+                // (5,17): error CS0177: The out parameter 'c' must be assigned to before control leaves the current method
+                //     static void G(out C c)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "G").WithArguments("c").WithLocation(5, 17),
+                // (7,20): warning CS8601: Possible null reference assignment.
+                //         object o = c.F;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F").WithLocation(7, 20),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         c.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void UnassignedOutParameterStructField()
+        {
+            var source =
+@"struct S
+{
+#pragma warning disable 0649
+    object? F;
+    static void G(out S s)
+    {
+        object o = s.F;
+        s.F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0170: Use of possibly unassigned field 'F'
+                //         object o = s.F;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.F").WithArguments("F").WithLocation(7, 20),
+                // (5,17): error CS0177: The out parameter 's' must be assigned to before control leaves the current method
+                //     static void G(out S s)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "G").WithArguments("s").WithLocation(5, 17));
         }
 
         [Fact]
@@ -16887,6 +16918,43 @@ struct S
         }
 
         [Fact]
+        public void UnassignedLocalField_Conditional()
+        {
+            var source =
+@"class C
+{
+    static void F(bool b)
+    {
+        S s;
+        object o;
+        if (b)
+        {
+            s.F = new object();
+            s.G = new object();
+        }
+        else
+        {
+            o = s.F;
+        }
+        o = s.G;
+    }
+}
+struct S
+{
+    internal object? F;
+    internal object? G;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,17): error CS0170: Use of possibly unassigned field 'F'
+                //             o = s.F;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.F").WithArguments("F").WithLocation(14, 17),
+                // (16,13): error CS0170: Use of possibly unassigned field 'G'
+                //         o = s.G;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.G").WithArguments("G").WithLocation(16, 13));
+        }
+
+        [Fact]
         public void UnassignedLocalProperty()
         {
             var source =
@@ -16912,6 +16980,193 @@ struct S
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s.P.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.P").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void UnassignedClassAutoProperty()
+        {
+            var source =
+@"class C
+{
+    object? P { get; }
+    void M(out object o)
+    {
+        o = P;
+        P.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8601: Possible null reference assignment.
+                //         o = P;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void UnassignedClassAutoProperty_Constructor()
+        {
+            var source =
+@"class C
+{
+    object? P { get; }
+    C(out object o)
+    {
+        o = P;
+        P.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8601: Possible null reference assignment.
+                //         o = P;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void UnassignedStructAutoProperty()
+        {
+            var source =
+@"struct S
+{
+    object? P { get; }
+    void M(out object o)
+    {
+        o = P;
+        P.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8601: Possible null reference assignment.
+                //         o = P;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void UnassignedStructAutoProperty_Constructor()
+        {
+            var source =
+@"struct S
+{
+    object? P { get; }
+    S(out object o)
+    {
+        o = P;
+        P.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8079: Use of possibly unassigned auto-implemented property 'P'
+                //         o = P;
+                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "P").WithArguments("P").WithLocation(6, 13),
+                // (4,5): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller.
+                //     S(out object o)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P").WithLocation(4, 5));
+        }
+
+        [Fact]
+        public void ParameterField_Class()
+        {
+            var source =
+@"class C
+{
+#pragma warning disable 0649
+    object? F;
+    static void M(C x)
+    {
+        C y = x;
+        object z = y.F;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,20): warning CS8601: Possible null reference assignment.
+                //         object z = y.F;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y.F").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void ParameterField_Struct()
+        {
+            var source =
+@"struct S
+{
+#pragma warning disable 0649
+    object? F;
+    static void M(S x)
+    {
+        S y = x;
+        object z = y.F;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,20): warning CS8601: Possible null reference assignment.
+                //         object z = y.F;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y.F").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void InstanceFieldStructTypeExpressionReceiver()
+        {
+            var source =
+@"struct S
+{
+#pragma warning disable 0649
+    object? F;
+    void M()
+    {
+        S.F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'S.F'
+                //         S.F.ToString();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "S.F").WithArguments("S.F").WithLocation(7, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         S.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "S.F").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void InstanceFieldPrimitiveRecursiveStruct()
+        {
+            var source =
+@"#pragma warning disable 0649
+namespace System
+{
+    public class Object
+    {
+        public int GetHashCode() => 0;
+    }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Int32
+    {
+        Int32 _value;
+        object? _f;
+        void M()
+        {
+            _value = _f.GetHashCode();
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (16,22): warning CS8602: Possible dereference of a null reference.
+                //             _value = _f.GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_f").WithLocation(16, 22));
         }
     }
 }

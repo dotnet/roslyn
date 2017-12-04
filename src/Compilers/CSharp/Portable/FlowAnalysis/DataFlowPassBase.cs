@@ -40,9 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
-            bool trackUnassignments,
-            bool trackClassFields)
-            : base(compilation, member, node, trackUnassignments: trackUnassignments, trackClassFields: trackClassFields)
+            bool trackUnassignments)
+            : base(compilation, member, node, trackUnassignments: trackUnassignments)
         {
             _emptyStructTypeCache = emptyStructs;
         }
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
-            if (symbol is RangeVariableSymbol) return -1;
+            if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
 
@@ -170,55 +169,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingSlot;
         }
 
-        protected virtual bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
+        protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member);
+
+        protected Symbol GetNonMemberSymbol(int slot)
         {
-            receiver = null;
-            member = null;
-
-            switch (expr.Kind)
+            VariableIdentifier variableId = variableBySlot[slot];
+            while (variableId.ContainingSlot > 0)
             {
-                case BoundKind.FieldAccess:
-                    {
-                        var fieldAccess = (BoundFieldAccess)expr;
-                        var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
-                        {
-                            return false;
-                        }
-                        member = fieldSymbol;
-                        receiver = fieldAccess.ReceiverOpt;
-                        break;
-                    }
-                case BoundKind.EventAccess:
-                    {
-                        var eventAccess = (BoundEventAccess)expr;
-                        var eventSymbol = eventAccess.EventSymbol;
-                        if (eventSymbol.IsStatic || !eventSymbol.HasAssociatedField)
-                        {
-                            return false;
-                        }
-                        member = eventSymbol.AssociatedField;
-                        receiver = eventAccess.ReceiverOpt;
-                        break;
-                    }
-                case BoundKind.PropertyAccess:
-                    {
-                        var propAccess = (BoundPropertyAccess)expr;
-                        var propSymbol = propAccess.PropertySymbol;
-                        if (propSymbol.IsStatic)
-                        {
-                            return false;
-                        }
-                        member = (propSymbol as SourcePropertySymbol)?.BackingField;
-                        receiver = propAccess.ReceiverOpt;
-                        break;
-                    }
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property);
+                variableId = variableBySlot[variableId.ContainingSlot];
             }
-
-            return (object)member != null &&
-                (object)receiver != null &&
-                receiver.Kind != BoundKind.TypeExpression &&
-                MayRequireTrackingReceiverType(receiver.Type);
+            return variableId.Symbol;
         }
 
         /// <summary>
@@ -307,7 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
                     return null;
                 case SymbolKind.Property:
-                    Debug.Assert(s.ContainingType.IsAnonymousType);
                     return ((PropertySymbol)s).Type;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(s.Kind);
