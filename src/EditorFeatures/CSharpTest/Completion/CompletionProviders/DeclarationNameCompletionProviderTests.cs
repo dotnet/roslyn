@@ -729,5 +729,49 @@ class Test
                 workspace.Options = originalOptions;
             }
         }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void CircularType1()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+    Container $$
+  }
+}
+
+public class Container : ContainerBase { }
+public class ContainerBase : IEnumerable<ContainerBase> { }";
+            await VerifyItemExistsAsync(markup, "containerBases");
+            await VerifyItemExistsAsync(markup, "containers");
+            await VerifyItemExistsAsync(markup, "bases");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void CircularType2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+     Container $$
+  }
+}
+
+public class Container : IEnumerable<ContainerBase> { }
+public class ContainerBase : Container { }";
+            await VerifyItemExistsAsync(markup, "containerBases");
+            await VerifyItemExistsAsync(markup, "containers");
+            await VerifyItemExistsAsync(markup, "bases");
+        }
     }
 }

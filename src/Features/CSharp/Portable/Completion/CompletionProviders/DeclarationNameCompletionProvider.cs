@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -150,33 +151,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return publicIcon;
         }
 
-        private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural)
+        private static (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural)
         {
-            if (type is IArrayTypeSymbol arrayType)
-            {
-                return UnwrapType(arrayType.ElementType, compilation, wasPlural: true);
-            }
+            var seenSet = PooledHashSet<ITypeSymbol>.GetInstance();
+            var result = UnwrapType(type, compilation, wasPlural, seenSet);
+            seenSet.Free();
+            return result;
+        }
 
-            if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
+        private static (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, PooledHashSet<ITypeSymbol> seenSet)
+        {
+            if (seenSet.Add(type))
             {
-                var originalDefinition = namedType.OriginalDefinition;
-                
-                var ienumerableOfT = namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
-                    t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
-
-                if (ienumerableOfT != null)
+                if (type is IArrayTypeSymbol arrayType)
                 {
-                    return UnwrapType(ienumerableOfT.TypeArguments[0], compilation, wasPlural: true);
+                    return UnwrapType(arrayType.ElementType, compilation, wasPlural: true, seenSet);
                 }
 
-                var taskOfTType = compilation.TaskOfTType();
-                var valueTaskType = compilation.ValueTaskOfTType();
-
-                if (originalDefinition == taskOfTType ||
-                    originalDefinition == valueTaskType ||
-                    originalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                if (type is INamedTypeSymbol namedType)
                 {
-                    return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural);
+                    var originalDefinition = namedType.OriginalDefinition;
+                    if (originalDefinition != null)
+                    {
+                        var ienumerableOfT = namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
+                            t => t.OriginalDefinition.SpecialType ==
+                                 SpecialType.System_Collections_Generic_IEnumerable_T);
+
+                        if (ienumerableOfT != null)
+                        {
+                            return UnwrapType(ienumerableOfT.TypeArguments[0], compilation, wasPlural: true, seenSet);
+                        }
+
+                        var taskOfTType = compilation.TaskOfTType();
+                        var valueTaskType = compilation.ValueTaskOfTType();
+
+                        if (originalDefinition == taskOfTType ||
+                            originalDefinition == valueTaskType ||
+                            originalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                        {
+                            return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenSet);
+                        }
+                    }
                 }
             }
 
