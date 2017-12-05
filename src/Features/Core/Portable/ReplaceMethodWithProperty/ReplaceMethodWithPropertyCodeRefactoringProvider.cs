@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             for (var current = method; current != null; current = current.OverriddenMethod)
             {
-                if (current.ContainingType.SpecialType == SpecialType.System_Object)
+                if (current.ContainingType.DeclaringSyntaxReferences.IsEmpty)
                 {
                     return true;
                 }

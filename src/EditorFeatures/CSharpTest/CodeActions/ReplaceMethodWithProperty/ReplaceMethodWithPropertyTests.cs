@@ -1898,24 +1898,15 @@ class C : IGoo
 }");
         }
 
-        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [WorkItem(23593, "https://github.com/dotnet/roslyn/issues/23593")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMetadataOverride()
         {
-            await TestWithAllCodeStyleOff(
+            await TestMissingAsync(
 @"class C : System.Type
 {
     public override int [||]GetArrayRank()
     {
-    }
-}",
-@"class C : System.Type
-{
-    public override int {|Warning:ArrayRank|}
-    {
-        get
-        {
-        }
     }
 }");
         }
