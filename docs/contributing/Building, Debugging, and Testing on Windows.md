@@ -20,20 +20,20 @@ If a stack trace is displayed on .NET Framework older than 4.7.1 (e.g. by xUnit 
 
 ## Developing with Visual Studio 2017
 
-1. [Visual Studio 2017 Update 4](https://www.visualstudio.com/vs/)
+1. [Visual Studio 2017 Version 15.5](https://www.visualstudio.com/vs/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "15.3" or greater
+    - Ensure Visual Studio is on Version "15.5" or greater
 1. [.NET Core SDK 2.2](https://www.microsoft.com/net/download/core) (if you don't see the 2.2 SDK binaries there yet, the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x86.exe))
 1. [PowerShell 3.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
 
-If you already installed Visual Studio and need to add the necessary work loads or move to update 3
+If you already installed Visual Studio and need to add the necessary work loads or move to version 15.5:
 do the following:
 
-- Open the vs_installer.  Typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+- Run the Visual Studio Installer from your start menu. You can just search for "Visual Studio Installer". If you can't find it, it's typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
 - The Visual Studio installation will be listed under the Installed section
-- Click on the hamburger menu, click Modify 
+- Click on the menu icon (three horizontal lines), click Modify 
 - Choose the workloads listed above and click Modify
 
 ## Running Tests
