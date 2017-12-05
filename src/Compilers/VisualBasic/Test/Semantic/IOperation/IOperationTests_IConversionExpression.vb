@@ -2256,6 +2256,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2298,6 +2300,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2344,6 +2348,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2379,6 +2385,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: U) (Syntax: 'New U')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2414,6 +2422,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: U, IsInvalid) (Syntax: 'New U')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

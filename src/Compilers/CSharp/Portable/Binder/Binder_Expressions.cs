@@ -3664,7 +3664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BoundExpression boundInitializerOpt, AnalyzedArguments analyzedArguments)
+        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, TypeSymbol type, BoundExpression boundInitializerOpt, AnalyzedArguments analyzedArguments)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
@@ -4702,22 +4702,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
 
             bool hasArguments = analyzedArguments.Arguments.Count > 0;
-            analyzedArguments.Free();
 
-            if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
+            try
             {
-                diagnostics.Add(ErrorCode.ERR_NoNewTyvar, node.Location, typeParameter);
-            }
-            else if (hasArguments)
-            {
-                diagnostics.Add(ErrorCode.ERR_NewTyvarWithArgs, node.Location, typeParameter);
-            }
-            else
-            {
-                return new BoundNewT(node, boundInitializerOpt, typeParameter);
-            }
+                if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NoNewTyvar, node.Location, typeParameter);
+                }
+                else if (hasArguments)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NewTyvarWithArgs, node.Location, typeParameter);
+                }
+                else
+                {
+                    return new BoundNewT(node, boundInitializerOpt, typeParameter);
+                }
 
-            return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(typeParameter), ImmutableArray<BoundExpression>.Empty, typeParameter);
+                return MakeBadExpressionForObjectCreation(node, typeParameter, boundInitializerOpt, analyzedArguments);
+            }
+            finally
+            {
+                analyzedArguments.Free();
+            }
         }
 
         /// <summary>
