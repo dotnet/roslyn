@@ -153,5 +153,15 @@ namespace Analyzer.Utilities.Extensions
                 return blockOperations;
             }
         }
+
+        /// <summary>
+        /// True if this operation has no IOperation API support, i.e. <see cref="OperationKind.None"/> and
+        /// is the root operation, i.e. <see cref="Operation.Parent"/> is null.
+        /// For example, this returns true for attribute operations.
+        /// </summary>
+        public static bool IsOperationNoneRoot(this IOperation operation)
+        {
+            return operation.Kind == OperationKind.None && operation.Parent == null;
+        }
     }
 }
