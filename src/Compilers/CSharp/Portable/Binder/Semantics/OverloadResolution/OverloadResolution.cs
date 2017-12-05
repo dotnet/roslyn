@@ -1222,7 +1222,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             worse.Free();
         }
 
-        // Return the parameter type (considering params).
+        /// <summary>
+        /// Returns the parameter type (considering params).
+        /// </summary>
         private static TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
@@ -1236,7 +1238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Return the parameter corresponding to the given argument index.
+        /// <summary>
+        /// Returns the parameter corresponding to the given argument index.
+        /// </summary>
         private static ParameterSymbol GetParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
         {
             int paramIndex = result.ParameterFromArgument(argIndex);

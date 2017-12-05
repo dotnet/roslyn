@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override string ToString()
         {
-            return $"kind: {this.Kind} left: {this.LeftType} right: {this.RightType} return: {this.ReturnType}";
+            return $"kind: {this.Kind} leftType: {this.LeftType} leftRefKind: {this.LeftRefKind} rightType: {this.RightType} rightRefKind: {this.RightRefKind} return: {this.ReturnType}";
         }
 
         public bool Equals(BinaryOperatorSignature other)
@@ -76,14 +76,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(
-                    Method != null &&
-                    Method.ParameterCount == 2 &&
-                    (Method.ParameterRefKinds.IsDefaultOrEmpty || Method.ParameterRefKinds.Length == 2));
+                if (Method != null)
+                {
+                    Debug.Assert(Method.ParameterCount == 2);
 
-                return Method.ParameterRefKinds.IsDefaultOrEmpty
-                    ? RefKind.None
-                    : Method.ParameterRefKinds[0];
+                    if (!Method.ParameterRefKinds.IsDefaultOrEmpty)
+                    {
+                        Debug.Assert(Method.ParameterRefKinds.Length == 2);
+
+                        return Method.ParameterRefKinds[0];
+                    }
+                }
+
+                return RefKind.None;
             }
         }
 
@@ -91,14 +96,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(
-                    Method != null &&
-                    Method.ParameterCount == 2 &&
-                    (Method.ParameterRefKinds.IsDefaultOrEmpty || Method.ParameterRefKinds.Length == 2));
+                if (Method != null)
+                {
+                    Debug.Assert(Method.ParameterCount == 2);
 
-                return Method.ParameterRefKinds.IsDefaultOrEmpty
-                    ? RefKind.None
-                    : Method.ParameterRefKinds[1];
+                    if (!Method.ParameterRefKinds.IsDefaultOrEmpty)
+                    {
+                        Debug.Assert(Method.ParameterRefKinds.Length == 2);
+
+                        return Method.ParameterRefKinds[1];
+                    }
+                }
+
+                return RefKind.None;
             }
         }
     }
