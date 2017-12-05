@@ -211,10 +211,10 @@ class Structs
             };
 
             CompileAndVerify(verifiable, assemblyValidator: validator);
-            CompileAndVerify(unverifiable, assemblyValidator: validator, verify: false);
+            CompileAndVerify(unverifiable, assemblyValidator: validator, verify: Verification.Fails);
 
             // CLR limitation on type size, not a RefEmit bug:
-            CompileAndVerify(unloadable, assemblyValidator: validator, verify: false);
+            CompileAndVerify(unloadable, assemblyValidator: validator, verify: Verification.Fails);
         }
 
         [Fact]
@@ -332,10 +332,11 @@ public class C : B
 }
 ";
             // type C can't be loaded
-            CompileAndVerify(source, verify: false);
+            CompileAndVerify(source, verify: Verification.Fails);
         }
 
         [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
         public void ExplicitFieldLayout()
         {
             string source = @"
@@ -366,6 +367,54 @@ public class A
                     switch (name)
                     {
                         case "a":
+                            expectedOffset = 4;
+                            break;
+
+                        case "b":
+                            expectedOffset = 8;
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(name);
+                    }
+
+                    Assert.Equal(expectedOffset, field.GetOffset());
+                }
+            });
+        }
+
+        [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
+        public void ExplicitFieldLayout_OnBackingField()
+        {
+            string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Explicit)]
+public struct A
+{
+    [field: FieldOffset(4)]
+    int a { get; set; }
+
+    [field: FieldOffset(8)]
+    event Action b;
+}
+";
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            {
+                var reader = assembly.GetMetadataReader();
+                Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
+
+                foreach (var fieldHandle in reader.FieldDefinitions)
+                {
+                    var field = reader.GetFieldDefinition(fieldHandle);
+                    string name = reader.GetString(field.Name);
+
+                    int expectedOffset;
+                    switch (name)
+                    {
+                        case "<a>k__BackingField":
                             expectedOffset = 4;
                             break;
 

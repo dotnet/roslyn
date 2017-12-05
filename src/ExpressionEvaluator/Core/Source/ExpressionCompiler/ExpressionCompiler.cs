@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
+using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -21,11 +22,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         IDkmClrExpressionCompiler,
         IDkmClrExpressionCompilerCallback,
         IDkmModuleModifiedNotification,
-        IDkmModuleInstanceUnloadNotification
+        IDkmModuleInstanceUnloadNotification,
+        IDkmLanguageFrameDecoder, 
+        IDkmLanguageInstructionDecoder
     {
+        // Need to support IDkmLanguageFrameDecoder and IDkmLanguageInstructionDecoder
+        // See https://github.com/dotnet/roslyn/issues/22620
+        private readonly IDkmLanguageFrameDecoder _languageFrameDecoder;
+        private readonly IDkmLanguageInstructionDecoder _languageInstructionDecoder;
+
         static ExpressionCompiler()
         {
             FatalError.Handler = FailFast.OnFatalException;
+        }
+
+        public ExpressionCompiler(IDkmLanguageFrameDecoder languageFrameDecoder, IDkmLanguageInstructionDecoder languageInstructionDecoder)
+        {
+            _languageFrameDecoder = languageFrameDecoder;
+            _languageInstructionDecoder = languageInstructionDecoder;
         }
 
         DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
@@ -159,7 +173,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     },
                     out error);
 
-                Debug.Assert((r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
+                Debug.Assert(
+                    r.CompileResult == null && r.ResultProperties.Flags == default ||
+                    (r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
+
                 result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
@@ -227,6 +244,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             RemoveDataItemIfNecessary(moduleInstance);
         }
+
+        #region IDkmLanguageFrameDecoder, IDkmLanguageInstructionDecoder
+
+        void IDkmLanguageFrameDecoder.GetFrameName(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmVariableInfoFlags argumentFlags, DkmCompletionRoutine<DkmGetFrameNameAsyncResult> completionRoutine)
+        {
+            _languageFrameDecoder.GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine);
+        }
+
+        void IDkmLanguageFrameDecoder.GetFrameReturnType(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmCompletionRoutine<DkmGetFrameReturnTypeAsyncResult> completionRoutine)
+        {
+            _languageFrameDecoder.GetFrameReturnType(inspectionContext, workList, frame, completionRoutine);
+        }
+
+        string IDkmLanguageInstructionDecoder.GetMethodName(DkmLanguageInstructionAddress languageInstructionAddress, DkmVariableInfoFlags argumentFlags)
+        {
+            return _languageInstructionDecoder.GetMethodName(languageInstructionAddress, argumentFlags);
+        }
+
+        #endregion
 
         private void RemoveDataItemIfNecessary(DkmModuleInstance moduleInstance)
         {

@@ -10,7 +10,7 @@
     <RootNamespace>ImplementNotifyPropertyChangedVB.UnitTests</RootNamespace>
     <VBRuntime>Default</VBRuntime>
     <TargetFramework>net461</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="File References">

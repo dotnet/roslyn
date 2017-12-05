@@ -66,16 +66,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return modules;
         }
 
-        public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
+        public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
         {
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
                 string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
                 _allModuleData = testEnvironment.GetAllModuleData();
 
-                if (peVerify)
+                if (peVerify == Verification.Passes)
                 {
                     testEnvironment.PeVerify();
+                }
+                else if (peVerify == Verification.Fails)
+                {
+                    Assert.Throws<PeVerifyException>(() => testEnvironment.PeVerify());
                 }
 
                 if (expectedSignatures != null)

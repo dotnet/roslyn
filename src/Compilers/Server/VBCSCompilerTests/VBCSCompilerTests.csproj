@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CompilerServer.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
   </PropertyGroup>
@@ -25,7 +25,6 @@
       <Aliases>vbc</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj" />
@@ -33,8 +32,8 @@
     <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System" Condition="'$(TargetFramework)' != 'netcoreapp2.0'" />
+    <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'netcoreapp2.0'" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />

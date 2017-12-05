@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
 
             var semanticModel = document.SemanticModel;
-            var existingSymbols = GetExistingSymbols(semanticModel, container, cancellationToken);
+            var existingSymbols = semanticModel.GetExistingSymbols(container, cancellationToken);
 
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
@@ -235,15 +235,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             return syntaxFacts.ToIdentifierToken(
                 NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
-        }
-
-        private static IEnumerable<ISymbol> GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
-        {
-            // Ignore an annonymous type property.  It's ok if they have a name that 
-            // matches the name of the local we're introducing.
-            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
-                                .Where(s => !s.IsAnonymousTypeProperty());
         }
 
         protected ISet<TExpressionSyntax> FindMatches(

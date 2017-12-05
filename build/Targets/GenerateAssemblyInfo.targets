@@ -7,10 +7,10 @@
 
   <ItemGroup>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyCompanyAttribute">
-      <_Parameter1>Microsoft Corporation</_Parameter1>
+      <_Parameter1>$(Company)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyCopyrightAttribute">
-      <_Parameter1>© Microsoft Corporation. All rights reserved.</_Parameter1>
+      <_Parameter1>$(Copyright)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyVersionAttribute">
       <_Parameter1>$(AssemblyVersion)</_Parameter1>
@@ -19,7 +19,7 @@
       <_Parameter1>$(BuildVersion)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyInformationalVersionAttribute">
-      <_Parameter1>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(GitHeadSha)</_Parameter1>
+      <_Parameter1>$(InformationalVersion)</_Parameter1>
     </AssemblyVersionAttribute>
   </ItemGroup>
 

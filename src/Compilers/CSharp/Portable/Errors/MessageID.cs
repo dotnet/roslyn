@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureOutVar = MessageBase + 12713,
 
-        IDS_FeatureIOperation = MessageBase + 12714,
+        // IDS_FeatureIOperation = MessageBase + 12714,
         IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
         IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
         IDS_ThrowExpression = MessageBase + 12717,
@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefExtensionMethods = MessageBase + 12728,
         IDS_StackAllocExpression = MessageBase + 12729,
         IDS_FeaturePrivateProtected = MessageBase + 12730,
-
-        IDS_FeatureRecursivePatterns = MessageBase + 12731,
+        IDS_FeatureAttributesOnBackingFields = MessageBase + 12731,
+        IDS_FeatureRecursivePatterns = MessageBase + 12732,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -190,8 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (feature)
             {
-                case MessageID.IDS_FeatureIOperation:
-                    return "IOperation";
                 case MessageID.IDS_FeatureRecursivePatterns:
                     return "patterns2";
                 default:
@@ -202,10 +200,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             Debug.Assert(RequiredFeature(feature) == null);
+
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7.3 features.
+                case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
+                    return LanguageVersion.CSharp7_3;
+
                 // C# 7.2 features.
                 case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                 case MessageID.IDS_FeatureLeadingDigitSeparator:

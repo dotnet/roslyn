@@ -18,6 +18,7 @@ using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
@@ -5437,7 +5438,7 @@ public class C
         {
             var signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
+                WithStrongNameProvider(s_defaultDesktopProvider);
 
             var libBTemplate = @"
 [assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
@@ -6381,6 +6382,32 @@ public class Test
             var methodsGenerated = testData.GetMethodsByName().Keys;
             Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
             Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
+        }
+
+        [Fact]
+        [WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
+        public void RefReturnNonRefLocal()
+        {
+            var source = @"
+delegate ref int D();
+class C
+{
+    static void Main()
+    {
+        int local = 0;
+    }
+    static ref int M(D d)
+    {
+        return ref d();
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                context.CompileExpression("M(() => ref local)", out var error);
+                Assert.Equal("error CS8168: Cannot return local 'local' by reference because it is not a ref local", error);
+            });
         }
     }
 }

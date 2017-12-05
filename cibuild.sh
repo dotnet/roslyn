@@ -13,24 +13,13 @@ usage()
     echo "Options"
     echo "  --debug               Build Debug (default)"
     echo "  --release             Build Release"
-    echo "  --cleanrun            Clean the project before building"
-    echo "  --skiptest            Do not run tests"
-    echo "  --skipcommitprinting  Do not print commit information"
 }
 
 THIS_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${THIS_DIR}"/build/scripts/build-utils.sh
 ROOT_PATH="$(get_repo_dir)"
-BINARIES_PATH="${ROOT_PATH}"/Binaries
-BOOTSTRAP_PATH="${BINARIES_PATH}"/Bootstrap
-SRC_PATH="${ROOT_PATH}"/src
-BUILD_LOG_PATH="${BINARIES_PATH}"/Build.binlog
-TARGET_FRAMEWORK=netcoreapp2.0
 
-BUILD_CONFIGURATION=Debug
-CLEAN_RUN=false
-SKIP_TESTS=false
-SKIP_COMMIT_PRINTING=false
+BUILD_CONFIGURATION=--debug
 
 # $HOME is unset when running the mac unit tests.
 if [[ -z "${HOME+x}" ]]
@@ -40,10 +29,6 @@ then
     # https://www.gnu.org/software/bash/manual/html_node/Tilde-Expansion.html
     export HOME="$(cd ~ && pwd)"
 fi
-
-# LTTNG is the logging infrastructure used by coreclr.  Need this variable set 
-# so it doesn't output warnings to the console.
-export LTTNG_HOME="$HOME"
 
 # There's no reason to send telemetry or prime a local package cach when building
 # in CI.
@@ -59,23 +44,11 @@ do
         exit 1
         ;;
         --debug)
-        BUILD_CONFIGURATION=Debug
+        BUILD_CONFIGURATION=--debug
         shift 1
         ;;
         --release)
-        BUILD_CONFIGURATION=Release
-        shift 1
-        ;;
-        --cleanrun)
-        CLEAN_RUN=true
-        shift 1
-        ;;
-        --skiptests)
-        SKIP_TESTS=true
-        shift 1
-        ;;
-        --skipcommitprinting)
-        SKIP_COMMIT_PRINTING=true
+        BUILD_CONFIGURATION=--release
         shift 1
         ;;
         *)
@@ -85,46 +58,14 @@ do
     esac
 done
 
-if [ "$CLEAN_RUN" == "true" ]; then
-    echo Clean out the enlistment
-    git clean -dxf . 
-fi
-
-if [ "$SKIP_COMMIT_PRINTING" == "false" ]; then
-    echo Building this commit:
-    git show --no-patch --pretty=raw HEAD
-fi
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
 
 # obtain_dotnet.sh puts the right dotnet on the PATH
 FORCE_DOWNLOAD=true
 source "${ROOT_PATH}"/build/scripts/obtain_dotnet.sh
 
-RUNTIME_ID="$(dotnet --info | awk '/RID:/{print $2;}')"
-echo "Using Runtime Identifier: ${RUNTIME_ID}"
+"${ROOT_PATH}"/build.sh --restore --bootstrap --build --test "${BUILD_CONFIGURATION}"
 
-RESTORE_ARGS="-r ${RUNTIME_ID} -v Minimal --disable-parallel"
-echo "Restoring BaseToolset.csproj"
-dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/BaseToolset.csproj
-echo "Restoring CoreToolset.csproj"
-dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/CoreToolset.csproj
-echo "Restoring CrossPlatform.sln"
-dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/CrossPlatform.sln
-
-BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /bl:${BUILD_LOG_PATH} /maxcpucount:1"
-PUBLISH_ARGS="-f ${TARGET_FRAMEWORK} -r ${RUNTIME_ID} ${BUILD_ARGS}"
-
-echo "Building bootstrap csc"
-dotnet publish "${SRC_PATH}"/Compilers/CSharp/csc -o "${BOOTSTRAP_PATH}"/csc ${PUBLISH_ARGS}
-echo "Building bootstrap vbc"
-dotnet publish "${SRC_PATH}"/Compilers/VisualBasic/vbc -o "${BOOTSTRAP_PATH}"/vbc ${PUBLISH_ARGS}
-rm -rf "${BINARIES_PATH:?}"/"${BUILD_CONFIGURATION}"
-BUILD_ARGS+=" /p:CscToolPath=${BOOTSTRAP_PATH}/csc /p:CscToolExe=csc /p:VbcToolPath=${BOOTSTRAP_PATH}/vbc /p:VbcToolExe=vbc"
-
-echo "Building CrossPlatform.sln"
-dotnet build "${ROOT_PATH}"/CrossPlatform.sln ${BUILD_ARGS}
-
-if [[ "${SKIP_TESTS}" == false ]]
-then
-    echo "Running tests"
-    "${ROOT_PATH}"/build/scripts/tests.sh "${BUILD_CONFIGURATION}"
-fi
+echo "Killing VBCSCompiler"
+dotnet "${ROOT_PATH}"/Binaries/Bootstrap/bincore/VBCSCompiler.dll -shutdown

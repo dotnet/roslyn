@@ -272,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             metadataOnly: false,
                             isDeterministic: false,
                             emitTestCoverageData: false,
+                            privateKeyOpt: null,
                             cancellationToken: default(CancellationToken));
                         if (!diagnostics.HasAnyErrors())
                         {
@@ -334,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     metadataOnly: false,
                     isDeterministic: false,
                     emitTestCoverageData: false,
+                    privateKeyOpt: null,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -419,6 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     metadataOnly: false,
                     isDeterministic: false,
                     emitTestCoverageData: false,
+                    privateKeyOpt: null,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -467,6 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         metadataOnly: false,
                         isDeterministic: false,
                         emitTestCoverageData: false,
+                        privateKeyOpt: null,
                         cancellationToken: default(CancellationToken));
 
                     if (!diagnostics.HasAnyErrors())

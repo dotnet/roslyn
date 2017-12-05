@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldPending = SavePending(); // we do not allow branches into a try statement
             var initialState = this.State.Clone();
+
+            // use this state to resolve all the branches introduced and internal to try/catch
+            var pendingBeforeTry = SavePending(); 
+
             VisitTryBlock(node.TryBlock, node, ref initialState);
             var finallyState = initialState.Clone();
             var endState = this.State;
@@ -58,15 +62,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IntersectWith(ref endState, ref this.State);
             }
 
+            // Give a chance to branches internal to try/catch to resolve.
+            // Carry forward unresolved branches.
+            RestorePending(pendingBeforeTry);
+
+            // NOTE: At this point all branches that are internal to try or catch blocks have been resolved.
+            //       However we have not yet restored the oldPending branches. Therefore all the branches 
+            //       that are currently pending must have been introduced in try/catch and do not terminate inside those blocks.
+            //
+            //       With exception of YieldReturn, these branches logically go through finally, if such present,
+            //       so we must Union/Intersect finally state as appropriate
+
             if (node.FinallyBlockOpt != null)
             {
                 // branches from the finally block, while illegal, should still not be considered
                 // to execute the finally block before occurring.  Also, we do not handle branches
                 // *into* the finally block.
                 SetState(finallyState);
+
+                // capture tryAndCatchPending before going into finally
+                // we will need pending branches as they were before finally later
                 var tryAndCatchPending = SavePending();
                 var unsetInFinally = AllBitsSet();
-                VisitFinallyBlock(node.FinallyBlockOpt, ref unsetInFinally);
+                VisitFinallyBlock(node.FinallyBlockOpt, ref unsetInFinally);                
                 foreach (var pend in tryAndCatchPending.PendingBranches)
                 {
                     if (pend.Branch == null) continue; // a tracked exception

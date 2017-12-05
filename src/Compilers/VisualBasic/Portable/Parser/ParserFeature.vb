@@ -32,7 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         DigitSeparators
         BinaryLiterals
         Tuples
-        IOperation
         InferredTupleNames
         LeadingDigitSeparator
         NonTrailingNamedArguments
@@ -40,16 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Enum
 
     Friend Module FeatureExtensions
-        <Extension>
-        Friend Function GetFeatureFlag(feature As Feature) As String
-            Select Case feature
-                Case Feature.IOperation
-                    Return "IOperation"
-
-                Case Else
-                    Return Nothing
-            End Select
-        End Function
 
         <Extension>
         Friend Function GetLanguageVersion(feature As Feature) As LanguageVersion
@@ -159,8 +148,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_BinaryLiterals
                 Case Feature.Tuples
                     Return ERRID.FEATURE_Tuples
-                Case Feature.IOperation
-                    Return ERRID.FEATURE_IOperation
                 Case Feature.LeadingDigitSeparator
                     Return ERRID.FEATURE_LeadingDigitSeparator
                 Case Feature.PrivateProtected

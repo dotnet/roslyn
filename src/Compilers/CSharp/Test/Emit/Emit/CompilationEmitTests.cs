@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -1529,7 +1530,7 @@ comp => comp.VerifyDiagnostics(
         {
             var signedDllOptions = TestOptions.ReleaseDll.
                  WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                 WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+                 WithStrongNameProvider(s_defaultDesktopProvider);
 
             var comp = CreateStandardCompilation("public class C{}", options: signedDllOptions);
 
@@ -1549,7 +1550,7 @@ comp => comp.VerifyDiagnostics(
             var signedDllOptions = TestOptions.ReleaseDll
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile)
                 .WithDelaySign(true)
-                .WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+                .WithStrongNameProvider(s_defaultDesktopProvider);
 
             var comp = CreateStandardCompilation("public class C{}", options: signedDllOptions);
 
@@ -1623,7 +1624,7 @@ public class PublicClass
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
-            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
@@ -1654,7 +1655,7 @@ public class PublicClass
             // In this case, IncludePrivateMembers is silently set to true when emitting
             // See https://github.com/dotnet/roslyn/issues/20873
             var emitRegularWithoutPrivateMembers = EmitOptions.Default.WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRegularWithoutPrivateMembers, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRegularWithoutPrivateMembers, verify: Verification.Passes);
 
             var realImage2 = comp.EmitToImageReference(emitRegularWithoutPrivateMembers);
             var compWithReal2 = CreateCompilation("", references: new[] { MscorlibRef, realImage2 },
@@ -1682,7 +1683,7 @@ public class PublicClass
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
-            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
@@ -1711,7 +1712,7 @@ public class PublicClass
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1759,7 +1760,7 @@ public class C : I
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
-            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
@@ -1769,7 +1770,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
-            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
@@ -1781,7 +1782,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1825,7 +1826,7 @@ public class C : I
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
-            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
@@ -1835,7 +1836,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
-            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
@@ -1847,7 +1848,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1891,7 +1892,7 @@ public class C : I
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
-            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
@@ -1901,7 +1902,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
-            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
@@ -1913,7 +1914,7 @@ public class C : I
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1951,7 +1952,7 @@ internal struct InternalStruct
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -1980,7 +1981,7 @@ struct S
 
             // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
@@ -4076,7 +4077,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateStandardCompilation(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: false);
+            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
         [Fact]
@@ -4491,7 +4492,7 @@ public interface IUsePlatform
         {
             var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify(comp, verify: false);
+            CompileAndVerify(comp, verify: Verification.Fails);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }

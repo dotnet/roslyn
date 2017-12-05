@@ -1232,9 +1232,9 @@ class C
                 // (12,37): error CS8310: Operator '|' cannot be applied to operand 'default'
                 //             System.Console.Write($"{true | default} {i} {b}");
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "true | default").WithArguments("|", "default").WithLocation(12, 37),
-                // (15,40): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (15,40): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (System.Exception) when (default)
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(15, 40),
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(15, 40),
                 // (17,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(17, 13)
@@ -1262,9 +1262,9 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,40): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (10,40): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (System.Exception) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(10, 40),
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(10, 40),
                 // (12,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 13)
@@ -1308,9 +1308,9 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (26,40): warning CS7095: Filter expression is a constant, consider removing the filter
-                //         catch (System.Exception) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(26, 40),
+                // (26,40): warning CS8360: Filter expression is a constant, consider removing the filter
+                //         catch (System.Exception) when (default)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(26, 40),
                 // (28,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(28, 13)

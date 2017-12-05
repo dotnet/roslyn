@@ -392,19 +392,21 @@ class Test
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""52"" />
           <slot kind=""0"" offset=""91"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""9"" startColumn=""3"" endLine=""9"" endColumn=""4"" document=""1"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""3"" endLine=""10"" endColumn=""35"" document=""1"" />
         <entry offset=""0x9"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""39"" document=""1"" />
-        <entry offset=""0x11"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""39"" document=""1"" />
-        <entry offset=""0x18"" startLine=""13"" startColumn=""3"" endLine=""13"" endColumn=""4"" document=""1"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""13"" startColumn=""3"" endLine=""13"" endColumn=""4"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x19"">
-        <local name=""arr"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
-        <local name=""arrdim"" il_index=""1"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
-        <local name=""arrobj"" il_index=""2"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x1f"">
+        <local name=""arr"" il_index=""0"" il_start=""0x0"" il_end=""0x1f"" attributes=""0"" />
+        <local name=""arrdim"" il_index=""1"" il_start=""0x0"" il_end=""0x1f"" attributes=""0"" />
+        <local name=""arrobj"" il_index=""2"" il_start=""0x0"" il_end=""0x1f"" attributes=""0"" />
       </scope>
     </method>
   </methods>

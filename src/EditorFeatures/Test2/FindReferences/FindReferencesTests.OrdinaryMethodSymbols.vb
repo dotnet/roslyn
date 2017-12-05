@@ -54,6 +54,166 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_Deconstruction() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public void {|Definition:Decons$$truct|}(out int x1, out int x2) { x1 = 1; x2 = 2; }
+    public void M()
+    {
+        [|var (x1, x2)|] = this;
+        foreach ([|var (y1, y2)|] in new[] { this }) { }
+        [|(x1, (x2, _))|] = (1, this);
+        (x1, x2) = (1, 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_ForEachDeconstructionOnItsOwn() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void {|Definition:Decons$$truct|}(this C c, out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+class C
+{
+    public void M()
+    {
+        foreach ([|var (y1, y2)|] in new[] { this }) { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_NestedDeconstruction() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void {|Definition:Decons$$truct|}(this C c, out int x1, out C x2) { x1 = 1; x2 = null; }
+}
+class C
+{
+    public void M()
+    {
+        [|var (y1, (y2, y3))|] = this;
+        [|(y1, (y2, y3))|] = (1, this);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_NestedDeconstruction2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void Deconstruct(this int i, out int x1, out C x2) { x1 = 1; x2 = null; }
+    public void {|Definition:Decons$$truct|}(this C c, out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+class C
+{
+    public void M()
+    {
+        [|var (y1, (y2, y3))|] = 1;
+        var (z1, z2) = 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_NestedDeconstruction3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void {|Definition:Decons$$truct|}(this int i, out int x1, out C x2) { x1 = 1; x2 = null; }
+    public void Deconstruct(this C c, out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+class C
+{
+    public void M()
+    {
+        [|var (y1, (y2, y3))|] = 1;
+        [|var (z1, z2)|] = 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_DeconstructionAcrossLanguage() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
+        <Document><![CDATA[
+Public Class Deconstructable
+    Public Sub {|Definition:Decons$$truct|}(<System.Runtime.InteropServices.Out> ByRef x1 As Integer, <System.Runtime.InteropServices.Out> ByRef x2 As Integer)
+        x1 = 1
+        x2 = 2
+    End Sub
+End Class
+        ]]></Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true">
+        <ProjectReference>VBAssembly</ProjectReference>
+        <Document>
+class C
+{
+    public void M(Deconstructable d)
+    {
+        [|var (x1, x2)|] = d;
+        foreach ([|var (y1, y2)|] in new[] { d }) { }
+        [|(x1, (x2, _))|] = (1, d);
+        (x1, x2) = (1, 2);
+        d.[|Deconstruct|](out var t1, out var t2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodOverride1() As Task
             Dim input =
 <Workspace>

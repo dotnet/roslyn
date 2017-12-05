@@ -191,8 +191,8 @@ End Class
             Dim localFieldSymbol As FieldSymbol = classLocalType.GetMembers("myLocalType").OfType(Of FieldSymbol)().[Single]()
             Dim classRefLocalType As NamedTypeSymbol = localConsumerRefsAsm.First(Function(arg) arg.Name = "ExternalAsm1").GlobalNamespace.GetTypeMembers("ExternalAsm1").[Single]()
             Dim propertySymbol = classRefLocalType.GetMembers("Scen4").OfType(Of PropertySymbol)().[Single]()
-            Dim propertType = propertySymbol.Type
-            Assert.Equal(canonicalType.ToTestDisplayString(), propertType.Name)
+            Dim propertyType = propertySymbol.Type
+            Assert.Equal(canonicalType.ToTestDisplayString(), propertyType.Name)
             Assert.Same(canonicalType, localFieldSymbol.[Type])
             Assert.IsAssignableFrom(Of VisualBasic.Symbols.Metadata.PE.PENamedTypeSymbol)(propertySymbol.Type)
         End Sub

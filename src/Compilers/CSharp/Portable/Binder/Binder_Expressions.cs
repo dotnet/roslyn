@@ -4179,13 +4179,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var boundElementInitializer = BindInitializerExpressionOrValue(elementInitializer, initializerType, implicitReceiver.Syntax, diagnostics);
 
-                return BindCollectionInitializerElementAddMethod(
+                BoundExpression result = BindCollectionInitializerElementAddMethod(
                     elementInitializer,
                     ImmutableArray.Create(boundElementInitializer),
                     hasEnumerableInitializerType,
                     collectionInitializerAddMethodBinder,
                     diagnostics,
                     implicitReceiver);
+
+                result.WasCompilerGenerated = true;
+                return result;
             }
         }
 
@@ -6463,15 +6466,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion failedConversion = this.Conversions.ClassifyConversionFromExpression(index, int32, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
-                return new BoundConversion(
-                    index.Syntax,
-                    index,
-                    failedConversion,
-                    CheckOverflowAtRuntime,
-                    explicitCastInCode: false,
-                    constantValueOpt: ConstantValue.NotAvailable,
-                    type: int32,
-                    hasErrors: true);
+
+                // Suppress any additional diagnostics
+                return CreateConversion(index.Syntax, index, failedConversion, isCast: false, destination: int32, diagnostics: new DiagnosticBag());
             }
 
             return result;
@@ -6538,7 +6535,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
-                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)), CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
+                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(), 
+                    CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 
             if (pointedAtType.SpecialType == SpecialType.System_Void)
@@ -7195,11 +7193,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = BindConditionalAccessReceiver(conditionalAccessNode, diagnostics);
             }
 
-            if (receiver.HasAnyErrors)
-            {
-                return receiver;
-            }
-
             // create surrogate receiver
             var receiverType = receiver.Type;
             if (receiverType?.IsNullableType() == true)
@@ -7207,7 +7200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverType = receiverType.GetNullableUnderlyingType();
             }
 
-            receiver = new BoundConditionalReceiver(receiver.Syntax, 0, receiverType) { WasCompilerGenerated = true };
+            receiver = new BoundConditionalReceiver(receiver.Syntax, 0, receiverType ?? CreateErrorType(), hasErrors: receiver.HasErrors) { WasCompilerGenerated = true };
             return receiver;
         }
 

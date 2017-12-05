@@ -9,7 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -163,9 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
-            // in case this is right side of a qualified name or member access (or part of a cref)
-            node = SyntaxFactory.GetStandaloneNode(node);
-
             var model = this.GetMemberModel(node);
             if (model != null)
             {
@@ -2172,6 +2169,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MemberSemanticModel memberModel = GetMemberModel(node);
             return memberModel == null ? default(ForEachStatementInfo) : memberModel.GetForEachStatementInfo(node);
+        }
+
+        public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)
+        {
+            MemberSemanticModel memberModel = GetMemberModel(node);
+            return memberModel?.GetDeconstructionInfo(node) ?? default;
+        }
+
+        public override DeconstructionInfo GetDeconstructionInfo(ForEachVariableStatementSyntax node)
+        {
+            MemberSemanticModel memberModel = GetMemberModel(node);
+            return memberModel?.GetDeconstructionInfo(node) ?? default;
         }
     }
 }
