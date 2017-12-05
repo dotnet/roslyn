@@ -1160,6 +1160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 case SymbolKind.Event:
                 case SymbolKind.Property:
                 case SymbolKind.NamedType:
+                case SymbolKind.Namespace: // We are exposing assembly/module attributes on global namespace symbol.
                     return true;
 
                 case SymbolKind.Field:

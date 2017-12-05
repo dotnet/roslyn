@@ -1232,38 +1232,130 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private static string spanSource = @"
 namespace System
-{
-    public readonly ref struct Span<T> 
     {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-        public int Length { get; }
-
-        unsafe public Span(void* pointer, int length)
+        public readonly ref struct Span<T>
         {
-            this.Length = length;
+            private readonly T[] arr;
+
+            public ref T this[int i] => ref arr[i];
+            public override int GetHashCode() => 1;
+            public int Length { get; }
+
+            unsafe public Span(void* pointer, int length)
+            {
+                this.arr = null;
+                this.Length = length;
+            }
+
+            public Span(T[] arr)
+            {
+                this.arr = arr;
+                this.Length = arr.Length;
+            }
+
+            public void CopyTo(Span<T> other) { }
+
+            /// <summary>Gets an enumerator for this span.</summary>
+            public Enumerator GetEnumerator() => new Enumerator(this);
+
+            /// <summary>Enumerates the elements of a <see cref=""Span{T}""/>.</summary>
+            public ref struct Enumerator
+            {
+                /// <summary>The span being enumerated.</summary>
+                private readonly Span<T> _span;
+                /// <summary>The next index to yield.</summary>
+                private int _index;
+
+                /// <summary>Initialize the enumerator.</summary>
+                /// <param name=""span"">The span to enumerate.</param>
+                internal Enumerator(Span<T> span)
+                {
+                    _span = span;
+                    _index = -1;
+                }
+
+                /// <summary>Advances the enumerator to the next element of the span.</summary>
+                public bool MoveNext()
+                {
+                    int index = _index + 1;
+                    if (index < _span.Length)
+                    {
+                        _index = index;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                /// <summary>Gets the element at the current position of the enumerator.</summary>
+                public ref T Current
+                {
+                    get => ref _span[_index];
+                }
+            }
         }
-        public Span(T[] arr)
+
+        public readonly ref struct ReadOnlySpan<T>
         {
-            this.Length = arr.Length;
+            private readonly T[] arr;
+
+            public ref readonly T this[int i] => ref arr[i];
+            public override int GetHashCode() => 2;
+            public int Length { get; }
+
+            public ReadOnlySpan(T[] arr)
+            {
+                this.arr = arr;
+                this.Length = arr.Length;
+            }
+
+            public void CopyTo(Span<T> other) { }
+
+            /// <summary>Gets an enumerator for this span.</summary>
+            public Enumerator GetEnumerator() => new Enumerator(this);
+
+            /// <summary>Enumerates the elements of a <see cref=""Span{T}""/>.</summary>
+            public ref struct Enumerator
+            {
+                /// <summary>The span being enumerated.</summary>
+                private readonly ReadOnlySpan<T> _span;
+                /// <summary>The next index to yield.</summary>
+                private int _index;
+
+                /// <summary>Initialize the enumerator.</summary>
+                /// <param name=""span"">The span to enumerate.</param>
+                internal Enumerator(ReadOnlySpan<T> span)
+                {
+                    _span = span;
+                    _index = -1;
+                }
+
+                /// <summary>Advances the enumerator to the next element of the span.</summary>
+                public bool MoveNext()
+                {
+                    int index = _index + 1;
+                    if (index < _span.Length)
+                    {
+                        _index = index;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                /// <summary>Gets the element at the current position of the enumerator.</summary>
+                public ref readonly T Current
+                {
+                    get => ref _span[_index];
+                }
+            }
         }
 
-        public void CopyTo(Span<T> other){}
-    }
-
-    public readonly ref struct ReadOnlySpan<T>
-    {
-        public ref readonly T this[int i] => throw null;
-        public override int GetHashCode() => 2;
-
-        public void CopyTo(Span<T> other){}
-    }
-
-    public readonly ref struct SpanLike<T>
-    {
-        public readonly Span<T> field;
-    }
-}";
+        public readonly ref struct SpanLike<T>
+        {
+            public readonly Span<T> field;
+        }
+    }";
         #endregion
     }
 }
