@@ -85,6 +85,12 @@ namespace Analyzer.Utilities.Extensions
                 _ => ImmutableArray.Create<IParameterSymbol>());
         }
 
+        /// <summary>
+        /// True if the symbol is externally visible outside this assembly.
+        /// </summary>
+        public static bool IsExternallyVisible(this ISymbol symbol) =>
+            symbol.GetResultantVisibility() == SymbolVisibility.Public;
+
         public static SymbolVisibility GetResultantVisibility(this ISymbol symbol)
         {
             // Start by assuming it's visible.
