@@ -9,7 +9,7 @@
     <RootNamespace>FormatSolution</RootNamespace>
     <AssemblyName>FormatSolution</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <ScrubbedSamplePath>CSharp\FormatSolution</ScrubbedSamplePath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>

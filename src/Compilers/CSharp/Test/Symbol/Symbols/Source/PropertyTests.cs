@@ -2913,7 +2913,7 @@ unsafe class Test
         }
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
-        public void LangVersioAndReadonlyAutoProperty()
+        public void LangVersionAndReadonlyAutoProperty()
         {
             var source = @"
 public class Class1

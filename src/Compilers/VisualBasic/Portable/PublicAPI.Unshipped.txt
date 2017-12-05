@@ -1,5 +1,7 @@
-Microsoft.CodeAnalysis.VisualBasic.Conversion.ToCommonConversion() -> Microsoft.CodeAnalysis.Semantics.CommonConversion
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetConversion(conversionExpression As Microsoft.CodeAnalysis.Semantics.IConversionExpression) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetInConversion(argument As Microsoft.CodeAnalysis.Semantics.IArgument) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetOutConversion(argument As Microsoft.CodeAnalysis.Semantics.IArgument) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.Conversion.ToCommonConversion() -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetConversion(conversionExpression As Microsoft.CodeAnalysis.Operations.IConversionOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetInConversion(argument As Microsoft.CodeAnalysis.Operations.IArgumentOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetInConversion(compoundAssignment As Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetOutConversion(argument As Microsoft.CodeAnalysis.Operations.IArgumentOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetOutConversion(compoundAssignment As Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion

@@ -1920,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion,
                     Conversion.NoConversion,
                     LookupResultKind.Empty,
-                    GetSpecialType(SpecialType.System_Object, diagnostics, node),
+                    CreateErrorType(),
                     hasErrors: true);
             }
 
@@ -1958,7 +1958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion,
                     resultKind,
                     originalUserDefinedOperators,
-                    GetSpecialType(SpecialType.System_Object, diagnostics, node),
+                    CreateErrorType(),
                     hasErrors: true);
             }
 
@@ -2233,7 +2233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundUnaryOperator(node, kind, operand, ConstantValue.NotAvailable,
                     methodOpt: null,
                     resultKind: LookupResultKind.Empty,
-                    type: GetSpecialType(SpecialType.System_Object, diagnostics, node),
+                    type: CreateErrorType(),
                     hasErrors: true);
             }
 
@@ -2270,7 +2270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null,
                     resultKind,
                     originalUserDefinedOperators,
-                    GetSpecialType(SpecialType.System_Object, diagnostics, node),
+                    CreateErrorType(),
                     hasErrors: true);
             }
 
@@ -2605,7 +2605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!operand.HasAnyErrors)
                     {
                         Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
-                        operand = BadExpression(node, operand);
+                        operand = BadExpression(node, operand).MakeCompilerGenerated();
                     }
 
                     return true;
@@ -2683,6 +2683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var boundConstantPattern = BindConstantPattern(
                     node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression);
+                boundConstantPattern.WasCompilerGenerated = true;
                 if (wasExpression)
                 {
                     isTypeDiagnostics.Free();

@@ -1805,7 +1805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Symbol for the type or null if type cannot be found or is ambiguous. 
         ''' </returns>
         Friend Shadows Function GetTypeByMetadataName(fullyQualifiedMetadataName As String) As NamedTypeSymbol
-            Return Me.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=True, isWellKnownType:=False)
+            Return Me.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=True, isWellKnownType:=False, conflicts:=Nothing)
         End Function
 
         Friend Shadows ReadOnly Property ObjectType As NamedTypeSymbol
@@ -1913,6 +1913,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' should sort the errors as desired.
         ''' </returns>
         Friend Overloads Function GetDiagnostics(stage As CompilationStage, Optional includeEarlierStages As Boolean = True, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            GetDiagnostics(stage, includeEarlierStages, diagnostics, cancellationToken)
+            Return diagnostics.ToReadOnlyAndFree()
+        End Function
+
+        Friend Overrides Sub GetDiagnostics(stage As CompilationStage,
+                                             includeEarlierStages As Boolean,
+                                             diagnostics As DiagnosticBag,
+                                             Optional cancellationToken As CancellationToken = Nothing)
+
             Dim builder = DiagnosticBag.GetInstance()
 
             ' Add all parsing errors.
@@ -1971,10 +1981,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Before returning diagnostics, we filter some of them
             ' to honor the compiler options (e.g., /nowarn and /warnaserror)
-            Dim result = DiagnosticBag.GetInstance()
-            FilterAndAppendAndFreeDiagnostics(result, builder)
-            Return result.ToReadOnlyAndFree(Of Diagnostic)()
-        End Function
+            FilterAndAppendAndFreeDiagnostics(diagnostics, builder)
+        End Sub
 
         Private Function GetClsComplianceDiagnostics(cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing) As ImmutableArray(Of Diagnostic)
             If filterTree IsNot Nothing Then
@@ -2161,7 +2169,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             additionalTypes As ImmutableArray(Of NamedTypeSymbol),
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
-            Debug.Assert(diagnostics.IsEmptyWithoutResolution) ' True, but not required.
             Debug.Assert(Not IsSubmission OrElse HasCodeToEmit())
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
@@ -2710,18 +2717,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
-        End Function
-
-        Friend Overrides Function IsIOperationFeatureEnabled() As Boolean
-            Dim tree = Me.SyntaxTrees.FirstOrDefault()
-            If tree Is Nothing Then
-                Return False
-            End If
-
-            Dim options = DirectCast(tree.Options, VisualBasicParseOptions)
-            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
-
-            Return If(IOperationFeatureFlag Is Nothing, False, options.Features.ContainsKey(IOperationFeatureFlag))
         End Function
 
         Friend Overrides Function IsUnreferencedAssemblyIdentityDiagnosticCode(code As Integer) As Boolean

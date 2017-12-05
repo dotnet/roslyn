@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
@@ -548,12 +549,22 @@ class Program
     static void Main()
     {
         var s = $""{1,1E10}"";
+        var t = $""{1,(int)1E10}"";
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (5,22): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var s = $"{1,1E10}";
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1E10").WithArguments("double", "int").WithLocation(5, 22)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1E10").WithArguments("double", "int").WithLocation(5, 22),
+                // (5,22): error CS0150: A constant value is expected
+                //         var s = $"{1,1E10}";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1E10").WithLocation(5, 22),
+                // (6,22): error CS0221: Constant value '10000000000' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         var t = $"{1,(int)1E10}";
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)1E10").WithArguments("10000000000", "int").WithLocation(6, 22),
+                // (6,22): error CS0150: A constant value is expected
+                //         var t = $"{1,(int)1E10}";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int)1E10").WithLocation(6, 22)
                 );
         }
 
@@ -996,7 +1007,7 @@ class Program {
     }
 }";
             var comp = CreateCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            var compilation = CompileAndVerify(comp, verify: false);
+            var compilation = CompileAndVerify(comp, verify: Verification.Fails);
             compilation.VerifyIL("System.Program.Main",
 @"{
   // Code size       35 (0x23)

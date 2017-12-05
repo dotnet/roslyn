@@ -132,7 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim firstFieldOrProperty = initializer.FieldsOrProperties.First
-                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty)
+                    Dim additionalSymbols = If(initializer.FieldsOrProperties.Length > 1, initializer.FieldsOrProperties.RemoveAt(0), ImmutableArray(Of Symbol).Empty)
+                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty, additionalSymbols)
                     If initializerNode.Kind = SyntaxKind.ModifiedIdentifier Then
                         ' Array field with no explicit initializer.
                         Debug.Assert(initializer.FieldsOrProperties.Length = 1)
@@ -617,12 +618,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' The result is not a constant and is not marked with hasErrors so return a BadExpression.
-                    Return BadExpression(valueSyntax, valueExpression, ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(valueSyntax, valueExpression, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
 
                 End If
 
             Else
-                valueExpression = BadExpression(name, ErrorTypeSymbol.UnknownResultType)
+                valueExpression = BadExpression(name, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 ReportDiagnostic(diagnostics, name, ERRID.ERR_ConstantWithNoValue)
             End If
 

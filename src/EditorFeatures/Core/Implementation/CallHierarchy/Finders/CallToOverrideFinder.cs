@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 {
     internal class CallToOverrideFinder : AbstractCallFinder
     {
-        public CallToOverrideFinder(ISymbol symbol, Project project, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
-            : base(symbol, project, asyncListener, provider)
+        public CallToOverrideFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+            : base(symbol, projectId, asyncListener, provider)
         {
         }
 

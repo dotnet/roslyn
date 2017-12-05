@@ -455,8 +455,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundAssignmentOperator
     {
         public BoundAssignmentOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right,
-            TypeSymbol type, RefKind refKind = RefKind.None, bool hasErrors = false)
-            : this(syntax, left, right, refKind, type, hasErrors)
+            TypeSymbol type, bool isRef = false, bool hasErrors = false)
+            : this(syntax, left, right, isRef, type, hasErrors)
         {
         }
     }

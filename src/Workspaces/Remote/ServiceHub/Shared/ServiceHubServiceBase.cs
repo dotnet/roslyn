@@ -149,10 +149,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (e.Reason != DisconnectedReason.Disposed)
             {
-                // this is common for us since we close connection forcefully when operation
-                // is cancelled. use Warning level so that by default, it doesn't write out to
-                // servicehub\log files. one can still make this to write logs by opting in.
-                Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
+                // we no longer close connection forcefully. so connection shouldn't go away 
+                // in normal situation. if it happens, log why it did in more detail.
+                LogError($@"Client stream disconnected unexpectedly: 
+{nameof(e.Description)}: {e.Description}
+{nameof(e.Reason)}: {e.Reason}
+{nameof(e.LastMessage)}: {e.LastMessage}
+{nameof(e.Exception)}: {e.Exception?.ToString()}");
             }
         }
 

@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateArgument();
             
             Assert.Null(node.NameColon);
-            Assert.Null(node.RefOrOutKeyword);
+            Assert.Null(node.RefKindKeyword);
             Assert.NotNull(node.Expression);
             
             AttachAndCheckDiagnostics(node);
@@ -10672,9 +10672,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateArgument();
             
             Assert.Null(node.NameColon);
-            Assert.Equal(SyntaxKind.None, node.RefOrOutKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.RefKindKeyword.Kind());
             Assert.NotNull(node.Expression);
-            var newNode = node.WithNameColon(node.NameColon).WithRefOrOutKeyword(node.RefOrOutKeyword).WithExpression(node.Expression);
+            var newNode = node.WithNameColon(node.NameColon).WithRefKindKeyword(node.RefKindKeyword).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
         }
         
