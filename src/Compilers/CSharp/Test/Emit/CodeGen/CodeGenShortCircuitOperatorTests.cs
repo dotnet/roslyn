@@ -5172,6 +5172,56 @@ M
 }");
         }
 
+        [WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")]
+        [Fact]
+        public void ConditionalRefLike()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""---"");
+        Goo(new C());
+        System.Console.WriteLine(""---"");
+        Goo(null);
+        System.Console.WriteLine(""---"");
+    }
+
+    static void Goo(C x)
+    {
+        x?.M();
+    }
+
+    public RefLike M()
+    {
+        System.Console.WriteLine(""M"");
+        return default;
+    }
+
+    public ref struct RefLike{}
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+M
+---
+---");
+
+            verifier.VerifyIL("C.Goo", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brtrue.s   IL_0006
+  IL_0004:  br.s       IL_000d
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""C.RefLike C.M()""
+  IL_000c:  pop
+  IL_000d:  ret
+}");
+        }
+
         [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_01()
