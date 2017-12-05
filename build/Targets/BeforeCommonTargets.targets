@@ -56,20 +56,8 @@
          https://github.com/dotnet/roslyn/issues/23547
     -->
     <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != ''">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
-  </PropertyGroup>
 
-  <!-- 
-    DocumentationFile needs to be set before importing common targets. 
-
-    C# common targets (unlike VB) prefix DocumentationFile path with IntermediateOutputPath. However, using that here does not work with multi-targeting as
-    the IntermediateOutputPath will not yet have the TargetFramework appended, which will lead to a race where parallel builds for different TargetFrameworks
-    attempt to write the doc xml to the same xml location. Instead, we can simply set GenerateDocumentationFile=true and let the SDK pick the correct path.
-
-    Ideally, we'd just use the same construct for VB here, but that is currently blocked by https://github.com/dotnet/sdk/issues/1598.
-  -->
-  <PropertyGroup Condition="'$(GenerateDocumentationFile)' == '' AND '$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(AssemblyName)' != ''">
-    <DocumentationFile Condition="'$(ProjectLanguage)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
-    <GenerateDocumentationFile Condition="'$(ProjectLanguage)' == 'CSharp'">true</GenerateDocumentationFile>
+    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(ProjectLanguage)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFrameworks)' != ''">

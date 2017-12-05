@@ -44,6 +44,7 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- The new SDK introduced a GenerateAssemblyInfo target, which is disabled by GenerateAssemblyInfo=false.
          Otherwise, it writes to the same file (GeneratedAssemblyInfoFile) as our GenerateAssemblyInfoFile target.
          Follow-up issue to reconcile the two: https://github.com/dotnet/roslyn/issues/19645 -->
