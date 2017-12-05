@@ -89,7 +89,7 @@ namespace Analyzer.Utilities.Extensions
         /// True if the symbol is externally visible outside this assembly.
         /// </summary>
         public static bool IsExternallyVisible(this ISymbol symbol) =>
-            symbol.IsExternallyVisible();
+            symbol.GetResultantVisibility() == SymbolVisibility.Public;
 
         public static SymbolVisibility GetResultantVisibility(this ISymbol symbol)
         {
