@@ -61,19 +61,19 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         private void VerifyBasic(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
             var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText);
-            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, expected);
+            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, expected: expected);
         }
 
         private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
             var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText);
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, expected);
+            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, expected: expected);
         }
 
         private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, string shippedApiFilePath, string unshippedApiFilePath, params DiagnosticResult[] expected)
         {
             var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText, shippedApiFilePath, unshippedApiFilePath);
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, expected);
+            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, expected: expected);
         }
 
         private void VerifyCSharpAdditionalFileFix(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic = false)
