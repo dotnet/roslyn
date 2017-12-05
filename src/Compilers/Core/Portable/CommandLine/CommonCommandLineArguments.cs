@@ -284,12 +284,10 @@ namespace Microsoft.CodeAnalysis
 
         internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
         {
-            bool fallback = 
-                ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
-                CompilationOptionsCore.CryptoKeyContainer != null;
-            return fallback ?
-                (StrongNameProvider)new DesktopStrongNameProvider(KeyFileSearchPaths, null, fileSystem) :
-                (StrongNameProvider)new PortableStrongNameProvider(KeyFileSearchPaths, fileSystem);
+            // https://github.com/dotnet/roslyn/issues/23521
+            // Disable the portable strong name provider until we can find and fix the
+            // root cause of the bug
+            return new DesktopStrongNameProvider(KeyFileSearchPaths, null, fileSystem);
         }
 
         internal CommandLineArguments()
