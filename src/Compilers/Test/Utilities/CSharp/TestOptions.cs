@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // binder, so that we may eliminate the old one in the future.
         public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
 
-        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
-
         public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular.WithRecursivePatterns();
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
@@ -84,34 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
             return options;
-        }
-
-        internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
-        {
-            if (features.Length == 0)
-            {
-                throw new InvalidOperationException("Need at least one feature to enable");
-            }
-
-            var list = new List<KeyValuePair<string, string>>();
-            foreach (var feature in features)
-            {
-                var name = feature.RequiredFeature();
-                if (name == null)
-                {
-                    throw new InvalidOperationException($"{feature} is not a valid experimental feature");
-                }
-
-
-                list.Add(new KeyValuePair<string, string>(name, "true"));
-            }
-
-            return options.WithFeatures(options.Features.Concat(list));
-        }
-        
-        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
-        {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("IOperation", "true") }));
         }
 
         public static CSharpParseOptions WithRecursivePatterns(this CSharpParseOptions options)

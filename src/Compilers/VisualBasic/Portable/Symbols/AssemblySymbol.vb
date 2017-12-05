@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Collections
+Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -423,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Symbol for the type or null if type cannot be found or is ambiguous. 
         ''' </returns>
         Public Function GetTypeByMetadataName(fullyQualifiedMetadataName As String) As NamedTypeSymbol
-            Return GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=False, isWellKnownType:=False)
+            Return GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=False, isWellKnownType:=False, conflicts:=Nothing)
         End Function
 
         Private Shared ReadOnly s_nestedTypeNameSeparators As Char() = {"+"c}
@@ -446,8 +447,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="ignoreCorLibraryDuplicatedTypes">
         ''' When set, any duplicate coming from corlib is ignored.
         ''' </param>
+        ''' <param name="conflicts">
+        ''' In cases a type could not be found because of ambiguity, we return two of the candidates that caused the ambiguity.
+        ''' </param>
         ''' <returns></returns>
-        Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean,
+        Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean, <Out> ByRef conflicts As (AssemblySymbol, AssemblySymbol),
                                               Optional useCLSCompliantNameArityEncoding As Boolean = False, Optional ignoreCorLibraryDuplicatedTypes As Boolean = False) As NamedTypeSymbol
 
             If metadataName Is Nothing Then
@@ -462,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim parts() As String = metadataName.Split(s_nestedTypeNameSeparators)
                 Debug.Assert(parts.Length > 0)
                 mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)
-                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
+                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType, conflicts)
 
                 Dim i As Integer = 1
 
@@ -474,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End While
             Else
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding)
-                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType,
+                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType, conflicts,
                                                      ignoreCorLibraryDuplicatedTypes:=ignoreCorLibraryDuplicatedTypes)
             End If
 
@@ -490,8 +494,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>
         ''' Symbol for the type or Nothing if type cannot be found or ambiguous. 
         ''' </returns>
-        Friend Function GetTopLevelTypeByMetadataName(ByRef metadataName As MetadataTypeName, includeReferences As Boolean, isWellKnownType As Boolean,
+        Friend Function GetTopLevelTypeByMetadataName(ByRef metadataName As MetadataTypeName, includeReferences As Boolean, isWellKnownType As Boolean, <Out> ByRef conflicts As (AssemblySymbol, AssemblySymbol),
                                                       Optional ignoreCorLibraryDuplicatedTypes As Boolean = False) As NamedTypeSymbol
+            conflicts = Nothing
             Dim result As NamedTypeSymbol
 
             ' First try this assembly
@@ -523,6 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
                         Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute() AndAlso
                         candidate <> result Then
+
                         If (result IsNot Nothing) Then
                             ' Ambiguity
                             If ignoreCorLibraryDuplicatedTypes Then
@@ -536,6 +542,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     Continue For
                                 End If
                             End If
+
+                            conflicts = (result.ContainingAssembly, candidate.ContainingAssembly)
                             Return Nothing
                         End If
 

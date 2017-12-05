@@ -6,7 +6,7 @@
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
-    <OutputPath>$(OutputPath)Insertion\</OutputPath>
+    <OutputPath>$(OutputPath)Vsix\CodeAnalysisCompilers</OutputPath>
     <IsPackage>true</IsPackage>
     <FinalizeValidate>false</FinalizeValidate>
     <ValidateManifest>false</ValidateManifest>
@@ -15,18 +15,16 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
 
-  <ItemGroup>
-    <RoslynVsixFileToCopy Include="..\..\MSBuildScripts\roslyn.bat" />
-  </ItemGroup>
-
   <Target Name="BeforeBuild">
-    <Copy SourceFiles="@(RoslynVsixFileToCopy)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
     <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" />
   </Target>
 
   <ItemGroup>
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.Compilers.json" />
+    <MergeManifest Include="$(OutputPath)\Microsoft.CodeAnalysis.Compilers.json" />
   </ItemGroup>
 
   <Target Name="ValidateManifest" />
+
+  <!-- Disable automatic signing. This will be signed in the batch phase -->
+  <Target Name="AddTargetPathToFilesToSign" />
 </Project>

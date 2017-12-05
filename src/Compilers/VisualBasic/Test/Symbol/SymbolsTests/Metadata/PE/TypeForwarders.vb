@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Const funcTypeMetadataName As String = "System.Func`1"
 
             ' mscorlib contains this type, so we should be able to find it without looking in referenced assemblies.
-            Dim funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=False, isWellKnownType:=True)
+            Dim funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=False, isWellKnownType:=True, conflicts:=Nothing)
             Assert.NotNull(funcType)
             Assert.NotEqual(TypeKind.Error, funcType.TypeKind)
             Assert.Equal(corlibAssembly, funcType.ContainingAssembly)
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             ' The compilation assembly references both mscorlib and System.Core, but finding
             ' System.Func`1 in both isn't ambiguous because one forwards to the other.
-            Assert.Equal(funcType, comp.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=True, isWellKnownType:=True))
+            Assert.Equal(funcType, comp.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=True, isWellKnownType:=True, conflicts:=Nothing))
         End Sub
 
         ''' <summary>
@@ -1043,7 +1043,7 @@ End class
             Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
             ' Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify:=False,
+            CompileAndVerify(appCompilation, verify:=Verification.Fails,
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(1, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1143,11 +1143,11 @@ BC30652: Reference required to assembly 'ForwarderTargetAssembly, Version=0.0.0.
                 Assert.Equal("", reader.GetString(exportedTypeRow.Namespace)) 'Empty - presumably there's enough info on the containing type.
                 Assert.Equal(HandleKind.ExportedType, exportedTypeRow.Implementation.Kind)
             Else
-                Assert.Equal(System.Reflection.TypeAttributes.NotPublic Or TypeAttributesMissing.Forwarder, ExportedTypeRow.Attributes)
+                Assert.Equal(System.Reflection.TypeAttributes.NotPublic Or TypeAttributesMissing.Forwarder, exportedTypeRow.Attributes)
                 Assert.Equal(0, exportedTypeRow.GetTypeDefinitionId())
                 Assert.Equal(expectedType, reader.GetString(exportedTypeRow.Name))
                 Assert.Equal(expectedNamespace, reader.GetString(exportedTypeRow.Namespace))
-                Assert.Equal(HandleKind.AssemblyReference, ExportedTypeRow.Implementation.Kind)
+                Assert.Equal(HandleKind.AssemblyReference, exportedTypeRow.Implementation.Kind)
             End If
         End Sub
 
@@ -1211,7 +1211,7 @@ End class
             Dim appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
             ' Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify:=False,
+            CompileAndVerify(appCompilation, verify:=Verification.Fails,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(2, peReader1.GetTableRowCount(TableIndex.ExportedType))

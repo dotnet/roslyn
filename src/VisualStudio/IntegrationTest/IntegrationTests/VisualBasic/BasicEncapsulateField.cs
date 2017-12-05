@@ -77,7 +77,7 @@ Module Module1
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21750"), Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);

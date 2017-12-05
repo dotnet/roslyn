@@ -4230,7 +4230,7 @@ Int32 EndInvoke(System.IAsyncResult)
 
         [WorkItem(540092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540092")]
         [Fact]
-        public void NestedAnonymousMethodsusingLocalAndField()
+        public void NestedAnonymousMethodsUsingLocalAndField()
         {
             string source = @"
 using System;

@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             try
             {
-                outputFilePath = Path.GetDirectoryName(_filePath);
+                outputFilePath = Path.GetDirectoryName(filepath);
             }
             catch (ArgumentException)
             {

@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.AllIgnoreOptions));
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
-                                _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));
+                                _factory.Syntax, loweredLeft, loweredRight, isRef: false, type: loweredLeft.Type, used: false)));
                     }
                 }
             }

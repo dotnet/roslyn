@@ -876,7 +876,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TupleDeletagate_NameChange()
+        Public Sub TupleDelegate_NameChange()
             Dim source0 = "
 Public Class C
     Public Delegate Function F() As (x as Integer, y as Integer)

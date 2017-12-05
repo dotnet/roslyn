@@ -3598,6 +3598,7 @@ unsafe struct S
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
         public void MethodGroupAsExpressionInIsPatternBrokenCode()
         {
@@ -3613,8 +3614,8 @@ unsafe struct S
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,28): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (7,29): error CS1525: Invalid expression term ')'
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 28),
                 // (8,33): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
@@ -3627,6 +3628,24 @@ unsafe struct S
                 //             if (object.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "object.Equals is()").WithLocation(8, 17)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().First();
+
+            Assert.Equal("o.Equals is()", node.ToString());
+
+            // PROTOTYPE(patterns2): This broken syntax corresponds to a deconstruction pattern with zero elements, which is not yet supported in IOperation.
+//            compilation.VerifyOperationTree(node, expectedOperationTree:
+//@"
+//IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
+//  Expression: 
+//    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
+//      Children(1):
+//          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
+//            Children(1):
+//                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+//  Pattern: 
+//");
         }
 
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
@@ -6376,6 +6395,81 @@ class Program
                 //         if (s is string t) {} else { Console.WriteLine("World"); }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string t").WithArguments("string").WithLocation(8, 13)
                 );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(22619, "https://github.com/dotnet/roslyn/issues/22619")]
+        public void MissingSideEffect()
+        {
+            var source =
+@"using System;
+internal class Program
+{
+    private static void Main()
+    {
+        try
+        {
+            var test = new Program();
+            var result = test.IsVarMethod();
+            Console.WriteLine($""Result = {result}"");
+            Console.Read();
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""Exception"");
+        }
+    }
+
+    private int IsVarMethod() => ThrowingMethod() is var _ ? 1 : 0;
+    private bool ThrowingMethod() => throw new Exception(""Oh"");
+}
+";
+            var expectedOutput = @"Exception";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
+        public void TestArrayOfPointer()
+        {
+            var source =
+@"using System;
+class Program
+{
+    unsafe static void Main()
+    {
+        object o = new byte*[10];
+        Console.WriteLine(o is byte*[]); // True
+        Console.WriteLine(o is byte*[] _); // True
+        Console.WriteLine(o is byte*[] x1); // True
+        Console.WriteLine(o is byte**[]); // False
+        Console.WriteLine(o is byte**[] _); // False
+        Console.WriteLine(o is byte**[] x2); // False
+        o = new byte**[10];
+        Console.WriteLine(o is byte**[]); // True
+        Console.WriteLine(o is byte**[] _); // True
+        Console.WriteLine(o is byte**[] x3); // True
+        Console.WriteLine(o is byte*[]); // False
+        Console.WriteLine(o is byte*[] _); // False
+        Console.WriteLine(o is byte*[] x4); // False
+    }
+}
+";
+            var expectedOutput = @"True
+True
+True
+False
+False
+False
+True
+True
+True
+False
+False
+False";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }

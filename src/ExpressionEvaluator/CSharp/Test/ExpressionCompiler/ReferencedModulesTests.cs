@@ -1010,6 +1010,11 @@ namespace System
                 }
             }
 
+            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+            {
+                throw new NotImplementedException();
+            }
+
             public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;
 
             public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _builder.SourceAssemblyOpt;

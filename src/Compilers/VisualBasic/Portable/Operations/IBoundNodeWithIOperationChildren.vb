@@ -4,7 +4,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.Semantics
+Namespace Microsoft.CodeAnalysis.Operations
 	Friend Interface IBoundNodeWithIOperationChildren
         ''' <summary>
         ''' An array of child bound nodes.

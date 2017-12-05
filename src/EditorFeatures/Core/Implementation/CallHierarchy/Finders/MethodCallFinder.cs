@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 {
     internal class MethodCallFinder : AbstractCallFinder
     {
-        public MethodCallFinder(ISymbol symbol, Project project, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
-            : base(symbol, project, asyncListener, provider)
+        public MethodCallFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+            : base(symbol, projectId, asyncListener, provider)
         {
         }
 

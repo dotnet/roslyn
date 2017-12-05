@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 {
     internal class ImplementerFinder : AbstractCallFinder
     {
-        public ImplementerFinder(ISymbol symbol, Project project, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider) : base(symbol, project, asyncListener, provider)
+        public ImplementerFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+            : base(symbol, projectId, asyncListener, provider)
         {
         }
 

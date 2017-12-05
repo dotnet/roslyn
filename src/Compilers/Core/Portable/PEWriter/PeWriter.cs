@@ -8,11 +8,13 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using Microsoft.CodeAnalysis.Emit;
+using static Microsoft.Cci.SigningUtilities;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -35,6 +37,7 @@ namespace Microsoft.Cci
             bool metadataOnly,
             bool isDeterministic,
             bool emitTestCoverageData,
+            RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
             // If PDB writer is given, we have to have PDB path.
@@ -196,6 +199,15 @@ namespace Microsoft.Cci
                 debugDirectoryBuilder = null;
             }
 
+            var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
+
+            var corFlags = properties.CorFlags;
+            if (privateKeyOpt != null)
+            {
+                Debug.Assert(strongNameProvider.Capability == SigningCapability.SignsPeBuilder);
+                corFlags |= CorFlags.StrongNameSigned;
+            }
+
             var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
                 metadataRootBuilder,
@@ -204,14 +216,19 @@ namespace Microsoft.Cci
                 managedResourceBuilder,
                 CreateNativeResourceSectionSerializer(context.Module),
                 debugDirectoryBuilder,
-                CalculateStrongNameSignatureSize(context.Module),
+                CalculateStrongNameSignatureSize(context.Module, privateKeyOpt),
                 entryPointHandle,
-                properties.CorFlags,
+                corFlags,
                 deterministicIdProvider,
                 metadataOnly && !context.IncludePrivateMembers);
 
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
+
+            if (privateKeyOpt != null)
+            {
+                strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
+            }
 
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
@@ -266,8 +283,8 @@ namespace Microsoft.Cci
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
             // a set of objects implementing IWin32Resources. These are then ordered and the final image form is constructed
             // and written to the resource section. Resources in .OBJ form are already very close to their final output
-            // form. Rather than reading them and parsing them into a set of objects similar to those produced by 
-            // processing a .RES file, we process them like the native linker would, copy the relevant sections from 
+            // form. Rather than reading them and parsing them into a set of objects similar to those produced by
+            // processing a .RES file, we process them like the native linker would, copy the relevant sections from
             // the .OBJ into our output and apply some fixups.
 
             var nativeResourceSectionOpt = module.Win32ResourceSection;
@@ -315,30 +332,6 @@ namespace Microsoft.Cci
             {
                 NativeResourceWriter.SerializeWin32Resources(builder, _resources, location.RelativeVirtualAddress);
             }
-        }
-
-        private static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module)
-        {
-            ISourceAssemblySymbolInternal assembly = module.SourceAssemblyOpt;
-            if (assembly == null)
-            {
-                return 0;
-            }
-
-            // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
-            int keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
-
-            if (keySize == 0)
-            {
-                keySize = assembly.Identity.PublicKey.Length;
-            }
-
-            if (keySize == 0)
-            {
-                return 0;
-            }
-
-            return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
     }
 }

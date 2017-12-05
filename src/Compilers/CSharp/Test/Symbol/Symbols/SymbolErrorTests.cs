@@ -6919,8 +6919,8 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            // Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            // Exported types in .Net modules cause PEVerify to fail on some platforms.
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
                 new List<MetadataReference>()
@@ -6929,7 +6929,7 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation(modSource,
                 new List<MetadataReference>()
@@ -7000,7 +7000,7 @@ extern alias FT1;
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("",
                 new List<MetadataReference>()
@@ -13794,6 +13794,7 @@ class A : IFace<int>
         }
 
         [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
         public void CS0842ERR_ExplicitLayoutAndAutoImplementedProperty()
         {
             var text = @"
@@ -13804,7 +13805,7 @@ namespace TestNamespace
     [StructLayout(LayoutKind.Explicit)]
     struct Str
     {
-        public int Num // CS0842
+        public int Num // CS0625
         {
             get;
             set;
@@ -13818,8 +13819,10 @@ namespace TestNamespace
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (9,20): error CS0842: 'TestNamespace.Str.Num': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)
-                Diagnostic(ErrorCode.ERR_ExplicitLayoutAndAutoImplementedProperty, "Num").WithArguments("TestNamespace.Str.Num"));
+                // (9,20): error CS0625: 'Str.Num': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                //         public int Num // CS0625
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "Num").WithArguments("TestNamespace.Str.Num").WithLocation(9, 20)
+                );
         }
 
         [Fact]
@@ -17457,7 +17460,7 @@ public class B : A
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, verify: false).
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).
                            VerifyDiagnostics(
     // (8,17): warning CS0824: Constructor 'B.B()' is marked external
     //   public extern B();
@@ -19976,7 +19979,7 @@ namespace UserSpace
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
-        public void MultipleForwardsThatChainResultinTheSameAssemblyShouldStillProduceAnError()
+        public void MultipleForwardsThatChainResultInTheSameAssemblyShouldStillProduceAnError()
         {
             // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
             // in assembly C. Now if assembly C is replaced with assembly C2, that forwards the type to both D and E, and D fowards it to E,

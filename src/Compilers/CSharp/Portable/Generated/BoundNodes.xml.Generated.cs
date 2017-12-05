@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAssignmentOperator : BoundExpression
     {
-        public BoundAssignmentOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, RefKind refKind, TypeSymbol type, bool hasErrors = false)
+        public BoundAssignmentOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, bool isRef, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.AssignmentOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Left = left;
             this.Right = right;
-            this.RefKind = refKind;
+            this.IsRef = isRef;
         }
 
 
@@ -1154,18 +1154,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Right { get; }
 
-        public RefKind RefKind { get; }
+        public bool IsRef { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitAssignmentOperator(this);
         }
 
-        public BoundAssignmentOperator Update(BoundExpression left, BoundExpression right, RefKind refKind, TypeSymbol type)
+        public BoundAssignmentOperator Update(BoundExpression left, BoundExpression right, bool isRef, TypeSymbol type)
         {
-            if (left != this.Left || right != this.Right || refKind != this.RefKind || type != this.Type)
+            if (left != this.Left || right != this.Right || isRef != this.IsRef || type != this.Type)
             {
-                var result = new BoundAssignmentOperator(this.Syntax, left, right, refKind, type, this.HasErrors);
+                var result = new BoundAssignmentOperator(this.Syntax, left, right, isRef, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConditionalOperator : BoundExpression
     {
-        public BoundConditionalOperator(SyntaxNode syntax, bool isByRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundConditionalOperator(SyntaxNode syntax, bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ConditionalOperator, syntax, type, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
         {
 
@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(alternative != null, "Field 'alternative' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.IsByRef = isByRef;
+            this.IsRef = isRef;
             this.Condition = condition;
             this.Consequence = consequence;
             this.Alternative = alternative;
@@ -1269,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public bool IsByRef { get; }
+        public bool IsRef { get; }
 
         public BoundExpression Condition { get; }
 
@@ -1284,11 +1284,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitConditionalOperator(this);
         }
 
-        public BoundConditionalOperator Update(bool isByRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundConditionalOperator Update(bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            if (isByRef != this.IsByRef || condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || type != this.Type)
+            if (isRef != this.IsRef || condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || type != this.Type)
             {
-                var result = new BoundConditionalOperator(this.Syntax, isByRef, condition, consequence, alternative, constantValueOpt, type, this.HasErrors);
+                var result = new BoundConditionalOperator(this.Syntax, isRef, condition, consequence, alternative, constantValueOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9308,7 +9308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(left, right, node.RefKind, type);
+            return node.Update(left, right, node.IsRef, type);
         }
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
@@ -9330,7 +9330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
             BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.IsByRef, condition, consequence, alternative, node.ConstantValueOpt, type);
+            return node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, type);
         }
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
@@ -10383,7 +10383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
                 new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
-                new TreeDumperNode("refKind", node.RefKind, null),
+                new TreeDumperNode("isRef", node.IsRef, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10414,7 +10414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("conditionalOperator", null, new TreeDumperNode[]
             {
-                new TreeDumperNode("isByRef", node.IsByRef, null),
+                new TreeDumperNode("isRef", node.IsRef, null),
                 new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
                 new TreeDumperNode("consequence", null, new TreeDumperNode[] { Visit(node.Consequence, null) }),
                 new TreeDumperNode("alternative", null, new TreeDumperNode[] { Visit(node.Alternative, null) }),

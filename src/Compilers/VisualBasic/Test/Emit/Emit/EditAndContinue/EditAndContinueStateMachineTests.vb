@@ -4436,7 +4436,7 @@ End Class
             ' older versions of mscorlib don't contain IteratorStateMachineAttribute
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Passes)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
@@ -4495,7 +4495,7 @@ End Class
             ' the ctor is missing a parameter
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Passes)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
@@ -4550,7 +4550,7 @@ End Class
             ' older versions of mscorlib don't contain IteratorStateMachineAttribute
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Passes)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
@@ -4613,7 +4613,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Passes)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
@@ -4665,7 +4665,7 @@ End Class
 
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Fails)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
@@ -4703,7 +4703,7 @@ End Class
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Passes)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
@@ -4742,7 +4742,7 @@ End Class
 
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Fails)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
@@ -4782,7 +4782,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Passes)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")

@@ -75,15 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (_methodNotType)
             {
                 _locals = locals;
+                _sourceMethodParametersInOrder = GetSourceMethodParametersInOrder(currentFrame, currentSourceMethod);
                 ImmutableArray<string> displayClassVariableNamesInOrder;
                 GetDisplayClassVariables(
                     currentFrame,
-                    currentSourceMethod,
                     _locals,
                     inScopeHoistedLocalSlots,
+                    _sourceMethodParametersInOrder,
                     out displayClassVariableNamesInOrder,
-                    out _displayClassVariables,
-                    out _sourceMethodParametersInOrder);
+                    out _displayClassVariables);
                 Debug.Assert(displayClassVariableNamesInOrder.Length == _displayClassVariables.Count);
                 _localsForBinding = GetLocalsForBinding(_locals, displayClassVariableNamesInOrder, _displayClassVariables);
             }
@@ -1202,64 +1202,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return builder.ToImmutableAndFree();
         }
 
-        /// <summary>
-        /// Return a mapping of captured variables (parameters, locals, and
-        /// "this") to locals. The mapping is needed to expose the original
-        /// local identifiers (those from source) in the binder.
-        /// </summary>
-        private static void GetDisplayClassVariables(
+        private static ImmutableArray<string> GetSourceMethodParametersInOrder(
             MethodSymbol method,
-            MethodSymbol sourceMethod,
-            ImmutableArray<LocalSymbol> locals,
-            ImmutableSortedSet<int> inScopeHoistedLocalSlots,
-            out ImmutableArray<string> displayClassVariableNamesInOrder,
-            out ImmutableDictionary<string, DisplayClassVariable> displayClassVariables,
-            out ImmutableArray<string> sourceMethodParametersInOrder)
+            MethodSymbol sourceMethod)
         {
-            // Calculated the shortest paths from locals to instances of display
-            // classes. There should not be two instances of the same display
-            // class immediately within any particular method.
-            var displayClassTypes = PooledHashSet<NamedTypeSymbol>.GetInstance();
-            var displayClassInstances = ArrayBuilder<DisplayClassInstanceAndFields>.GetInstance();
-
-            // Add any display class instances from locals (these will contain any hoisted locals).
-            foreach (var local in locals)
-            {
-                var name = local.Name;
-                if ((name != null) && (GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField))
-                {
-                    var instance = new DisplayClassInstanceFromLocal((EELocalSymbol)local);
-                    displayClassTypes.Add(instance.Type);
-                    displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
-                }
-            }
-
-            foreach (var parameter in method.Parameters)
-            {
-                if (GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier ||
-                    IsDisplayClassParameter(parameter))
-                {
-                    var instance = new DisplayClassInstanceFromParameter(parameter);
-                    displayClassTypes.Add(instance.Type);
-                    displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
-                }
-            }
-
             var containingType = method.ContainingType;
-            bool isIteratorOrAsyncMethod = false;
-            if (IsDisplayClassType(containingType))
-            {
-                if (!method.IsStatic)
-                {
-                    // Add "this" display class instance.
-                    var instance = new DisplayClassInstanceFromParameter(method.ThisParameter);
-                    displayClassTypes.Add(instance.Type);
-                    displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
-                }
+            bool isIteratorOrAsyncMethod = IsDisplayClassType(containingType) &&
+                GeneratedNames.GetKind(containingType.Name) == GeneratedNameKind.StateMachineType;
 
-                isIteratorOrAsyncMethod = GeneratedNames.GetKind(containingType.Name) == GeneratedNameKind.StateMachineType;
-            }
-            
             var parameterNamesInOrder = ArrayBuilder<string>.GetInstance();
             // For version before .NET 4.5, we cannot find the sourceMethod properly:
             // The source method coincides with the original method in the case.
@@ -1294,19 +1244,80 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            var parameterNames = PooledHashSet<string>.GetInstance();
-            foreach (var name in parameterNamesInOrder)
+            return parameterNamesInOrder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Return a mapping of captured variables (parameters, locals, and
+        /// "this") to locals. The mapping is needed to expose the original
+        /// local identifiers (those from source) in the binder.
+        /// </summary>
+        private static void GetDisplayClassVariables(
+            MethodSymbol method,
+            ImmutableArray<LocalSymbol> locals,
+            ImmutableSortedSet<int> inScopeHoistedLocalSlots,
+            ImmutableArray<string> parameterNamesInOrder,
+            out ImmutableArray<string> displayClassVariableNamesInOrder,
+            out ImmutableDictionary<string, DisplayClassVariable> displayClassVariables)
+        {
+            // Calculate the shortest paths from locals to instances of display
+            // classes. There should not be two instances of the same display
+            // class immediately within any particular method.
+            var displayClassInstances = ArrayBuilder<DisplayClassInstanceAndFields>.GetInstance();
+
+            foreach (var parameter in method.Parameters)
             {
-                parameterNames.Add(name);
+                if (GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier ||
+                    IsDisplayClassParameter(parameter))
+                {
+                    var instance = new DisplayClassInstanceFromParameter(parameter);
+                    displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
+                }
             }
 
-            sourceMethodParametersInOrder = parameterNamesInOrder.ToImmutableAndFree();
+            if (IsDisplayClassType(method.ContainingType) && !method.IsStatic)
+            {
+                // Add "this" display class instance.
+                var instance = new DisplayClassInstanceFromParameter(method.ThisParameter);
+                displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
+            }
+
+            var displayClassTypes = PooledHashSet<TypeSymbol>.GetInstance();
+            foreach (var instance in displayClassInstances)
+            {
+                displayClassTypes.Add(instance.Instance.Type);
+            }
+
+            // Find any additional display class instances.
+            GetAdditionalDisplayClassInstances(displayClassTypes, displayClassInstances, startIndex: 0);
+
+            // Add any display class instances from locals (these will contain any hoisted locals).
+            // Locals are only added after finding all display class instances reachable from
+            // parameters because locals may be null (temporary locals in async state machine
+            // for instance) so we prefer parameters to locals.
+            int startIndex = displayClassInstances.Count;
+            foreach (var local in locals)
+            {
+                var name = local.Name;
+                if ((name != null) && (GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField))
+                {
+                    if (displayClassTypes.Add(local.Type))
+                    {
+                        var instance = new DisplayClassInstanceFromLocal((EELocalSymbol)local);
+                        displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
+                    }
+                }
+            }
+            GetAdditionalDisplayClassInstances(displayClassTypes, displayClassInstances, startIndex);
+
+            displayClassTypes.Free();
 
             if (displayClassInstances.Any())
             {
-                // Find any additional display class instances breadth first.
-                for (int depth = 0; GetDisplayClassInstances(displayClassTypes, displayClassInstances, depth) > 0; depth++)
+                var parameterNames = PooledHashSet<string>.GetInstance();
+                foreach (var name in parameterNamesInOrder)
                 {
+                    parameterNames.Add(name);
                 }
 
                 // The locals are the set of all fields from the display classes.
@@ -1326,6 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 displayClassVariableNamesInOrder = displayClassVariableNamesInOrderBuilder.ToImmutableAndFree();
                 displayClassVariables = displayClassVariablesBuilder.ToImmutableDictionary();
                 displayClassVariablesBuilder.Free();
+                parameterNames.Free();
             }
             else
             {
@@ -1333,46 +1345,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 displayClassVariables = ImmutableDictionary<string, DisplayClassVariable>.Empty;
             }
 
-            parameterNames.Free();
-            displayClassTypes.Free();
             displayClassInstances.Free();
         }
 
-        /// <summary>
-        /// Return the set of display class instances that can be reached
-        /// from the given local. A particular display class may be reachable
-        /// from multiple locals. In those cases, the instance from the
-        /// shortest path (fewest intermediate fields) is returned.
-        /// </summary>
-        private static int GetDisplayClassInstances(
-            HashSet<NamedTypeSymbol> displayClassTypes,
+        private static void GetAdditionalDisplayClassInstances(
+            HashSet<TypeSymbol> displayClassTypes,
             ArrayBuilder<DisplayClassInstanceAndFields> displayClassInstances,
-            int depth)
+            int startIndex)
         {
-            Debug.Assert(displayClassInstances.All(p => p.Depth <= depth));
-
-            var atDepth = ArrayBuilder<DisplayClassInstanceAndFields>.GetInstance();
-            atDepth.AddRange(displayClassInstances.Where(p => p.Depth == depth));
-            Debug.Assert(atDepth.Count > 0);
-
-            int n = 0;
-            foreach (var instance in atDepth)
+            // Find any additional display class instances breadth first.
+            for (int i = startIndex; i < displayClassInstances.Count; i++)
             {
-                n += GetDisplayClassInstances(displayClassTypes, displayClassInstances, instance);
+                GetDisplayClassInstances(displayClassTypes, displayClassInstances, displayClassInstances[i]);
             }
-
-            atDepth.Free();
-            return n;
         }
 
-        private static int GetDisplayClassInstances(
-            HashSet<NamedTypeSymbol> displayClassTypes,
+        private static void GetDisplayClassInstances(
+            HashSet<TypeSymbol> displayClassTypes,
             ArrayBuilder<DisplayClassInstanceAndFields> displayClassInstances,
             DisplayClassInstanceAndFields instance)
         {
             // Display class instance. The display class fields are variables.
-            int n = 0;
-
             foreach (var member in instance.Type.GetMembers())
             {
                 if (member.Kind != SymbolKind.Field)
@@ -1410,15 +1403,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert(!field.IsStatic);
 
                 // A hoisted local that is itself a display class instance.
-                if (displayClassTypes.Add((NamedTypeSymbol)field.Type))
+                if (displayClassTypes.Add(field.Type))
                 {
                     var other = instance.FromField(field);
                     displayClassInstances.Add(other);
-                    n++;
                 }
             }
-
-            return n;
         }
 
         /// <summary>
@@ -1513,13 +1503,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // Only expecting duplicates for async state machine
                     // fields (that should be at the top-level).
                     Debug.Assert(displayClassVariablesBuilder[variableName].DisplayClassFields.Count() == 1);
-                    Debug.Assert(instance.Fields.Count() >= 1); // greater depth
-                    Debug.Assert((variableKind == DisplayClassVariableKind.Parameter) ||
-                        (variableKind == DisplayClassVariableKind.This));
 
-                    if (variableKind == DisplayClassVariableKind.Parameter && GeneratedNames.GetKind(instance.Type.Name) == GeneratedNameKind.LambdaDisplayClass)
+                    if (!instance.Fields.Any())
                     {
-                        displayClassVariablesBuilder[variableName] = instance.ToVariable(variableName, variableKind, field);
+                        // Prefer parameters over locals.
+                        Debug.Assert(instance.Instance is DisplayClassInstanceFromLocal);
+                    }
+                    else
+                    {
+                        Debug.Assert(instance.Fields.Count() >= 1); // greater depth
+                        Debug.Assert((variableKind == DisplayClassVariableKind.Parameter) ||
+                            (variableKind == DisplayClassVariableKind.This));
+
+                        if (variableKind == DisplayClassVariableKind.Parameter && GeneratedNames.GetKind(instance.Type.Name) == GeneratedNameKind.LambdaDisplayClass)
+                        {
+                            displayClassVariablesBuilder[variableName] = instance.ToVariable(variableName, variableKind, field);
+                        }
                     }
                 }
                 else if (variableKind != DisplayClassVariableKind.This || GeneratedNames.GetKind(instance.Type.ContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
@@ -1548,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return result;
         }
 
-        private static bool IsDisplayClassType(NamedTypeSymbol type)
+        private static bool IsDisplayClassType(TypeSymbol type)
         {
             switch (GeneratedNames.GetKind(type.Name))
             {
@@ -1686,6 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return MemberSignatureComparer.HaveSameConstraints(candidateTypeParameters, candidateTypeMap, desiredTypeParameters, desiredTypeMap);
         }
 
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         private struct DisplayClassInstanceAndFields
         {
             internal readonly DisplayClassInstance Instance;
@@ -1704,9 +1704,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Fields = fields;
             }
 
-            internal NamedTypeSymbol Type
+            internal TypeSymbol Type
             {
-                get { return this.Fields.Any() ? (NamedTypeSymbol)this.Fields.Head.Type : this.Instance.Type; }
+                get { return this.Fields.Any() ? this.Fields.Head.Type : this.Instance.Type; }
             }
 
             internal int Depth
@@ -1716,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal DisplayClassInstanceAndFields FromField(FieldSymbol field)
             {
-                Debug.Assert(IsDisplayClassType((NamedTypeSymbol)field.Type) ||
+                Debug.Assert(IsDisplayClassType(field.Type) ||
                     GeneratedNames.GetKind(field.Type.Name) == GeneratedNameKind.AnonymousType);
                 return new DisplayClassInstanceAndFields(this.Instance, this.Fields.Prepend(field));
             }
@@ -1724,6 +1724,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             internal DisplayClassVariable ToVariable(string name, DisplayClassVariableKind kind, FieldSymbol field)
             {
                 return new DisplayClassVariable(name, kind, this.Instance, this.Fields.Prepend(field));
+            }
+
+            private string GetDebuggerDisplay()
+            {
+                return Instance.GetDebuggerDisplay(Fields);
             }
         }
     }

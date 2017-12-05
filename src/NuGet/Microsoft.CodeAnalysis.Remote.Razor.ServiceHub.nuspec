@@ -3,11 +3,10 @@
   <metadata>
     <id>Microsoft.CodeAnalysis.Remote.Razor.ServiceHub</id>
     <summary>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
+      A private package for the Razor team to grant access to certain internal APIs.
     </summary>
     <description>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
-      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+      A private package for the Razor team to grant access to certain internal APIs.
 
       Supported Platforms:
       - .NET Framework 4.6
@@ -17,7 +16,7 @@
       $commitPathMessage$
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="$version$" />
     </dependencies>
 
     <language>en-US</language>

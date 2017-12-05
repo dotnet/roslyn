@@ -38,19 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        //TODO: move to common
-        /// <summary>
-        /// Creates a clone of a red node that can be used as a root of given syntaxTree.
-        /// New node has no parents, position == 0, and syntaxTree as specified.
-        /// </summary>
-        internal static T CloneNodeAsRoot<T>(T node, SyntaxTree syntaxTree) where T : SyntaxNode
-        {
-            var clone = (T)node.Green.CreateRed(null, 0);
-            clone._syntaxTree = syntaxTree;
-
-            return clone;
-        }
-
         /// <summary>
         /// Returns a non-null <see cref="SyntaxTree"/> that owns this node.
         /// If this node was created with an explicit non-null <see cref="SyntaxTree"/>, returns that tree.
@@ -499,47 +486,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             IEnumerable<SyntaxTrivia> trivia = null,
             Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
         {
-            return SyntaxReplacer.Replace(this, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia);
+            return SyntaxReplacer.Replace(this, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceNodeInListCore(SyntaxNode originalNode, IEnumerable<SyntaxNode> replacementNodes)
         {
-            return SyntaxReplacer.ReplaceNodeInList(this, originalNode, replacementNodes);
+            return SyntaxReplacer.ReplaceNodeInList(this, originalNode, replacementNodes).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertNodesInListCore(SyntaxNode nodeInList, IEnumerable<SyntaxNode> nodesToInsert, bool insertBefore)
         {
-            return SyntaxReplacer.InsertNodeInList(this, nodeInList, nodesToInsert, insertBefore);
+            return SyntaxReplacer.InsertNodeInList(this, nodeInList, nodesToInsert, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceTokenInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens)
         {
-            return SyntaxReplacer.ReplaceTokenInList(this, originalToken, newTokens);
+            return SyntaxReplacer.ReplaceTokenInList(this, originalToken, newTokens).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertTokensInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens, bool insertBefore)
         {
-            return SyntaxReplacer.InsertTokenInList(this, originalToken, newTokens, insertBefore);
+            return SyntaxReplacer.InsertTokenInList(this, originalToken, newTokens, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia)
         {
-            return SyntaxReplacer.ReplaceTriviaInList(this, originalTrivia, newTrivia);
+            return SyntaxReplacer.ReplaceTriviaInList(this, originalTrivia, newTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia, bool insertBefore)
         {
-            return SyntaxReplacer.InsertTriviaInList(this, originalTrivia, newTrivia, insertBefore);
+            return SyntaxReplacer.InsertTriviaInList(this, originalTrivia, newTrivia, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
         {
-            return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options);
+            return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia)
         {
-            return SyntaxNormalizer.Normalize(this, indentation, eol, elasticTrivia);
+            return SyntaxNormalizer.Normalize(this, indentation, eol, elasticTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected override bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false)
