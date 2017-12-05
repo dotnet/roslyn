@@ -304,11 +304,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual HashSet<string> QuickTypeIdentifierAttributeCheckSet
+        /// <summary>
+        /// Get <see cref="QuickTypeIdentifierAttributeChecker"/> that can be used to quickly
+        /// check for TypeIdentifier attribute applications in context of this binder.
+        /// </summary>
+        internal virtual QuickTypeIdentifierAttributeChecker QuickTypeIdentifierAttributeChecker
         {
             get
             {
-                return _next.QuickTypeIdentifierAttributeCheckSet;
+                return _next.QuickTypeIdentifierAttributeChecker;
             }
         }
 

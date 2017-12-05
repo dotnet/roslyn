@@ -780,15 +780,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
             {
                 var syntaxTree = list.Node.SyntaxTree;
-                HashSet<string> quickCheckSet = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickTypeIdentifierAttributeCheckSet;
+                QuickTypeIdentifierAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickTypeIdentifierAttributeChecker;
 
                 foreach (AttributeListSyntax attrList in list)
                 {
                     foreach (AttributeSyntax attr in attrList.Attributes)
                     {
-                        string name = attr.Name.GetUnqualifiedName().Identifier.ValueText;
-
-                        if (quickCheckSet.Contains(name) || quickCheckSet.Contains(name + "Attribute"))
+                        if (checker.IsPossibleMatch(attr))
                         {
                             // This attribute syntax might be an application of TypeIdentifierAttribute.
                             // Let's bind it.

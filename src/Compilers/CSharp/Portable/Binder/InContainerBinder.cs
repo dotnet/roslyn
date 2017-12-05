@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Func<ConsList<Symbol>, Imports> _computeImports;
         private Imports _lazyImports;
         private ImportChain _lazyImportChain;
-        private HashSet<string> _lazyQuickTypeIdentifierAttributeCheckSet;
+        private QuickTypeIdentifierAttributeChecker _lazyQuickTypeIdentifierAttributeChecker;
 
         /// <summary>
         /// Creates a binder for a container with imports (usings and extern aliases) that can be
@@ -102,30 +102,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override HashSet<string> QuickTypeIdentifierAttributeCheckSet
+        /// <summary>
+        /// Get <see cref="QuickTypeIdentifierAttributeChecker"/> that can be used to quickly
+        /// check for TypeIdentifier attribute applications in context of this binder.
+        /// </summary>
+        internal override QuickTypeIdentifierAttributeChecker QuickTypeIdentifierAttributeChecker
         {
             get
             {
-                if (_lazyQuickTypeIdentifierAttributeCheckSet == null)
+                if (_lazyQuickTypeIdentifierAttributeChecker == null)
                 {
-                    HashSet<string> previousSet = this.Next.QuickTypeIdentifierAttributeCheckSet;
-                    HashSet<string> newSet = null;
+                    QuickTypeIdentifierAttributeChecker result = this.Next.QuickTypeIdentifierAttributeChecker;
 
                     if ((object)_container == null || _container.Kind == SymbolKind.Namespace)
                     {
-                        foreach (KeyValuePair<string, AliasAndUsingDirective> pair in GetImports(basesBeingResolved: null).UsingAliases)
-                        {
-                            if (previousSet.Contains(pair.Value.UsingDirective.Name.GetUnqualifiedName().Identifier.ValueText))
-                            {
-                                (newSet ?? (newSet = new HashSet<string>(previousSet))).Add(pair.Key);
-                            }
-                        }
+                        result = result.AddAliasesIfAny(GetImports(basesBeingResolved: null).UsingAliases);
                     }
 
-                    _lazyQuickTypeIdentifierAttributeCheckSet = (newSet ?? previousSet);
+                    _lazyQuickTypeIdentifierAttributeChecker = result;
                 }
 
-                return _lazyQuickTypeIdentifierAttributeCheckSet;
+                return _lazyQuickTypeIdentifierAttributeChecker;
             }
         }
 

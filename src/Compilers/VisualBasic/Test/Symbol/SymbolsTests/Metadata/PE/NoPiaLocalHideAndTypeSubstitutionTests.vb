@@ -247,7 +247,7 @@ End Class
 
         <Fact>
         Public Sub NoPiaTypeSubstitutionWithHandAuthoredLocalType()
-            ' Try to apply attributes to the local type that indicates that the type Is intended to be used for type equivalence. 
+            ' Try to apply attributes to the local type that indicates that the type is intended to be used for type equivalence. 
             Dim compilationDef1 =
 <compilation name="Dummy1">
     <file><![CDATA[

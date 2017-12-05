@@ -2260,5 +2260,21 @@ public interface I1
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
         }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_17()
+        {
+            var code = @"
+using alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute;
+
+[alias1]
+public interface I1
+{
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
     }
 }

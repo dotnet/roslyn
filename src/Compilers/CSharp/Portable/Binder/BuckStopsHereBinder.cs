@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class BuckStopsHereBinder : Binder
     {
-        private static HashSet<string> _lazyPredefinedQuickTypeIdentifierAttributeCheckSet;
-
         internal BuckStopsHereBinder(CSharpCompilation compilation)
             : base(compilation)
         {
@@ -29,18 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override HashSet<string> QuickTypeIdentifierAttributeCheckSet
+        /// <summary>
+        /// Get <see cref="QuickTypeIdentifierAttributeChecker"/> that can be used to quickly
+        /// check for TypeIdentifier attribute applications in context of this binder.
+        /// </summary>
+        internal override QuickTypeIdentifierAttributeChecker QuickTypeIdentifierAttributeChecker
         {
             get
             {
-                if (_lazyPredefinedQuickTypeIdentifierAttributeCheckSet == null)
-                {
-                    var predefined = new HashSet<string>();
-                    predefined.Add(AttributeDescription.TypeIdentifierAttribute.Name);
-                    _lazyPredefinedQuickTypeIdentifierAttributeCheckSet = predefined;
-                }
-
-                return _lazyPredefinedQuickTypeIdentifierAttributeCheckSet;
+                return QuickTypeIdentifierAttributeChecker.Predefined;
             }
         }
 

@@ -3752,6 +3752,24 @@ End Interface
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
         End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_17()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
     End Class
 
 End Namespace
