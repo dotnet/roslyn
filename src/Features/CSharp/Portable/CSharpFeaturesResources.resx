@@ -524,4 +524,7 @@
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
   </data>
+  <data name="AddParenthesisAroundConditionalExpressionInInterpolatedString" xml:space="preserve">
+    <value>Add parenthesis</value>
+  </data>
 </root>

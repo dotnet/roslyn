@@ -53,5 +53,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
+        public const string AddParenthesisAroundConditionalExpressionInInterpolatedString = nameof(AddParenthesisAroundConditionalExpressionInInterpolatedString);
     }
 }
