@@ -10036,5 +10036,158 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
         }
+
+        [Fact]
+        public void MethodGroupConversionVal2In()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void F(in DateTime x)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        Action<DateTime> a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (13,30): error CS0123: No overload for 'F' matches delegate 'Action<DateTime>'
+                //         Action<DateTime> a = F;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "F").WithArguments("F", "System.Action<System.DateTime>").WithLocation(13, 30)
+            );
+        }
+
+        [Fact]
+        public void MethodGroupConversionVal2Overloaded()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void F(in DateTime x)
+    {
+        Console.WriteLine('1');
+    }
+
+    static void F(DateTime x)
+    {
+        Console.WriteLine('2');
+    }
+
+    static void Main()
+    {
+        Action<DateTime> a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CompileAndVerify(code, expectedOutput: @"2");
+        }
+
+        [Fact]
+        public void MethodGroupConversionIn2Overloaded()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    delegate void D(in DateTime d);
+
+    static void F(in DateTime x)
+    {
+        Console.WriteLine('1');
+    }
+
+    static void F(DateTime x)
+    {
+        Console.WriteLine('2');
+    }
+
+    static void Main()
+    {
+        D a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CompileAndVerify(code, expectedOutput: @"1", verify: Verification.Fails);
+
+        }
+
+        [Fact]
+        public void MethodGroupConversionRoReadonlyReturn()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    delegate int D(in DateTime d);
+
+    static ref readonly int F(in DateTime x)
+    {
+        Console.WriteLine('1');
+        return ref (new int[1])[0];
+    }
+
+    static void Main()
+    {
+        D a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CreateStandardCompilation(code).VerifyDiagnostics
+            (
+                // (16,15): error CS8189: Ref mismatch between 'Program.F(in DateTime)' and delegate 'Program.D'
+                //         D a = F;
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "F").WithArguments("Program.F(in System.DateTime)", "Program.D").WithLocation(16, 15)
+            );
+        }
+
+        [Fact]
+        public void MethodGroupConversionRoReadonlyReturnType()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    delegate ref readonly object D(in DateTime d);
+
+    static ref readonly string F(in DateTime x)
+    {
+        Console.WriteLine('1');
+        return ref (new string[1])[0];
+    }
+
+    static void Main()
+    {
+        D a = F;
+        a(DateTime.MaxValue);
+    }
+}
+";
+
+            CreateStandardCompilation(code).VerifyDiagnostics
+            (
+                // (16,15): error CS0407: 'string Program.F(in DateTime)' has the wrong return type
+                //         D a = F;
+                Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("Program.F(in System.DateTime)", "string").WithLocation(16, 15)
+            );
+        }
     }
 }
