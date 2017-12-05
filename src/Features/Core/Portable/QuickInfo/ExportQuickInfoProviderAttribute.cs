@@ -5,9 +5,13 @@ using System.Composition;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
+    /// <summary>
+    /// Use this attribute to export a <see cref="QuickInfoProvider"/> so that it will
+    /// be found and used by the per language associated <see cref="QuickInfoService"/>.
+    /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportQuickInfoProviderAttribute : ExportAttribute
+    public sealed class ExportQuickInfoProviderAttribute : ExportAttribute
     {
         public string Name { get; }
         public string Language { get; }

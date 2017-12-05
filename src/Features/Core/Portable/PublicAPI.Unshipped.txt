@@ -1,1 +1,32 @@
-
+Microsoft.CodeAnalysis.QuickInfo.ExportQuickInfoProviderAttribute
+Microsoft.CodeAnalysis.QuickInfo.ExportQuickInfoProviderAttribute.ExportQuickInfoProviderAttribute(string name, string language) -> void
+Microsoft.CodeAnalysis.QuickInfo.ExportQuickInfoProviderAttribute.Language.get -> string
+Microsoft.CodeAnalysis.QuickInfo.ExportQuickInfoProviderAttribute.Name.get -> string
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem.IsEmpty.get -> bool
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem.RelatedSpans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem.Sections.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection>
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem.Tags.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoProvider
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoProvider.QuickInfoProvider() -> void
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection.Kind.get -> string
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection.TaggedParts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection.Text.get -> string
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.QuickInfoService() -> void
+abstract Microsoft.CodeAnalysis.QuickInfo.QuickInfoProvider.GetQuickInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem>
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.AnonymousTypes = "AnonymousTypes" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Description = "Description" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.DocumentationComments = "DocumentationComments" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Exception = "Exception" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Text = "Text" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.TypeParameters = "TypeParameters" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Usage = "Usage" -> string
+static Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem.Create(Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection> sections = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> relatedSpans = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>)) -> Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
+static Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection.Create(string kind, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> taggedParts) -> Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection
+static Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.GetService(Microsoft.CodeAnalysis.Document document) -> Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
+static readonly Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem.Empty -> Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
+virtual Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.GetQuickInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem>

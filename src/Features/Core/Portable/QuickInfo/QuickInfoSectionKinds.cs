@@ -2,7 +2,11 @@
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal static class QuickInfoSectionKinds
+    /// <summary>
+    /// The set of well known kinds used for the <see cref="QuickInfoSection.Kind"/> property.
+    /// These tags influence the presentation of quick info section.
+    /// </summary>
+    public static class QuickInfoSectionKinds
     {
         public const string Description = nameof(Description);
         public const string DocumentationComments = nameof(DocumentationComments);

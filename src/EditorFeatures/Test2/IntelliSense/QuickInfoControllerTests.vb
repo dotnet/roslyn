@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Me.checkpoint = checkpoint
             End Sub
 
-            Public Overrides Async Function GetQuickInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
+            Public Overrides Async Function GetQuickInfoAsync(document As Document, position As Integer, Optional cancellationToken As CancellationToken = Nothing) As Task(Of QuickInfoItem)
                 Await Me.checkpoint.Task.ConfigureAwait(False)
                 Return QuickInfoItem.Empty
             End Function
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Public InvokeCount As Integer
 
-            Public Overrides Function GetQuickInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
+            Public Overrides Function GetQuickInfoAsync(document As Document, position As Integer, Optional cancellationToken As CancellationToken = Nothing) As Task(Of QuickInfoItem)
                 InvokeCount = InvokeCount + 1
                 Return Task.FromResult(QuickInfoItem.Empty)
             End Function

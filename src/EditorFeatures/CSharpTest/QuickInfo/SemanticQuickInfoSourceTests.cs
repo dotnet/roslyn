@@ -107,13 +107,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
         }
 
-        internal override async Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+        protected override async Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
             await TestWithOptionsAsync(Options.Script, markup, expectedResults);
         }
 
-        internal async Task TestWithUsingsAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+        private async Task TestWithUsingsAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupWithUsings =
 @"using System;
@@ -124,13 +124,13 @@ using System.Linq;
             await TestAsync(markupWithUsings, expectedResults);
         }
 
-        internal Task TestInClassAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+        private Task TestInClassAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupInClass = "class C { " + markup + " }";
             return TestWithUsingsAsync(markupInClass, expectedResults);
         }
 
-        internal Task TestInMethodAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+        private Task TestInMethodAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupInMethod = "class C { void M() { " + markup + " } }";
             return TestWithUsingsAsync(markupInMethod, expectedResults);

@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             AssertTaggedText(expectedText, text, expectedClassifications);
         }
 
-        internal void AssertTaggedText(
+        protected void AssertTaggedText(
             string expectedText,
             ImmutableArray<TaggedText> taggedText,
             Tuple<string, string>[] expectedClassifications = null)
@@ -193,35 +193,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             Assert.Equal(expectedText, actualText);
         }
 
-        internal Action<QuickInfoItem> MainDescription(
+        protected Action<QuickInfoItem> MainDescription(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Description, expectedClassifications);
         }
 
-        internal Action<QuickInfoItem> Documentation(
+        protected Action<QuickInfoItem> Documentation(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.DocumentationComments, expectedClassifications);
         }
 
-        internal Action<QuickInfoItem> TypeParameterMap(
+        protected Action<QuickInfoItem> TypeParameterMap(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.TypeParameters, expectedClassifications);
         }
 
-        internal Action<QuickInfoItem> AnonymousTypes(
+        protected Action<QuickInfoItem> AnonymousTypes(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.AnonymousTypes, expectedClassifications);
         }
 
-        internal Action<QuickInfoItem> NoTypeParameterMap
+        protected Action<QuickInfoItem> NoTypeParameterMap
         {
             get
             {
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             }
         }
 
-        internal Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
+        protected Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
             return item => 
             {
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             };
         }
 
-        internal Action<QuickInfoItem> Exceptions(string expectedText)
+        protected Action<QuickInfoItem> Exceptions(string expectedText)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Exception);
         }
@@ -259,6 +259,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        internal abstract Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults);
+        protected abstract Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults);
     }
 }

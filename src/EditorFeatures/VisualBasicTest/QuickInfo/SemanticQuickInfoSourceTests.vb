@@ -11,14 +11,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Public Class SemanticQuickInfoSourceTests
         Inherits AbstractSemanticQuickInfoSourceTests
 
-        Friend Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
-        Friend Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Private Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
-            Dim service = QuickInfoService.GetService(workspace, LanguageNames.VisualBasic)
+            Dim service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic)?.GetService(Of QuickInfoService)
 
             Await TestSharedAsync(workspace, service, position, expectedResults)
 
@@ -50,13 +50,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End If
         End Function
 
-        Friend Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoItem)()) As Task
+        Private Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoItem)()) As Task
             Using workspace = TestWorkspace.Create(markup)
                 Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function
 
-        Friend Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Private Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim code As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End Using
         End Function
 
-        Friend Async Function TestWithImportsAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Private Async Function TestWithImportsAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupWithImports =
              "Imports System" & vbCrLf &
              "Imports System.Collections.Generic" & vbCrLf &
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestAsync(markupWithImports, expectedResults)
         End Function
 
-        Friend Async Function TestInClassAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Private Async Function TestInClassAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupInClass =
              "Class C" & vbCrLf &
              markup & vbCrLf &
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestWithImportsAsync(markupInClass, expectedResults)
         End Function
 
-        Friend Async Function TestInMethodAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Private Async Function TestInMethodAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupInClass =
              "Class C" & vbCrLf &
              "Sub M()" & vbCrLf &
@@ -509,7 +509,7 @@ End Class
         End Function
 
         <WorkItem(538773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538773")>
-        <Fact>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOverriddenMethod() As Task
             Await TestAsync(<Text>
 Class A
@@ -1412,7 +1412,7 @@ Class C
         go$$o()
     End Function
 End Class
-        </Document>
+                                 </Document>
                              </Project>
                          </Workspace>.ToString()
 
@@ -1753,9 +1753,10 @@ End Class]]></text>.NormalizedValue(),
         <WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(522342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522342")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAwaitKeywordOnTaskReturningAsync() As Task
-            Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferencesNet45="true">
-                                 <Document FilePath="SourceDocument">
+            Dim markup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document FilePath="SourceDocument">
 Imports System.Threading.Tasks
 
 Class C
@@ -1764,8 +1765,8 @@ Class C
     End Function
 End Class
         </Document>
-                             </Project>
-                         </Workspace>.ToString()
+                    </Project>
+                </Workspace>.ToString()
 
             Dim description = <File><%= FeaturesResources.Awaited_task_returns %><%= " " %><%= FeaturesResources.no_value %></File>.ConvertTestSourceTag()
 
@@ -1786,7 +1787,7 @@ Class C
         Return 42
     End Function
 End Class
-        </Document>
+                                 </Document>
                              </Project>
                          </Workspace>.ToString()
 

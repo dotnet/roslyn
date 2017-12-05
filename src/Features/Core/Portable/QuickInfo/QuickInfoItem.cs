@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal sealed class QuickInfoItem
+    public sealed class QuickInfoItem
     {
         /// <summary>
         /// The span of the document that the item is based on.
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public TextSpan Span { get; }
 
         /// <summary>
-        /// Descriptive tags from the <see cref="Microsoft.CodeAnalysis.Completion.CompletionTags"/> type.
+        /// Descriptive tags from the <see cref="Completion.CompletionTags"/> type.
         /// These tags may influence how the item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }
