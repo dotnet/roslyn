@@ -404,14 +404,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaUtilities.IsLambdaBody(node);
         }
 
-        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVar(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+            return node.ContextualKind == SyntaxKind.VarKeyword;
         }
 
-        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.IsVar() || IsPredefinedType(node.Kind);
+            return node.IsIdentifierVar() || IsPredefinedType(node.Kind);
         }
 
         internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)

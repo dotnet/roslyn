@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsVarType()
         {
-            if (!this.CurrentToken.IsVar())
+            if (!this.CurrentToken.IsIdentifierVar())
             {
                 return false;
             }
@@ -410,22 +410,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var typeIdentifier = (IdentifierNameSyntax)type;
                 var typeIdentifierToken = typeIdentifier.Identifier;
-                if (typeIdentifierToken.Text == "var")
+                if (typeIdentifierToken.ContextualKind == SyntaxKind.VarKeyword)
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
-                    var varIdentifier = typeIdentifierToken;
+                    var varToken = ConvertToKeyword(typeIdentifierToken);
                     var wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
                     var varDesignation = ParseDesignation();
                     if (wasTupleDesignator)
                     {
-                        return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
+                        return _syntaxFactory.VarPattern(varToken, varDesignation);
                     }
                     else
                     {
                         // PROTOTYPE(patterns2): we parse it as a declaration pattern when we have simple designation, for compatibility.
                         // PROTOTYPE(patterns2): can we change it to use a var pattern in all cases?
                         //return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
-                        return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(varIdentifier), varDesignation);
+                        return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(typeIdentifierToken), varDesignation);
                     }
                 }
             }

@@ -10964,50 +10964,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class VarPatternSyntax : PatternSyntax
   {
-    internal readonly SyntaxToken varIdentifier;
+    internal readonly SyntaxToken varKeyword;
     internal readonly VariableDesignationSyntax designation;
 
-    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varIdentifier, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 2;
-        this.AdjustFlagsAndWidth(varIdentifier);
-        this.varIdentifier = varIdentifier;
+        this.AdjustFlagsAndWidth(varKeyword);
+        this.varKeyword = varKeyword;
         this.AdjustFlagsAndWidth(designation);
         this.designation = designation;
     }
 
 
-    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varIdentifier, VariableDesignationSyntax designation, SyntaxFactoryContext context)
+    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
         this.SlotCount = 2;
-        this.AdjustFlagsAndWidth(varIdentifier);
-        this.varIdentifier = varIdentifier;
+        this.AdjustFlagsAndWidth(varKeyword);
+        this.varKeyword = varKeyword;
         this.AdjustFlagsAndWidth(designation);
         this.designation = designation;
     }
 
 
-    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varIdentifier, VariableDesignationSyntax designation)
+    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation)
         : base(kind)
     {
         this.SlotCount = 2;
-        this.AdjustFlagsAndWidth(varIdentifier);
-        this.varIdentifier = varIdentifier;
+        this.AdjustFlagsAndWidth(varKeyword);
+        this.varKeyword = varKeyword;
         this.AdjustFlagsAndWidth(designation);
         this.designation = designation;
     }
 
-    public SyntaxToken VarIdentifier { get { return this.varIdentifier; } }
+    public SyntaxToken VarKeyword { get { return this.varKeyword; } }
     public VariableDesignationSyntax Designation { get { return this.designation; } }
 
     internal override GreenNode GetSlot(int index)
     {
         switch (index)
         {
-            case 0: return this.varIdentifier;
+            case 0: return this.varKeyword;
             case 1: return this.designation;
             default: return null;
         }
@@ -11028,11 +11028,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitVarPattern(this);
     }
 
-    public VarPatternSyntax Update(SyntaxToken varIdentifier, VariableDesignationSyntax designation)
+    public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
     {
-        if (varIdentifier != this.VarIdentifier || designation != this.Designation)
+        if (varKeyword != this.VarKeyword || designation != this.Designation)
         {
-            var newNode = SyntaxFactory.VarPattern(varIdentifier, designation);
+            var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -11047,23 +11047,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new VarPatternSyntax(this.Kind, this.varIdentifier, this.designation, diagnostics, GetAnnotations());
+         return new VarPatternSyntax(this.Kind, this.varKeyword, this.designation, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new VarPatternSyntax(this.Kind, this.varIdentifier, this.designation, GetDiagnostics(), annotations);
+         return new VarPatternSyntax(this.Kind, this.varKeyword, this.designation, GetDiagnostics(), annotations);
     }
 
     internal VarPatternSyntax(ObjectReader reader)
         : base(reader)
     {
       this.SlotCount = 2;
-      var varIdentifier = (SyntaxToken)reader.ReadValue();
-      if (varIdentifier != null)
+      var varKeyword = (SyntaxToken)reader.ReadValue();
+      if (varKeyword != null)
       {
-         AdjustFlagsAndWidth(varIdentifier);
-         this.varIdentifier = varIdentifier;
+         AdjustFlagsAndWidth(varKeyword);
+         this.varKeyword = varKeyword;
       }
       var designation = (VariableDesignationSyntax)reader.ReadValue();
       if (designation != null)
@@ -11076,7 +11076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
-      writer.WriteValue(this.varIdentifier);
+      writer.WriteValue(this.varKeyword);
       writer.WriteValue(this.designation);
     }
 
@@ -37569,9 +37569,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitVarPattern(VarPatternSyntax node)
     {
-      var varIdentifier = (SyntaxToken)this.Visit(node.VarIdentifier);
+      var varKeyword = (SyntaxToken)this.Visit(node.VarKeyword);
       var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-      return node.Update(varIdentifier, designation);
+      return node.Update(varKeyword, designation);
     }
 
     public override CSharpSyntaxNode VisitDeconstructionPattern(DeconstructionPatternSyntax node)
@@ -41305,27 +41305,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public VarPatternSyntax VarPattern(SyntaxToken varIdentifier, VariableDesignationSyntax designation)
+    public VarPatternSyntax VarPattern(SyntaxToken varKeyword, VariableDesignationSyntax designation)
     {
 #if DEBUG
-      if (varIdentifier == null)
-        throw new ArgumentNullException(nameof(varIdentifier));
-      switch (varIdentifier.Kind)
+      if (varKeyword == null)
+        throw new ArgumentNullException(nameof(varKeyword));
+      switch (varKeyword.Kind)
       {
-        case SyntaxKind.IdentifierToken:
+        case SyntaxKind.VarKeyword:
           break;
         default:
-          throw new ArgumentException("varIdentifier");
+          throw new ArgumentException("varKeyword");
       }
       if (designation == null)
         throw new ArgumentNullException(nameof(designation));
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.VarPattern, varIdentifier, designation, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.VarPattern, varKeyword, designation, this.context, out hash);
       if (cached != null) return (VarPatternSyntax)cached;
 
-      var result = new VarPatternSyntax(SyntaxKind.VarPattern, varIdentifier, designation, this.context);
+      var result = new VarPatternSyntax(SyntaxKind.VarPattern, varKeyword, designation, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -48446,27 +48446,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static VarPatternSyntax VarPattern(SyntaxToken varIdentifier, VariableDesignationSyntax designation)
+    public static VarPatternSyntax VarPattern(SyntaxToken varKeyword, VariableDesignationSyntax designation)
     {
 #if DEBUG
-      if (varIdentifier == null)
-        throw new ArgumentNullException(nameof(varIdentifier));
-      switch (varIdentifier.Kind)
+      if (varKeyword == null)
+        throw new ArgumentNullException(nameof(varKeyword));
+      switch (varKeyword.Kind)
       {
-        case SyntaxKind.IdentifierToken:
+        case SyntaxKind.VarKeyword:
           break;
         default:
-          throw new ArgumentException("varIdentifier");
+          throw new ArgumentException("varKeyword");
       }
       if (designation == null)
         throw new ArgumentNullException(nameof(designation));
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VarPattern, varIdentifier, designation, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VarPattern, varKeyword, designation, out hash);
       if (cached != null) return (VarPatternSyntax)cached;
 
-      var result = new VarPatternSyntax(SyntaxKind.VarPattern, varIdentifier, designation);
+      var result = new VarPatternSyntax(SyntaxKind.VarPattern, varKeyword, designation);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);

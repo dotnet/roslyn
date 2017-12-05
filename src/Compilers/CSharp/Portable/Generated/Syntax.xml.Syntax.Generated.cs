@@ -6857,9 +6857,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
-    public SyntaxToken VarIdentifier 
+    public SyntaxToken VarKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VarPatternSyntax)this.Green).varIdentifier, this.Position, 0); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VarPatternSyntax)this.Green).varKeyword, this.Position, 0); }
     }
 
     public VariableDesignationSyntax Designation 
@@ -6897,11 +6897,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitVarPattern(this);
     }
 
-    public VarPatternSyntax Update(SyntaxToken varIdentifier, VariableDesignationSyntax designation)
+    public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
     {
-        if (varIdentifier != this.VarIdentifier || designation != this.Designation)
+        if (varKeyword != this.VarKeyword || designation != this.Designation)
         {
-            var newNode = SyntaxFactory.VarPattern(varIdentifier, designation);
+            var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -6911,14 +6911,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public VarPatternSyntax WithVarIdentifier(SyntaxToken varIdentifier)
+    public VarPatternSyntax WithVarKeyword(SyntaxToken varKeyword)
     {
-        return this.Update(varIdentifier, this.Designation);
+        return this.Update(varKeyword, this.Designation);
     }
 
     public VarPatternSyntax WithDesignation(VariableDesignationSyntax designation)
     {
-        return this.Update(this.VarIdentifier, designation);
+        return this.Update(this.VarKeyword, designation);
     }
   }
 

@@ -3153,9 +3153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode VisitVarPattern(VarPatternSyntax node)
     {
-      var varIdentifier = this.VisitToken(node.VarIdentifier);
+      var varKeyword = this.VisitToken(node.VarKeyword);
       var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-      return node.Update(varIdentifier, designation);
+      return node.Update(varKeyword, designation);
     }
 
     public override SyntaxNode VisitDeconstructionPattern(DeconstructionPatternSyntax node)
@@ -6715,20 +6715,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
     /// <summary>Creates a new VarPatternSyntax instance.</summary>
-    public static VarPatternSyntax VarPattern(SyntaxToken varIdentifier, VariableDesignationSyntax designation)
+    public static VarPatternSyntax VarPattern(SyntaxToken varKeyword, VariableDesignationSyntax designation)
     {
-      switch (varIdentifier.Kind())
+      switch (varKeyword.Kind())
       {
-        case SyntaxKind.IdentifierToken:
+        case SyntaxKind.VarKeyword:
           break;
         default:
-          throw new ArgumentException("varIdentifier");
+          throw new ArgumentException("varKeyword");
       }
       if (designation == null)
         throw new ArgumentNullException(nameof(designation));
-      return (VarPatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.VarPattern((Syntax.InternalSyntax.SyntaxToken)varIdentifier.Node, designation == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
+      return (VarPatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.VarPattern((Syntax.InternalSyntax.SyntaxToken)varKeyword.Node, designation == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
     }
 
+
+    /// <summary>Creates a new VarPatternSyntax instance.</summary>
+    public static VarPatternSyntax VarPattern(VariableDesignationSyntax designation)
+    {
+      return SyntaxFactory.VarPattern(SyntaxFactory.Token(SyntaxKind.VarKeyword), designation);
+    }
 
     /// <summary>Creates a new DeconstructionPatternSyntax instance.</summary>
     public static DeconstructionPatternSyntax DeconstructionPattern(TypeSyntax type, SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternElementSyntax> subPatterns, SyntaxToken closeParenToken, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)

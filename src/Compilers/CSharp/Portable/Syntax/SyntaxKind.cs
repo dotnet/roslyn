@@ -210,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RestoreKeyword = 8480,
         ReferenceKeyword = 8481,
         LoadKeyword = 8485,
+        VarKeyword = 8486,
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "

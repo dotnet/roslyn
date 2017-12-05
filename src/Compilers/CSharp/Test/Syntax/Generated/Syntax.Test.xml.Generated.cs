@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VarPatternSyntax GenerateVarPattern()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.VarPattern(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("VarIdentifier"), GenerateSingleVariableDesignation());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.VarPattern(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.VarKeyword), GenerateSingleVariableDesignation());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DeconstructionPatternSyntax GenerateDeconstructionPattern()
@@ -1961,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateVarPattern();
             
-            Assert.Equal(SyntaxKind.IdentifierToken, node.VarIdentifier.Kind);
+            Assert.Equal(SyntaxKind.VarKeyword, node.VarKeyword.Kind);
             Assert.NotNull(node.Designation);
             
             AttachAndCheckDiagnostics(node);
@@ -9651,7 +9651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static VarPatternSyntax GenerateVarPattern()
         {
-            return SyntaxFactory.VarPattern(SyntaxFactory.Identifier("VarIdentifier"), GenerateSingleVariableDesignation());
+            return SyntaxFactory.VarPattern(SyntaxFactory.Token(SyntaxKind.VarKeyword), GenerateSingleVariableDesignation());
         }
         
         private static DeconstructionPatternSyntax GenerateDeconstructionPattern()
@@ -11226,9 +11226,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateVarPattern();
             
-            Assert.Equal(SyntaxKind.IdentifierToken, node.VarIdentifier.Kind());
+            Assert.Equal(SyntaxKind.VarKeyword, node.VarKeyword.Kind());
             Assert.NotNull(node.Designation);
-            var newNode = node.WithVarIdentifier(node.VarIdentifier).WithDesignation(node.Designation);
+            var newNode = node.WithVarKeyword(node.VarKeyword).WithDesignation(node.Designation);
             Assert.Equal(node, newNode);
         }
         

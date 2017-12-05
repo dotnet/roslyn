@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundDeclType = BindPatternType(typeSyntax, operandType, ref hasErrors, out bool isVar, diagnostics);
             if (typeSyntax.ToString() == "var" && !isVar)
             {
-                // For compatibility, we temporarily parse the var pattern with a simple designator as a declaration pattern.
+                // PROTOTYPE(patterns2): For compatibility, we temporarily parse the var pattern with a simple designator as a declaration pattern.
                 // So we implement the semantics of the var pattern here, forbidding "var" to bind to a user-declared type.
                 if (!hasErrors)
                 {
@@ -474,11 +474,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             TypeSymbol declType = operandType;
-            var foundType = BindVarType(node.VarIdentifier, diagnostics, out bool isVar, null);
+            var foundType = BindVarType(node.VarKeyword, diagnostics, out bool isVar, null);
             if (!isVar)
             {
                 // Give an error if there is a bindable type "var" in scope
-                diagnostics.Add(ErrorCode.ERR_VarMayNotBindToType, node.VarIdentifier.GetLocation(), foundType.ToDisplayString());
+                diagnostics.Add(ErrorCode.ERR_VarMayNotBindToType, node.VarKeyword.GetLocation(), foundType.ToDisplayString());
                 hasErrors = true;
             }
 

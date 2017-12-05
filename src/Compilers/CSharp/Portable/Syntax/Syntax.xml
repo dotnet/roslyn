@@ -1734,8 +1734,8 @@
   </Node>
   <Node Name="VarPatternSyntax" Base="PatternSyntax">
     <Kind Name="VarPattern" />
-    <Field Name="VarIdentifier" Type="SyntaxToken">
-      <Kind Name="IdentifierToken"/>
+    <Field Name="VarKeyword" Type="SyntaxToken">
+      <Kind Name="VarKeyword"/>
     </Field>
     <Field Name="Designation" Type="VariableDesignationSyntax"/>
   </Node>
