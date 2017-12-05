@@ -32,6 +32,7 @@ using Task = System.Threading.Tasks.Task;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.VisualStudio.LanguageServices.Experimentation;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             Task.Run(() => LoadComponentsBackground());
         }
 
-        private void LoadComponentsBackground()
+        private async Task LoadComponentsBackground()
         {
             // Perf: Initialize the command handlers.
             var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
@@ -127,6 +128,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             this.ComponentModel.GetService<MiscellaneousTodoListTable>();
             this.ComponentModel.GetService<MiscellaneousDiagnosticListTable>();
+
+            // Initialize any experiments async
+            var experiments = this.ComponentModel.DefaultExportProvider.GetExports<IExperiment>();
+            foreach (var experiment in experiments)
+            {
+                await experiment.Value.Initialize().ConfigureAwait(false);
+            }
         }
 
         private void LoadInteractiveMenus()

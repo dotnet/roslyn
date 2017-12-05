@@ -2006,6 +2006,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Restore Visual Studio keybindings.
+        /// </summary>
+        internal static string Restore_Visual_Studio_keybindings {
+            get {
+                return ResourceManager.GetString("Restore_Visual_Studio_keybindings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Returns:.
         /// </summary>
         internal static string Returns_colon {
@@ -2507,6 +2516,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use Visual Studio keybindings for ReSharper/IntelliJ/Vim/etc..
+        /// </summary>
+        internal static string Use_Visual_Studio_Keybindings_for_extensions {
+            get {
+                return ResourceManager.GetString("Use_Visual_Studio_Keybindings_for_extensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Validating breakpoint location....
         /// </summary>
         internal static string Validating_breakpoint_location {
@@ -2539,6 +2557,25 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread {
             get {
                 return ResourceManager.GetString("VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor..
+        /// </summary>
+        internal static string We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor {
+            get {
+                return ResourceManager.GetString("We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_" +
+                        "continue_to_navigate_and_refactor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We noticed your keybindings are broken..
+        /// </summary>
+        internal static string We_noticed_your_keybindings_are_broken {
+            get {
+                return ResourceManager.GetString("We_noticed_your_keybindings_are_broken", resourceCulture);
             }
         }
         

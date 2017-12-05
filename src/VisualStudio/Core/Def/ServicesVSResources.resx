@@ -977,4 +977,16 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
+  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
+    <value>Restore Visual Studio keybindings</value>
+  </data>
+  <data name="Use_Visual_Studio_Keybindings_for_extensions" xml:space="preserve">
+    <value>Use Visual Studio keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  </data>
+  <data name="We_noticed_your_keybindings_are_broken" xml:space="preserve">
+    <value>We noticed your keybindings are broken.</value>
+  </data>
+  <data name="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</value>
+  </data>
 </root>
