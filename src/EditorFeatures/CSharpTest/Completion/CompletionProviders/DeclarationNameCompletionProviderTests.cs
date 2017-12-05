@@ -879,5 +879,24 @@ public class EnumerableType : IEnumerable<TaskType> { }
 ";
             await VerifyItemExistsAsync(markup, "taskTypes");
         }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeIsNullableOfNullable()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+      // This code isn't legal, but we want to ensure we don't crash in this broken code scenario
+      IEnumerable<Nullable<int?>> $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "nullables");
+        }
     }
 }
