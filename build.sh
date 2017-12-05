@@ -135,7 +135,8 @@ then
         echo "Stopping VBCSCompiler"
         dotnet "${bootstrap_path}"/bincore/VBCSCompiler.dll -shutdown
     else
-        echo "--stop-vbcscompiler requires --use-bootstrap. Ignoring and continuing anyway..."
+        echo "--stop-vbcscompiler requires --use-bootstrap. Aborting."
+        exit 1
     fi
 fi
 
