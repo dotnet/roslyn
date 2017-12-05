@@ -153,5 +153,12 @@ namespace Analyzer.Utilities.Extensions
                 return blockOperations;
             }
         }
+
+        public static bool IsAttribute(this IOperation operation)
+        {
+            // Attributes have OperationKind.None due to missing IOperation API support: https://github.com/dotnet/roslyn/issues/18198
+            // Additionally, they should have no Parent.
+            return operation.Kind == OperationKind.None && operation.Parent == null;
+        }
     }
 }
