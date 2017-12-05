@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
-                    symbol = GetNonFieldSymbol(slot);
+                    symbol = GetNonMemberSymbol(slot);
                     goto case SymbolKind.Local;
 
                 case SymbolKind.Local:

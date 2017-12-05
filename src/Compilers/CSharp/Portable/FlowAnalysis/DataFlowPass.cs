@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _requireOutParamsAssigned;
 
         /// <summary>
+        /// Track fields of classes in addition to structs.
+        /// </summary>
+        private readonly bool _trackClassFields;
+
+        /// <summary>
         /// The topmost method of this analysis.
         /// </summary>
         protected MethodSymbol topLevelMethod;
@@ -126,13 +131,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false)
-            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments, trackClassFields: trackClassFields)
+            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _requireOutParamsAssigned = requireOutParamsAssigned;
+            _trackClassFields = trackClassFields;
             this.topLevelMethod = member as MethodSymbol;
         }
 
@@ -143,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
             HashSet<Symbol> initiallyAssignedVariables = null)
-            : base(compilation, member, node, emptyStructs ?? new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments, trackClassFields: false)
+            : base(compilation, member, node, emptyStructs ?? new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
@@ -704,17 +710,74 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
         {
-            if (expr.Kind == BoundKind.PropertyAccess)
+            receiver = null;
+            member = null;
+
+            switch (expr.Kind)
             {
-                var propAccess = (BoundPropertyAccess)expr;
-                if (!Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentMethodOrLambda))
-                {
-                    receiver = null;
-                    member = null;
-                    return false;
-                }
+                case BoundKind.FieldAccess:
+                    {
+                        var fieldAccess = (BoundFieldAccess)expr;
+                        var fieldSymbol = fieldAccess.FieldSymbol;
+                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
+                        {
+                            return false;
+                        }
+                        member = fieldSymbol;
+                        receiver = fieldAccess.ReceiverOpt;
+                        break;
+                    }
+                case BoundKind.EventAccess:
+                    {
+                        var eventAccess = (BoundEventAccess)expr;
+                        var eventSymbol = eventAccess.EventSymbol;
+                        if (eventSymbol.IsStatic)
+                        {
+                            return false;
+                        }
+                        member = eventSymbol.AssociatedField;
+                        receiver = eventAccess.ReceiverOpt;
+                        break;
+                    }
+                case BoundKind.PropertyAccess:
+                    {
+                        var propAccess = (BoundPropertyAccess)expr;
+                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentMethodOrLambda))
+                        {
+                            var propSymbol = propAccess.PropertySymbol;
+                            if (propSymbol.IsStatic)
+                            {
+                                return false;
+                            }
+                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            receiver = propAccess.ReceiverOpt;
+                        }
+                        break;
+                    }
             }
-            return base.TryGetReceiverAndMember(expr, out receiver, out member);
+
+            return (object)member != null &&
+                (object)receiver != null &&
+                receiver.Kind != BoundKind.TypeExpression &&
+                MayRequireTrackingReceiverType(receiver.Type);
+        }
+
+        private bool MayRequireTrackingReceiverType(TypeSymbol type)
+        {
+            return (object)type != null &&
+                (_trackClassFields || type.TypeKind == TypeKind.Struct);
+        }
+
+        protected bool MayRequireTracking(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
+        {
+            return
+                (object)fieldSymbol != null && //simplifies calling pattern for events
+                receiverOpt != null &&
+                !fieldSymbol.IsStatic &&
+                !fieldSymbol.IsFixed &&
+                receiverOpt.Kind != BoundKind.TypeExpression &&
+                MayRequireTrackingReceiverType(receiverOpt.Type) &&
+                !receiverOpt.Type.IsPrimitiveRecursiveStruct();
         }
 
         #endregion Tracking reads/writes of variables for warnings
@@ -938,17 +1001,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(unassignedSlot > 0);
             return this.State.IsAssigned(unassignedSlot);
-        }
-
-        protected Symbol GetNonFieldSymbol(int slot)
-        {
-            VariableIdentifier variableId = variableBySlot[slot];
-            while (variableId.ContainingSlot > 0)
-            {
-                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field);
-                variableId = variableBySlot[variableId.ContainingSlot];
-            }
-            return variableId.Symbol;
         }
 
         private Symbol UseNonFieldSymbolUnsafely(BoundExpression expression)
