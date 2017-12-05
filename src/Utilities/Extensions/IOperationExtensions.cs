@@ -154,10 +154,13 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool IsAttribute(this IOperation operation)
+        /// <summary>
+        /// True if this operation has no IOperation API support, i.e. <see cref="OperationKind.None"/> and
+        /// is the root operation, i.e. <see cref="Operation.Parent"/> is null.
+        /// For example, this returns true for attribute operations.
+        /// </summary>
+        public static bool IsOperationNoneRoot(this IOperation operation)
         {
-            // Attributes have OperationKind.None due to missing IOperation API support: https://github.com/dotnet/roslyn/issues/18198
-            // Additionally, they should have no Parent.
             return operation.Kind == OperationKind.None && operation.Parent == null;
         }
     }
