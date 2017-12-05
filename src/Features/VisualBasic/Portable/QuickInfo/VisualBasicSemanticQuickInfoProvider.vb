@@ -13,9 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
     Friend Class VisualBasicSemanticQuickInfoProvider
         Inherits CommonSemanticQuickInfoProvider
 
-        Public Sub New()
-        End Sub
-
         Protected Overrides Async Function BuildQuickInfoAsync(
                 document As Document,
                 token As SyntaxToken,
