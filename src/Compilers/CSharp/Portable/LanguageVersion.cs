@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         Default = 0,
 
         /// <summary>
-        /// C# language version 1.0.
+        /// C# language version 1
         /// </summary>
         CSharp1 = 1,
 
         /// <summary>
-        /// C# language version 2.0.
+        /// C# language version 2
         /// </summary>
         CSharp2 = 2,
 
         /// <summary>
-        /// C# language version 3.0.
+        /// C# language version 3
         /// </summary>
         /// <remarks> 
         /// Features: LINQ.
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp3 = 3,
 
         /// <summary>
-        /// C# language version 4.0.
+        /// C# language version 4
         /// </summary>
         /// <remarks> 
         /// Features: dynamic.
@@ -42,42 +42,88 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp4 = 4,
 
         /// <summary>
-        /// C# language version 5.0.
+        /// C# language version 5
         /// </summary>
         /// <remarks> 
-        /// Features: async.
+        /// Features: async, caller info attributes.
         /// </remarks>
         CSharp5 = 5,
 
-        /// <summary> 
-        /// C# language version 6.0.
+        /// <summary>
+        /// C# language version 6
         /// </summary>
         /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
-        /// <item><description>Using of a static class</description></item> 
-        /// <item><description>Auto-property initializers</description></item> 
-        /// <item><description>Expression-bodied methods and properties</description></item> 
-        /// <item><description>Null-propagating operator ?.</description></item> 
-        /// <item><description>Exception filters</description></item> 
-        /// </list> 
-        /// </remarks> 
+        /// <item><description>Using of a static class</description></item>
+        /// <item><description>Exception filters</description></item>
+        /// <item><description>Await in catch/finally blocks</description></item>
+        /// <item><description>Auto-property initializers</description></item>
+        /// <item><description>Expression-bodied methods and properties</description></item>
+        /// <item><description>Null-propagating operator ?.</description></item>
+        /// <item><description>String interpolation</description></item>
+        /// <item><description>nameof operator</description></item>
+        /// <item><description>Dictionary initializer</description></item>
+        /// </list>
+        /// </remarks>
         CSharp6 = 6,
 
         /// <summary>
-        /// C# language version 7.
+        /// C# language version 7.0
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Out variables</description></item>
+        /// <item><description>Pattern-matching</description></item>
+        /// <item><description>Tuples</description></item>
+        /// <item><description>Deconstruction</description></item>
+        /// <item><description>Discards</description></item>
+        /// <item><description>Local functions</description></item>
+        /// <item><description>Digit separators</description></item>
+        /// <item><description>Ref returns and locals</description></item>
+        /// <item><description>Generalized async return types</description></item>
+        /// <item><description>More expression-bodied members</description></item>
+        /// <item><description>Throw expressions</description></item>
+        /// </list>
+        /// </remarks>
         CSharp7 = 7,
 
         /// <summary>
         /// C# language version 7.1
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Async Main</description></item>
+        /// <item><description>Default literal</description></item>
+        /// <item><description>Inferred tuple element names</description></item>
+        /// <item><description>Pattern-matching with generics</description></item>
+        /// </list>
+        /// </remarks>
         CSharp7_1 = 701,
 
         /// <summary>
         /// C# language version 7.2
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Ref readonly</description></item>
+        /// <item><description>Ref and readonly structs</description></item>
+        /// <item><description>Ref extensions</description></item>
+        /// <item><description>Conditional ref operator</description></item>
+        /// <item><description>Private protected</description></item>
+        /// <item><description>Digit separators after base specifier</description></item>
+        /// <item><description>Non-trailing named arguments</description></item>
+        /// </list>
+        /// </remarks>
         CSharp7_2 = 702,
+
+        /// <summary>
+        /// C# language version 7.3
+        /// </summary>
+        CSharp7_3 = 703,
 
         /// <summary>
         /// The latest version of the language supported.
@@ -100,6 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7:
                 case LanguageVersion.CSharp7_1:
                 case LanguageVersion.CSharp7_2:
+                case LanguageVersion.CSharp7_3:
                     return true;
             }
 
@@ -128,6 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_1;
                 case LanguageVersion.CSharp7_2:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_2;
+                case LanguageVersion.CSharp7_3:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion7_3;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -174,6 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "7.1";
                 case LanguageVersion.CSharp7_2:
                     return "7.2";
+                case LanguageVersion.CSharp7_3:
+                    return "7.3";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -249,6 +300,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp7_2;
                     return true;
 
+                case "7.3":
+                    result = LanguageVersion.CSharp7_3;
+                    return true;
+
                 default:
                     result = LanguageVersion.Default;
                     return false;
@@ -263,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (version)
             {
                 case LanguageVersion.Latest:
-                    return LanguageVersion.CSharp7_2;
+                    return LanguageVersion.CSharp7_3;
                 case LanguageVersion.Default:
                     return LanguageVersion.CSharp7;
                 default:
@@ -280,6 +335,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool AllowNonTrailingNamedArguments(this LanguageVersion self)
         {
             return self >= MessageID.IDS_FeatureNonTrailingNamedArguments.RequiredVersion();
+        }
+
+        internal static bool AllowAttributesOnBackingFields(this LanguageVersion self)
+        {
+            return self >= MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion();
         }
     }
 }

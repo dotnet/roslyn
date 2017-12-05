@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1876,6 +1878,40 @@ $$
 }";
 
             VerifyOpenLineBelow(code, expected, useTabs: true);
+        }
+
+        [WorkItem(468638, @"https://devdiv.visualstudio.com/DevDiv/NET%20Developer%20Experience%20IDE/_workitems/edit/468638")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void VerifyEnterWithTrimNewLineEditorConfigOption()
+        {
+            const string code =
+@"/// <summary>
+/// $$
+/// </summary>
+class C { }";
+
+            const string expected =
+@"/// <summary>
+///
+/// $$
+/// </summary>
+class C { }";
+
+            try
+            {
+                VerifyPressingEnter(code, expected, useTabs: true, setOptionsOpt:
+                workspace =>
+                {
+                    workspace.GetService<IEditorOptionsFactoryService>().GlobalOptions
+                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, true);
+                });
+            }
+            finally
+            {
+                TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
+                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
+            }
+            
         }
 
         protected override char DocumentationCommentCharacter

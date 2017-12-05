@@ -457,5 +457,27 @@ class Derived : Base
             testState.VerifyRoot(root, "Base.M()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "M"), EditorFeaturesResources.Overrides_, EditorFeaturesResources.Calls_To_Overrides });
             testState.VerifyResult(root, EditorFeaturesResources.Overrides_, new[] { "Derived.M()" });
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        public void SearchAfterEditWorks()
+        {
+            var text = @"
+namespace N
+{
+    class C
+    {
+        void G$$oo()
+        {
+        }
+    }
+}";
+            var testState = CallHierarchyTestState.Create(text);
+            var root = testState.GetRoot();
+
+            testState.Workspace.Documents.Single().GetTextBuffer().Insert(0, "/* hello */");
+
+            testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: new[] { "N.C.Goo()" });
+        }
     }
 }

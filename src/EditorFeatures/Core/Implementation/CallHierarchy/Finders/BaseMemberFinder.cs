@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
     {
         private readonly string _text;
 
-        public BaseMemberFinder(ISymbol symbol, Project project, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
-            : base(symbol, project, asyncListener, provider)
+        public BaseMemberFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+            : base(symbol, projectId, asyncListener, provider)
         {
             _text = string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, symbol.ToDisplayString());
         }

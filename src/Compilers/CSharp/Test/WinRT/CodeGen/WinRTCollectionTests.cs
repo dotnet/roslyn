@@ -426,7 +426,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -1824,7 +1824,7 @@ class AllMembers
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 //FIXME: Can't verify because the metadata adapter isn't implemented yet
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -3184,7 +3184,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -4427,7 +4427,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -4793,7 +4793,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -4979,7 +4979,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
 
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -5176,7 +5176,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false,
+                verify: Verification.Fails,
                 options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             verifier.VerifyDiagnostics(
@@ -5397,7 +5397,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -5534,7 +5534,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -5804,7 +5804,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -6031,7 +6031,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -6230,7 +6230,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -6589,7 +6589,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -6750,7 +6750,7 @@ class AllMembers
             var verifier = CompileAndVerifyWinRt(
                 source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -7022,7 +7022,7 @@ class AllMembers
             var verifier = CompileAndVerifyWinRt(
                 source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -7149,7 +7149,7 @@ class AllMembers
             var verifier = CompileAndVerifyWinRt(
                 source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -7270,7 +7270,7 @@ class AllMembers
             var verifier = CompileAndVerifyWinRt(
                 source,
                 additionalRefs: LegacyRefs,
-                verify: false);
+                verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;

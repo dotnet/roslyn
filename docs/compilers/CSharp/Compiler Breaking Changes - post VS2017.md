@@ -72,3 +72,8 @@ if (o is object res) { // warning CS0184: The given expression is never of the p
 
 - https://github.com/dotnet/roslyn/issues/22578 In C# 7.1, the compiler would compute the wrong default value for an optional parameter of nullable type declared with the default literal. For instance, `void M(int? x = default)` would use `0` for the default parameter value, instead of `null`. In C# 7.2 (Visual Studio 2017 version 15.5), the proper default parameter value (`null`) is computed in such cases.
 
+- https://github.com/dotnet/roslyn/issues/21979 In C# 7.2 (Visual Studio 2017 version 15.5) and previous it was allowed to convert to a delegate an instance method of a ref-like type such as `TypedReference`. Such operation invariable resulted in code that could not possibly run. The reason is that such conversion requires the receiver be boxed, which ref-like types cannot do.
+In Visual Studio 2017 version 15.6 such conversions will be explicitly disallowed by the compiler and cause compile time errors.
+Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'` 
+   
+- https://github.com/dotnet/roslyn/pull/23416 Before Visual Studio 2017 version 15.6 (Roslyn version 2.8) the compiler accepted `__arglist(...)` expressions with void-typed arguments. For instance, `__arglist(Console.WriteLine())`. But such program would fail at runtime. In Visual Studio 2017 version 15.6, this causes a compile-time error.

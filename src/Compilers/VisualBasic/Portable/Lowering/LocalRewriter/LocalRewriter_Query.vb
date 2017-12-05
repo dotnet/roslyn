@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Compound variable.
                             ' Each range variable is an Anonymous Type property.
                             Debug.Assert(parameterName.Equals(StringConstants.It) OrElse parameterName.Equals(StringConstants.It1) OrElse parameterName.Equals(StringConstants.It2))
-                            PopulateRangeVariableMapForAnonymousType(node.Syntax, paramRef, nodeRangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
+                            PopulateRangeVariableMapForAnonymousType(node.Syntax, paramRef.MakeCompilerGenerated(), nodeRangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
                         End If
                     Else
                         ' Simple case, range variable is a lambda parameter.
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If propertyDefName.StartsWith("$"c, StringComparison.Ordinal) AndAlso Not String.Equals(propertyDefName, StringConstants.Group, StringComparison.Ordinal) Then
                     ' Nested compound variable.
                     Debug.Assert(propertyDefName.Equals(StringConstants.It) OrElse propertyDefName.Equals(StringConstants.It1) OrElse propertyDefName.Equals(StringConstants.It2))
-                    PopulateRangeVariableMapForAnonymousType(syntax, getCallOrPropertyAccess, rangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
+                    PopulateRangeVariableMapForAnonymousType(syntax, getCallOrPropertyAccess.MakeCompilerGenerated(), rangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
                 Else
                     Debug.Assert(IdentifierComparison.Equals(propertyDefName, rangeVariables(firstUnmappedRangeVariable).Name))
                     rangeVariableMap.Add(rangeVariables(firstUnmappedRangeVariable), getCallOrPropertyAccess)
@@ -171,12 +171,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function CreateReturnStatementForQueryLambdaBody(
             rewrittenBody As BoundExpression,
-            originalNode As BoundQueryLambda) As BoundStatement
+            originalNode As BoundQueryLambda,
+            Optional hasErrors As Boolean = False) As BoundStatement
 
             Return New BoundReturnStatement(originalNode.Syntax,
                                             rewrittenBody,
                                             Nothing,
-                                            Nothing)
+                                            Nothing,
+                                            hasErrors).MakeCompilerGenerated()
         End Function
 
         Friend Shared Sub RemoveRangeVariables(originalNode As BoundQueryLambda, rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression))
@@ -189,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaBody = New BoundBlock(originalNode.Syntax,
                                             Nothing,
                                             ImmutableArray(Of LocalSymbol).Empty,
-                                            ImmutableArray.Create(rewrittenBody))
+                                            ImmutableArray.Create(rewrittenBody)).MakeCompilerGenerated()
 
             Dim result As BoundLambda = New BoundLambda(originalNode.Syntax,
                                    originalNode.LambdaSymbol,

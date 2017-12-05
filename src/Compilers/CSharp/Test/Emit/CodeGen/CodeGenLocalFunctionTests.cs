@@ -31,6 +31,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
+        public void Repro481125()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+
+public class C
+{
+    static void Main()
+    {
+        var c = new C();
+        Console.WriteLine(c.M(0).Count());
+        Console.WriteLine(c.M(1).Count());
+    }
+
+    public IQueryable<E> M(int salesOrderId)
+    {
+        using (var uow = new D())
+        {
+            return Local();
+
+            IQueryable<E> Local() => uow.ES.Where(so => so.Id == salesOrderId);
+        }
+    }
+}
+
+internal class D : IDisposable
+{
+    public IQueryable<E> ES => new[] { new E() }.AsQueryable();
+
+    public void Dispose() { }
+}
+
+public class E
+{
+    public int Id;
+}", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"1
+0");
+        }
+
+        [Fact]
         [WorkItem(22027, "https://github.com/dotnet/roslyn/issues/22027")]
         public void Repro22027()
         {
@@ -4964,7 +5007,7 @@ class Program
 
         [Fact]
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
-        public void StructFrameInitUnnecesary()
+        public void StructFrameInitUnnecessary()
         {
             var c = CompileAndVerify(@"
     class Program

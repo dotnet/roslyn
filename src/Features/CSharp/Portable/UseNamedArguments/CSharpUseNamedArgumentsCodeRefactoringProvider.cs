@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
 
             protected override ArgumentSyntax WithName(ArgumentSyntax argument, string name)
-                => argument.WithNameColon(SyntaxFactory.NameColon(name));
+                => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
         }
 
         private class AttributeArgumentAnalyzer :
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
 
             protected override AttributeArgumentSyntax WithName(AttributeArgumentSyntax argument, string name)
-                => argument.WithNameColon(SyntaxFactory.NameColon(name));
+                => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
         }
 
         public CSharpUseNamedArgumentsCodeRefactoringProvider()

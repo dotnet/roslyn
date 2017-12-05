@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -63,6 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             // Do nothing.  We do *not* want the default behavior that the editor has.  We've
             // already computed the best match.
+
+            // this will get called right after completion set is painted on the screen.
+            // we will use this chance to report completion set performance
+            CompletionPresenterSession.ReportPerformance();
         }
 
         public override void Filter()

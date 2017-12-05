@@ -196,10 +196,10 @@ public class Cls
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,20): error CS8184: A declaration is not allowed in this context.
+                // (6,20): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(6, 20),
-                // (6,28): error CS8184: A declaration is not allowed in this context.
+                // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x2").WithLocation(6, 28),
                 // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -1070,18 +1070,11 @@ public class Cls
 
         private static void AssertTypeFromOperation(SemanticModel model, TypeSymbol expectedType, DeclarationExpressionSyntax decl)
         {
-            // see https://github.com/dotnet/roslyn/issues/22175 for more detail.
+            // see https://github.com/dotnet/roslyn/issues/23006 and https://github.com/dotnet/roslyn/issues/23007 for more detail
 
             // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
             // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
             // error recovery mode
-            var variableDeclarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
-            if (variableDeclarator?.ArgumentList?.FullSpan.Contains(decl.Span) == true)
-            {
-                // node in argument list is error case which operation doesn't support
-                return;
-            }
-
             var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
             if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
                 foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)
@@ -1097,7 +1090,7 @@ public class Cls
                 return;
             }
 
-            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
+            Assert.Equal(expectedType, model.GetOperation(decl)?.Type);
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -31126,7 +31119,7 @@ public class C
     @"
 public class C
 {
-    static void M(out object x) { x = 1; System.Console.Write(""object returing M. ""); }
+    static void M(out object x) { x = 1; System.Console.Write(""object returning M. ""); }
     static void M(out int x) { x = 2; System.Console.Write(""int returning M.""); }
     static void Main()
     {
@@ -31137,7 +31130,7 @@ public class C
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "object returing M. int returning M.");
+            CompileAndVerify(comp, expectedOutput: "object returning M. int returning M.");
         }
 
         [Fact]

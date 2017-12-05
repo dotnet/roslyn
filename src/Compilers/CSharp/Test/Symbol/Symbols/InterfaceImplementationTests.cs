@@ -2448,7 +2448,7 @@ class Derived : Base, IDerived
 }";
 
             var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"set_P1
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: @"set_P1
 g_P1
 s_P2
 get_P2");

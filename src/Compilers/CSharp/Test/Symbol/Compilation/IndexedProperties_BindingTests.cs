@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -196,7 +197,7 @@ Public Class A
 End Class
 ";
 
-            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: true);
+            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: Verification.Passes);
             return reference;
         }
     }

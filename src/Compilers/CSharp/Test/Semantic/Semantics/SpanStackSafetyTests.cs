@@ -1121,6 +1121,7 @@ public class Program
             );
         }
 
+        [WorkItem(21979, "https://github.com/dotnet/roslyn/issues/21979")]
         [Fact]
         public void MethodConversion()
         {
@@ -1131,7 +1132,7 @@ public class Program
 {
     static void Main()
     {
-        // we allow this. Is that because it would be a breaking change?
+        // we no longer allow this.
         // see https://github.com/dotnet/roslyn/issues/21979
         Func<int> d0 = default(TypedReference).GetHashCode;
 
@@ -1148,6 +1149,9 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyEmitDiagnostics(
+                // (10,48): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
+                //         Func<int> d0 = default(TypedReference).GetHashCode;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(10, 48),
                 // (13,43): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
                 //         Func<int> d1 = default(Span<int>).GetHashCode;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(13, 43),

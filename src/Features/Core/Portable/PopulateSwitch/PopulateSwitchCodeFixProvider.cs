@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var switchLocation = diagnostic.AdditionalLocations[0];
             var switchNode = switchLocation.FindNode(cancellationToken);
-            var internalMethod = typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
-            var switchStatement = (ISwitchStatement)internalMethod.Invoke(model, new object[] { switchNode, cancellationToken });
+            var switchStatement = (ISwitchOperation)model.GetOperation(switchNode, cancellationToken);
             var enumType = switchStatement.Value.Type;
 
             var generator = editor.Generator;
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             switchNode = newSwitchNode;
         }
 
-        private int InsertPosition(ISwitchStatement switchStatement)
+        private int InsertPosition(ISwitchOperation switchStatement)
         {
             // If the last section has a default label, then we want to be above that.
             // Otherwise, we just get inserted at the end.
