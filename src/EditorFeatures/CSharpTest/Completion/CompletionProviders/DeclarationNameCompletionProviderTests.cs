@@ -798,6 +798,7 @@ public class Container : IEnumerable<Container> { }
         {
             var markup = @"
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class Class1
 {
@@ -819,7 +820,7 @@ public class TaskType : Task<Container> { }
         public async void TypeImplementsTaskOfType()
         {
             var markup = @"
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class Class1
 {
@@ -840,7 +841,7 @@ public class ContainerBase : Task<ContainerBase> { }
         public async void TypeImplementsTaskOfType2()
         {
             var markup = @"
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class Class1
 {
@@ -862,6 +863,7 @@ public class ContainerBase : Container { }
         {
             var markup = @"
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class Class1
 {
