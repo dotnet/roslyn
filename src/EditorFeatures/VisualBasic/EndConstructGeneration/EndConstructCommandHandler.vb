@@ -12,16 +12,18 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Text.UI.Commanding
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-    <ExportCommandHandler(PredefinedCommandHandlerNames.EndConstruct, ContentTypeNames.VisualBasicContentType)>
+    <ExportLegacyCommandHandler(PredefinedCommandHandlerNames.EndConstruct, ContentTypeNames.VisualBasicContentType)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
     <Order(After:=PredefinedCommandHandlerNames.AutomaticLineEnder)>
     Friend Class EndConstructCommandHandler
-        Implements ICommandHandler(Of ReturnKeyCommandArgs)
-        Implements ICommandHandler(Of TypeCharCommandArgs)
-        Implements ICommandHandler(Of AutomaticLineEnderCommandArgs)
+        Implements ILegacyCommandHandler(Of ReturnKeyCommandArgs)
+        Implements ILegacyCommandHandler(Of TypeCharCommandArgs)
+        Implements ILegacyCommandHandler(Of AutomaticLineEnderCommandArgs)
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _undoHistoryRegistry As ITextUndoHistoryRegistry
@@ -34,19 +36,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Me._undoHistoryRegistry = undoHistoryRegistry
         End Sub
 
-        Public Function GetCommandState_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+        Public Function GetCommandState_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ILegacyCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
-        Public Sub ExecuteCommand_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
+        Public Sub ExecuteCommand_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ILegacyCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
             ExecuteEndConstructOnReturn(args.TextView, args.SubjectBuffer, nextHandler)
         End Sub
 
-        Public Function GetCommandState_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of TypeCharCommandArgs).GetCommandState
+        Public Function GetCommandState_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ILegacyCommandHandler(Of TypeCharCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
-        Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action) Implements ICommandHandler(Of TypeCharCommandArgs).ExecuteCommand
+        Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action) Implements ILegacyCommandHandler(Of TypeCharCommandArgs).ExecuteCommand
             nextHandler()
 
             If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) Then
@@ -64,11 +66,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             endConstructService.TryDo(args.TextView, args.SubjectBuffer, args.TypedChar, CancellationToken.None)
         End Sub
 
-        Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
-            Return CommandState.Available
+        Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ILegacyCommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
+            Return CommandState.CommandIsAvailable
         End Function
 
-        Public Sub ExecuteCommand_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Action) Implements ICommandHandler(Of AutomaticLineEnderCommandArgs).ExecuteCommand
+        Public Sub ExecuteCommand_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Action) Implements ILegacyCommandHandler(Of AutomaticLineEnderCommandArgs).ExecuteCommand
             ExecuteEndConstructOnReturn(args.TextView, args.SubjectBuffer, Sub()
                                                                                Dim operations = Me._editorOperationsFactoryService.GetEditorOperations(args.TextView)
                                                                                If operations Is Nothing Then

@@ -18,7 +18,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
-    <ExportCommandHandler("VB Snippets", ContentTypeNames.VisualBasicContentType)>
+    <ExportLegacyCommandHandler("VB Snippets", ContentTypeNames.VisualBasicContentType)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
     <Order(After:=PredefinedCommandHandlerNames.IntelliSense)>
     Friend NotInheritable Class SnippetCommandHandler

@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// The command handler service to use for dispatching commands. This is set by
         /// the derived classes to this class.
         /// </summary>
-        protected ICommandHandlerService CurrentHandlers { get; set; }
+        protected ILegacyCommandHandlerService CurrentHandlers { get; set; }
 
         /// <summary>
         /// The next command target in the chain. This is set by the derived implementation of this

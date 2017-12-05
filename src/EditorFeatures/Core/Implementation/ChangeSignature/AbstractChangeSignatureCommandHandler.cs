@@ -3,7 +3,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -13,10 +12,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 {
-    internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<ReorderParametersCommandArgs>, ICommandHandler<RemoveParametersCommandArgs>
+    internal abstract class AbstractChangeSignatureCommandHandler : ILegacyCommandHandler<ReorderParametersCommandArgs>, ILegacyCommandHandler<RemoveParametersCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteCommand(RemoveParametersCommandArgs args, Action nextHandler)

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10280,15 +10281,8 @@ namespace ClassLibrary9
                     workspace.GetService<IEditorOperationsFactoryService>(),
                     workspace.GetService<IInlineRenameService>(),
                     workspace.GetService<Host.IWaitIndicator>());
-                var delegatedToNext = false;
-                CommandState nextHandler()
-                {
-                    delegatedToNext = true;
-                    return CommandState.Unavailable;
-                }
 
-                var state = handler.GetCommandState(new Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
+                var state = handler.GetCommandState(new ExtractMethodCommandArgs(textView, textView.TextBuffer));
                 Assert.False(state.IsAvailable);
             }
         }

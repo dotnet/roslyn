@@ -3,18 +3,19 @@
 using System;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class RenameCommandHandler : ICommandHandler<RenameCommandArgs>
+    internal partial class RenameCommandHandler : ILegacyCommandHandler<RenameCommandArgs>
     {
         public CommandState GetCommandState(RenameCommandArgs args, Func<CommandState> nextHandler)
         {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteCommand(RenameCommandArgs args, Action nextHandler)

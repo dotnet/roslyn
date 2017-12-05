@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -16,20 +15,22 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.FormatDocument, ContentTypeNames.RoslynContentType)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.FormatDocument, ContentTypeNames.RoslynContentType)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
     internal partial class FormatCommandHandler :
-        ICommandHandler<FormatDocumentCommandArgs>,
-        ICommandHandler<FormatSelectionCommandArgs>,
-        ICommandHandler<PasteCommandArgs>,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>
+        ILegacyCommandHandler<FormatDocumentCommandArgs>,
+        ILegacyCommandHandler<FormatSelectionCommandArgs>,
+        ILegacyCommandHandler<PasteCommandArgs>,
+        ILegacyCommandHandler<TypeCharCommandArgs>,
+        ILegacyCommandHandler<ReturnKeyCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteReturnOrTypeCommand(CommandArgs args, Action nextHandler, CancellationToken cancellationToken)

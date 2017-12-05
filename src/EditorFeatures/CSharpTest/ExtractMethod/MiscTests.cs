@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                     workspace.ExportProvider.GetExportedValue<IInlineRenameService>(),
                     workspace.ExportProvider.GetExportedValue<IWaitIndicator>());
 
-                handler.ExecuteCommand(new Commands.ExtractMethodCommandArgs(view, view.TextBuffer), () => { });
+                handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer));
 
                 Assert.True(called);
             }

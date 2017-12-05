@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
 {
     public abstract class AbstractBlockCommentEditingTests
     {
-        internal abstract ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
+        internal abstract ILegacyCommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService);
 

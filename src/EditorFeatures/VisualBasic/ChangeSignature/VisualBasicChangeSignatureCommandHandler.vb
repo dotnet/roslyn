@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
-    <ExportCommandHandler(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.VisualBasicContentType)>
+    <ExportLegacyCommandHandler(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.VisualBasicContentType)>
     Friend Class VisualBasicChangeSignatureCommandHandler
         Inherits AbstractChangeSignatureCommandHandler
 

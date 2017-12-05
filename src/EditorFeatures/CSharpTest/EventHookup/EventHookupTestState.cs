@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         {
             CommandHandlerService t = (CommandHandlerService)Workspace.GetService<ICommandHandlerServiceFactory>().GetService(Workspace.Documents.Single().TextBuffer);
             var field = t.GetType().GetField("_commandHandlers", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Instance);
-            var handlers = (IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>>)field.GetValue(t);
+            var handlers = (IEnumerable<Lazy<ILegacyCommandHandler, OrderableContentTypeMetadata>>)field.GetValue(t);
             _commandHandler = handlers.Single(h => h.Value is EventHookupCommandHandler).Value as EventHookupCommandHandler;
 
             _testSessionHookupMutex = new Mutex(false);

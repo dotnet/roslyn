@@ -23,6 +23,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Utilities;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {

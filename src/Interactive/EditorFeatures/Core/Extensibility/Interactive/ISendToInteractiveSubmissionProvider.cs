@@ -2,6 +2,7 @@
 
 using Microsoft.VisualStudio.Text.Editor;
 using System.Threading;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {

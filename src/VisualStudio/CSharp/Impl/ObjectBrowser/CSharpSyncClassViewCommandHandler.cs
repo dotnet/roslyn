@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 {

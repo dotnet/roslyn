@@ -11,7 +11,7 @@ Imports Microsoft.VisualStudio.Utilities
 Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
-    <ExportCommandHandler("XmlTagCompletionCommandHandler", ContentTypeNames.VisualBasicContentType)>
+    <ExportLegacyCommandHandler("XmlTagCompletionCommandHandler", ContentTypeNames.VisualBasicContentType)>
     <Order(Before:=PredefinedCommandHandlerNames.Completion)>
     Friend Class XmlTagCompletionCommandHandler
         Inherits AbstractXmlTagCompletionCommandHandler

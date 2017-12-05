@@ -12,7 +12,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
-    <ExportCommandHandler(PredefinedCommandHandlerNames.Indent,
+    <ExportLegacyCommandHandler(PredefinedCommandHandlerNames.Indent,
         ContentTypeNames.VisualBasicContentType)>
     <Order(After:=PredefinedCommandHandlerNames.Rename)>
     Friend Class SmartTokenFormatterCommandHandler

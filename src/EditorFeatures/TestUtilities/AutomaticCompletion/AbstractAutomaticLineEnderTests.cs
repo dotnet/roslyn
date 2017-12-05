@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         protected abstract TestWorkspace CreateWorkspace(string code);
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
-        internal abstract ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
+        internal abstract ILegacyCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
             Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations);

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -12,14 +11,16 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
     internal partial class Controller :
         AbstractController<Controller.Session, Model, ISignatureHelpPresenterSession, ISignatureHelpSession>,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<InvokeSignatureHelpCommandArgs>
+        ILegacyCommandHandler<TypeCharCommandArgs>,
+        ILegacyCommandHandler<InvokeSignatureHelpCommandArgs>
     {
         private static readonly object s_controllerPropertyKey = new object();
 

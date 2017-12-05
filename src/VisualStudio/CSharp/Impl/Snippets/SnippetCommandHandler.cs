@@ -13,17 +13,19 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
-    [ExportCommandHandler("CSharp Snippets", ContentTypeNames.CSharpContentType)]
+    [ExportLegacyCommandHandler("CSharp Snippets", ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCommandHandlerNames.IntelliSense)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
-        ICommandHandler<SurroundWithCommandArgs>
+        ILegacyCommandHandler<SurroundWithCommandArgs>
     {
         [ImportingConstructor]
         public SnippetCommandHandler(IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
@@ -63,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         protected override AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer)

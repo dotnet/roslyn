@@ -12,7 +12,7 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
-    <ExportCommandHandler("Interactive Command Handler")>
+    <ExportLegacyCommandHandler("Interactive Command Handler")>
     Friend NotInheritable Class VisualBasicInteractiveCommandHandler
         Inherits InteractiveCommandHandler
 

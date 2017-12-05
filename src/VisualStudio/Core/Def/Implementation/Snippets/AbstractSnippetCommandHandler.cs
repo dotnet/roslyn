@@ -16,6 +16,8 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -24,11 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
     internal abstract class AbstractSnippetCommandHandler :
         ForegroundThreadAffinitizedObject,
-        ICommandHandler<TabKeyCommandArgs>,
-        ICommandHandler<BackTabKeyCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<EscapeKeyCommandArgs>,
-        ICommandHandler<InsertSnippetCommandArgs>
+        ILegacyCommandHandler<TabKeyCommandArgs>,
+        ILegacyCommandHandler<BackTabKeyCommandArgs>,
+        ILegacyCommandHandler<ReturnKeyCommandArgs>,
+        ILegacyCommandHandler<EscapeKeyCommandArgs>,
+        ILegacyCommandHandler<InsertSnippetCommandArgs>
     {
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
         protected readonly SVsServiceProvider ServiceProvider;
@@ -94,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
@@ -129,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
@@ -164,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler)
@@ -199,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteCommand(InsertSnippetCommandArgs args, Action nextHandler)
@@ -234,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         protected bool TryHandleTypedSnippet(ITextView textView, ITextBuffer subjectBuffer)

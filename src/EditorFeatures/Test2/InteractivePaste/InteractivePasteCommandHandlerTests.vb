@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
     Public Class InteractivePasteCommandhandlerTests
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 ]"
                 Dim text = $"a{vbCrLf}bc123"
 
-                CopyToClipboard(clipboard, Text, json, includeRepl:=False, isLineCopy:=False, isBoxCopy:=False)
+                CopyToClipboard(clipboard, text, json, includeRepl:=False, isLineCopy:=False, isBoxCopy:=False)
 
                 handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() editorOperations.InsertText("p"))
 

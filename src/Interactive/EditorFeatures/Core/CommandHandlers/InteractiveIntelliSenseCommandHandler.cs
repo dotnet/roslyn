@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.IntelliSense, PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.IntelliSense, PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
     internal sealed class InteractiveIntelliSenseCommandHandler : AbstractIntelliSenseCommandHandler
     {
         [ImportingConstructor]

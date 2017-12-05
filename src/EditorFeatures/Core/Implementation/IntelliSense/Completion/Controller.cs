@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -11,29 +10,30 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller :
         AbstractController<Controller.Session, Model, ICompletionPresenterSession, ICompletionSession>,
-        ICommandHandler<TabKeyCommandArgs>,
-        ICommandHandler<ToggleCompletionModeCommandArgs>,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InvokeCompletionListCommandArgs>,
-        ICommandHandler<CommitUniqueCompletionListItemCommandArgs>,
-        ICommandHandler<PageUpKeyCommandArgs>,
-        ICommandHandler<PageDownKeyCommandArgs>,
-        ICommandHandler<CutCommandArgs>,
-        ICommandHandler<PasteCommandArgs>,
-        ICommandHandler<BackspaceKeyCommandArgs>,
-        ICommandHandler<InsertSnippetCommandArgs>,
-        ICommandHandler<SurroundWithCommandArgs>,
-        ICommandHandler<AutomaticLineEnderCommandArgs>,
-        ICommandHandler<SaveCommandArgs>,
-        ICommandHandler<DeleteKeyCommandArgs>,
-        ICommandHandler<SelectAllCommandArgs>
+        ILegacyCommandHandler<TabKeyCommandArgs>,
+        ILegacyCommandHandler<ToggleCompletionModeCommandArgs>,
+        ILegacyCommandHandler<TypeCharCommandArgs>,
+        ILegacyCommandHandler<ReturnKeyCommandArgs>,
+        ILegacyCommandHandler<InvokeCompletionListCommandArgs>,
+        ILegacyCommandHandler<CommitUniqueCompletionListItemCommandArgs>,
+        ILegacyCommandHandler<PageUpKeyCommandArgs>,
+        ILegacyCommandHandler<PageDownKeyCommandArgs>,
+        ILegacyCommandHandler<CutCommandArgs>,
+        ILegacyCommandHandler<PasteCommandArgs>,
+        ILegacyCommandHandler<BackspaceKeyCommandArgs>,
+        ILegacyCommandHandler<InsertSnippetCommandArgs>,
+        ILegacyCommandHandler<SurroundWithCommandArgs>,
+        ILegacyCommandHandler<AutomaticLineEnderCommandArgs>,
+        ILegacyCommandHandler<SaveCommandArgs>,
+        ILegacyCommandHandler<DeleteKeyCommandArgs>,
+        ILegacyCommandHandler<SelectAllCommandArgs>
     {
         private static readonly object s_controllerPropertyKey = new object();
 

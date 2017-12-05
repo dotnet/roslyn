@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.CSharpContentType)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.CSharpContentType)]
     internal class CSharpChangeSignatureCommandHandler : AbstractChangeSignatureCommandHandler
     {
         [ImportingConstructor]

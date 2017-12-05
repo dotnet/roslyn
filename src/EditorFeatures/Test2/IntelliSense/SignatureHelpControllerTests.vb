@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(Of SignatureHelpItems)(Nothing))
 
-            DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+            DirectCast(controller, ILegacyCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), " "c),
                 Sub() GetMocks(controller).Buffer.Insert(0, " "))
 
@@ -147,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                               Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                                           End Function)
 
-                             dispatcher.Invoke(Sub() DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+                             dispatcher.Invoke(Sub() DirectCast(controller, ILegacyCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                                  New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), " "c),
                                  Sub() GetMocks(controller).Buffer.Insert(0, " ")))
 
@@ -201,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub RetriggerActiveSessionOnClosingBrace()
             Dim controller = CreateController(waitForPresentation:=True)
 
-            DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+            DirectCast(controller, ILegacyCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), ")"c),
                 Sub() GetMocks(controller).Buffer.Insert(0, ")"))
             controller.WaitForController()
@@ -215,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub TypingNonTriggerCharacterShouldNotRequestDocument()
             Dim controller = CreateController(triggerSession:=False)
 
-            DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+            DirectCast(controller, ILegacyCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), "a"c),
                 Sub() GetMocks(controller).Buffer.Insert(0, "a"))
 
@@ -288,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                       TryCast(provider, MockSignatureHelpProvider)))
 
             If triggerSession Then
-                DirectCast(controller, ICommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(New InvokeSignatureHelpCommandArgs(view.Object, buffer), Nothing)
+                DirectCast(controller, ILegacyCommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(New InvokeSignatureHelpCommandArgs(view.Object, buffer), Nothing)
                 If waitForPresentation Then
                     controller.WaitForController()
                 End If

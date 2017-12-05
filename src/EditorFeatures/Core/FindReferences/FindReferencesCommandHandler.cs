@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -15,6 +14,8 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
@@ -27,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
+
+        public bool InterestedInReadOnlyBuffer => true;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
@@ -46,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 asyncListeners, FeatureAttribute.FindReferences);
         }
 
-        public CommandState GetCommandState(FindReferencesCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(FindReferencesCommandArgs args)
         {
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(FindReferencesCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(FindReferencesCommandArgs args)
         {
             // Get the selection that user has in our buffer (this also works if there
             // is no selection and the caret is just at a single position).  If we 
@@ -71,12 +74,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                     // symbol selected, not the symbol following.
                     if (TryExecuteCommand(selectedSpan.Start, document))
                     {
-                        return;
+                        return true;
                     }
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
         private bool TryExecuteCommand(int caretPosition, Document document)

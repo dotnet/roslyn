@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly CallHierarchyProvider _provider;
         private readonly IWaitIndicator _waitIndicator;
 
+        public bool InterestedInReadOnlyBuffer => true;
+
         protected AbstractCallHierarchyCommandHandler(IEnumerable<ICallHierarchyPresenter> presenters, CallHierarchyProvider provider, IWaitIndicator waitIndicator)
         {
             _presenter = presenters.FirstOrDefault();
@@ -26,9 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _waitIndicator = waitIndicator;
         }
 
-        public void ExecuteCommand(ViewCallHierarchyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(ViewCallHierarchyCommandArgs args)
         {
             AddRootNode(args);
+            return true;
         }
 
         private void AddRootNode(ViewCallHierarchyCommandArgs args)
@@ -72,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 });
         }
 
-        public CommandState GetCommandState(ViewCallHierarchyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
         {
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
     }
 }

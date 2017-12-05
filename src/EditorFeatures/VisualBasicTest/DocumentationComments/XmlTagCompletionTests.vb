@@ -6,12 +6,13 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class XmlTagCompletionTests
         Inherits AbstractXmlTagCompletionTests
 
-        Friend Overrides Function CreateCommandHandler(undoHistory As ITextUndoHistoryRegistry) As ICommandHandler(Of TypeCharCommandArgs)
+        Friend Overrides Function CreateCommandHandler(undoHistory As ITextUndoHistoryRegistry) As ILegacyCommandHandler(Of TypeCharCommandArgs)
             Return New XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default)
         End Function
 

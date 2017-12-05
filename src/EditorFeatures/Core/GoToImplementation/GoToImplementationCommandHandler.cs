@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -14,12 +13,14 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToImplementation,
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.GoToImplementation,
         ContentTypeNames.RoslynContentType)]
-    internal partial class GoToImplementationCommandHandler : ICommandHandler<GoToImplementationCommandArgs>
+    internal partial class GoToImplementationCommandHandler : ILegacyCommandHandler<GoToImplementationCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
@@ -46,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
             return implService != null || findUsagesService != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? CommandState.CommandIsAvailable
+                : CommandState.CommandIsUnavailable;
         }
 
         public void ExecuteCommand(GoToImplementationCommandArgs args, Action nextHandler)
