@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var extern1 = directive1 as ExternAliasDirectiveSyntax;
             var extern2 = directive2 as ExternAliasDirectiveSyntax;
 
-            UsingKind directive1Kind = GetUsingKind(using1, extern1);
-            UsingKind directive2Kind = GetUsingKind(using2, extern2);
+            var directive1Kind = GetUsingKind(using1, extern1);
+            var directive2Kind = GetUsingKind(using2, extern2);
 
             // different types of usings get broken up into groups.
             //  * externs
