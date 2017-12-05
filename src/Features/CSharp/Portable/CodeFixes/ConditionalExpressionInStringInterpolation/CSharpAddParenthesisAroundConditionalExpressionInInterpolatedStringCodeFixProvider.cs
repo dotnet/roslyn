@@ -10,13 +10,14 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringInterpolation
 {
-    //PredefinedCodeFixProviderNames
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParenthesisAroundConditionalExpressionInInterpolatedString), Shared]
     internal partial class CSharpAddParenthesisAroundConditionalExpressionInInterpolatedStringCodeFixProvider : CodeFixProvider
     {
         private const string ERR_ConditionalInInterpolation = "CS8361"; //A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation.Parenthesize the conditional expression.
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ERR_ConditionalInInterpolation);
+        public override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(ERR_ConditionalInInterpolation);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             var token = root.FindToken(diagnosticSpan.Start);
             var conditionalExpressionSyntax = token.GetAncestor<ConditionalExpressionSyntax>();
             var interpolationSyntax = token.GetAncestor<InterpolationSyntax>();
-            if (conditionalExpressionSyntax != null && interpolationSyntax!=null)
+            if (conditionalExpressionSyntax != null && interpolationSyntax != null)
             {
                 context.RegisterCodeFix(new AddParenthesisCodeAction(context.Document, conditionalExpressionSyntax, interpolationSyntax), context.Diagnostics);
             }
