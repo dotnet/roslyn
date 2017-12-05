@@ -1432,6 +1432,21 @@ Additional information: {1}</target>
         <target state="new">prefer auto properties</target>
         <note />
       </trans-unit>
+      <trans-unit id="ErrorReadingFile">
+        <source>Error while reading a file</source>
+        <target state="new">Error while reading a file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasBeenUnloaded">
+        <source>Module has been unloaded.</source>
+        <target state="new">Module has been unloaded.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
+        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
+        <target state="new">Can't apply changes -- module '{0}' has been unloaded.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
