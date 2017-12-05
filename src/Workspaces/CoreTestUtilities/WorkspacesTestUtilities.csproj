@@ -41,6 +41,8 @@
     <EmbeddedResource Include="TestFiles\key.snk" />
     <EmbeddedResource Include="TestFiles\VisualBasicProject_Resources.resx_" />
     <EmbeddedResource Include="TestFiles\VisualBasicProject_Settings.settings" />
+    <EmbeddedResource Include="TestFiles\Directory.Build.props" />
+    <EmbeddedResource Include="TestFiles\Directory.Build.targets" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
