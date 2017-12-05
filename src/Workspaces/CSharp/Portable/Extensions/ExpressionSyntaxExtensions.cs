@@ -1000,6 +1000,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
         private static bool TryReplaceWithAlias(this ExpressionSyntax node, SemanticModel semanticModel, bool preferAliasToQualifiedName, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
@@ -1010,49 +1013,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Avoid the TryReplaceWithAlias algorithm if the tree has no using alias directives. Since the input node
-            // might be a speculative node (not fully rooted in a tree), we use the position of the evaluation to find
-            // the equivalent node in the original tree, and from there determine if the tree has any using alias
+            // might be a speculative node (not fully rooted in a tree), we use the original semantic model to find the
+            // equivalent node in the original tree, and from there determine if the tree has any using alias
             // directives.
             var originalModel = semanticModel;
-            var originalPosition = node.SpanStart;
             while (originalModel.IsSpeculativeSemanticModel)
             {
-                originalPosition = originalModel.OriginalPositionForSpeculation;
                 originalModel = originalModel.ParentModel;
             }
 
+            // Perf: We are only using the syntax tree root in a fast-path syntax check. If the root is not readily
+            // available, it is fine to continue through the normal algorithm.
             if (originalModel.SyntaxTree.TryGetRoot(out var root))
             {
-                var token = root.FindTokenOnLeftOfPosition(originalPosition);
-                var tokenParent = token.Parent;
-                var aliasContainer = tokenParent?.FirstAncestorOrSelf<SyntaxNode>(
-                    syntax =>
+                bool HasUsingAliasDirective(SyntaxNode syntax)
+                {
+                    SyntaxList<UsingDirectiveSyntax> usings;
+                    SyntaxList<MemberDeclarationSyntax> members;
+                    if (syntax.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
                     {
-                        SyntaxList<UsingDirectiveSyntax> usings;
-                        if (syntax.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
-                        {
-                            usings = namespaceDeclaration.Usings;
-                        }
-                        else if (syntax.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
-                        {
-                            usings = compilationUnit.Usings;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-
-                        foreach (var usingDirective in usings)
-                        {
-                            if (usingDirective.Alias != null)
-                            {
-                                return true;
-                            }
-                        }
-
+                        usings = namespaceDeclaration.Usings;
+                        members = namespaceDeclaration.Members;
+                    }
+                    else if (syntax.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
+                    {
+                        usings = compilationUnit.Usings;
+                        members = compilationUnit.Members;
+                    }
+                    else
+                    {
                         return false;
-                    });
-                if (tokenParent != null && aliasContainer == null)
+                    }
+
+                    foreach (var usingDirective in usings)
+                    {
+                        if (usingDirective.Alias != null)
+                        {
+                            return true;
+                        }
+                    }
+
+                    foreach (var member in members)
+                    {
+                        if (HasUsingAliasDirective(member))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
+                if (!HasUsingAliasDirective(root))
                 {
                     return false;
                 }
