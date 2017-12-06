@@ -271,7 +271,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         internal static SyntaxNode GetWhenPartMatch(
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, SemanticModel semanticModel, SyntaxNode expressionToMatch, SyntaxNode whenPart)
         {
-            expressionToMatch = GetExpressionIfArgument(syntaxFacts, expressionToMatch);
             expressionToMatch = RemoveObjectCastIfAny(syntaxFacts, semanticModel, expressionToMatch);
             var current = whenPart;
             while (true)
@@ -293,16 +292,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                 current = unwrapped;
             }
-        }
-
-        private static SyntaxNode GetExpressionIfArgument(ISyntaxFactsService syntaxFacts, SyntaxNode node)
-        {
-            if (syntaxFacts.IsArgument(node))
-            {
-                return syntaxFacts.GetExpressionOfArgument(node);
-            }
-
-            return node;
         }
 
         private static SyntaxNode RemoveObjectCastIfAny(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)

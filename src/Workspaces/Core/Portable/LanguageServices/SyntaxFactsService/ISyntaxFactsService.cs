@@ -160,8 +160,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
 
-        bool IsArgument(SyntaxNode node);
-
         /// <summary>
         /// True if this is an argument with just an expression and nothing else (i.e. no ref/out,
         /// no named params, no omitted args).
