@@ -135,8 +135,17 @@ function Ensure-NuGet() {
 
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
 # SDK.
-function Ensure-SdkInPathAndData() { 
+function Ensure-DotnetSdk() {
+
+    # Check to see if the specified dotnet installations meets our build requirements
+    function Test-DotnetDir([string]$dotnetDir, [string]$runtimeVersion, [string]$sdkVersion) {
+        $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
+        $runtimePath = Join-Path $dotnetDir "shared\Microsoft.NETCore.App\$runtimeVersion"
+        return (Test-Path $sdkPath) -and (Test-Path $runtimePath)
+    }
+
     $sdkVersion = Get-ToolVersion "dotnetSdk"
+    $runtimeVersion = Get-ToolVersion "dotnetRuntime"
 
     # Get the path to dotnet.exe. This is the first path on %PATH% that contains the 
     # dotnet.exe instance. Many SDK tools use this to locate items like the SDK.
@@ -153,21 +162,15 @@ function Ensure-SdkInPathAndData() {
 
     # First check that dotnet is already on the path with the correct SDK version
     $dotnetDir = Get-DotnetDir
-    if ($dotnetDir -ne $null) { 
-        $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
-        if (Test-Path $sdkPath) {
-            Write-Output (Join-Path $dotnetDir "dotnet.exe")
-            Write-Output $sdkPath
-            return        
-        }
+    if (($dotnetDir -ne $null) -and (Test-DotnetDir $dotnetDir $runtimeVersion $sdkVersion)) { 
+        return (Join-Path $dotnetDir "dotnet.exe")
     }
 
     # Ensure the downloaded dotnet of the appropriate version is located in the 
     # Binaries\Tools directory
     $toolsDir = Join-Path $binariesDir "Tools"
     $cliDir = Join-Path $toolsDir "dotnet"
-    $dotnetExe = Join-Path $cliDir "dotnet.exe"
-    if (-not (Test-Path $dotnetExe)) { 
+    if (-not (Test-DotnetDir $cliDir $runtimeVersion $sdkVersion)) {
         Write-Host "Downloading CLI $sdkVersion"
         Create-Directory $cliDir
         Create-Directory $toolsDir
@@ -175,20 +178,10 @@ function Ensure-SdkInPathAndData() {
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
+        Exec-Block { & $destFile -Version $runtimeVersion -SharedRuntime -InstallDir $cliDir } | Out-Null
     }
 
-    ${env:PATH} = "$cliDir;${env:PATH}"
-    $sdkPath = Join-Path $cliDir "sdk\$sdkVersion"
-    Write-Output $dotnetExe
-    Write-Output $sdkPath
-    return
-}
-
-# Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
-# SDK.
-function Ensure-SdkInPath() { 
-    $dotnet, $sdkDir = Ensure-SdkInPathAndData
-    return
+    return (Join-Path $cliDir "dotnet.exe")
 }
 
 # Ensure a basic tool used for building our Repo is installed and 
@@ -222,7 +215,7 @@ function Ensure-MSBuild([switch]$xcopy = $false) {
     }
 
     $p = Join-Path $msbuildDir "msbuild.exe"
-    Ensure-SdkInPath
+    $dotnetExe = Ensure-DotnetSdk
     return $p
 }
 

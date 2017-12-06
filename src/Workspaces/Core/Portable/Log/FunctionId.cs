@@ -400,6 +400,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         AssetStorage_ForceGC,
         RemoteHost_Bitness,
         Intellisense_Completion,
-        Experiment_KeybindingsReset
+        MetadataOnlyImage_EmitFailure,
+        Experiment_KeybindingsReset,
     }
 }

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -1139,6 +1140,96 @@ BC37238: 'T' cannot be made nullable.
         Dim y1 = x1?.M1()
                     ~~~~~
 </expected>)
+        End Sub
+
+        <WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")>
+        <Fact()>
+        Public Sub ERR_CannotBeMadeNullable1_2()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Module1
+
+    Sub Main()
+        Dim o = New C1
+        Dim x = o?.F ' this should be an error
+    End Sub
+End Module
+
+Public Class C1
+    Public Function F() As TypedReference
+        System.Console.WriteLine("hi")
+        Return Nothing
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC37238: 'TypedReference' cannot be made nullable.
+        Dim x = o?.F ' this should be an error
+                  ~~
+</expected>)
+        End Sub
+
+        <WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")>
+        <Fact()>
+        Public Sub ERR_CannotBeMadeNullable1_3()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module Module1
+
+    Sub Main()
+        Dim o = New C1
+        o?.F() ' this is ok
+    End Sub
+End Module
+
+Public Class C1
+    Public Function F() As TypedReference
+        System.Console.WriteLine("hi")
+        Return Nothing
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            ' VB seems to allow methods that return TypedReference, likely for compat reasons
+            ' that is technically not verifiable, but it is not relevant to this test
+            Dim verifier = CompileAndVerify(compilation, verify:=Verification.Fails, expectedOutput:=
+            <![CDATA[
+hi
+]]>)
+
+            verifier.VerifyIL("Module1.Main()",
+            <![CDATA[
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (C1 V_0) //o
+  IL_0000:  newobj     "Sub C1..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  brfalse.s  IL_0010
+  IL_0009:  ldloc.0
+  IL_000a:  call       "Function C1.F() As System.TypedReference"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+]]>)
+
         End Sub
 
         <Fact()>

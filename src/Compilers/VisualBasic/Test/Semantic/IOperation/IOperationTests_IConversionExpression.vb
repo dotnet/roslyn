@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Operations
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -2256,6 +2257,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2298,6 +2301,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2344,6 +2349,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2379,6 +2386,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: U) (Syntax: 'New U')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2414,6 +2423,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: U, IsInvalid) (Syntax: 'New U')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2992,6 +3003,46 @@ BC36755: 'Action(Of Object)' cannot be converted to 'Action(Of Integer)' because
 
 
 #End Region
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        <WorkItem(23203, "https://github.com/dotnet/roslyn/issues/23203")>
+        Public Sub ConversionExpression_IntegerOverflow()
+            Dim source = <![CDATA[
+Imports System
+
+Module Module1
+
+    Class C1
+        Shared Widening Operator CType(x As Byte) As C1
+            Return Nothing
+        End Operator
+    End Class
+
+    Sub Main()
+
+        Dim z1 As C1 = &H7FFFFFFFL 'BIND:"= &H7FFFFFFFL"
+    End Sub
+End Module
+]]>.Value
+
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= &H7FFFFFFFL')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Module1.C1, IsInvalid, IsImplicit) (Syntax: '&H7FFFFFFFL')
+    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 2147483647, IsInvalid) (Syntax: '&H7FFFFFFFL')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30439: Constant expression not representable in type 'Byte'.
+        Dim z1 As C1 = &H7FFFFFFFL 'BIND:"= &H7FFFFFFFL"
+                       ~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
 
         Private Class ExpectedSymbolVerifier
             Public Shared Function ConversionOrDelegateChildSelector(conv As IOperation) As IOperation
