@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             conditionLeft = syntaxFacts.GetExpressionOfArgument(arguments[0]);
             conditionRight = syntaxFacts.GetExpressionOfArgument(arguments[1]);
-            return true;
+            return conditionLeft != null && conditionRight != null;
         }
 
         internal static SyntaxNode GetWhenPartMatch(
