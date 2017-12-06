@@ -272,8 +272,16 @@ namespace AnalyzerRunner
 
         private static IEnumerable<DiagnosticAnalyzer> FilterAnalyzers(IEnumerable<DiagnosticAnalyzer> analyzers, Options options)
         {
+            var analyzerTypes = new HashSet<Type>();
+
             foreach (var analyzer in analyzers)
             {
+                if (!analyzerTypes.Add(analyzer.GetType()))
+                {
+                    // Avoid running the same analyzer multiple times
+                    continue;
+                }
+
                 if (options.UseAll)
                 {
                     yield return analyzer;
