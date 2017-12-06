@@ -29,14 +29,11 @@ namespace Test.Utilities
         private static readonly MetadataReference s_codeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
         private static readonly MetadataReference s_workspacesReference = MetadataReference.CreateFromFile(typeof(Workspace).Assembly.Location);
         private static readonly MetadataReference s_systemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
+        private static readonly MetadataReference s_immutableCollectionsReference = MetadataReference.CreateFromFile(typeof(ImmutableArray<int>).Assembly.Location);
         private static readonly MetadataReference s_systemDataReference = MetadataReference.CreateFromFile(typeof(System.Data.DataSet).Assembly.Location);
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         protected static readonly CompilationOptions s_CSharpUnsafeCodeDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true);
         protected static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-#pragma warning disable CA1823 // Avoid unused private fields https://github.com/dotnet/roslyn-analyzers/issues/1318
-        private static readonly MetadataReference s_immutableCollectionsReference = MetadataReference.CreateFromFile(typeof(ImmutableArray<int>).Assembly.Location);
-#pragma warning restore CA1823 // Avoid unused private fields
 
         internal const string DefaultFilePathPrefix = "Test";
         internal const string CSharpDefaultFileExt = "cs";
@@ -375,7 +372,7 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, SystemRuntimeFacadeRef)
                 .AddMetadataReference(projectId, SystemThreadingFacadeRef)
                 .AddMetadataReference(projectId, SystemThreadingTaskFacadeRef)
-                //.AddMetadataReference(projectId, s_immutableCollectionsReference) https://github.com/dotnet/roslyn-analyzers/issues/1318
+                .AddMetadataReference(projectId, s_immutableCollectionsReference)
                 .AddMetadataReference(projectId, s_workspacesReference)
                 .AddMetadataReference(projectId, s_systemDiagnosticsDebugReference)
                 .AddMetadataReference(projectId, s_systemDataReference)
