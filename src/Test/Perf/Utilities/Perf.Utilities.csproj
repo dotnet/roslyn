@@ -9,6 +9,7 @@
     <RootNamespace>Roslyn.Test.Performance.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Test.Performance.Utilities</AssemblyName>
     <TargetFramework>net46</TargetFramework>
+    <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

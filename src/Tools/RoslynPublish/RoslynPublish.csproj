@@ -9,9 +9,10 @@
     <RootNamespace>RoslynPublish</RootNamespace>
     <AssemblyName>RoslynPublish</AssemblyName>
     <TargetFramework>net462</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <SignAssembly>false</SignAssembly>
     <AutomaticBindingRedirects>true</AutomaticBindingRedirects>
+    <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -21,6 +22,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
     <PackageReference Include="Microsoft.DotNet.VersionTools" Version="$(MicrosoftDotNetVersionToolsVersion)" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
   </ItemGroup>

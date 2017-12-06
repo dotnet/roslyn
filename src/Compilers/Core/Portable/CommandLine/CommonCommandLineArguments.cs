@@ -282,6 +282,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
+        internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
+        {
+            bool fallback = 
+                ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
+                CompilationOptionsCore.CryptoKeyContainer != null;
+            return fallback ?
+                (StrongNameProvider)new DesktopStrongNameProvider(KeyFileSearchPaths, null, fileSystem) :
+                (StrongNameProvider)new PortableStrongNameProvider(KeyFileSearchPaths, fileSystem);
+        }
+
         internal CommandLineArguments()
         {
         }

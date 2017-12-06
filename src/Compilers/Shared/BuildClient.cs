@@ -41,6 +41,21 @@ namespace Microsoft.CodeAnalysis.CommandLine
         protected static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
 
         /// <summary>
+        /// Returns the directory that contains mscorlib, or null when running on CoreCLR.
+        /// </summary>
+        public static string GetSystemSdkDirectory()
+        {
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                return null;
+            }
+            else
+            {
+                return RuntimeEnvironment.GetRuntimeDirectory();
+            }
+        }
+
+        /// <summary>
         /// Run a compilation through the compiler server and print the output
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
@@ -64,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     out sessionKey,
                     out errorMessage))
             {
-                Console.Out.WriteLine(errorMessage);
+                textWriter.WriteLine(errorMessage);
                 return RunCompilationResult.Failed;
             }
 
@@ -158,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // Build could not be completed on the server.
                     return null;
                 default:
-                    // Will not happen with our server but hypothetically could be sent by a rouge server.  Should
+                    // Will not happen with our server but hypothetically could be sent by a rogue server.  Should
                     // not let that block compilation.
                     Debug.Assert(false);
                     return null;
@@ -191,11 +206,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                // The native invoke ends up giving us both CoreRun and the exe file.
+                // We've decided to ignore backcompat for CoreCLR,
+                // and use the Main()-provided arguments
+                // https://github.com/dotnet/roslyn/issues/6677
+                return false;
+            }
+
             return true;
         }
 
         /// <summary>
-        /// When running on Windows we can't take the commmand line which was provided to the 
+        /// When running on Windows we can't take the command line which was provided to the 
         /// Main method of the application.  That will go through normal windows command line 
         /// parsing which eliminates artifacts like quotes.  This has the effect of normalizing
         /// the below command line options, which are semantically different, into the same

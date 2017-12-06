@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         // There are scenarios where rvalues need to be passed to ref/in parameters
         // in such cases the values must be spilled into temps and retained for the entirety of
-        // the most encompasing expression.       
+        // the most encompassing expression.       
         private ArrayBuilder<LocalDefinition> _expressionTemps;
 
         // not 0 when in a protected region with a handler. 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool EnablePEVerifyCompat()
         {
-            return _module.Compilation.FeaturePEVerifyCompatEnabled;
+            return _module.Compilation.LanguageVersion < LanguageVersion.CSharp7_2 || _module.Compilation.FeaturePEVerifyCompatEnabled;
         }
 
         private LocalDefinition LazyReturnTemp

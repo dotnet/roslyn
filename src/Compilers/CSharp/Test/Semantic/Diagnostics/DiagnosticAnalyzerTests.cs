@@ -893,7 +893,7 @@ public class B
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
             var source2 = @"class C2 { void M() { int i = 0; i++; } }";
-            var compilation = CreateCompilationWithMscorlib45(source1, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateCompilationWithMscorlib45(source1);
             var anotherCompilation = CreateCompilationWithMscorlib45(source2);
             var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
 
@@ -920,7 +920,7 @@ public class B
         public void TestReportingDiagnosticWithInvalidSpan()
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
-            var compilation = CreateCompilationWithMscorlib45(source1, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateCompilationWithMscorlib45(source1);
             var treeInAnotherCompilation = compilation.SyntaxTrees.Single();
 
             var badSpan = new Text.TextSpan(100000, 10000);
@@ -1990,12 +1990,12 @@ public class Class
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, TestOptions.RegularWithIOperationFeature, "Source.cs");
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var syntaxKinds = ImmutableArray.Create(SyntaxKind.VariableDeclaration);
-            var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclaration);
+            var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclarator);
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.None, syntaxKinds, operationKinds) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,

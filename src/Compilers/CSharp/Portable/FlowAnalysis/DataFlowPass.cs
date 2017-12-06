@@ -1156,9 +1156,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void Assign(BoundNode node, BoundExpression value, RefKind refKind = RefKind.None, bool read = true)
+        protected void Assign(BoundNode node, BoundExpression value, bool isRef = false, bool read = true)
         {
-            AssignImpl(node, value, written: true, refKind: refKind, read: read);
+            AssignImpl(node, value, written: true, isRef: isRef, read: read);
         }
 
         /// <summary>
@@ -1167,9 +1167,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">Node being assigned to.</param>
         /// <param name="value">The value being assigned.</param>
         /// <param name="written">True if target location is considered written to.</param>
-        /// <param name="refKind">Target kind (by-ref or not).</param>
+        /// <param name="isRef">Ref assignment or value assignment.</param>
         /// <param name="read">True if target location is considered read from.</param>
-        protected virtual void AssignImpl(BoundNode node, BoundExpression value, RefKind refKind, bool written, bool read)
+        protected virtual void AssignImpl(BoundNode node, BoundExpression value, bool isRef, bool written, bool read)
         {
             switch (node.Kind)
             {
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)node;
-                        if (local.LocalSymbol.RefKind != refKind)
+                        if (local.LocalSymbol.RefKind != RefKind.None && !isRef)
                         {
                             // Writing through the (reference) value of a reference local
                             // requires us to read the reference itself.
@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.RangeVariable:
-                    AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
+                    AssignImpl(((BoundRangeVariable)node).Value, value, isRef, written, read);
                     break;
 
                 case BoundKind.BadExpression:
@@ -1257,13 +1257,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var bad = (BoundBadExpression)node;
                         if (!bad.ChildBoundNodes.IsDefault && bad.ChildBoundNodes.Length == 1)
                         {
-                            AssignImpl(bad.ChildBoundNodes[0], value, refKind, written, read);
+                            AssignImpl(bad.ChildBoundNodes[0], value, isRef, written, read);
                         }
                         break;
                     }
 
                 case BoundKind.TupleLiteral:
-                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, refKind: refKind), this);
+                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
                     break;
 
                 default:
@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var pat = (BoundDeclarationPattern)pattern;
-                        Assign(pat, null, RefKind.None, false);
+                        Assign(pat, value: null, isRef: false, read: false);
                         break;
                     }
                 case BoundKind.DiscardPattern:
@@ -1520,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignPatternVariables(subpat);
                             }
                         }
-                        Assign(pat, null, RefKind.None, false);
+                        Assign(pat, null, false, false);
                         break;
                     }
                 default:
@@ -1890,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             base.VisitAssignmentOperator(node);
-            Assign(node.Left, node.Right, refKind: node.RefKind);
+            Assign(node.Left, node.Right, isRef: node.IsRef);
             return null;
         }
 

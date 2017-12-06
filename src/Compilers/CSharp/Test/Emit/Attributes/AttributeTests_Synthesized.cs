@@ -827,7 +827,7 @@ public class Test
                 // NYI: /addmodule support
                 // TODO: PEVerify currently fails for netmodules with error: "The module X was expected to contain an assembly manifest".
                 // TODO: Remove the 'verify' named argument once /addmodule support has been added.
-                CompileAndVerify(compilation, verify: !outputKind.IsNetModule());
+                CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes);
             }
         }
 

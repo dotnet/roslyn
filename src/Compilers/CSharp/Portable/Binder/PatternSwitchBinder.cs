@@ -212,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool wasExpression;
                         var pattern = sectionBinder.BindConstantPattern(
                             node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression);
+                        pattern.WasCompilerGenerated = true;
                         bool hasErrors = pattern.HasErrors;
                         var constantValue = pattern.ConstantValue;
                         if (!hasErrors &&

@@ -759,11 +759,11 @@
   <data name="ERR_UnreachableCatch" xml:space="preserve">
     <value>A previous catch clause already catches all exceptions of this or of a super type ('{0}')</value>
   </data>
-  <data name="WRN_FilterIsConstant" xml:space="preserve">
-    <value>Filter expression is a constant, consider removing the filter</value>
+  <data name="WRN_FilterIsConstantTrue" xml:space="preserve">
+    <value>Filter expression is a constant 'true', consider removing the filter</value>
   </data>
-  <data name="WRN_FilterIsConstant_Title" xml:space="preserve">
-    <value>Filter expression is a constant</value>
+  <data name="WRN_FilterIsConstantTrue_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'true'</value>
   </data>
   <data name="ERR_ReturnExpected" xml:space="preserve">
     <value>'{0}': not all code paths return a value</value>
@@ -1359,6 +1359,9 @@
   <data name="ERR_RefReturnThis" xml:space="preserve">
     <value>Cannot return 'this' by reference.</value>
   </data>
+  <data name="ERR_AttributeCtorInParameter" xml:space="preserve">
+    <value>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</value>
+  </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
     <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</value>
   </data>
@@ -1470,7 +1473,11 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <value>Predefined type '{0}' is not defined or imported, or is declared in multiple referenced assemblies</value>
+    <!-- We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget) -->
+    <value>Predefined type '{0}' is not defined or imported</value>
+  </data>
+  <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
+    <value>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</value>
   </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
     <value>'{0}': structs cannot call base class constructors</value>
@@ -1546,6 +1553,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_PropertyWithNoAccessors" xml:space="preserve">
     <value>'{0}': property or indexer must have at least one accessor</value>
+  </data>
+  <data name="ERR_CantUseVoidInArglist" xml:space="preserve">
+    <value>__arglist cannot have an argument of void type</value>
   </data>
   <data name="ERR_NewVirtualInSealed" xml:space="preserve">
     <value>'{0}' is a new virtual member in sealed class '{1}'</value>
@@ -1728,7 +1738,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Array initializers can only be used in a variable or field initializer. Try using a new expression instead.</value>
   </data>
   <data name="ERR_MissingStructOffset" xml:space="preserve">
-    <value>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</value>
+    <value>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</value>
   </data>
   <data name="WRN_ExternMethodNoImplementation" xml:space="preserve">
     <value>Method, operator, or accessor '{0}' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.</value>
@@ -1833,7 +1843,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Type defines operator == or operator != but does not override Object.GetHashCode()</value>
   </data>
   <data name="ERR_OutAttrOnRefParam" xml:space="preserve">
-    <value>Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.</value>
+    <value>Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.</value>
   </data>
   <data name="ERR_OverloadRefKind" xml:space="preserve">
     <value>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</value>
@@ -2191,9 +2201,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_RecursivelyTypedVariable" xml:space="preserve">
     <value>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</value>
-  </data>
-  <data name="ERR_ExplicitLayoutAndAutoImplementedProperty" xml:space="preserve">
-    <value>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
     <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
@@ -3079,6 +3086,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_DoNotUseFixedBufferAttr" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.</value>
   </data>
+  <data name="ERR_DoNotUseFixedBufferAttrOnProperty" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</value>
+  </data>
   <data name="WRN_AssignmentToSelf" xml:space="preserve">
     <value>Assignment made to same variable; did you mean to assign something else?</value>
   </data>
@@ -3896,8 +3906,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</value>
   </data>
+  <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
+    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
+  </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major.minor.build.revision</value>
+    <value>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="WRN_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
@@ -5117,6 +5130,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7_2" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.2. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion7_3" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
     <value>Specified language version '{0}' cannot have leading zeroes</value>
   </data>
@@ -5137,6 +5153,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
+  <data name="WRN_AttributesOnBackingFieldsNotAvailable" xml:space="preserve">
+    <value>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</value>
+  </data>
+  <data name="WRN_AttributesOnBackingFieldsNotAvailable_Title" xml:space="preserve">
+    <value>Field-targeted attributes on auto-properties are not supported in this version of the language.</value>
   </data>
   <data name="WRN_DefaultInSwitch" xml:space="preserve">
     <value>Did you mean to use the default switch label ('default:') rather than 'case default:'? If you really mean to use the default value, use another literal ('case 0:' or 'case null:') as appropriate.</value>
@@ -5206,6 +5228,27 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
+  </data>
+  <data name="ERR_OutAttrOnInParam" xml:space="preserve">
+    <value>An in parameter cannot have the Out attribute.</value>
+  </data>
+  <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
+    <value>{0} is not a valid C# compound assignment operation</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
+    <value>Filter expression is a constant 'false', consider removing the catch clause</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalse_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'false'</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalseRedundantTryCatch" xml:space="preserve">
+    <value>Filter expression is a constant 'false', consider removing the try-catch block</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalseRedundantTryCatch_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'false'. </value>
+  </data>
+  <data name="ERR_ConditionalInInterpolation" xml:space="preserve">
+    <value>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</value>
   </data>
   <data name="ERR_MissingPattern" xml:space="preserve">
     <value>Pattern missing</value>

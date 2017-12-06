@@ -1,25 +1,18 @@
 {
     "branches": {
+        "master-vs-deps": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.7.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.6" ]
+        },
         "dev15.5.x": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.6.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.5", "dev15.5p2" ]
-        },
-        "dev15.5-preview1": {
-            "nugetKind": "PerBuildPreRelease",
-            "version": "2.6.*",
-            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
-            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.5p1" ]
-        },
-        "dev/jaredpar/fix-publish": {
-            "nugetKind": "PerBuildPreRelease",
-            "version": "2.6.*",
-            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
-            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "publish-test" ]
+            "channels": [ "dev15.5", "dev15.5p3" ]
         },
         "features/readonly-ref": {
             "nugetKind": "PerBuildPreRelease",
@@ -34,6 +27,13 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn-nonnull/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn-nonnull/vsix/upload" ],
             "channels": [ "nonnull" ]
+        },
+        "features/vs-for-mac-packages": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.6.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn-for-vs-for-mac/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn-for-vs-for-mac/vsix/upload" ],
+            "channels": [ "vs-for-mac" ]
         }
     },
     "releases": {

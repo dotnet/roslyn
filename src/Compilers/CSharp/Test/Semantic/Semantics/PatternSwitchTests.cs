@@ -498,7 +498,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -1870,7 +1873,7 @@ False";
         {
             // This test ensures that we switch on a *copy* of the switch expression,
             // so that it is not affected by subsequent assignment to a variable appearing
-            // in the swich expression.
+            // in the switch expression.
             var source =
 @"using System;
 class Program

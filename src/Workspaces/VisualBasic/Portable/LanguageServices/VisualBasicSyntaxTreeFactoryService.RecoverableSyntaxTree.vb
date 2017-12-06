@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return Me
                     End If
 
-                    Return Create(DirectCast(root, CompilationUnitSyntax), Me.Options, _info.FilePath)
+                    Return Create(DirectCast(root, VisualBasicSyntaxNode), Me.Options, _info.FilePath)
                 End Function
 
                 Public Overrides Function WithFilePath(path As String) As SyntaxTree

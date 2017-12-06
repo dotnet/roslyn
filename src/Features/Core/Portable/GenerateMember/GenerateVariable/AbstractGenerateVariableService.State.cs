@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             public bool IsInConstructor { get; private set; }
             public bool IsInRefContext { get; private set; }
+            public bool IsInInContext { get; private set; }
             public bool IsInOutContext { get; private set; }
             public bool IsInMemberContext { get; private set; }
 
@@ -252,6 +253,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
                 this.IsInRefContext = semanticFacts.IsInRefContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
+                this.IsInInContext = semanticFacts.IsInInContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsInOutContext = semanticFacts.IsInOutContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsOnlyWrittenTo = semanticFacts.IsOnlyWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);

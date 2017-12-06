@@ -190,6 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     analyzedArguments.Arguments[i] = GenerateConversionForAssignment(objType, argument, diagnostics);
                 }
+                else if (argument.Type.SpecialType == SpecialType.System_Void)
+                {
+                    Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
+                }
             }
 
             ImmutableArray<BoundExpression> arguments = analyzedArguments.Arguments.ToImmutable();
@@ -289,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupSymbolOpt,
                                     methodGroup.LookupError,
                                     methodGroup.Flags & ~BoundMethodGroupFlags.HasImplicitReceiver,
-                                    receiverOpt: new BoundTypeExpression(node, null, this.ContainingType),
+                                    receiverOpt: new BoundTypeExpression(node, null, this.ContainingType).MakeCompilerGenerated(),
                                     resultKind: methodGroup.ResultKind);
                             }
 

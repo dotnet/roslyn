@@ -25,11 +25,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
+            // PROTOTYPE(patterns2): Add examples of all the new pattern types once supported.
+            var syntaxKinds = new HashSet<SyntaxKind>();
+            syntaxKinds.Add(SyntaxKind.SubpatternElement);
+            syntaxKinds.Add(SyntaxKind.DeconstructionPattern);
+            syntaxKinds.Add(SyntaxKind.DiscardPattern);
+            syntaxKinds.Add(SyntaxKind.VarPattern);
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(new HashSet<SyntaxKind>());
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKinds);
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }
 

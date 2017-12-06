@@ -6957,16 +6957,16 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
 
             Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
-            Dim doVaidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
+            Dim doValidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
 
-            Assert.Equal(1, doVaidateT.OverriddenMembers.OverriddenMembers.Length)
-            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateT.OverriddenMethod.ToTestDisplayString())
+            Assert.Equal(1, doValidateT.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doValidateT.OverriddenMethod.ToTestDisplayString())
 
             Dim validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType)
-            Dim doVaidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
+            Dim doValidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
 
-            Assert.Equal(2, doVaidateObject.OverriddenMembers.OverriddenMembers.Length)
-            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
+            Assert.Equal(2, doValidateObject.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doValidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
 
             CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
@@ -7196,16 +7196,16 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
 
             Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
-            Dim doVaidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
+            Dim doValidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
 
-            Assert.Equal(1, doVaidateT.OverriddenMembers.OverriddenMembers.Length)
-            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateT.OverriddenMethod.ToTestDisplayString())
+            Assert.Equal(1, doValidateT.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doValidateT.OverriddenMethod.ToTestDisplayString())
 
             Dim validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType)
-            Dim doVaidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
+            Dim doValidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
 
-            Assert.Equal(2, doVaidateObject.OverriddenMembers.OverriddenMembers.Length)
-            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
+            Assert.Equal(2, doValidateObject.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doValidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
 
             CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)")

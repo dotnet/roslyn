@@ -1290,7 +1290,7 @@ class C
             comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
-            CompileAndVerify(comp, verify: false);
+            CompileAndVerify(comp, verify: Verification.Fails);
         }
 
         [Fact]
@@ -1324,7 +1324,7 @@ class C
             comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
-            CompileAndVerify(comp, verify: false);
+            CompileAndVerify(comp, verify: Verification.Fails);
         }
 
         [Fact]
@@ -1340,7 +1340,7 @@ class C
                 Signature(
                     "C",
                     "<P>k__BackingField",
-                    ".field [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] private static System.Object[] <P>k__BackingField")
+                    ".field [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private static System.Object[] <P>k__BackingField")
             });
         }
 

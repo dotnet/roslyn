@@ -26,10 +26,6 @@
           <Interface Name="IDkmModuleModifiedNotification"/>
           <Interface Name="IDkmModuleInstanceUnloadNotification"/>
         </InterfaceGroup>
-      </Implements>
-    </Class>
-    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFrameDecoder">
-      <Implements>
         <InterfaceGroup>
           <Filter>
             <LanguageId RequiredValue="DkmLanguageId.VB"/>
@@ -37,17 +33,6 @@
             <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
           </Filter>
           <Interface Name="IDkmLanguageFrameDecoder"/>
-        </InterfaceGroup>
-      </Implements>
-    </Class>
-    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicLanguageInstructionDecoder">
-      <Implements>
-        <InterfaceGroup>
-          <Filter>
-            <LanguageId RequiredValue="DkmLanguageId.VB"/>
-            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
-            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
-          </Filter>
           <Interface Name="IDkmLanguageInstructionDecoder"/>
         </InterfaceGroup>
       </Implements>
