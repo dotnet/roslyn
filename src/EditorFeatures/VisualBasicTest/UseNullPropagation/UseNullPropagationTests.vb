@@ -323,5 +323,89 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndReferenceEquals() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (ReferenceEquals(o, Nothing), Nothing, o.ToString())
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndReferenceEqualsReversed() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (ReferenceEquals(Nothing, o), Nothing, o.ToString())
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Object.ReferenceEquals(o, Nothing), Nothing, o.ToString())
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndReferenceEqualsWithObjectReversed() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Object.ReferenceEquals(Nothing, o), Nothing, o.ToString())
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
