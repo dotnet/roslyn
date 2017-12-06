@@ -1984,7 +1984,7 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_InvalidNonDelegateTargetType_SuccessfulConversion()
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_CType_NonDelegateTargetType_SuccessfulConversion()
             Dim source = <![CDATA[
 Imports System
 
@@ -2030,7 +2030,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ParenthesizedLambda_Implicit_InvalidNonDelegateTargetType_SuccessfulConversion()
+        Public Sub DelegateCreationExpression_ParenthesizedLambda_Implicit_NonDelegateTargetType_SuccessfulConversion()
             Dim source = <![CDATA[
 Imports System
 
@@ -2086,32 +2086,30 @@ Public Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid) (Syntax: 'CType(((Sub ... )), Object)')
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid) (Syntax: 'CType(((Sub ... )), String)')
   Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Object, IsInvalid) (Syntax: '((Sub() Con ... iteLine()))')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String, IsInvalid) (Syntax: '((Sub() Con ... iteLine()))')
       Operand: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Object, IsInvalid) (Syntax: '(Sub() Cons ... riteLine())')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String, IsInvalid) (Syntax: '(Sub() Cons ... riteLine())')
           Operand: 
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                  Target: 
-                    IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
-                      IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Console.WriteLine()')
-                          Expression: 
-                            IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                              Instance Receiver: 
-                                null
-                              Arguments(0)
-                        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                          Statement: 
+                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Console.WriteLine()')
+                      Expression: 
+                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: 
                             null
-                        IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                          ReturnedValue: 
-                            null
+                          Arguments(0)
+                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: 
+                        null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
