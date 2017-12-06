@@ -1947,6 +1947,68 @@ class Program
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary_Right()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(Test a, in Test b)
+    {
+        return a.Value + b.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = 3 };
+        var b = new Test { Value = 6 };
+
+        System.Console.WriteLine(a + b);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary_Left()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(in Test a, Test b)
+    {
+        return a.Value + b.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = 3 };
+        var b = new Test { Value = 6 };
+
+        System.Console.WriteLine(a + b);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Unary()
         {
             var reference = CreateStandardCompilation(@"
