@@ -220,6 +220,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
     <NuGetPackageToIncludeInVsix Include="Mono.Cecil" />
   </ItemGroup>

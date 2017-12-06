@@ -229,6 +229,7 @@
     "System.Security.Cryptography.X509Certificates.dll",
     "System.Security.Principal.Windows.dll",
     "System.Text.Encoding.CodePages.dll",
+    "System.Threading.Tasks.Extensions.dll",
     "System.Threading.Thread.dll",
     "System.ValueTuple.dll",
     "System.Xml.ReaderWriter.dll",

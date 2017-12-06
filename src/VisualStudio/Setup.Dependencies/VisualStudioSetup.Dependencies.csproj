@@ -57,6 +57,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
     <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
     <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
@@ -98,6 +99,7 @@
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <PackageReference Include="System.Text.Encoding.Extensions" Version="$(SystemTextEncodingExtensionsVersion)" />
     <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageReference Include="System.Xml.ReaderWriter" Version="$(SystemXmlReaderWriterVersion)" />

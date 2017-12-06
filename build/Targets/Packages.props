@@ -213,6 +213,7 @@
     <SystemTextRegularExpressionsVersion>4.3.0</SystemTextRegularExpressionsVersion>
     <SystemThreadingVersion>4.3.0</SystemThreadingVersion>
     <SystemThreadingTasksVersion>4.3.0</SystemThreadingTasksVersion>
+    <SystemThreadingTasksExtensionsVersion>4.3.0</SystemThreadingTasksExtensionsVersion>
     <SystemThreadingTasksParallelVersion>4.3.0</SystemThreadingTasksParallelVersion>
     <SystemThreadingThreadVersion>4.3.0</SystemThreadingThreadVersion>
     <SystemValueTupleVersion>4.3.0</SystemValueTupleVersion>

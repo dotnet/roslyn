@@ -48,6 +48,7 @@
         <dependency id="System.Text.Encoding.Extensions"               version="$SystemTextEncodingExtensionsVersion$"/>
         <dependency id="System.Threading"                              version="$SystemThreadingVersion$" exclude="Compile" />
         <dependency id="System.Threading.Tasks"                        version="$SystemThreadingTasksVersion$"/>
+        <dependency id="System.Threading.Tasks.Extensions"             version="$SystemThreadingTasksExtensionsVersion$"/>
         <dependency id="System.Threading.Tasks.Parallel"               version="$SystemThreadingTasksParallelVersion$"/>
         <dependency id="System.Threading.Thread"                       version="$SystemThreadingThreadVersion$" exclude="Compile" />
         <dependency id="System.ValueTuple"                             version="$SystemValueTupleVersion$" />

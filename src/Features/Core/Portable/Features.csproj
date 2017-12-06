@@ -109,6 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
 </Project>

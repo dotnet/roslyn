@@ -807,6 +807,7 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
         add("Vsix\VisualStudioSetup\System.Composition.TypedParts.dll")
+        add("Vsix\VisualStudioSetup\System.Threading.Tasks.Extensions.dll")
         add("Vsix\VisualStudioSetup\Mono.Cecil.dll")
         add("Vsix\VisualStudioSetup\Mono.Cecil.Mdb.dll")
         add("Vsix\VisualStudioSetup\Mono.Cecil.Pdb.dll")
