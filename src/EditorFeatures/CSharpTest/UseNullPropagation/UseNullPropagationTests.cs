@@ -478,5 +478,125 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndIsNull()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [||]c is null ? null : c.f;
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = c?.f;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEquals()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [||]ReferenceEquals(c, null) ? null : c.f;
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = c?.f;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsReversed()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [||]ReferenceEquals(null, c) ? null : c.f;
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = c?.f;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsWithObject()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [||]object.ReferenceEquals(c, null) ? null : c.f;
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = c?.f;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsWithObjectReversed()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [||]object.ReferenceEquals(null, c) ? null : c.f;
+    }
+}",
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = c?.f;
+    }
+}");
+        }
     }
 }

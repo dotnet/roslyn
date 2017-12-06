@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -49,18 +50,27 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract ISemanticFactsService GetSemanticFactsService();
 
+        protected abstract bool TryAnalyzePatternCondition(SyntaxNode conditionNode, out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals);
+
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(startContext =>
             {
                 var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+
+                var objectType = startContext.Compilation.GetSpecialType(SpecialType.System_Object);
+                var referenceEqualsMethod = objectType?.GetMembers(nameof(ReferenceEquals))
+                                      .OfType<IMethodSymbol>()
+                                      .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public &&
+                                                           m.Parameters.Length == 2);
+
                 startContext.RegisterSyntaxNodeAction(
-                    c => AnalyzeSyntax(c, expressionTypeOpt), GetSyntaxKindToAnalyze());
+                    c => AnalyzeSyntax(c, expressionTypeOpt, referenceEqualsMethod), GetSyntaxKindToAnalyze());
             });
 
         }
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt, IMethodSymbol referenceEqualsMethod)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
             if (!ShouldAnalyze(conditionalExpression.SyntaxTree.Options))
@@ -88,20 +98,12 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
-            var condition = conditionNode as TBinaryExpressionSyntax;
-            if (condition == null)
+            var isEqualityLikeCondition = TryAnalyzeCondition(
+                context, syntaxFacts, referenceEqualsMethod, conditionNode, out var conditionLeft, out var conditionRight, out var isEquals);
+            if (!isEqualityLikeCondition)
             {
                 return;
             }
-
-            var isEquals = IsEquals(condition);
-            var isNotEquals = IsNotEquals(condition);
-            if (!isEquals && !isNotEquals)
-            {
-                return;
-            }
-
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeft, out var conditionRight);
 
             var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
             var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            if (isNotEquals && !syntaxFacts.IsNullLiteralExpression(whenFalseNode))
+            if (!isEquals && !syntaxFacts.IsNullLiteralExpression(whenFalseNode))
             {
                 return;
             }
@@ -181,9 +183,94 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 properties));
         }
 
+        private bool TryAnalyzeCondition(
+            SyntaxNodeAnalysisContext context, ISyntaxFactsService syntaxFacts, IMethodSymbol referenceEqualsMethod, SyntaxNode conditionNode,
+            out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
+        {
+            switch (conditionNode)
+            {
+                case TBinaryExpressionSyntax binaryExpression:
+                    return TryAnalyzeBinaryExpressionCondition(
+                        syntaxFacts, binaryExpression, out conditionLeft, out conditionRight, out isEquals);
+
+                case TInvocationExpression invocation:
+                    return TryAnalyzeInvocationCondition(
+                        context, syntaxFacts, referenceEqualsMethod, invocation,
+                        out conditionLeft, out conditionRight, out isEquals);
+
+                default:
+                    return TryAnalyzePatternCondition(
+                        conditionNode, out conditionLeft, out conditionRight, out isEquals);
+            }
+        }
+
+        private bool TryAnalyzeBinaryExpressionCondition(
+            ISyntaxFactsService syntaxFacts, TBinaryExpressionSyntax condition,
+            out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
+        {
+            isEquals = IsEquals(condition);
+            if (!isEquals && !IsNotEquals(condition))
+            {
+                conditionLeft = null;
+                conditionRight = null;
+                return false;
+            }
+            else
+            {
+                syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
+                return true;
+            }
+        }
+
+        private static bool TryAnalyzeInvocationCondition(
+            SyntaxNodeAnalysisContext context, ISyntaxFactsService syntaxFacts, IMethodSymbol referenceEqualsMethod, TInvocationExpression invocation,
+            out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
+        {
+            conditionLeft = null;
+            conditionRight = null;
+            isEquals = true;
+
+            var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocation);
+            var nameNode = syntaxFacts.IsIdentifierName(expression)
+                ? expression
+                : syntaxFacts.IsSimpleMemberAccessExpression(expression)
+                    ? syntaxFacts.GetNameOfMemberAccessExpression(expression)
+                    : null;
+
+            if (!syntaxFacts.IsIdentifierName(nameNode))
+            {
+                return false;
+            }
+
+            syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out _);
+            if (!syntaxFacts.StringComparer.Equals(name, nameof(ReferenceEquals)))
+            {
+                return false;
+            }
+
+            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
+            if (arguments.Count != 2)
+            {
+                return false;
+            }
+
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
+            var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
+            if (!referenceEqualsMethod.Equals(symbol))
+            {
+                return false;
+            }
+
+            conditionLeft = syntaxFacts.GetExpressionOfArgument(arguments[0]);
+            conditionRight = syntaxFacts.GetExpressionOfArgument(arguments[1]);
+            return true;
+        }
+
         internal static SyntaxNode GetWhenPartMatch(
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, SemanticModel semanticModel, SyntaxNode expressionToMatch, SyntaxNode whenPart)
         {
+            expressionToMatch = GetExpressionIfArgument(syntaxFacts, expressionToMatch);
             expressionToMatch = RemoveObjectCastIfAny(syntaxFacts, semanticModel, expressionToMatch);
             var current = whenPart;
             while (true)
@@ -205,6 +292,16 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                 current = unwrapped;
             }
+        }
+
+        private static SyntaxNode GetExpressionIfArgument(ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            if (syntaxFacts.IsArgument(node))
+            {
+                return syntaxFacts.GetExpressionOfArgument(node);
+            }
+
+            return node;
         }
 
         private static SyntaxNode RemoveObjectCastIfAny(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)

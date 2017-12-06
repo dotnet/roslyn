@@ -160,6 +160,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
 
+        bool IsArgument(SyntaxNode node);
+
         /// <summary>
         /// True if this is an argument with just an expression and nothing else (i.e. no ref/out,
         /// no named params, no omitted args).
@@ -319,7 +321,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // updates root will be returned.  The context node in that new tree will also
         // be returned.
         void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode, 
+            SyntaxNode root, SyntaxNode contextNode,
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
