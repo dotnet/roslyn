@@ -277,7 +277,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerExtension", "src\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerTestUtilities.Desktop", "src\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj", "{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E}"
 EndProject
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioIntegrationTestSetup", "src\VisualStudio\IntegrationTest\TestSetup\VisualStudioIntegrationTestSetup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioIntegrationTests", "src\VisualStudio\IntegrationTest\IntegrationTests\VisualStudioIntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"

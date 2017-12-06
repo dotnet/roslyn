@@ -1388,6 +1388,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ITypeParameterObjectCreationOperation));
             LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Initializer, "Initializer");
         }
 
         public override void VisitInvalid(IInvalidOperation operation)
