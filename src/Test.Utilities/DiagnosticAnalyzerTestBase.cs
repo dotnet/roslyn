@@ -28,8 +28,8 @@ namespace Test.Utilities
         private static readonly MetadataReference s_visualBasicReference = MetadataReference.CreateFromFile(typeof(Microsoft.VisualBasic.Devices.ComputerInfo).Assembly.Location);
         private static readonly MetadataReference s_codeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
         private static readonly MetadataReference s_workspacesReference = MetadataReference.CreateFromFile(typeof(Workspace).Assembly.Location);
-        private static readonly MetadataReference s_systemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
         private static readonly MetadataReference s_immutableCollectionsReference = MetadataReference.CreateFromFile(typeof(ImmutableArray<int>).Assembly.Location);
+        private static readonly MetadataReference s_systemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
         private static readonly MetadataReference s_systemDataReference = MetadataReference.CreateFromFile(typeof(System.Data.DataSet).Assembly.Location);
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         protected static readonly CompilationOptions s_CSharpUnsafeCodeDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true);
