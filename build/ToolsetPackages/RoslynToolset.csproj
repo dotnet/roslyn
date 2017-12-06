@@ -4,6 +4,7 @@
   <Import Project="..\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <NonShipping>true</NonShipping>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Net.Sdk" Version="$(MicrosoftNetSdkVersion)" />
