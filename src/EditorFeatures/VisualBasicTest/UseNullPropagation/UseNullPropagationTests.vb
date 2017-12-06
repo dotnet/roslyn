@@ -411,5 +411,33 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndReferenceEqualsWithOmittedArgument1() As Task
+            Await TestMissingAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Object.ReferenceEquals(o, ), Nothing, o.ToString())
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndReferenceEqualsWithOmittedArgument2() As Task
+            Await TestMissingAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Object.ReferenceEquals(, Nothing), Nothing, o.ToString())
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
