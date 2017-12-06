@@ -232,4 +232,22 @@
   <data name="OverloadWithOptionalParametersShouldHaveMostParametersMessage" xml:space="preserve">
     <value>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>
   </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFTitle" xml:space="preserve">
+    <value>Do not mix attributes from different versions of MEF</value>
+  </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFDescription" xml:space="preserve">
+    <value>Do not mix attributes from different versions of MEF</value>
+  </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFMessage" xml:space="preserve">
+    <value>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle" xml:space="preserve">
+    <value>Parts exported with MEFv2 must be marked as Shared</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription" xml:space="preserve">
+    <value>Part exported with MEFv2 must be marked with the Shared attribute.</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage" xml:space="preserve">
+    <value>'{0}' is exported with MEFv2 and hence must be marked as Shared</value>
+  </data>
 </root>
