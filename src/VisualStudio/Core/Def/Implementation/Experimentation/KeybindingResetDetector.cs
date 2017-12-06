@@ -11,12 +11,12 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
-using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 {
@@ -51,16 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private IExperimentationService _experimentationService;
         private IVsUIShell _uiShell;
         private IOleCommandTarget _oleCommandTarget;
+        private OleComponent _oleComponent;
 
         private bool _disposedValue = false;
         private uint _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
 
-        /// <summary>
-        /// Must compare/write with Interlocked.CompareExchange, as <see cref="ShowGoldBar"/> can be called on any thread.
-        /// </summary>
-        const int InfoBarOpen = 1;
-        const int InfoBarClosed = 0;
-        private int _infoBarOpen = InfoBarClosed;
+        private bool _infoBarOpen = false;
 
         [ImportingConstructor]
         public KeybindingResetDetector(VisualStudioWorkspace workspace, SVsServiceProvider serviceProvider)
@@ -77,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return Task.CompletedTask;
             }
 
-            return InvokeBelowInputPriority(() => InitializeCore());
+            return InvokeBelowInputPriority(InitializeCore);
         }
 
         private void InitializeCore()
@@ -137,6 +133,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     dwReserved: 0 /* from docs must be 0 */,
                     pCmdTrgt: this,
                     pdwCookie: out _priorityCommandTargetCookie);
+
+                // Initialize the OleComponent to listen for modal changes (which will tell us when Tools->Options is closed)
+                _oleComponent = OleComponent.CreateHostedComponent("Keybinding Reset Detector");
+                _oleComponent.ModalStateChanged += OnModalStateChanged;
 
                 if (ErrorHandler.Failed(hr))
                 {
@@ -207,13 +207,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private void ShowGoldBar()
         {
-            ThisCanBeCalledOnAnyThread();
+            AssertIsForeground();
 
             // If the gold bar is already open, do not show
-            if (Interlocked.CompareExchange(ref _infoBarOpen, InfoBarOpen, InfoBarClosed) == InfoBarOpen)
+            if (_infoBarOpen)
             {
                 return;
             }
+
+            _infoBarOpen = true;
 
             string message;
             if (_experimentationService.IsExperimentEnabled(InternalFlightName))
@@ -289,7 +291,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private void InfoBarClose()
         {
-            _infoBarOpen = InfoBarClosed;
+            AssertIsForeground();
+            _infoBarOpen = false;
         }
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
@@ -310,8 +313,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             return (int)OLE.Interop.Constants.OLECMDERR_E_NOTSUPPORTED;
         }
 
+        private void OnModalStateChanged(object sender, StateChangedEventArgs args)
+        {
+            ThisCanBeCalledOnAnyThread();
 
-        void Dispose(bool disposing)
+            // Only monitor for StateTransitionType.Exit. This will be fired when the shell is leaving a modal state, including
+            // Tools->Options being exited. This will fire more than just on Options close, but there's no harm from running an
+            // extra QueryStatus.
+            if (args.TransitionType == StateTransitionType.Exit)
+            {
+                InvokeBelowInputPriority(UpdateReSharperEnableStatus);
+            }
+        }
+
+        public void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
@@ -320,12 +335,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     if (_priorityCommandTargetCookie != VSConstants.VSCOOKIE_NIL)
                     {
                         AssertIsForeground();
+                        _oleComponent.Dispose();
+                        _oleComponent = null;
                         var priorityCommandTargetRegistrar = _serviceProvider.GetService(typeof(SVsRegisterPriorityCommandTarget)) as IVsRegisterPriorityCommandTarget;
                         var hr = priorityCommandTargetRegistrar.UnregisterPriorityCommandTarget(_priorityCommandTargetCookie);
                         if (ErrorHandler.Failed(hr))
                         {
                             FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
                         }
+                        _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
                     }
                 }
                 _disposedValue = true;
