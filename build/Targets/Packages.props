@@ -38,7 +38,7 @@
     <MicrosoftDiaSymReaderVersion>1.2.0</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-62221-01</MicrosoftDiaSymReaderConverterVersion>
     <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62221-01</MicrosoftDiaSymReaderConverterXmlVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.7.0-beta-25631</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.7.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
@@ -230,6 +230,7 @@
     <VSSDKComponentModelHostVersion>12.0.4</VSSDKComponentModelHostVersion>
     <VsWebsiteInteropVersion>8.0.0.0-alpha</VsWebsiteInteropVersion>
     <vswhereVersion>1.0.71</vswhereVersion>
+    <XliffTasksVersion>0.2.0-beta-000081</XliffTasksVersion>
     <xunitVersion>2.2.0</xunitVersion>
     <xunitanalyzersVersion>0.5.0</xunitanalyzersVersion>
     <xunitassertVersion>2.2.0</xunitassertVersion>
