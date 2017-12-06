@@ -138,12 +138,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeInfo.Assembly.GetName().Name;
         }
 
-        public static Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public static ValueTask<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             var workspaceAnalyzerOptions = analyzerOptions as WorkspaceAnalyzerOptions;
             if (workspaceAnalyzerOptions == null)
             {
-                return SpecializedTasks.Default<OptionSet>();
+                return new ValueTask<OptionSet>(default(OptionSet));
             }
 
             return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);

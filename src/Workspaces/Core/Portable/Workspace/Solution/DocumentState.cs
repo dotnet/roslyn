@@ -645,7 +645,8 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public async Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
         {
             var treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
