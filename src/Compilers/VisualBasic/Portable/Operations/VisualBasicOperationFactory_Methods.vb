@@ -564,24 +564,28 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateNestedDelegateCreationOrExpressionTreeOperand(operand As BoundNode, conversionSyntax As SyntaxNode) As Lazy(Of IOperation)
+            Return New Lazy(Of IOperation)(Function() CreateNestedDelegateCreationOrExpressionTreeOperandCore(operand, conversionSyntax))
+        End Function
+
+        Private Function CreateNestedDelegateCreationOrExpressionTreeOperandCore(operand As BoundNode, conversionSyntax As SyntaxNode) As IOperation
             Select Case operand.Kind
                 Case BoundKind.Parenthesized
                     Dim boundParenthesized = DirectCast(operand, BoundParenthesized)
                     ' Because we're in a delegate creation scenario, the underlying expression actually doesn't have a type.
-                    Dim type As ITypeSymbol = Nothing
-                    Return New Lazy(Of IOperation)(Function() New LazyParenthesizedExpression(
-                        CreateNestedDelegateCreationOrExpressionTreeOperand(boundParenthesized.Expression, conversionSyntax),
+                    Dim operandOperation = CreateNestedDelegateCreationOrExpressionTreeOperandCore(boundParenthesized.Expression, conversionSyntax)
+                    Return New ParenthesizedExpression(
+                        operandOperation,
                         _semanticModel,
                         boundParenthesized.Syntax,
-                        type,
+                        operandOperation.Type,
                         ConvertToOptional(boundParenthesized.ConstantValueOpt),
-                        boundParenthesized.WasCompilerGenerated))
+                        boundParenthesized.WasCompilerGenerated)
                 Case BoundKind.Conversion, BoundKind.DirectCast, BoundKind.TryCast
                     Dim boundConversion = DirectCast(operand, BoundConversionOrCast)
-                    Return CreateConversionOperand(boundConversion.Operand, CreateConversion(boundConversion), conversionSyntax, boundConversion.Type).Operation
+                    Return CreateConversionOperand(boundConversion.Operand, CreateConversion(boundConversion), conversionSyntax, boundConversion.Type).Operation.Value
                 Case BoundKind.DelegateCreationExpression
                     Dim boundDelegateCreation = DirectCast(operand, BoundDelegateCreationExpression)
-                    Return New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreation))
+                    Return CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreation)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(operand.Kind)
             End Select

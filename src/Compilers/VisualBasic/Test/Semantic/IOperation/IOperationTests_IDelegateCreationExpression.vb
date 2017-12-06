@@ -1998,9 +1998,9 @@ End Class]]>.Value
 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'CType(((Sub ... )), Object)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Sub() Con ... iteLine()))')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '((Sub() Con ... iteLine()))')
       Operand: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Sub() Cons ... riteLine())')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '(Sub() Cons ... riteLine())')
           Operand: 
             IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
               Target: 
@@ -2084,9 +2084,9 @@ End Class]]>.Value
 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast( ... )), Object)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Sub() Con ... iteLine()))')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '((Sub() Con ... iteLine()))')
       Operand: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Sub() Cons ... riteLine())')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '(Sub() Cons ... riteLine())')
           Operand: 
             IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
               Target: 
@@ -2171,9 +2171,9 @@ End Class]]>.Value
 IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'TryCast(((S ... )), Object)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Sub() Con ... iteLine()))')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '((Sub() Con ... iteLine()))')
       Operand: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Sub() Cons ... riteLine())')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: Sub <generated method>()) (Syntax: '(Sub() Cons ... riteLine())')
           Operand: 
             IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
               Target: 
