@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly HashSet<string> _candidates;
 #if DEBUG
-        bool _sealed;
+        private bool _sealed;
 #endif
 
         public static readonly QuickTypeIdentifierAttributeChecker Predefined = new QuickTypeIdentifierAttributeChecker();
