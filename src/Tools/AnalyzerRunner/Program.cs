@@ -465,9 +465,10 @@ namespace AnalyzerRunner
             }
 
             WriteLine($"Execution times (ms):", ConsoleColor.DarkCyan);
+            var longestAnalyzerName = telemetryInfoDictionary.Select(x => x.Key.GetType().Name.Length).Max();
             foreach (var pair in telemetryInfoDictionary.OrderBy(x => x.Key.GetType().Name, StringComparer.OrdinalIgnoreCase))
             {
-                WriteExecutionTimes(pair.Key.GetType().Name, pair.Value);
+                WriteExecutionTimes(pair.Key.GetType().Name, longestAnalyzerName, pair.Value);
             }
         }
 
@@ -496,9 +497,10 @@ namespace AnalyzerRunner
             WriteLine($"Syntax Tree Actions:            {telemetry.SyntaxTreeActionsCount}", ConsoleColor.White);
         }
 
-        private static void WriteExecutionTimes(string analyzerName, AnalyzerTelemetryInfo telemetry)
+        private static void WriteExecutionTimes(string analyzerName, int longestAnalyzerName, AnalyzerTelemetryInfo telemetry)
         {
-            WriteLine($"{analyzerName + ":",-60} {telemetry.ExecutionTime.TotalMilliseconds,7:0}", ConsoleColor.White);
+            var padding = new string(' ', longestAnalyzerName - analyzerName.Length);
+            WriteLine($"{analyzerName}:{padding} {telemetry.ExecutionTime.TotalMilliseconds,7:0}", ConsoleColor.White);
         }
 
         internal static void WriteLine(string text, ConsoleColor color)
