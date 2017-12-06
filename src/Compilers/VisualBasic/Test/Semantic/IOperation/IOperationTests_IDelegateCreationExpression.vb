@@ -2119,20 +2119,34 @@ Imports System
 
 Public Class C
     Public Sub M1()
-        Dim a = DirectCast(((DirectCast(Sub() Console.WriteLine()))), Object)'BIND:"DirectCast(((DirectCast(Sub() Console.WriteLine()))), Object)"
+        Dim a = DirectCast(((DirectCast(Sub() Console.WriteLine(), Action))), Object)'BIND:"DirectCast(((DirectCast(Sub() Console.WriteLine(), Action))), Object)"
     End Sub
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-False
-	Exception stacktrace
-   at Xunit.Assert.True(Nullable`1 condition, String userMessage)
-   at Xunit.Assert.True(Boolean condition, String userMessage)
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\frsilb\Documents\git\roslyn\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 918
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, String errs, Boolean suppressInfos) in C:\Users\frsilb\Documents\git\roslyn\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 887
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBaseBase.VerifyOperationTreeAndDiagnosticsForTest[TSyntaxNode](VisualBasicCompilation compilation, String fileName, String expectedOperationTree, String expectedDiagnostics, Int32 which, Action`3 additionalOperationTreeVerifier) in C:\Users\frsilb\Documents\git\roslyn\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 860
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBaseBase.VerifyOperationTreeAndDiagnosticsForTest[TSyntaxNode](String testSrc, String expectedOperationTree, String expectedDiagnostics, VisualBasicCompilationOptions compilationOptions, VisualBasicParseOptions parseOptions, Int32 which, IEnumerable`1 additionalReferences, Action`3 additionalOperationTreeVerifier, Boolean useLatestFramework) in C:\Users\frsilb\Documents\git\roslyn\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 881
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.IOperationTests.DelegateCreationExpression_ParenthesizedLambda_DirectCast_NestedDirectCastNonDelegateTargetType_SuccessfulConversion() in C:\Users\frsilb\Documents\git\roslyn\src\Compilers\VisualBasic\Test\Semantic\IOperation\IOperationTests_IDelegateCreationExpression.vb:line 2154
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast( ... )), Object)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '((DirectCas ... , Action)))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '(DirectCast ... ), Action))')
+          Operand: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'DirectCast( ... (), Action)')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
+                      Expression: 
+                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: 
+                        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
