@@ -48,9 +48,9 @@ namespace AnalyzerRunner
                 };
 
             var analyzers = GetDiagnosticAnalyzers(options.AnalyzerPath);
-            analyzers = FilterAnalyzers(analyzers, options).ToImmutableArray();
+            analyzers = FilterAnalyzers(analyzers, options);
 
-            if (analyzers.Length == 0)
+            if (!analyzers.Any(pair => pair.Value.Any()))
             {
                 WriteLine("No analyzers found", ConsoleColor.Red);
                 PrintHelp();
@@ -181,7 +181,7 @@ namespace AnalyzerRunner
             }
         }
 
-        private static async Task<DocumentAnalyzerPerformance> TestDocumentPerformanceAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, Project project, DocumentId documentId, Options analyzerOptionsInternal, CancellationToken cancellationToken)
+        private static async Task<DocumentAnalyzerPerformance> TestDocumentPerformanceAsync(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzers, Project project, DocumentId documentId, Options analyzerOptionsInternal, CancellationToken cancellationToken)
         {
             // update the project compilation options
             var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
@@ -191,13 +191,18 @@ namespace AnalyzerRunner
             var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
             var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
 
+            if (!analyzers.TryGetValue(project.Language, out var languageAnalyzers))
+            {
+                languageAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
+            }
+
             var stopwatch = Stopwatch.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
             {
                 Compilation compilation = await processedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution);
-                CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
+                CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(languageAnalyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
 
                 SyntaxTree tree = await project.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, cancellationToken).ConfigureAwait(false);
@@ -270,6 +275,13 @@ namespace AnalyzerRunner
             return new Statistic(numberOfNodes, numberOfTokens, numberOfTrivia);
         }
 
+        private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> FilterAnalyzers(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzers, Options options)
+        {
+            return analyzers.ToImmutableDictionary(
+                pair => pair.Key,
+                pair => FilterAnalyzers(pair.Value, options).ToImmutableArray());
+        }
+
         private static IEnumerable<DiagnosticAnalyzer> FilterAnalyzers(IEnumerable<DiagnosticAnalyzer> analyzers, Options options)
         {
             var analyzerTypes = new HashSet<Type>();
@@ -300,7 +312,7 @@ namespace AnalyzerRunner
             }
         }
 
-        private static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string path)
+        private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzers(string path)
         {
             if (File.Exists(path))
             {
@@ -308,22 +320,30 @@ namespace AnalyzerRunner
             }
             else if (Directory.Exists(path))
             {
-                return Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories).SelectMany(file => GetDiagnosticAnalyzersFromFile(file)).ToImmutableArray();
+                return Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories)
+                    .SelectMany(file => GetDiagnosticAnalyzersFromFile(file))
+                    .ToLookup(analyzers => analyzers.Key, analyzers => analyzers.Value)
+                    .ToImmutableDictionary(
+                        group => group.Key,
+                        group => group.SelectMany(analyzer => analyzer).ToImmutableArray());
             }
 
             throw new InvalidDataException($"Cannot find {path}.");
         }
 
-        private static ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzersFromFile(string path)
+        private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzersFromFile(string path)
         {
             var analyzerReference = new AnalyzerFileReference(path, AssemblyLoader.Instance);
-            var analyzers = analyzerReference.GetAnalyzersForAllLanguages();
-            return analyzers;
+            var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
+            var basicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
+            return ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty
+                .Add(LanguageNames.CSharp, csharpAnalyzers)
+                .Add(LanguageNames.VisualBasic, basicAnalyzers);
         }
 
         private static async Task<ImmutableDictionary<ProjectId, AnalysisResult>> GetAnalysisResultAsync(
             Solution solution,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzers,
             Options options,
             CancellationToken cancellationToken)
         {
@@ -343,10 +363,15 @@ namespace AnalyzerRunner
                         continue;
                     }
 
+                    if (!analyzers.TryGetValue(project.Language, out var languageAnalyzers) || languageAnalyzers.IsEmpty)
+                    {
+                        continue;
+                    }
+
                     projectDiagnosticTasks.Add(new KeyValuePair<ProjectId, Task<AnalysisResult>>(
                         project.Id,
                         GetProjectAnalysisResultAsync(
-                            analyzers,
+                            languageAnalyzers,
                             project,
                             options,
                             cancellationToken)));
