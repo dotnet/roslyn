@@ -324,6 +324,7 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestWithNullableTypeAndReferenceEquals() As Task
             Await TestInRegularAndScriptAsync(
@@ -345,6 +346,7 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestWithNullableTypeAndReferenceEqualsReversed() As Task
             Await TestInRegularAndScriptAsync(
@@ -366,6 +368,7 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject() As Task
             Await TestInRegularAndScriptAsync(
@@ -387,6 +390,7 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithObjectReversed() As Task
             Await TestInRegularAndScriptAsync(

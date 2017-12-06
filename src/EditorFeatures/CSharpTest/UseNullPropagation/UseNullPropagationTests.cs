@@ -479,6 +479,7 @@ class C
 ");
         }
 
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndIsNull()
         {
@@ -503,6 +504,7 @@ class C
 }");
         }
 
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEquals()
         {
@@ -527,6 +529,7 @@ class C
 }");
         }
 
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEqualsReversed()
         {
@@ -551,6 +554,7 @@ class C
 }");
         }
 
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObject()
         {
@@ -575,6 +579,7 @@ class C
 }");
         }
 
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObjectReversed()
         {
