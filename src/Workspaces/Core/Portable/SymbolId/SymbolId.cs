@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var builder = new StringBuilder();
-            var generator = new Generator(builder);
+            var generator = new Generator(builder, typeParameterContext: null);
             generator.Visit(symbol);
             return builder.ToString();
         }
@@ -202,10 +202,12 @@ namespace Microsoft.CodeAnalysis
         private struct Generator
         {
             private readonly StringBuilder _builder;
+            private readonly ISymbol _typeParameterContext;
 
-            public Generator(StringBuilder builder)
+            public Generator(StringBuilder builder, ISymbol typeParameterContext)
             {
                 _builder = builder;
+                _typeParameterContext = typeParameterContext;
             }
 
             public bool Visit(ISymbol symbol)
@@ -380,7 +382,7 @@ namespace Microsoft.CodeAnalysis
                                 _builder.Append(",");
                             }
 
-                            Visit(symbol.TypeArguments[i]);
+                            new Generator(_builder, symbol.ConstructedFrom).Visit(symbol.TypeArguments[i]);
                         }
 
                         _builder.Append("}");
@@ -402,7 +404,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         var p = parameters[i];
-                        Visit(p.Type);
+                        new Generator(_builder, p.ContainingSymbol).Visit(p.Type);
                         if (p.RefKind != RefKind.None)
                         {
                             _builder.Append("@");
@@ -483,7 +485,14 @@ namespace Microsoft.CodeAnalysis
 
                             // If we already have a type parameter context (say because we're encoding parameters of a generic method), then use it.
                             // Otherwise, use the current type as the context, so that it's type parameters resolve
-                            this.Visit(symbol.TypeArguments[i]);
+                            if (_typeParameterContext == null)
+                            {
+                                new Generator(_builder, symbol).Visit(symbol.TypeArguments[i]);
+                            }
+                            else
+                            {
+                                this.Visit(symbol.TypeArguments[i]);
+                            }
                         }
 
                         _builder.Append("}");
@@ -533,10 +542,13 @@ namespace Microsoft.CodeAnalysis
                 // Normally, we just refer to our type parameter ordinal within the symbol being
                 // visited.  However, if the outermost symbol being visited is the type parameter
                 // itself, we need to provide some context first.
-                if (_builder.Length == 0)
+                if (_builder.Length == 0 || !IsInScope(symbol))
                 {
-                    Visit(symbol.ContainingSymbol);
-                    _builder.Append(":");
+                    // reference to type parameter not in scope, make explicit scope reference
+                    if (this.Visit(symbol.ContainingSymbol))
+                    {
+                        _builder.Append(":");
+                    }
                 }
 
                 if (symbol.DeclaringMethod != null)
@@ -554,6 +566,22 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return true;
+            }
+
+            private bool IsInScope(ITypeParameterSymbol typeParameterSymbol)
+            {
+                // determine if the type parameter is declared in scope defined by the typeParameterContext symbol
+                var typeParameterDeclarer = typeParameterSymbol.ContainingSymbol;
+
+                for (var scope = _typeParameterContext; scope != null; scope = scope.ContainingSymbol)
+                {
+                    if (Equals(scope, typeParameterDeclarer))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private bool VisitLocal(ILocalSymbol symbol)
