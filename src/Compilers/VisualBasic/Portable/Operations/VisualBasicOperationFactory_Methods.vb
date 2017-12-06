@@ -524,6 +524,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             None
             DelegateCreation
             ExpressionTree
+            Conversion
         End Enum
 
         Private Shared Function GetNestedInfo(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode, targetType As TypeSymbol
@@ -545,6 +546,12 @@ Namespace Microsoft.CodeAnalysis.Operations
                             Return (NestedType.DelegateCreation, CreateConversion(nestedConversion))
                         ElseIf (nestedConversion.ConversionKind And ConversionKind.ConvertedToExpressionTree) = ConversionKind.ConvertedToExpressionTree Then
                             Return (NestedType.ExpressionTree, CreateConversion(nestedConversion))
+                        ElseIf nestedConversion.Operand.Kind = BoundKind.Conversion OrElse
+                               nestedConversion.Operand.Kind = BoundKind.TryCast OrElse
+                               nestedConversion.Operand.Kind = BoundKind.DirectCast OrElse
+                               nestedConversion.Operand.Kind = BoundKind.AddressOfOperator Then
+                            ' If there is another conversion under this nested conversion, when we assume that this conversion should be pruned like in other cases
+                            Return (NestedType.Conversion, CreateConversion(nestedConversion))
                         End If
                     Case BoundKind.DelegateCreationExpression
                         Dim nestedDelegateCreation = DirectCast(nestedOperand, BoundDelegateCreationExpression)
