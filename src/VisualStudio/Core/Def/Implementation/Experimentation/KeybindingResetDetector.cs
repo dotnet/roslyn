@@ -230,6 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 throw ExceptionUtilities.Unreachable;
             }
 
+            KeybindingsResetLogger.Log("InfoBarShown");
             var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
                 message,
@@ -261,6 +262,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT,
                     null));
 
+            KeybindingsResetLogger.Log("KeybindingsReset");
+
             _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
         }
 
@@ -269,6 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             ThisCanBeCalledOnAnyThread();
             Process.Start(KeybindingsFwLink);
 
+            KeybindingsResetLogger.Log("ExtensionsLink");
             _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
         }
 
@@ -277,6 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             AssertIsForeground();
 
             _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeverShowAgain, true);
+            KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the dispose method.
             Dispose();
