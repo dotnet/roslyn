@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                 var objectType = startContext.Compilation.GetSpecialType(SpecialType.System_Object);
                 var referenceEqualsMethod = objectType?.GetMembers(nameof(ReferenceEquals))
-                                      .OfType<IMethodSymbol>()
-                                      .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public &&
-                                                           m.Parameters.Length == 2);
+                                                       .OfType<IMethodSymbol>()
+                                                       .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public &&
+                                                                            m.Parameters.Length == 2);
 
                 startContext.RegisterSyntaxNodeAction(
                     c => AnalyzeSyntax(c, expressionTypeOpt, referenceEqualsMethod), GetSyntaxKindToAnalyze());
@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
             var isEqualityLikeCondition = TryAnalyzeCondition(
-                context, syntaxFacts, referenceEqualsMethod, conditionNode, out var conditionLeft, out var conditionRight, out var isEquals);
+                context, syntaxFacts, referenceEqualsMethod, conditionNode,
+                out var conditionLeft, out var conditionRight, out var isEquals);
             if (!isEqualityLikeCondition)
             {
                 return;
