@@ -59,18 +59,18 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
 
                 var objectType = startContext.Compilation.GetSpecialType(SpecialType.System_Object);
-                var referenceEqualsMethod = objectType?.GetMembers(nameof(ReferenceEquals))
-                                                       .OfType<IMethodSymbol>()
-                                                       .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public &&
-                                                                            m.Parameters.Length == 2);
+                var referenceEqualsMethodOpt = objectType?.GetMembers(nameof(ReferenceEquals))
+                                                          .OfType<IMethodSymbol>()
+                                                          .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public &&
+                                                                               m.Parameters.Length == 2);
 
                 startContext.RegisterSyntaxNodeAction(
-                    c => AnalyzeSyntax(c, expressionTypeOpt, referenceEqualsMethod), GetSyntaxKindToAnalyze());
+                    c => AnalyzeSyntax(c, expressionTypeOpt, referenceEqualsMethodOpt), GetSyntaxKindToAnalyze());
             });
 
         }
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt, IMethodSymbol referenceEqualsMethod)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt, IMethodSymbol referenceEqualsMethodOpt)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
             if (!ShouldAnalyze(conditionalExpression.SyntaxTree.Options))
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
             var isEqualityLikeCondition = TryAnalyzeCondition(
-                context, syntaxFacts, referenceEqualsMethod, conditionNode,
+                context, syntaxFacts, referenceEqualsMethodOpt, conditionNode,
                 out var conditionLeft, out var conditionRight, out var isEquals);
             if (!isEqualityLikeCondition)
             {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         private bool TryAnalyzeCondition(
-            SyntaxNodeAnalysisContext context, ISyntaxFactsService syntaxFacts, IMethodSymbol referenceEqualsMethod, SyntaxNode conditionNode,
+            SyntaxNodeAnalysisContext context, ISyntaxFactsService syntaxFacts, IMethodSymbol referenceEqualsMethodOpt, SyntaxNode conditionNode,
             out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
         {
             switch (conditionNode)
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                 case TInvocationExpression invocation:
                     return TryAnalyzeInvocationCondition(
-                        context, syntaxFacts, referenceEqualsMethod, invocation,
+                        context, syntaxFacts, referenceEqualsMethodOpt, invocation,
                         out conditionLeft, out conditionRight, out isEquals);
 
                 default:
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         private static bool TryAnalyzeInvocationCondition(
-            SyntaxNodeAnalysisContext context, ISyntaxFactsService syntaxFacts, IMethodSymbol referenceEqualsMethod, TInvocationExpression invocation,
+            SyntaxNodeAnalysisContext context, ISyntaxFactsService syntaxFacts, IMethodSymbol referenceEqualsMethodOpt, TInvocationExpression invocation,
             out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
         {
             conditionLeft = null;
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
             var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
-            if (!referenceEqualsMethod.Equals(symbol))
+            if (!referenceEqualsMethodOpt.Equals(symbol))
             {
                 return false;
             }
