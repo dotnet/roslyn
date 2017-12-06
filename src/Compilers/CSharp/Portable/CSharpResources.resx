@@ -1554,6 +1554,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PropertyWithNoAccessors" xml:space="preserve">
     <value>'{0}': property or indexer must have at least one accessor</value>
   </data>
+  <data name="ERR_CantUseVoidInArglist" xml:space="preserve">
+    <value>__arglist cannot have an argument of void type</value>
+  </data>
   <data name="ERR_NewVirtualInSealed" xml:space="preserve">
     <value>'{0}' is a new virtual member in sealed class '{1}'</value>
   </data>
@@ -5234,5 +5237,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_FilterIsConstantFalseRedundantTryCatch_Title" xml:space="preserve">
     <value>Filter expression is a constant 'false'. </value>
+  </data>
+  <data name="ERR_ConditionalInInterpolation" xml:space="preserve">
+    <value>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</value>
   </data>
 </root>

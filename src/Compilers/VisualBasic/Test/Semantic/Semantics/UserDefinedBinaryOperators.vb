@@ -521,7 +521,9 @@ BC30452: Operator 'OrElse' is not defined for types 'Module1.B3' and 'Module1.B3
             Next
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
+        <WorkItem(23232, "https://github.com/dotnet/roslyn/issues/23232")>
         Public Sub ShortCircuiting5()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -585,6 +587,36 @@ BC30521: Overload resolution failed because no accessible 'Or' is most specific 
                 Dim symbolInfo = model.GetSymbolInfo(node)
                 Assert.Null(symbolInfo.Symbol)
             Next
+
+            compilation.VerifyOperationTree(CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 1), expectedOperationTree:=
+            <![CDATA[
+IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'New B3() An ... so New B2()')
+  Left: 
+    IObjectCreationOperation (Constructor: Sub Module1.B3..ctor()) (OperationKind.ObjectCreation, Type: Module1.B3, IsInvalid) (Syntax: 'New B3()')
+      Arguments(0)
+      Initializer: 
+        null
+  Right: 
+    IObjectCreationOperation (Constructor: Sub Module1.B2..ctor()) (OperationKind.ObjectCreation, Type: Module1.B2, IsInvalid) (Syntax: 'New B2()')
+      Arguments(0)
+      Initializer: 
+        null
+]]>.Value)
+
+            compilation.VerifyOperationTree(CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 2), expectedOperationTree:=
+            <![CDATA[
+IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'New B3() OrElse New B2()')
+  Left: 
+    IObjectCreationOperation (Constructor: Sub Module1.B3..ctor()) (OperationKind.ObjectCreation, Type: Module1.B3, IsInvalid) (Syntax: 'New B3()')
+      Arguments(0)
+      Initializer: 
+        null
+  Right: 
+    IObjectCreationOperation (Constructor: Sub Module1.B2..ctor()) (OperationKind.ObjectCreation, Type: Module1.B2, IsInvalid) (Syntax: 'New B2()')
+      Arguments(0)
+      Initializer: 
+        null
+]]>.Value)
         End Sub
 
         <Fact>

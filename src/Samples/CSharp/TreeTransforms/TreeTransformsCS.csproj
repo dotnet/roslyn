@@ -10,6 +10,7 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifierX86)</RuntimeIdentifier>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NonShipping>true</NonShipping>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj" />

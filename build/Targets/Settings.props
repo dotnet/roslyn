@@ -140,6 +140,16 @@
     <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
 
     <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
+
+    <!-- It is only intended to automatically run update during dev cycle. However, It will fail the build on CI if the XLF file is not updated.
+         XLF file should be checked in and loc team will update the XLF it with translated version.
+    -->
+    <UpdateXlfOnBuild Condition="'$(DeveloperBuild)' == 'true'">true</UpdateXlfOnBuild>
+
+    <!-- Even when we're using the "desktop" version of MSBuild we always want to use the "Core" approach for generating satellite assemblies.
+         This avoids a couple of issues in al.exe (see https://github.com/dotnet/roslyn/issues/23190 and https://github.com/dotnet/roslyn/issues/23191
+         for details on those issues). -->
+    <GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
@@ -211,7 +221,9 @@
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
-    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props" />
+    <Import 
+      Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props"
+      Condition="Exists('$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props')" />
   </ImportGroup>
 
   <!-- 

@@ -1154,6 +1154,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return LexicalSortKey.Compare(first, second, Me)
         End Function
 
+        ''' <summary>
+        ''' Compare two source locations, using their containing trees, and then by Span.First within a tree. 
+        ''' Can be used to get a total ordering on declarations, for example.
+        ''' </summary>
+        Friend Overrides Function CompareSourceLocations(first As SyntaxReference, second As SyntaxReference) As Integer
+            Return LexicalSortKey.Compare(first, second, Me)
+        End Function
+
         Friend Overrides Function GetSyntaxTreeOrdinal(tree As SyntaxTree) As Integer
             Debug.Assert(Me.ContainsSyntaxTree(tree))
             Return _syntaxTreeOrdinalMap(tree)

@@ -5986,7 +5986,12 @@ tryAgain:
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                 case ParseTypeMode.AfterTupleComma:
                     // We are parsing the type for a declaration expression in a tuple, which does
-                    // not permit pointer types. In that context a `*` is parsed as a multiplication.
+                    // not permit pointer types except as an element type of an array type.
+                    // In that context a `*` is parsed as a multiplication.
+                    if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
+                    {
+                        goto default;
+                    }
                     break;
                 default:
                     while (this.CurrentToken.Kind == SyntaxKind.AsteriskToken)
@@ -6209,14 +6214,17 @@ tryAgain:
                 }
             }
 
-            // Check for pointer types (only if pType is NOT an array type)
             switch (mode)
             {
                 case ParseTypeMode.AfterIs:
                 case ParseTypeMode.AfterCase:
                 case ParseTypeMode.AfterTupleComma:
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                    // these contexts do not permit a pointer type.
+                    // these contexts do not permit a pointer type except as an element type of an array.
+                    if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
+                    {
+                        type = this.ParsePointerTypeMods(type);
+                    }
                     break;
                 case ParseTypeMode.Normal:
                 case ParseTypeMode.Parameter:
@@ -6253,28 +6261,26 @@ tryAgain:
             return type;
         }
 
+        private bool PointerTypeModsFollowedByRankAndDimensionSpecifier()
+        {
+            // Are pointer specifiers (if any) followed by an array specifier?
+            for (int i = 0; ; i++)
+            {
+                switch (this.PeekToken(i).Kind)
+                {
+                    case SyntaxKind.AsteriskToken:
+                        continue;
+                    case SyntaxKind.OpenBracketToken:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
         private bool IsPossibleRankAndDimensionSpecifier()
         {
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-            {
-                // When specifying rank and dimension, only commas and close square
-                // brackets are valid after an open square bracket. However, we accept
-                // numbers as well as the user might (mistakenly) try to specify the
-                // array size here. This way, when the parser actually consumes these
-                // tokens it will be able to specify an appropriate error message.
-                /*
-                SyntaxKind k = this.PeekToken(1).Kind;
-                if (k == SyntaxKind.Comma ||
-                    k == SyntaxKind.CloseBracket ||
-                    k == SyntaxKind.NumericLiteral)
-                {
-                    return true;
-                }
-                 */
-                return true;
-            }
-
-            return false;
+            return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
         private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, out bool sawNonOmittedSize)
@@ -9055,9 +9061,23 @@ tryAgain:
             {
                 var questionToken = this.EatToken();
                 var colonLeft = this.ParsePossibleRefExpression();
-                var colon = this.EatToken(SyntaxKind.ColonToken);
-                var colonRight = this.ParsePossibleRefExpression();
-                leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken && this.lexer.InterpolationFollowedByColon)
+                {
+                    // We have an interpolated string with an interpolation that contains a conditional expression.
+                    // Unfortunately, the precedence demands that the colon is considered to signal the start of the
+                    // format string. Without this code, the compiler would complain about a missing colon, and point
+                    // to the colon that is present, which would be confusing. We aim to give a better error message.
+                    var colon = SyntaxFactory.MissingToken(SyntaxKind.ColonToken);
+                    var colonRight = _syntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
+                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                    leftOperand = this.AddError(leftOperand, ErrorCode.ERR_ConditionalInInterpolation);
+                }
+                else
+                {
+                    var colon = this.EatToken(SyntaxKind.ColonToken);
+                    var colonRight = this.ParsePossibleRefExpression();
+                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                }
             }
 
             return leftOperand;

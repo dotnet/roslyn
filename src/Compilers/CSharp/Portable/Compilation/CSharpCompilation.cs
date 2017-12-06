@@ -2990,6 +2990,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return loc1.SourceSpan.Start - loc2.SourceSpan.Start;
         }
 
+        internal override int CompareSourceLocations(SyntaxReference loc1, SyntaxReference loc2)
+        {
+            var comparison = CompareSyntaxTreeOrdering(loc1.SyntaxTree, loc2.SyntaxTree);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            return loc1.Span.Start - loc2.Span.Start;
+        }
+
         /// <summary>
         /// Return true if there is a source declaration symbol name that meets given predicate.
         /// </summary>

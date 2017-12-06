@@ -91,6 +91,9 @@
 
     <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
     <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+
+    <DisableTransitiveProjectReferences Condition="'$(RoslynProjectType)' == 'Vsix'">true</DisableTransitiveProjectReferences>
+
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
@@ -118,6 +121,11 @@
     </When>
   </Choose>
 
+  <!-- Settings for localization -->
+  <ItemGroup>
+    <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" Condition="'$(NonShipping)' != 'true'" />
+  </ItemGroup>
+
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
@@ -140,8 +148,9 @@
             <PublicKey>$(RoslynInternalKey)</PublicKey>
             <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
           </PropertyGroup>
-          <!-- Real-signing is only supported cross-platform in the boostrap toolset -->
-          <PropertyGroup Condition="'$(OS)' != 'Windows_NT' AND '$(BootstrapBuildPath)' == ''">
+          <!-- Real-signing cross-platform currently has a blocking bug:
+               https://github.com/dotnet/roslyn/issues/23521 -->
+          <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
               <PublicSign>true</PublicSign>
           </PropertyGroup>
         </Otherwise>
@@ -289,13 +298,47 @@
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
-  <Import Project="DisableTransitiveReferences.targets" Condition="'$(RoslynProjectType)' == 'Vsix' AND '$(RoslynSdkProject)' == 'true'" />
 
   <ItemDefinitionGroup>
     <VSIXSourceItem>
       <Visible>false</Visible>
     </VSIXSourceItem>
   </ItemDefinitionGroup>
+
+  <!--
+    This is a workaround for allowing neutral CTO resource produced from *.vsct to go in the main assembly.
+    We move the neutral *.cto file to be categorized as WithCulture=true,Culture=en to prevent the tools from falsely reporting:
+      error VSSDK1006: Two CTO files have the same Menus.ctmenu resource name.
+     Note that this categorization does not apply to the items that actually produce the .resources.dll and so it will
+     not cause an English satellite to be generated.
+     The documented way around this is to put all resources (including neutral/en) in satellites:
+       https://msdn.microsoft.com/en-us/library/ee943168.aspx
+       However, that has consequences we do not want:
+        - It breaks resx code-gen to *.designer.cs
+        - It causes extra dll loads in en case
+        - If we ever split satellites in to language packs, the english fallback satellites would become a special case.
+  -->
+  <Target Name="AssignEnCultureToNeutralCto" BeforeTargets="MergeCtoResource">
+    <ItemGroup>
+      <_GeneratedCTOFilesWithCulture Include="@(_GeneratedCTOFilesWithNoCulture)">
+        <Culture>en</Culture>
+        <WithCulture>true</WithCulture>
+      </_GeneratedCTOFilesWithCulture>
+      <_GeneratedCTOFilesWithNoCulture Remove="@(_GeneratedCTOFilesWithNoCulture)" />
+      <_ResourcesToMergeWithCTOWithCultureMetadata Condition="'%(WithCulture)' != 'true'">
+        <Culture>en</Culture>
+        <WithCulture>true</WithCulture>
+      </_ResourcesToMergeWithCTOWithCultureMetadata>
+    </ItemGroup>
+  </Target>
+  
+  <!--
+    Workaround until we can move to a version of MSBuild that includes the change in https://github.com/Microsoft/msbuild/pull/2726.
+    We want to opt into the Microsoft.NET.Sdk approach to generating satellite assemblies, which means we also need to opt out of
+    default approach. We do this by turning GenerateSatelliteAssemblies into a no-op.
+    This should be removed as part of fixing https://github.com/dotnet/roslyn/issues/23566.
+  -->
+  <Target Name="GenerateSatelliteAssemblies" />
 
   <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
@@ -474,8 +517,12 @@
       <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) &lt;= 0 ">$(dotnetSdkVersion)</ShortSdkVersion>
     </PropertyGroup>
 
+    <!-- The $(UsingMicrosoftNETSdk) property is set when we are using a 2.0 SDK or newer (non-legacy). This means
+         we can depend on global.json having enforced the minimum version we require for our build. If it's not
+         set though we need to error out and provide a link to get the correct SDK installed.
+      -->
     <Error 
-      Text="The $(ShortSdkVersion) SDK is required to build this repo"
+      Text="The $(ShortSdkVersion) SDK is required to build this repo. It can be install here https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe"
       Condition="'$(UsingMicrosoftNETSdk)' == '' AND '$(RoslynSdkProject)' == 'true'" />
   </Target> 
 
@@ -501,20 +548,6 @@
     <!-- Special items in VSSDK projects -->
     <None Include="@(VSCTCompile)" />
   </ItemGroup>
-  
-  <!-- Work around https://github.com/dotnet/roslyn/issues/20945 -->
-  <Target Name="_CheckForUnsupportedNETCoreVersion" />
-
-  <!-- This is a work around to force the deployment of certain runtime specific DLLs contained 
-       in lib folders. Lacking this DLLs like System.Security.Cryptography.Algorithms won't deploy
-       on net461 projects. 
-       
-       https://github.com/dotnet/sdk/issues/1552 -->
-  <Target Name="WorkaroundConflictResolution" AfterTargets="_ComputeActiveTFMFileDependencies" Condition="'$(PlatformTarget)' == 'AnyCPU' AND '$(TargetFrameworkIdentifier)' == '.NETFramework' AND '$(_NeedRuntimeAssets)' == 'true'" >
-    <ItemGroup>
-      <_ActiveTFMFileDependencies Remove="@(_ActiveTFMFileDependencies->WithMetadataValue('FileGroup', 'RuntimeTarget'))" />
-    </ItemGroup>
-  </Target>
 
   <!-- 
     Prepare inputs for Symbol Store publishing.

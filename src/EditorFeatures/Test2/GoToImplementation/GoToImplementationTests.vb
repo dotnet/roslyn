@@ -76,20 +76,33 @@ class [|$$C|] { }
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Async Function TestWithAbstractClass() As Task
-            ' Since the class is abstract, it cannot be an implementation of itself. Compare to TestWithSingleClass
-            ' above (where we count a class as an implementation of itself) or TestWithAbstractMethodImplementation
-            ' where we apply the same logic to abstract methods.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-abstract class $$C
+abstract class [|$$C|]
 {
 }
 
 class [|D|] : C
 {
 }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithAbstractClassFromInterface() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface $$I { }
+abstract class [|C|] : I { }
+class [|D|] : C { }
         </Document>
     </Project>
 </Workspace>
@@ -318,7 +331,7 @@ interface I { void $$M(); }
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class C : I { public abstract void M() { } }
+class C : I { public abstract void [|M|]() { } }
 class D : C { public override void [|M|]() { } }}
 interface I { void $$M(); }
         </Document>
@@ -425,7 +438,7 @@ class D : C
         public virtual void $$[|M|]() { }
     }
     abstract class B : A {
-        public abstract override void M();
+        public abstract override void [|M|]();
     }
     sealed class C1 : B {
         public override void [|M|]() { }

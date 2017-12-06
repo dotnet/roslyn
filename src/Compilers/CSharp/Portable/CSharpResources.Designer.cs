@@ -2735,6 +2735,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to __arglist cannot have an argument of void type.
+        /// </summary>
+        internal static string ERR_CantUseVoidInArglist {
+            get {
+                return ResourceManager.GetString("ERR_CantUseVoidInArglist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The operation overflows at compile time in checked mode.
         /// </summary>
         internal static string ERR_CheckedOverflow {
@@ -2947,6 +2956,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ConcreteMissingBody {
             get {
                 return ResourceManager.GetString("ERR_ConcreteMissingBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A conditional expression cannot be used directly in a string interpolation because the &apos;:&apos; ends the interpolation. Parenthesize the conditional expression..
+        /// </summary>
+        internal static string ERR_ConditionalInInterpolation {
+            get {
+                return ResourceManager.GetString("ERR_ConditionalInInterpolation", resourceCulture);
             }
         }
         

@@ -62,6 +62,7 @@
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\ExpressionEvaluator\Core\Source\ExpressionCompiler\DkmExceptionUtilities.cs" Link="Implementation\EditAndContinue\Interop\DkmExceptionUtilities.cs" />
     <Compile Update="Implementation\PickMembers\PickMembersDialog.xaml.cs">
       <DependentUpon>PickMembersDialog.xaml</DependentUpon>
     </Compile>
@@ -94,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
@@ -138,6 +140,9 @@
     <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ManagedEditAndContinueService.vsdconfigxml" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -158,6 +163,7 @@
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="$(MicrosoftVisualStudioOLEInteropVersion)" />
@@ -194,7 +200,6 @@
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
-    <PackageReference Include="RoslynDependencies.Microsoft.VisualStudio.Workspace" Version="$(RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
     <PackageReference Include="VSLangProj2" Version="$(VSLangProj2Version)" />
@@ -268,6 +273,10 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
+  <ItemGroup>
+    <VsdConfigXml Include="ManagedEditAndContinueService.vsdconfigxml" />
+  </ItemGroup>
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\build\Targets\Vsdconfig.targets" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
