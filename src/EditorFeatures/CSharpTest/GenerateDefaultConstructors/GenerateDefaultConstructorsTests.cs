@@ -865,6 +865,37 @@ class Derived : Base
 }");
         }
 
+        [WorkItem(22699, "https://github.com/dotnet/Roslyn/issues/22699")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFromDerivedClass3()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class Base
+{
+    protected Base(int value)
+    {
+    }
+}
+
+sealed class [||]Derived : Base
+{
+
+}",
+@"abstract class Base
+{
+    protected Base(int value)
+    {
+    }
+}
+
+sealed class Derived : Base
+{
+    public Derived(int value) : base(value)
+    {
+    }
+}");
+        }
+
         [WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestNotOnEnum()
