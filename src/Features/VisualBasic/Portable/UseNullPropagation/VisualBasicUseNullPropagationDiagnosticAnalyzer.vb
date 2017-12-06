@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         End Function
 
         Protected Overrides Function GetSemanticFactsService() As ISemanticFactsService
-            Return VisualBasicSemanticFactsService.Instance
+            Return VisualBasicSemanticFactsService.instance
         End Function
 
         Protected Overrides Function GetSyntaxKindToAnalyze() As SyntaxKind

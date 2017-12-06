@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // updates root will be returned.  The context node in that new tree will also
         // be returned.
         void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode,
+            SyntaxNode root, SyntaxNode contextNode, 
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
