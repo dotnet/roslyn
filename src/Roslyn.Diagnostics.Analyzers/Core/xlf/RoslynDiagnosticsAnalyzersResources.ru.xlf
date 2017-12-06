@@ -192,6 +192,36 @@
         <target state="translated">Символ "{0}" нарушает требование по обратной совместимости: "Общий API с необязательными параметрами должен иметь наибольшее число параметров среди своих общих перегрузок". Дополнительные сведения см. в "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
+        <source>Do not mix attributes from different versions of MEF</source>
+        <target state="new">Do not mix attributes from different versions of MEF</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
+        <source>Do not mix attributes from different versions of MEF</source>
+        <target state="new">Do not mix attributes from different versions of MEF</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
+        <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
+        <target state="new">Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
+        <source>Parts exported with MEFv2 must be marked as Shared</source>
+        <target state="new">Parts exported with MEFv2 must be marked as Shared</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
+        <source>Part exported with MEFv2 must be marked with the Shared attribute.</source>
+        <target state="new">Part exported with MEFv2 must be marked with the Shared attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
+        <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
+        <target state="new">'{0}' is exported with MEFv2 and hence must be marked as Shared</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
