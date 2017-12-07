@@ -6525,9 +6525,9 @@ namespace System
                 // (9,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //         switch (i) { case default: break; } // error 4
                 Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(9, 27),
-                // (10,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                // (10,28): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //         switch (i) { case (default): break; } // error 5
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "(default)").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(10, 28),
                 // (11,27): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
                 //         switch (i) { case default when true: break; } // error 6
                 Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(11, 27),
