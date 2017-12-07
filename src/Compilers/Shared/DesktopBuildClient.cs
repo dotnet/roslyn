@@ -3,11 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -31,15 +28,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
-#if NET46
-            var sdkDir = RuntimeEnvironment.GetRuntimeDirectory();
-#else
-            string sdkDir = null;
+            var sdkDir = GetSystemSdkDirectory();
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                // Register encodings for console
+                // https://github.com/dotnet/roslyn/issues/10785
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            }
 
-            // Register encodings for console
-            // https://github.com/dotnet/roslyn/issues/10785 
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-#endif
             var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();

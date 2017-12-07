@@ -742,12 +742,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindEraseStatement(node As EraseStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
             Dim clauses = ArrayBuilder(Of BoundAssignmentOperator).GetInstance()
 
-            Dim nothingLiteral = New BoundLiteral(node, ConstantValue.Nothing, Nothing).MakeCompilerGenerated()
-
             For Each operand As ExpressionSyntax In node.Expressions
                 Dim target As BoundExpression = BindAssignmentTarget(operand, diagnostics)
                 Debug.Assert(target IsNot Nothing)
 
+                Dim nothingLiteral = New BoundLiteral(operand, ConstantValue.Nothing, Nothing).MakeCompilerGenerated()
                 Dim clause As BoundAssignmentOperator
 
                 If target.HasErrors Then
@@ -1997,15 +1996,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim placeholder As BoundCompoundAssignmentTargetPlaceholder = Nothing
 
-            If Not isError Then
-                placeholder = New BoundCompoundAssignmentTargetPlaceholder(left.Syntax, targetType).MakeCompilerGenerated()
-                right = BindBinaryOperator(node, placeholder, right, operatorTokenKind, operatorKind, isOperandOfConditionalBranch:=False, diagnostics:=diagnostics)
-                right.SetWasCompilerGenerated()
-                right = ApplyImplicitConversion(node, targetType, right, diagnostics)
-            Else
-                ' Try to reclassify 'right' if we still can.
-                right = MakeRValueAndIgnoreDiagnostics(right)
+            If isError Then
+                ' Suppress all additional diagnostics. This ensures that we still generate the appropriate tree shape
+                ' even in error scenarios
+                diagnostics = New DiagnosticBag()
             End If
+
+            placeholder = New BoundCompoundAssignmentTargetPlaceholder(left.Syntax, targetType).MakeCompilerGenerated()
+            right = BindBinaryOperator(node, placeholder, right, operatorTokenKind, operatorKind, isOperandOfConditionalBranch:=False, diagnostics:=diagnostics)
+            right.SetWasCompilerGenerated()
+            right = ApplyImplicitConversion(node, targetType, right, diagnostics)
 
             left = left.SetGetSetAccessKindIfAppropriate()
 

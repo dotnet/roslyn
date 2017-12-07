@@ -36,6 +36,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() [||]=> { });
+    }
+}",
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        Action {|Rename:action1|} = () => { };
+        M(action1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(int a, int b)
+    {
+        var x = a [||]+ b + 3;
+    }
+}",
+@"using System;
+class C
+{
+    void M(int a, int b)
+    {
+        int {|Rename:v|} = a + b;
+        var x = v + 3;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan3()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    void M(int a)
+    {
+        var x = [||]a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan4()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() => { var x [||]= y; });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()
         {
             await TestInRegularAndScriptAsync(
@@ -4487,6 +4561,58 @@ class C
         var tuple = (key: 1, value: Value);
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 2);
+        }
+
+        [WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestInAttribute()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    public string Foo { get; set; }
+
+    [Example([|2+2|])]
+    public string Bar { get; set; }
+}",
+@"public class C
+{
+    private const int {|Rename:V|} = 2 + 2;
+
+    public string Foo { get; set; }
+
+    [Example(V)]
+    public string Bar { get; set; }
+}");
+        }
+
+        [WorkItem(21687, "https://github.com/dotnet/roslyn/issues/21687")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIfClassHasSameNameAsNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace C
+{
+    class C
+    {
+        void M()
+        {
+            var t = new { foo = [|1 + 1|] };
+        }
+    }
+}",
+@"namespace C
+{
+    class C
+    {
+        private const int {|Rename:V|} = 1 + 1;
+
+        void M()
+        {
+            var t = new { foo = V };
+        }
+    }
+}");
         }
     }
 }

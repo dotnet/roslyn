@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -2110,7 +2110,7 @@ class C
     IL_0011:  ldarg.0
     IL_0012:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0017:  newobj     ""System.ValueTuple<T, T>..ctor(T, T)""
-    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0021:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_0026:  stloc.3
     IL_0027:  ldloca.s   V_3
@@ -2147,7 +2147,7 @@ class C
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_007b:  ldarg.0
-    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0081:  ldfld      ""T System.ValueTuple<T, T>.Item1""
     IL_0086:  stloc.1
     IL_0087:  leave.s    IL_00a2
@@ -2224,7 +2224,7 @@ class C
     IL_0011:  ldarg.0
     IL_0012:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0017:  newobj     ""System.ValueTuple<T, T>..ctor(T, T)""
-    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0021:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_0026:  stloc.3
     IL_0027:  ldloca.s   V_3
@@ -2261,7 +2261,7 @@ class C
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_007b:  ldarg.0
-    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0081:  constrained. ""System.ValueTuple<T, T>""
     IL_0087:  callvirt   ""string object.ToString()""
     IL_008c:  stloc.1
@@ -2365,7 +2365,7 @@ namespace System
     IL_0011:  ldarg.0
     IL_0012:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0017:  newobj     ""System.ValueTuple<T, T>..ctor(T, T)""
-    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_001c:  stfld      ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0021:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_0026:  stloc.3
     IL_0027:  ldloca.s   V_3
@@ -2402,7 +2402,7 @@ namespace System
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_007b:  ldarg.0
-    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__2""
     IL_0081:  ldarg.0
     IL_0082:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0087:  call       ""T System.ValueTuple<T, T>.Test<T>(T)""
@@ -2505,7 +2505,7 @@ namespace System
     IL_000b:  ldc.i4.1
     IL_000c:  ldc.i4.2
     IL_000d:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-    IL_0012:  stfld      ""(int f1, int f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0012:  stfld      ""(int f1, int f2) C.<Test>d__1<T>.<x>5__2""
     IL_0017:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_001c:  stloc.3
     IL_001d:  ldloca.s   V_3
@@ -2542,7 +2542,7 @@ namespace System
     IL_006a:  ldloca.s   V_2
     IL_006c:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_0071:  ldarg.0
-    IL_0072:  ldflda     ""(int f1, int f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0072:  ldflda     ""(int f1, int f2) C.<Test>d__1<T>.<x>5__2""
     IL_0077:  ldarg.0
     IL_0078:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_007d:  call       ""T System.ValueTuple<int, int>.Test<T>(T)""
@@ -7555,6 +7555,18 @@ class C
             Assert.Equal("(System.Int16 c, System.String d)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(node).Kind);
 
+            ExpressionSyntax element;
+
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("System.String", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
+
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d)?)(e: 1, f: ""hello"")
             Assert.Equal("(System.Int16 c, System.String d)?", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
@@ -7647,6 +7659,18 @@ class C
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
+
+            ExpressionSyntax element;
+
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("System.String", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -7780,6 +7804,18 @@ class C
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int32 c, System.String d)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(node).Kind);
+
+            ExpressionSyntax element;
+
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("System.String", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((int c, string d)?)(e: 1, f: ""hello"")
@@ -7946,6 +7982,18 @@ class C
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
+
+            ExpressionSyntax element;
+            
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("System.String", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(element).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -8117,6 +8165,18 @@ class C
             Assert.Equal("(System.Int32 e, C.C1 f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
+
+            ExpressionSyntax element;
+
+            element = node.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(element).Kind);
+
+            element = node.Arguments[1].Expression;
+            Assert.Equal("C.C1", model.GetTypeInfo(element).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitUserDefined, model.GetConversion(element).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: null)
@@ -20316,7 +20376,7 @@ class C
     IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_0062
     IL_000a:  ldarg.0
-    IL_000b:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
+    IL_000b:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__2""
     IL_0010:  ldc.i4.5
     IL_0011:  conv.i8
     IL_0012:  stfld      ""long System.ValueTuple<long, int>.Item1""
@@ -20362,7 +20422,7 @@ class C
     IL_007e:  ldloca.s   V_3
     IL_0080:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_0085:  ldarg.0
-    IL_0086:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
+    IL_0086:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__2""
     IL_008b:  ldfld      ""long System.ValueTuple<long, int>.Item1""
     IL_0090:  stloc.1
     IL_0091:  leave.s    IL_00ac
@@ -21333,7 +21393,7 @@ public class A
 }";
             var signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+                WithStrongNameProvider(s_defaultDesktopProvider);
             var comp0v1 = CreateStandardCompilation(source0v1, assemblyName: "A", options: signedDllOptions);
             comp0v1.VerifyDiagnostics();
             var ref0v1 = comp0v1.EmitToImageReference();
@@ -21559,7 +21619,7 @@ namespace ConsoleApplication5
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Fails);
 
             var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
@@ -21615,7 +21675,7 @@ namespace ConsoleApplication5
 
             var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
 
-            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Fails);
 
             var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
@@ -21968,7 +22028,7 @@ namespace ConsoleApplication5
 
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput: "42qq", verify: false);
+            CompileAndVerify(comp, expectedOutput: "42qq", verify: Verification.Fails);
 
             var m = (MethodSymbol)(comp.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
             Assert.Equal("ref (System.Int32, dynamic) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
@@ -22021,7 +22081,7 @@ namespace ConsoleApplication5
 
             var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
 
-            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Passes);
 
             var m = (PropertySymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo { get; }", m.ToTestDisplayString());

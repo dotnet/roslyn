@@ -14,5 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitConversion(operation As IConversionOperation, argument As Object) As IOperation
             Return New VisualBasicConversionExpression(Visit(operation.Operand), operation.GetConversion(), operation.IsTryCast, operation.IsChecked, DirectCast(operation, Operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit)
         End Function
+
+        Public Overrides Function VisitCompoundAssignment(operation As ICompoundAssignmentOperation, argument As Object) As IOperation
+            Dim baseType = DirectCast(operation, BaseVisualBasicCompoundAssignmentOperation)
+            Return New VisualBasicCompoundAssignmentOperation(Visit(operation.Target), Visit(operation.Value), baseType.InConversionInternal, baseType.OutConversionInternal, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, DirectCast(operation, Operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit)
+        End Function
     End Class
 End Namespace

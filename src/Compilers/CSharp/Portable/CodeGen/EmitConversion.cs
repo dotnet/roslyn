@@ -183,10 +183,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //
             // if target type is verifiably a reference type, we can leave the value as-is otherwise
             // we need to unbox to targetType to keep verifier happy.
-            if (!conversion.Type.IsVerifierReference())
+            var resultType = conversion.Type;
+            if (!resultType.IsVerifierReference())
             {
                 _builder.EmitOpCode(ILOpCode.Unbox_any);
                 EmitSymbolToken(conversion.Type, conversion.Syntax);
+            }
+            else if (resultType.IsArray())
+            {
+                // need a static cast here to satisfy verifier
+                // Example: Derived[] can be used in place of Base[] for all purposes except for LDELEMA <Base> 
+                //          Even though it would be safe due to run time check, verifier requires that the static type of the array is Base[]
+                //          We do not know why we are casting, so to be safe, lets make the cast explicit. JIT elides such casts.
+                EmitStaticCast(conversion.Type, conversion.Syntax);
             }
 
             return;

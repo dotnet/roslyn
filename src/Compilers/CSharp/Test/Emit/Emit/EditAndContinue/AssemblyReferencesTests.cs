@@ -575,7 +575,7 @@ class C
             var compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 20)));
             var compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 30)));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var reader0 = md0.MetadataReader;
 

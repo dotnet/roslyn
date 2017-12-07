@@ -35,22 +35,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             semanticModelOpt As SemanticModel,
             positionOpt As Integer,
             escapeKeywordIdentifiers As Boolean,
-            isFirstSymbolVisited As Boolean)
+            isFirstSymbolVisited As Boolean,
+            Optional inNamespaceOrType As Boolean = False)
 
-            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
+            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
 
             Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
         End Sub
 
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
-        Protected Overrides Function MakeNotFirstVisitor() As AbstractSymbolDisplayVisitor
+        Protected Overrides Function MakeNotFirstVisitor(Optional inNamespaceOrType As Boolean = False) As AbstractSymbolDisplayVisitor
             Return New SymbolDisplayVisitor(
                     Me.builder,
-                        Me.format,
+                    Me.format,
                     Me.semanticModelOpt,
                     Me.positionOpt,
-                        Me._escapeKeywordIdentifiers,
-                    isFirstSymbolVisited:=False)
+                    Me._escapeKeywordIdentifiers,
+                    isFirstSymbolVisited:=False,
+                    inNamespaceOrType:=inNamespaceOrType)
         End Function
 
         Friend Function CreatePart(kind As SymbolDisplayPartKind,

@@ -282,6 +282,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
+        internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
+        {
+            // https://github.com/dotnet/roslyn/issues/23521
+            // Disable the portable strong name provider until we can find and fix the
+            // root cause of the bug
+            return new DesktopStrongNameProvider(KeyFileSearchPaths, null, fileSystem);
+        }
+
         internal CommandLineArguments()
         {
         }

@@ -8,9 +8,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -613,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Check if this is a generated code location.
-            if (IsGeneratedOrHiddenCodeLocation(location))
+            if (IsGeneratedOrHiddenCodeLocation(location.SourceTree, location.SourceSpan))
             {
                 return true;
             }
@@ -862,13 +863,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     CompilationEvent e;
                     try
                     {
-                        if (!prePopulatedEventQueue)
+                        if (!CompilationEventQueue.TryDequeue(out e))
                         {
-                            e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
-                        }
-                        else if (!CompilationEventQueue.TryDequeue(out e))
-                        {
-                            return completedEvent;
+                            if (!prePopulatedEventQueue)
+                            {
+                                e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                return completedEvent;
+                            }
                         }
                     }
                     catch (TaskCanceledException) when (!prePopulatedEventQueue)
@@ -1275,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var declaringRef in symbol.DeclaringSyntaxReferences)
             {
-                if (!IsGeneratedOrHiddenCodeLocation(declaringRef.GetLocation()))
+                if (!IsGeneratedOrHiddenCodeLocation(declaringRef.SyntaxTree, declaringRef.Span))
                 {
                     return false;
                 }
@@ -1309,13 +1313,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected bool DoNotAnalyzeGeneratedCode => _doNotAnalyzeGeneratedCode;
 
         // Location is in generated code if either the containing tree is a generated code file OR if it is a hidden source location.
-        protected bool IsGeneratedOrHiddenCodeLocation(Location location) =>
-            IsGeneratedCode(location.SourceTree) || IsHiddenSourceLocation(location);
+        protected bool IsGeneratedOrHiddenCodeLocation(SyntaxTree syntaxTree, TextSpan span)
+            => IsGeneratedCode(syntaxTree) || IsHiddenSourceLocation(syntaxTree, span);
 
-        protected bool IsHiddenSourceLocation(Location location) =>
-            location.IsInSource &&
-            HasHiddenRegions(location.SourceTree) &&
-            location.SourceTree.IsHiddenPosition(location.SourceSpan.Start);
+        protected bool IsHiddenSourceLocation(SyntaxTree syntaxTree, TextSpan span)
+            => HasHiddenRegions(syntaxTree) && 
+               syntaxTree.IsHiddenPosition(span.Start);
 
         private bool HasHiddenRegions(SyntaxTree tree)
         {
@@ -1630,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    var isInGeneratedCode = isGeneratedCodeSymbol || IsGeneratedOrHiddenCodeLocation(decl.GetLocation());
+                    var isInGeneratedCode = isGeneratedCodeSymbol || IsGeneratedOrHiddenCodeLocation(decl.SyntaxTree, decl.Span);
                     if (isInGeneratedCode && DoNotAnalyzeGeneratedCode)
                     {
                         analysisStateOpt?.MarkDeclarationComplete(symbol, i, analysisScope.Analyzers);

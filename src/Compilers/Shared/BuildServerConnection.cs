@@ -341,13 +341,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-#if NETSTANDARD1_3
             bool isRunningOnCoreClr = CoreClrShim.IsRunningOnCoreClr;
-#elif NET46
-            bool isRunningOnCoreClr = false;
-#elif NETCOREAPP2_0
-            bool isRunningOnCoreClr = true;
-#endif
             string expectedPath;
             string processArguments;
             if (isRunningOnCoreClr)

@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -17,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static readonly string s_keyPairFile = SigningTestHelpers.KeyPairFile;
         private static readonly string s_publicKeyFile = SigningTestHelpers.PublicKeyFile;
         private static readonly ImmutableArray<byte> s_publicKey = SigningTestHelpers.PublicKey;
-        private static readonly DesktopStrongNameProvider s_defaultProvider = new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>());
 
         [Fact]
         public void RejectIncompatibleModifiers()
@@ -95,7 +92,7 @@ public class Base
     public int this[string x] { private protected set { } get { return 5; } }
     private protected Base() { Event1?.Invoke(); }
 }";
-            var baseCompilation = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
+            var baseCompilation = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider));
             var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
             {
@@ -133,7 +130,7 @@ public class Base
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccessButCantHave",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         Field1 = Constant;
@@ -184,7 +181,7 @@ public class Base
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccessButCantHave",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         Field1 = Constant;
@@ -236,13 +233,13 @@ public class Base
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccess",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
                 .VerifyDiagnostics(
                 );
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccess",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
                 .VerifyDiagnostics(
                 );
         }

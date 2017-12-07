@@ -9,7 +9,7 @@
     <RootNamespace>RoslynPublish</RootNamespace>
     <AssemblyName>RoslynPublish</AssemblyName>
     <TargetFramework>net462</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <SignAssembly>false</SignAssembly>
     <AutomaticBindingRedirects>true</AutomaticBindingRedirects>
     <Nonshipping>true</Nonshipping>

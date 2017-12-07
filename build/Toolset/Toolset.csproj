@@ -6,9 +6,9 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
-    <AssemblyName>Toolset_DoNetUse</AssemblyName>
+    <AssemblyName>Toolset_DoNotUse</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7;linux;osx</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynCrossPlatformRuntimeIdentifiers)</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>

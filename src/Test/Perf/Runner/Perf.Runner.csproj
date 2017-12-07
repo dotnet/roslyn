@@ -9,7 +9,7 @@
     <RootNamespace>Roslyn.Test.Performance.Runner</RootNamespace>
     <AssemblyName>Roslyn.Test.Performance.Runner</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7;linux;osx</RuntimeIdentifiers>
+    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
     <Nonshipping>true</Nonshipping>

@@ -1105,6 +1105,27 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'New T() Fro ... , "World!"}')
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsInvalid) (Syntax: 'From {"Hell ... , "World!"}')
+      Initializers(3):
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello"')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Hello"')
+                  Children(1):
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello", IsInvalid) (Syntax: '"Hello"')
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '" "')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '" "')
+                  Children(1):
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ", IsInvalid) (Syntax: '" "')
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"World!"')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"World!"')
+                  Children(1):
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World!", IsInvalid) (Syntax: '"World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

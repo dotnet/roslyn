@@ -3539,7 +3539,7 @@ public class MainClass
 
             // the resulting code does not need to verify
             // This is consistent with Dev10 behavior
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: false, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.Fails, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact, WorkItem(544507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544507")]
@@ -4742,29 +4742,26 @@ namespace AttributeTest
 ";
             var compilation = CreateStandardCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
-            {
-                var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("MyClass");
-
-                var useParamsMethod = (MethodSymbol)type.GetMember("UseParams");
-                var paramsParameter = useParamsMethod.Parameters[0];
-                VerifyParamArrayAttribute(paramsParameter, (SourceModuleSymbol)m);
-
-                var noParamsMethod = (MethodSymbol)type.GetMember("NoParams");
-                var noParamsParameter = noParamsMethod.Parameters[0];
-                Assert.Equal(0, noParamsParameter.GetSynthesizedAttributes().Length);
-            };
-
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             var comp = CompileAndVerify(
                 compilation,
-                sourceSymbolValidator: attributeValidator,
-                symbolValidator: null,
                 expectedSignatures: new[]
                 {
                     Signature("AttributeTest.MyClass", "UseParams", ".method public hidebysig static System.Void UseParams([System.ParamArrayAttribute()] System.Int32[] list) cil managed"),
                     Signature("AttributeTest.MyClass", "NoParams", ".method public hidebysig static System.Void NoParams(System.Object list) cil managed"),
+                },
+                symbolValidator: module =>
+                {
+                    var @namespace = module.GlobalNamespace.GetNestedNamespace("AttributeTest");
+                    var type = @namespace.GetTypeMember("MyClass");
+
+                    var useParamsMethod = type.GetMethod("UseParams");
+                    var paramsParameter = useParamsMethod.Parameters[0];
+                    VerifyParamArrayAttribute(paramsParameter);
+
+                    var noParamsMethod = type.GetMethod("NoParams");
+                    var noParamsParameter = noParamsMethod.Parameters[0];
+                    Assert.Empty(noParamsParameter.GetAttributes());
                 });
         }
 
@@ -5341,7 +5338,7 @@ class A
             // Dev10 Runtime Exception:
             // Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: false);
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.Fails);
         }
 
         #endregion

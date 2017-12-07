@@ -253,6 +253,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        Public Function GetDeconstructionAssignmentMethods(model As SemanticModel, deconstruction As SyntaxNode) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFactsService.GetDeconstructionAssignmentMethods
+            Return ImmutableArray(Of IMethodSymbol).Empty
+        End Function
+
+        Public Function GetDeconstructionForEachMethods(model As SemanticModel, deconstruction As SyntaxNode) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFactsService.GetDeconstructionForEachMethods
+            Return ImmutableArray(Of IMethodSymbol).Empty
+        End Function
+
         Public Function IsAssignableTo(fromSymbol As ITypeSymbol, toSymbol As ITypeSymbol, compilation As Compilation) As Boolean Implements ISemanticFactsService.IsAssignableTo
             Return fromSymbol IsNot Nothing AndAlso toSymbol IsNot Nothing AndAlso DirectCast(compilation, VisualBasicCompilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening
         End Function

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -47,11 +48,16 @@ namespace Microsoft.CodeAnalysis
 
             _baseDirectory = baseDirectory;
             _searchPaths = searchPaths;
-            _pathMap = pathMap.NullToEmpty();
 
-            // the keys in pathMap should not end with a path separator
+            // The previous public API required paths to not end with a path separator.
+            // This broke handling of root paths (e.g. "/" cannot be represented), so
+            // the new requirement is for paths to always end with a path separator.
+            // However, because this is a public API, both conventions must be allowed,
+            // so normalize the paths here (instead of enforcing end-with-sep).
             if (!pathMap.IsDefaultOrEmpty)
             {
+                var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(pathMap.Length);
+
                 foreach (var kv in pathMap)
                 {
                     var key = kv.Key;
@@ -66,11 +72,17 @@ namespace Microsoft.CodeAnalysis
                         throw new ArgumentException(CodeAnalysisResources.NullValueInPathMap, nameof(pathMap));
                     }
 
-                    if (PathUtilities.IsAnyDirectorySeparator(key[key.Length - 1]))
-                    {
-                        throw new ArgumentException(CodeAnalysisResources.KeyInPathMapEndsWithSeparator, nameof(pathMap));
-                    }
+                    var normalizedKey = PathUtilities.EnsureTrailingSeparator(key);
+                    var normalizedValue = PathUtilities.EnsureTrailingSeparator(value);
+
+                    pathMapBuilder.Add(new KeyValuePair<string, string>(normalizedKey, normalizedValue));
                 }
+
+                _pathMap = pathMapBuilder.ToImmutableAndFree();
+            }
+            else
+            {
+                _pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             }
         }
 

@@ -29,7 +29,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Fails, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -101,7 +101,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(codeB, verify: false, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Fails, additionalRefs: new[] { referenceA }, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -384,7 +384,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Fails, symbolValidator: module =>
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
                 Assert.Equal(RefKind.RefReadOnly, indexer.RefKind);
@@ -456,7 +456,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(codeB, verify: false, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Fails, additionalRefs: new[] { referenceA }, symbolValidator: module =>
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
                 Assert.Equal(RefKind.RefReadOnly, indexer.RefKind);
@@ -582,7 +582,7 @@ public class Test
 ";
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            CompileAndVerify(text, verify: false, options: options, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Fails, options: options, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|0_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -637,7 +637,7 @@ public class Test
 ";
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            CompileAndVerify(text, verify: false, options: options, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Fails, options: options, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|1_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -671,7 +671,7 @@ public class Test
 }
 ";
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            CompileAndVerify(codeB, verify: false, additionalRefs: new[] { referenceA }, options: options, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Fails, additionalRefs: new[] { referenceA }, options: options, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|0_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -710,7 +710,7 @@ class Test
 ";
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            CompileAndVerify(text, verify: false, options: options, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Fails, options: options, symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<M1>b__0_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -806,7 +806,7 @@ class Test
 ";
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            CompileAndVerify(codeB, verify: false, options: options, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Fails, options: options, additionalRefs: new[] { referenceA }, symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<M1>b__0_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -1055,7 +1055,7 @@ public class Test1
 	public static ref readonly int M(in int p) => ref p;
 }", references: new[] { code1.ToMetadataReference() }, options: options);
 
-            CompileAndVerify(code2, verify: false, symbolValidator: module =>
+            CompileAndVerify(code2, verify: Verification.Fails, symbolValidator: module =>
             {
                 // IsReadOnly is not generated in assembly
                 var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
@@ -1146,7 +1146,7 @@ public class Test
     public void M(in int x) { }
 }";
 
-            CompileAndVerify(code, verify: false, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Fails, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
 
@@ -1168,7 +1168,7 @@ public class Test1
 	public static ref readonly int M(in int p) => ref p;
 }";
 
-            var comp1 = CompileAndVerify(code1, options: options, verify: false, symbolValidator: module =>
+            var comp1 = CompileAndVerify(code1, options: options, verify: Verification.Fails, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsReadOnlyAttribute.FullName);
@@ -1201,7 +1201,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Fails, symbolValidator: module =>
             {
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
             });
@@ -1577,7 +1577,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName);
@@ -1619,7 +1619,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName);
@@ -1664,7 +1664,7 @@ public class Child : System.Runtime.CompilerServices.IsReadOnlyAttribute
     public ref readonly int this[in int x] => ref value;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -1713,7 +1713,7 @@ public class Child : System.Runtime.CompilerServices.IsReadOnlyAttribute
     public override ref readonly int this[in int x] => ref value;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -1760,7 +1760,7 @@ public class Child : System.Runtime.CompilerServices.IsReadOnlyAttribute
     public override ref readonly int this[in int x] => ref value;
 }";
 
-            CompileAndVerify(code, verify: false, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -1803,7 +1803,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 var typeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(typeName);
@@ -1852,7 +1852,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileAndVerify(code, verify: false, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
             {
                 var typeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(typeName);
@@ -1892,7 +1892,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName);
@@ -1961,7 +1961,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 var typeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(typeName);
@@ -2010,7 +2010,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileAndVerify(code, verify: false, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
             {
                 var typeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(typeName);
@@ -2051,7 +2051,7 @@ public class TestImpl : ITest
     ref readonly int ITest.this[in int x] => ref value;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("TestImpl");
 
@@ -2093,7 +2093,7 @@ public class TestImpl : ITest
     ref readonly int ITest.this[in int x] => ref value;
 }";
 
-            CompileAndVerify(code, verify: false, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("TestImpl");
 

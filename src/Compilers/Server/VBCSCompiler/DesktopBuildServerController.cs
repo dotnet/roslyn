@@ -36,11 +36,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
-#if NET46
-            var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-#else
-            var sdkDirectory = (string)null;
-#endif
+            var sdkDirectory = BuildClient.GetSystemSdkDirectory();
+
             return new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
         }
 

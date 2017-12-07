@@ -861,7 +861,7 @@ class CAttribute : Attribute { }
 
 #Region "Set Name tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestSetName1() As Task
+        Public Async Function TestSetName_NewName() As Task
             Dim code =
 <Code>
 [$$Goo]
@@ -875,6 +875,40 @@ class C { }
 </Code>
 
             Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SimpleNameToDottedName() As Task
+            Dim code =
+<Code>
+[$$Goo]
+class C { }
+</Code>
+
+            Dim expected =
+<Code>
+[Bar.Baz]
+class C { }
+</Code>
+
+            Await TestSetName(code, expected, "Bar.Baz", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_DottedNameToSimpleName() As Task
+            Dim code =
+<Code>
+[$$Goo.Bar]
+class C { }
+</Code>
+
+            Dim expected =
+<Code>
+[Baz]
+class C { }
+</Code>
+
+            Await TestSetName(code, expected, "Baz", NoThrow(Of String)())
         End Function
 #End Region
 

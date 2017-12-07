@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        typeArg.Accept(this.NotFirstVisitor);
+                        typeArg.Accept(this.NotFirstVisitorNamespaceOrType);
                     }
 
                     if (modifiersSourceOpt != null)

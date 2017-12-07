@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return EvaluateSideEffectingArgumentToTemp(evalConversion, effects, ref temps);
         }
 
-        private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructionInfo deconstruction, BoundExpression target,
+        private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructMethodInfo deconstruction, BoundExpression target,
             ArrayBuilder<BoundExpression> effects, ref ArrayBuilder<LocalSymbol> temps)
         {
             AddPlaceholderReplacement(deconstruction.InputPlaceholder, target);

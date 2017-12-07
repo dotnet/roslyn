@@ -7,7 +7,7 @@ param (
     [switch]$cibuild = $false,
     [string]$branchName = "master",
     [switch]$testDesktop = $false,
-    [switch]$publish = $false,
+    [string]$publishType = "",
     [switch]$help = $false,
     [string]$signType = "",
 
@@ -17,6 +17,8 @@ param (
     [string]$gitHubUserName = "",
     [string]$gitHubToken = "",
     [string]$gitHubEmail = "",
+    [string]$blobFeedUrl = "",
+    [string]$blobFeedKey = "",
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
@@ -30,9 +32,10 @@ function Print-Usage() {
     Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "  -cibuild                  Run CI specific operations"
     Write-Host "  -testDesktop              Run unit tests"
-    Write-Host "  -publish                  Run the pubish step"
+    Write-Host "  -publishType              Publish to run: vsts, blob or none (default is none)"
     Write-Host "  -branchName               Branch being built"
     Write-Host "  -nugetApiKey              Key for NuGet publishing"
+    Write-Host "  -signType                 Signing type: real, test or public (default is public)"
     Write-Host "  -help                     Print this message"
 }
 
@@ -122,8 +125,7 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -msbuildDir $msbuildDir -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop }
-    Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -msbuildDir $msbuildDir -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog }
     Copy-InsertionItems
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
@@ -133,8 +135,18 @@ try {
 
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
 
-    if ($publish) { 
-        Exec-Block { & .\publish-assets.ps1 -configDir $configDir -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
+    switch ($publishType) {
+        "vsts" {
+            Exec-Block { & .\publish-assets.ps1 -configDir $configDir -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
+            break;
+        }
+        "blob" {
+            Exec-Block { & .\publish-blob.ps1 -configDir $configDir -blobFeedUrl $blobFeedUrl -blobFeedKey $blobFeedKey }
+            break;
+        }
+        default {
+            break;
+        }
     }
 
     exit 0

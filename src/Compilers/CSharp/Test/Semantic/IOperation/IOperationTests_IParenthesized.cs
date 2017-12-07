@@ -443,7 +443,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return from ... el
                               ReturnedValue: 
                                 IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-r')
                                   Operand: 
-                                    IOperation:  (OperationKind.None, Type: null) (Syntax: 'r')
+                                    IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";

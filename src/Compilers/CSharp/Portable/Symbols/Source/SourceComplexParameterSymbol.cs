@@ -943,20 +943,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsMetadataIn => GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
+        internal sealed override bool IsMetadataIn
+            => base.IsMetadataIn || GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
 
         internal sealed override bool IsMetadataOut
-        {
-            get
-            {
-                if (this.RefKind == RefKind.Out)
-                {
-                    return true;
-                }
-
-                return GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
-            }
-        }
+            => base.IsMetadataOut || GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
             => GetDecodedWellKnownAttributeData()?.MarshallingInformation;

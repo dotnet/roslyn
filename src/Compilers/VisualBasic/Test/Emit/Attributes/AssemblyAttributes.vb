@@ -882,7 +882,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False,
+        CompileAndVerify(compilation, verify:=Verification.Fails,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -913,7 +913,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False,
+        CompileAndVerify(compilation, verify:=Verification.Fails,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -947,7 +947,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False,
+        CompileAndVerify(compilation, verify:=Verification.Fails,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
