@@ -85,6 +85,7 @@
         "Dlls\\XamlVisualStudio\\*\\Microsoft.VisualStudio.LanguageServices.Xaml.resources.dll",
         "Exes\\InteractiveHost\\InteractiveHost.exe",
         "Exes\\VBCSCompiler\\net46\\VBCSCompiler.exe",
+        "Exes\\VBCSCompiler\\netcoreapp2.0\\VBCSCompiler.dll",
         "Exes\\csc\\net46\\csc.exe",
         "Exes\\csc\\netcoreapp2.0\\csc.dll",
         "Exes\\csi\\net46\\csi.exe",
