@@ -39,9 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostDocument> AdditionalDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
 
-        private readonly BackgroundCompiler _backgroundCompiler;
-        private readonly BackgroundParser _backgroundParser;
-
         public TestWorkspace()
             : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
         {
@@ -60,10 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.ProjectionDocuments = new List<TestHostDocument>();
 
             this.CanApplyChangeDocument = true;
-
-            _backgroundCompiler = new BackgroundCompiler(this);
-            _backgroundParser = new BackgroundParser(this);
-            _backgroundParser.Start();
         }
 
         /// <summary>
@@ -90,29 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        protected internal override bool PartialSemanticsEnabled
-        {
-            get { return _backgroundCompiler != null; }
-        }
-
         public TestHostDocument DocumentWithCursor 
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
-
-        protected override void OnDocumentTextChanged(Document document)
-        {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.Parse(document);
-            }
-        }
-
-        protected override void OnDocumentClosing(DocumentId documentId)
-        {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelParse(documentId);
-            }
-        }
 
         public new void RegisterText(SourceTextContainer text)
         {
@@ -179,11 +151,6 @@ of the problem.");
             if (SynchronizationContext.Current != null)
             {
                 Dispatcher.CurrentDispatcher.DoEvents();
-            }
-
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelAllParses();
             }
 
             base.Dispose(finalize);

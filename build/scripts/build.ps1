@@ -217,14 +217,10 @@ function Build-ExtraSignArtifacts() {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
         Write-Host "Publishing csc"
         Run-MSBuild "..\Compilers\CSharp\csc\csc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-        Write-Host "Publishing csc"
+        Write-Host "Publishing vbc"
         Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-
-        # No need to build references here as we just built the rest of the source tree. 
-        # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
-        # where building multiple projects that produce VSIXes larger than 10MB will race against each other
-        Run-MSBuild "Deployment\Current\Roslyn.Deployment.Full.csproj" "/p:BuildProjectReferences=false" -parallel:$false
-        Run-MSBuild "Deployment\Next\Roslyn.Deployment.Full.Next.csproj" "/p:BuildProjectReferences=false" -parallel:$false
+        Write-Host "Publishing VBCSCompiler"
+        Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
         $dest = @(
             $configDir,
@@ -268,7 +264,7 @@ function Build-InsertionItems() {
     Push-Location $setupDir
     try { 
         Create-PerfTests
-        Exec-Console (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir)"
+        Exec-Console (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $repoDir $(Get-PackagesDir)"
         
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
         # matter, just that it's provided some value.
@@ -305,12 +301,6 @@ function Build-DeployToSymStore() {
 # the processes in order to test specific elements of our build and hence are handled 
 # separately from our other tests
 function Test-Special() {
-
-    if ($restore) { 
-        Write-Host "Running restore"
-        Restore-All -msbuildDir $msbuildDir 
-    }
-
     if ($testBuildCorrectness) {
         Exec-Block { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration } | Out-Host
     }
@@ -365,38 +355,23 @@ function Test-PerfRun() {
     }
 }
 
-function Test-XUnitCoreClr() { 
+function Test-XUnitCoreClr() {
+    Write-Host "Publishing ILAsm.csproj"
+    $toolsDir = Join-Path $binariesDir "Tools"
+    $ilasmDir = Join-Path $toolsDir "ILAsm"
+    Exec-Console $dotnet "publish src\Tools\ILAsm --no-restore --runtime win-x64 --self-contained -o $ilasmDir"
 
     $unitDir = Join-Path $configDir "UnitTests"
-    $runtimeIdentifier = "win-x64"
     $tf = "netcoreapp2.0"
     $logDir = Join-Path $unitDir "xUnitResults"
     Create-Directory $logDir 
     $xunitConsole = Join-Path (Get-PackageDir "dotnet-xunit") "tools\$tf\xunit.console.dll"
-
-    # A number of our tests need to be published before they can be executed in order to get some 
-    # runtime assets.
-    $needPublish = @(
-        "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj"
-    )
-
-    foreach ($file in $needPublish) {
-        $name = Split-Path -leaf $file
-        Write-Host "Publishing $name"
-        $filePath = Join-Path $repoDir $file
-        Run-MSBuild "$filePath" "/m /v:m /t:Publish /p:TargetFramework=$tf /p:RuntimeIdentifier=$runtimeIdentifier /p:SelfContained=true"
-    }
 
     $dlls = @()
     $allGood = $true
     foreach ($dir in Get-ChildItem $unitDir) {
         $testDir = Join-Path $unitDir (Join-Path $dir $tf)
         if (Test-Path $testDir) { 
-            $publishDir = Join-Path $testDir "$runtimeIdentifier\publish"
-            if (Test-path $publishDir) {
-                $testDir = $publishDir
-            }   
-            
             $dllName = Get-ChildItem -name "*.UnitTests.dll" -path $testDir
             $dllPath = Join-Path $testDir $dllName
 
@@ -628,7 +603,7 @@ try {
     Process-Arguments
 
     $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
-    $dotnet, $sdkDir = Ensure-SdkInPathAndData
+    $dotnet = Ensure-DotnetSdk
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $buildConfiguration
     $bootstrapDir = ""
@@ -643,14 +618,14 @@ try {
         Redirect-Temp
     }
 
+    if ($restore) {
+        Write-Host "Running restore"
+        Restore-All -msbuildDir $msbuildDir
+    }
+
     if ($isAnyTestSpecial) {
         Test-Special
         exit 0
-    }
-
-    if ($restore) { 
-        Write-Host "Running restore"
-        Restore-All -msbuildDir $msbuildDir 
     }
 
     if ($bootstrap) {
