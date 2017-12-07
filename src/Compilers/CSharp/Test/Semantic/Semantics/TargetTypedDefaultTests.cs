@@ -2161,6 +2161,9 @@ class C
                 // (8,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
                 //         System.Console.Write(default is default);
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is default").WithArguments("is", "default").WithLocation(8, 30),
+                // (8,41): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write(default is default);
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(8, 41),
                 // (8,41): error CS0150: A constant value is expected
                 //         System.Console.Write(default is default);
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 41),
@@ -2187,8 +2190,21 @@ class C
 }";
 
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "False True False True");
+            comp.VerifyDiagnostics(
+                // (10,42): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 42),
+                // (10,66): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 66),
+                // (10,83): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 83),
+                // (10,101): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 101)
+                );
+            //CompileAndVerify(comp, expectedOutput: "False True False True");
         }
 
         [Fact]
@@ -2342,11 +2358,11 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8312: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case default:
-                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
-            CompileAndVerify(comp, expectedOutput: "default");
+            //CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2375,11 +2391,14 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8312: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                // (12,18): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
                 //             case default:
-                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(12, 18),
+                // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //             case default:
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
-            CompileAndVerify(comp, expectedOutput: "default");
+            //CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2436,8 +2455,12 @@ class C
 ";
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "default");
+            comp.VerifyDiagnostics(
+                // (12,19): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //             case (default):
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(12, 19)
+                );
+            //CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]

@@ -6478,5 +6478,63 @@ False";
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void DefaultPattern()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int i = 12;
+        if (i is default) {} // error 1
+        if (i is (default)) {} // error 2
+        if (i is (((default)))) {} // error 3
+        switch (i) { case default: break; } // error 4
+        switch (i) { case (default): break; } // error 5
+        switch (i) { case default when true: break; } // error 6
+        switch (i) { case (default) when true: break; } // error 7
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         if (i is default) {} // error 1
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(6, 18),
+                // (7,19): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         if (i is (default)) {} // error 2
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(7, 19),
+                // (8,21): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         if (i is (((default)))) {} // error 3
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(8, 21),
+                // (9,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //         switch (i) { case default: break; } // error 4
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(9, 27),
+                // (10,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //         switch (i) { case (default): break; } // error 5
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "(default)").WithLocation(10, 27),
+                // (11,27): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         switch (i) { case default when true: break; } // error 6
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(11, 27),
+                // (12,28): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         switch (i) { case (default) when true: break; } // error 7
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(12, 28)
+                );
+        }
     }
 }

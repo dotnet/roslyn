@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PatternSyntax node,
             TypeSymbol operandType,
             bool hasErrors,
-            DiagnosticBag diagnostics,
-            bool wasSwitchCase = false)
+            DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ConstantPattern:
                     return BindConstantPattern(
-                        (ConstantPatternSyntax)node, operandType, hasErrors, diagnostics, wasSwitchCase);
+                        (ConstantPatternSyntax)node, operandType, hasErrors, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -63,11 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantPatternSyntax node,
             TypeSymbol operandType,
             bool hasErrors,
-            DiagnosticBag diagnostics,
-            bool wasSwitchCase)
+            DiagnosticBag diagnostics)
         {
-            bool wasExpression;
-            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
+            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out bool wasExpression);
         }
 
         internal BoundConstantPattern BindConstantPattern(
@@ -76,9 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax patternExpression,
             bool hasErrors,
             DiagnosticBag diagnostics,
-            out bool wasExpression,
-            bool wasSwitchCase)
+            out bool wasExpression)
         {
+            var innerExpression = patternExpression.SkipParens();
+            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
+            {
+                diagnostics.Add(ErrorCode.ERR_DefaultInPattern, innerExpression.Location);
+                hasErrors = true;
+            }
+
             var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
             var convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
