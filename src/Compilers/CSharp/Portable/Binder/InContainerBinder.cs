@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Imports _lazyImports;
         private ImportChain _lazyImportChain;
         private QuickAttributeChecker _lazyQuickAttributeChecker;
+        private SyntaxList<UsingDirectiveSyntax> _usingsSyntax;
 
         /// <summary>
         /// Creates a binder for a container with imports (usings and extern aliases) that can be
@@ -35,6 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _container = container;
             _computeImports = basesBeingResolved => Imports.FromSyntax(declarationSyntax, this, basesBeingResolved, inUsing);
+
+            if (!inUsing)
+            {
+                if (declarationSyntax.Kind() == SyntaxKind.CompilationUnit)
+                {
+                    var compilationUnit = (CompilationUnitSyntax)declarationSyntax;
+                    _usingsSyntax = compilationUnit.Usings;
+                }
+                else if (declarationSyntax.Kind() == SyntaxKind.NamespaceDeclaration)
+                {
+                    var namespaceDecl = (NamespaceDeclarationSyntax)declarationSyntax;
+                    _usingsSyntax = namespaceDecl.Usings;
+                }
+            }
         }
 
         /// <summary>
@@ -116,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)_container == null || _container.Kind == SymbolKind.Namespace)
                     {
-                        result = result.AddAliasesIfAny(GetImports(basesBeingResolved: null).UsingAliases);
+                        result = result.AddAliasesIfAny(_usingsSyntax);
                     }
 
                     _lazyQuickAttributeChecker = result;

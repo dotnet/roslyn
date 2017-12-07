@@ -86,7 +86,7 @@ public class RefersToLibAttribute : C
                 );
         }
 
-        [Fact(Skip = "TODO File bug before merging")]
+        [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
         public void CircularTypeReferenceNotFound_WithStaticUsing()
         {
@@ -94,10 +94,10 @@ public class RefersToLibAttribute : C
 
             var newLib_cs = @"
 using static RefersToLibAttribute;
+    // Binding this will cause a lookup for 'C' in 'lib'.
+    // Such lookup requires binding 'TypeForwardedTo' attributes (and aliases), but we should not bind other usings, lest we want an infinite recursion.
+
 [assembly: System.Reflection.AssemblyTitleAttribute(""title"")]
-    // We'll be looking for type 'C' in 'lib' at some point, so we'll want to bind the attributes that may be 'TypeForwardedTo'.
-    // But to decide whether of not to bind this attribute, the QuickAttributeFinder will have to bind the using statements.
-    // That restarts a cycle of looking for type 'C'...
 
 public class Ignore
 {

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -82,17 +83,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal QuickAttributeChecker AddAliasesIfAny(ImmutableDictionary<string, AliasAndUsingDirective> usingAliases)
+        internal QuickAttributeChecker AddAliasesIfAny(SyntaxList<UsingDirectiveSyntax> usingsSyntax)
+        {
+            if (usingsSyntax.Count == 0)
+            {
+                return this;
+            }
+
+            ArrayBuilder<(string name, string target)> builder = null;
+
+            foreach (var usingDirective in usingsSyntax)
+            {
+                if (usingDirective.Alias != null)
+                {
+                    if (builder is null)
+                    {
+                        builder = ArrayBuilder<(string, string)>.GetInstance();
+                    }
+
+                    string name = usingDirective.Alias.Name.Identifier.ValueText;
+                    string target = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
+                    builder.Add((name, target));
+                }
+            }
+
+            if (builder is null)
+            {
+                return this;
+            }
+
+            return AddAliasesIfAny(builder.ToImmutableAndFree());
+        }
+
+        private QuickAttributeChecker AddAliasesIfAny(ImmutableArray<(string name, string target)> aliases)
         {
             QuickAttributeChecker newChecker = null;
 
-            foreach (KeyValuePair<string, AliasAndUsingDirective> pair in usingAliases)
+            foreach (var (name, target) in aliases)
             {
-                string finalName = pair.Value.UsingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
-                if (_nameToAttributeMap.TryGetValue(finalName, out var foundAttributes))
+                if (_nameToAttributeMap.TryGetValue(target, out var foundAttributes))
                 {
-                    string aliasName = pair.Key;
-                    (newChecker ?? (newChecker = new QuickAttributeChecker(this))).AddName(aliasName, foundAttributes);
+                    // copy the QuickAttributes from alias target to alias name
+                    (newChecker ?? (newChecker = new QuickAttributeChecker(this))).AddName(name, foundAttributes);
                 }
             }
 

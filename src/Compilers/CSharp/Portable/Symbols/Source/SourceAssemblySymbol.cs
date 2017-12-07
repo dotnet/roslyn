@@ -1556,7 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
-        // This only forces binding of attributes that synctactically may be forwarded types attributes.
+        // This only forces binding of attributes that look like they may be forwarded types attributes (syntactically).
         internal HashSet<NamedTypeSymbol> GetForwardedTypes()
         {
             CustomAttributesBag<CSharpAttributeData> attributeBag = null;
