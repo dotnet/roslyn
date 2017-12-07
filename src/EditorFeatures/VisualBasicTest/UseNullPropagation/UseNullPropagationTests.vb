@@ -326,7 +326,7 @@ End Class")
 
         <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
-        Public Async Function TestWithNullableTypeAndReferenceEquals() As Task
+        Public Async Function TestWithNullableTypeAndReferenceEquals1() As Task
             Await TestInRegularAndScriptAsync(
 "
 Imports System
@@ -348,7 +348,7 @@ End Class")
 
         <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
-        Public Async Function TestWithNullableTypeAndReferenceEqualsReversed() As Task
+        Public Async Function TestWithNullableTypeAndReferenceEquals2() As Task
             Await TestInRegularAndScriptAsync(
 "
 Imports System
@@ -370,7 +370,7 @@ End Class")
 
         <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
-        Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject() As Task
+        Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject1() As Task
             Await TestInRegularAndScriptAsync(
 "
 Imports System
@@ -392,7 +392,7 @@ End Class")
 
         <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
-        Public Async Function TestWithNullableTypeAndReferenceEqualsWithObjectReversed() As Task
+        Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject2() As Task
             Await TestInRegularAndScriptAsync(
 "
 Imports System
@@ -439,5 +439,116 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndLogicalNotReferenceEquals1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Not ReferenceEquals(o, Nothing), o.ToString(), Nothing)
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndLogicalNotReferenceEquals2() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Not ReferenceEquals(Nothing, o), o.ToString(), Nothing)
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Not Object.ReferenceEquals(o, Nothing), o.ToString(), Nothing)
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestEqualsWithLogicalNot() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Not (o Is Nothing), o.ToString(), Nothing)
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestNotEqualsWithLogicalNot() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = [||]If (Not (o IsNot Nothing), Nothing, o.ToString())
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        Dim v = o?.ToString()
+    End Sub
+End Class")
+        End Function
+
     End Class
 End Namespace

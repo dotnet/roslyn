@@ -100,12 +100,25 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
+            var conditionIsNegated = false;
+            if (syntaxFacts.IsLogicalNotExpression(conditionNode))
+            {
+                conditionIsNegated = true;
+                conditionNode = syntaxFacts.WalkDownParentheses(
+                    syntaxFacts.GetOperandOfPrefixUnaryExpression(conditionNode));
+            }
+
             var isEqualityLikeCondition = TryAnalyzeCondition(
                 context, syntaxFacts, referenceEqualsMethodOpt, conditionNode,
                 out var conditionPartToCheck, out var isEquals);
             if (!isEqualityLikeCondition)
             {
                 return;
+            }
+
+            if (conditionIsNegated)
+            {
+                isEquals = !isEquals;
             }
 
             // Needs to be of the form:
