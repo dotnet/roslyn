@@ -52,7 +52,6 @@
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
     <PackageReference Include="VS.ExternalAPIs.CodingConventions" Version="$(VSExternalAPIsCodingConventionsVersion)" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
-    <PackageReference Include="Mono.Cecil" Version="$(MonoCecilVersion)" />
     <!-- The VS.ExternalAPIs.CodingConventions package isn't a "true" NuGet package and doesn't have the right lib folders. Manually reference the binary. -->
     <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\$(VSExternalAPIsCodingConventionsVersion)\Microsoft.VisualStudio.CodingConventions.dll" />
   </ItemGroup>
