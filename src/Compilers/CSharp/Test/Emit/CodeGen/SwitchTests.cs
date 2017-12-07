@@ -8013,7 +8013,7 @@ public class Program
         }
 
         [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
-        public void UnoxInPatternSwitch_07()
+        public void UnboxInPatternSwitch_07()
         {
             var source = @"using System;
 
@@ -8109,7 +8109,7 @@ public class Program
         }
 
         [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
-        public void UnoxInPatternSwitch_08()
+        public void UnboxInPatternSwitch_08()
         {
             var source = @"using System;
 
@@ -8205,7 +8205,7 @@ public class Program
         }
 
         [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
-        public void UnoxInPatternSwitch_09()
+        public void UnboxInPatternSwitch_09()
         {
             var source = @"using System;
 
