@@ -3112,50 +3112,23 @@ public static class GenExtensions<X> where X : struct
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (10,41): error CS8328:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo1<T,U,V>(this ref U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 41),
-                // (22,41): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2<T,U,V>(this ref X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(22, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
+                // public static class GenExtensions<X> where X : struct
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (8,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo1<T>(this ref T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(8, 37),
-                // (16,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2(this ref X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(16, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
+                // public static class GenExtensions<X> where X : struct
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (6,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo1(this ref int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 34),
-                // (18,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2<T>(this ref T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(18, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
+                // public static class GenExtensions<X> where X : struct
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (19,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2<T>(this ref X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(19, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
+                // public static class GenExtensions<X> where X : struct
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (21,41): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2<T,U,V>(this ref U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(21, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
+                // public static class GenExtensions<X> where X : struct
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (15,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2(this ref int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(15, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
+                // public static class GenExtensions<X> where X : struct
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
@@ -3524,16 +3497,7 @@ public static void Method6<T, U, V>(this in int i) { }
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (14,42): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
-                // public static void Method6<T, U, V>(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(14, 42),
-                // (6,33): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
-                // public static void Method2(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(6, 33),
-                // (10,36): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
-                // public static void Method4<T>(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(10, 36));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify();
         }
 
         [Fact]
