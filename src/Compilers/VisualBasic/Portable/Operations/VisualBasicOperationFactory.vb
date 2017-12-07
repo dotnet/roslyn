@@ -510,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundTryCast.WasCompilerGenerated
 
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
-            Dim conversionInformation = CreateConversionOperand(boundTryCast.Operand, CreateConversion(boundTryCast), boundTryCast.Syntax, boundTryCast.Type)
+            Dim conversionInformation = CreateConversionOperand(boundTryCast)
             Dim conversion = conversionInformation.ConversionStruct
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
             Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
@@ -532,7 +532,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
             Dim isImplicit As Boolean = boundDirectCast.WasCompilerGenerated
 
-            Dim conversionInformation = CreateConversionOperand(boundDirectCast.Operand, CreateConversion(boundDirectCast), boundDirectCast.Syntax, boundDirectCast.Type)
+            Dim conversionInformation = CreateConversionOperand(boundDirectCast)
             Dim conversion As Conversion = conversionInformation.ConversionStruct
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
             Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
@@ -568,9 +568,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
             Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated OrElse Not boundConversion.ExplicitCastInCode
 
-            Dim conversionOperandAndMethod = GetConversionInfo(boundConversion)
-            Dim boundOperand As BoundExpression = conversionOperandAndMethod.Operand
-            Dim conversion As Conversion = CreateConversion(boundConversion)
+            Dim boundOperand As BoundExpression = GetConversionOperand(boundConversion)
 
             If boundOperand.Syntax Is boundConversion.Syntax Then
                 If boundOperand.Kind = BoundKind.ConvertedTupleLiteral AndAlso boundOperand.Type = boundConversion.Type Then
@@ -583,28 +581,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 End If
             End If
 
-            If boundConversion.ExplicitCastInCode AndAlso conversion.IsIdentity AndAlso
-               boundOperand.Kind = BoundKind.Conversion Then
-                Dim nestedConversion = DirectCast(boundOperand, BoundConversion)
-                Dim nestedConversionOperandAndMethod As (Operand As BoundExpression, Method As MethodSymbol) = GetConversionInfo(nestedConversion)
-                Dim nestedOperand As BoundExpression = nestedConversionOperandAndMethod.Operand
-
-                If nestedConversion.Syntax Is nestedOperand.Syntax AndAlso nestedConversion.ExplicitCastInCode AndAlso
-                   nestedOperand.Kind = BoundKind.ConvertedTupleLiteral AndAlso
-                   nestedConversion.Type <> nestedOperand.Type Then
-                    ' Let's erase the nested conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
-                    ' in Binder.ReclassifyTupleLiteral.
-                    ' We need to use conversion information from the nested conversion because that is where the real conversion 
-                    ' information is stored.
-                    conversionOperandAndMethod = nestedConversionOperandAndMethod
-                    conversion = CreateConversion(nestedConversion)
-                    boundOperand = nestedOperand
-                End If
-            End If
-
-            Dim conversionInformation = CreateConversionOperand(boundOperand, conversion, boundConversion.Syntax, boundConversion.Type)
-            conversion = conversionInformation.ConversionStruct
-            Dim methodSymbol As MethodSymbol = conversionOperandAndMethod.Method
+            Dim conversionInformation As (Operation As Lazy(Of IOperation), ConversionStruct As Conversion, IsDelegateCreation As Boolean) = CreateConversionOperand(boundConversion)
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
             Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
 
@@ -616,7 +593,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyVisualBasicConversionExpression(operand, conversionInformation.ConversionStruct, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundDelegateCreationExpressionOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IDelegateCreationOperation
