@@ -12,16 +12,6 @@
         <target state="translated">어셈블리 이름에 잘못된 문자가 있음</target>
         <note />
       </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
-        <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="translated">{0}' 파일 처리 시 Msbuild에서 실패했습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
-        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">{0}' 파일 처리 시 Msbuild에서 실패했습니다. 메시지: {1}</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
