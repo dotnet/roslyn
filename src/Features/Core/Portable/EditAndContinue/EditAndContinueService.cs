@@ -5,19 +5,24 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
+    /// <summary>
+    /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
+    /// </summary>
+    /// <remarks>
+    /// Although the service itself is host agnotic, some of the services it consumes are only available in particular hosts (like Visual Studio).
+    /// Therefore this service doesn't export <see cref="IEditAndContinueService"/> on its own. Each host that supports EnC shall implement
+    /// a subclass that exports <see cref="IEditAndContinueService"/>.
+    /// </remarks>
+    internal class EditAndContinueService : IEditAndContinueService
     {
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private DebuggingSession _debuggingSession;
         private EditSession _editSession;
 
-        public event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
-
-        internal EditAndContinueWorkspaceService(IDiagnosticAnalyzerService diagnosticService)
+        public EditAndContinueService(IDiagnosticAnalyzerService diagnosticService)
         {
             Debug.Assert(diagnosticService != null);
             _diagnosticService = diagnosticService;
@@ -26,11 +31,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public DebuggingSession DebuggingSession => _debuggingSession;
 
         public EditSession EditSession => _editSession;
-
-        public void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after)
-        {
-            BeforeDebuggingStateChanged?.Invoke(this, new DebuggingStateChangedEventArgs(before, after));
-        }
 
         public void StartDebuggingSession(Solution currentSolution)
         {
