@@ -4742,29 +4742,26 @@ namespace AttributeTest
 ";
             var compilation = CreateStandardCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
-            {
-                var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("MyClass");
-
-                var useParamsMethod = (MethodSymbol)type.GetMember("UseParams");
-                var paramsParameter = useParamsMethod.Parameters[0];
-                VerifyParamArrayAttribute(paramsParameter, (SourceModuleSymbol)m);
-
-                var noParamsMethod = (MethodSymbol)type.GetMember("NoParams");
-                var noParamsParameter = noParamsMethod.Parameters[0];
-                Assert.Equal(0, noParamsParameter.GetSynthesizedAttributes().Length);
-            };
-
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             var comp = CompileAndVerify(
                 compilation,
-                sourceSymbolValidator: attributeValidator,
-                symbolValidator: null,
                 expectedSignatures: new[]
                 {
                     Signature("AttributeTest.MyClass", "UseParams", ".method public hidebysig static System.Void UseParams([System.ParamArrayAttribute()] System.Int32[] list) cil managed"),
                     Signature("AttributeTest.MyClass", "NoParams", ".method public hidebysig static System.Void NoParams(System.Object list) cil managed"),
+                },
+                symbolValidator: module =>
+                {
+                    var @namespace = module.GlobalNamespace.GetNestedNamespace("AttributeTest");
+                    var type = @namespace.GetTypeMember("MyClass");
+
+                    var useParamsMethod = type.GetMethod("UseParams");
+                    var paramsParameter = useParamsMethod.Parameters[0];
+                    VerifyParamArrayAttribute(paramsParameter);
+
+                    var noParamsMethod = type.GetMethod("NoParams");
+                    var noParamsParameter = noParamsMethod.Parameters[0];
+                    Assert.Empty(noParamsParameter.GetAttributes());
                 });
         }
 
