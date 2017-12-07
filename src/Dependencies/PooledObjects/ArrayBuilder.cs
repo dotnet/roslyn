@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
@@ -271,9 +270,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <summary>
         /// Realizes the array and disposes the builder in one operation.
         /// </summary>
-        [PerformanceSensitive(
-            "https://github.com/dotnet/roslyn/issues/23582",
-            Constraint = "Callers creating arrays with known capacities need to be able to create an " + nameof(ImmutableArray<T>) + " without a full copy.")]
         public ImmutableArray<T> ToImmutableAndFree()
         {
             ImmutableArray<T> result;
