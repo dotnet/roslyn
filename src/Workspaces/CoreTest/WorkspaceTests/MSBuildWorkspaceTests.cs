@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_MultiProjectSolution()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -1708,7 +1708,7 @@ class C1
             await AssertCSCompilationOptionsAsync("Foo", options => options.MainTypeName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_Missing()
         {
             CreateCSharpFiles();
@@ -1901,7 +1901,7 @@ class C1
             await AssertVBCompilationOptionsAsync(VB.OptionStrict.On, options => options.OptionStrict);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionStrict_Off()
         {
             CreateVBFilesWith("OptionStrict", "Off");
@@ -1912,7 +1912,7 @@ class C1
             await AssertVBCompilationOptionsAsync(VB.OptionStrict.Custom, options => options.OptionStrict);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionStrict_Custom()
         {
             CreateVBFilesWith("OptionStrictType", "Custom");
@@ -2070,7 +2070,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_VisualBasic_ConditionalAttributeNotEmitted()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -2218,7 +2218,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestUpdateDocumentAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2630,7 +2630,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework45)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestLoadTextSync()
         {
             var files = GetAnalyzerReferenceSolutionFiles();
@@ -2653,7 +2653,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework45)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestGetTextSynchronously()
         {
             var files = GetAnalyzerReferenceSolutionFiles();
@@ -2696,7 +2696,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(530337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
         public async Task TestProjectReferenceWithExternAlias()
         {
@@ -2789,7 +2789,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public async Task TestOpenProject_MetadataReferenceHasDocComments()
         {
@@ -2808,7 +2808,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CSharp_HasSourceDocComments()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
