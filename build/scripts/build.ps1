@@ -556,6 +556,10 @@ function Ensure-ProcDump() {
 # %TEMP% into the binaries folder which is deleted at the end of every run as a part of cleaning
 # up the workspace.
 function Redirect-Temp() {
+
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") ${env:TEMP}
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") ${env:TEMP}
+
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
