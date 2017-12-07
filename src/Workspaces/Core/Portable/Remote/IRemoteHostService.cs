@@ -15,6 +15,13 @@ namespace Microsoft.CodeAnalysis.Remote
         void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
         void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// This is only for debugging
+        /// 
+        /// this lets remote side to set same logging options as VS side
+        /// </summary>
+        void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken);
+
         /// <remarks>
         /// JsonRPC seems to have a problem with empty parameter lists.  So passing a dummy parameter
         /// just to make it work properly.

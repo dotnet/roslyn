@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <UseRoslynAnalyzers>false</UseRoslynAnalyzers>
-  </PropertyGroup>
-  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\..\..\src\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
@@ -55,5 +51,4 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
