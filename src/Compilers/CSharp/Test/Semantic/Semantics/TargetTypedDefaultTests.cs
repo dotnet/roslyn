@@ -2391,9 +2391,6 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
-                //             case default:
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(12, 18),
                 // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case default:
                 Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
@@ -2460,9 +2457,6 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,19): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
-                //             case (default):
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(12, 19),
                 // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case (default):
                 Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)

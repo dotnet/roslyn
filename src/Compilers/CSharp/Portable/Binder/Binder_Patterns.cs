@@ -50,21 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (DeclarationPatternSyntax)node, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.ConstantPattern:
+                    var constantPattern = (ConstantPatternSyntax)node;
                     return BindConstantPattern(
-                        (ConstantPatternSyntax)node, operandType, hasErrors, diagnostics);
+                        constantPattern, operandType, constantPattern.Expression, hasErrors, diagnostics, out bool wasExpression);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-        }
-
-        private BoundConstantPattern BindConstantPattern(
-            ConstantPatternSyntax node,
-            TypeSymbol operandType,
-            bool hasErrors,
-            DiagnosticBag diagnostics)
-        {
-            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out bool wasExpression);
         }
 
         internal BoundConstantPattern BindConstantPattern(
@@ -82,6 +74,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            return BindConstantAsPattern(node, operandType, patternExpression, hasErrors, diagnostics, out wasExpression);
+        }
+
+        internal BoundConstantPattern BindConstantAsPattern(
+            CSharpSyntaxNode node,
+            TypeSymbol operandType,
+            ExpressionSyntax patternExpression,
+            bool hasErrors,
+            DiagnosticBag diagnostics,
+            out bool wasExpression)
+        {
             var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
             var convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
