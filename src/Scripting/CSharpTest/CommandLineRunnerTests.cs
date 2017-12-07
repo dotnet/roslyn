@@ -165,7 +165,7 @@ Type ""#help"" for more information.
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23560")]
         public void Exception()
         {
             var runner = CreateRunner(input:
@@ -196,7 +196,7 @@ $@"{new System.DivideByZeroException().Message}
 ", runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23560")]
         public void ExceptionInGeneric()
         {
             var runner = CreateRunner(input:
@@ -821,7 +821,7 @@ Assembly '{libBaseName}, Version=0.0.0.0' has already been loaded from '{fileBas
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23560")]
         [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
         public void PreservingDeclarationsOnException()
         {
