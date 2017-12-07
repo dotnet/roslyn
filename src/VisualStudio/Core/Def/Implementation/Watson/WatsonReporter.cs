@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 
-            TelemetryService.DefaultSession.PostFault(
+            var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
                 exceptionObject: exception,
@@ -78,6 +78,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
                     return callback(arg);
                 });
+
+            // add extra bucket parameters to bucket better in NFW
+            // we do it here as well so that it gets bucketted better in both
+            // watson and telemetry. 
+            faultEvent.SetExtraParameters(exception, emptyCallstack);
+
+            TelemetryService.DefaultSession.PostEvent(faultEvent);
 
             if (exception is OutOfMemoryException)
             {

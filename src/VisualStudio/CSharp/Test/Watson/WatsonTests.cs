@@ -167,7 +167,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
             var exception = new Exception("not thrown");
             mockFault.SetExtraParameters(exception, emptyCallstack: true);
 
-            Assert.NotNull(mockFault.Map[9]);
+            Assert.NotNull(mockFault.Map[4]);
         }
 
         public class MockFault : IFaultUtility
