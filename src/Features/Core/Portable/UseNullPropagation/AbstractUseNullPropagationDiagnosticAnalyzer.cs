@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract ISemanticFactsService GetSemanticFactsService();
 
-        protected abstract bool TryAnalyzePatternCondition(SyntaxNode conditionNode, out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals);
+        protected abstract bool TryAnalyzePatternCondition(
+            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode, 
+            out SyntaxNode conditionPartToCheck, out bool isEquals);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -100,22 +102,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             var isEqualityLikeCondition = TryAnalyzeCondition(
                 context, syntaxFacts, referenceEqualsMethodOpt, conditionNode,
-                out var conditionLeft, out var conditionRight, out var isEquals);
+                out var conditionPartToCheck, out var isEquals);
             if (!isEqualityLikeCondition)
-            {
-                return;
-            }
-
-            var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
-            var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
-
-            if (conditionRightIsNull && conditionLeftIsNull)
-            {
-                // null == null    nothing to do here.
-                return;
-            }
-
-            if (!conditionRightIsNull && !conditionLeftIsNull)
             {
                 return;
             }
@@ -133,7 +121,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var conditionPartToCheck = conditionRightIsNull ? conditionLeft : conditionRight;
             var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
 
             var semanticFacts = GetSemanticFactsService();
@@ -186,49 +173,48 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         private bool TryAnalyzeCondition(
             SyntaxNodeAnalysisContext context, ISyntaxFactsService syntaxFacts, IMethodSymbol referenceEqualsMethodOpt, SyntaxNode conditionNode,
-            out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
+            out SyntaxNode conditionPartToCheck, out bool isEquals)
         {
             switch (conditionNode)
             {
                 case TBinaryExpressionSyntax binaryExpression:
                     return TryAnalyzeBinaryExpressionCondition(
-                        syntaxFacts, binaryExpression, out conditionLeft, out conditionRight, out isEquals);
+                        syntaxFacts, binaryExpression, out conditionPartToCheck, out isEquals);
 
                 case TInvocationExpression invocation:
                     return TryAnalyzeInvocationCondition(
                         context, syntaxFacts, referenceEqualsMethodOpt, invocation,
-                        out conditionLeft, out conditionRight, out isEquals);
+                        out conditionPartToCheck, out isEquals);
 
                 default:
                     return TryAnalyzePatternCondition(
-                        conditionNode, out conditionLeft, out conditionRight, out isEquals);
+                        syntaxFacts, conditionNode, out conditionPartToCheck, out isEquals);
             }
         }
 
         private bool TryAnalyzeBinaryExpressionCondition(
             ISyntaxFactsService syntaxFacts, TBinaryExpressionSyntax condition,
-            out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
+            out SyntaxNode conditionPartToCheck, out bool isEquals)
         {
             isEquals = IsEquals(condition);
             if (!isEquals && !IsNotEquals(condition))
             {
-                conditionLeft = null;
-                conditionRight = null;
+                conditionPartToCheck = null;
                 return false;
             }
             else
             {
-                syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
-                return true;
+                syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeft, out var conditionRight);
+                conditionPartToCheck = GetConditionPartToCheck(syntaxFacts, conditionLeft, conditionRight);
+                return conditionPartToCheck != null;
             }
         }
 
         private static bool TryAnalyzeInvocationCondition(
             SyntaxNodeAnalysisContext context, ISyntaxFactsService syntaxFacts, IMethodSymbol referenceEqualsMethodOpt, TInvocationExpression invocation,
-            out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
+            out SyntaxNode conditionPartToCheck, out bool isEquals)
         {
-            conditionLeft = null;
-            conditionRight = null;
+            conditionPartToCheck = null;
             isEquals = true;
 
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocation);
@@ -255,17 +241,42 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return false;
             }
 
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
-            var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
-            if (!referenceEqualsMethodOpt.Equals(symbol))
+            var conditionLeft = syntaxFacts.GetExpressionOfArgument(arguments[0]);
+            var conditionRight = syntaxFacts.GetExpressionOfArgument(arguments[1]);
+            if (conditionLeft == null || conditionRight == null)
             {
                 return false;
             }
 
-            conditionLeft = syntaxFacts.GetExpressionOfArgument(arguments[0]);
-            conditionRight = syntaxFacts.GetExpressionOfArgument(arguments[1]);
-            return conditionLeft != null && conditionRight != null;
+            conditionPartToCheck = GetConditionPartToCheck(syntaxFacts, conditionLeft, conditionRight);
+            if (conditionPartToCheck == null)
+            {
+                return false;
+            }
+
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
+            var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
+            return referenceEqualsMethodOpt.Equals(symbol);
+        }
+
+        private static SyntaxNode GetConditionPartToCheck(ISyntaxFactsService syntaxFacts, SyntaxNode conditionLeft, SyntaxNode conditionRight)
+        {
+            var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
+            var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
+
+            if (conditionRightIsNull && conditionLeftIsNull)
+            {
+                // null == null    nothing to do here.
+                return null;
+            }
+
+            if (!conditionRightIsNull && !conditionLeftIsNull)
+            {
+                return null;
+            }
+
+            return conditionRightIsNull ? conditionLeft : conditionRight;
         }
 
         internal static SyntaxNode GetWhenPartMatch(

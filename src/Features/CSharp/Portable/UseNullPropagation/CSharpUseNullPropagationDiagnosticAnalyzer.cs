@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         protected override bool IsNotEquals(BinaryExpressionSyntax condition)
             => condition.Kind() == SyntaxKind.NotEqualsExpression;
 
-        protected override bool TryAnalyzePatternCondition(SyntaxNode conditionNode, out SyntaxNode conditionLeft, out SyntaxNode conditionRight, out bool isEquals)
+        protected override bool TryAnalyzePatternCondition(
+            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode, 
+            out SyntaxNode conditionPartToCheck, out bool isEquals)
         {
-            conditionLeft = null;
-            conditionRight = null;
+            conditionPartToCheck = null;
             isEquals = true;
 
             var patternExpression = conditionNode as IsPatternExpressionSyntax;
@@ -56,8 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
                 return false;
             }
 
-            conditionLeft = patternExpression.Expression;
-            conditionRight = constantPattern.Expression;
+            if (!syntaxFacts.IsNullLiteralExpression(constantPattern.Expression))
+            {
+                return false;
+            }
+
+            conditionPartToCheck = patternExpression.Expression;
             return true;
         }
     }

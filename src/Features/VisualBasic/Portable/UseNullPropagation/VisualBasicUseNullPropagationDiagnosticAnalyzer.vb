@@ -42,9 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             Return condition.Kind() = SyntaxKind.IsNotExpression
         End Function
 
-        Protected Overrides Function TryAnalyzePatternCondition(conditionNode As SyntaxNode, ByRef conditionLeft As SyntaxNode, ByRef conditionRight As SyntaxNode, ByRef isEquals As Boolean) As Boolean
-            conditionLeft = Nothing
-            conditionRight = Nothing
+        Protected Overrides Function TryAnalyzePatternCondition(syntaxFacts As ISyntaxFactsService, conditionNode As SyntaxNode, ByRef conditionPartToCheck As SyntaxNode, ByRef isEquals As Boolean) As Boolean
+            conditionPartToCheck = Nothing
             isEquals = False
             Return False
         End Function
