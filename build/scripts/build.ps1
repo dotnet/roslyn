@@ -217,8 +217,10 @@ function Build-ExtraSignArtifacts() {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
         Write-Host "Publishing csc"
         Run-MSBuild "..\Compilers\CSharp\csc\csc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-        Write-Host "Publishing csc"
+        Write-Host "Publishing vbc"
         Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing VBCSCompiler"
+        Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
         $dest = @(
             $configDir,
