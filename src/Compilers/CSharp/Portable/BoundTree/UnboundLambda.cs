@@ -306,8 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
-            Constraint = "Avoid " + nameof(ConcurrentDictionary<NamedTypeSymbol, BoundLambda>) + " which has a large default size, but this cache is normally small.")]
-        private ImmutableDictionary<NamedTypeSymbol, BoundLambda> _returnInferenceCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty;
+            Constraint = "Avoid " + nameof(ConcurrentDictionary<ReturnInferenceCacheKey, BoundLambda>) + " which has a large default size, but this cache is normally small.")]
+        private ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda> _returnInferenceCache = ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda>.Empty;
 
         private BoundLambda _errorBinding;
 
@@ -425,8 +425,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
 
+            // when binding for real (not for return inference), there is still
+            // a good chance that we could reuse a body of a lambda previously bound for 
+            // return type inference.
+            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
+
             BoundLambda returnInferenceLambda;
-            if (_returnInferenceCache.TryGetValue(delegateType, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
+            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
             {
                 lambdaSymbol = returnInferenceLambda.Symbol;
                 if ((object)LambdaSymbol.InferenceFailureReturnType != lambdaSymbol.ReturnType &&
@@ -439,11 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto haveLambdaBodyAndBinders;
                 }
             }
-
-            // when binding for real (not for return inference), there is still
-            // a good chance that we could reuse a body of a lambda previously bound for 
-            // return type inference.
-            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
 
             lambdaSymbol = new LambdaSymbol(
                 binder.Compilation,
@@ -560,14 +560,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
         {
-            if (_returnInferenceCache.TryGetValue(delegateType, out var result))
+            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
+
+            if (_returnInferenceCache.TryGetValue(cacheKey, out var result))
             {
                 return result;
             }
 
-            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
             result = ReallyInferReturnType(delegateType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds);
-            return ImmutableInterlocked.GetOrAdd(ref _returnInferenceCache, delegateType, result);
+            return ImmutableInterlocked.GetOrAdd(ref _returnInferenceCache, cacheKey, result);
         }
 
         /// <summary>
@@ -713,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ?? ReallyInferReturnType(null, ImmutableArray<TypeSymbol>.Empty, ImmutableArray<RefKind>.Empty);
         }
 
-        private static BoundLambda GuessBestBoundLambda(ImmutableDictionary<NamedTypeSymbol, BoundLambda> candidates)
+        private static BoundLambda GuessBestBoundLambda<T>(ImmutableDictionary<T, BoundLambda> candidates)
         {
             switch (candidates.Count)
             {
@@ -723,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return candidates.First().Value;
                 default:
                     // Prefer candidates with fewer diagnostics.
-                    IEnumerable<KeyValuePair<NamedTypeSymbol, BoundLambda>> minDiagnosticsGroup = candidates.GroupBy(lambda => lambda.Value.Diagnostics.Length).OrderBy(group => group.Key).First();
+                    IEnumerable<KeyValuePair<T, BoundLambda>> minDiagnosticsGroup = candidates.GroupBy(lambda => lambda.Value.Diagnostics.Length).OrderBy(group => group.Key).First();
 
                     // If multiple candidates have the same number of diagnostics, order them by delegate type name.
                     // It's not great, but it should be stable.
