@@ -589,10 +589,10 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IMPORTANT: VISUAL STUDIO INCLUDES DECOMPILING FUNCTIONALITY (“DECOMPILER”) THAT ENABLES REPRODUCING SOURCE CODE FROM BINARY CODE. BY ACCESSING AND USING THE DECOMPILER, YOU AGREE TO THE VISUAL STUDIO LICENSE TERMS AND THE TERMS FOR THE DECOMPILER BELOW.  
-        ///IF YOU DO NOT AGREE WITH THESE COMBINED TERMS, DO NOT ACCESS OR USE THE DECOMPILER.
+        ///   Looks up a localized string similar to IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below.
+        ///If you do not agree with these combined terms, do not access or use the Decompiler.
         /// 
-        ///You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first [rest of string was truncated]&quot;;.
+        ///You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Decompiler_Legal_Notice_Message {
             get {
