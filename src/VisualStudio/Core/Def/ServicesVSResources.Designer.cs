@@ -2543,11 +2543,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Visual Studio keybindings for ReSharper/IntelliJ/Vim/etc..
+        ///   Looks up a localized string similar to Use keybindings for ReSharper/IntelliJ/Vim/etc..
         /// </summary>
-        internal static string Use_Visual_Studio_Keybindings_for_extensions {
+        internal static string Use_Keybindings_for_extensions {
             get {
-                return ResourceManager.GetString("Use_Visual_Studio_Keybindings_for_extensions", resourceCulture);
+                return ResourceManager.GetString("Use_Keybindings_for_extensions", resourceCulture);
             }
         }
         

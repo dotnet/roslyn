@@ -989,8 +989,8 @@ Additional information: {1}</value>
   <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
     <value>Restore Visual Studio keybindings</value>
   </data>
-  <data name="Use_Visual_Studio_Keybindings_for_extensions" xml:space="preserve">
-    <value>Use Visual Studio keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  <data name="Use_Keybindings_for_extensions" xml:space="preserve">
+    <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
   </data>
   <data name="We_noticed_your_keybindings_are_broken" xml:space="preserve">
     <value>We noticed your keybindings are broken.</value>

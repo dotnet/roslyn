@@ -237,13 +237,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             infoBarService.ShowInfoBarInGlobalView(
                 message,
                 new InfoBarUI(title: ServicesVSResources.Restore_Visual_Studio_keybindings,
-                              kind: InfoBarUI.UIKind.HyperLink,
+                              kind: InfoBarUI.UIKind.Button,
                               action: RestoreVsKeybindings),
-                new InfoBarUI(title: ServicesVSResources.Use_Visual_Studio_Keybindings_for_extensions,
-                              kind: InfoBarUI.UIKind.HyperLink,
+                new InfoBarUI(title: ServicesVSResources.Use_Keybindings_for_extensions,
+                              kind: InfoBarUI.UIKind.Button,
                               action: OpenExtensionsHyperlink),
                 new InfoBarUI(title: ServicesVSResources.Never_show_this_again,
-                              kind: InfoBarUI.UIKind.Button,
+                              kind: InfoBarUI.UIKind.HyperLink,
                               action: NeverShowAgain),
                 new InfoBarUI(title: "", kind: InfoBarUI.UIKind.Close,
                               action: InfoBarClose));
