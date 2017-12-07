@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
+            Assert.True(assemblyValidator != null || symbolValidator != null);
+
             var emittedMetadata = verifier.GetMetadata();
 
             if (assemblyValidator != null)
