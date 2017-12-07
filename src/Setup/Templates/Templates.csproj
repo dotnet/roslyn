@@ -25,6 +25,8 @@
     <TargetFrameworkProfile />
     <RoslynProjectType>Vsix</RoslynProjectType>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- https://github.com/dotnet/roslyn/issues/23649 -->
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
