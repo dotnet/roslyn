@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.InvalidReportDiagnosticRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescription,

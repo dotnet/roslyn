@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../AnalyzerUtilitiesResources.resx">
     <body>
-      <trans-unit id="CategoryApiDesign">
-        <source>ApiDesign</source>
-        <target state="translated">ApiDesign</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CategoryDesign">
         <source>Design</source>
         <target state="translated">Design</target>
@@ -70,6 +65,16 @@
       <trans-unit id="VersionCheckTitle">
         <source>Analyzer version mismatch</source>
         <target state="translated">Analyseversionskonflikt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CategoryDocumentation">
+        <source>Documentation</source>
+        <target state="new">Documentation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CategoryMaintainability">
+        <source>Maintainability</source>
+        <target state="new">Maintainability</target>
         <note />
       </trans-unit>
     </body>

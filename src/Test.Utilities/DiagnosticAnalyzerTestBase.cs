@@ -254,6 +254,12 @@ namespace Test.Utilities
             Verify(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, false, compilationOptions: null, expected: expected);
         }
 
+        protected void VerifyCSharp(string source, FileAndSource additionalText, params DiagnosticResult[] expected)
+        {
+            var additionalFiles = GetAdditionalTextFiles(additionalText.FilePath, additionalText.Source);
+            Verify(source, LanguageNames.CSharp, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, expected: expected);
+        }
+
         protected void VerifyBasic(string source, params DiagnosticResult[] expected)
         {
             Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, compilationOptions: null, expected: expected);
@@ -289,6 +295,12 @@ namespace Test.Utilities
             Verify(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, compilationOptions: null, expected: expected);
         }
 
+        protected void VerifyBasic(string source, FileAndSource additionalText, params DiagnosticResult[] expected)
+        {
+            var additionalFiles = GetAdditionalTextFiles(additionalText.FilePath, additionalText.Source);
+            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, expected: expected);
+        }
+
         protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, IEnumerable<TestAdditionalDocument> additionalFiles, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, additionalFiles: additionalFiles);
@@ -306,6 +318,12 @@ namespace Test.Utilities
             var diagnostics = GetSortedDiagnostics(sources, language, analyzer, compilationOptions, validationMode, allowUnsafeCode: allowUnsafeCode);
             diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, expected);
         }
+
+        protected IEnumerable<TestAdditionalDocument> GetAdditionalTextFiles(string fileName, string text) =>
+            ImmutableArray.Create(GetAdditionalTextFile(fileName, text));
+
+        protected TestAdditionalDocument GetAdditionalTextFile(string fileName, string text) =>
+            new TestAdditionalDocument(fileName, text);
 
         private static Tuple<Document[], bool, TextSpan?[]> GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, bool addLanguageSpecificCodeAnalysisReference = true, string projectName = TestProjectName, bool allowUnsafeCode = false)
         {

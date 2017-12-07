@@ -37,8 +37,12 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzerUtilitiesResources.resx">
       <GenerateSource>true</GenerateSource>
-	  <ManifestResourceName>Analyzer.Utilities.AnalyzerUtilitiesResources</ManifestResourceName>
+      <ManifestResourceName>Analyzer.Utilities.AnalyzerUtilitiesResources</ManifestResourceName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)xlf\AnalyzerUtilitiesResources.cs.xlf" />

@@ -272,4 +272,49 @@
   <data name="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle" xml:space="preserve">
     <value>Do not ignore values returned by methods on immutable objects.</value>
   </data>
+  <data name="DiagnosticIdMustBeAConstantTitle" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be a non-null constant.</value>
+  </data>
+  <data name="DiagnosticIdMustBeAConstantMessage" xml:space="preserve">
+    <value>Diagnostic Id for rule '{0}' must be a non-null constant.</value>
+  </data>
+  <data name="DiagnosticIdMustBeAConstantDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be a non-null constant.</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatTitle" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be in specified format.</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatMessage" xml:space="preserve">
+    <value>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be in specified format.</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdTitle" xml:space="preserve">
+    <value>DiagnosticId must be unique across analyzers.</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdMessage" xml:space="preserve">
+    <value>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdDescription" xml:space="preserve">
+    <value>DiagnosticId must be unique across analyzers.</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeTitle" xml:space="preserve">
+    <value>Category for analyzers must be from the specified values.</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeMessage" xml:space="preserve">
+    <value>Category '{0}' is not from the allowed categories specified in the file '{1}'.</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeDescription" xml:space="preserve">
+    <value>Category for analyzers must be from the specified values.</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidTitle" xml:space="preserve">
+    <value>Invalid entry in analyzer category and diagnostic ID range specification file.</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidMessage" xml:space="preserve">
+    <value>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidDescription" xml:space="preserve">
+    <value>Invalid entry in analyzer category and diagnostic ID range specification file.</value>
+  </data>
 </root>

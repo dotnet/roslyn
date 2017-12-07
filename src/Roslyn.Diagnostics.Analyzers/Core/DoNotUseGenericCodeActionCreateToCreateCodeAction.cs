@@ -22,7 +22,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.DoNotUseCodeActionCreateRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            "Performance",
+            DiagnosticCategory.RoslyDiagnosticsPerformance,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);

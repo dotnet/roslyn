@@ -15,13 +15,13 @@ namespace Roslyn.Diagnostics.Analyzers
         // public const string OverrideObjectEqualsRuleId = "RS0009";                   // Now CA1815 => Microsoft.ApiDesignGuidelines.Analyzers.OverrideEqualsAndOperatorEqualsOnValueTypesAnalyzer
         // public const string DoNotUseVerbatimCrefsRuleId = "RS0010";                  // Now RS0010 => XmlDocumentationComments.Analyzers.AvoidUsingCrefTagsWithAPrefixAnalyzer
         // public const string CancellationTokenMustBeLastRuleId = "RS0011";            // Now CA1068 => Microsoft.ApiDesignGuidelines.Analyzers.CancellationTokenParametersMustComeLastAnalyzer
-        // public const string DoNotCallToImmutableArrayRuleId = "RS0012";              // Now RS0012 => System.Collections.Immutable.Analyzers.DoNotCallToImmutableCollectionOnAnImmutableCollectionValueAnalyzer
+        // public const string DoNotCallToImmutableArrayRuleId = "RS0012";              // Now CA2009 => System.Collections.Immutable.Analyzers.DoNotCallToImmutableCollectionOnAnImmutableCollectionValueAnalyzer
         public const string DoNotAccessDiagnosticDescriptorRuleId = "RS0013";
         // public const string DoNotCallLinqOnIndexable = "RS0014";                     // Now RS0014 => System.Runtime.Analyzers.DoNotUseEnumerableMethodsOnIndexableCollectionsInsteadUseTheCollectionDirectlyAnalyzer
-        // public const string ConsumePreserveSigRuleId = "RS0015";                     // Now RS0015 => System.Runtime.InteropServices.Analyzers.AlwaysConsumeTheValueReturnedByMethodsMarkedWithPreserveSigAttributeAnalyzer
+        // public const string ConsumePreserveSigRuleId = "RS0015";                     // Now CA2010 => System.Runtime.InteropServices.Analyzers.AlwaysConsumeTheValueReturnedByMethodsMarkedWithPreserveSigAttributeAnalyzer
         public const string DeclarePublicApiRuleId = "RS0016";
         public const string RemoveDeletedApiRuleId = "RS0017";
-        // public const string DoNotCreateTasksWithoutTaskSchedulerRuleId = "RS0018";   // Now RS0018 => System.Threading.Tasks.Analyzers.DoNotCreateTasksWithoutPassingATaskSchedulerAnalyzer
+        // public const string DoNotCreateTasksWithoutTaskSchedulerRuleId = "RS0018";   // Now CA2008 => System.Threading.Tasks.Analyzers.DoNotCreateTasksWithoutPassingATaskSchedulerAnalyzer
         public const string SymbolDeclaredEventRuleId = "RS0019";
         // public const string DeadCodeRuleId = "RS0020";                               // Now ???
         // public const string DeadCodeTriggerRuleId = "RS0021";                        // Now ???
@@ -31,5 +31,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string DuplicatedSymbolInPublicApiFiles = "RS0025";
         public const string AvoidMultipleOverloadsWithOptionalParameters = "RS0026";
         public const string OverloadWithOptionalParametersShouldHaveMostParameters = "RS0027";
+        public const string RoslynAnalyzerMustUseIdInSpecifiedRangeRuleId = "RS0028";
+        public const string RoslynAnalyzerMustUseCategoriesFromSpecifiedRangeRuleId = "RS0029";
     }
 }

@@ -13,7 +13,21 @@ namespace Analyzer.Utilities
         public static readonly string Security = AnalyzerUtilitiesResources.CategorySecurity;
         public static readonly string Usage = AnalyzerUtilitiesResources.CategoryUsage;
         public static readonly string Naming = AnalyzerUtilitiesResources.CategoryNaming;
-        public static readonly string ApiDesign = AnalyzerUtilitiesResources.CategoryApiDesign;
         public static readonly string Library = AnalyzerUtilitiesResources.CategoryLibrary;
+        public static readonly string Documentation = AnalyzerUtilitiesResources.CategoryDocumentation;
+        public static readonly string Maintainability = AnalyzerUtilitiesResources.CategoryMaintainability;
+
+        public const string RoslyDiagnosticsDesign = nameof(RoslyDiagnosticsDesign);
+        public const string RoslyDiagnosticsMaintainability = nameof(RoslyDiagnosticsMaintainability);
+        public const string RoslyDiagnosticsPerformance = nameof(RoslyDiagnosticsPerformance);
+        public const string RoslyDiagnosticsReliability = nameof(RoslyDiagnosticsReliability);
+        public const string RoslyDiagnosticsUsage = nameof(RoslyDiagnosticsUsage);
+
+        public const string MicrosoftCodeAnalysisCorrectness = nameof(MicrosoftCodeAnalysisCorrectness);
+        public const string MicrosoftCodeAnalysisDesign = nameof(MicrosoftCodeAnalysisDesign);
+        public const string MicrosoftCodeAnalysisDocumentation = nameof(MicrosoftCodeAnalysisDocumentation);
+        public const string MicrosoftCodeAnalysisLocalization = nameof(MicrosoftCodeAnalysisLocalization);
+        public const string MicrosoftCodeAnalysisPerformance = nameof(MicrosoftCodeAnalysisPerformance);
+        public const string MicrosoftCodeAnalysisCompatibility = nameof(MicrosoftCodeAnalysisCompatibility);
     }
 }
