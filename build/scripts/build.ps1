@@ -183,7 +183,7 @@ function Make-BootstrapBuild() {
 function Build-Artifacts() { 
     Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
 
-    if ($testDesktop) { 
+    if ($testDesktop -or $buildAll) { 
         Run-MSBuild "src\Samples\Samples.sln" "/p:DeployExtension=false"
     }
 
@@ -560,6 +560,8 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
