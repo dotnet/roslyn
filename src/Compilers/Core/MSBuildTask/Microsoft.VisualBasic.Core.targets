@@ -13,6 +13,16 @@
     </ItemGroup>
   </Target>
 
+  <!--
+    EmbeddedFiles are source files to be embedded to the PDB. 
+    We need to set Visible to false in order to not display duplicate entries in project UI.
+  -->
+  <ItemDefinitionGroup>
+    <EmbeddedFiles>
+      <Visible>false</Visible>
+    </EmbeddedFiles>
+  </ItemDefinitionGroup>
+
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile);
