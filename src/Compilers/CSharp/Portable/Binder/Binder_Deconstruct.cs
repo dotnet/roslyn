@@ -549,6 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 locationsBuilder.Add(variable.Syntax.Location);
             }
+            var arguments = valuesBuilder.ToImmutableAndFree();
 
             var uniqueFieldNames = PooledHashSet<string>.GetInstance();
             if (RemoveDuplicateInferredTupleNamesAndReportEmptied(namesBuilder, uniqueFieldNames))
@@ -557,12 +558,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namesBuilder = null;
             }
             uniqueFieldNames.Free();
-            ImmutableArray<string> tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
 
-            bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
+            var tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
             var inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
+            bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
-            var type = TupleTypeSymbol.Create(syntax.Location,
+            var type = TupleTypeSymbol.Create(
+                syntax.Location,
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
                 shouldCheckConstraints: !ignoreDiagnosticsFromTuple,
@@ -571,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
             // for "dropped names" on tuple literal when the name was inferred.
-            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments: valuesBuilder.ToImmutableAndFree(), type: type);
+            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments, type);
         }
 
         /// <summary>Extract inferred name from a single deconstruction variable.</summary>

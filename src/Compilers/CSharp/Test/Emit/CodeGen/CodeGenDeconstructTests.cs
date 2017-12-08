@@ -1394,7 +1394,7 @@ class C
 
                 Assert.Equal("(System.Int32, System.Int32 x) c", model.GetDeclaredSymbol(declarations.ElementAt(6)).ToTestDisplayString());
 
-                var x = model.GetDeclaredSymbol(declarations.ElementAt(7)) as LocalSymbol;
+                var x = (LocalSymbol)model.GetDeclaredSymbol(declarations.ElementAt(7));
                 Assert.Equal("(System.Int32, System.Int32) d", x.ToTestDisplayString());
                 Assert.True(x.Type.TupleElementNames.IsDefault);
 
