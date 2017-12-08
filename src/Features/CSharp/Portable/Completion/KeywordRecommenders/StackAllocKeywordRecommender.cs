@@ -16,20 +16,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            // type t = |
-            var token = context.TargetToken;
-            if (token.IsUnsafeContext())
+            var node = context.TargetToken.Parent;
+
+            if (node == null)
             {
-                if (token.Kind() == SyntaxKind.EqualsToken &&
-                    token.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
-                    token.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                    token.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration))
+                return false;
+            }
+
+            if (node.IsKind(SyntaxKind.ParenthesizedExpression) || node.IsKind(SyntaxKind.CastExpression))
+            {
+                node = node.Parent;
+            }
+
+            while (node.IsKind(SyntaxKind.ConditionalExpression))
+            {
+                node = node.Parent;
+            }
+
+            if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
+            {
+                return node.Parent.IsKind(SyntaxKind.ExpressionStatement);
+            }
+
+            if (node.IsKind(SyntaxKind.EqualsValueClause))
+            {
+                node = node.Parent;
+
+                if (node.IsKind(SyntaxKind.VariableDeclarator))
                 {
-                    var variableDeclaration = (VariableDeclarationSyntax)token.Parent.Parent.Parent;
-                    if (variableDeclaration.IsParentKind(SyntaxKind.LocalDeclarationStatement) ||
-                        variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
+                    node = node.Parent;
+
+                    if (node.IsKind(SyntaxKind.VariableDeclaration))
                     {
-                        return variableDeclaration.Type.IsVar || variableDeclaration.Type.IsKind(SyntaxKind.PointerType);
+                        node = node.Parent;
+
+                        return node.IsKind(SyntaxKind.LocalDeclarationStatement) || node.IsKind(SyntaxKind.ForStatement);
                     }
                 }
             }
