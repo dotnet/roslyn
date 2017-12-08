@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (containingSymbol is null)
                 {
                     // For instance a type parameter in cref (CrefTypeParameterSymbol)
-                    builder.Append("`");
+                    builder.Append('`');
                 }
                 else if (containingSymbol.Kind == SymbolKind.Method)
                 {
