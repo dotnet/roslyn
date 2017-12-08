@@ -109,10 +109,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             LoadAnalyzerNodeComponents();
             
-            Task.Run(() => LoadComponentsBackground());
+            Task.Run(() => LoadComponentsBackgroundAsync());
         }
 
-        private async Task LoadComponentsBackground()
+        private async Task LoadComponentsBackgroundAsync()
         {
             // Perf: Initialize the command handlers.
             var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
@@ -123,10 +123,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<MiscellaneousDiagnosticListTable>();
 
             // Initialize any experiments async
-            var experiments = this.ComponentModel.DefaultExportProvider.GetExports<IExperiment>();
+            var experiments = this.ComponentModel.DefaultExportProvider.GetExportedValues<IExperiment>();
             foreach (var experiment in experiments)
             {
-                await experiment.Value.Initialize().ConfigureAwait(false);
+                await experiment.InitializeAsync().ConfigureAwait(false);
             }
         }
 
