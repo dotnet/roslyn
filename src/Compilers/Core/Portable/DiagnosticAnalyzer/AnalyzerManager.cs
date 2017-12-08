@@ -168,6 +168,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
+            if (diagnostic.Id.StartsWith("CS", StringComparison.Ordinal)||
+                diagnostic.Id.StartsWith("BC", StringComparison.Ordinal))
+            {
+                // Only the compiler analyzer should produce diagnostics with CS or BC prefixes
+                throw new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
+            }
+
             // Get all the supported diagnostics and scan them linearly to see if the reported diagnostic is supported by the analyzer.
             // The linear scan is okay, given that this runs only if a diagnostic is being reported and a given analyzer is quite unlikely to have hundreds of thousands of supported diagnostics.
             var supportedDescriptors = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
