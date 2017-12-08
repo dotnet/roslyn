@@ -95,7 +95,6 @@
         "Exes\\vbi\\net46\\vbi.exe",
         "Exes\\vbi\\netcoreapp2.0\\vbi.dll",
         "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
-        "Vsix\\Templates\\Roslyn.Templates.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\*\\Roslyn.VisualStudio.DiagnosticsWindow.resources.dll",
         "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll"
@@ -143,7 +142,6 @@
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
-        "Vsix\\Templates\\Roslyn SDK.vsix"
       ]
     },
     {
