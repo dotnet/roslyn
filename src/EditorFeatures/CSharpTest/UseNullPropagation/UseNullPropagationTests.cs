@@ -506,6 +506,37 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndIsType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [||]c is C ? null : c.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestIsOtherConstant()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(string s)
+    {
+        int? x = [||]s is """" ? null : (int?)s.Length;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEquals1()
         {
             await TestInRegularAndScriptAsync(
@@ -550,6 +581,38 @@ class C
     void M(C c)
     {
         int? x = c?.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]ReferenceEquals(c, other) ? null : c.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsOtherValue2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]ReferenceEquals(other, c) ? null : c.f;
     }
 }");
         }
@@ -606,6 +669,38 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsOtherValueWithObject1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]object.ReferenceEquals(c, other) ? null : c.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndReferenceEqualsOtherValueWithObject2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]object.ReferenceEquals(other, c) ? null : c.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndNotIsNull()
         {
             await TestInRegularAndScriptAsync(
@@ -625,6 +720,37 @@ class C
     void M(C c)
     {
         int? x = c?.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndNotIsType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c)
+    {
+        int? x = [||]!(c is C) ? c.f : null;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndNotIsOtherConstant()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(string s)
+    {
+        int? x = [||]!(s is """") ? (int?)s.Length : null;
     }
 }");
         }
@@ -681,6 +807,38 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]!ReferenceEquals(c, other) ? c.f : null;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]!ReferenceEquals(other, c) ? c.f : null;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1()
         {
             await TestInRegularAndScriptAsync(
@@ -731,6 +889,38 @@ class C
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]!object.ReferenceEquals(c, other) ? c.f : null;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]!object.ReferenceEquals(other, c) ? c.f : null;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestEqualsWithLogicalNot()
         {
             await TestInRegularAndScriptAsync(
@@ -775,6 +965,38 @@ class C
     void M(C c)
     {
         int? x = c?.f;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestEqualsOtherValueWithLogicalNot()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]!(c == other) ? c.f : null;
+    }
+}");
+        }
+
+        [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestNotEqualsOtherValueWithLogicalNot()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public int? f;
+    void M(C c, C other)
+    {
+        int? x = [||]!(c != other) ? null : c.f;
     }
 }");
         }
