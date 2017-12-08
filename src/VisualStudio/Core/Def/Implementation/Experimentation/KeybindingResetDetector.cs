@@ -238,8 +238,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
             if (ErrorHandler.Failed(hr))
             {
-                // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled.
+                // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
+                // shut down monitoring so we don't keep hitting this.
                 FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                Shutdown();
                 return ReSharperStatus.NotInstalledOrDisabled;
             }
 
