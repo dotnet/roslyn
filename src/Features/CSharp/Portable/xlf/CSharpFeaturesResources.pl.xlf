@@ -637,6 +637,11 @@
         <target state="new">Use 'is null' check</target>
         <note />
       </trans-unit>
+      <trans-unit id="AddParenthesisAroundConditionalExpressionInInterpolatedString">
+        <source>Add parenthesis</source>
+        <target state="new">Add parenthesis</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
