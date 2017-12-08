@@ -135,5 +135,33 @@ class A
             var comp = CreateStandardCompilation(text);
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
+
+        [Fact]
+        [WorkItem(19756, "https://github.com/dotnet/roslyn/issues/19756")]
+        public void GenericTypeWithOpenTypeArgument()
+        {
+            string source = @"
+/// <see cref=""C{U}.M()"" />
+class D { }
+
+class C<T>
+{
+    void M() { }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var generic = tree.GetRoot().DescendantNodes(descendIntoChildren: n => true, descendIntoTrivia: true)
+                .OfType<GenericNameSyntax>().Single();
+
+            Assert.Equal("C{U}", generic.ToString());
+
+            var symbol = model.GetSymbolInfo(generic).Symbol;
+            var docId = symbol.GetDocumentationCommentId();
+            Assert.Equal("T:C{`0}", docId);
+        }
     }
 }

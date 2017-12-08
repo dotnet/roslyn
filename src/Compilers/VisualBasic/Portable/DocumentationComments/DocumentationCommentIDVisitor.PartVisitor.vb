@@ -105,7 +105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim ordinalOffset As Integer = 0
                 Dim containingSymbol As Symbol = symbol.ContainingSymbol
 
-                If containingSymbol.Kind = SymbolKind.NamedType Then
+                If containingSymbol Is Nothing Then
+                    ' For instance a type parameter in cref (CrefTypeParameterSymbol)
+                    builder.Append("`"c)
+                ElseIf containingSymbol.Kind = SymbolKind.NamedType Then
                     ' If the containing type is nested within other types, then we need to add their arities.
                     ' e.g. A(Of T).B(Of U).M(Of V)(t As T, u As U, v As V) should be M(`0, `1, ``0).
                     Dim curr As NamedTypeSymbol = containingSymbol.ContainingType

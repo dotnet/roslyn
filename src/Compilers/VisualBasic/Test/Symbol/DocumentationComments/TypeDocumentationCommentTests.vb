@@ -3,6 +3,8 @@
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class TypeDocumentationCommentTests
 
@@ -125,6 +127,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestModule()
             Assert.Equal("T:Acme.Module1",
                          _acmeNamespace.GetTypeMembers("Module1").Single().GetDocumentationCommentId())
+        End Sub
+
+        <Fact>
+        <WorkItem(19756, "https://github.com/dotnet/roslyn/issues/19756")>
+        Public Sub GenericTypeWithOpenTypeArgument()
+
+            Dim comp = CreateCompilationWithMscorlib(
+                <compilation name="TypeDocumentationCommentTests">
+                    <file name="a.vb"><![CDATA[
+''' <see cref="C(Of U).M()" />
+Module Module1
+End Module
+
+Class C(Of T)
+    Sub M()
+    End Sub
+End Class
+                    ]]></file>
+                </compilation>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            Dim generic = tree.GetRoot().
+                DescendantNodes(descendIntoChildren:=Function(t) True, descendIntoTrivia:=True).
+                OfType(Of GenericNameSyntax)().Single()
+
+            Assert.Equal("C(Of U)", generic.ToString())
+
+            Dim symbol = model.GetSymbolInfo(generic).Symbol
+            Dim docId = symbol.GetDocumentationCommentId()
+            Assert.Equal("T:C{`0}", docId)
         End Sub
 
     End Class

@@ -147,7 +147,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Is this a type parameter on a type?
                 Symbol containingSymbol = symbol.ContainingSymbol;
-                if (containingSymbol.Kind == SymbolKind.Method)
+                if (containingSymbol is null)
+                {
+                    // For instance a type parameter in cref (CrefTypeParameterSymbol)
+                    builder.Append("`");
+                }
+                else if (containingSymbol.Kind == SymbolKind.Method)
                 {
                     builder.Append("``");
                 }
