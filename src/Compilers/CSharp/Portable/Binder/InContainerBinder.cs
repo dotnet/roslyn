@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Imports _lazyImports;
         private ImportChain _lazyImportChain;
         private QuickAttributeChecker _lazyQuickAttributeChecker;
-        private SyntaxList<UsingDirectiveSyntax> _usingsSyntax;
+        private readonly SyntaxList<UsingDirectiveSyntax> _usingsSyntax;
 
         /// <summary>
         /// Creates a binder for a container with imports (usings and extern aliases) that can be

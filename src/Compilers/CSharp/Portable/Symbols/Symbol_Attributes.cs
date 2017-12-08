@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (attributeMatchesOpt is null || attributeMatchesOpt(attribute))
                                 {
                                     syntaxBuilder.Add(attribute);
-                                    attributesToBindCount += 1;
+                                    attributesToBindCount++;
                                 }
                             }
                         }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// It works by maintaining a dictionary of all possible simple names that might map to the given
     /// attribute.
     /// </remarks>
-    internal class QuickAttributeChecker
+    internal sealed class QuickAttributeChecker
     {
         private readonly Dictionary<string, QuickAttributes> _nameToAttributeMap;
         private static QuickAttributeChecker _lazyQuickAttributeChecker;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: caller must seal
         }
 
-        protected QuickAttributeChecker(QuickAttributeChecker previous)
+        private QuickAttributeChecker(QuickAttributeChecker previous)
         {
             _nameToAttributeMap = new Dictionary<string, QuickAttributes>(previous._nameToAttributeMap);
             // NOTE: caller must seal
@@ -112,10 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this;
             }
 
-            return AddAliasesIfAny(builder.ToImmutableAndFree());
+            QuickAttributeChecker result = AddAliasesIfAny(builder);
+            builder.Free();
+            return result;
         }
 
-        private QuickAttributeChecker AddAliasesIfAny(ImmutableArray<(string name, string target)> aliases)
+        private QuickAttributeChecker AddAliasesIfAny(ArrayBuilder<(string name, string target)> aliases)
         {
             QuickAttributeChecker newChecker = null;
 
