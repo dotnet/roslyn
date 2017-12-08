@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
@@ -13,7 +14,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
-using static Microsoft.Cci.SigningUtilities;
+using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -225,12 +226,19 @@ namespace Microsoft.Cci
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
+            PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
+
             if (privateKeyOpt != null)
             {
                 strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
-            }
 
-            PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
+                // Checksum fixup, workaround for https://github.com/dotnet/corefx/issues/25829
+                // Since the checksum is calculated before signing in the PEBuilder,
+                // we need to redo the calculation and write in the correct checksum
+                var checksumBlob = getChecksumBlob(peBuilder);
+                var checksum = CalculateChecksum(peBlob, checksumBlob);
+                new BlobWriter(checksumBlob).WriteUInt32(checksum);
+            }
 
             try
             {
@@ -242,6 +250,30 @@ namespace Microsoft.Cci
             }
 
             return true;
+
+            Blob getChecksumBlob(PEBuilder builder)
+                => (Blob)typeof(PEBuilder).GetRuntimeFields()
+                    .Where(f => f.Name == "_lazyChecksum")
+                    .Single()
+                    .GetValue(builder);
+        }
+
+        private static MethodInfo _calculateChecksumMethod;
+        // internal for testing
+        internal static uint CalculateChecksum(BlobBuilder peBlob, Blob checksumBlob)
+        {
+            if (_calculateChecksumMethod == null)
+            {
+                _calculateChecksumMethod = typeof(PEBuilder).GetRuntimeMethods()
+                    .Where(m => m.Name == "CalculateChecksum" && m.GetParameters().Length == 2)
+                    .Single();
+            }
+
+            return (uint)_calculateChecksumMethod.Invoke(null, new object[]
+            {
+                peBlob,
+                checksumBlob,
+            });
         }
 
         private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)

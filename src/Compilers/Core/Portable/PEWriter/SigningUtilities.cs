@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+namespace Microsoft.CodeAnalysis
 {
     internal static class SigningUtilities
     {
@@ -27,11 +27,15 @@ namespace Microsoft.Cci
             }
         }
 
-        private static byte[] CalculateSha1(IEnumerable<Blob> content)
+        internal static byte[] CalculateSha1(IEnumerable<Blob> content)
         {
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
-                hash.AppendData(content);
+                foreach (var blob in content)
+                {
+                    hash.AppendData(blob.GetBytes());
+                }
+
                 return hash.GetHashAndReset();
             }
         }
