@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             var interpolationSyntax = token.GetAncestor<InterpolationSyntax>();
             if (conditionalExpressionSyntax != null && interpolationSyntax != null)
             {
-                context.RegisterCodeFix(new AddParenthesisCodeAction(context.Document, conditionalExpressionSyntax, interpolationSyntax), context.Diagnostics);
+                context.RegisterCodeFix(new AddParenthesisCodeAction(context.Document, conditionalExpressionSyntax.SpanStart), context.Diagnostics);
             }
         }
 

@@ -68,8 +68,8 @@ var s = $@""{
             ?
             1
             : 
-            2
-)}"";
+            2)
+            }"";
 ");
         }
 
@@ -82,21 +82,19 @@ var s = $@""{
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesis)]
-        public async Task TestAddParenthesisFailing_ClosingBracketInFalseCondition()
+        public async Task TestAddParenthesis_ClosingBracketInFalseCondition()
         {
             await TestInMethodAsync(
                 @"var s = $""{ true ? new int[0] [|:|] new int[] {} }"";",
-    //Should be @"var s = $""{ (true ? new int[0] : new int[] {}) }"";");
-                @"var s = $""{ (true ? new int[0] : new int[] {)} }"";");
+                @"var s = $""{ (true ? new int[0] : new int[] {} )}"";");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesis)]
-        public async Task TestAddParenthesisFailing_StringLiteralInFalseCondition()
+        public async Task TestAddParenthesis_StringLiteralInFalseCondition()
         {
             await TestInMethodAsync(
                 @"var s = $""{ true ? ""1"" [|:|] ""2"" }"";",
-    //Should be @"var s = $""{ (true ? ""1"" : ""2"")}"";");
-                @"var s = $""{ (true ? ""1"" :)""2"" }"";");
+                @"var s = $""{ (true ? ""1"" : ""2"" )}"";");
         }
     }
 }

@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringInterpolation
 {
@@ -11,48 +12,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
     {
         private sealed class AddParenthesisCodeAction : CodeAction
         {
-            public AddParenthesisCodeAction(Document document, ConditionalExpressionSyntax conditionalExpressionSyntax, InterpolationSyntax interpolationSyntax)
+            public AddParenthesisCodeAction(Document document, int conditionalExpressionSyntaxStartPosition)
             {
                 this.Document = document;
-                this.ConditionalExpressionSyntax = conditionalExpressionSyntax;
-                this.InterpolationSyntax = interpolationSyntax;
+                this.ConditionalExpressionSyntaxStartPosition = conditionalExpressionSyntaxStartPosition;
             }
 
             private Document Document { get; }
-            private ConditionalExpressionSyntax ConditionalExpressionSyntax { get; }
-            private InterpolationSyntax InterpolationSyntax { get; }
+            private int ConditionalExpressionSyntaxStartPosition { get; }
 
             public override string Title => CSharpFeaturesResources.AddParenthesisAroundConditionalExpressionInInterpolatedString;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var root = await Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newInterpolationSyntax = GetParenthesizedConditionalExpressionSyntax(ConditionalExpressionSyntax, InterpolationSyntax);
-                var newRoot = root.ReplaceNode(InterpolationSyntax, newInterpolationSyntax);
-                return Document.WithSyntaxRoot(newRoot);
-            }
-
-            private static SyntaxNode GetParenthesizedConditionalExpressionSyntax(ConditionalExpressionSyntax conditionalExpressionSyntax, InterpolationSyntax interpolationSyntax)
-            {
-
-                var formatClause = interpolationSyntax.FormatClause;
-                if (formatClause != null)
+                var text = await Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var openParenthesisPosition = ConditionalExpressionSyntaxStartPosition;
+                var textWithOpenParenthesis = text.Replace(openParenthesisPosition, 0, "(");
+                var documentWithOpenParenthesis = Document.WithText(textWithOpenParenthesis);
+                var syntaxTree = await documentWithOpenParenthesis.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                var conditionalExpressionSyntaxNode = syntaxRoot.FindNode(new TextSpan(openParenthesisPosition, 0));
+                var diagnostics = syntaxTree.GetDiagnostics(conditionalExpressionSyntaxNode);
+                var cs1026 = diagnostics.FirstOrDefault(d => d.Id == "CS1026");
+                if (cs1026 != null)
                 {
-                    var formatStringToken = formatClause.FormatStringToken;
-                    var interpolationExpression = interpolationSyntax.Expression;
-                    var newConditionalExpressionSyntax =
-                        conditionalExpressionSyntax
-                        .WithColonToken(SyntaxFactory.Token(SyntaxKind.ColonToken).WithTriviaFrom(formatClause.ColonToken))
-                        .WithWhenFalse(SyntaxFactory.ParseExpression(formatStringToken.ValueText));
-                    return SyntaxFactory.Interpolation(
-                        interpolationSyntax.OpenBraceToken,
-                        SyntaxFactory.ParenthesizedExpression(newConditionalExpressionSyntax).WithTriviaFrom(conditionalExpressionSyntax),
-                        null,
-                        null,
-                        interpolationSyntax.CloseBraceToken.WithTriviaFrom(formatStringToken));
+                    var closeParenthesisPosition = cs1026.Location.SourceSpan.Start;
+                    var textWithBothParenthesis = textWithOpenParenthesis.Replace(closeParenthesisPosition, 0, ")");
+                    return documentWithOpenParenthesis.WithText(textWithBothParenthesis);
                 }
 
-                return conditionalExpressionSyntax;
+                return documentWithOpenParenthesis;
             }
         }
     }
