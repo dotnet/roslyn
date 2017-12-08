@@ -40,6 +40,32 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestNoReferencesWithCopyright()
+        {
+            await TestInRegularAndScriptAsync(
+@"[|// Copyright (c) Somebody.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}|]",
+@"// Copyright (c) Somebody.
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestIdentifierReferenceInTypeContext()
         {
             await TestInRegularAndScriptAsync(

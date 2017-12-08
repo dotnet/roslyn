@@ -13,8 +13,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Private ReadOnly _unnecessaryImports As ISet(Of ImportsClauseSyntax)
             Private ReadOnly _cancellationToken As CancellationToken
             Private ReadOnly _annotation As New SyntaxAnnotation()
+            Private ReadOnly _importsService As AbstractVisualBasicRemoveUnnecessaryImportsService
+            Private ReadOnly _document As Document
 
-            Public Sub New(unnecessaryImports As ISet(Of ImportsClauseSyntax), cancellationToken As CancellationToken)
+            Public Sub New(importsService As AbstractVisualBasicRemoveUnnecessaryImportsService,
+                           document As Document,
+                           unnecessaryImports As ISet(Of ImportsClauseSyntax),
+                           cancellationToken As CancellationToken)
+                _importsService = importsService
+                _document = document
                 _unnecessaryImports = unnecessaryImports
                 _cancellationToken = cancellationToken
             End Sub
@@ -105,17 +112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 If newCompilationUnit.Imports.Count = 0 AndAlso newCompilationUnit.Options.Count = 0 Then
                     If newCompilationUnit.Attributes.Count > 0 OrElse newCompilationUnit.Members.Count > 0 Then
                         Dim firstToken = newCompilationUnit.GetFirstToken()
-                        Dim newFirstToken = StripNewLines(firstToken)
+                        Dim newFirstToken = _importsService.StripNewLines(_document, firstToken)
                         newCompilationUnit = newCompilationUnit.ReplaceToken(firstToken, newFirstToken)
                     End If
                 End If
 
                 Return newCompilationUnit
-            End Function
-
-            Private Function StripNewLines(firstToken As SyntaxToken) As SyntaxToken
-                Return firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.SkipWhile(
-                    Function(t) t.Kind = SyntaxKind.EndOfLineTrivia))
             End Function
         End Class
     End Class
