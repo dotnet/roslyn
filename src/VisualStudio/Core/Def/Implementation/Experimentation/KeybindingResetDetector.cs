@@ -132,69 +132,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             AssertIsForeground();
 
-            var isEnabled = IsReSharperEnabled();
-            ReSharperStatus lastStatus = _workspace.Options.GetOption(KeybindingResetOptions.ReSharperStatus);
+            var currentStatus = IsReSharperEnabled();
+            var options = _workspace.Options;
+            ReSharperStatus lastStatus = options.GetOption(KeybindingResetOptions.ReSharperStatus);
+
+            options = options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, currentStatus);
 
             switch (lastStatus)
             {
                 case ReSharperStatus.NotInstalledOrDisabled:
-                    if (!_resharperExtensionEnabled || !isEnabled)
-                    {
-                        // N->N or N->S. N->S can occur if the user suspends ReSharper, then disables
-                        // the extension, then reenables the extension. Pop the gold bar if the user still has a pending
-                        // reset. Otherwise, do nothing. Set status if we moved from N->S.
-                        if (_resharperExtensionEnabled)
-                        {
-                            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, ReSharperStatus.Suspended);
-                        }
-
-                        if (_workspace.Options.GetOption(KeybindingResetOptions.NeedsReset))
-                        {
-                            ShowGoldBar();
-                        }
-                    }
-                    else
-                    {
-                        // N->E. If ReSharper was just installed and is enabled, reset NeedsReset and set the current status
-                        _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, ReSharperStatus.Enabled)
-                                                               .WithChangedOption(KeybindingResetOptions.NeedsReset, false);
-                    }
-
-                    break;
                 case ReSharperStatus.Suspended:
-                    if (!_resharperExtensionEnabled || !isEnabled)
+                    if (currentStatus == ReSharperStatus.Enabled)
                     {
-                        // S->S or S->N. Pop the gold bar if the user has a pending reset, otherwise do nothing. Update status if required.
-                        if (!_resharperExtensionEnabled)
-                        {
-                            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, ReSharperStatus.NotInstalledOrDisabled);
-                        }
+                        // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset and set the current status.
+                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+                    }
+                    // Else is N->N, N->S, S->N, S->S. N->S can occur if the user suspends ReSharper, then disables
+                    // the extension, then reenables the extension. We will show the gold bar after the switch
+                    // if there is still a pending show.
 
-                        if (_workspace.Options.GetOption(KeybindingResetOptions.NeedsReset))
-                        {
-                            ShowGoldBar();
-                        }
-                    }
-                    else
-                    {
-                        // S->E. Reset NeedsReset and update the status.
-                        _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, ReSharperStatus.Enabled)
-                                                               .WithChangedOption(KeybindingResetOptions.NeedsReset, false);
-                    }
                     break;
                 case ReSharperStatus.Enabled:
-                    if (!isEnabled)
+                    if (currentStatus != ReSharperStatus.Enabled)
                     {
                         // E->N or E->S. Update the status, and set NeedsReset. Pop the gold bar to the user.
-                        _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, _resharperExtensionEnabled ?
-                                                                                                                          ReSharperStatus.Suspended :
-                                                                                                                          ReSharperStatus.NotInstalledOrDisabled)
-                                                               .WithChangedOption(KeybindingResetOptions.NeedsReset, true);
-                        ShowGoldBar();
+                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
                     }
 
                     // Else is E->E. No actions to take
                     break;
+            }
+
+            _workspace.Options = options;
+
+            if (options.GetOption(KeybindingResetOptions.NeedsReset))
+            {
+                ShowGoldBar();
             }
         }
 
@@ -242,14 +215,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                               action: InfoBarClose));
         }
 
-        private bool IsReSharperEnabled()
+        private ReSharperStatus IsReSharperEnabled()
         {
             AssertIsForeground();
 
             // Quick exit if resharper is either uninstalled or not enabled
             if (!_resharperExtensionEnabled)
             {
-                return false;
+                return ReSharperStatus.NotInstalledOrDisabled;
             }
 
             if (_oleCommandTarget == null)
@@ -265,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             ErrorHandler.ThrowOnFailure(_oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero));
 
             // When ReSharper is enabled, the ReSharper_Suspend command has the Enabled | Supported flags. When disabled, it has Invisible | Supported.
-            return ((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED);
+            return ((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) ? ReSharperStatus.Enabled : ReSharperStatus.Suspended;
         }
 
         private void RestoreVsKeybindings()
