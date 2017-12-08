@@ -1,15 +1,15 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26014.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Templates", "Templates.csproj", "{AE95B1D1-5E64-429B-B075-EE491665ECFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Templates", "Templates.csproj", "{AE95B1D1-5E64-429B-B075-EE491665ECFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxVisualizerExtension", "..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerExtension\SyntaxVisualizerExtension.csproj", "{1D168023-D473-446E-9A73-DCF9E16CE73D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyntaxVisualizerExtension", "..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerExtension\SyntaxVisualizerExtension.csproj", "{1D168023-D473-446E-9A73-DCF9E16CE73D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxVisualizerControl", "..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerControl\SyntaxVisualizerControl.csproj", "{AFE45E23-E7EE-48C5-8143-EBE2FF67070F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyntaxVisualizerControl", "..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerControl\SyntaxVisualizerControl.csproj", "{AFE45E23-E7EE-48C5-8143-EBE2FF67070F}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SyntaxVisualizerDgmlHelper", "..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj", "{DA4F74AF-2694-4AC9-A8CC-18382DE8215E}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "SyntaxVisualizerDgmlHelper", "..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj", "{DA4F74AF-2694-4AC9-A8CC-18382DE8215E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

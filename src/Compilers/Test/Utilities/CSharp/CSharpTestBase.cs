@@ -185,17 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                                                     WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
                                                     TestOptions.ReleaseExe);
         }
-
-        internal static PEAssemblyBuilder GetDefaultPEBuilder(CSharpCompilation compilation)
-        {
-            return new PEAssemblyBuilder(
-                (SourceAssemblySymbol)compilation.Assembly,
-                EmitOptions.Default,
-                compilation.Options.OutputKind,
-                GetDefaultModulePropertiesForSerialization(),
-                SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-        }
-
+        
         protected override CompilationOptions CompilationOptionsReleaseDll
         {
             get { return TestOptions.ReleaseDll; }
