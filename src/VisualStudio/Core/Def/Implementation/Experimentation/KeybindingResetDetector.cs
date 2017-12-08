@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeverShowAgain, true);
             KeybindingsResetLogger.Log("NeverShowAgain");
 
-            // The only external references to this object are as callbacks, which are removed by the dispose method.
+            // The only external references to this object are as callbacks, which are removed by the Shutdown method.
             Shutdown();
         }
 
