@@ -300,7 +300,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             AssertIsForeground();
 
-            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeverShowAgain, true);
+            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeverShowAgain, true)
+                                                   .WithChangedOption(KeybindingResetOptions.NeedsReset, false);
             KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the Shutdown method.
@@ -350,10 +351,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         public void Shutdown()
         {
+            AssertIsForeground();
             if (_priorityCommandTargetCookie != VSConstants.VSCOOKIE_NIL)
             {
-                AssertIsForeground();
-
                 _oleComponent.Dispose();
                 _oleComponent = null;
 
