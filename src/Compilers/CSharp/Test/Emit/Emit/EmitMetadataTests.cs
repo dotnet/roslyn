@@ -1235,47 +1235,56 @@ class C : B<string>
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
-                var p = classA.GetMembers("P").OfType<PropertySymbol>().Single();
+                var classA = module.GlobalNamespace.GetTypeMember("A");
+                var p = classA.GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
-                var q = classA.GetMembers("Q").OfType<PropertySymbol>().Single();
+                var q = classA.GetProperty("Q");
                 VerifyAutoProperty(q, isFromSource);
 
                 var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
-                p = classC.BaseType.GetMembers("P").OfType<PropertySymbol>().Single();
+                p = classC.BaseType.GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CompileAndVerify(
+                source,
+                sourceSymbolValidator: validator(true),
+                symbolValidator: validator(false),
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
         }
 
         private static void VerifyAutoProperty(PropertySymbol property, bool isFromSource)
         {
-            var sourceProperty = property as SourcePropertySymbol;
-            if (sourceProperty != null)
+            if (isFromSource)
             {
-                Assert.True(sourceProperty.IsAutoProperty);
-                Assert.Equal(((SourceAssemblySymbol)sourceProperty.ContainingAssembly).DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
-                    sourceProperty.BackingField.GetSynthesizedAttributes().Single().AttributeConstructor);
+                if (property is SourcePropertySymbol sourceProperty)
+                {
+                    Assert.True(sourceProperty.IsAutoProperty);
+                }
+            }
+            else
+            {
+                var backingField = property.ContainingType.GetField(GeneratedNames.MakeBackingFieldName(property.Name));
+                var attribute = backingField.GetAttributes().Single();
+
+                Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attribute.AttributeClass.ToTestDisplayString());
+                Assert.Empty(attribute.AttributeConstructor.Parameters);
             }
 
-            VerifyAutoPropertyAccessor(property, property.GetMethod, isFromSource);
-            VerifyAutoPropertyAccessor(property, property.SetMethod, isFromSource);
+            VerifyAutoPropertyAccessor(property, property.GetMethod);
+            VerifyAutoPropertyAccessor(property, property.SetMethod);
         }
 
-        private static void VerifyAutoPropertyAccessor(PropertySymbol property, MethodSymbol accessor, bool isFromSource)
+        private static void VerifyAutoPropertyAccessor(PropertySymbol property, MethodSymbol accessor)
         {
             if (accessor != null)
             {
                 var method = property.ContainingType.GetMembers(accessor.Name).Single();
                 Assert.Equal(method, accessor);
                 Assert.Equal(accessor.AssociatedSymbol, property);
-                if (isFromSource)
-                {
-                    Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be false for auto property accessors");
-                }
+                Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be false for auto property accessors");
             }
         }
 

@@ -1744,6 +1744,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // highestBoundNode: The highest node in the bound tree associated with node
         // boundNodeForSyntacticParent: The lowest node in the bound tree associated with node.Parent.
         // binderOpt: If this is null, then the one enclosing the bound node's syntax will be used (unsafe during speculative binding).
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            Constraint = "Provide " + nameof(ArrayBuilder<Symbol>) + " capacity to reduce number of allocations.")]
         internal SymbolInfo GetSymbolInfoForNode(
             SymbolInfoOptions options,
             BoundNode lowestBoundNode,
@@ -1817,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Caas clients don't want ErrorTypeSymbol in the symbols, but the best guess
                 // instead. If no best guess, then nothing is returned.
-                var builder = ArrayBuilder<Symbol>.GetInstance();
+                var builder = ArrayBuilder<Symbol>.GetInstance(symbols.Length);
                 foreach (Symbol symbol in symbols)
                 {
                     AddUnwrappingErrorTypes(builder, symbol);

@@ -1,13 +1,13 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26405.2
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DevDivInsertionFiles", "DevDivInsertionFiles.vbproj", "{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DevDivInsertionFiles", "DevDivInsertionFiles.vbproj", "{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevDivPackagesRoslyn", "..\DevDivPackages\Roslyn\DevDivPackagesRoslyn.csproj", "{57557F32-0635-421A-BCF8-549AED50F764}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevDivPackagesRoslyn", "..\DevDivPackages\Roslyn\DevDivPackagesRoslyn.csproj", "{57557F32-0635-421A-BCF8-549AED50F764}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevDivPackagesDebugger", "..\DevDivPackages\Debugger\DevDivPackagesDebugger.csproj", "{18BDB5D5-340B-4834-B4FC-0327729A4A26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevDivPackagesDebugger", "..\DevDivPackages\Debugger\DevDivPackagesDebugger.csproj", "{18BDB5D5-340B-4834-B4FC-0327729A4A26}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
