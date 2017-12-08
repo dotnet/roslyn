@@ -16128,6 +16128,34 @@ class C
         }
 
         [Fact]
+        public void GetSymbolInfo_WithDuplicateInferredName()
+        {
+            var source = @"
+class C
+{
+    static object M(string Bob)
+    {
+        var x1 = (Bob, Bob);
+        return x1;
+    }
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular7_1);
+            var comp = CreateStandardCompilation(tree, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = nodes.OfType<VariableDeclaratorSyntax>().Single();
+            Assert.Equal("x1 = (Bob, Bob)", x1.ToString());
+            var x1Symbol = model.GetDeclaredSymbol(x1) as LocalSymbol;
+            Assert.Equal("(System.String, System.String) x1", x1Symbol.ToTestDisplayString());
+            Assert.True(x1Symbol.Type.TupleElementNames.IsDefault);
+        }
+
+        [Fact]
         public void CompileTupleLib()
         {
             string additionalSource = @"
