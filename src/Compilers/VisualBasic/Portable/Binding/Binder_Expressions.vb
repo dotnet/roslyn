@@ -414,7 +414,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectTupleFieldMemberName(inferredName, i, numElements, inferredElementNames)
             Next
 
-            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames)
+            If RemoveDuplicateInferredTupleNamesAndReportEmptied(inferredElementNames, uniqueFieldNames) Then
+                inferredElementNames.Free()
+                inferredElementNames = Nothing
+            End If
 
             Dim result = MergeTupleElementNames(elementNames, inferredElementNames)
             elementNames?.Free()
@@ -453,9 +456,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (elementNames.ToImmutable(), builder.ToImmutableAndFree())
         End Function
 
-        Private Shared Sub RemoveDuplicateInferredTupleNames(inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
+        ' Returns True if all inferred names were removed.
+        ' Returns False otherwise.
+        Private Shared Function RemoveDuplicateInferredTupleNamesAndReportEmptied(inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String)) As Boolean
             If inferredElementNames Is Nothing Then
-                Return
+                Return False
             End If
 
             ' Inferred names that duplicate an explicit name or a previous inferred name are tagged for removal
@@ -472,7 +477,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     inferredElementNames(index) = Nothing
                 End If
             Next
-        End Sub
+
+            Return inferredElementNames.All(Function(n) n Is Nothing)
+        End Function
 
         Private Shared Function InferTupleElementName(element As ExpressionSyntax) As String
             Dim ignore As XmlNameSyntax = Nothing

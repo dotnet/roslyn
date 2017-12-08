@@ -560,18 +560,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
 
             bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
-            var errorPositions = (tupleNames.IsDefault || disallowInferredNames) ? default : tupleNames.SelectAsArray(n => n != null);
+            var inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
 
             var type = TupleTypeSymbol.Create(syntax.Location,
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
                 shouldCheckConstraints: !ignoreDiagnosticsFromTuple,
-                errorPositions,
+                errorPositions: disallowInferredNames ? inferredPositions : default,
                 syntax: syntax, diagnostics: ignoreDiagnosticsFromTuple ? null : diagnostics);
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
             // for "dropped names" on tuple literal when the name was inferred.
-            return new BoundTupleLiteral(syntax, tupleNames, errorPositions, arguments: valuesBuilder.ToImmutableAndFree(), type: type);
+            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments: valuesBuilder.ToImmutableAndFree(), type: type);
         }
 
         /// <summary>Extract inferred name from a single deconstruction variable.</summary>

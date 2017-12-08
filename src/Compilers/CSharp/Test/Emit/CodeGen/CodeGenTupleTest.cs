@@ -16128,6 +16128,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")]
         public void GetSymbolInfo_WithDuplicateInferredName()
         {
             var source = @"
