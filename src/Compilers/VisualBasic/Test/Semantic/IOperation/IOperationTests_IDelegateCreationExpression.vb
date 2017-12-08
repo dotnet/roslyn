@@ -2301,29 +2301,26 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid) (Syntax: 'CType(((Sub ... )), String)')
-  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String, IsInvalid) (Syntax: '((Sub() Con ... iteLine()))')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '((Sub() Con ... iteLine()))')
       Operand: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String, IsInvalid) (Syntax: '(Sub() Cons ... riteLine())')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(Sub() Cons ... riteLine())')
           Operand: 
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Operand: 
-                IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
-                  IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Console.WriteLine()')
-                      Expression: 
-                        IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                          Instance Receiver: 
-                            null
-                          Arguments(0)
-                    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                      Statement: 
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+              IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Console.WriteLine()')
+                  Expression: 
+                    IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+                      Instance Receiver: 
                         null
-                    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                      ReturnedValue: 
-                        null
+                      Arguments(0)
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  ReturnedValue: 
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

@@ -456,7 +456,7 @@
         <Field Name="Operand" PropertyOverrides="true" Type="BoundExpression"/>
         <Field Name="ConversionKind" PropertyOverrides="true" Type="ConversionKind"/>
         <Field Name="Checked" Type="Boolean"/>
-        <Field Name="ExplicitCastInCode" Type="Boolean"/>
+        <Field Name="ExplicitCastInCode" PropertyOverrides="true" Type="Boolean"/>
         <Field Name="ConstantValueOpt" PropertyOverrides="true" Type="ConstantValue" Null="allow"/>
 
         <Field Name="ExtendedInfoOpt" Type="BoundExtendedConversionInfo" Null="allow"/>

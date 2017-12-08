@@ -2210,7 +2210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private ReadOnly _ExplicitCastInCode As Boolean
-        Public ReadOnly Property ExplicitCastInCode As Boolean
+        Public Overrides ReadOnly Property ExplicitCastInCode As Boolean
             Get
                 Return _ExplicitCastInCode
             End Get
