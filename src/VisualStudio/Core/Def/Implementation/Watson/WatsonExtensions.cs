@@ -26,9 +26,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             if (emptyCallstack)
             {
-                // if exception we got started with empty callstack, put runtime
-                // callstack in one of reserved slot for better bucketting
-                fault.SetBucketParameter(Reserved3, Environment.StackTrace);
+                // if exception we got started with empty callstack, put hash of runtime
+                // callstack in one of reserved slot for better bucketting.
+                // we put hash since NFW just takes certain length of callstack which
+                // makes the callstack useless
+                fault.SetBucketParameter(Reserved3, $"{Environment.StackTrace?.GetHashCode() ?? 0}");
             }
 
             switch (exception)
