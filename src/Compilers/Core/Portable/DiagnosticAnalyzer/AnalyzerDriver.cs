@@ -863,13 +863,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     CompilationEvent e;
                     try
                     {
-                        if (!prePopulatedEventQueue)
+                        if (!CompilationEventQueue.TryDequeue(out e))
                         {
-                            e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
-                        }
-                        else if (!CompilationEventQueue.TryDequeue(out e))
-                        {
-                            return completedEvent;
+                            if (!prePopulatedEventQueue)
+                            {
+                                e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                return completedEvent;
+                            }
                         }
                     }
                     catch (TaskCanceledException) when (!prePopulatedEventQueue)

@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests : CompilingTestBase
+    public class AttributeTests : WellKnownAttributesTestBase
     {
         #region Function Tests
 
@@ -1145,7 +1145,7 @@ class C
     }
 }";
 
-            Func<bool, Action<ModuleSymbol>> symbolValidator = isFromSource => moduleSymbol =>
+            Func<bool, Action<ModuleSymbol>> symbolValidator = isFromMetadata => moduleSymbol =>
             {
                 var type = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var paramAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ParamAttribute");
@@ -1164,10 +1164,10 @@ class C
                 Assert.Equal("p2", parameters[1].Name);
                 Assert.Equal(1, parameters[1].GetAttributes(paramAttrType).Count());
 
-                // verify ParamArrayAttribute on p2
-                if (isFromSource)
+                if (isFromMetadata)
                 {
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameters[1], (SourceModuleSymbol)moduleSymbol);
+                    // verify ParamArrayAttribute on p2
+                    VerifyParamArrayAttribute(parameters[1]);
                 }
 
                 // Delegate Constructor: Doesn't have any parameter attributes
@@ -1188,14 +1188,14 @@ class C
                 Assert.Equal(0, parameters[2].GetAttributes(paramAttrType).Count());
                 Assert.Equal(0, parameters[3].GetAttributes(paramAttrType).Count());
 
-                // verify no ParamArrayAttribute on p2
-                if (isFromSource)
+                if (isFromMetadata)
                 {
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameters[1], (SourceModuleSymbol)moduleSymbol, expected: false);
+                    // verify no ParamArrayAttribute on p2
+                    VerifyParamArrayAttribute(parameters[1], expected: false);
                 }
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: symbolValidator(true), symbolValidator: symbolValidator(false));
+            CompileAndVerify(source, sourceSymbolValidator: symbolValidator(false), symbolValidator: symbolValidator(true));
         }
 
         [Fact]
