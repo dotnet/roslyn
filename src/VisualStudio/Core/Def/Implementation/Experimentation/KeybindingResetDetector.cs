@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
@@ -290,7 +291,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private void OpenExtensionsHyperlink()
         {
             ThisCanBeCalledOnAnyThread();
-            Process.Start(KeybindingsFwLink);
+            if (!BrowserHelper.TryGetUri(KeybindingsFwLink, out Uri fwLink))
+            {
+                // We're providing a constant, known-good link. This should be impossible.
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            BrowserHelper.StartBrowser(fwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
             _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
