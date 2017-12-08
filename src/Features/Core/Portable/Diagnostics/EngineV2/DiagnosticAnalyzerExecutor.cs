@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // get compiler result builder map
                 var builderMap = analysisResult.ToResultBuilderMap(project, version, analyzerDriver.Compilation, analyzerDriver.Analyzers, cancellationToken);
 
-#pragma warning disable RS0012 // Do not call ToImmutableCollection on an ImmutableCollection value https://github.com/dotnet/roslyn-analyzers/issues/1430
                 return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => kv.Key, kv => new DiagnosticAnalysisResult(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
-#pragma warning restore RS0012 // Do not call ToImmutableCollection on an ImmutableCollection value
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
