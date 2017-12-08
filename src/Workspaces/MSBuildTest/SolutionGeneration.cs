@@ -9,7 +9,7 @@ using System.Xml.Linq;
 using FileList = System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>;
 using StringPair = System.Collections.Generic.KeyValuePair<string, object>;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     /// <summary>
     /// Flexible and extensible API to generate MSBuild projects and solutions without external files or resources.

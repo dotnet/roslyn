@@ -13,18 +13,17 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
-using static Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
-
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     public class MSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {

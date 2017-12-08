@@ -5,16 +5,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.MSBuild;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
+using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
-using static Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     public class MSBuildWorkspaceTestBase : WorkspaceTestBase
     {
