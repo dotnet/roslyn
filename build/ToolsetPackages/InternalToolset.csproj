@@ -4,6 +4,7 @@
   <Import Project="..\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
+    <NonShipping>true</NonShipping>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.IBCMerge" Version="$(MicrosoftDotNetIBCMerge)" />
