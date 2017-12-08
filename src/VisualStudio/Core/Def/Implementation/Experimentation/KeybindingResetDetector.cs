@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 case ReSharperStatus.Suspended:
                     if (currentStatus == ReSharperStatus.Enabled)
                     {
-                        // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset and set the current status.
+                        // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
                     }
                     // Else is N->N, N->S, S->N, S->S. N->S can occur if the user suspends ReSharper, then disables
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 case ReSharperStatus.Enabled:
                     if (currentStatus != ReSharperStatus.Enabled)
                     {
-                        // E->N or E->S. Update the status, and set NeedsReset. Pop the gold bar to the user.
+                        // E->N or E->S. Set NeedsReset. Pop the gold bar to the user.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
                     }
 
@@ -235,7 +235,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             cmds[0].cmdID = SuspendId;
             cmds[0].cmdf = 0;
 
-            ErrorHandler.ThrowOnFailure(_oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero));
+            var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+            if (ErrorHandler.Failed(hr))
+            {
+                // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled.
+                FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                return ReSharperStatus.NotInstalledOrDisabled;
+            }
 
             // When ReSharper is enabled, the ReSharper_Suspend command has the Enabled | Supported flags. When disabled, it has Invisible | Supported.
             return ((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) ? ReSharperStatus.Enabled : ReSharperStatus.Suspended;
@@ -334,9 +340,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             AssertIsForeground();
             if (_priorityCommandTargetCookie != VSConstants.VSCOOKIE_NIL)
             {
-                _oleComponent.Dispose();
-                _oleComponent = null;
-
                 var priorityCommandTargetRegistrar = _serviceProvider.GetService<IVsRegisterPriorityCommandTarget, SVsRegisterPriorityCommandTarget>();
                 var cookie = _priorityCommandTargetCookie;
                 _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
@@ -345,6 +348,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 {
                     FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
                 }
+            }
+
+            if (_oleComponent != null)
+            {
+                _oleComponent.Dispose();
+                _oleComponent = null;
             }
         }
     }

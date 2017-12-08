@@ -9,19 +9,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         /// <summary>
         /// Returns the specified interface from the service. This is useful when the service and interface differ
         /// </summary>
-        public static InterfaceType GetService<InterfaceType, ServiceType>(this IServiceProvider sp)
-            where InterfaceType : class
-            where ServiceType : class
+        public static TInterfaceType GetService<TInterfaceType, TServiceType>(this IServiceProvider sp)
+            where TInterfaceType : class
+            where TServiceType : class
         {
-            return (InterfaceType)sp.GetService(typeof(ServiceType));
+            return (TInterfaceType)sp.GetService(typeof(TServiceType));
         }
 
         /// <summary>
         /// Returns the specified service type from the service.
         /// </summary>
-        public static ServiceType GetService<ServiceType>(this IServiceProvider sp) where ServiceType : class
+        public static TServiceType GetService<TServiceType>(this IServiceProvider sp) where TServiceType : class
         {
-            return sp.GetService<ServiceType, ServiceType>();
+            return sp.GetService<TServiceType, TServiceType>();
         }
     }
 }
