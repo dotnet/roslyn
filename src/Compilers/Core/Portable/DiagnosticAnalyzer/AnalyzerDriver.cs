@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Lazily populated dictionary indicating whether a source file is a generated code file or not - we populate it lazily to avoid realizing all syntax trees in the compilation upfront.
         /// </summary>
-        private Dictionary<SyntaxTree, bool> _lazyGeneratedCodeFilesMap;
+        private ConcurrentDictionary<SyntaxTree, bool> _lazyGeneratedCodeFilesMap;
 
         /// <summary>
         /// Lazily populated dictionary from tree to declared symbols with GeneratedCodeAttribute.
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Lazily populated dictionary indicating whether a source file has any hidden regions - we populate it lazily to avoid realizing all syntax trees in the compilation upfront.
         /// </summary>
-        private Dictionary<SyntaxTree, bool> _lazyTreesWithHiddenRegionsMap;
+        private ConcurrentDictionary<SyntaxTree, bool> _lazyTreesWithHiddenRegionsMap;
 
         /// <summary>
         /// Symbol for <see cref="System.CodeDom.Compiler.GeneratedCodeAttribute"/>.
@@ -163,9 +164,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _generatedCodeAnalysisFlagsMap = await GetGeneratedCodeAnalysisFlagsAsync(unsuppressedAnalyzers, analyzerManager, analyzerExecutor).ConfigureAwait(false);
                     _doNotAnalyzeGeneratedCode = ShouldSkipAnalysisOnGeneratedCode(unsuppressedAnalyzers);
                     _treatAllCodeAsNonGeneratedCode = ShouldTreatAllCodeAsNonGeneratedCode(unsuppressedAnalyzers, _generatedCodeAnalysisFlagsMap);
-                    _lazyGeneratedCodeFilesMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, bool>();
+                    _lazyGeneratedCodeFilesMap = _treatAllCodeAsNonGeneratedCode ? null : new ConcurrentDictionary<SyntaxTree, bool>();
                     _lazyGeneratedCodeSymbolsMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>>();
-                    _lazyTreesWithHiddenRegionsMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, bool>();
+                    _lazyTreesWithHiddenRegionsMap = _treatAllCodeAsNonGeneratedCode ? null : new ConcurrentDictionary<SyntaxTree, bool>();
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _symbolActionsByKind = MakeSymbolActionsByKind();
@@ -1288,6 +1289,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/pull/23637",
+            AllowLocks = false)]
         protected bool IsGeneratedCode(SyntaxTree tree)
         {
             if (_treatAllCodeAsNonGeneratedCode)
@@ -1297,17 +1301,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Debug.Assert(_lazyGeneratedCodeFilesMap != null);
 
-            lock (_lazyGeneratedCodeFilesMap)
+            bool isGenerated;
+            if (!_lazyGeneratedCodeFilesMap.TryGetValue(tree, out isGenerated))
             {
-                bool isGenerated;
-                if (!_lazyGeneratedCodeFilesMap.TryGetValue(tree, out isGenerated))
-                {
-                    isGenerated = _isGeneratedCode(tree, analyzerExecutor.CancellationToken);
-                    _lazyGeneratedCodeFilesMap.Add(tree, isGenerated);
-                }
-
-                return isGenerated;
+                isGenerated = _isGeneratedCode(tree, analyzerExecutor.CancellationToken);
+                _lazyGeneratedCodeFilesMap.TryAdd(tree, isGenerated);
             }
+
+            return isGenerated;
         }
 
         protected bool DoNotAnalyzeGeneratedCode => _doNotAnalyzeGeneratedCode;
@@ -1320,6 +1321,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => HasHiddenRegions(syntaxTree) && 
                syntaxTree.IsHiddenPosition(span.Start);
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/pull/23637",
+            AllowLocks = false)]
         private bool HasHiddenRegions(SyntaxTree tree)
         {
             Debug.Assert(tree != null);
@@ -1329,17 +1333,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            lock (_lazyTreesWithHiddenRegionsMap)
+            bool hasHiddenRegions;
+            if (!_lazyTreesWithHiddenRegionsMap.TryGetValue(tree, out hasHiddenRegions))
             {
-                bool hasHiddenRegions;
-                if (!_lazyTreesWithHiddenRegionsMap.TryGetValue(tree, out hasHiddenRegions))
-                {
-                    hasHiddenRegions = tree.HasHiddenRegions();
-                    _lazyTreesWithHiddenRegionsMap.Add(tree, hasHiddenRegions);
-                }
-
-                return hasHiddenRegions;
+                hasHiddenRegions = tree.HasHiddenRegions();
+                _lazyTreesWithHiddenRegionsMap.TryAdd(tree, hasHiddenRegions);
             }
+
+            return hasHiddenRegions;
         }
 
         internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, CancellationToken cancellationToken)
