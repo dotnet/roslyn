@@ -15,14 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Select Case node.Kind
                 Case SyntaxKind.NameColonEquals
                     editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia Or SyntaxRemoveOptions.AddElasticMarker)
-                    Exit Select
 
                 Case SyntaxKind.NamedFieldInitializer
                     Dim namedFieldInitializer = DirectCast(node, NamedFieldInitializerSyntax)
                     Dim inferredFieldInitializer = SyntaxFactory.InferredFieldInitializer(namedFieldInitializer.Expression).
                         WithTriviaFrom(namedFieldInitializer)
                     editor.ReplaceNode(namedFieldInitializer, inferredFieldInitializer)
-                    Exit Select
             End Select
         End Sub
     End Class
