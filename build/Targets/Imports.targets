@@ -13,7 +13,6 @@
     <FileAlignment>512</FileAlignment>
     <HighEntropyVA>true</HighEntropyVA>
     <Deterministic>True</Deterministic>
-    <UseCommonOutputDirectory>false</UseCommonOutputDirectory>
 
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
