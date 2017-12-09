@@ -468,7 +468,7 @@ function Test-XUnit() {
         # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
         # integration tests in CI.
         if ($cibuild) {
-            $dlls = Resolve-Path (Join-Path $unitDir "Workspaces.MSBuild.Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll")
+            $dlls += @(Get-Item (Join-Path $unitDir "Workspaces.MSBuild.Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
         }
 
         $dlls += @(Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir)
