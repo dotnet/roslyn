@@ -20,7 +20,6 @@
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\Core\Desktop\Workspaces.Desktop.csproj" />
-    <ProjectReference Include="..\Core\MSBuild\Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\CSharp\Portable\CSharpWorkspace.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\BasicWorkspace.vbproj" />
     <ProjectReference Include="..\Core\Portable\Workspaces.csproj" />

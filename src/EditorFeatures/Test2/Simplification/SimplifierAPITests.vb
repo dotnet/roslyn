@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+Imports Microsoft.CodeAnalysis.MSBuild
 Imports Microsoft.CodeAnalysis.Simplification.Simplifier
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
@@ -151,7 +151,7 @@ Public Class SimplifierAPITests
 
     Private Function GetDocument() As Document
         CreateFiles(GetSimpleCSharpSolutionFiles())
-        Dim sol = Create(properties:=New Dictionary(Of String, String) From {{"Configuration", "Release"}}).OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result
+        Dim sol = MSBuildWorkspace.Create(properties:=New Dictionary(Of String, String) From {{"Configuration", "Release"}}).OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result
         Return sol.Projects.First.Documents.First
     End Function
 
