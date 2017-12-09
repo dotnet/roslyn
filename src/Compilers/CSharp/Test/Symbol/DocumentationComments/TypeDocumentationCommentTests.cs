@@ -155,13 +155,42 @@ class C<T>
             var model = comp.GetSemanticModel(tree);
 
             var generic = tree.GetRoot().DescendantNodes(descendIntoChildren: n => true, descendIntoTrivia: true)
-                .OfType<GenericNameSyntax>().Single();
+                .OfType<QualifiedCrefSyntax>().Single();
 
-            Assert.Equal("C{U}", generic.ToString());
+            Assert.Equal("C{U}.M()", generic.ToString());
 
             var symbol = model.GetSymbolInfo(generic).Symbol;
             var docId = symbol.GetDocumentationCommentId();
-            Assert.Equal("T:C{`0}", docId);
+            Assert.Equal("M:C{`0}.M", docId);
+        }
+
+        [Fact]
+        [WorkItem(19756, "https://github.com/dotnet/roslyn/issues/19756")]
+        public void GenericMethodWithOpenTypeArgument()
+        {
+            string source = @"
+
+class C
+{
+    static void M<T>() { }
+
+    /// <see cref=""C.M{U}()"" />
+    void M2() { }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var generic = tree.GetRoot().DescendantNodes(descendIntoChildren: n => true, descendIntoTrivia: true)
+                .OfType<QualifiedCrefSyntax>().Single();
+
+            Assert.Equal("C.M{U}()", generic.ToString());
+
+            var symbol = model.GetSymbolInfo(generic).Symbol;
+            var docId = symbol.GetDocumentationCommentId();
+            Assert.Equal("M:C.M``1", docId);
         }
     }
 }
