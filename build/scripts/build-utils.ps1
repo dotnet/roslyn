@@ -366,7 +366,7 @@ function Get-VisualStudioDir() {
 # Clear out the NuGet package cache
 function Clear-PackageCache() {
     $dotnet = Ensure-DotnetSdk
-    Exec-Console $dotnet "nuget locals all -clear"
+    Exec-Console $dotnet "nuget locals all --clear"
 }
 
 # Restore a single project
