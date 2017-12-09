@@ -2204,7 +2204,6 @@ class C
                 //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
                 Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(10, 101)
                 );
-            //CompileAndVerify(comp, expectedOutput: "False True False True");
         }
 
         [Fact]
@@ -2362,7 +2361,6 @@ class C
                 //             case default:
                 Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
-            //CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2395,7 +2393,6 @@ class C
                 //             case default:
                 Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
-            //CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2428,7 +2425,6 @@ class C
                 //             case (default):
                 Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)
                 );
-            //CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]
@@ -2461,7 +2457,6 @@ class C
                 //             case (default):
                 Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)
                 );
-            //CompileAndVerify(comp, expectedOutput: "default");
         }
 
         [Fact]

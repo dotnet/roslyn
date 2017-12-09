@@ -6496,20 +6496,6 @@ False";
         switch (i) { case default when true: break; } // error 6
         switch (i) { case (default) when true: break; } // error 7
     }
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
-    }
 }";
             var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
