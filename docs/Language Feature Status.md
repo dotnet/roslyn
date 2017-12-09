@@ -11,6 +11,8 @@ efforts behind them.
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | Prototype | [Ashley](https://github.com/khyperia) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
+| [Support == and != for tuples](https://github.com/dotnet/csharplang/issues/190) | | In Progress | [jcouv](https://github.com/jcouv) | | [jcouv](https://github.com/jcouv) |
+| strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | In Progress/Backlog | | | [jaredpar](https://github.com/jaredpar) |
 
 # C# 8.0
 
@@ -35,8 +37,6 @@ efforts behind them.
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [ref readonly](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/readonly-ref.md) | master | Merged | [vsadov](https://github.com/vsadov), [omar](https://github.com/OmarTawfikw) | [cston](https://github.com/cston),[gafter](https://github.com/gafter) | [jaredpar](https://github.com/jaredpar) |
-| [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Proposal | None | | [jaredpar](https://github.com/jaredpar) |
-| strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | In Progress | [Ty Overby](https://github.com/tyoverby) | | [jaredpar](https://github.com/jaredpar) |
 | [interior pointer/Span<T>/ref struct](https://github.com/dotnet/csharplang/pull/264) | master | Merged | [vsadov](https://github.com/vsadov) | [gafter](https://github.com/gafter), [jaredpar](https://github.com/jaredpar) | [jaredpar](https://github.com/jaredpar) |
 | [non-trailing named arguments](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/non-trailing-named-arguments.md) | master | Merged | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [private protected](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/private-protected.md) | master | Merged | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) |

@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -25,8 +24,12 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <!-- Localization turned off pending resolution of https://github.com/dotnet/roslyn/issues/23566. -->
+    <EnableXlfLocalization>false</EnableXlfLocalization>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -40,75 +43,29 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
     <Reference Include="System.Xaml" />
-    <PackageReference Include="EnvDTE">
-      <Version>$(EnvDTEVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="EnvDTE80">
-      <Version>$(EnvDTE80Version)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
-      <Version>$(MicrosoftCodeAnalysisAnalyzersVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common">
-      <Version>$(MicrosoftCodeAnalysisCommonVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text">
-      <Version>$(MicrosoftCodeAnalysisEditorFeaturesTextVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
-      <Version>$(MicrosoftCodeAnalysisWorkspacesCommonVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
-      <Version>$(MicrosoftVisualStudioCoreUtilityFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>$(MicrosoftVisualStudioEditorFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop">
-      <Version>$(MicrosoftVisualStudioOLEInteropVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0">
-      <Version>$(MicrosoftVisualStudioShell140FixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop">
-      <Version>$(MicrosoftVisualStudioShellInteropVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0">
-      <Version>$(MicrosoftVisualStudioShellInterop100Version)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0">
-      <Version>$(MicrosoftVisualStudioShellInterop80Version)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0">
-      <Version>$(MicrosoftVisualStudioShellInterop90Version)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data">
-      <Version>$(MicrosoftVisualStudioTextDataFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
-      <Version>$(MicrosoftVisualStudioTextLogicFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
-      <Version>$(MicrosoftVisualStudioTextUIFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop">
-      <Version>$(MicrosoftVisualStudioTextManagerInteropVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Utilities">
-      <Version>$(MicrosoftVisualStudioUtilitiesFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="System.Reflection.Metadata">
-      <Version>$(SystemReflectionMetadataFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>$(MicrosoftVisualStudioComponentModelHostFixedVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text" Version="$(MicrosoftCodeAnalysisEditorFeaturesTextVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityFixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorFixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="$(MicrosoftVisualStudioOLEInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="$(MicrosoftVisualStudioShell140FixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="$(MicrosoftVisualStudioShellInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="$(MicrosoftVisualStudioShellInterop80Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="$(MicrosoftVisualStudioShellInterop90Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataFixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioTextLogicFixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIFixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfFixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop" Version="$(MicrosoftVisualStudioTextManagerInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesFixedVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableFixedVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataFixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostFixedVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HelperExtensionMethods.cs" />
@@ -185,5 +142,4 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

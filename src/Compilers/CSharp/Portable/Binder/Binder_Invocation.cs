@@ -179,7 +179,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < analyzedArguments.Arguments.Count; ++i)
             {
                 BoundExpression argument = analyzedArguments.Arguments[i];
-                if ((object)argument.Type == null && !argument.HasAnyErrors)
+
+                if (argument.Kind == BoundKind.OutVariablePendingInference)
+                {
+                    analyzedArguments.Arguments[i] = ((OutVariablePendingInference)argument).FailInference(this, diagnostics);
+                }
+                else if ((object)argument.Type == null && !argument.HasAnyErrors)
                 {
                     // We are going to need every argument in here to have a type. If we don't have one,
                     // try converting it to object. We'll either succeed (if it is a null literal)

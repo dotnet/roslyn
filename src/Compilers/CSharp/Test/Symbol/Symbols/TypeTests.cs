@@ -1850,5 +1850,431 @@ class C<T>
             Assert.False(symbol.ContainingType.IsUnboundGenericType);
             Assert.IsType<UnboundArgumentErrorTypeSymbol>(symbol.ContainingType.TypeArguments.Single());
         }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_01()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+[TypeIdentifier]
+public interface I1
+{
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_02()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+[TypeIdentifierAttribute]
+public interface I1
+{
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_03()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1 = TypeIdentifier; 
+
+    [alias1]
+    public interface I1
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType);
+
+            compilation.GetDeclarationDiagnostics().Verify(
+                // (6,20): error CS0246: The type or namespace name 'TypeIdentifier' could not be found (are you missing a using directive or an assembly reference?)
+                //     using alias1 = TypeIdentifier; 
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TypeIdentifier").WithArguments("TypeIdentifier").WithLocation(6, 20),
+                // (8,6): error CS0616: 'TypeIdentifier' is not an attribute class
+                //     [alias1]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "alias1").WithArguments("TypeIdentifier").WithLocation(8, 6)
+                );
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_04()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1 = TypeIdentifier; 
+
+    [alias1Attribute]
+    public interface I1
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType);
+
+            compilation.GetDeclarationDiagnostics().Verify(
+                // (6,20): error CS0246: The type or namespace name 'TypeIdentifier' could not be found (are you missing a using directive or an assembly reference?)
+                //     using alias1 = TypeIdentifier; 
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TypeIdentifier").WithArguments("TypeIdentifier").WithLocation(6, 20),
+                // (8,6): error CS0246: The type or namespace name 'alias1AttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [alias1Attribute]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1Attribute").WithArguments("alias1AttributeAttribute").WithLocation(8, 6),
+                // (8,6): error CS0246: The type or namespace name 'alias1Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [alias1Attribute]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1Attribute").WithArguments("alias1Attribute").WithLocation(8, 6)
+                );
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_05()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1 = TypeIdentifierAttribute; 
+
+    [alias1]
+    public interface I1
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_06()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1Attribute = TypeIdentifierAttribute; 
+
+    [alias1]
+    public interface I1
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_07()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1Attribute = TypeIdentifierAttribute; 
+
+    [alias1Attribute]
+    public interface I1
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_08()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1AttributeAttribute = TypeIdentifierAttribute; 
+
+    [alias1Attribute]
+    public interface I1
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_09()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1 = TypeIdentifierAttribute; 
+
+    namespace NS2
+    {
+        using alias2 = alias1;
+
+        [alias2]
+        public interface I1
+        {
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_10()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1 = TypeIdentifierAttribute; 
+
+    namespace NS2
+    {
+        [alias1]
+        public interface I1
+        {
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_11()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+
+namespace NS1
+{
+    using alias1 = TypeIdentifierAttribute; 
+
+    namespace NS2
+    {
+        using alias2 = I1;
+
+        [alias1]
+        public interface I1
+        {
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_12()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+namespace NS1
+{
+    namespace NS2
+    {
+        using alias1 = TypeIdentifierAttribute; 
+
+        [alias1]
+        partial public interface I1
+        {
+        }
+
+        [CompilerGenerated]
+        partial public interface I2
+        {
+        }
+    }
+}
+
+namespace NS1
+{
+    namespace NS2
+    {
+        using alias1 = ComImportAttribute; 
+
+        [alias1]
+        partial public interface I1
+        {
+        }
+
+        [alias1]
+        partial public interface I2
+        {
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
+            var i2 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I2");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+            Assert.False(i2.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_13()
+        {
+            var code = @"
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+namespace NS1
+{
+    namespace NS2
+    {
+        using alias1 = ComImportAttribute; 
+
+        [alias1]
+        partial public interface I1
+        {
+        }
+
+        [alias1]
+        partial public interface I2
+        {
+        }
+    }
+}
+
+namespace NS1
+{
+    namespace NS2
+    {
+        using alias1 = TypeIdentifierAttribute; 
+
+        [alias1]
+        partial public interface I1
+        {
+        }
+
+        [CompilerGenerated]
+        partial public interface I2
+        {
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
+            var i2 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I2");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+            Assert.False(i2.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_14()
+        {
+            var code = @"
+namespace NS1
+{
+    using alias1 = System.Runtime.InteropServices; 
+
+    [alias1]
+    public interface I1
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType);
+
+            compilation.GetDeclarationDiagnostics().Verify(
+                // (6,6): error CS0616: 'System.Runtime.InteropServices' is not an attribute class
+                //     [alias1]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "alias1").WithArguments("System.Runtime.InteropServices").WithLocation(6, 6)
+                );
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_15()
+        {
+            var code = @"
+[System.Runtime.InteropServices.TypeIdentifier]
+public interface I1
+{
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_16()
+        {
+            var code = @"
+[System.Runtime.InteropServices.TypeIdentifierAttribute]
+public interface I1
+{
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        public void IsExplicitDefinitionOfNoPiaLocalType_17()
+        {
+            var code = @"
+using alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute;
+
+[alias1]
+public interface I1
+{
+}";
+            var compilation = CreateStandardCompilation(code);
+            var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
     }
 }

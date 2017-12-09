@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -2518,43 +2517,27 @@ static class S
         /// <summary>
         /// Roslyn bug 7782: NullRef in PeWriter.DebuggerShouldHideMethod
         /// </summary>
-        [ClrOnlyFact]
+        [Fact]
         public void ExtensionMethod_ValidateExtensionAttribute()
         {
-            var source =
-@"using System;
+            var comp = CreateStandardCompilation(@"
+using System;
 internal static class C
 {
     internal static void M1(this object o) { }
     private static void Main(string[] args) { }
 }
-";
-            Action<ModuleSymbol> validator = module =>
+", references: new[] { SystemCoreRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp, symbolValidator: module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-
-                // Extension method.
-                var method = type.GetMember<MethodSymbol>("M1");
+                var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PEMethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
-                var parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Object);
+                Assert.Equal(method.Parameters.Single().Type.SpecialType, SpecialType.System_Object);
 
-                // Validate Extension attribute.
-                var sourceModule = (SourceModuleSymbol)module;
-                var emitModule = new PEAssemblyBuilder(sourceModule.ContainingSourceAssembly, EmitOptions.Default, OutputKind.ConsoleApplication, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-                var attrs = method.GetSynthesizedAttributes();
-                Assert.Equal(1, attrs.Length);
-                var attr = (Microsoft.Cci.ICustomAttribute)attrs.First();
-
-                var extensionAttrCtor = (MethodSymbol)emitModule.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-                Assert.NotNull(extensionAttrCtor);
-                var context = new EmitContext(emitModule, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-                Assert.Equal(extensionAttrCtor, attr.Constructor(context));
-                Assert.NotNull(extensionAttrCtor.ContainingType);
-                Assert.Equal(extensionAttrCtor.ContainingType, attr.GetType(context));
-                context.Diagnostics.Verify();
-            };
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, sourceSymbolValidator: validator, symbolValidator: null);
+                var attr = ((PEModuleSymbol)module).GetCustomAttributesForToken(method.Handle).Single();
+                Assert.Equal("System.Runtime.CompilerServices.ExtensionAttribute", attr.AttributeClass.ToTestDisplayString());
+            });
         }
 
         [WorkItem(541327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541327")]

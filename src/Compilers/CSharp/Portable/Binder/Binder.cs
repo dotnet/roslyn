@@ -304,6 +304,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Get <see cref="QuickTypeIdentifierAttributeChecker"/> that can be used to quickly
+        /// check for TypeIdentifier attribute applications in context of this binder.
+        /// </summary>
+        internal virtual QuickTypeIdentifierAttributeChecker QuickTypeIdentifierAttributeChecker
+        {
+            get
+            {
+                return _next.QuickTypeIdentifierAttributeChecker;
+            }
+        }
+
         internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
         {
             return _next.GetImports(basesBeingResolved);

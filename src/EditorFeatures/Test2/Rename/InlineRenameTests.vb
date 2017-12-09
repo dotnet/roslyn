@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
-Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -1346,8 +1346,8 @@ class C
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 ' Simulate starting a debugging session
-                Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
-                editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
+                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
+                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
@@ -1389,8 +1389,8 @@ class C
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 ' Simulate ending break mode in the debugger (by stepping or continuing)
-                Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
-                editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
+                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
+                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)

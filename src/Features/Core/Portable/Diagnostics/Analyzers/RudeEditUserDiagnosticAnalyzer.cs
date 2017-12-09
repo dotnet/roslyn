@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                var encService = document.Project.Solution.Workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+                var encService = document.Project.Solution.Workspace.Services.GetService<IDebuggingWorkspaceService>()?.EditAndContinueServiceOpt;
                 if (encService == null)
                 {
                     return ImmutableArray<Diagnostic>.Empty;

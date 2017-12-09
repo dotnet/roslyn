@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="101">
+        <source>C#</source>
+        <target state="new">C#</target>
+        <note>Used many places.</note>
+      </trans-unit>
+      <trans-unit id="102">
+        <source>Advanced</source>
+        <target state="new">Advanced</target>
+        <note>"Advanced" node under Tools &gt; Options, Text Editor, C#.</note>
+      </trans-unit>
+      <trans-unit id="103">
+        <source>IntelliSense</source>
+        <target state="new">IntelliSense</target>
+        <note>"IntelliSense" node under Tools &gt; Options, Text Editor, C#.</note>
+      </trans-unit>
+      <trans-unit id="104">
+        <source>C# Editor</source>
+        <target state="new">C# Editor</target>
+        <note>"C# Editor" node in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="105">
+        <source>Settings for the C# editor found under the Advanced, Formatting, and IntelliSense nodes in the Tools/Options dialog box.</source>
+        <target state="new">Settings for the C# editor found under the Advanced, Formatting, and IntelliSense nodes in the Tools/Options dialog box.</target>
+        <note>"C# Editor" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="106">
+        <source>Settings for general C# options found under the General and Tabs nodes in the Tools/Options dialog box.</source>
+        <target state="new">Settings for general C# options found under the General and Tabs nodes in the Tools/Options dialog box.</target>
+        <note>"C#" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="306">
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
+        <target state="new">Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</target>
+        <note>C# Advanced options page keywords</note>
+      </trans-unit>
+      <trans-unit id="307">
+        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
+        <target state="new">Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</target>
+        <note>C# Formatting &gt; General options page keywords</note>
+      </trans-unit>
+      <trans-unit id="308">
+        <source>Indent block contents;Indent open and close braces, indent case contents;indent case labels;label indentation</source>
+        <target state="new">Indent block contents;Indent open and close braces, indent case contents;indent case labels;label indentation</target>
+        <note>C# Formatting &gt; Indentation options page keywords</note>
+      </trans-unit>
+      <trans-unit id="309">
+        <source>New line formatting option for braces;New line formatting options for keywords</source>
+        <target state="new">New line formatting option for braces;New line formatting options for keywords</target>
+        <note>C# Formatting &gt; New Lines options page keywords</note>
+      </trans-unit>
+      <trans-unit id="310">
+        <source>Set spacing for method declarations;set spacing for method calls;set other spacing options;set spacing for brackets;set spacing for delimiters;set spacing for operators</source>
+        <target state="new">Set spacing for method declarations;set spacing for method calls;set other spacing options;set spacing for brackets;set spacing for delimiters;set spacing for operators</target>
+        <note>C# Formatting &gt; Spacing options page keywords</note>
+      </trans-unit>
+      <trans-unit id="311">
+        <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
+        <target state="new">Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</target>
+        <note>C# Formatting &gt; Wrapping options page keywords</note>
+      </trans-unit>
+      <trans-unit id="312">
+        <source>Change completion list settings;Pre-select most recently used member</source>
+        <target state="new">Change completion list settings;Pre-select most recently used member</target>
+        <note>C# IntelliSense options page keywords</note>
+      </trans-unit>
+      <trans-unit id="107">
+        <source>Formatting</source>
+        <target state="new">Formatting</target>
+        <note>"Formatting" category node under Tools &gt; Options, Text Editor, C#, Code Style (no corresponding keywords)</note>
+      </trans-unit>
+      <trans-unit id="108">
+        <source>General</source>
+        <target state="new">General</target>
+        <note>"General" node under Tools &gt; Options, Text Editor, C# (used for Code Style and Formatting)</note>
+      </trans-unit>
+      <trans-unit id="109">
+        <source>Indentation</source>
+        <target state="new">Indentation</target>
+        <note>"Indentation" node under Tools &gt; Options, Text Editor, C#, Formatting.</note>
+      </trans-unit>
+      <trans-unit id="110">
+        <source>Wrapping</source>
+        <target state="new">Wrapping</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="111">
+        <source>New Lines</source>
+        <target state="new">New Lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="112">
+        <source>Spacing</source>
+        <target state="new">Spacing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="2358">
+        <source>CSharp Editor</source>
+        <target state="new">CSharp Editor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="2359">
+        <source>CSharp Editor with Encoding</source>
+        <target state="new">CSharp Editor with Encoding</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="113">
+        <source>Microsoft Visual C#</source>
+        <target state="new">Microsoft Visual C#</target>
+        <note>Used for String in Tools &gt; Options, Text Editor, File Extensions</note>
+      </trans-unit>
+      <trans-unit id="114">
+        <source>Code Style</source>
+        <target state="new">Code Style</target>
+        <note>"Code Style" category node under Tools &gt; Options, Text Editor, C# (no corresponding keywords)</note>
+      </trans-unit>
+      <trans-unit id="313">
+        <source>Style;Qualify;This;Code Style;var;member access;locals;parameters;var preferences;predefined type;framework type;built-in types;when variable type is apparent;elsewhere;qualify field access;qualify property access; qualify method access;qualify event access;</source>
+        <target state="new">Style;Qualify;This;Code Style;var;member access;locals;parameters;var preferences;predefined type;framework type;built-in types;when variable type is apparent;elsewhere;qualify field access;qualify property access; qualify method access;qualify event access;</target>
+        <note>C# Code Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="115">
+        <source>Naming</source>
+        <target state="new">Naming</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="314">
+        <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
+        <target state="new">Naming Style;Name Styles;Naming Rule;Naming Conventions</target>
+        <note>C# Naming Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="116">
+        <source>C# Tools</source>
+        <target state="new">C# Tools</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="117">
+        <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
+        <target state="new">C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

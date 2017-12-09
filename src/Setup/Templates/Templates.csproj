@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -20,11 +19,14 @@
     <TargetVsixContainerName>Roslyn SDK.vsix</TargetVsixContainerName>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFramework>net461</TargetFramework>
     <BaseNuGetRuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</BaseNuGetRuntimeIdentifier>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <TargetFrameworkProfile />
     <RoslynProjectType>Vsix</RoslynProjectType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- https://github.com/dotnet/roslyn/issues/23649 -->
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -235,48 +237,20 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <PackageReference Include="EnvDTE">
-      <Version>$(EnvDTEVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
-      <Version>$(MicrosoftCodeAnalysisAnalyzersVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common">
-      <Version>$(MicrosoftCodeAnalysisCommonVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
-      <Version>$(MicrosoftCodeAnalysisCSharpVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
-      <Version>$(MicrosoftCodeAnalysisCSharpWorkspacesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text">
-      <Version>$(MicrosoftCodeAnalysisEditorFeaturesTextVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic">
-      <Version>$(MicrosoftCodeAnalysisVisualBasicVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces">
-      <Version>$(MicrosoftCodeAnalysisVisualBasicWorkspacesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
-      <Version>$(MicrosoftCodeAnalysisWorkspacesCommonVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.CommandLine">
-      <Version>$(NuGetCommandLineVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="System.Reflection.Metadata">
-      <Version>$(SystemReflectionMetadataFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface">
-      <Version>$(MicrosoftVisualStudioTemplateWizardInterfaceVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="VSLangProj">
-      <Version>$(VSLangProjVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text" Version="$(MicrosoftCodeAnalysisEditorFeaturesTextVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="$(MicrosoftCodeAnalysisVisualBasicVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisVisualBasicWorkspacesVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonVersion)" />
+    <PackageReference Include="NuGet.CommandLine" Version="$(NuGetCommandLineVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableFixedVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataFixedVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="$(MicrosoftVisualStudioTemplateWizardInterfaceVersion)" />
+    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CSharp\Diagnostic\Analyzer\AssemblyInfo.cs" />
@@ -383,5 +357,4 @@
   <PropertyGroup>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GetVsixTemplateItems</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
-  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
