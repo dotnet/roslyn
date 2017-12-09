@@ -165,11 +165,11 @@ function Ensure-BasicTool([string]$name, [string]$version = "") {
         $version = Get-PackageVersion $name
     }
 
-    $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
+    $p = Join-Path (Get-PackagesDir) "$($name)\$($version)"
     if (-not (Test-Path $p)) {
         $toolsetProject = Join-Path $repoDir "build\ToolsetPackages\RoslynToolset.csproj"
         $dotnet = Ensure-DotnetSdk
-        Write-Host "Restoring $toolsetProject"
+        Write-Host "Downloading $name"
         Restore-Project $dotnet $toolsetProject
     }
     
