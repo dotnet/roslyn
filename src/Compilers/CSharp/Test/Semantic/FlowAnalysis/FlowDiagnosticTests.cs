@@ -1057,31 +1057,6 @@ partial struct S2
         }
 
         [Fact]
-        [WorkItem(23668, "https://github.com/dotnet/roslyn/issues/23668")]
-        public void PartialWithPropertyButSingleField()
-        {
-            string program =
-@"partial struct X // Warning CS0282
-{
-    // The only field of X is a backing field of A.
-    public int A { get; set; }
-}
-
-partial struct X : I
-{
-    // This partial definition has no field.
-    int I.A { get => A; set => A = value; }
-}
-
-interface I
-{
-    int A { get; set; }
-}";
-            var comp = CreateStandardCompilation(program);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void StaticInitializer()
         {
             string program = @"
