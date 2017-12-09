@@ -31,7 +31,9 @@
     <PackageReference Include="RoslynTools.Microsoft.LocateVS" Version="$(RoslynToolsMicrosoftLocateVSVersion)" />
     <PackageReference Include="RoslynTools.Microsoft.SignTool" Version="$(RoslynToolsMicrosoftSignToolVersion)" />
     <PackageReference Include="RoslynTools.Microsoft.VSIXExpInstaller" Version="$(RoslynToolsMicrosoftVSIXExpInstallerVersion)" />
+    <PackageReference Include="RoslynTools.MSBuild" Version="$(RoslynToolsMSBuildVersion)" />
     <PackageReference Include="xunit.runner.wpf" Version="$(xunitrunnerwpfVersion)" />
+    <PackageReference Include="vswhere" Version="$(vswhereVersion)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <PackageReference Include="dotnet-xunit" Version="$(dotnetxunitVersion)" />
