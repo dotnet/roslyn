@@ -1058,7 +1058,7 @@ partial struct S2
 
         [Fact]
         [WorkItem(23668, "https://github.com/dotnet/roslyn/issues/23668")]
-        public void Bug()
+        public void PartialWithPropertyButSingleField()
         {
             string program =
 @"partial struct X // Warning CS0282
