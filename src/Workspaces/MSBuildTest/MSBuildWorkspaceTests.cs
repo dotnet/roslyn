@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -2789,7 +2790,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "https://github.com/dotnet/roslyn/issues/23685"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public async Task TestOpenProject_MetadataReferenceHasDocComments()
         {

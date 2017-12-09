@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27106.0
+VisualStudioVersion = 15.0.27110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{A41D1B99-F489-4C43-BBDF-96D61B19A6B9}"
 EndProject
@@ -110,10 +110,6 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicSyntaxGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj", "{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicesTest", "src\Workspaces\CoreTest\ServicesTest.csproj", "{C50166F1-BABC-40A9-95EB-8200080CD701}"
-	ProjectSection(ProjectDependencies) = postProject
-		{4B45CA0C-03A0-400F-B454-3D4BCB16AF38} = {4B45CA0C-03A0-400F-B454-3D4BCB16AF38}
-		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1} = {E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpServicesTest", "src\Workspaces\CSharpTest\CSharpServicesTest.csproj", "{E195A63F-B5A4-4C5A-96BD-8E7ED6A181B7}"
 EndProject
