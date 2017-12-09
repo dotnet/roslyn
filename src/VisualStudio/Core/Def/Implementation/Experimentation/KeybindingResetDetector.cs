@@ -2,7 +2,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -18,7 +17,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
-using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 {
@@ -48,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private static readonly Guid ReSharperCommandGroup = new Guid("{47F03277-5055-4922-899C-0F7F30D26BF1}");
 
         private readonly VisualStudioWorkspace _workspace;
-        private readonly SVsServiceProvider _serviceProvider;
+        private readonly System.IServiceProvider _serviceProvider;
 
         // All mutable fields are UI-thread affinitized
 
@@ -190,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
             else if (_experimentationService.IsExperimentEnabled(ExternalFlightName))
             {
-                message = ServicesVSResources.We_noticed_your_keybindings_are_broken;
+                message = ServicesVSResources.Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands;
             }
             else
             {
@@ -227,8 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             if (_oleCommandTarget == null)
             {
-                var oleServiceProvider = _serviceProvider.GetService<IOleServiceProvider>();
-                _oleCommandTarget = (IOleCommandTarget)oleServiceProvider.QueryService(VSConstants.SID_SUIHostCommandDispatcher);
+                _oleCommandTarget = _serviceProvider.GetService<IOleCommandTarget, SUIHostCommandDispatcher>();
             }
 
             var cmds = new OLECMD[1];

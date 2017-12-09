@@ -1452,11 +1452,6 @@ Additional information: {1}</target>
         <target state="new">Restore Visual Studio keybindings</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_noticed_your_keybindings_are_broken">
-        <source>We noticed your keybindings are broken.</source>
-        <target state="new">We noticed your keybindings are broken.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
         <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
         <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
@@ -1465,6 +1460,11 @@ Additional information: {1}</target>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
         <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
+        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
+        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
         <note />
       </trans-unit>
     </body>

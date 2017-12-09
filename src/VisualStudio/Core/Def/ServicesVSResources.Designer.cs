@@ -2598,15 +2598,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We noticed your keybindings are broken..
-        /// </summary>
-        internal static string We_noticed_your_keybindings_are_broken {
-            get {
-                return ResourceManager.GetString("We_noticed_your_keybindings_are_broken", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to When generating properties:.
         /// </summary>
         internal static string When_generating_properties {
@@ -2657,6 +2648,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string You_must_select_at_least_one_member {
             get {
                 return ResourceManager.GetString("You_must_select_at_least_one_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your keybindings are no longer mapped to Visual Studio commands..
+        /// </summary>
+        internal static string Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands {
+            get {
+                return ResourceManager.GetString("Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands", resourceCulture);
             }
         }
     }
