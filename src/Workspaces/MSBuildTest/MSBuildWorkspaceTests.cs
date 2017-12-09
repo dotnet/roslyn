@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     public class MSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCreateMSBuildWorkspace()
         {
             using (var workspace = CreateMSBuildWorkspace())
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_SingleProjectSolution()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_MultiProjectSolution()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [Fact(Skip = "Needs target file update. Activate when we move to new base drop."), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
         public async Task Test_OpenProjectReferencingPortableProject()
         {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_SharedMetadataReferences()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             !mr.Properties.Aliases.IsDefault && mr.Properties.Aliases.Contains(aliasName));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public async Task Test_SharedMetadataReferencesWithAliases()
         {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             return fnGetMetadata?.Invoke(mref, null) as Metadata;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(552981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
         public async Task TestOpenSolution_DuplicateProjectGuids()
         {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(831379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831379")]
         public async Task GetCompilationWithCircularProjectReferences()
         {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOutputFilePaths()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCrossLanguageReferencesUsesInMemoryGeneratedMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCrossLanguageReferencesWithOutOfDateMetadataOnDiskUsesInMemoryGeneratedMetadata()
         {
             await PrepareCrossLanguageProjectWithEmittedMetadataAsync();
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestInternalsVisibleToSigned()
         {
             var solution = await SolutionAsync(
@@ -348,7 +348,7 @@ class C1
             Assert.Equal(Enumerable.Empty<Diagnostic>(), diagnostics);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestVersions()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -395,7 +395,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_LoadMetadataForReferencedProjects()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -416,7 +416,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithoutPrefer32BitAndConsoleApplication()
         {
@@ -432,7 +432,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithoutPrefer32BitAndLibrary()
         {
@@ -449,7 +449,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithPrefer32BitAndConsoleApplication()
         {
@@ -465,7 +465,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithPrefer32BitAndLibrary()
         {
@@ -482,7 +482,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithPrefer32BitAndWinMDObj()
         {
@@ -499,7 +499,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CSharp_WithoutOutputPath()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -513,7 +513,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CSharp_WithoutAssemblyName()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -527,7 +527,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CSharp_WithoutCSharpTargetsImported_Succeeds()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -542,7 +542,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CSharp_WithoutCSharpTargetsImported_DocumentsArePickedUp()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -557,7 +557,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_VisualBasic_WithoutVBTargetsImported_Succeeds()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -571,7 +571,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_VisualBasic_WithoutVBTargetsImported_DocumentsArePickedUp()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -586,7 +586,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithoutPrefer32BitAndConsoleApplication()
         {
@@ -602,7 +602,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithoutPrefer32BitAndLibrary()
         {
@@ -619,7 +619,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndConsoleApplication()
         {
@@ -635,7 +635,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndLibrary()
         {
@@ -652,7 +652,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndWinMDObj()
         {
@@ -669,7 +669,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_VisualBasic_WithoutOutputPath()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -684,7 +684,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_VisualBasic_WithLanguageVersion15_3()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -698,7 +698,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_VisualBasic_WithLatestLanguageVersion()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -713,7 +713,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_VisualBasic_WithoutAssemblyName()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -728,7 +728,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_Respect_ReferenceOutputassembly_Flag()
         {
             const string top = @"VisualBasicProject_Circular_Top.vbproj";
@@ -746,7 +746,7 @@ class C1
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15102"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -757,7 +757,8 @@ class C1
                 .WithFile(@"CSharpProject\MainWindow.xaml.cs", GetResourceText("CSharpProject_MainWindow.xaml.cs")));
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            using (var workspace = CreateMSBuildWorkspace())
+            // Ensure the Xaml compiler does not run in a separate appdomain. It appears that this won't work within xUnit.
+            using (var workspace = CreateMSBuildWorkspace(("AlwaysCompileMarkupFilesInSeparateDomain", "false")))
             {
                 var project = await workspace.OpenProjectAsync(projectFilePath);
                 var documents = project.Documents.ToList();
@@ -778,7 +779,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestMetadataReferenceHasBadHintPath()
         {
             // prove that even with bad hint path for metadata reference the workspace can succeed at finding the correct metadata reference.
@@ -796,7 +797,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public async Task TestOpenProject_AssemblyNameIsPath()
         {
@@ -817,7 +818,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public async Task TestOpenProject_AssemblyNameIsPath2()
         {
@@ -837,7 +838,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithDuplicateFile()
         {
             // Verify that we don't throw in this case
@@ -854,7 +855,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithInvalidFileExtension()
         {
             // make sure the file does in fact exist, but with an unrecognized extension
@@ -873,7 +874,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_ProjectFileExtensionAssociatedWithUnknownLanguage()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -893,7 +894,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithAssociatedLanguageExtension1()
         {
             // make a CSharp solution with a project file having the incorrect extension 'vbproj', and then load it using the overload the lets us
@@ -913,7 +914,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithAssociatedLanguageExtension2_IgnoreCase()
         {
             // make a CSharp solution with a project file having the incorrect extension 'anyproj', and then load it using the overload the lets us
@@ -934,7 +935,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithNonExistentSolutionFile_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -949,7 +950,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithInvalidSolutionFile_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -964,7 +965,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithTemporaryLockedFile_SucceedsWithoutFailureEvent()
         {
             // when skipped we should see a diagnostic for the invalid project
@@ -1007,7 +1008,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithLockedFile_FailsWithFailureEvent()
         {
             // when skipped we should see a diagnostic for the invalid project
@@ -1043,7 +1044,7 @@ class C1
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithInvalidProjectPath_SkipTrue_SucceedsWithFailureEvent()
         {
             // when skipped we should see a diagnostic for the invalid project
@@ -1067,7 +1068,7 @@ class C1
         }
 
         [WorkItem(985906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985906")]
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task HandleSolutionProjectTypeSolutionFolder()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -1085,7 +1086,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithInvalidProjectPath_SkipFalse_Fails()
         {
             // when not skipped we should get an exception for the invalid project
@@ -1105,7 +1106,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithNonExistentProject_SkipTrue_SucceedsWithFailureEvent()
         {
             // when skipped we should see a diagnostic for the non-existent project
@@ -1128,7 +1129,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithNonExistentProject_SkipFalse_Fails()
         {
             // when skipped we should see an exception for the non-existent project
@@ -1148,7 +1149,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithUnrecognizedProjectFileExtension_Fails()
         {
             // proves that for solution open, project type guid and extension are both necessary
@@ -1164,7 +1165,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithUnrecognizedProjectTypeGuidButRecognizedExtension_Succeeds()
         {
             // proves that if project type guid is not recognized, a known project file extension is all we need.
@@ -1179,7 +1180,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipTrue_SucceedsWithFailureEvent()
         {
             // proves that if both project type guid and file extension are unrecognized, then project is skipped.
@@ -1203,7 +1204,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipFalse_Fails()
         {
             // proves that if both project type guid and file extension are unrecognized, then open project fails.
@@ -1230,7 +1231,7 @@ class C1
 
         private HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_Throws()
         {
@@ -1254,7 +1255,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public async Task TestOpenSolution_WithMissingLanguageLibraries_WithSkipTrue_SucceedsWithDiagnostic()
         {
@@ -1281,7 +1282,7 @@ class C1
             Assert.Equal(expected, dx[0].Message);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenProject_WithMissingLanguageLibraries_Throws()
         {
@@ -1300,7 +1301,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithInvalidFilePath_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1315,7 +1316,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithNonExistentProjectFile_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1330,7 +1331,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithInvalidProjectReference_SkipTrue_SucceedsWithEvent()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1353,7 +1354,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithInvalidProjectReference_SkipFalse_Fails()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1370,7 +1371,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithNonExistentProjectReference_SkipTrue_SucceedsWithEvent()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1393,7 +1394,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithNonExistentProjectReference_SkipFalse_Fails()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1410,7 +1411,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_SkipTrue_SucceedsWithEvent()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1434,7 +1435,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_SkipFalse_Fails()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1452,7 +1453,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipTrue_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1477,7 +1478,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipFalse_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1503,7 +1504,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_BadMsbuildProject_SkipTrue_SucceedsWithDanglingProjectReference()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1527,7 +1528,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithReferencedProject_LoadMetadata_ExistingMetadata_Succeeds()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1550,7 +1551,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithReferencedProject_LoadMetadata_NonExistentMetadata_LoadsProjectInstead()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -1572,7 +1573,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_UpdateExistingReferences()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1623,182 +1624,182 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TTestCompilationOptions_CSharp_DebugType_Full()
         {
             CreateCSharpFilesWith("DebugType", "full");
             await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_DebugType_None()
         {
             CreateCSharpFilesWith("DebugType", "none");
             await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_DebugType_PDBOnly()
         {
             CreateCSharpFilesWith("DebugType", "pdbonly");
             await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_DebugType_Portable()
         {
             CreateCSharpFilesWith("DebugType", "portable");
             await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_DebugType_Embedded()
         {
             CreateCSharpFilesWith("DebugType", "embedded");
             await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_OutputKind_DynamicallyLinkedLibrary()
         {
             CreateCSharpFilesWith("OutputType", "Library");
             await AssertCSCompilationOptionsAsync(OutputKind.DynamicallyLinkedLibrary, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_OutputKind_ConsoleApplication()
         {
             CreateCSharpFilesWith("OutputType", "Exe");
             await AssertCSCompilationOptionsAsync(OutputKind.ConsoleApplication, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_OutputKind_WindowsApplication()
         {
             CreateCSharpFilesWith("OutputType", "WinExe");
             await AssertCSCompilationOptionsAsync(OutputKind.WindowsApplication, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_OutputKind_NetModule()
         {
             CreateCSharpFilesWith("OutputType", "Module");
             await AssertCSCompilationOptionsAsync(OutputKind.NetModule, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_OptimizationLevel_Release()
         {
             CreateCSharpFilesWith("Optimize", "True");
             await AssertCSCompilationOptionsAsync(OptimizationLevel.Release, options => options.OptimizationLevel);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_OptimizationLevel_Debug()
         {
             CreateCSharpFilesWith("Optimize", "False");
             await AssertCSCompilationOptionsAsync(OptimizationLevel.Debug, options => options.OptimizationLevel);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_MainFileName()
         {
             CreateCSharpFilesWith("StartupObject", "Foo");
             await AssertCSCompilationOptionsAsync("Foo", options => options.MainTypeName);
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_Missing()
         {
             CreateCSharpFiles();
             await AssertCSCompilationOptionsAsync(null, options => options.CryptoKeyFile);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_False()
         {
             CreateCSharpFilesWith("SignAssembly", "false");
             await AssertCSCompilationOptionsAsync(null, options => options.CryptoKeyFile);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_True()
         {
             CreateCSharpFilesWith("SignAssembly", "true");
             await AssertCSCompilationOptionsAsync("snKey.snk", options => Path.GetFileName(options.CryptoKeyFile));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_DelaySign_False()
         {
             CreateCSharpFilesWith("DelaySign", "false");
             await AssertCSCompilationOptionsAsync(null, options => options.DelaySign);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_DelaySign_True()
         {
             CreateCSharpFilesWith("DelaySign", "true");
             await AssertCSCompilationOptionsAsync(true, options => options.DelaySign);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_CheckOverflow_True()
         {
             CreateCSharpFilesWith("CheckForOverflowUnderflow", "true");
             await AssertCSCompilationOptionsAsync(true, options => options.CheckOverflow);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_CSharp_CheckOverflow_False()
         {
             CreateCSharpFilesWith("CheckForOverflowUnderflow", "false");
             await AssertCSCompilationOptionsAsync(false, options => options.CheckOverflow);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestParseOptions_CSharp_Compatibility_ECMA1()
         {
             CreateCSharpFilesWith("LangVersion", "ISO-1");
             await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp1, options => options.LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestParseOptions_CSharp_Compatibility_ECMA2()
         {
             CreateCSharpFilesWith("LangVersion", "ISO-2");
             await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp2, options => options.LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestParseOptions_CSharp_Compatibility_None()
         {
             CreateCSharpFilesWith("LangVersion", "3");
             await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp3, options => options.LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestParseOptions_CSharp_LanguageVersion_Latest()
         {
             CreateCSharpFiles();
             await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp7, options => options.LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestParseOptions_CSharp_PreprocessorSymbols()
         {
             CreateCSharpFilesWith("DefineConstants", "DEBUG;TRACE;X;Y");
             await AssertCSParseOptionsAsync("DEBUG,TRACE,X,Y", options => string.Join(",", options.PreprocessorSymbolNames));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestConfigurationDebug()
         {
             CreateCSharpFiles();
             await AssertCSParseOptionsAsync("DEBUG,TRACE", options => string.Join(",", options.PreprocessorSymbolNames));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestConfigurationRelease()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1815,42 +1816,42 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_DebugType_Full()
         {
             CreateVBFilesWith("DebugType", "full");
             await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_DebugType_None()
         {
             CreateVBFilesWith("DebugType", "none");
             await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_DebugType_PDBOnly()
         {
             CreateVBFilesWith("DebugType", "pdbonly");
             await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_DebugType_Portable()
         {
             CreateVBFilesWith("DebugType", "portable");
             await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_DebugType_Embedded()
         {
             CreateVBFilesWith("DebugType", "embedded");
             await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_VBRuntime_Embed()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1858,49 +1859,49 @@ class C1
             await AssertVBCompilationOptionsAsync(true, options => options.EmbedVbCoreRuntime);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OutputKind_DynamicallyLinkedLibrary()
         {
             CreateVBFilesWith("OutputType", "Library");
             await AssertVBCompilationOptionsAsync(OutputKind.DynamicallyLinkedLibrary, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OutputKind_ConsoleApplication()
         {
             CreateVBFilesWith("OutputType", "Exe");
             await AssertVBCompilationOptionsAsync(OutputKind.ConsoleApplication, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OutputKind_WindowsApplication()
         {
             CreateVBFilesWith("OutputType", "WinExe");
             await AssertVBCompilationOptionsAsync(OutputKind.WindowsApplication, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OutputKind_NetModule()
         {
             CreateVBFilesWith("OutputType", "Module");
             await AssertVBCompilationOptionsAsync(OutputKind.NetModule, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_RootNamespace()
         {
             CreateVBFilesWith("RootNamespace", "Foo.Bar");
             await AssertVBCompilationOptionsAsync("Foo.Bar", options => options.RootNamespace);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionStrict_On()
         {
             CreateVBFilesWith("OptionStrict", "On");
             await AssertVBCompilationOptionsAsync(VB.OptionStrict.On, options => options.OptionStrict);
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionStrict_Off()
         {
             CreateVBFilesWith("OptionStrict", "Off");
@@ -1911,77 +1912,77 @@ class C1
             await AssertVBCompilationOptionsAsync(VB.OptionStrict.Custom, options => options.OptionStrict);
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionStrict_Custom()
         {
             CreateVBFilesWith("OptionStrictType", "Custom");
             await AssertVBCompilationOptionsAsync(VB.OptionStrict.Custom, options => options.OptionStrict);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionInfer_True()
         {
             CreateVBFilesWith("OptionInfer", "On");
             await AssertVBCompilationOptionsAsync(true, options => options.OptionInfer);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionInfer_False()
         {
             CreateVBFilesWith("OptionInfer", "Off");
             await AssertVBCompilationOptionsAsync(false, options => options.OptionInfer);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionExplicit_True()
         {
             CreateVBFilesWith("OptionExplicit", "On");
             await AssertVBCompilationOptionsAsync(true, options => options.OptionExplicit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionExplicit_False()
         {
             CreateVBFilesWith("OptionExplicit", "Off");
             await AssertVBCompilationOptionsAsync(false, options => options.OptionExplicit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionCompareText_True()
         {
             CreateVBFilesWith("OptionCompare", "Text");
             await AssertVBCompilationOptionsAsync(true, options => options.OptionCompareText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionCompareText_False()
         {
             CreateVBFilesWith("OptionCompare", "Binary");
             await AssertVBCompilationOptionsAsync(false, options => options.OptionCompareText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionRemoveIntegerOverflowChecks_True()
         {
             CreateVBFilesWith("RemoveIntegerChecks", "true");
             await AssertVBCompilationOptionsAsync(false, options => options.CheckOverflow);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionRemoveIntegerOverflowChecks_False()
         {
             CreateVBFilesWith("RemoveIntegerChecks", "false");
             await AssertVBCompilationOptionsAsync(true, options => options.CheckOverflow);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_OptionAssemblyOriginatorKeyFile_SignAssemblyFalse()
         {
             CreateVBFilesWith("SignAssembly", "false");
             await AssertVBCompilationOptionsAsync(null, options => options.CryptoKeyFile);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCompilationOptions_VisualBasic_GlobalImports()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2008,7 +2009,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestParseOptions_VisualBasic_PreprocessorSymbols()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -2043,7 +2044,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_VisualBasic_ConditionalAttributeEmitted()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -2069,7 +2070,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_VisualBasic_ConditionalAttributeNotEmitted()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -2094,7 +2095,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_CSharp_ConditionalAttributeEmitted()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2120,7 +2121,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_CSharp_ConditionalAttributeNotEmitted()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2145,7 +2146,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CSharp_WithLinkedDocument()
         {
             var fooText = GetResourceText(@"OtherStuff_Foo.cs");
@@ -2172,7 +2173,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestAddDocumentAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2217,7 +2218,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestUpdateDocumentAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2253,7 +2254,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestRemoveDocumentAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2282,7 +2283,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestApplyChanges_UpdateDocumentText()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2311,7 +2312,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestApplyChanges_AddDocument()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2339,7 +2340,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestApplyChanges_NotSupportedChangesFail()
         {
             var csharpProjPath = @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj";
@@ -2375,7 +2376,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestWorkspaceChangedEvent()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2409,7 +2410,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestWorkspaceChangedWeakEvent()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2449,7 +2450,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestSemanticVersionCS()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2500,7 +2501,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestSemanticVersionVB()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2551,7 +2552,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(529276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529276"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
         public async Task TestOpenProject_LoadMetadataForReferenceProjects_NoMetadata()
         {
@@ -2578,7 +2579,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(918072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
         public async Task TestAnalyzerReferenceLoadStandalone()
         {
@@ -2605,7 +2606,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestAdditionalFilesStandalone()
         {
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
@@ -2629,7 +2630,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework45)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestLoadTextSync()
         {
             var files = GetAnalyzerReferenceSolutionFiles();
@@ -2652,7 +2653,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework45)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestGetTextSynchronously()
         {
             var files = GetAnalyzerReferenceSolutionFiles();
@@ -2673,7 +2674,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public async Task TestCSharpExternAlias()
         {
@@ -2695,7 +2696,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(530337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
         public async Task TestProjectReferenceWithExternAlias()
         {
@@ -2713,7 +2714,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -2765,7 +2766,7 @@ class C1
             return document.ToString();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestProjectReferenceWithNoGuid()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -2788,7 +2789,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public async Task TestOpenProject_MetadataReferenceHasDocComments()
         {
@@ -2807,7 +2808,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(RequiresNetFramework40)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CSharp_HasSourceDocComments()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2827,7 +2828,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_VisualBasic_HasSourceDocComments()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2847,7 +2848,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CrossLanguageSkeletonReferenceHasDocComments()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2876,7 +2877,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithProjectFileLocked()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2895,7 +2896,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithNonExistentProjectFile()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2911,7 +2912,7 @@ class C1
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithNonExistentSolutionFile()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2927,7 +2928,7 @@ class C1
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_SolutionFileHasEmptyLinesAndWhitespaceOnlyLines()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2948,7 +2949,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
         public async Task TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
         {
@@ -2966,7 +2967,8 @@ class C1
             }
         }
 
-        [Fact(Skip = "531283"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "MSBuild parsing API throws InvalidProjectFileException")]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531283, "DevDiv")]
         public async Task TestOpenSolution_SolutionFileHasMissingEndProject()
         {
@@ -2998,7 +3000,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
@@ -3027,7 +3029,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {
@@ -3061,7 +3063,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleCodePageProperty()
         {
@@ -3089,7 +3091,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleInvalidCodePageProperty()
         {
@@ -3112,7 +3114,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleInvalidCodePageProperty2()
         {
@@ -3135,7 +3137,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleDefaultCodePageProperty()
         {
@@ -3159,7 +3161,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
         public void DisposeMSBuildWorkspaceAndServicesCollected()
         {
@@ -3194,7 +3196,7 @@ class C1
             weakCompilation.AssertReleased();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
         public async Task MSBuildWorkspacePreservesEncoding()
         {
@@ -3259,7 +3261,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestAddRemoveMetadataReference_GAC()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -3288,7 +3290,7 @@ class C { }";
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestAddRemoveMetadataReference_ReferenceAssembly()
         {
@@ -3323,7 +3325,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestAddRemoveMetadataReference_NonGACorRefAssembly()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3356,7 +3358,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestAddRemoveAnalyzerReference()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3387,7 +3389,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestAddRemoveProjectReference()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -3419,7 +3421,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(1101040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101040")]
         public async Task TestOpenProject_BadLink()
         {
@@ -3436,7 +3438,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_BadElement()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3455,7 +3457,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3474,7 +3476,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3494,7 +3496,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_MsbuildError()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3511,7 +3513,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WildcardsWithLink()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3528,7 +3530,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_CommandLineArgsHaveNoErrors()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());

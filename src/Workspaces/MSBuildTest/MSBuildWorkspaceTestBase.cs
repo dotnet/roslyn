@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -138,15 +137,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private static Dictionary<string, string> CreateProperties((string key, string value)[] additionalProperties)
         {
-            var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            // We need to specifically set MSBuildExtensionsPath to the directory that the tests are running in because
-            // the MSBuild.exe.config file in that directory (the one included with the Microsoft.Build.Runtime package)
-            // does not set it appropriately.
-            var properties = new Dictionary<string, string>()
-            {
-                { "MSBuildExtensionsPath", currentDirectory }
-            };
+            var properties = new Dictionary<string, string>();
 
             foreach (var (k, v) in additionalProperties)
             {

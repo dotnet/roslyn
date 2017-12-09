@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 { "DesignTimeBuild", "true" }, // this will tell msbuild to not build the dependent projects
                 { "BuildingInsideVisualStudio", "true" }, // this will force CoreCompile task to execute even if all inputs and outputs are up to date
                 { "BuildProjectReferences", "false" },
+                { "BuildingProject", "false" },
                 { "ProvideCommandLineArgs", "true" }, // retrieve the command-line arguments to the compiler
                 { "SkipCompilerExecution", "true" }, // don't actually run the compiler
                 { "ContinueOnError", "ErrorAndContinue" }
