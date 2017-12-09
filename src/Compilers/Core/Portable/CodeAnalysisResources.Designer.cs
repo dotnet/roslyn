@@ -542,6 +542,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Could not enable multicore JIT due to exception: {0}..
+        /// </summary>
+        internal static string ExceptionEnablingMulticoreJit {
+            get {
+                return ResourceManager.GetString("ExceptionEnablingMulticoreJit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected non-empty public key.
         /// </summary>
         internal static string ExpectedNonEmptyPublicKey {
