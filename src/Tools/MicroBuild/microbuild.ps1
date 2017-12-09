@@ -115,8 +115,7 @@ try {
     # one job runs with a clean cache and assures all packages we depend on are restored during 
     # the restore phase. As opposed to getting lucky based on a NuGet being available in the cache.
     if ($cibuild) {
-        $nuget = Ensure-NuGet
-        Exec-Block { & $nuget locals all -clear } | Out-Host
+        Clear-PackageCache
     }
 
     $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
