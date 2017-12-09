@@ -4,11 +4,9 @@ using System.Linq;
 using System.Windows.Automation;
 using System.Collections.Generic;
 using System.Threading;
-using System.Windows;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -198,13 +196,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
         }
 
-        public void Paste(string text)
+        private void ExecuteOnSTAThread(ThreadStart a)
         {
-            var thread = new Thread(() => Clipboard.SetText(text));
+            var thread = new Thread(a);
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
             thread.Join();
+        }
 
+        public void Paste(string text)
+        {
+            _editorInProc.CopyText(text);
             VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
         }
 
