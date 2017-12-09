@@ -3,7 +3,6 @@ param (
     [switch]$restore = $false,
     [switch]$release = $false,
     [switch]$official = $false,
-    [string]$msbuildDir = "",
     [switch]$cibuild = $false,
     [string]$branchName = "master",
     [switch]$testDesktop = $false,
@@ -29,7 +28,6 @@ function Print-Usage() {
     Write-Host "  -release                  Perform release build (default is debug)"
     Write-Host "  -restore                  Restore packages"
     Write-Host "  -official                 Perform an official build"
-    Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "  -cibuild                  Run CI specific operations"
     Write-Host "  -testDesktop              Run unit tests"
     Write-Host "  -publishType              Publish to run: vsts, blob or none (default is none)"
@@ -38,30 +36,6 @@ function Print-Usage() {
     Write-Host "  -signType                 Signing type: real, test or public (default is public)"
     Write-Host "  -help                     Print this message"
 }
-
-function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$parallel = $true) {
-    $args = "/nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /p:DeployExtension=false /p:Configuration=$config";
-
-    if ($parallel) { 
-        $args += " /m"
-    }
-
-    if ($official) {
-        $args += " /p:OfficialBuild=true"
-    }
-    
-    if ($logFile -ne "") {
-        $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
-    }
-
-    if ($release) { 
-        $args += " /p:Configuration=Release"
-    }
-
-    $args += " $buildArgs"
-    Exec-Console $msbuild $args
-}
-
 
 # Create the Insertion folder. This is where the insertion tool pulls all of its 
 # binaries from. 
@@ -118,13 +92,12 @@ try {
         Clear-PackageCache
     }
 
-    $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
     $scriptDir = Join-Path $repoDir "build\scripts"
     $config = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -msbuildDir $msbuildDir -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog }
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog }
     Copy-InsertionItems
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green

@@ -27,7 +27,6 @@ param (
     [switch]$sign = $false,
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
-    [string]$msbuildDir = "",
     [string]$signType = "",
 
     # Test options 
@@ -61,7 +60,6 @@ function Print-Usage() {
     Write-Host "  -sign                     Sign our binaries"
     Write-Host "  -signType                 Type of sign: real, test, verify"
     Write-Host "  -pack                     Create our NuGet packages"
-    Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
     Write-Host "" 
     Write-Host "Test options" 
@@ -597,7 +595,7 @@ try {
 
     Process-Arguments
 
-    $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
+    $msbuild = Ensure-MSBuild
     $dotnet = Ensure-DotnetSdk
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $buildConfiguration
