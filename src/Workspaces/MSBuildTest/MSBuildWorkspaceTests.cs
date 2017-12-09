@@ -1604,7 +1604,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(Framework35Installed))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(Framework35Installed))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(528984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528984")]
         public async Task TestOpenProject_AddVBDefaultReferences()
