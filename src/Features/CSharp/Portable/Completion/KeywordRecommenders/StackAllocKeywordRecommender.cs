@@ -18,26 +18,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var node = context.TargetToken.Parent;
 
+            // In case of an empty string
             if (node == null)
             {
                 return false;
             }
 
-            if (node.IsKind(SyntaxKind.ParenthesizedExpression) || node.IsKind(SyntaxKind.CastExpression))
+            // After a cast
+            if (context.TargetToken.IsKind(SyntaxKind.CloseParenToken) &&
+                (node.IsKind(SyntaxKind.ParenthesizedExpression) || node.IsKind(SyntaxKind.CastExpression)))
             {
                 node = node.Parent;
             }
 
-            while (node.IsKind(SyntaxKind.ConditionalExpression))
+            // Inside a conditional expression: value ? stackalloc : stackalloc
+            while (node.IsKind(SyntaxKind.ConditionalExpression) &&
+                (context.TargetToken.IsKind(SyntaxKind.CloseParenToken) || context.TargetToken.IsKind(SyntaxKind.QuestionToken) || context.TargetToken.IsKind(SyntaxKind.ColonToken)))
             {
                 node = node.Parent;
             }
 
+            // assignment: x = stackalloc
             if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 return node.Parent.IsKind(SyntaxKind.ExpressionStatement);
             }
 
+            // declaration: var x = stackalloc
             if (node.IsKind(SyntaxKind.EqualsValueClause))
             {
                 node = node.Parent;

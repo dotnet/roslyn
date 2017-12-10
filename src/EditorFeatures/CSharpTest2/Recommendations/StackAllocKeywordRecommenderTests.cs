@@ -184,5 +184,49 @@ var s = value ? stackalloc int[10] : (Span<int>)$$"));
             await VerifyKeywordAsync(AddInsideMethod(@"
 s = value ? stackalloc int[10] : (Span<int>)$$"));
         }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_NestedConditional_True()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value1 ? value2 ? $$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value1 ? value2 ? $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_NestedConditional_WithCast_True()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value1 ? value2 ? (Span<int>)$$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value1 ? value2 ? (Span<int>)$$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_NestedConditional_False()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value1 ? value2 ? stackalloc int [10] : $$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value1 ? value2 ? stackalloc int [10] : $$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestOnRHSWithConditionalExpression_NestedConditional_WithCast_False()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+var s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
+
+            await VerifyKeywordAsync(AddInsideMethod(@"
+s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
+        }
     }
 }
