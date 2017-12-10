@@ -24,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
         End Function
 
         Public Shared Function IsValidSymbol(symbol As ISymbol, semanticModel As SemanticModel) As Boolean
-            ' We want to still generate a method even if this is a Namespace symbol because unknown method calls without
-            ' parenthesis are bound as namespaces by the VB compiler.
-            Return symbol.Kind = SymbolKind.Namespace Or AreSpecialOptionsActive(semanticModel)
+            ' We want to still generate a method even if this is a Namespace or NamedType symbol because unknown method calls without
+            ' parenthesis are bound as namespaces or named types by the VB compiler.
+            Return symbol.Kind = SymbolKind.Namespace Or symbol.Kind = SymbolKind.NamedType Or AreSpecialOptionsActive(semanticModel)
         End Function
     End Class
 End Namespace

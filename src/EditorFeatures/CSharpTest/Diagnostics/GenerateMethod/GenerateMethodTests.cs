@@ -7442,5 +7442,215 @@ class C
 }",
 parseOptions: TestOptions.Regular);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Foo|]();
+    }
+}
+
+class Foo { }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Foo();
+    }
+
+    private void Foo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class Foo { }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Foo|]();
+    }
+}
+
+interface Foo { }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Foo();
+    }
+
+    private void Foo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+interface Foo { }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName3()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Foo|]();
+    }
+}
+
+struct Foo { }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Foo();
+    }
+
+    private void Foo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+struct Foo { }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName4()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Foo|]();
+    }
+}
+
+delegate void Foo()",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Foo();
+    }
+
+    private void Foo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+delegate void Foo()",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName5()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Foo|]();
+    }
+}
+
+namespace Foo { }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Foo();
+    }
+
+    private void Foo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+namespace Foo { }",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        public async Task TestWithSameMethodNameAsTypeName6()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        [|Foo|]();
+    }
+}
+
+enum Foo { One }",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        Foo();
+    }
+
+    private void Foo()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+enum Foo { One }",
+parseOptions: TestOptions.Regular);
+        }
     }
 }
