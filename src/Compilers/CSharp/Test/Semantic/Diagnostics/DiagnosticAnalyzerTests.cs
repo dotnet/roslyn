@@ -173,24 +173,6 @@ public class C : NotFound
                 );
         }
 
-        [Fact]
-        [WorkItem(22579, "https://github.com/dotnet/roslyn/issues/22579")]
-        public void UncessaryUsingNotReportedAsErrorWithRuleset()
-        {
-            string source = @"using System;";
-
-            var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
-                new[] { KeyValuePair.Create("CS8019", ReportDiagnostic.Error) });
-
-            var comp = CreateStandardCompilation(source, options: options);
-
-            comp.VerifyDiagnostics(
-                // (2,1): error CS8019: Unnecessary using directive.
-                // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
-                );
-        }
-
         [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void DiagnosticAnalyzerWarnAsErrorGlobal()

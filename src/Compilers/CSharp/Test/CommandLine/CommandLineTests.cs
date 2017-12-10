@@ -2809,6 +2809,50 @@ class C
             Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"]);
         }
 
+        [Fact]
+        [WorkItem(22579, "https://github.com/dotnet/roslyn/issues/22579")]
+        public void UncessaryUsingReportedAsErrorWithRuleset()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var file = dir.CreateFile("a.cs");
+            string source = "using System;";
+            file.WriteAllText(source);
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.CodeAnalysis.CSharp"" RuleNamespace=""Microsoft.CodeAnalysis.CSharp"">
+    <Rule Id=""CS8019"" Action=""Error"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompilerWithoutAnalyzers(null, dir.Path,
+                new[] {
+                    "/nologo",
+                    "/t:library",
+                    "/a:" + Assembly.GetExecutingAssembly().Location, "a.cs",
+                    "/ruleset:" + ruleSetFile.Path , "/warn:4"
+                });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Contains("error CS8019:", outWriter.ToString(), StringComparison.Ordinal);
+        }
+
+        private sealed class MockCSharpCompilerWithoutAnalyzers : MockCSharpCompiler
+        {
+            public MockCSharpCompilerWithoutAnalyzers(string responseFile, string baseDirectory, string[] args) : base(responseFile, baseDirectory, args)
+            {
+            }
+
+            protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider)
+            {
+                return ImmutableArray<DiagnosticAnalyzer>.Empty;
+            }
+        }
+
         [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
         [Fact]
         public void Analyzers_CommandLineOverridesRuleset2()

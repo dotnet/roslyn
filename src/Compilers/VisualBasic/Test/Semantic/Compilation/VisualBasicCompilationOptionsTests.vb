@@ -3,6 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports System.Globalization
+Imports System.IO
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                        validNonDefaultValue As T)
             TestPropertyGeneric(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), factory, getter, validNonDefaultValue)
         End Sub
-        
+
         <Fact>
         Public Sub ShadowInvariants()
             TestHiddenProperty(Function(old, value) old.WithOutputKind(value), Function(opt) opt.OutputKind, OutputKind.DynamicallyLinkedLibrary)
@@ -54,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         Private Shared Sub TestPropertyGeneric(Of TOptions As CompilationOptions, T)(oldOptions As TOptions,
-                                                     factory As Func(Of TOptions, T, TOptions), 
+                                                     factory As Func(Of TOptions, T, TOptions),
                                                      getter As Func(Of TOptions, T), validNonDefaultValue As T)
             Dim validDefaultValue = getter(oldOptions)
 
@@ -569,5 +571,46 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
             Assert.NotEqual(optionFalse, optionTrueClone)
         End Sub
 
+        <Fact>
+        <WorkItem(22579, "https://github.com/dotnet/roslyn/issues/22579")>
+        Public Sub UncessaryUsingReportedAsErrorWithRuleset()
+            Dim source = "Imports System"
+            Dim ruleset = New Dictionary(Of String, ReportDiagnostic)() From {{"BC50001", ReportDiagnostic.Error}}
+            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithSpecificDiagnosticOptions(ruleset))
+
+            Using peStream = New MemoryStream()
+                Dim result = compilation.Emit(
+                    peStream:=peStream,
+                    pdbStream:=Nothing,
+                    metadataPEStream:=Nothing,
+                    xmlDocumentationStream:=Nothing,
+                    cancellationToken:=Nothing,
+                    win32Resources:=Nothing,
+                    manifestResources:=Nothing,
+                    options:=Nothing,
+                    debugEntryPoint:=Nothing,
+                    sourceLinkStream:=Nothing,
+                    embeddedTexts:=Nothing,
+                    testData:=Nothing)
+
+                Dim diagnostics = result.Diagnostics
+                Assert.False(result.Success)
+
+                Dim tree = compilation.SyntaxTrees.Single()
+                Dim model = compilation.GetSemanticModel(tree)
+                Dim diagnostics2 = model.GetDiagnostics()
+
+                Dim diagnostics3 = compilation.GetDiagnostics()
+
+                For Each diag In {diagnostics, diagnostics2, diagnostics3}
+                    Assert.Equal(DiagnosticSeverity.Error, diag.Single().Severity)
+                    diag.AssertTheseDiagnostics(<errors>
+BC50001: Unused import statement.
+Imports System
+~~~~~~~~~~~~~~
+                                                    </errors>)
+                Next
+            End Using
+        End Sub
     End Class
 End Namespace
