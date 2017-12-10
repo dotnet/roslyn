@@ -35,6 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
             symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
 
+            var localdeclarationSyntax = context.TargetToken.Parent?.GetAncestor<VariableDeclaratorSyntax>();
+            if (localdeclarationSyntax != null && 
+                (localdeclarationSyntax.GetAncestor<VariableDeclarationSyntax>().Type.IsVar || 
+                localdeclarationSyntax.DescendantNodes().Any(n => n.IsKind(SyntaxKind.CastExpression))))
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(localdeclarationSyntax);
+                symbols = symbols.WhereAsArray(s => !s.Equals(symbol));
+            }
+
             return Task.FromResult(Tuple.Create<ImmutableArray<ISymbol>, SyntaxContext>(symbols, context));
         }
 

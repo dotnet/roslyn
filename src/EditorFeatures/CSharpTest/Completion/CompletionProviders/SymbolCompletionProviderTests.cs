@@ -9201,5 +9201,44 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "o");
         }
+
+        [WorkItem(13682, "https://github.com/dotnet/roslyn/issues/13682")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionDoesNotHaveTargetTypeAfterCast()
+        {
+            var code = @"
+interface IVsSolution {}
+interface IVsSolution5{}
+
+class C
+{
+    void M()
+    {
+        IVsSolution solution = null;
+        var solution5 = (IVsSolution5)solution$$
+    }
+}
+";
+            await VerifyItemExistsAsync(code, "solution");
+            await VerifyItemIsAbsentAsync(code, "solution5");
+        }
+
+        [WorkItem(13682, "https://github.com/dotnet/roslyn/issues/13682")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotLocalVariableInItsDeclarator()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var bar1 = 10;
+        var bar2 = bar$$
+    }
+}
+";
+            await VerifyItemExistsAsync(code, "bar1");
+            await VerifyItemIsAbsentAsync(code, "bar2");
+        }
     }
 }
