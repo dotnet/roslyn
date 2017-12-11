@@ -33,7 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
-    internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject
+#pragma warning disable CS0618 // IVisualStudioHostProject is obsolete
+    internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
+#pragma warning restore CS0618 // IVisualStudioHostProject is obsolete
     {
         internal static object RuleSetErrorId = new object();
         private readonly object _gate = new object();
