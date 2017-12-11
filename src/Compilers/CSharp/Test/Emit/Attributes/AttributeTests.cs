@@ -23,7 +23,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
-        public void CircularTypeReferenceNotFound_WithIrrelevantType()
+        public void TestQuickAttributeChecker()
+        {
+            var predefined = QuickAttributeChecker.Predefined;
+            var typeForwardedTo = SyntaxFactory.Attribute(SyntaxFactory.ParseName("TypeForwardedTo"));
+            var typeIdentifier = SyntaxFactory.Attribute(SyntaxFactory.ParseName("TypeIdentifier"));
+
+            Assert.True(predefined.IsPossibleMatch(typeForwardedTo, QuickAttributes.TypeForwardedTo));
+            Assert.False(predefined.IsPossibleMatch(typeForwardedTo, QuickAttributes.TypeIdentifier));
+            Assert.False(predefined.IsPossibleMatch(typeForwardedTo, QuickAttributes.None));
+
+            Assert.False(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.TypeForwardedTo));
+            Assert.True(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.TypeIdentifier));
+            Assert.False(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.None));
+
+            var alias1 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias1"));
+            var checker1 = WithAliases(predefined, "using alias1 = TypeForwardedToAttribute;");
+            Assert.True(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
+            Assert.False(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
+
+            var checker1a = WithAliases(checker1, "using alias1 = TypeIdentifierAttribute;");
+            Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
+            Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
+
+            var checker1b = WithAliases(checker1, "using alias2 = TypeIdentifierAttribute;");
+            var alias2 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias2"));
+            Assert.True(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
+            Assert.False(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
+            Assert.False(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeForwardedTo));
+            Assert.True(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeIdentifier));
+
+            var checker3 = WithAliases(predefined, "using alias3 = TypeForwardedToAttribute; using alias3 = TypeIdentifierAttribute;");
+            var alias3 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias3"));
+            Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeForwardedTo));
+            Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeIdentifier));
+
+            QuickAttributeChecker WithAliases(QuickAttributeChecker checker, string aliases)
+            {
+                var nodes = Parse(aliases).GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>();
+                var list = new SyntaxList<UsingDirectiveSyntax>().AddRange(nodes);
+                return checker.AddAliasesIfAny(list);
+            }
+        }
+
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithMissingType_WithIrrelevantType()
         {
             var origLib_cs = @"public class C { }";
 
@@ -46,15 +92,58 @@ public class RefersToLibAttribute : Attribute
 
             var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
-            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
 
-            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib }, assemblyName: "lib");
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
-        public void CircularTypeReferenceNotFound_WithRelevantType()
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithDiagnostic()
+        {
+            var origLib_cs = @"public class C { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(1)]
+";
+
+            var reference_cs =
+@"using System;
+public class RefersToLibAttribute : Attribute
+{
+    public RefersToLibAttribute() { }
+    public RefersToLibAttribute(C c) { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics(
+                // (3,60): error CS1503: Argument 1: cannot convert from 'int' to 'System.Type'
+                // [assembly: System.Runtime.CompilerServices.TypeForwardedTo(1)]
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "System.Type").WithLocation(3, 60)
+                );
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics(
+                // (3,60): error CS1503: Argument 1: cannot convert from 'int' to 'System.Type'
+                // [assembly: System.Runtime.CompilerServices.TypeForwardedTo(1)]
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "System.Type").WithLocation(3, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithMissingType_WithRelevantType()
         {
             var origLib_cs = @"public class C : System.Attribute { }";
 
@@ -76,10 +165,16 @@ public class RefersToLibAttribute : C
 
             var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
-            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
 
-            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib }, assemblyName: "lib");
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics(
+                // (2,12): error CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules
+                // [assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib'
+                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "RefersToLib").WithArguments("C").WithLocation(2, 12)
+                );
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics(
                 // (2,12): error CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules
                 // [assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib'
                 Diagnostic(ErrorCode.ERR_MissingTypeInSource, "RefersToLib").WithArguments("C").WithLocation(2, 12)
@@ -88,14 +183,14 @@ public class RefersToLibAttribute : C
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
-        public void CircularTypeReferenceNotFound_WithStaticUsing()
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithStaticUsing()
         {
             var origLib_cs = @"public class C : System.Attribute { }";
 
             var newLib_cs = @"
 using static RefersToLibAttribute;
     // Binding this will cause a lookup for 'C' in 'lib'.
-    // Such lookup requires binding 'TypeForwardedTo' attributes (and aliases), but we should not bind other usings, lest we want an infinite recursion.
+    // Such lookup requires binding 'TypeForwardedTo' attributes (and aliases), but we should not bind other usings, to avoid an infinite recursion.
 
 [assembly: System.Reflection.AssemblyTitleAttribute(""title"")]
 
@@ -119,15 +214,17 @@ public class RefersToLibAttribute : C
 
             var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
-            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
 
-            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib }, assemblyName: "lib");
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
-        public void CircularTypeReferenceIsForwarded_WithIrrelevantType()
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithTypeForward_WithIrrelevantType()
         {
             var origLib_cs = @"public class C { }";
 
@@ -153,15 +250,19 @@ public class RefersToLibAttribute : Attribute
 
             var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
-            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
 
-            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateStandardCompilation(newLib_cs,
+                references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs,
+                references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
-        public void CircularTypeReferenceIsForwarded_WithRelevantType()
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithTypeForward_WithRelevantType()
         {
             var origLib_cs = @"public class C : System.Attribute { }";
 
@@ -194,7 +295,7 @@ public class RefersToLibAttribute : C
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
-        public void CircularTypeReferenceIsForwarded_WithRelevantType_WithAlias()
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithTypeForward_WithRelevantType_WithAlias()
         {
             var origLib_cs = @"public class C : System.Attribute { }";
 
@@ -220,15 +321,19 @@ public class RefersToLibAttribute : C
 
             var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
-            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
 
-            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateStandardCompilation(newLib_cs,
+                references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs,
+                references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
-        public void CircularTypeReferenceExists_WithIrrelevantType()
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithExistingType_WithIrrelevantType()
         {
             var origLib_cs = @"public class C { }";
 
@@ -262,7 +367,7 @@ public class RefersToLibAttribute : Attribute
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
-        public void CircularTypeReferenceExists_WithRelevantType()
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithExistingType_WithRelevantType()
         {
             var origLib_cs = @"public class C : System.Attribute { }";
 

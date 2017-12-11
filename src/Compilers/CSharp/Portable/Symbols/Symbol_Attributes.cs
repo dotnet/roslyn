@@ -255,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="earlyDecodingOnly">Indicates that only early decoding should be performed.  WARNING: the resulting bag will not be sealed.</param>
         /// <param name="binderOpt">Binder to use. If null, <see cref="DeclaringCompilation"/> GetBinderFactory will be used.</param>
+        /// <param name="attributeMatchesOpt">If specified, only load attributes that match this predicate, and any diagnostics produced will be dropped.</param>
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
@@ -346,7 +347,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
                 this.RecordPresenceOfBadAttributes(boundAttributes);
-                AddDeclarationDiagnostics(diagnostics);
+                if (attributeMatchesOpt is null)
+                {
+                    AddDeclarationDiagnostics(diagnostics);
+                }
                 lazyAttributesStoredOnThisThread = true;
                 if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
             }
@@ -411,12 +415,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var attributesToBind = attributeDeclarationSyntax.Attributes;
-                            foreach (var attribute in attributesToBind)
+                            if (attributeMatchesOpt is null)
                             {
-                                if (attributeMatchesOpt is null || attributeMatchesOpt(attribute))
+                                syntaxBuilder.AddRange(attributesToBind);
+                                attributesToBindCount += attributesToBind.Count;
+                            }
+                            else
+                            {
+                                foreach (var attribute in attributesToBind)
                                 {
-                                    syntaxBuilder.Add(attribute);
-                                    attributesToBindCount++;
+                                    if (attributeMatchesOpt(attribute))
+                                    {
+                                        syntaxBuilder.Add(attribute);
+                                        attributesToBindCount++;
+                                    }
                                 }
                             }
                         }

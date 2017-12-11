@@ -1556,17 +1556,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
-        // This only forces binding of attributes that look like they may be forwarded types attributes (syntactically).
+        /// <summary>
+        /// This only forces binding of attributes that look like they may be forwarded types attributes (syntactically).
+        /// </summary>
         internal HashSet<NamedTypeSymbol> GetForwardedTypes()
         {
-            CustomAttributesBag<CSharpAttributeData> attributeBag = null;
-            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributeBag, attributeMatchesOpt: this.IsForwardedTypesAttribute);
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazySourceAttributesBag;
+            if (attributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
+            {
+                // Use already decoded attributes
+                return ((CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData)?.ForwardedTypes;
+            }
 
-            var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributeBag?.DecodedWellKnownAttributeData;
+            attributesBag = null;
+            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, attributeMatchesOpt: this.IsPossibleForwardedTypesAttribute);
+
+            var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributesBag?.DecodedWellKnownAttributeData;
             return wellKnownAttributeData?.ForwardedTypes;
         }
 
-        private bool IsForwardedTypesAttribute(AttributeSyntax node)
+        private bool IsPossibleForwardedTypesAttribute(AttributeSyntax node)
         {
             QuickAttributeChecker checker =
                 this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
@@ -2574,7 +2583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_lazyForwardedTypesFromSource == null)
             {
                 IDictionary<string, NamedTypeSymbol> forwardedTypesFromSource;
-                // Do minimal binding of attributes (just ForwardedTypes) to avoid cycle problems
+                // Get the TypeForwardedTo attributes with minimal binding to avoid cycle problems
                 HashSet<NamedTypeSymbol> forwardedTypes = GetForwardedTypes();
 
                 if (forwardedTypes != null)

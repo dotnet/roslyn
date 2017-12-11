@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class QuickAttributeChecker
     {
         private readonly Dictionary<string, QuickAttributes> _nameToAttributeMap;
-        private static QuickAttributeChecker _lazyQuickAttributeChecker;
+        private static QuickAttributeChecker _lazyPredefinedQuickAttributeChecker;
 
 #if DEBUG
         private bool _sealed;
@@ -32,16 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyQuickAttributeChecker is null)
+                if (_lazyPredefinedQuickAttributeChecker is null)
                 {
-                    Interlocked.CompareExchange(ref _lazyQuickAttributeChecker, CreateQuickAttributeChecker(), null);
+                    Interlocked.CompareExchange(ref _lazyPredefinedQuickAttributeChecker, CreatePredefinedQuickAttributeChecker(), null);
                 }
 
-                return _lazyQuickAttributeChecker;
+                return _lazyPredefinedQuickAttributeChecker;
             }
         }
 
-        private static QuickAttributeChecker CreateQuickAttributeChecker()
+        private static QuickAttributeChecker CreatePredefinedQuickAttributeChecker()
         {
             var result = new QuickAttributeChecker();
             result.AddName(AttributeDescription.TypeIdentifierAttribute.Name, QuickAttributes.TypeIdentifier);
@@ -55,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private QuickAttributeChecker()
         {
-            _nameToAttributeMap = new Dictionary<string, QuickAttributes>();
+            _nameToAttributeMap = new Dictionary<string, QuickAttributes>(StringComparer.Ordinal);
             // NOTE: caller must seal
         }
 
         private QuickAttributeChecker(QuickAttributeChecker previous)
         {
-            _nameToAttributeMap = new Dictionary<string, QuickAttributes>(previous._nameToAttributeMap);
+            _nameToAttributeMap = new Dictionary<string, QuickAttributes>(previous._nameToAttributeMap, StringComparer.Ordinal);
             // NOTE: caller must seal
         }
 
@@ -75,12 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             QuickAttributes newValue = newAttributes | currentValue;
             _nameToAttributeMap[name] = newValue;
-
-            // We allow "Name" to bind to "NameAttribute"
-            if (name.EndsWith("Attribute", StringComparison.OrdinalIgnoreCase))
-            {
-                _nameToAttributeMap[name.Substring(0, name.Length - "Attribute".Length)] = newValue;
-            }
         }
 
         internal QuickAttributeChecker AddAliasesIfAny(SyntaxList<UsingDirectiveSyntax> usingsSyntax)
@@ -90,43 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this;
             }
 
-            ArrayBuilder<(string name, string target)> builder = null;
+            QuickAttributeChecker newChecker = null;
 
             foreach (var usingDirective in usingsSyntax)
             {
                 if (usingDirective.Alias != null)
                 {
-                    if (builder is null)
-                    {
-                        builder = ArrayBuilder<(string, string)>.GetInstance();
-                    }
-
                     string name = usingDirective.Alias.Name.Identifier.ValueText;
                     string target = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
-                    builder.Add((name, target));
-                }
-            }
 
-            if (builder is null)
-            {
-                return this;
-            }
-
-            QuickAttributeChecker result = AddAliasesIfAny(builder);
-            builder.Free();
-            return result;
-        }
-
-        private QuickAttributeChecker AddAliasesIfAny(ArrayBuilder<(string name, string target)> aliases)
-        {
-            QuickAttributeChecker newChecker = null;
-
-            foreach (var (name, target) in aliases)
-            {
-                if (_nameToAttributeMap.TryGetValue(target, out var foundAttributes))
-                {
-                    // copy the QuickAttributes from alias target to alias name
-                    (newChecker ?? (newChecker = new QuickAttributeChecker(this))).AddName(name, foundAttributes);
+                    if (_nameToAttributeMap.TryGetValue(target, out var foundAttributes))
+                    {
+                        // copy the QuickAttributes from alias target to alias name
+                        (newChecker ?? (newChecker = new QuickAttributeChecker(this))).AddName(name, foundAttributes);
+                    }
                 }
             }
 
@@ -147,7 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_sealed);
 #endif
             string name = attr.Name.GetUnqualifiedName().Identifier.ValueText;
-            if (_nameToAttributeMap.TryGetValue(name, out var foundAttributes))
+            QuickAttributes foundAttributes;
+
+            // We allow "Name" to bind to "NameAttribute"
+            if (_nameToAttributeMap.TryGetValue(name, out foundAttributes) ||
+                _nameToAttributeMap.TryGetValue(name + "Attribute", out foundAttributes))
             {
                 return (foundAttributes & pattern) != 0;
             }
