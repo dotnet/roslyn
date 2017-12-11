@@ -417,6 +417,38 @@ class C
     void M(int[] arr) => arr.Zip(arr, (p1, p2) =>  ([||]p1, p2));
 }
 ");
-        } 
+        }
+
+        [WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestCharacterEscape1()
+        {
+            await TestWithCSharp7(
+@"class C
+{
+    void M(int @default, int @params) => M([||]1, 2);
+}",
+@"class C
+{
+    void M(int @default, int @params) => M(@default: 1, @params: 2);
+}");
+        }
+
+        [WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestCharacterEscape2()
+        {
+            await TestWithCSharp7(
+@"[C([||]1, 2)]
+class C : System.Attribute
+{
+    public C(int @default, int @params) {}
+}",
+@"[C(@default: 1, @params: 2)]
+class C : System.Attribute
+{
+    public C(int @default, int @params) {}
+}");
+        }
     }
 }

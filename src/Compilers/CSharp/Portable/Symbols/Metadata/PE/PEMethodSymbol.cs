@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -803,13 +803,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsValidUserDefinedOperatorSignature(int parameterCount) =>
-                !this.ReturnsVoid &&
-                !this.IsGenericMethod &&
-                !this.IsVararg &&
-                this.ParameterCount == parameterCount &&
-                this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
-                !this.IsParams();
+        private bool IsValidUserDefinedOperatorSignature(int parameterCount)
+        {
+            if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
+            {
+                return false;
+            }
+
+            if (this.ParameterRefKinds.IsDefault)
+            {
+                return true;
+            }
+
+            foreach (var kind in this.ParameterRefKinds)
+            {
+                switch (kind)
+                {
+                    case RefKind.None:
+                    case RefKind.In:
+                        continue;
+                    case RefKind.Out:
+                    case RefKind.Ref:
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+            }
+
+            return true;
+        }
 
         private MethodKind ComputeMethodKind()
         {

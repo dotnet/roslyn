@@ -14,7 +14,7 @@ cd <roslyn-git-directory>
 dotnet build Compilers.sln
 ```
 
-If you do not have a system-wide `dotnet` install, you can obtain one with `./build/scripts/obtain_dotnet.sh`. This will install a compatible version of the CLI to `./Binaries/dotnet-cli` - add this to your PATH before trying to build `Compilers.sln`. Alternatively, sourcing the script with `source ./build/scripts/obtain_dotnet.sh` will add it to your PATH for you.
+If you do not have a system-wide `dotnet` install, you can obtain one with `./build/scripts/obtain_dotnet.sh`. This will install a compatible version of the CLI to `./Binaries/Tools/dotnet` - add this to your PATH before trying to build `Compilers.sln`. Alternatively, sourcing the script with `source ./build/scripts/obtain_dotnet.sh` will add it to your PATH for you.
 
 ## Using the compiler
 

@@ -1672,9 +1672,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Right);
 
             // byref assignment is also a potential write
-            if (node.RefKind != RefKind.None)
+            if (node.IsRef)
             {
-                WriteArgument(node.Right, node.RefKind, method: null);
+                WriteArgument(node.Right, node.Left.GetRefKind(), method: null);
             }
 
             return null;
@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            var isByRef = node.IsByRef;
+            var isByRef = node.IsRef;
 
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
