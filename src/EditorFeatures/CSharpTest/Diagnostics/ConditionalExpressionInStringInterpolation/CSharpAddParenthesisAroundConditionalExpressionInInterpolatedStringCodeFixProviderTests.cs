@@ -288,5 +288,13 @@ var s = $@""{
                 var s3 = ($""Text1 { (true ? ""Text2"" : ""Text3"" )}
                 NextLineOfCode();");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
+        public async Task TestAddParenthesisAddOpeningParenthesisOnly()
+        {
+            await TestInMethodAsync(
+                @"var s3 = $""{ true ? 1 [|:|] 2 )}""",
+                @"var s3 = $""{ (true ? 1 : 2 )}""");
+        }
     }
 }
