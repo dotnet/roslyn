@@ -300,9 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             if (symbols.Any())
             {
-                var discardSymbols =
-                    (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref ||
-                    (symbols.Length == 1 && symbols.First() is ITypeSymbol && syntaxFacts.IsQueryKeyword(token));
+                var discardSymbols = (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref;
                 return ValueTuple.Create(
                     semanticModel,
                     discardSymbols

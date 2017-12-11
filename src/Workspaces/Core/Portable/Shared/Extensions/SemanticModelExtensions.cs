@@ -214,6 +214,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                 }
             }
+            if (allSymbols.Length == 0 && syntaxFacts.IsQueryKeyword(token))
+            {
+                type = null;
+            }
 
             return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span);
         }
