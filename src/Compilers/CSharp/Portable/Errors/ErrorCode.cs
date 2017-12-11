@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadOpOnNullOrDefault = 8310,
         ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
-        WRN_DefaultInSwitch = 8313,
+        ERR_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
@@ -1551,5 +1551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ConditionalInInterpolation = 8361,
         ERR_CantUseVoidInArglist = 8362,
+        ERR_DefaultInPattern = 8363,
     }
 }

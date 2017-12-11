@@ -2682,7 +2682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var boundConstantPattern = BindConstantPattern(
-                    node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression, wasSwitchCase: false);
+                    node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression);
                 boundConstantPattern.WasCompilerGenerated = true;
                 if (wasExpression)
                 {
