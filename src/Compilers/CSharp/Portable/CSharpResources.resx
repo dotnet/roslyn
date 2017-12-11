@@ -5193,9 +5193,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first parameter of an 'in' extension method '{0}' must be a value type.</value>
   </data>
-  <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">
-    <value>The parameter modifier '{0}' cannot be used after the modifier '{1}'</value>
-  </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>
   </data>
