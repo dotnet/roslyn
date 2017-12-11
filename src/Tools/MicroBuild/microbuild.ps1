@@ -97,7 +97,7 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog }
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog }
     Copy-InsertionItems
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
