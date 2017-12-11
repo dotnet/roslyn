@@ -2066,5 +2066,370 @@ class Program
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
             CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
         }
+
+        [Fact]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value = 5)
+    {
+        System.Console.WriteLine(value);
+    }
+
+    static void Main(string[] args)
+    {
+        Test();
+        Test(10);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+5
+10
+").VerifyIL("Program.Main", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""void Program.Test(in int)""
+  IL_0009:  ldc.i4.s   10
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       ""void Program.Test(in int)""
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_Optional()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value1 = 1, in int value2 = 5)
+    {
+        System.Console.WriteLine($""({value1}, {value2})"");
+    }
+
+    static void Main(string[] args)
+    {
+        Test();
+        Test(2);
+        Test(3, 10);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+(1, 5)
+(2, 5)
+(3, 10)
+").VerifyIL("Program.Main", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.5
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       ""void Program.Test(in int, in int)""
+  IL_000d:  ldc.i4.2
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldc.i4.5
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       ""void Program.Test(in int, in int)""
+  IL_001a:  ldc.i4.3
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldc.i4.s   10
+  IL_0020:  stloc.1
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  call       ""void Program.Test(in int, in int)""
+  IL_0028:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Required_Optional()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value1, in int value2 = 5)
+    {
+        System.Console.WriteLine($""({value1}, {value2})"");
+    }
+
+    static void Main(string[] args)
+    {
+        Test(1);
+        Test(2, 10);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+(1, 5)
+(2, 10)
+").VerifyIL("Program.Main", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.5
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       ""void Program.Test(in int, in int)""
+  IL_000d:  ldc.i4.2
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldc.i4.s   10
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""void Program.Test(in int, in int)""
+  IL_001b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Optional_Optional()
+        {
+            var code = @"
+class Program
+{
+    public int this[in int p1 = 1, in int p2 = 2]
+    {
+        get
+        {
+            System.Console.WriteLine($""get p1={p1} p2={p2}"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine($""set p1={p1} p2={p2} to {value}"");
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var obj = new Program();
+
+        obj[3] += 10;
+        obj[4, 5] += 11;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+get p1=3 p2=2
+set p1=3 p2=2 to 10
+get p1=4 p2=5
+set p1=4 p2=5 to 11
+").VerifyIL("Program.Main", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  7
+  .locals init (Program V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.3
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldc.i4.2
+  IL_000d:  stloc.2
+  IL_000e:  ldloca.s   V_2
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.3
+  IL_0012:  stloc.3
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  ldc.i4.2
+  IL_0016:  stloc.s    V_4
+  IL_0018:  ldloca.s   V_4
+  IL_001a:  callvirt   ""int Program.this[in int, in int].get""
+  IL_001f:  ldc.i4.s   10
+  IL_0021:  add
+  IL_0022:  callvirt   ""void Program.this[in int, in int].set""
+  IL_0027:  stloc.0
+  IL_0028:  ldloc.0
+  IL_0029:  ldc.i4.4
+  IL_002a:  stloc.1
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldc.i4.5
+  IL_002e:  stloc.2
+  IL_002f:  ldloca.s   V_2
+  IL_0031:  ldloc.0
+  IL_0032:  ldc.i4.4
+  IL_0033:  stloc.3
+  IL_0034:  ldloca.s   V_3
+  IL_0036:  ldc.i4.5
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloca.s   V_4
+  IL_003b:  callvirt   ""int Program.this[in int, in int].get""
+  IL_0040:  ldc.i4.s   11
+  IL_0042:  add
+  IL_0043:  callvirt   ""void Program.this[in int, in int].set""
+  IL_0048:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Required_Optional()
+        {
+            var code = @"
+class Program
+{
+    public int this[in int p1, in int p2 = 2]
+    {
+        get
+        {
+            System.Console.WriteLine($""get p1={p1} p2={p2}"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine($""set p1={p1} p2={p2} to {value}"");
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var obj = new Program();
+
+        obj[3] += 10;
+        obj[4, 5] += 11;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+get p1=3 p2=2
+set p1=3 p2=2 to 10
+get p1=4 p2=5
+set p1=4 p2=5 to 11
+").VerifyIL("Program.Main", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  7
+  .locals init (Program V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.3
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldc.i4.2
+  IL_000d:  stloc.2
+  IL_000e:  ldloca.s   V_2
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.3
+  IL_0012:  stloc.3
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  ldc.i4.2
+  IL_0016:  stloc.s    V_4
+  IL_0018:  ldloca.s   V_4
+  IL_001a:  callvirt   ""int Program.this[in int, in int].get""
+  IL_001f:  ldc.i4.s   10
+  IL_0021:  add
+  IL_0022:  callvirt   ""void Program.this[in int, in int].set""
+  IL_0027:  stloc.0
+  IL_0028:  ldloc.0
+  IL_0029:  ldc.i4.4
+  IL_002a:  stloc.1
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldc.i4.5
+  IL_002e:  stloc.2
+  IL_002f:  ldloca.s   V_2
+  IL_0031:  ldloc.0
+  IL_0032:  ldc.i4.4
+  IL_0033:  stloc.3
+  IL_0034:  ldloca.s   V_3
+  IL_0036:  ldc.i4.5
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloca.s   V_4
+  IL_003b:  callvirt   ""int Program.this[in int, in int].get""
+  IL_0040:  ldc.i4.s   11
+  IL_0042:  add
+  IL_0043:  callvirt   ""void Program.this[in int, in int].set""
+  IL_0048:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void Issue23691_PassingInOptionalArgumentsByRef()
+        {
+            var code = @"
+class Program
+{
+    static void Main()
+    {
+        A(1);
+        B(1, 2);
+    }
+
+    static void A(in double x = 1, in string y = ""test"") => System.Console.WriteLine(y);
+    static void B(in float x, in float y, in float z = 3.0f) => System.Console.WriteLine(x * y * z);
+
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+test
+6
+").VerifyIL("Program.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (double V_0,
+                string V_1,
+                float V_2,
+                float V_3,
+                float V_4)
+  IL_0000:  ldc.r8     1
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  ldstr      ""test""
+  IL_0011:  stloc.1
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  call       ""void Program.A(in double, in string)""
+  IL_0019:  ldc.r4     1
+  IL_001e:  stloc.2
+  IL_001f:  ldloca.s   V_2
+  IL_0021:  ldc.r4     2
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_3
+  IL_0029:  ldc.r4     3
+  IL_002e:  stloc.s    V_4
+  IL_0030:  ldloca.s   V_4
+  IL_0032:  call       ""void Program.B(in float, in float, in float)""
+  IL_0037:  ret
+}");
+        }
     }
 }
