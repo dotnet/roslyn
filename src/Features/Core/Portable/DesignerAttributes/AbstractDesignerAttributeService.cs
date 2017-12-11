@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             if (keepAliveSession == null)
             {
                 // The client is not currently running, so we don't know the state of the DesignerAttribute.
-                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: false, notApplicable: true);
+                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: false, applicable: false);
             }
 
             var result = await keepAliveSession.TryInvokeAsync<DesignerAttributeResult>(
