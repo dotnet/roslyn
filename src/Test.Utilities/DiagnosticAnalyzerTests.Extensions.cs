@@ -20,6 +20,12 @@ namespace Test.Utilities
             string expectedDiagnosticsAssertionTemplate,
             params DiagnosticResult[] expectedResults)
         {
+            if (analyzer != null && analyzer.SupportedDiagnostics.Length == 0)
+            {
+                // Not implemented analyzer
+                return;
+            }
+
             int expectedCount = expectedResults.Count();
             int actualCount = actualResults.Count();
 

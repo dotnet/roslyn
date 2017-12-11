@@ -106,6 +106,12 @@ namespace Test.Utilities
             var compilerDiagnostics = document.GetSemanticModelAsync().Result.GetDiagnostics();
             var fixableDiagnostics = getFixableDiagnostics(analyzerDiagnostics.Concat(compilerDiagnostics));
 
+            if (fixableDiagnostics.IsDefaultOrEmpty && analyzerOpt != null && analyzerOpt.SupportedDiagnostics.Length == 0)
+            {
+                // Not implemented analyzer
+                return;
+            }
+
             var diagnosticIndexToFix = 0;
             while (diagnosticIndexToFix < fixableDiagnostics.Length)
             {
