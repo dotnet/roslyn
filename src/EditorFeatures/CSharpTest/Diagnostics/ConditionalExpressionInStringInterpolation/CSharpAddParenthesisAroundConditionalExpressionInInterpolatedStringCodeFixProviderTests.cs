@@ -29,7 +29,7 @@ class Application
                 string.Format(template, expectedMethodBody)).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesis)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
         public async Task TestAddParenthesisSimpleConditionalExpression()
         {
             await TestInMethodAsync(
@@ -37,7 +37,7 @@ class Application
                 @"var s = $""{ (true ? 1 : 2)}"";");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesis)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
         public async Task TestAddParenthesisMultiLineConditionalExpression1()
         {
             await TestInMethodAsync(@"
@@ -51,7 +51,7 @@ var s = $@""{ (true
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesis)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
         public async Task TestAddParenthesisMultiLineConditionalExpression2()
         {
             await TestInMethodAsync(@"
@@ -73,7 +73,7 @@ var s = $@""{
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesis)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
         public async Task TestAddParenthesisWithTrivia()
         {
             await TestInMethodAsync(
@@ -81,7 +81,7 @@ var s = $@""{
                 @"var s = $""{ /* Leading1 */ (true /* Leading2 */ ? /* TruePart1 */ 1 /* TruePart2 */: /* FalsePart1 */ 2 /* FalsePart2 */ )}"";");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesis)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
         public async Task TestAddParenthesis_ClosingBracketInFalseCondition()
         {
             await TestInMethodAsync(
@@ -89,7 +89,7 @@ var s = $@""{
                 @"var s = $""{ (true ? new int[0] : new int[] {} )}"";");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesis)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
         public async Task TestAddParenthesis_StringLiteralInFalseCondition()
         {
             await TestInMethodAsync(

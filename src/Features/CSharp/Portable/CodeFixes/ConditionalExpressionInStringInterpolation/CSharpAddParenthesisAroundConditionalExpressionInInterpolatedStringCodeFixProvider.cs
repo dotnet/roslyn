@@ -4,20 +4,19 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringInterpolation
 {
-
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParenthesisAroundConditionalExpressionInInterpolatedString), Shared]
     internal partial class CSharpAddParenthesisAroundConditionalExpressionInInterpolatedStringCodeFixProvider : CodeFixProvider
     {
-        private const string ERR_ConditionalInInterpolation = "CS8361"; //A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation.Parenthesize the conditional expression.
+        private const string CS8361 = "CS8361"; //A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation.Parenthesize the conditional expression.
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(ERR_ConditionalInInterpolation);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8361);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -25,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
             var token = root.FindToken(diagnosticSpan.Start);
-            var conditionalExpressionSyntax = token.GetAncestor<ConditionalExpressionSyntax>();
-            var interpolationSyntax = token.GetAncestor<InterpolationSyntax>();
-            if (conditionalExpressionSyntax != null && interpolationSyntax != null)
+            var conditionalExpression = token.GetAncestor<ConditionalExpressionSyntax>();
+            if (conditionalExpression != null)
             {
-                context.RegisterCodeFix(new AddParenthesisCodeAction(context.Document, conditionalExpressionSyntax.SpanStart), context.Diagnostics);
+                context.RegisterCodeFix(
+                    new CodeAction.DocumentChangeAction(CSharpFeaturesResources.AddParenthesisAroundConditionalExpressionInInterpolatedString,
+                    cancellationToken => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, cancellationToken)), diagnostic);
             }
         }
-
     }
 }

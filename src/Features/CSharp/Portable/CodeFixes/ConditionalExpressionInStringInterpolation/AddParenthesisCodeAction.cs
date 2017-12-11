@@ -10,39 +10,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
 {
     internal partial class CSharpAddParenthesisAroundConditionalExpressionInInterpolatedStringCodeFixProvider
     {
-        private sealed class AddParenthesisCodeAction : CodeAction
+        private const string CS1026 = "CS1026"; // ) expected
+
+        private static async Task<Document> GetChangedDocumentAsync(Document document, int conditionalExpressionSyntaxStartPosition, CancellationToken cancellationToken)
         {
-            public AddParenthesisCodeAction(Document document, int conditionalExpressionSyntaxStartPosition)
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var openParenthesisPosition = conditionalExpressionSyntaxStartPosition;
+            var textWithOpenParenthesis = text.Replace(openParenthesisPosition, 0, "(");
+            var documentWithOpenParenthesis = document.WithText(textWithOpenParenthesis);
+            var syntaxTree = await documentWithOpenParenthesis.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var conditionalExpressionSyntaxNode = syntaxRoot.FindNode(new TextSpan(openParenthesisPosition, 0));
+            var diagnostics = syntaxTree.GetDiagnostics(conditionalExpressionSyntaxNode);
+            var cs1026 = diagnostics.FirstOrDefault(d => d.Id == CS1026);
+            if (cs1026 != null)
             {
-                this.Document = document;
-                this.ConditionalExpressionSyntaxStartPosition = conditionalExpressionSyntaxStartPosition;
+                var closeParenthesisPosition = cs1026.Location.SourceSpan.Start;
+                var textWithBothParenthesis = textWithOpenParenthesis.Replace(closeParenthesisPosition, 0, ")");
+                return documentWithOpenParenthesis.WithText(textWithBothParenthesis);
             }
 
-            private Document Document { get; }
-            private int ConditionalExpressionSyntaxStartPosition { get; }
-
-            public override string Title => CSharpFeaturesResources.AddParenthesisAroundConditionalExpressionInInterpolatedString;
-
-            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                var text = await Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var openParenthesisPosition = ConditionalExpressionSyntaxStartPosition;
-                var textWithOpenParenthesis = text.Replace(openParenthesisPosition, 0, "(");
-                var documentWithOpenParenthesis = Document.WithText(textWithOpenParenthesis);
-                var syntaxTree = await documentWithOpenParenthesis.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var conditionalExpressionSyntaxNode = syntaxRoot.FindNode(new TextSpan(openParenthesisPosition, 0));
-                var diagnostics = syntaxTree.GetDiagnostics(conditionalExpressionSyntaxNode);
-                var cs1026 = diagnostics.FirstOrDefault(d => d.Id == "CS1026");
-                if (cs1026 != null)
-                {
-                    var closeParenthesisPosition = cs1026.Location.SourceSpan.Start;
-                    var textWithBothParenthesis = textWithOpenParenthesis.Replace(closeParenthesisPosition, 0, ")");
-                    return documentWithOpenParenthesis.WithText(textWithBothParenthesis);
-                }
-
-                return documentWithOpenParenthesis;
-            }
+            return documentWithOpenParenthesis;
         }
     }
 }
