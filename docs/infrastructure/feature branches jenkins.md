@@ -6,20 +6,20 @@ The first step is to create the branch seeded with the initial change on roslyn.
 
 Assuming the branch should start with the contents of `master` the branch can be created by doing the following:
 
+Note: these steps assume the remote `origin` points to the official [roslyn repository](https://github.com/dotnet/roslyn).
+
 ``` cmd
 > git fetch origin
 > git checkout -B init origin/master
 > git push origin init:features/mono
 ```
 
-Note: this assumes the remote `origin` points to the official [roslyn repository](https://github.com/dotnet/roslyn).
-
 ## Adding branch to Jenkins
 Our Jenkins server manages branches on an opt-in bases. The set of branches that it monitors is kept in the [repolist.txt](https://github.com/dotnet/dotnet-ci/blob/master/data/repolist.txt) file in the [dotnet-ci](https://github.com/dotnet/dotnet-ci) repositiory. To add a branch do the following:
 
 - Check out the repolist.txt file on your local machine
 - Add a line for your branch: `dotnet/roslyn branch=features/mono server=dotnet-ci`
-- Send a PR to update this file. CC @jaredpar, @mmitche and one of us will get it merged. 
+- Send a PR to update this file. CC @jaredpar, @mmitche, @jasonmalinowski and one of us will get it merged. 
 
 Once that is merged Jenkins will schedule a task to add the new branches into the system. This can take up to 30 minutes to complete if left on it's own. Generally you want to force this to happen immediately by doing the following:
 
