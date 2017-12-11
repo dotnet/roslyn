@@ -1208,57 +1208,57 @@ public class C
             }
         }
 
-        private static MethodInfo _peheaderSizeMethod;
+        private static MethodInfo s_peheaderSizeMethod;
         private static int PEHeaderSize(bool is32Bit)
         {
-            if (_peheaderSizeMethod == null)
+            if (s_peheaderSizeMethod == null)
             {
-                _peheaderSizeMethod = typeof(PEHeader).GetMethod("Size",
+                s_peheaderSizeMethod = typeof(PEHeader).GetMethod("Size",
                     BindingFlags.Static | BindingFlags.NonPublic);
             }
 
-            return (int)_peheaderSizeMethod.Invoke(null, new object[] { is32Bit });
+            return (int)s_peheaderSizeMethod.Invoke(null, new object[] { is32Bit });
         }
 
-        private static ConstructorInfo _blobCtor;
+        private static ConstructorInfo s_blobCtor;
         private static Blob MakeBlob(byte[] buffer, int offset, int size)
         {
-            if (_blobCtor == null)
+            if (s_blobCtor == null)
             {
-                _blobCtor = typeof(Blob).GetConstructor(
+                s_blobCtor = typeof(Blob).GetConstructor(
                     BindingFlags.NonPublic | BindingFlags.Instance,
                     Type.DefaultBinder,
                     new[] { typeof(byte[]), typeof(int), typeof(int) },
                     null);
             }
 
-            return (Blob)_blobCtor.Invoke(new object[] { buffer, offset, size });
+            return (Blob)s_blobCtor.Invoke(new object[] { buffer, offset, size });
         }
 
-        private static FieldInfo _bufferField;
+        private static FieldInfo s_bufferField;
         private static byte[] GetBlobBuffer(Blob blob)
         {
-            if (_bufferField == null)
+            if (s_bufferField == null)
             {
-                _bufferField = typeof(Blob).GetField("Buffer", BindingFlags.NonPublic | BindingFlags.Instance);
+                s_bufferField = typeof(Blob).GetField("Buffer", BindingFlags.NonPublic | BindingFlags.Instance);
             }
 
-            return (byte[])_bufferField.GetValue(blob);
+            return (byte[])s_bufferField.GetValue(blob);
         }
 
-        private static MethodInfo _getContentToSignMethod;
+        private static MethodInfo s_getContentToSignMethod;
         private static IEnumerable<Blob> GetContentToSign(
             BlobBuilder peImage,
             int peHeadersSize,
             int peHeaderAlignment,
             Blob strongNameSignatureFixup)
         {
-            if (_getContentToSignMethod == null)
+            if (s_getContentToSignMethod == null)
             {
-                _getContentToSignMethod = typeof(PEBuilder).GetMethod("GetContentToSign", BindingFlags.Static | BindingFlags.NonPublic);
+                s_getContentToSignMethod = typeof(PEBuilder).GetMethod("GetContentToSign", BindingFlags.Static | BindingFlags.NonPublic);
             }
 
-            return (IEnumerable<Blob>)_getContentToSignMethod.Invoke(null, new object[]
+            return (IEnumerable<Blob>)s_getContentToSignMethod.Invoke(null, new object[]
             {
                 peImage,
                 peHeadersSize,

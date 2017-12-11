@@ -258,18 +258,18 @@ namespace Microsoft.Cci
                     .GetValue(builder);
         }
 
-        private static MethodInfo _calculateChecksumMethod;
+        private static MethodInfo s_calculateChecksumMethod;
         // internal for testing
         internal static uint CalculateChecksum(BlobBuilder peBlob, Blob checksumBlob)
         {
-            if (_calculateChecksumMethod == null)
+            if (s_calculateChecksumMethod == null)
             {
-                _calculateChecksumMethod = typeof(PEBuilder).GetRuntimeMethods()
+                s_calculateChecksumMethod = typeof(PEBuilder).GetRuntimeMethods()
                     .Where(m => m.Name == "CalculateChecksum" && m.GetParameters().Length == 2)
                     .Single();
             }
 
-            return (uint)_calculateChecksumMethod.Invoke(null, new object[]
+            return (uint)s_calculateChecksumMethod.Invoke(null, new object[]
             {
                 peBlob,
                 checksumBlob,
