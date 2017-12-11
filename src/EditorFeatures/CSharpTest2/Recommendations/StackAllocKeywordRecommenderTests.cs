@@ -55,6 +55,41 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInEmptySpaceAfterAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var v = $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInUnsafeEmptySpace()
+        {
+            await VerifyKeywordAsync(
+@"unsafe class C {
+    void Goo() {
+      var v = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInUnsafeEmptySpace_AfterNonPointer()
+        {
+            // There can be an implicit conversion to int
+            await VerifyKeywordAsync(
+@"unsafe class C {
+    void Goo() {
+      int v = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInUnsafeEmptySpace_AfterPointer()
+        {
+            await VerifyKeywordAsync(
+@"unsafe class C {
+    void Goo() {
+      int* v = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInField()
         {
             await VerifyAbsenceAsync(
@@ -104,14 +139,6 @@ $$");
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
 Span<int> s = $$"));
-        }
-
-        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSOfAssignment_Var()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var v = $$"));
         }
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
@@ -227,6 +254,17 @@ var s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
 
             await VerifyKeywordAsync(AddInsideMethod(@"
 s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
+        }
+
+        [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLHSOfAssignment()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(@"
+var x $$ ="));
+
+            await VerifyAbsenceAsync(AddInsideMethod(@"
+x $$ ="));
         }
     }
 }

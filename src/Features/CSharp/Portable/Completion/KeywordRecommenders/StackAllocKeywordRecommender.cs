@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var node = context.TargetToken.Parent;
 
-            // In case of an empty string
+            // When in an empty string
             if (node == null)
             {
                 return false;
             }
 
-            // After a cast
+            // After a cast or parenthesized expression: (Span<int>)stackalloc
             if (context.TargetToken.IsKind(SyntaxKind.CloseParenToken) &&
                 (node.IsKind(SyntaxKind.ParenthesizedExpression) || node.IsKind(SyntaxKind.CastExpression)))
             {
