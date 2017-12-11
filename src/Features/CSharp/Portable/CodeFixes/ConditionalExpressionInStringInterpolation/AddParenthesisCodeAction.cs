@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
 {
     internal partial class CSharpAddParenthesisAroundConditionalExpressionInInterpolatedStringCodeFixProvider
     {
-        private const string CS1026 = "CS1026"; // ) expected
+        private const string CS1026 = nameof(CS1026); // ) expected
 
         private static async Task<Document> GetChangedDocumentAsync(Document document, int conditionalExpressionSyntaxStartPosition, CancellationToken cancellationToken)
         {
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             var documentWithOpenParenthesis = document.WithText(textWithOpenParenthesis);
             var syntaxTree = await documentWithOpenParenthesis.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var conditionalExpressionSyntaxNode = syntaxRoot.FindNode(new TextSpan(openParenthesisPosition, 0));
-            var diagnostics = syntaxTree.GetDiagnostics(conditionalExpressionSyntaxNode);
+            var conditionalExpression = syntaxRoot.FindNode(new TextSpan(openParenthesisPosition, 0));
+            var diagnostics = syntaxTree.GetDiagnostics(conditionalExpression);
             var cs1026 = diagnostics.FirstOrDefault(d => d.Id == CS1026);
             if (cs1026 != null)
             {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParenthesisAroundConditionalExpressionInInterpolatedString), Shared]
     internal partial class CSharpAddParenthesisAroundConditionalExpressionInInterpolatedStringCodeFixProvider : CodeFixProvider
     {
-        private const string CS8361 = "CS8361"; //A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation.Parenthesize the conditional expression.
+        private const string CS8361 = nameof(CS8361); //A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation.Parenthesize the conditional expression.
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8361);
 
@@ -27,9 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             var conditionalExpression = token.GetAncestor<ConditionalExpressionSyntax>();
             if (conditionalExpression != null)
             {
-                context.RegisterCodeFix(
-                    new CodeAction.DocumentChangeAction(CSharpFeaturesResources.AddParenthesisAroundConditionalExpressionInInterpolatedString,
-                    cancellationToken => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, cancellationToken)), diagnostic);
+                var documentChangeAction = new CodeAction.DocumentChangeAction(
+                    CSharpFeaturesResources.AddParenthesisAroundConditionalExpressionInInterpolatedString,
+                    cancellationToken => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, cancellationToken));
+                context.RegisterCodeFix(documentChangeAction, diagnostic);
             }
         }
     }
