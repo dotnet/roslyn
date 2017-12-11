@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using System.Security.Cryptography;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1134,137 +1129,8 @@ public class C
             //TODO should check to see that the output was actually signed
             using (var metadata = new FileStream(file.Path, FileMode.Open))
             {
-                return IsStreamSigned(metadata);
+                return ILValidation.IsStreamSigned(metadata);
             }
-        }
-
-        private static bool IsStreamSigned(Stream moduleContents)
-        {
-            using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
-            {
-                var metadataReader = metadata.MetadataReader;
-                var peReader = metadata.Module.PEReaderOpt;
-                var peHeaders = peReader.PEHeaders;
-                var flags = peHeaders.CorHeader.Flags;
-
-                bool is32bit = peHeaders.PEHeader.Magic == PEMagic.PE32;
-                const int SectionHeaderSize = 40;
-                int peHeadersSize = peHeaders.PEHeaderStartOffset
-                    + PEHeaderSize(is32bit)
-                    + SectionHeaderSize * peHeaders.SectionHeaders.Length;
-
-                if (CorFlags.StrongNameSigned != (flags & CorFlags.StrongNameSigned))
-                {
-                    return false;
-                }
-
-                var snDirectory = peReader.PEHeaders.CorHeader.StrongNameSignatureDirectory;
-                int rva = snDirectory.RelativeVirtualAddress;
-                int size = snDirectory.Size;
-                var signature = peReader.GetSectionData(rva).GetContent(0, size);
-                Assert.True(peHeaders.TryGetDirectoryOffset(snDirectory, out var snOffset));
-
-                moduleContents.Position = 0;
-                int peSize = (int)moduleContents.Length;
-                var peImage = new BlobBuilder(peSize);
-                Assert.Equal(peSize, peImage.TryWriteBytes(moduleContents, peSize));
-                byte[] buffer = GetBlobBuffer(peImage.GetBlobs().Single());
-
-                const int ChecksumOffset = 0x40;
-                uint expectedChecksum = peHeaders.PEHeader.CheckSum;
-                var checksumBlob = MakeBlob(buffer, peHeaders.PEHeaderStartOffset + ChecksumOffset, sizeof(uint));
-                var signatureBlob = MakeBlob(buffer, snOffset, size);
-
-                if (expectedChecksum != PeWriter.CalculateChecksum(peImage, checksumBlob))
-                {
-                    return false;
-                }
-
-                var snKey = CryptoBlobParser.ToRSAParameters(
-                    metadataReader.GetBlobBytes(metadataReader.GetAssemblyDefinition().PublicKey),
-                    includePrivateParameters: false);
-
-                // Signature is calculated with checksum zeroed
-                new BlobWriter(checksumBlob).WriteUInt32(0);
-
-                var content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
-                var hash = SigningUtilities.CalculateSha1(content);
-
-                var publicKey = CryptoBlobParser.ToRSAParameters(TestResources.General.snKey,
-                    includePrivateParameters: false);
-
-                using (var rsa = RSA.Create())
-                {
-                    rsa.ImportParameters(publicKey);
-                    var reversedSignature = signature.ToArray();
-                    Array.Reverse(reversedSignature);
-                    if (!rsa.VerifyHash(hash, reversedSignature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        }
-
-        private static MethodInfo s_peheaderSizeMethod;
-        private static int PEHeaderSize(bool is32Bit)
-        {
-            if (s_peheaderSizeMethod == null)
-            {
-                s_peheaderSizeMethod = typeof(PEHeader).GetMethod("Size",
-                    BindingFlags.Static | BindingFlags.NonPublic);
-            }
-
-            return (int)s_peheaderSizeMethod.Invoke(null, new object[] { is32Bit });
-        }
-
-        private static ConstructorInfo s_blobCtor;
-        private static Blob MakeBlob(byte[] buffer, int offset, int size)
-        {
-            if (s_blobCtor == null)
-            {
-                s_blobCtor = typeof(Blob).GetConstructor(
-                    BindingFlags.NonPublic | BindingFlags.Instance,
-                    Type.DefaultBinder,
-                    new[] { typeof(byte[]), typeof(int), typeof(int) },
-                    null);
-            }
-
-            return (Blob)s_blobCtor.Invoke(new object[] { buffer, offset, size });
-        }
-
-        private static FieldInfo s_bufferField;
-        private static byte[] GetBlobBuffer(Blob blob)
-        {
-            if (s_bufferField == null)
-            {
-                s_bufferField = typeof(Blob).GetField("Buffer", BindingFlags.NonPublic | BindingFlags.Instance);
-            }
-
-            return (byte[])s_bufferField.GetValue(blob);
-        }
-
-        private static MethodInfo s_getContentToSignMethod;
-        private static IEnumerable<Blob> GetContentToSign(
-            BlobBuilder peImage,
-            int peHeadersSize,
-            int peHeaderAlignment,
-            Blob strongNameSignatureFixup)
-        {
-            if (s_getContentToSignMethod == null)
-            {
-                s_getContentToSignMethod = typeof(PEBuilder).GetMethod("GetContentToSign", BindingFlags.Static | BindingFlags.NonPublic);
-            }
-
-            return (IEnumerable<Blob>)s_getContentToSignMethod.Invoke(null, new object[]
-            {
-                peImage,
-                peHeadersSize,
-                peHeaderAlignment,
-                strongNameSignatureFixup
-            });
         }
 
         private void ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(MemoryStream moduleContents, AttributeDescription expectedModuleAttr, bool legacyStrongName)
@@ -1549,8 +1415,8 @@ public class C {}";
             outStrm.Position = 0;
             refStrm.Position = 0;
 
-            Assert.True(IsStreamSigned(outStrm));
-            Assert.True(IsStreamSigned(refStrm));
+            Assert.True(ILValidation.IsStreamSigned(outStrm));
+            Assert.True(ILValidation.IsStreamSigned(refStrm));
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]

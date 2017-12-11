@@ -3,16 +3,175 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Xml;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis;
 using Microsoft.Metadata.Tools;
 
 namespace Roslyn.Test.Utilities
 {
     public static class ILValidation
     {
+        public static bool IsStreamSigned(Stream moduleContents)
+        {
+            moduleContents.Position = 0;
+
+            using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
+            {
+                var metadataReader = metadata.MetadataReader;
+                var peReader = metadata.Module.PEReaderOpt;
+                var peHeaders = peReader.PEHeaders;
+                var flags = peHeaders.CorHeader.Flags;
+
+                bool is32bit = peHeaders.PEHeader.Magic == PEMagic.PE32;
+                const int SectionHeaderSize = 40;
+                int peHeadersSize = peHeaders.PEHeaderStartOffset
+                    + PEHeaderSize(is32bit)
+                    + SectionHeaderSize * peHeaders.SectionHeaders.Length;
+
+                if (CorFlags.StrongNameSigned != (flags & CorFlags.StrongNameSigned))
+                {
+                    return false;
+                }
+
+                var snDirectory = peReader.PEHeaders.CorHeader.StrongNameSignatureDirectory;
+                int rva = snDirectory.RelativeVirtualAddress;
+                int size = snDirectory.Size;
+                var signature = peReader.GetSectionData(rva).GetContent(0, size);
+                if (!peHeaders.TryGetDirectoryOffset(snDirectory, out var snOffset))
+                {
+                    return false;
+                }
+
+                moduleContents.Position = 0;
+                int peSize = (int)moduleContents.Length;
+                var peImage = new BlobBuilder(peSize);
+                if (peSize != peImage.TryWriteBytes(moduleContents, peSize))
+                {
+                    return false;
+                }
+
+                byte[] buffer = GetBlobBuffer(peImage.GetBlobs().Single());
+
+                const int ChecksumOffset = 0x40;
+                uint expectedChecksum = peHeaders.PEHeader.CheckSum;
+                var checksumBlob = MakeBlob(buffer, peHeaders.PEHeaderStartOffset + ChecksumOffset, sizeof(uint));
+                var signatureBlob = MakeBlob(buffer, snOffset, size);
+
+                if (expectedChecksum != PeWriter.CalculateChecksum(peImage, checksumBlob))
+                {
+                    return false;
+                }
+
+                var snKey = CryptoBlobParser.ToRSAParameters(
+                    metadataReader.GetBlobBytes(metadataReader.GetAssemblyDefinition().PublicKey),
+                    includePrivateParameters: false);
+
+                // Signature is calculated with checksum zeroed
+                new BlobWriter(checksumBlob).WriteUInt32(0);
+
+                var content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
+                var hash = SigningUtilities.CalculateSha1(content);
+
+                var publicKey = CryptoBlobParser.ToRSAParameters(TestResources.General.snKey,
+                    includePrivateParameters: false);
+
+                using (var rsa = RSA.Create())
+                {
+                    rsa.ImportParameters(publicKey);
+                    var reversedSignature = signature.ToArray();
+                    Array.Reverse(reversedSignature);
+                    if (!rsa.VerifyHash(hash, reversedSignature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        private static MethodInfo s_peheaderSizeMethod;
+        private static int PEHeaderSize(bool is32Bit)
+        {
+            if (s_peheaderSizeMethod == null)
+            {
+                Interlocked.CompareExchange(
+                    ref s_peheaderSizeMethod,
+                    typeof(PEHeader).GetMethod(
+                        "Size",
+                        BindingFlags.Static | BindingFlags.NonPublic),
+                    null);
+            }
+
+            return (int)s_peheaderSizeMethod.Invoke(null, new object[] { is32Bit });
+        }
+
+        private static ConstructorInfo s_blobCtor;
+        private static Blob MakeBlob(byte[] buffer, int offset, int size)
+        {
+            if (s_blobCtor == null)
+            {
+                Interlocked.CompareExchange(
+                    ref s_blobCtor,
+                    typeof(Blob).GetConstructors(
+                        BindingFlags.NonPublic | BindingFlags.Instance).Single(),
+                    null);
+            }
+
+            return (Blob)s_blobCtor.Invoke(new object[] { buffer, offset, size });
+        }
+
+        private static FieldInfo s_bufferField;
+        private static byte[] GetBlobBuffer(Blob blob)
+        {
+            if (s_bufferField == null)
+            {
+                Interlocked.CompareExchange(
+                    ref s_bufferField,
+                    typeof(Blob).GetField(
+                        "Buffer",
+                        BindingFlags.NonPublic | BindingFlags.Instance),
+                    null);
+            }
+
+            return (byte[])s_bufferField.GetValue(blob);
+        }
+
+        private static MethodInfo s_getContentToSignMethod;
+        private static IEnumerable<Blob> GetContentToSign(
+            BlobBuilder peImage,
+            int peHeadersSize,
+            int peHeaderAlignment,
+            Blob strongNameSignatureFixup)
+        {
+            if (s_getContentToSignMethod == null)
+            {
+                Interlocked.CompareExchange(
+                    ref s_getContentToSignMethod,
+                    typeof(PEBuilder).GetMethod(
+                        "GetContentToSign",
+                        BindingFlags.Static | BindingFlags.NonPublic),
+                    null);
+            }
+
+            return (IEnumerable<Blob>)s_getContentToSignMethod.Invoke(null, new object[]
+            {
+                peImage,
+                peHeadersSize,
+                peHeaderAlignment,
+                strongNameSignatureFixup
+            });
+        }
+
         public static unsafe string GetMethodIL(this ImmutableArray<byte> ilArray)
         {
             var result = new StringBuilder();
