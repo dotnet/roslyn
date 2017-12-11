@@ -549,18 +549,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 locationsBuilder.Add(variable.Syntax.Location);
             }
-            var arguments = valuesBuilder.ToImmutableAndFree();
+            ImmutableArray<BoundExpression> arguments = valuesBuilder.ToImmutableAndFree();
 
             var uniqueFieldNames = PooledHashSet<string>.GetInstance();
-            if (RemoveDuplicateInferredTupleNamesAndReportEmptied(namesBuilder, uniqueFieldNames))
-            {
-                namesBuilder.Free();
-                namesBuilder = null;
-            }
+            RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ref namesBuilder, uniqueFieldNames);
             uniqueFieldNames.Free();
 
-            var tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
-            var inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
+            ImmutableArray<string> tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
+            ImmutableArray<bool> inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
             bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
             var type = TupleTypeSymbol.Create(

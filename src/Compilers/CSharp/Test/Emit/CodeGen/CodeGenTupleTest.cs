@@ -16151,7 +16151,7 @@ class C
 
             var x1 = nodes.OfType<VariableDeclaratorSyntax>().Single();
             Assert.Equal("x1 = (Bob, Bob)", x1.ToString());
-            var x1Symbol = model.GetDeclaredSymbol(x1) as LocalSymbol;
+            var x1Symbol = (LocalSymbol)model.GetDeclaredSymbol(x1);
             Assert.Equal("(System.String, System.String) x1", x1Symbol.ToTestDisplayString());
             Assert.True(x1Symbol.Type.TupleElementNames.IsDefault);
         }

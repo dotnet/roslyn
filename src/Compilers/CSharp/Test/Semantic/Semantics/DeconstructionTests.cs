@@ -4731,7 +4731,7 @@ class C
 
             var aa = nodes.OfType<DeclarationExpressionSyntax>().ElementAt(0);
             Assert.Equal("var (a, a)", aa.ToString());
-            var aaType = model.GetTypeInfo(aa).Type as TypeSymbol;
+            var aaType = (TypeSymbol)model.GetTypeInfo(aa).Type;
             Assert.True(aaType.TupleElementNames.IsDefault);
         }
 

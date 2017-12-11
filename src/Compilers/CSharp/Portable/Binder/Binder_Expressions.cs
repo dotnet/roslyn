@@ -689,18 +689,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             builder.Add(BindDeclarationVariables(declType, n, n, diagnostics));
                             namesBuilder.Add(InferTupleElementName(n));
                         }
-                        var subExpressions = builder.ToImmutableAndFree();
+                        ImmutableArray<BoundExpression> subExpressions = builder.ToImmutableAndFree();
 
                         var uniqueFieldNames = PooledHashSet<string>.GetInstance();
-                        if (RemoveDuplicateInferredTupleNamesAndReportEmptied(namesBuilder, uniqueFieldNames))
-                        {
-                            namesBuilder.Free();
-                            namesBuilder = null;
-                        }
+                        RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ref namesBuilder, uniqueFieldNames);
                         uniqueFieldNames.Free();
 
-                        var tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
-                        var inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
+                        ImmutableArray<string> tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
+                        ImmutableArray<bool> inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
                         bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
                         // We will not check constraints at this point as this code path
@@ -837,11 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectTupleFieldMemberName(inferredName, i, numElements, ref inferredElementNames);
             }
 
-            if (RemoveDuplicateInferredTupleNamesAndReportEmptied(inferredElementNames, uniqueFieldNames))
-            {
-                inferredElementNames.Free();
-                inferredElementNames = null;
-            }
+            RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ref inferredElementNames, uniqueFieldNames);
             uniqueFieldNames.Free();
 
             var result = MergeTupleElementNames(elementNames, inferredElementNames);
@@ -890,13 +882,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (elementNames.ToImmutable(), builder.ToImmutableAndFree());
         }
 
-        // Returns true if all inferred names were removed.
-        // Returns false otherwise.
-        private static bool RemoveDuplicateInferredTupleNamesAndReportEmptied(ArrayBuilder<string> inferredElementNames, HashSet<string> uniqueFieldNames)
+        /// <summary>
+        /// Removes duplicate entries in <paramref name="inferredElementNames"/> and frees it if only nulls remain.
+        /// </summary>
+        private static void RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ref ArrayBuilder<string> inferredElementNames, HashSet<string> uniqueFieldNames)
         {
             if (inferredElementNames == null)
             {
-                return false;
+                return;
             }
 
             // Inferred names that duplicate an explicit name or a previous inferred name are tagged for removal
@@ -919,7 +912,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             toRemove.Free();
 
-            return inferredElementNames.All(n => n is null);
+            if (inferredElementNames.All(n => n is null))
+            {
+                inferredElementNames.Free();
+                inferredElementNames = null;
+            }
         }
 
         private static string InferTupleElementName(SyntaxNode syntax)
