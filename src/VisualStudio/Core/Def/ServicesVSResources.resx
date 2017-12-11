@@ -986,6 +986,18 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
+  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
+    <value>Restore Visual Studio keybindings</value>
+  </data>
+  <data name="Use_Keybindings_for_extensions" xml:space="preserve">
+    <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  </data>
+  <data name="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands" xml:space="preserve">
+    <value>Your keybindings are no longer mapped to Visual Studio commands.</value>
+  </data>
+  <data name="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</value>
+  </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
   </data>
