@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     if (!extensionManager.IsDisabled(provider))
                     {
-                        var info = await provider.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+                        var context = new QuickInfoContext(document, position, cancellationToken);
+
+                        var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
                         if (info != null && !info.IsEmpty)
                         {
                             return info;

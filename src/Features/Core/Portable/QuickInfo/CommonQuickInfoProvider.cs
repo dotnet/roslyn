@@ -8,8 +8,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal abstract class CommonQuickInfoProvider : QuickInfoProvider
     {
-        public override async Task<QuickInfoItem> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public override async Task<QuickInfoItem> GetQuickInfoAsync(QuickInfoContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
+
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = await tree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 

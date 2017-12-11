@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class ExportQuickInfoProviderAttribute : ExportAttribute
+    internal sealed class ExportQuickInfoProviderAttribute : ExportAttribute
     {
         public string Name { get; }
         public string Language { get; }
