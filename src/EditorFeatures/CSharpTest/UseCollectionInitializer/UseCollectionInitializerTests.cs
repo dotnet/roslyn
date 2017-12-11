@@ -1011,5 +1011,26 @@ class MyClass
     }
 }");
         }
+
+        [WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestMissingWithExplicitImplementedAddMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+using System.Dynamic;
+
+public class Goo
+{
+    public void M()
+    {
+        IDictionary<string, object> obj = [||]new ExpandoObject();
+        obj.Add(""string"", ""v"");
+        obj.Add(""int"", 1);
+        obj.Add("" object"", new { X = 1, Y = 2 });
+        }
+}");
+        }
     }
 }

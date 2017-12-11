@@ -200,13 +200,30 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
             _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
-            if (arity != 0 || !name.Equals(nameof(IList.Add)))
+            if (arity != 0 || !name.Equals(nameof(IList.Add)) || IsExplicitlyImplemented(memberName))
             {
                 return false;
             }
 
             instance = localInstance;
             return true;
+        }
+
+        private bool IsExplicitlyImplemented(SyntaxNode memberName)
+        {
+            return IsExplicitlyImplemented(
+                _semanticModel.GetTypeInfo(_objectCreationExpression, default).Type, 
+                _semanticModel.GetSymbolInfo(memberName, default).Symbol);
+        }
+
+        private static bool IsExplicitlyImplemented(
+             ITypeSymbol classOrStructType,
+             ISymbol member)
+        {
+            var implementation = classOrStructType?.FindImplementationForInterfaceMember(member);
+            return implementation is IMethodSymbol method &&
+                method.ExplicitInterfaceImplementations.Length > 0 &&
+                method.DeclaredAccessibility == Accessibility.Private;
         }
     }
 }
