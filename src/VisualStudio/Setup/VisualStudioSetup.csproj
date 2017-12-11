@@ -220,6 +220,8 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
+    <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
+    <NuGetPackageToIncludeInVsix Include="Mono.Cecil" />
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />

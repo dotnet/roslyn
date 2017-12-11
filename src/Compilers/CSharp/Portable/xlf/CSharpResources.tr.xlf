@@ -8430,16 +8430,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultInSwitch">
-        <source>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</source>
-        <target state="new">Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultInSwitch_Title">
-        <source>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</source>
-        <target state="new">Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_VoidInTuple">
         <source>A tuple may not contain a value of type 'void'.</source>
         <target state="new">A tuple may not contain a value of type 'void'.</target>
@@ -8603,6 +8593,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
         <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
         <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInSwitch">
+        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
+        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInPattern">
+        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
+        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
         <note />
       </trans-unit>
     </body>

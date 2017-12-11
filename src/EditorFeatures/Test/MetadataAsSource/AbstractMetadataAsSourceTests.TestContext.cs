@@ -63,15 +63,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 get { return this.CurrentSolution.Projects.First(); }
             }
 
-            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project project = null)
+            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project project = null, bool allowDecompilation = false)
             {
                 project = project ?? this.DefaultProject;
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol);
+                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
             }
 
-            public async Task<MetadataAsSourceFile> GenerateSourceAsync(string symbolMetadataName = null, Project project = null)
+            public async Task<MetadataAsSourceFile> GenerateSourceAsync(string symbolMetadataName = null, Project project = null, bool allowDecompilation = false)
             {
                 symbolMetadataName = symbolMetadataName ?? AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
                 project = project ?? this.DefaultProject;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol);
+                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
 
                 return result;
             }

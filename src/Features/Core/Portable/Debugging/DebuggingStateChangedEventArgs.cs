@@ -2,19 +2,19 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.Debugging
 {
-    internal sealed class DebuggingStateChangedEventArgs
+    internal struct DebuggingStateChangedEventArgs
     {
-        public DebuggingState Before { get; }
-        public DebuggingState After { get; }
+        public readonly DebuggingState Before;
+        public readonly DebuggingState After;
 
         public DebuggingStateChangedEventArgs(DebuggingState before, DebuggingState after)
         {
             Debug.Assert(before != after);
 
-            this.Before = before;
-            this.After = after;
+            Before = before;
+            After = after;
         }
     }
 }

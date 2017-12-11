@@ -65,6 +65,15 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether locks are allowed.
+        /// </summary>
+        public bool AllowLocks
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the asynchronous state machine typically completes synchronously.
         /// </summary>
         /// <remarks>
