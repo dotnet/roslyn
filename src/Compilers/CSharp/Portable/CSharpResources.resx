@@ -5160,11 +5160,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AttributesOnBackingFieldsNotAvailable_Title" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in this version of the language.</value>
   </data>
-  <data name="WRN_DefaultInSwitch" xml:space="preserve">
-    <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>
-  </data>
-  <data name="WRN_DefaultInSwitch_Title" xml:space="preserve">
-    <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>
+  <data name="ERR_DefaultInSwitch" xml:space="preserve">
+    <value>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</value>
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
@@ -5249,5 +5246,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ConditionalInInterpolation" xml:space="preserve">
     <value>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</value>
+  </data>
+  <data name="ERR_DefaultInPattern" xml:space="preserve">
+    <value>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</value>
   </data>
 </root>
