@@ -2999,7 +2999,7 @@ class Test
         End Sub
 
         <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition + "1")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestQueryDegeneratedSelect()
             Dim workspace =
 <Workspace>
@@ -3028,6 +3028,38 @@ class Test
 </Workspace>
 
             Test(workspace, False)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryLet()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Select") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$let i2=1
+                  select new { i1, i2 };
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
         End Sub
 #End Region
 
