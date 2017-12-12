@@ -59,11 +59,18 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// CAB.</param>
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
+            var emptyCallstack = exception.SetCallstackIfEmpty();
+
             // if given exception is non recoverable exception,
             // crash instead of NFW
             if (IsNonRecoverableException(exception))
             {
                 CodeAnalysis.FailFast.OnFatalException(exception);
+            }
+
+            if (!exception.ShouldReport())
+            {
+                return;
             }
 
             SessionOpt?.PostFault(
@@ -74,6 +81,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 {
                     // always add current processes dump
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
+
+                    // add extra bucket parameters to bucket better in NFW
+                    arg.SetExtraParameters(exception, emptyCallstack);
+
                     return callback(arg);
                 });
         }

@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics);
             BoundExpression argument = (node.Expression == null)
-                ? BadExpression(node)
+                ? BadExpression(node).MakeCompilerGenerated()
                 : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
 
@@ -1518,23 +1518,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
                 }
 
-                if (conversion.IsTupleLiteralConversion ||
-                     (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
-                {
-                    // Follow-up issue https://github.com/dotnet/roslyn/issues/19878
-                    // How should we represent the tuple or nullable+tuple conversion in this case?
-                    conversion = Conversion.NoConversion;
-                }
-
-                return new BoundConversion(
-                    expression.Syntax,
-                    expression,
-                    conversion,
-                    @checked: CheckOverflowAtRuntime,
-                    explicitCastInCode: false,
-                    constantValueOpt: ConstantValue.NotAvailable,
-                    type: targetType,
-                    hasErrors: true);
+                // Suppress any additional diagnostics
+                diagnostics = new DiagnosticBag();
             }
 
             return CreateConversion(expression.Syntax, expression, conversion, false, targetType, diagnostics);
@@ -2661,12 +2646,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
             {
-                Error(diagnostics, ErrorCode.WRN_FilterIsConstant, filter.FilterExpression);
+                // Depending on whether the filter constant is true or false, and whether there are other catch clauses,
+                // we suggest different actions
+                var errorCode = boundFilter.ConstantValue.BooleanValue
+                    ? ErrorCode.WRN_FilterIsConstantTrue
+                    : (filter.Parent.Parent is TryStatementSyntax s && s.Catches.Count == 1 && s.Finally == null)
+                        ? ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch
+                        : ErrorCode.WRN_FilterIsConstantFalse;
+
+                // Since the expression is a constant, the name can be retrieved from the first token
+                Error(diagnostics, errorCode, filter.FilterExpression);                
             }
 
             return boundFilter;
         }
-
 
         // Report an extra error on the return if we are in a lambda conversion.
         private void ReportCantConvertLambdaReturn(SyntaxNode syntax, DiagnosticBag diagnostics)
@@ -2676,20 +2669,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = this.ContainingMemberOrLambda as LambdaSymbol;
             if ((object)lambda != null)
             {
+                Location location = getLocationForDiagnostics(syntax);
                 if (IsInAsyncMethod())
                 {
                     // Cannot convert async {0} to intended delegate type. An async {0} may return void, Task or Task<T>, none of which are convertible to '{1}'.
                     Error(diagnostics, ErrorCode.ERR_CantConvAsyncAnonFuncReturns,
-                        syntax,
+                        location,
                         lambda.MessageID.Localize(), lambda.ReturnType);
                 }
                 else
                 {
                     // Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                     Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturns,
-                        syntax,
+                        location,
                         lambda.MessageID.Localize());
                 }
+            }
+
+            Location getLocationForDiagnostics(SyntaxNode node)
+            {
+                switch (node)
+                {
+                    case LambdaExpressionSyntax lambdaSyntax:
+                        return Location.Create(lambdaSyntax.SyntaxTree,
+                            Text.TextSpan.FromBounds(lambdaSyntax.SpanStart, lambdaSyntax.ArrowToken.Span.End));
+
+                    case AnonymousMethodExpressionSyntax anonymousMethodSyntax:
+                        return Location.Create(anonymousMethodSyntax.SyntaxTree,
+                            Text.TextSpan.FromBounds(anonymousMethodSyntax.SpanStart,
+                                anonymousMethodSyntax.ParameterList?.Span.End ?? anonymousMethodSyntax.DelegateKeyword.Span.End));
+                }
+
+                return node.Location;
             }
         }
 

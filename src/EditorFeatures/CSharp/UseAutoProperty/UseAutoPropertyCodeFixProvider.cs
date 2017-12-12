@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
     [Shared]
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseAutoPropertyCodeFixProvider))]
-    internal class UseAutoPropertyCodeFixProvider : AbstractUseAutoPropertyCodeFixProvider<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider))]
+    internal class CSharpUseAutoPropertyCodeFixProvider : AbstractUseAutoPropertyCodeFixProvider<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
         {
@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             var sourceText = await propertyDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var getAccessor = propertyDeclaration.AccessorList.Accessors.First(d => d.IsKind(SyntaxKind.GetAccessorDeclaration));
-            var isSingleLine = sourceText.AreOnSameLine(getAccessor.GetFirstToken(), getAccessor.GetLastToken());
 
             var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList));
 
@@ -63,10 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
 
-            if (isSingleLine)
-            {
-                updatedProperty = updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
-            }
+            updatedProperty = updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
 
             return updatedProperty;
         }

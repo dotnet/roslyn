@@ -27,8 +27,10 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.dll" target="lib\netstandard1.3" />
     <file src="Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

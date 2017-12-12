@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
-        /// True if the type itself is excluded from code covarage instrumentation.
+        /// True if the type itself is excluded from code coverage instrumentation.
         /// True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }

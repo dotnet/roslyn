@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../CSharpWorkspaceResources.resx">
+    <body>
+      <trans-unit id="No_available_location_found_to_add_statements_to">
+        <source>No available location found to add statements to.</source>
+        <target state="new">No available location found to add statements to.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
+        <source>Namespace can not be added in this destination.</source>
+        <target state="new">Namespace can not be added in this destination.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_string_or_char_literal">
+        <source>Expected string or char literal</source>
+        <target state="new">Expected string or char literal</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_does_not_descend_from_root">
+        <source>Node does not descend from root.</source>
+        <target state="new">Node does not descend from root.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_not_in_parent_s_child_list">
+        <source>Node not in parent's child list</source>
+        <target state="new">Node not in parent's child list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Trivia_is_not_associated_with_token">
+        <source>Trivia is not associated with token</source>
+        <target state="new">Trivia is not associated with token</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_retrieve_the_Span_of_a_null_syntax_reference">
+        <source>Cannot retrieve the Span of a null syntax reference.</source>
+        <target state="new">Cannot retrieve the Span of a null syntax reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
+        <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
+        <target state="new">Only attributes, constructor initializers, expressions or statements can be made explicit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Interface">
+        <source>Implement Interface</source>
+        <target state="new">Implement Interface</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

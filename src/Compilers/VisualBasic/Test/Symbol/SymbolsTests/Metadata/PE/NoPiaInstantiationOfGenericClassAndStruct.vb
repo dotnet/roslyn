@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         Inherits BasicTestBase
 
         <Fact>
-        Public Sub NoPiaIllegalGenericInstantiationSymboleForClassThatInheritsGeneric()
+        Public Sub NoPiaIllegalGenericInstantiationSymbolForClassThatInheritsGeneric()
             'Test class that inherits Generic<NoPIAType>
             Dim localTypeSource = <text>
 public class NoPIAGenerics 
@@ -34,7 +34,7 @@ end class
         End Sub
 
         <Fact>
-        Public Sub NoPiaIllegalGenericInstantiationSymboleForGenericType()
+        Public Sub NoPiaIllegalGenericInstantiationSymbolForGenericType()
             'Test field with Generic(Of NoPIAType())
             Dim localTypeSource = <text>
 public class NoPIAGenerics 
@@ -50,7 +50,7 @@ end class
         End Sub
 
         <Fact>
-        Public Sub NoPiaIllegalGenericInstantiationSymboleForFieldWithNestedGenericType()
+        Public Sub NoPiaIllegalGenericInstantiationSymbolForFieldWithNestedGenericType()
             'Test field with Generic(Of IGeneric(Of NoPIAType))
             Dim localTypeSource = <text>
 public class NoPIAGenerics 
@@ -66,7 +66,7 @@ End class
         End Sub
 
         <Fact>
-        Public Sub NoPiaIllegalGenericInstantiationSymboleForFieldWithTwoNestedGenericType()
+        Public Sub NoPiaIllegalGenericInstantiationSymbolForFieldWithTwoNestedGenericType()
             'Test field with IGeneric(Of IGeneric(Of Generic(Of NoPIAType)))
             Dim localTypeSource = <text>
 public class NoPIAGenerics 

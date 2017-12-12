@@ -1439,7 +1439,7 @@ public class Test
 
         [WorkItem(911518, "DevDiv/Personal")]
         [Fact]
-        public void RegressError4AnonymousTypeWithTailingComma()
+        public void RegressError4AnonymousTypeWithTrailingComma()
         {
             var text = @"using System;
 public class Test

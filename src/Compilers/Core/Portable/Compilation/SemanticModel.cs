@@ -71,16 +71,6 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!this.Compilation.IsIOperationFeatureEnabled())
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
-            }
-
-            return GetOperationInternal(node, cancellationToken);
-        }
-
-        internal IOperation GetOperationInternal(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
-        {
             try
             {
                 return GetOperationCore(node, cancellationToken);
@@ -88,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
                 // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                Debug.Assert(false);
+                Debug.Assert(false, "\n" + e.ToString());
             }
 
             return null;

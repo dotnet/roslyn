@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseInferredMemberN
 Class C
     Sub M()
         Dim a As Integer = 1
-        Dim t = ([||]a:=a, 2)
+        Dim t = ( [||]a:= a, 2)
     End Sub
 End Class
 ",
@@ -46,7 +46,7 @@ End Class
 Class C
     Sub M()
         Dim a As Integer = 2
-        Dim t = (1, [||]a:=a)
+        Dim t = (1,  [||]a:= a )
     End Sub
 End Class
 ",

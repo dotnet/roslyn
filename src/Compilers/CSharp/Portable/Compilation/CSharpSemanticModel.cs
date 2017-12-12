@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var position = node.SpanStart;
             if (node is StatementSyntax)
             {
-                // skip zero-width tokens to get the postion, but never get past the end of the node
+                // skip zero-width tokens to get the position, but never get past the end of the node
                 int betterPosition = node.GetFirstToken(includeZeroWidth: false).SpanStart;
                 if (betterPosition < node.Span.End)
                 {
@@ -1744,6 +1744,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // highestBoundNode: The highest node in the bound tree associated with node
         // boundNodeForSyntacticParent: The lowest node in the bound tree associated with node.Parent.
         // binderOpt: If this is null, then the one enclosing the bound node's syntax will be used (unsafe during speculative binding).
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            Constraint = "Provide " + nameof(ArrayBuilder<Symbol>) + " capacity to reduce number of allocations.")]
         internal SymbolInfo GetSymbolInfoForNode(
             SymbolInfoOptions options,
             BoundNode lowestBoundNode,
@@ -1817,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Caas clients don't want ErrorTypeSymbol in the symbols, but the best guess
                 // instead. If no best guess, then nothing is returned.
-                var builder = ArrayBuilder<Symbol>.GetInstance();
+                var builder = ArrayBuilder<Symbol>.GetInstance(symbols.Length);
                 foreach (Symbol symbol in symbols)
                 {
                     AddUnwrappingErrorTypes(builder, symbol);
@@ -2751,7 +2754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //                         [           ]
         //                              \GetDeclaredSymbol => Field: (string Alice, short Bob).Alice
         //
-        // In partiucular, the location of the field declaration is "Alice: null" and not the "string"
+        // In particular, the location of the field declaration is "Alice: null" and not the "string"
         //                 the location of the type is "(Alice: null, Bob: 2)" and not the "(string, short)"
         //
         // The reason for this behavior is that, even though there might not be other references to "Alice" field in the code, 
@@ -4401,6 +4404,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="node">The node.</param>
         public abstract ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node);
+
+        /// <summary>
+        /// Gets deconstruction assignment info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node);
+
+        /// <summary>
+        /// Gets deconstruction foreach info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract DeconstructionInfo GetDeconstructionInfo(ForEachVariableStatementSyntax node);
 
         /// <summary>
         /// Gets await expression info.

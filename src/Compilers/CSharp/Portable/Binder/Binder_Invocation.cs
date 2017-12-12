@@ -179,7 +179,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < analyzedArguments.Arguments.Count; ++i)
             {
                 BoundExpression argument = analyzedArguments.Arguments[i];
-                if ((object)argument.Type == null && !argument.HasAnyErrors)
+
+                if (argument.Kind == BoundKind.OutVariablePendingInference)
+                {
+                    analyzedArguments.Arguments[i] = ((OutVariablePendingInference)argument).FailInference(this, diagnostics);
+                }
+                else if ((object)argument.Type == null && !argument.HasAnyErrors)
                 {
                     // We are going to need every argument in here to have a type. If we don't have one,
                     // try converting it to object. We'll either succeed (if it is a null literal)
@@ -189,6 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // else it either crashes, or produces nonsense code. Roslyn improves upon this considerably.
 
                     analyzedArguments.Arguments[i] = GenerateConversionForAssignment(objType, argument, diagnostics);
+                }
+                else if (argument.Type.SpecialType == SpecialType.System_Void)
+                {
+                    Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
                 }
             }
 
@@ -289,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupSymbolOpt,
                                     methodGroup.LookupError,
                                     methodGroup.Flags & ~BoundMethodGroupFlags.HasImplicitReceiver,
-                                    receiverOpt: new BoundTypeExpression(node, null, this.ContainingType),
+                                    receiverOpt: new BoundTypeExpression(node, null, this.ContainingType).MakeCompilerGenerated(),
                                     resultKind: methodGroup.ResultKind);
                             }
 

@@ -23,3 +23,5 @@ if ( -not $? )
     echo "perf run failed"
     exit 1
 }
+
+./build/scripts/cleanup_perf.ps1 $CPCLocation -ShouldArchive

@@ -600,17 +600,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (uncommon.lazyCustomAttributes.IsDefault)
             {
-                if (MightContainExtensionMethods)
-                {
-                    this.ContainingPEModule.LoadCustomAttributesFilterExtensions(
-                        this.Handle,
-                        ref uncommon.lazyCustomAttributes);
-                }
-                else
-                {
-                    this.ContainingPEModule.LoadCustomAttributes(this.Handle,
-                        ref uncommon.lazyCustomAttributes);
-                }
+                var loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
+                    Handle,
+                    out _,
+                    // Filter out [Extension]
+                    MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
+                    out _,
+                    // Filter out [Obsolete], unless it was user defined
+                    (IsByRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default);
+
+                ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
 
             return uncommon.lazyCustomAttributes;

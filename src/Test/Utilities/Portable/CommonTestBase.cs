@@ -15,13 +15,20 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    public enum Verification
+    {
+        Passes = 0,
+        Fails,
+        Skipped
+    }
+
     /// <summary>
     /// Base class for all language specific tests.
     /// </summary>
@@ -49,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return CompileAndVerify(
                 sources: new string[] { source },
@@ -80,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             if (options == null)
             {
@@ -116,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             Assert.NotNull(compilation);
 
@@ -124,11 +131,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 (compilation.Options.OutputKind == OutputKind.ConsoleApplication || compilation.Options.OutputKind == OutputKind.WindowsApplication),
                 "Compilation must be executable if output is expected.");
 
-            if (verify)
+            if (verify == Verification.Passes)
             {
                 // Unsafe code might not verify, so don't try.
                 var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
-                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe);
+                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe) ? Verification.Passes : Verification.Skipped;
             }
 
             if (sourceSymbolValidator != null)
@@ -187,19 +194,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
+            Assert.True(assemblyValidator != null || symbolValidator != null);
+
+            var emittedMetadata = verifier.GetMetadata();
+
             if (assemblyValidator != null)
             {
-                using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
-                {
-                    assemblyValidator(emittedMetadata.GetAssembly());
-                }
+                Assert.Equal(MetadataImageKind.Assembly, emittedMetadata.Kind);
+
+                var assembly = ((AssemblyMetadata)emittedMetadata).GetAssembly();
+                assemblyValidator(assembly);
             }
 
             if (symbolValidator != null)
             {
-                var peModuleSymbol = verifier.GetModuleSymbolForEmittedImage();
-                Debug.Assert(peModuleSymbol != null);
-                symbolValidator(peModuleSymbol);
+                var reference = emittedMetadata.Kind == MetadataImageKind.Assembly
+                    ? ((AssemblyMetadata)emittedMetadata).GetReference()
+                    : ((ModuleMetadata)emittedMetadata).GetReference();
+
+                var moduleSymbol = verifier.GetSymbolFromMetadata(reference, verifier.Compilation.Options.MetadataImportOptions);
+                symbolValidator(moduleSymbol);
             }
         }
 
@@ -214,15 +228,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<PEAssembly> assemblyValidator,
             Action<IModuleSymbol> symbolValidator,
             EmitOptions emitOptions,
-            bool verify)
+            Verification verify)
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
             verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
-            // We're dual-purposing emitters here.  In this context, it
-            // tells the validator the version of Emit that is calling it. 
-            RunValidators(verifier, assemblyValidator, symbolValidator);
+            if (assemblyValidator != null || symbolValidator != null)
+            {
+                // We're dual-purposing emitters here.  In this context, it
+                // tells the validator the version of Emit that is calling it. 
+                RunValidators(verifier, assemblyValidator, symbolValidator);
+            }
 
             return verifier;
         }
@@ -583,7 +600,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var child in node.ChildNodes())
             {
-                var operation = model.GetOperationInternal(child);
+                var operation = model.GetOperation(child);
                 if (operation != null)
                 {
                     // found top operation
@@ -602,7 +619,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes())
             {
-                var operation = model.GetOperationInternal(node);
+                var operation = model.GetOperation(node);
                 if (operation == null)
                 {
                     continue;
@@ -646,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             while (node != semanticModel.Root)
             {
-                var operation = semanticModel.GetOperationInternal(node);
+                var operation = semanticModel.GetOperation(node);
                 if (operation != null)
                 {
                     Assert.True(set.Contains(operation));

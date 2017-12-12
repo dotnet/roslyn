@@ -108,12 +108,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var designerAttributeArgument = ReadProperty<string>(reader);
                 var containsErrors = ReadProperty<bool>(reader);
-                var notApplicable = ReadProperty<bool>(reader);
+                var applicable = ReadProperty<bool>(reader);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
 
-                return new DesignerAttributeResult(designerAttributeArgument, containsErrors, notApplicable);
+                return new DesignerAttributeResult(designerAttributeArgument, containsErrors, applicable);
             }
 
             protected override void WriteValue(JsonWriter writer, DesignerAttributeResult result, JsonSerializer serializer)
@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 writer.WritePropertyName(nameof(DesignerAttributeResult.ContainsErrors));
                 writer.WriteValue(result.ContainsErrors);
 
-                writer.WritePropertyName(nameof(DesignerAttributeResult.NotApplicable));
-                writer.WriteValue(result.NotApplicable);
+                writer.WritePropertyName(nameof(DesignerAttributeResult.Applicable));
+                writer.WriteValue(result.Applicable);
 
                 writer.WriteEndObject();
             }
