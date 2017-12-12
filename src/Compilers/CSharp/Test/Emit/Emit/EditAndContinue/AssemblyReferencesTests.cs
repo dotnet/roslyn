@@ -473,7 +473,7 @@ class C
             var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
 
-            var v0 = CompileAndVerify(compilation0);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.FullNames);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");

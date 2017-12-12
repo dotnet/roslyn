@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, verify: verify);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)
@@ -231,7 +231,8 @@ class C
         y = 1;
     }
 }";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -244,7 +245,8 @@ class C
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -283,7 +285,8 @@ class C
         lock (this) { }
     }
 }";
-            CompileAndVerify(source, s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, s_asyncRefs,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -301,7 +304,8 @@ class C
                 }, module.GetFieldNames("C.<M>d__3"));
             });
 
-            var vd = CompileAndVerify(source, s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var vd = CompileAndVerify(source, s_asyncRefs,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1239,7 +1243,8 @@ public class C
         var b8 = await Task.FromResult(default(Tuple<long, long, long>));
     }
 }";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {

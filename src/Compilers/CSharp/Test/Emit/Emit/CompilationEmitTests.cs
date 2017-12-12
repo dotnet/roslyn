@@ -4508,7 +4508,7 @@ public interface IUsePlatform
         {
             var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify(comp, verify: Verification.Fails);
+            CompileAndVerify(comp, verify: Verification.BadFormat);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }

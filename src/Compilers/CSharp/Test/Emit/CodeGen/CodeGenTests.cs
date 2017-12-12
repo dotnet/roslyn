@@ -4326,7 +4326,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.Fails, options: TestOptions.ReleaseExe);
+", verify: Verification.TypeDevNotNil, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4459,7 +4459,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.Fails, options: TestOptions.ReleaseExe);
+", verify: Verification.TypeDevNotNil, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -5140,7 +5140,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Fails);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.UnexpectedTypeOnStack);
 
             compilation.VerifyIL("Program.Main(string[])",
 @"
@@ -5226,7 +5226,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.UnexpectedTypeOnStack);
 
             var expectedIL = @"
 {
@@ -5247,7 +5247,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
 
             // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
-            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.UnexpectedTypeOnStack, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }
@@ -10423,7 +10423,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.TypeLoadFailed).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -13267,6 +13267,7 @@ class A
 ";
             var compilation = CompileAndVerify(
                 source,
+                verify: Verification.InvalidProgramVararg,
                 expectedOutput: @"Inside - TestVarArgs::ctor (__arglist)
 Inside - TestVarArgs::ctor (__arglist)
 System.Int32

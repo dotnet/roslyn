@@ -5,17 +5,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeUtilities; 
+using static Roslyn.Test.Utilities.RuntimeUtilities;
 
 namespace Roslyn.Test.Utilities.Desktop
 {
@@ -289,11 +292,58 @@ namespace Roslyn.Test.Utilities.Desktop
             return GetEmitData().AllModuleData;
         }
 
+        private class Resolver : ILVerify.IResolver
+        {
+            private Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
+
+            internal Resolver(EmitData emitData)
+            {
+                foreach (var module in emitData.AllModuleData)
+                {
+                    string name = module.SimpleName;
+
+                    var image = name == "mscorlib"
+                        ? TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
+                        : module.Image;
+
+                    imagesByName.Add(name, image);
+                }
+            }
+
+            public PEReader Resolve(string name)
+            {
+                if (imagesByName.TryGetValue(name, out var image))
+                {
+                    return new PEReader(image);
+                }
+
+                return null;
+            }
+        }
+
+        public void IlVerify()
+        {
+            var emitData = GetEmitData();
+
+            var resolver = new Resolver(emitData);
+            var verifier = new ILVerify.Verifier(resolver);
+            if (emitData.AllModuleData.Any(m => m.SimpleName == "mscorlib"))
+            {
+                verifier.SystemModuleName = "mscorlib";
+            }
+
+            var result = verifier.Verify(emitData.MainModule.SimpleName); // TODO using SimpleName instead of FullName
+            if (result.NumErrors > 0)
+            {
+                throw new IlVerifyException(result.Message, emitData.MainModule.SimpleName);
+            }
+        }
+
         public void PeVerify()
         {
+            var emitData = GetEmitData();
             try
             {
-                var emitData = GetEmitData();
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName });
             }

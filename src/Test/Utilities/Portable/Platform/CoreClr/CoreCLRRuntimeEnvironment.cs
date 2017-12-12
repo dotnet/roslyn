@@ -99,6 +99,11 @@ namespace Roslyn.Test.Utilities.CoreClr
             throw new NotImplementedException();
         }
 
+        public void IlVerify()
+        {
+            throw new NotImplementedException();
+        }
+
         public void PeVerify()
         {
             var emitData = GetEmitData();

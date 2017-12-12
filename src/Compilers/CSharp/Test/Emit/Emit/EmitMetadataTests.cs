@@ -174,7 +174,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
+            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.NotImplemented, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
