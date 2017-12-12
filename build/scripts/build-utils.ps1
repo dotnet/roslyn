@@ -107,6 +107,32 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
     Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
+# Ensure that NuGet is installed and return the path to the 
+# executable to use.
+function Ensure-NuGet() {
+    $nugetVersion = Get-ToolVersion "nugetExe"
+    $toolsDir = Join-Path $binariesDir "Tools"
+    Create-Directory $toolsDir
+
+    $destFile = Join-Path $toolsDir "NuGet.exe"
+    $versionFile = Join-Path $toolsDir "NuGet.exe.version"
+
+    # Check and see if we already have a NuGet.exe which exists and is the correct
+    # version.
+    if ((Test-Path $destFile) -and (Test-Path $versionFile)) {
+        $scratchVersion = Get-Content $versionFile
+        if ($scratchVersion -eq $nugetVersion) {
+            return $destFile
+        }
+    }
+
+    Write-Host "Downloading NuGet.exe"
+    $webClient = New-Object -TypeName "System.Net.WebClient"
+    $webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/v$nugetVersion/NuGet.exe", $destFile)
+    $nugetVersion | Out-File $versionFile
+    return $destFile
+}
+
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
 # SDK. Returns the location to the dotnet exe
 function Ensure-DotnetSdk() {

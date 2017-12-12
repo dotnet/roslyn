@@ -179,7 +179,9 @@ function Make-BootstrapBuild() {
 }
 
 function Build-Artifacts() { 
-    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
+    if ($build) { 
+        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
+    }
 
     if ($buildAll) {
         Build-ExtraSignArtifacts
@@ -281,6 +283,7 @@ function Build-NuGetPackages() {
         $buildArgs = '/p:SkipReleaseVersion=true /p:SkipPreReleaseVersion=true'
     }
 
+    Ensure-NuGet | Out-Null
     Run-MSBuild "src\NuGet\NuGet.proj" $buildArgs
 }
 
@@ -625,7 +628,7 @@ try {
         $bootstrapDir = Make-BootstrapBuild
     }
 
-    if ($build) {
+    if ($build -or $pack) {
         Build-Artifacts
     }
 
