@@ -1447,6 +1447,26 @@ Additional information: {1}</target>
         <target state="new">Can't apply changes -- module '{0}' has been unloaded.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Restore_Visual_Studio_keybindings">
+        <source>Restore Visual Studio keybindings</source>
+        <target state="new">Restore Visual Studio keybindings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
+        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
+        <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Keybindings_for_extensions">
+        <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
+        <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
+        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
+        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="new">Enable navigation to decompiled sources (experimental)</target>

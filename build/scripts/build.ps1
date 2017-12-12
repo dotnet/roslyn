@@ -183,10 +183,6 @@ function Make-BootstrapBuild() {
 function Build-Artifacts() { 
     Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
 
-    if ($testDesktop -or $buildAll) { 
-        Run-MSBuild "src\Samples\Samples.sln" "/p:DeployExtension=false"
-    }
-
     if ($buildAll) {
         Build-ExtraSignArtifacts
     }
@@ -223,14 +219,11 @@ function Build-ExtraSignArtifacts() {
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
         $dest = @(
-            $configDir,
-            "Templates\CSharp\Diagnostic\Analyzer",
-            "Templates\VisualBasic\Diagnostic\Analyzer\tools")
+            $configDir)
         foreach ($dir in $dest) { 
             Copy-Item "PowerShell\*.ps1" $dir
         }
 
-        Run-MSBuild "Templates\Templates.sln" "/p:VersionType=Release"
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln" -buildArgs ""
         Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
