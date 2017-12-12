@@ -68,8 +68,8 @@ var s = $@""{
             ?
             1
             : 
-            2)
-            }"";
+            2
+)            }"";
 ");
         }
 
@@ -86,7 +86,7 @@ var s = $@""{
         {
             await TestInMethodAsync(
                 @"var s = $""{ true ? new int[0] [|:|] new int[] {} }"";",
-                @"var s = $""{ (true ? new int[0] : new int[] {} )}"";");
+                @"var s = $""{ (true ? new int[0] : new int[] {})}"";");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
@@ -94,7 +94,7 @@ var s = $@""{
         {
             await TestInMethodAsync(
                 @"var s = $""{ true ? ""1"" [|:|] ""2"" }"";",
-                @"var s = $""{ (true ? ""1"" : ""2"" )}"";");
+                @"var s = $""{ (true ? ""1"" : ""2"")}"";");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
@@ -102,7 +102,7 @@ var s = $@""{
         {
             await TestInMethodAsync(
                 @"var s = $""{ true ? ""1"" [|:|] @""""""2"""""" }"";",
-                @"var s = $""{ (true ? ""1"" : @""""""2"""""" )}"";");
+                @"var s = $""{ (true ? ""1"" : @""""""2"""""")}"";");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
@@ -110,7 +110,7 @@ var s = $@""{
         {
             await TestInMethodAsync(
                 @"var s = $""{ true ? ""1"" [|:|] ""2)"" }"";",
-                @"var s = $""{ (true ? ""1"" : ""2)"" )}"";");
+                @"var s = $""{ (true ? ""1"" : ""2)"")}"";");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
@@ -118,7 +118,7 @@ var s = $@""{
         {
             await TestInMethodAsync(
                 @"var s = $""{ true ? ""1"" [|:|] ""2\"""" }"";",
-                @"var s = $""{ (true ? ""1"" : ""2\"""" )}"";");
+                @"var s = $""{ (true ? ""1"" : ""2\"""")}"";");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
@@ -126,7 +126,7 @@ var s = $@""{
         {
             await TestInMethodAsync(
                 @"var s = $""{ true ? ""1"" [|:|] ""M(new int[] {}, \""Parameter\"");"" }"";",
-                @"var s = $""{ (true ? ""1"" : ""M(new int[] {}, \""Parameter\"");"" )}"";");
+                @"var s = $""{ (true ? ""1"" : ""M(new int[] {}, \""Parameter\"");"")}"";");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
@@ -134,7 +134,7 @@ var s = $@""{
         {
             await TestInMethodAsync(
                 @"var s2 = $""{ true ? ""1"" [|:|] (false ? ""2"" : ""3"") };",
-                @"var s2 = $""{ (true ? ""1"" : (false ? ""2"" : ""3"") )};");
+                @"var s2 = $""{ (true ? ""1"" : (false ? ""2"" : ""3""))};");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
@@ -142,7 +142,7 @@ var s = $@""{
         {
             await TestInMethodAsync(
                 @"var s2 = $""{ true ? ""1"" [|:|] false ? ""2"" : ""3"" };",
-                @"var s2 = $""{ (true ? ""1"" : false ? ""2"" : ""3"" )};");
+                @"var s2 = $""{ (true ? ""1"" : false ? ""2"" : ""3"")};");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParenthesisAroundConditionalExpressionInInterpolatedString)]
@@ -243,7 +243,7 @@ var s = $@""{
                 NextLineOfCode();",
                 @"
                 PreviousLineOfCode();
-                var s3 = $""Text1 { (true ? ""Text2"" : ""Text3"" )}
+                var s3 = $""Text1 { (true ? ""Text2"" : ""Text3"")}
                 NextLineOfCode();");
         }
 
@@ -257,7 +257,7 @@ var s = $@""{
                 NextLineOfCode();",
                 @"
                 (
-                var s3 = $""Text1 { (true ? ""Text2"" : ""Text3"" )}
+                var s3 = $""Text1 { (true ? ""Text2"" : ""Text3"")}
                 NextLineOfCode();");
         }
 
@@ -271,7 +271,7 @@ var s = $@""{
                 NextLineOfCode(",
                 @"
                 PreviousLineOfCode();
-                var s3 = $""Text1 { (true ? ""Text2"" : ""Text3"" )}
+                var s3 = $""Text1 { (true ? ""Text2"" : ""Text3"")}
                 NextLineOfCode(");
         }
 
@@ -285,7 +285,7 @@ var s = $@""{
                 NextLineOfCode();",
                 @"
                 PreviousLineOfCode();
-                var s3 = ($""Text1 { (true ? ""Text2"" : ""Text3"" )}
+                var s3 = ($""Text1 { (true ? ""Text2"" : ""Text3"")}
                 NextLineOfCode();");
         }
 
