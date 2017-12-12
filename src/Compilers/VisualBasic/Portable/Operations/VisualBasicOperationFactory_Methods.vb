@@ -156,21 +156,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return arguments.ToImmutableAndFree()
         End Function
 
-        Private Shared Function CreateConversion(expression As BoundExpression) As Conversion
-            If expression.Kind = BoundKind.Conversion Then
-                Dim conversion = DirectCast(expression, BoundConversion)
-                Dim conversionKind = conversion.ConversionKind
-                Dim method As MethodSymbol = Nothing
-                If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
-                    method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
-                End If
-                Return New Conversion(KeyValuePair.Create(conversionKind, method))
-            ElseIf expression.Kind = BoundKind.TryCast OrElse expression.Kind = BoundKind.DirectCast Then
-                Return New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
-            End If
-            Return New Conversion(Conversions.Identity)
-        End Function
-
         Private Function DeriveArgument(
             index As Integer,
             argument As BoundExpression,
@@ -448,6 +433,111 @@ Namespace Microsoft.CodeAnalysis.Operations
                 eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
         End Function
 
+#Region "Conversions"
+
+        ''' <summary>
+        ''' Creates the Lazy IOperation from a delegate creation operand or a bound conversion operand, handling when the conversion
+        ''' is actually a delegate creation.
+        ''' </summary>
+        Private Function GetConversionInfo(boundConversion As BoundConversionOrCast
+                                          ) As (Operation As Lazy(Of IOperation), Conversion As Conversion, IsDelegateCreation As Boolean)
+            Dim conversion = CreateConversion(boundConversion)
+            Dim boundOperand = GetConversionOperand(boundConversion)
+            If conversion.IsIdentity AndAlso boundConversion.ExplicitCastInCode Then
+                Dim adjustedInfo = TryGetAdjustedConversionInfo(boundConversion, boundOperand)
+
+                If adjustedInfo.Operation IsNot Nothing Then
+                    Return (Operation:=New Lazy(Of IOperation)(Function() adjustedInfo.Operation),
+                            adjustedInfo.Conversion,
+                            adjustedInfo.IsDelegateCreation)
+                End If
+            End If
+
+            Return (New Lazy(Of IOperation)(Function() CreateConversionOperand(boundOperand)),
+                    conversion,
+                    IsDelegateCreation:=IsDelegateCreation(boundConversion.Syntax, boundOperand, boundConversion.Type))
+
+        End Function
+
+        Private Function TryGetAdjustedConversionInfo(topLevelConversion As BoundConversionOrCast, boundOperand As BoundExpression
+                                                     ) As (Operation As IOperation, Conversion As Conversion, IsDelegateCreation As Boolean)
+            ' Dig through the bound tree to see if this is an artificial nested conversion. If so, let's erase the nested conversion.
+            ' Artificial conversions are added on top of BoundConvertedTupleLiteral in Binder.ReclassifyTupleLiteral, or in
+            ' ReclassifyUnboundLambdaExpression and the like. We need to use conversion information from the nested conversion
+            ' because that is where the real conversion information is stored.
+            If boundOperand.Kind = BoundKind.Parenthesized Then
+                Dim adjustedInfo = TryGetAdjustedConversionInfo(topLevelConversion, DirectCast(boundOperand, BoundParenthesized).Expression)
+                If adjustedInfo.Operation IsNot Nothing Then
+                    Return (Operation:=New ParenthesizedExpression(adjustedInfo.Operation,
+                                                                   _semanticModel,
+                                                                   boundOperand.Syntax,
+                                                                   adjustedInfo.Operation.Type,
+                                                                   ConvertToOptional(boundOperand.ConstantValueOpt),
+                                                                   boundOperand.WasCompilerGenerated),
+                            adjustedInfo.Conversion,
+                            adjustedInfo.IsDelegateCreation)
+                End If
+            ElseIf boundOperand.Kind = topLevelConversion.Kind Then
+                Dim nestedConversion = DirectCast(boundOperand, BoundConversionOrCast)
+                Dim nestedOperand As BoundExpression = GetConversionOperand(nestedConversion)
+
+                If nestedConversion.Syntax Is nestedOperand.Syntax AndAlso
+                   nestedConversion.ExplicitCastInCode AndAlso
+                   topLevelConversion.Type = nestedConversion.Type Then
+
+                    Dim conversionInfo = GetConversionInfo(nestedConversion)
+                    Return (Operation:=conversionInfo.Operation.Value, conversionInfo.Conversion, conversionInfo.IsDelegateCreation)
+                End If
+            ElseIf boundOperand.Syntax.IsKind(SyntaxKind.AddressOfExpression) AndAlso
+                   topLevelConversion.Type = boundOperand.Type AndAlso
+                   IsDelegateCreation(topLevelConversion.Syntax, boundOperand, boundOperand.Type) Then
+
+                Return (CreateConversionOperand(boundOperand), Conversion:=Nothing, IsDelegateCreation:=True)
+            End If
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Gets the operand from a BoundConversion, compensating for if the conversion is a user-defined conversion
+        ''' </summary>
+        Private Shared Function GetConversionOperand(boundConversion As BoundConversionOrCast) As BoundExpression
+            If (boundConversion.ConversionKind And ConversionKind.UserDefined) = ConversionKind.UserDefined Then
+                Dim userDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
+                Return userDefinedConversion.Operand
+            Else
+                Return boundConversion.Operand
+            End If
+        End Function
+
+        Private Function CreateConversionOperand(operand As BoundExpression) As IOperation
+            If operand.Kind = BoundKind.DelegateCreationExpression Then
+                ' If the child is a BoundDelegateCreationExpression, we don't want to generate a nested IDelegateCreationExpression.
+                ' So, the operand for the conversion will be the child of the BoundDelegateCreationExpression.
+                ' We see this in this syntax: Dim x = New Action(AddressOf M2)
+                ' This should be semantically equivalent to: Dim x = AddressOf M2
+                ' However, if we didn't fix this up, we would have nested IDelegateCreationExpressions here for the former case.
+                Return CreateBoundDelegateCreationExpressionChildOperation(DirectCast(operand, BoundDelegateCreationExpression))
+            Else
+                Return Create(operand)
+            End If
+        End Function
+
+        Private Shared Function CreateConversion(expression As BoundExpression) As Conversion
+            If expression.Kind = BoundKind.Conversion Then
+                Dim conversion = DirectCast(expression, BoundConversion)
+                Dim conversionKind = conversion.ConversionKind
+                Dim method As MethodSymbol = Nothing
+                If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
+                    method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
+                End If
+                Return New Conversion(KeyValuePair.Create(conversionKind, method))
+            ElseIf expression.Kind = BoundKind.TryCast OrElse expression.Kind = BoundKind.DirectCast Then
+                Return New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
+            End If
+            Return New Conversion(Conversions.Identity)
+        End Function
+
         Private Shared Function IsDelegateCreation(conversionSyntax As SyntaxNode, operand As BoundNode, targetType As TypeSymbol) As Boolean
             If Not targetType.IsDelegateType() Then
                 Return False
@@ -473,106 +563,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return validAddressOfConversionSyntax OrElse validLambdaConversionNode
         End Function
 
-        ''' <summary>
-        ''' Creates the Lazy IOperation from a delegate creation operand or a bound conversion operand, handling when the conversion
-        ''' is actually a delegate creation.
-        ''' </summary>
-        Private Function GetConversionInfo(boundConversion As BoundConversionOrCast
-                                                 ) As (Operation As Lazy(Of IOperation), ConversionStruct As Conversion, IsDelegateCreation As Boolean)
-
-            Dim conversion = CreateConversion(boundConversion)
-            Dim operand As BoundExpression = GetConversionOperand(boundConversion)
-            Dim operandLazy As Lazy(Of IOperation) = Nothing
-
-            ' Dig through the bound tree to see if this is an artificial nested conversion. If so, let's erase the nested conversion.
-            ' Artificial conversions are added on top of BoundConvertedTupleLiteral in Binder.ReclassifyTupleLiteral, or in
-            ' ReclassifyUnboundLambdaExpression and the like. We need to use conversion information from the nested conversion
-            ' because that is where the real conversion information is stored.
-            If boundConversion.ExplicitCastInCode AndAlso conversion.IsIdentity Then
-                Dim nestedOperand = operand
-                While nestedOperand.Kind = BoundKind.Parenthesized
-                    nestedOperand = DirectCast(nestedOperand, BoundParenthesized).Expression
-                End While
-
-                If nestedOperand.Kind = boundConversion.Kind Then
-                    Dim nestedConversion = DirectCast(nestedOperand, BoundConversionOrCast)
-                    nestedOperand = GetConversionOperand(nestedConversion)
-
-                    If nestedConversion.Syntax Is nestedOperand.Syntax AndAlso
-                       nestedConversion.ExplicitCastInCode AndAlso
-                       nestedConversion.Type <> nestedOperand.Type AndAlso
-                       nestedConversion.Type = boundConversion.Type Then
-                        conversion = CreateConversion(nestedConversion)
-                        operandLazy = CreateNestedConversionOperand(operand, boundConversion.Syntax)
-                        operand = nestedOperand
-                    End If
-                ElseIf nestedOperand.Syntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
-                       boundConversion.Type = nestedOperand.Type AndAlso
-                       IsDelegateCreation(boundConversion.Syntax, nestedOperand, nestedOperand.Type) Then
-                    conversion = New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(boundConversion.ConversionKind, Nothing))
-                    operandLazy = CreateNestedConversionOperand(operand, boundConversion.Syntax)
-                    operand = nestedOperand
-                End If
-            End If
-
-            If operandLazy Is Nothing Then
-                operandLazy = New Lazy(Of IOperation)(Function() CreateConversionOperand(operand))
-            End If
-
-            Return (operandLazy, conversion, IsDelegateCreation(boundConversion.Syntax, operand, boundConversion.Type))
-        End Function
-
-        ''' <summary>
-        ''' Gets the operand and method symbol from a BoundConversion, compensating for if the conversion is a user-defined conversion
-        ''' </summary>
-        Private Shared Function GetConversionOperand(boundConversion As BoundConversionOrCast) As BoundExpression
-            If (boundConversion.ConversionKind And ConversionKind.UserDefined) = ConversionKind.UserDefined Then
-                Dim userDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
-                Return userDefinedConversion.Operand
-            Else
-                Return boundConversion.Operand
-            End If
-        End Function
-
-        Private Function CreateNestedConversionOperand(operand As BoundExpression, conversionSyntax As SyntaxNode) As Lazy(Of IOperation)
-            Return New Lazy(Of IOperation)(Function() CreateNestedConversionOperandCore(operand))
-        End Function
-
-        Private Function CreateNestedConversionOperandCore(operand As BoundExpression) As IOperation
-            Select Case operand.Kind
-                Case BoundKind.Parenthesized
-                    Dim boundParenthesized = DirectCast(operand, BoundParenthesized)
-                    ' Because we're in a delegate creation scenario, the underlying expression actually doesn't have a type.
-                    Dim operandOperation = CreateNestedConversionOperandCore(boundParenthesized.Expression)
-                    Return New ParenthesizedExpression(
-                        operandOperation,
-                        _semanticModel,
-                        boundParenthesized.Syntax,
-                        operandOperation.Type,
-                        ConvertToOptional(boundParenthesized.ConstantValueOpt),
-                        boundParenthesized.WasCompilerGenerated)
-                Case BoundKind.Conversion, BoundKind.DirectCast, BoundKind.TryCast
-                    ' This is the artificial conversion. Erase it from the tree.
-                    Return CreateConversionOperand(DirectCast(operand, BoundConversionOrCast).Operand)
-                Case BoundKind.DelegateCreationExpression
-                    Return CreateBoundDelegateCreationExpressionChildOperation(DirectCast(operand, BoundDelegateCreationExpression))
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(operand.Kind)
-            End Select
-        End Function
-
-        Private Function CreateConversionOperand(operand As BoundExpression) As IOperation
-            If operand.Kind = BoundKind.DelegateCreationExpression Then
-                ' If the child is a BoundDelegateCreationExpression, we don't want to generate a nested IDelegateCreationExpression.
-                ' So, the operand for the conversion will be the child of the BoundDelegateCreationExpression.
-                ' We see this in this syntax: Dim x = New Action(AddressOf M2)
-                ' This should be semantically equivalent to: Dim x = AddressOf M2
-                ' However, if we didn't fix this up, we would have nested IDelegateCreationExpressions here for the former case.
-                Return CreateBoundDelegateCreationExpressionChildOperation(DirectCast(operand, BoundDelegateCreationExpression))
-            Else
-                Return Create(operand)
-            End If
-        End Function
+#End Region
 
         Friend Class Helper
             Friend Shared Function DeriveUnaryOperatorKind(operatorKind As VisualBasic.UnaryOperatorKind) As UnaryOperatorKind

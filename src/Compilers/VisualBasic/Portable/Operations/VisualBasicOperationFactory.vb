@@ -551,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
 
             Dim conversionInfo = GetConversionInfo(boundConversionOrCast)
-            Dim conversion As Conversion = conversionInfo.ConversionStruct
+            Dim conversion As Conversion = conversionInfo.Conversion
             Dim operand As Lazy(Of IOperation) = conversionInfo.Operation
 
             If conversionInfo.IsDelegateCreation Then
