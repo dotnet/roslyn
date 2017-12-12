@@ -8410,16 +8410,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="translated">Le nom d'élément de tuple '{0}' est déduit. Utilisez la version de langage {1} ou une version supérieure pour accéder à un élément par son nom déduit.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultInSwitch">
-        <source>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</source>
-        <target state="translated">Voulez-vous utiliser l'étiquette de changement par défaut ('default:') à la place de 'case default:' ? Si vous souhaitez vraiment utiliser le littéral par défaut, choisissez 'case (default):' ou un autre littéral ('case 0:' ou 'case null:') selon les besoins.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultInSwitch_Title">
-        <source>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</source>
-        <target state="translated">Voulez-vous utiliser l'étiquette de changement par défaut ('default:') à la place de 'case default:' ? Si vous souhaitez vraiment utiliser le littéral par défaut, choisissez 'case (default):' ou un autre littéral ('case 0:' ou 'case null:') selon les besoins.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_VoidInTuple">
         <source>A tuple may not contain a value of type 'void'.</source>
         <target state="translated">Un tuple ne doit pas contenir de valeur de type 'void'.</target>
@@ -8563,6 +8553,16 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">Une expression conditionnelle ne peut pas être utilisée directement dans une interpolation de chaîne car ':' termine l'interpolation. Mettez l'expression conditionnelle entre parenthèses.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInSwitch">
+        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
+        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInPattern">
+        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
+        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
         <note />
       </trans-unit>
     </body>

@@ -8435,16 +8435,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">튜플 요소 이름 '{0}'이(가) 유추됩니다. 언어 버전 {1} 이상을 사용하여 유추된 이름으로 요소에 액세스하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultInSwitch">
-        <source>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</source>
-        <target state="translated">`case default:` 대신 기본 switch 레이블(`default:`)을 사용할까요? 기본 리터럴을 사용하려는 경우 `case (default):` 또는 다른 리터럴(`case 0:` 또는 `case null:`)을 적절하게 사용하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultInSwitch_Title">
-        <source>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</source>
-        <target state="translated">`case default:` 대신 기본 switch 레이블(`default:`)을 사용할까요? 기본 리터럴을 사용하려는 경우 `case (default):` 또는 다른 리터럴(`case 0:` 또는 `case null:`)을 적절하게 사용하세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_VoidInTuple">
         <source>A tuple may not contain a value of type 'void'.</source>
         <target state="translated">튜플에 'void' 형식의 값을 포함할 수 없습니다.</target>
@@ -8588,6 +8578,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">':'은 보간을 끝내므로 조건식을 문자열 보간에 직접 사용할 수 없습니다. 조건식을 괄호를 묶으세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInSwitch">
+        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
+        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInPattern">
+        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
+        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
         <note />
       </trans-unit>
     </body>

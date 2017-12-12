@@ -823,6 +823,11 @@
         <target state="translated">Die gemeldete Diagnose "{0}" enthält einen Quellspeicherort "{1}" in der Datei "{2}", der sich außerhalb der angegebenen Datei befindet.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExceptionEnablingMulticoreJit">
+        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
+        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

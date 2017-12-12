@@ -823,6 +823,11 @@
         <target state="translated">Zgłoszone dane diagnostyczne „{0}” mają lokalizację źródłową „{1}” w pliku „{2}”, który jest spoza podanego pliku.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExceptionEnablingMulticoreJit">
+        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
+        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

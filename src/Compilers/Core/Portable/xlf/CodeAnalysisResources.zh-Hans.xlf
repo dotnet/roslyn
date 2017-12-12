@@ -823,6 +823,11 @@
         <target state="translated">报告的诊断“{0}”的源位置“{1}”位于文件“{2}”中，后者不是给定文件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExceptionEnablingMulticoreJit">
+        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
+        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

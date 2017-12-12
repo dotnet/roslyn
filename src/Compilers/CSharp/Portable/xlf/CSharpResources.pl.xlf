@@ -8414,16 +8414,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Nazwa elementu krotki „{0}” została wywnioskowana. Użyj wersji języka {1} lub nowszej, aby uzyskać dostęp do elementu według jego wywnioskowanej nazwy.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultInSwitch">
-        <source>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</source>
-        <target state="translated">Czy chodziło Ci o użycie domyślnej etykiety switch („default:”) zamiast „case default:”? Jeśli rzeczywiście chcesz użyć domyślnego literału, rozważ użycie literału „case (default):” lub innego literału („case 0:” bądź „case null:”).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultInSwitch_Title">
-        <source>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</source>
-        <target state="translated">Czy chodziło Ci o użycie domyślnej etykiety switch („default:”) zamiast „case default:”? Jeśli rzeczywiście chcesz użyć domyślnego literału, rozważ użycie literału „case (default):” lub innego literału („case 0:” bądź „case null:”).</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_VoidInTuple">
         <source>A tuple may not contain a value of type 'void'.</source>
         <target state="translated">Spójna kolekcja nie może zawierać wartości typu „void”.</target>
@@ -8567,6 +8557,16 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">Wyrażenie warunkowe nie może być używane bezpośrednio w interpolacji ciągu, ponieważ znak „:” kończy interpolację. Umieść wyrażenie warunkowe w nawiasie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInSwitch">
+        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
+        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInPattern">
+        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
+        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
         <note />
       </trans-unit>
     </body>

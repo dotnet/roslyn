@@ -823,6 +823,11 @@
         <target state="translated">보고된 진단 '{0}'의 소스 위치 '{1}'이(가) 지정된 파일의 범위 밖인 파일 '{2}'에 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExceptionEnablingMulticoreJit">
+        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
+        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
