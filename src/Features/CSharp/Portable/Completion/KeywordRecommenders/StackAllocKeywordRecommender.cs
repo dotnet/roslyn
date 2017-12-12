@@ -18,22 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var node = context.TargetToken.Parent;
 
-            // When in an empty string
+            // At start of a file
             if (node == null)
             {
                 return false;
             }
 
             // After a cast or parenthesized expression: (Span<int>)stackalloc
-            if (context.TargetToken.IsKind(SyntaxKind.CloseParenToken) &&
-                (node.IsKind(SyntaxKind.ParenthesizedExpression) || node.IsKind(SyntaxKind.CastExpression)))
+            if (context.TargetToken.IsAfterPossibleCast())
             {
                 node = node.Parent;
             }
 
             // Inside a conditional expression: value ? stackalloc : stackalloc
             while (node.IsKind(SyntaxKind.ConditionalExpression) &&
-                (context.TargetToken.IsKind(SyntaxKind.CloseParenToken) || context.TargetToken.IsKind(SyntaxKind.QuestionToken) || context.TargetToken.IsKind(SyntaxKind.ColonToken)))
+                (context.TargetToken.IsKind(SyntaxKind.QuestionToken, SyntaxKind.ColonToken) || context.TargetToken.IsAfterPossibleCast()))
             {
                 node = node.Parent;
             }
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     {
                         node = node.Parent;
 
-                        return node.IsKind(SyntaxKind.LocalDeclarationStatement) || node.IsKind(SyntaxKind.ForStatement);
+                        return node.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement);
                     }
                 }
             }
