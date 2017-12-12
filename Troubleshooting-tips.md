@@ -46,3 +46,7 @@ To run a specific test, here's an example of command that can be used and adjust
 `"C:\Program Files\dotnet\dotnet.exe" exec --depsfile D:\repos\roslyn\Binaries\Debug\UnitTests\CSharpCompilerSymbolTest\netcoreapp2.0\win7-x64\publish\Roslyn.Compilers.CSharp.Symbol.UnitTests.deps.json --runtimeconfig D:\repos\roslyn\Binaries\Debug\UnitTests\CSharpCompilerSymbolTest\netcoreapp2.0\win7-x64\publish\Roslyn.Compilers.CSharp.Symbol.UnitTests.runtimeconfig.json C:\Users\jcouv\.nuget\packages\dotnet-xunit\2.3.0-beta4-build3742\tools\netcoreapp2.0\xunit.console.dll D:\repos\roslyn\Binaries\Debug\UnitTests\CSharpCompilerSymbolTest\netcoreapp2.0\win7-x64\publish\Roslyn.Compilers.CSharp.Symbol.UnitTests.dll -xml D:\repos\roslyn\Binaries\Debug\UnitTests\xUnitResults\Roslyn.Compilers.CSharp.Symbol.UnitTests.xml -method "*.MyTestMethod"`.
 
 Such test can be debugged by opening `C:\Program Files\dotnet\dotnet.exe` as a project in Visual Studio, then configuring the debug arguments and engine (pick CoreCLR).
+
+
+# Investigating squiggles in the IDE
+All the Roslyn diagnostics that appear as IDE squiggles are channeled through the `AnalyzeXYZ`methods in [CompilationAnalyzer](http://source.roslyn.io/#Microsoft.CodeAnalysis/DiagnosticAnalyzer/CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs).
