@@ -22,7 +22,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0" VerticalAlignment="Center" Content="Syntax Tree" FontWeight="Bold"/>
-                <Button Grid.Column="2" Name="legendButton" Click="LegendButton_Click" Visibility="Hidden" Margin="3" Padding="2" >
+                <Button Grid.Column="2" Name="legendButton" Click="LegendButton_Click" AutomationProperties.Name="Legend" Visibility="Hidden" Margin="3" Padding="2" >
                     <StackPanel>
                         <TextBlock>Legend</TextBlock>
                         <Popup StaysOpen="False" Name="legendPopup">
