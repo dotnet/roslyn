@@ -1542,6 +1542,10 @@ namespace Microsoft.CodeAnalysis
             Machine machine;
             switch (platform)
             {
+                case Platform.Arm64:
+                    machine = (Machine)0xAA64;
+                    break;
+
                 case Platform.Arm:
                     machine = Machine.ArmThumb2;
                     break;
