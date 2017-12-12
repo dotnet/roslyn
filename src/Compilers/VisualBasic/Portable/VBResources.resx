@@ -5199,7 +5199,7 @@
                                   Specify a mapping for source path names output by
                                   the compiler.
 /platform:&lt;string&gt;                Limit which platforms this code can run on; 
-                                  must be x86, x64, Itanium, arm,
+                                  must be x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred or anycpu (default).
 /preferreduilang                  Specify the preferred output language name.
 /sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory

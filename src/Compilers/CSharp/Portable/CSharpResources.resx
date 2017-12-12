@@ -1473,7 +1473,6 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <!-- We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget) -->
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
@@ -2919,7 +2918,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>A namespace declaration cannot have modifiers or attributes</value>
   </data>
   <data name="ERR_BadPlatformType" xml:space="preserve">
-    <value>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</value>
+    <value>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</value>
   </data>
   <data name="ERR_ThisStructNotInAnonMeth" xml:space="preserve">
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
@@ -4468,7 +4467,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /doc:&lt;file&gt;                   XML Documentation file to generate
  /refout:&lt;file&gt;                Reference assembly output to generate
  /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred, or
                                anycpu. The default is anycpu.
 
                         - INPUT FILES -
