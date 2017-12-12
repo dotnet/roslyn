@@ -92,7 +92,11 @@ namespace Roslyn.Test.Utilities
                 {
                     rsa.ImportParameters(publicKey);
                     var reversedSignature = signature.ToArray();
+
+                    // Unknown why the signature is reversed, but this matches the behavior of the CLR
+                    // signing implementation.
                     Array.Reverse(reversedSignature);
+
                     if (!rsa.VerifyHash(hash, reversedSignature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
                     {
                         return false;
