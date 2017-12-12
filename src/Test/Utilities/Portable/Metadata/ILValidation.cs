@@ -20,7 +20,11 @@ namespace Roslyn.Test.Utilities
 {
     public static class ILValidation
     {
-        public static bool IsStreamSigned(Stream moduleContents)
+        /// <summary>
+        /// Validates that the given stream is marked as signed, the signature matches
+        /// the public key, and the header checksum is correct.
+        /// </summary>
+        public static bool IsStreamFullSigned(Stream moduleContents)
         {
             moduleContents.Position = 0;
 
@@ -33,9 +37,6 @@ namespace Roslyn.Test.Utilities
 
                 bool is32bit = peHeaders.PEHeader.Magic == PEMagic.PE32;
                 const int SectionHeaderSize = 40;
-                int peHeadersSize = peHeaders.PEHeaderStartOffset
-                    + PEHeaderSize(is32bit)
-                    + SectionHeaderSize * peHeaders.SectionHeaders.Length;
 
                 if (CorFlags.StrongNameSigned != (flags & CorFlags.StrongNameSigned))
                 {
@@ -45,14 +46,14 @@ namespace Roslyn.Test.Utilities
                 var snDirectory = peReader.PEHeaders.CorHeader.StrongNameSignatureDirectory;
                 int rva = snDirectory.RelativeVirtualAddress;
                 int size = snDirectory.Size;
-                var signature = peReader.GetSectionData(rva).GetContent(0, size);
-                if (!peHeaders.TryGetDirectoryOffset(snDirectory, out var snOffset))
+                ImmutableArray<byte> signature = peReader.GetSectionData(rva).GetContent(0, size);
+                if (!peHeaders.TryGetDirectoryOffset(snDirectory, out int snOffset))
                 {
                     return false;
                 }
 
                 moduleContents.Position = 0;
-                int peSize = (int)moduleContents.Length;
+                int peSize = checked((int)moduleContents.Length);
                 var peImage = new BlobBuilder(peSize);
                 if (peSize != peImage.TryWriteBytes(moduleContents, peSize))
                 {
@@ -63,8 +64,8 @@ namespace Roslyn.Test.Utilities
 
                 const int ChecksumOffset = 0x40;
                 uint expectedChecksum = peHeaders.PEHeader.CheckSum;
-                var checksumBlob = MakeBlob(buffer, peHeaders.PEHeaderStartOffset + ChecksumOffset, sizeof(uint));
-                var signatureBlob = MakeBlob(buffer, snOffset, size);
+                Blob checksumBlob = MakeBlob(buffer, peHeaders.PEHeaderStartOffset + ChecksumOffset, sizeof(uint));
+                Blob signatureBlob = MakeBlob(buffer, snOffset, size);
 
                 if (expectedChecksum != PeWriter.CalculateChecksum(peImage, checksumBlob))
                 {
@@ -78,8 +79,11 @@ namespace Roslyn.Test.Utilities
                 // Signature is calculated with checksum zeroed
                 new BlobWriter(checksumBlob).WriteUInt32(0);
 
-                var content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
-                var hash = SigningUtilities.CalculateSha1(content);
+                int peHeadersSize = peHeaders.PEHeaderStartOffset
+                    + PEHeaderSize(is32bit)
+                    + SectionHeaderSize * peHeaders.SectionHeaders.Length;
+                IEnumerable<Blob> content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
+                byte[] hash = SigningUtilities.CalculateSha1(content);
 
                 var publicKey = CryptoBlobParser.ToRSAParameters(TestResources.General.snKey,
                     includePrivateParameters: false);

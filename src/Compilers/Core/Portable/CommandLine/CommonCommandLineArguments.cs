@@ -282,12 +282,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
-        internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
+        internal StrongNameProvider GetStrongNameProvider(
+            StrongNameFileSystem fileSystem,
+            string tempDirectory)
         {
             bool fallback = ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
                 CompilationOptionsCore.CryptoKeyContainer != null;
             return fallback ?
-                new DesktopStrongNameProvider(KeyFileSearchPaths, null, fileSystem) :
+                new DesktopStrongNameProvider(KeyFileSearchPaths, tempDirectory, fileSystem) :
                 (StrongNameProvider)new PortableStrongNameProvider(KeyFileSearchPaths, fileSystem);
         }
 

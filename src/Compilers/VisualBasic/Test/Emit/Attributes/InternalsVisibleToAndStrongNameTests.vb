@@ -1142,7 +1142,7 @@ End Class
         Dim outStrm = New MemoryStream()
         Dim emitResult = other.Emit(outStrm)
         Assert.True(emitResult.Success)
-        Assert.True(ILValidation.IsStreamSigned(outStrm))
+        Assert.True(ILValidation.IsStreamFullSigned(outStrm))
     End Sub
 
     <WorkItem(545720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")>
@@ -1304,7 +1304,7 @@ End Class
 
     Private Shared Sub AssertFileIsSigned(file As TempFile)
         Using peStream = New FileStream(file.Path, FileMode.Open)
-            Assert.True(ILValidation.IsStreamSigned(peStream))
+            Assert.True(ILValidation.IsStreamFullSigned(peStream))
         End Using
     End Sub
 

@@ -231,13 +231,7 @@ namespace Microsoft.Cci
             if (privateKeyOpt != null)
             {
                 strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
-
-                // Checksum fixup, workaround for https://github.com/dotnet/corefx/issues/25829
-                // Since the checksum is calculated before signing in the PEBuilder,
-                // we need to redo the calculation and write in the correct checksum
-                var checksumBlob = getChecksumBlob(peBuilder);
-                var checksum = CalculateChecksum(peBlob, checksumBlob);
-                new BlobWriter(checksumBlob).WriteUInt32(checksum);
+                FixupChecksum(peBuilder, peBlob);
             }
 
             try
@@ -250,6 +244,23 @@ namespace Microsoft.Cci
             }
 
             return true;
+        }
+
+        private static void FixupChecksum(ExtendedPEBuilder peBuilder, BlobBuilder peBlob)
+        {
+            // Checksum fixup, workaround for https://github.com/dotnet/corefx/issues/25829
+            // Since the checksum is calculated before signing in the PEBuilder,
+            // we need to redo the calculation and write in the correct checksum
+            Blob checksumBlob = getChecksumBlob(peBuilder);
+
+            ArraySegment<byte> checksumSegment = checksumBlob.GetBytes();
+            uint oldChecksum = BitConverter.ToUInt32(checksumSegment.Array, checksumSegment.Offset);
+            uint newChecksum = CalculateChecksum(peBlob, checksumBlob);
+            new BlobWriter(checksumBlob).WriteUInt32(newChecksum);
+
+            // If this assert fires, the above bug has been fixed and this workaround should
+            // be removed
+            Debug.Assert(oldChecksum != newChecksum);
 
             Blob getChecksumBlob(PEBuilder builder)
                 => (Blob)typeof(PEBuilder).GetRuntimeFields()

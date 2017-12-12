@@ -31,11 +31,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
-                foreach (var blob in content)
-                {
-                    hash.AppendData(blob.GetBytes());
-                }
-
+                hash.AppendData(content);
                 return hash.GetHashAndReset();
             }
         }
