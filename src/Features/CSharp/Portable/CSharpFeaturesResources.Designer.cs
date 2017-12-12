@@ -71,20 +71,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Add parentheses ähnelt.
+        /// </summary>
+        internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {
+            get {
+                return ResourceManager.GetString("Add_parentheses_around_conditional_expression_in_interpolated_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Add &apos;this.&apos; ähnelt.
         /// </summary>
         internal static string Add_this {
             get {
                 return ResourceManager.GetString("Add_this", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Add parenthesis ähnelt.
-        /// </summary>
-        internal static string AddParenthesisAroundConditionalExpressionInInterpolatedString {
-            get {
-                return ResourceManager.GetString("AddParenthesisAroundConditionalExpressionInInterpolatedString", resourceCulture);
             }
         }
         

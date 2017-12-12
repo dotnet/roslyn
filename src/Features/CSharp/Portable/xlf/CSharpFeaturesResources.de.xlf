@@ -637,9 +637,9 @@
         <target state="new">Use 'is null' check</target>
         <note />
       </trans-unit>
-      <trans-unit id="AddParenthesisAroundConditionalExpressionInInterpolatedString">
-        <source>Add parenthesis</source>
-        <target state="new">Add parenthesis</target>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="new">Add parentheses</target>
         <note />
       </trans-unit>
     </body>
