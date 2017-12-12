@@ -453,10 +453,12 @@ Namespace Microsoft.CodeAnalysis.Operations
                 End If
             End If
 
-            Return (New Lazy(Of IOperation)(Function() CreateConversionOperand(boundOperand)),
-                    conversion,
-                    IsDelegateCreation:=IsDelegateCreation(boundConversion.Syntax, boundOperand, boundConversion.Type))
-
+            If IsDelegateCreation(boundConversion.Syntax, boundOperand, boundConversion.Type) Then
+                Return (New Lazy(Of IOperation)(Function() CreateDelegateCreationConversionOperand(boundOperand)),
+                    conversion, IsDelegateCreation:=True)
+            Else
+                Return (New Lazy(Of IOperation)(Function() Create(boundOperand)), conversion, IsDelegateCreation:=False)
+            End If
         End Function
 
         Private Function TryGetAdjustedConversionInfo(topLevelConversion As BoundConversionOrCast, boundOperand As BoundExpression
@@ -493,7 +495,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                    topLevelConversion.Type = boundOperand.Type AndAlso
                    IsDelegateCreation(topLevelConversion.Syntax, boundOperand, boundOperand.Type) Then
 
-                Return (CreateConversionOperand(boundOperand), Conversion:=Nothing, IsDelegateCreation:=True)
+                Return (CreateDelegateCreationConversionOperand(boundOperand), Conversion:=Nothing, IsDelegateCreation:=True)
             End If
 
             Return Nothing
@@ -511,7 +513,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
         End Function
 
-        Private Function CreateConversionOperand(operand As BoundExpression) As IOperation
+        Private Function CreateDelegateCreationConversionOperand(operand As BoundExpression) As IOperation
             If operand.Kind = BoundKind.DelegateCreationExpression Then
                 ' If the child is a BoundDelegateCreationExpression, we don't want to generate a nested IDelegateCreationExpression.
                 ' So, the operand for the conversion will be the child of the BoundDelegateCreationExpression.
