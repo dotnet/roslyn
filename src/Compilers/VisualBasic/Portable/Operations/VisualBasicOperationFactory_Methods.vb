@@ -482,6 +482,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim nestedOperand As BoundExpression = GetConversionOperand(nestedConversion)
 
                 If nestedConversion.Syntax Is nestedOperand.Syntax AndAlso
+                   nestedConversion.Type <> nestedOperand.Type AndAlso
                    nestedConversion.ExplicitCastInCode AndAlso
                    topLevelConversion.Type = nestedConversion.Type Then
 
