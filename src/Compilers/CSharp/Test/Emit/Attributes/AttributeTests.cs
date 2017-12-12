@@ -294,10 +294,42 @@ public class RefersToLibAttribute : C
             var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
 
-            // call GetAttributes first to force decoding of attributes, but no visible effect (caching of GetForwardedTypes behaves the same)
             var newLibComp3 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp3.SourceAssembly.GetAttributes();
             newLibComp3.VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// Looking up C explicitly after calling GetAttributes will cause <see cref="SourceAssemblySymbol.GetForwardedTypes"/> to use the cached attributes, rather that do partial binding
+        /// </summary>
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithCheckAttributes()
+        {
+            var cDefinition_cs = @"public class C { }";
+            var derivedDefinition_cs = @"public class Derived : C { }";
+
+            var typeForward_cs = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+";
+
+            var origLibComp = CreateStandardCompilation(cDefinition_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithDerivedAndReferenceToLib = CreateStandardCompilation(typeForward_cs + derivedDefinition_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithDerivedAndReferenceToLib .VerifyDiagnostics();
+
+            var compWithC = CreateStandardCompilation(cDefinition_cs, assemblyName: "new");
+            compWithC.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(typeForward_cs, references: new[] { compWithDerivedAndReferenceToLib.EmitToImageReference(), compWithC.EmitToImageReference() }, assemblyName: "lib");
+            var attribute = newLibComp.SourceAssembly.GetAttributes().Single(); // GetAttributes binds all attributes
+            Assert.Equal("System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(C))", attribute.ToString());
+
+            var derived = (NamedTypeSymbol)newLibComp.GetMember("Derived");
+            var c = derived.BaseType; // get C
+            Assert.Equal("C", c.ToTestDisplayString());
+            Assert.False(c.IsErrorType());
         }
 
         [Fact]
