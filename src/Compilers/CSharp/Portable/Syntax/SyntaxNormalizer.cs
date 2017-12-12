@@ -205,6 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return LineBreaksAfterCloseBrace(currentToken, nextToken);
 
                 case SyntaxKind.CloseParenToken:
+                    // Note: the `where` case handles constraints on method declarations
+                    //  and also `where` clauses (consistently with other LINQ cases below)
                     return (((currentToken.Parent is StatementSyntax) && nextToken.Parent != currentToken.Parent)
                         || nextToken.Kind() == SyntaxKind.OpenBraceToken
                         || nextToken.Kind() == SyntaxKind.WhereKeyword) ? 1 : 0;
