@@ -386,8 +386,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                     if (ShouldValidateRange(allowedIds))
                                     {
                                         var suffix = ruleId.Substring(allowedIds.prefix.Length);
-                                        int ruleIdInt;
-                                        if (int.TryParse(suffix, out ruleIdInt) &&
+                                        if (int.TryParse(suffix, out int ruleIdInt) &&
                                             ruleIdInt >= allowedIds.start &&
                                             ruleIdInt <= allowedIds.end)
                                         {
