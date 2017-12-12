@@ -3098,12 +3098,12 @@ Imports System.Linq.Expressions
 
 Public Class C
     Public Sub M1()
-        Dim a = DirectCast(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))'BIND:"DirectCast(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))"
+        Dim a = TryCast(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))'BIND:"TryCast(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))"
     End Sub
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))) (Syntax: 'DirectCast( ...  Boolean)))')
+IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))) (Syntax: 'TryCast(((F ...  Boolean)))')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Function( ...  i) i < 5))')
@@ -3130,7 +3130,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
 
             Dim expectedDiagnostics = String.Empty
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
