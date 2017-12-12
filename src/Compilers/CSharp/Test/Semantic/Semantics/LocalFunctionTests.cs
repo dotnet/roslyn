@@ -3331,5 +3331,43 @@ class C
                 Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L5(1, 3, val)").WithArguments("L5").WithLocation(26, 9)
                 );
         }
+
+        [Fact]
+        [WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")]
+        public void GetDeclaredSymbolOnTypeParameter()
+        {
+            var src = @"
+class C<T>
+{
+    void M<U>()
+    {
+        void LocalFunction<T, U, V>(T p1, U p2, V p3)
+        {
+        }
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var localDecl = (LocalFunctionStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement).AsNode();
+
+            var typeParameters = localDecl.TypeParameterList.Parameters;
+            var parameters = localDecl.ParameterList.Parameters;
+            verifyTypeParameterAndParameter(typeParameters[0], parameters[0], "T");
+            verifyTypeParameterAndParameter(typeParameters[1], parameters[1], "U");
+            verifyTypeParameterAndParameter(typeParameters[2], parameters[2], "V");
+
+            void verifyTypeParameterAndParameter(TypeParameterSyntax typeParameter, ParameterSyntax parameter, string expected)
+            {
+                var symbol = model.GetDeclaredSymbol(typeParameter);
+                Assert.Equal(expected, symbol.ToTestDisplayString());
+
+                var parameterSymbol = model.GetDeclaredSymbol(parameter);
+                Assert.Equal(expected, parameterSymbol.Type.ToTestDisplayString());
+                Assert.True(symbol == parameterSymbol.Type);
+            }
+        }
     }
 }
