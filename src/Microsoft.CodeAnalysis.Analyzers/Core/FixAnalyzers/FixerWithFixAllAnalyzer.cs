@@ -3,12 +3,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 {
@@ -17,15 +16,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
     /// This enables the <see cref="FixAllProvider"/> to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.
     /// This analyzer catches violations of this requirement in the code actions registered by a <see cref="CodeFixProvider"/> that supports <see cref="FixAllProvider"/>.
     /// </summary>
-    public abstract class FixerWithFixAllAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer
-        where TLanguageKindEnum : struct
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class FixerWithFixAllAnalyzer : DiagnosticAnalyzer
     {
-        private const string CodeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
         private const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
-        private const string GetFixAllProviderMethodName = "GetFixAllProvider";
         private const string CreateMethodName = "Create";
         private const string EquivalenceKeyPropertyName = "EquivalenceKey";
         private const string EquivalenceKeyParameterName = "equivalenceKey";
+        internal const string CodeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
+        internal const string GetFixAllProviderMethodName = "GetFixAllProvider";
 
         private static readonly LocalizableString s_localizableCreateCodeActionWithEquivalenceKeyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableCreateCodeActionWithEquivalenceKeyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
@@ -33,7 +32,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         private static readonly LocalizableString s_localizableOverrideCodeActionEquivalenceKeyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableOverrideCodeActionEquivalenceKeyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
+        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+
         private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CodeActionNeedsEquivalenceKeyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor CreateCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
             DiagnosticIds.CreateCodeActionWithEquivalenceKeyRuleId,
@@ -55,8 +58,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new DiagnosticDescriptor(
+            DiagnosticIds.OverrideGetFixAllProviderRuleId,
+            s_localizableOverrideGetFixAllProviderTitle,
+            s_localizableOverrideGetFixAllProviderMessage,
+            "Correctness",
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            description: s_localizableOverrideGetFixAllProviderDescription,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule);
+            ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule, OverrideGetFixAllProviderRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -103,27 +116,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            CompilationAnalyzer compilationAnalyzer = GetCompilationAnalyzer(codeFixProviderSymbol, getFixAllProviderMethod,
-                codeActionSymbol, ImmutableHashSet.CreateRange(createSymbols), equivalenceKeyProperty);
+            CompilationAnalyzer compilationAnalyzer = new CompilationAnalyzer(codeFixProviderSymbol, codeActionSymbol, context.Compilation.Assembly, createMethods: ImmutableHashSet.CreateRange(createSymbols));
 
             context.RegisterSymbolAction(compilationAnalyzer.AnalyzeNamedTypeSymbol, SymbolKind.NamedType);
-            context.RegisterCodeBlockStartAction<TLanguageKindEnum>(compilationAnalyzer.CodeBlockStart);
+            context.RegisterOperationBlockStartAction(compilationAnalyzer.OperationBlockStart);
             context.RegisterCompilationEndAction(compilationAnalyzer.CompilationEnd);
         }
 
-        protected abstract CompilationAnalyzer GetCompilationAnalyzer(
-            INamedTypeSymbol codeFixProviderSymbol,
-            IMethodSymbol getFixAllProvider,
-            INamedTypeSymbol codeActionSymbol,
-            ImmutableHashSet<IMethodSymbol> createMethods,
-            IPropertySymbol equivalenceKeyProperty);
-
-        protected abstract class CompilationAnalyzer
+        private sealed class CompilationAnalyzer
         {
             private readonly INamedTypeSymbol _codeFixProviderSymbol;
-
             private readonly INamedTypeSymbol _codeActionSymbol;
             private readonly ImmutableHashSet<IMethodSymbol> _createMethods;
+            private readonly IAssemblySymbol _sourceAssembly;
 
             /// <summary>
             /// Set of all non-abstract sub-types of <see cref="CodeFixProvider"/> in this compilation.
@@ -136,28 +141,24 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             private HashSet<INamedTypeSymbol> _codeActionsWithEquivalenceKey;
 
             /// <summary>
-            /// Map of invocations from code fix providers to invocation nodes (and symbols) that create a code action using the static "Create" methods on <see cref="CodeAction"/>.
+            /// Map of invocations from code fix providers to invocations that create a code action using the static "Create" methods on <see cref="CodeAction"/>.
             /// </summary>
-            private Dictionary<INamedTypeSymbol, HashSet<NodeAndSymbol>> _codeActionCreateInvocations;
+            private Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>> _codeActionCreateInvocations;
 
             /// <summary>
-            /// Map of invocations from code fix providers to object creation nodes (and symbols) that create a code action using sub-types of <see cref="CodeAction"/>.
+            /// Map of invocations from code fix providers to object creations that create a code action using sub-types of <see cref="CodeAction"/>.
             /// </summary>
-            private Dictionary<INamedTypeSymbol, HashSet<NodeAndSymbol>> _codeActionObjectCreations;
+            private Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations;
 
-            private struct NodeAndSymbol
-            {
-                public SyntaxNode Node { get; set; }
-                public IMethodSymbol Symbol { get; set; }
-            }
-
-            protected CompilationAnalyzer(
+            public CompilationAnalyzer(
                 INamedTypeSymbol codeFixProviderSymbol,
                 INamedTypeSymbol codeActionSymbol,
+                IAssemblySymbol sourceAssembly,
                 ImmutableHashSet<IMethodSymbol> createMethods)
             {
                 _codeFixProviderSymbol = codeFixProviderSymbol;
                 _codeActionSymbol = codeActionSymbol;
+                _sourceAssembly = sourceAssembly;
                 _createMethods = createMethods;
 
                 _codeFixProviders = null;
@@ -169,44 +170,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             internal void AnalyzeNamedTypeSymbol(SymbolAnalysisContext context)
             {
                 var namedType = (INamedTypeSymbol)context.Symbol;
-
-                if (namedType.IsAbstract)
-                {
-                    return;
-                }
-
                 if (namedType.DerivesFrom(_codeFixProviderSymbol))
                 {
                     _codeFixProviders = _codeFixProviders ?? new HashSet<INamedTypeSymbol>();
                     _codeFixProviders.Add(namedType);
                 }
-                else if (namedType.DerivesFrom(_codeActionSymbol))
+                else if (IsCodeActionWithOverriddenEquivlanceKeyCore(namedType))
                 {
-                    IPropertySymbol equivalenceKeyProperty = namedType.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().SingleOrDefault();
-                    if (equivalenceKeyProperty != null && equivalenceKeyProperty.IsOverride)
-                    {
-                        _codeActionsWithEquivalenceKey = _codeActionsWithEquivalenceKey ?? new HashSet<INamedTypeSymbol>();
-                        _codeActionsWithEquivalenceKey.Add(namedType);
-                    }
+                    _codeActionsWithEquivalenceKey = _codeActionsWithEquivalenceKey ?? new HashSet<INamedTypeSymbol>();
+                    _codeActionsWithEquivalenceKey.Add(namedType);
                 }
             }
 
-            protected abstract TLanguageKindEnum GetInvocationKind { get; }
-            protected abstract TLanguageKindEnum GetObjectCreationKind { get; }
-            protected abstract bool HasNonNullArgumentForParameter(SyntaxNode invocation, IParameterSymbol parameter, int indexOfParameter, SemanticModel semanticModel, CancellationToken cancellationToken);
-
-            protected bool HasNullConstantValue(SyntaxNode expression, SemanticModel model, CancellationToken cancellationToken)
-            {
-                if (expression == null)
-                {
-                    return false;
-                }
-
-                Optional<object> constantValue = model.GetConstantValue(expression, cancellationToken);
-                return constantValue.HasValue && constantValue.Value == null;
-            }
-
-            internal void CodeBlockStart(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
+            internal void OperationBlockStart(OperationBlockStartAnalysisContext context)
             {
                 var method = context.OwningSymbol as IMethodSymbol;
                 if (method == null)
@@ -220,36 +196,40 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     return;
                 }
 
-                context.RegisterSyntaxNodeAction(invocationContext =>
+                context.RegisterOperationAction(operationContext =>
                 {
-                    if (invocationContext.SemanticModel.GetSymbolInfo(invocationContext.Node).Symbol is IMethodSymbol invocationSym && _createMethods.Contains(invocationSym))
+                    var invocation = (IInvocationOperation)operationContext.Operation;
+                    if (invocation.TargetMethod is IMethodSymbol invocationSym && _createMethods.Contains(invocationSym))
                     {
-                        _codeActionCreateInvocations = _codeActionCreateInvocations ?? new Dictionary<INamedTypeSymbol, HashSet<NodeAndSymbol>>();
-                        AddNodeAndSymbol(namedType, invocationContext.Node, invocationSym, _codeActionCreateInvocations);
+                        _codeActionCreateInvocations = _codeActionCreateInvocations ?? new Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>>();
+                        AddOperation(namedType, invocation, _codeActionCreateInvocations);
                     }
                 },
-                GetInvocationKind);
+                OperationKind.Invocation);
 
-                context.RegisterSyntaxNodeAction(objectCreationContext =>
+                context.RegisterOperationAction(operationContext =>
                 {
-                    if (objectCreationContext.SemanticModel.GetSymbolInfo(objectCreationContext.Node).Symbol is IMethodSymbol constructor && constructor.ContainingType.DerivesFrom(_codeActionSymbol))
+                    var objectCreation = (IObjectCreationOperation)operationContext.Operation;
+                    IMethodSymbol constructor = objectCreation.Constructor;
+                    if (constructor != null && constructor.ContainingType.DerivesFrom(_codeActionSymbol))
                     {
-                        _codeActionObjectCreations = _codeActionObjectCreations ?? new Dictionary<INamedTypeSymbol, HashSet<NodeAndSymbol>>();
-                        AddNodeAndSymbol(namedType, objectCreationContext.Node, constructor, _codeActionObjectCreations);
+                        _codeActionObjectCreations = _codeActionObjectCreations ?? new Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>>();
+                        AddOperation(namedType, objectCreation, _codeActionObjectCreations);
                     }
                 },
-                GetObjectCreationKind);
+                OperationKind.ObjectCreation);
             }
 
-            private static void AddNodeAndSymbol(INamedTypeSymbol namedType, SyntaxNode node, IMethodSymbol symbol, Dictionary<INamedTypeSymbol, HashSet<NodeAndSymbol>> map)
+            private static void AddOperation<T>(INamedTypeSymbol namedType, T operation, Dictionary<INamedTypeSymbol, HashSet<T>> map)
+                where T : IOperation
             {
-                if (!map.TryGetValue(namedType, out HashSet<NodeAndSymbol> value))
+                if (!map.TryGetValue(namedType, out HashSet<T> value))
                 {
-                    value = new HashSet<NodeAndSymbol>();
+                    value = new HashSet<T>();
                     map[namedType] = value;
                 }
 
-                value.Add(new NodeAndSymbol { Node = node, Symbol = symbol });
+                value.Add(operation);
             }
 
             internal void CompilationEnd(CompilationAnalysisContext context)
@@ -267,11 +247,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 }
 
                 // Analyze all fixers that have FixAll support.
+                // Otherwise, report RS1016 (OverrideGetFixAllProviderRule) to recommend adding FixAll support.
                 foreach (INamedTypeSymbol fixer in _codeFixProviders)
                 {
                     if (OverridesGetFixAllProvider(fixer))
                     {
                         AnalyzeFixerWithFixAll(fixer, context);
+                    }
+                    else if (fixer.BaseType != null && fixer.BaseType.Equals(_codeFixProviderSymbol))
+                    {
+                        Diagnostic diagnostic = Diagnostic.Create(OverrideGetFixAllProviderRule, fixer.Locations.First(), fixer.Name);
+                        context.ReportDiagnostic(diagnostic);
                     }
                 }
             }
@@ -282,8 +268,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 {
                     if (!type.Equals(_codeFixProviderSymbol))
                     {
-                        IMethodSymbol getFixAllProviderProperty = type.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().SingleOrDefault();
-                        if (getFixAllProviderProperty != null && getFixAllProviderProperty.IsOverride)
+                        IMethodSymbol getFixAllProviderMethod = type.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().SingleOrDefault();
+                        if (getFixAllProviderMethod != null && getFixAllProviderMethod.IsOverride)
                         {
                             return true;
                         }
@@ -297,14 +283,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             {
                 if (_codeActionCreateInvocations != null)
                 {
-                    if (_codeActionCreateInvocations.TryGetValue(fixer, out HashSet<NodeAndSymbol> nodeAndSymbolSet))
+                    if (_codeActionCreateInvocations.TryGetValue(fixer, out HashSet<IInvocationOperation> invocations))
                     {
-                        foreach (NodeAndSymbol nodeAndSymbol in nodeAndSymbolSet)
+                        foreach (IInvocationOperation invocation in invocations)
                         {
-                            SemanticModel model = context.Compilation.GetSemanticModel(nodeAndSymbol.Node.SyntaxTree);
-                            if (IsViolatingCodeActionCreateInvocation(nodeAndSymbol.Node, nodeAndSymbol.Symbol, model, context.CancellationToken))
+                            if (IsViolatingCodeActionCreateInvocation(invocation))
                             {
-                                Diagnostic diagnostic = Diagnostic.Create(CreateCodeActionEquivalenceKeyRule, nodeAndSymbol.Node.GetLocation(), EquivalenceKeyParameterName);
+                                Diagnostic diagnostic = Diagnostic.Create(CreateCodeActionEquivalenceKeyRule, invocation.Syntax.GetLocation(), EquivalenceKeyParameterName);
                                 context.ReportDiagnostic(diagnostic);
                             }
                         }
@@ -313,13 +298,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 if (_codeActionObjectCreations != null)
                 {
-                    if (_codeActionObjectCreations.TryGetValue(fixer, out HashSet<NodeAndSymbol> nodeAndSymbolSet))
+                    if (_codeActionObjectCreations.TryGetValue(fixer, out HashSet<IObjectCreationOperation> objectCreations))
                     {
-                        foreach (NodeAndSymbol nodeAndSymbol in nodeAndSymbolSet)
+                        foreach (IObjectCreationOperation objectCreation in objectCreations)
                         {
-                            if (IsViolatingCodeActionObjectCreation(nodeAndSymbol.Symbol))
+                            if (IsViolatingCodeActionObjectCreation(objectCreation))
                             {
-                                Diagnostic diagnostic = Diagnostic.Create(OverrideCodeActionEquivalenceKeyRule, nodeAndSymbol.Node.GetLocation(), nodeAndSymbol.Symbol.ContainingType, EquivalenceKeyPropertyName);
+                                Diagnostic diagnostic = Diagnostic.Create(OverrideCodeActionEquivalenceKeyRule, objectCreation.Syntax.GetLocation(), objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
                                 context.ReportDiagnostic(diagnostic);
                             }
                         }
@@ -327,22 +312,57 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 }
             }
 
-            private bool IsViolatingCodeActionCreateInvocation(SyntaxNode invocation, IMethodSymbol invocationSym, SemanticModel model, CancellationToken cancellationToken)
+            private bool IsViolatingCodeActionCreateInvocation(IInvocationOperation invocation)
             {
-                IParameterSymbol param = invocationSym.Parameters.SingleOrDefault(p => p.Name == EquivalenceKeyParameterName);
+                IParameterSymbol param = invocation.TargetMethod.Parameters.SingleOrDefault(p => p.Name == EquivalenceKeyParameterName);
                 if (param == null)
                 {
                     return true;
                 }
 
-                int index = invocationSym.Parameters.IndexOf(param);
-                return !HasNonNullArgumentForParameter(invocation, param, index, model, cancellationToken);
+                foreach (var argument in invocation.Arguments)
+                {
+                    if (argument.Parameter.Equals(param))
+                    {
+                        return argument.Value.ConstantValue.HasValue && argument.Value.ConstantValue.Value == null;
+                    }
+                }
+
+                return true;
             }
 
-            private bool IsViolatingCodeActionObjectCreation(IMethodSymbol constructor)
+            private bool IsViolatingCodeActionObjectCreation(IObjectCreationOperation objectCreation)
             {
-                return _codeActionsWithEquivalenceKey == null ||
-                    !constructor.ContainingType.GetBaseTypesAndThis().Any(_codeActionsWithEquivalenceKey.Contains);
+                return objectCreation.Constructor.ContainingType.GetBaseTypesAndThis().All(namedType => !IsCodeActionWithOverriddenEquivalenceKey(namedType));
+            }
+
+            private bool IsCodeActionWithOverriddenEquivlanceKeyCore(INamedTypeSymbol namedType)
+            {
+                if (!namedType.DerivesFrom(_codeActionSymbol))
+                {
+                    // Not a CodeAction.
+                    return false;
+                }
+
+                IPropertySymbol equivalenceKeyProperty = namedType.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().SingleOrDefault();
+                return equivalenceKeyProperty != null && equivalenceKeyProperty.IsOverride;
+            }
+
+            private bool IsCodeActionWithOverriddenEquivalenceKey(INamedTypeSymbol namedType)
+            {
+                if (namedType == null || namedType.Equals(_codeActionSymbol))
+                {
+                    return false;
+                }
+
+                // We are already tracking CodeActions with equivalence key in this compilation.
+                if (namedType.ContainingAssembly.Equals(_sourceAssembly))
+                {
+                    return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
+                }
+
+                // For types in different compilation, perfom the check.
+                return IsCodeActionWithOverriddenEquivlanceKeyCore(namedType);
             }
         }
     }

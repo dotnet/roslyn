@@ -37,7 +37,6 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                     {s_constraintTypesString, s_typeParameterSymbolFullyQualifiedName}
                 }.ToImmutableDictionary()
 
-        ' CA1823: AvoidUnusedPrivateFieldsAnalyzer 
         Private Const s_baseTypeString = "BaseType"
         Private Const s_interfacesString = "Interfaces"
         Private Const s_allInterfacesString = "AllInterfaces"

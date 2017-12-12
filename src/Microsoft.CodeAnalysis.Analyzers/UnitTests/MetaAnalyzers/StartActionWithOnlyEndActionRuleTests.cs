@@ -382,7 +382,7 @@ End Class
                     break;
 
                 default:
-                    throw new ArgumentException("Unsupported argument kind", "kind");
+                    throw new ArgumentException("Unsupported argument kind", nameof(kind));
             }
 
             string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage, parameterName, endActionName, statelessActionName, arg4);

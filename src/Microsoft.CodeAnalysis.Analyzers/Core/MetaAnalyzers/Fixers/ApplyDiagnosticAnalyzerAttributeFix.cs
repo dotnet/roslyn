@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         {
             var fix = new MyCodeAction(
                 codeFixTitle,
-                c => GetFix(context.Document, root, classDecl, generator, languages));
+                c => GetFix(context.Document, root, classDecl, generator, languages),
+                equivalenceKey: codeFixTitle);
             context.RegisterCodeFix(fix, context.Diagnostics);
         }
 
@@ -79,10 +80,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             return WellKnownFixAllProviders.BatchFixer;
         }
 
+        // Needed for Telemetry (https://github.com/dotnet/roslyn-analyzers/issues/192)
         private class MyCodeAction : DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }

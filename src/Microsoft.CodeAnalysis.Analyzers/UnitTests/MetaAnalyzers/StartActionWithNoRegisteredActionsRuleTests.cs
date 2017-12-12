@@ -541,7 +541,7 @@ End Class
                     break;
 
                 default:
-                    throw new ArgumentException("Unsupported action kind", "kind");
+                    throw new ArgumentException("Unsupported action kind", nameof(kind));
             }
 
             string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);

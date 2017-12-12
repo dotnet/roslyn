@@ -16,7 +16,6 @@
     <AnalyzerNupkgAssembly Include="Roslyn.Diagnostics.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Roslyn.Diagnostics.CSharp.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Roslyn.Diagnostics.VisualBasic.Analyzers.dll" />
-    <AnalyzerNupkgAssembly Include="Analyzer.Utilities.dll" />
 
     <AnalyzerNupkgFile Include="Roslyn.Diagnostics.Analyzers.props" />
     <AnalyzerNupkgFile Include="Roslyn.Diagnostics.CSharp.Analyzers.props" />
