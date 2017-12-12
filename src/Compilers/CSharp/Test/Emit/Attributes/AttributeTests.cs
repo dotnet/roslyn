@@ -287,10 +287,17 @@ public class RefersToLibAttribute : C
 
             var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
-            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
 
-            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
+
+            // call GetAttributes first to force decoding of attributes, but no visible effect (caching of GetForwardedTypes behaves the same)
+            var newLibComp3 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp3.SourceAssembly.GetAttributes();
+            newLibComp3.VerifyDiagnostics();
         }
 
         [Fact]
@@ -359,10 +366,12 @@ public class RefersToLibAttribute : Attribute
 
             var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
-            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
 
-            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
         }
 
         [Fact]
@@ -392,10 +401,12 @@ public class RefersToLibAttribute : C
 
             var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
-            var imageWithReferenceToLib = compWithReferenceToLib.EmitToImageReference();
 
-            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { imageWithReferenceToLib,  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
         }
 
         [Fact]
