@@ -6,6 +6,7 @@ set -e
 set -u
 
 build_configuration=${1:-Debug}
+runtime=${2:-dotnet}
 
 this_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${this_dir}"/build-utils.sh
@@ -15,9 +16,19 @@ binaries_path="${root_path}"/Binaries
 unittest_dir="${binaries_path}"/"${build_configuration}"/UnitTests
 log_dir="${binaries_path}"/"${build_configuration}"/xUnitResults
 nuget_dir="${HOME}"/.nuget/packages
-target_framework=netcoreapp2.0
 xunit_console_version="$(get_package_version dotnet-xunit)"
-xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/"${target_framework}"/xunit.console.dll
+
+if [[ "${runtime}" == "dotnet" ]]; then
+    target_framework=netcoreapp2.0
+    xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
+elif [[ "${runtime}" == "mono" ]]; then
+    source ${root_path}/build/scripts/obtain_mono.sh
+    target_framework=net461
+    xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/net452/xunit.console.exe
+else
+    echo "Unknown runtime: ${runtime}"
+    exit 1
+fi
 
 UNAME="$(uname)"
 if [ "$UNAME" == "Darwin" ]; then
@@ -45,15 +56,20 @@ do
     runtimeconfig_json="${file_name%.*}".runtimeconfig.json
 
     # If the user specifies a test on the command line, only run that one
-    # "${2:-}" => take second arg, empty string if unset (regex always matches if empty)
-    if [[ ! "${file_name}" =~ "${2:-}" ]]
+    # "${3:-}" => take second arg, empty string if unset (regex always matches if empty)
+    if [[ ! "${file_name}" =~ "${3:-}" ]]
     then
         echo "Skipping ${file_name}"
         continue
     fi
 
     echo Running "${file_name[@]}"
-    dotnet exec --depsfile "${deps_json}" --runtimeconfig "${runtimeconfig_json}" "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
+    if [[ "${runtime}" == "dotnet" ]]; then
+        runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
+    elif [[ "${runtime}" == "mono" ]]; then
+        runner=mono
+    fi
+    ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
     if [[ $? -ne 0 ]]; then
         echo Unit test failed
         exit 1

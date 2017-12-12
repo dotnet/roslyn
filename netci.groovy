@@ -133,6 +133,23 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
+// Ubuntu 16.04 mono
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_mono_debug", isPr)
+  def myJob = job(jobName) {
+    description("Ubuntu 16.04 mono tests")
+                  steps {
+                    shell("./build/scripts/cibuild.sh --debug --mono")
+                  }
+                }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "linux"
+  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
 // Mac
 commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
