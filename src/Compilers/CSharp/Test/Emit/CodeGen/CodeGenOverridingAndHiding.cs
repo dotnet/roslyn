@@ -3,11 +3,8 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2452,7 +2449,7 @@ public class Test
             // from assembly 'Dev10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
             // is overriding a method that is not visible from that assembly.
 
-            CompileAndVerify(outerCompilation, verify: false).VerifyIL("Test.Main", @"
+            CompileAndVerify(outerCompilation, verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       65 (0x41)
   .maxstack  4
@@ -3957,7 +3954,7 @@ class B : A
     }
 }
 ";
-            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromMetadata => module =>
             {
                 var globalNamespace = module.GlobalNamespace;
 
@@ -3984,14 +3981,13 @@ class B : A
                 Assert.Equal(ConstantValue.Null, parameterB.ExplicitDefaultConstantValue);
                 Assert.False(parameterB.IsOptional, "ParameterArray param cannot be optional");
 
-                if (isFromSource)
+                if (isFromMetadata)
                 {
-                    var srcModule = (SourceModuleSymbol)module;
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB, srcModule);
-                }
+                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
+                };
             };
 
-            var verifier = CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
+            var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
         }
 
         [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]

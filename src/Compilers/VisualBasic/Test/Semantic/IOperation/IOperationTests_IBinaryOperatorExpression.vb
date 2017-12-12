@@ -254,19 +254,27 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
     Local_3: r As System.Int32
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Variables: Local_1: x As System.Int32
-        Local_2: y As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
             Arguments(0)
             Initializer: 
               null
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim r As Integer')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r')
-      Variables: Local_1: r As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As Integer')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
+            Initializer: 
+              null
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
@@ -635,19 +643,27 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
     Local_3: r As System.Int32
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Variables: Local_1: x As System.Int32
-        Local_2: y As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
             Arguments(0)
             Initializer: 
               null
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim r As Integer')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r')
-      Variables: Local_1: r As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As Integer')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
+            Initializer: 
+              null
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
@@ -1166,10 +1182,15 @@ End Module]]>.Value
 IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Variables: Local_1: x As System.Int32
-        Local_2: y As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -1179,6 +1200,8 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x += y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x += y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1186,6 +1209,8 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x -= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x -= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1193,80 +1218,62 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x *= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x *= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x /= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'x /= y')
-                Left: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
-                Right: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
+              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x \= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x \= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x ^= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Power, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.Power, Checked) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'x ^= y')
-                Left: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
-                Right: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
+              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x &= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String, IsImplicit) (Syntax: 'x &= y')
-                Left: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
-                Right: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
+              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x <<= 2')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x <<= 2')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1274,6 +1281,8 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x >>= 3')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.RightShift, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x >>= 3')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1315,10 +1324,15 @@ End Module]]>.Value
 IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Variables: Local_1: x As System.Int32
-        Local_2: y As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -1328,6 +1342,8 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x += y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x += y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1335,6 +1351,8 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x -= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x -= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1342,80 +1360,62 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x *= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x *= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x /= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'x /= y')
-                Left: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
-                Right: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
+              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x \= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.IntegerDivide) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x \= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x ^= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Power) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.Power) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'x ^= y')
-                Left: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
-                Right: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
+              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x &= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Concatenate) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.Concatenate) (OperationKind.BinaryOperator, Type: System.String, IsImplicit) (Syntax: 'x &= y')
-                Left: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
-                Right: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
+              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x <<= 2')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x <<= 2')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1423,6 +1423,8 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x >>= 3')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x >>= 3')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1585,19 +1587,27 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
   Locals: Local_1: x As B2
     Local_2: y As B2
     Local_3: r As B2
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New B2()')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New B2()')
-      Variables: Local_1: x As B2
-        Local_2: y As B2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New B2()')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New B2()')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New B2()')
           IObjectCreationOperation (Constructor: Sub B2..ctor()) (OperationKind.ObjectCreation, Type: B2) (Syntax: 'New B2()')
             Arguments(0)
             Initializer: 
               null
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim r As B2')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r')
-      Variables: Local_1: r As B2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As B2')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As B2')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
+            Initializer: 
+              null
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')

@@ -44,6 +44,9 @@
     <file src="Exes/vbc/netcoreapp2.0/publish/vbc.runtimeconfig.json" target="tools/bincore" />
     <file src="$additionalFilesPath$/RunVbc" target="tools/bincore/RunVbc" />
     <file src="$additionalFilesPath$/RunVbc.cmd" target="tools/bincore" />
+    <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.dll" target="tools/bincore" />
+    <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.deps.json" target="tools/bincore" />
+    <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.runtimeconfig.json" target="tools/bincore" />
 
     <!-- References that are either not in the target framework or are a higher version -->
     <file src="Exes\csc\netcoreapp2.0\publish\System.*.dll" target="tools\bincore" />

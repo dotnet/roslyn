@@ -13,29 +13,24 @@ namespace Microsoft.CodeAnalysis.Operations
         None = 0x0,
 
         /// <summary>
-        /// Represents an <see cref="IDoLoopOperation"/> in C# or VB.
-        /// </summary>
-        Do = 0x1,
-
-        /// <summary>
         /// Represents an <see cref="IWhileLoopOperation"/> in C# or VB.
         /// </summary>
-        While = 0x2,
+        While = 0x1,
         
         /// <summary>
         /// Indicates an <see cref="IForLoopOperation"/> in C#.
         /// </summary>
-        For = 0x3,
+        For = 0x2,
         
         /// <summary>
         /// Indicates an <see cref="IForToLoopOperation"/> in VB.
         /// </summary>
-        ForTo = 0x4,
+        ForTo = 0x3,
         
         /// <summary>
         /// Indicates an <see cref="IForEachLoopOperation"/> in C# or VB.
         /// </summary>
-        ForEach = 0x5
+        ForEach = 0x4
     }
 }
 

@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             const string funcTypeMetadataName = "System.Func`1";
 
             // mscorlib contains this type, so we should be able to find it without looking in referenced assemblies.
-            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false);
+            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out var _);
             Assert.NotNull(funcType);
             Assert.NotEqual(TypeKind.Error, funcType.TypeKind);
             Assert.Equal(corlibAssembly, funcType.ContainingAssembly);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             // The compilation assembly references both mscorlib and System.Core, but finding
             // System.Func`1 in both isn't ambiguous because one forwards to the other.
-            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false));
+            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _));
         }
 
         /// <summary>
@@ -1473,7 +1473,7 @@ public class CF1
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             // Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify: false,
+            CompileAndVerify(appCompilation, verify: Verification.Fails,
                 symbolValidator: m =>
                 {
                     var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
@@ -1559,7 +1559,7 @@ public class CF1
         {
             var folder = Temp.CreateDirectory();
             var comp0 = CreateStandardCompilation(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
-            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: false).EmittedAssemblyData);
+            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: Verification.Skipped).EmittedAssemblyData);
             var ref0 = asm0.GetReference();
 
             var comp1 = CreateStandardCompilation(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");

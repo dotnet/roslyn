@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-        private readonly IEditAndContinueWorkspaceService _editAndContinueWorkspaceService;
+        private readonly IDebuggingWorkspaceService _debuggingWorkspaceService;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Solution _baseSolution;
         private readonly Document _triggerDocument;
@@ -134,8 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _baseSolution = _triggerDocument.Project.Solution;
             this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
-            _editAndContinueWorkspaceService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
-            _editAndContinueWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
+            _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
+            _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
 
             InitializeOpenBuffers(triggerSpan);
         }
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void EndRenameSession()
         {
-            _editAndContinueWorkspaceService.BeforeDebuggingStateChanged -= OnBeforeDebuggingStateChanged;
+            _debuggingWorkspaceService.BeforeDebuggingStateChanged -= OnBeforeDebuggingStateChanged;
             CancelAllOpenDocumentTrackingTasks();
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
             _inlineRenameSessionDurationLogBlock.Dispose();

@@ -27,7 +27,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Sy
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.String()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -54,7 +54,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'New M() {}')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -86,7 +86,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -117,7 +117,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -153,7 +153,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -187,7 +187,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'DirectCast( ... n, Integer)')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -211,7 +211,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Sy
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New String( ... ring.Empty}')
   Initializer: 
-    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.String()) (Syntax: '{String.Empty}')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{String.Empty}')
       Element Values(1):
           IFieldReferenceOperation: System.String.Empty As System.String (Static) (OperationKind.FieldReference, Type: System.String) (Syntax: 'String.Empty')
             Instance Receiver: 
@@ -241,7 +241,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
-    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{New C, Nothing}')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{New C, Nothing}')
       Element Values(2):
           IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C')
             Arguments(0)
@@ -276,7 +276,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syn
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
   Initializer: 
-    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: C(), IsInvalid) (Syntax: '{New C}')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{New C}')
       Element Values(1):
           IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'New C')
             Arguments(0)
@@ -316,7 +316,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsIn
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(0)')
   Initializer: 
-    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsInvalid) (Syntax: '{1, 2}')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{1, 2}')
       Element Values(2):
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
@@ -349,7 +349,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New M() {New M}')
   Initializer: 
-    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{New M}')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{New M}')
       Element Values(1):
           IObjectCreationOperation (Constructor: Sub M..ctor()) (OperationKind.ObjectCreation, Type: M) (Syntax: 'New M')
             Arguments(0)
@@ -363,7 +363,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
-        Public Sub ArrayCreationWithInitializer_ImplicitlyTyped()
+        Public Sub ArrayCreationWithInitializer_ImplicitlyTyped_01()
             Dim source = <![CDATA[
 Class M
 End Class
@@ -393,6 +393,35 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: '{New 
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationWithInitializer_ImplicitlyTyped_02()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F(dimension As Object)
+        Dim a = {M}'BIND:"{M}"
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '{M}')
+  Children(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{M}')
+      IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: '{M}')
+        Element Values(1):
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M')
+              Children(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30451: 'M' is not declared. It may be inaccessible due to its protection level.
+        Dim a = {M}'BIND:"{M}"
+                 ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializer_ImplicitlyTypedWithoutInitializerAndDimension()
             Dim source = <![CDATA[
 Class C
@@ -402,9 +431,12 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a = {}')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-    Variables: Local_1: a As System.Object()
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a = {}')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a = {}')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Object()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= {}')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object()) (Syntax: '{}')
@@ -481,7 +513,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte(,,)) (Sy
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Byte(,,)) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -507,7 +539,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte(,,)) (Sy
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
   Initializer: 
-    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Byte(,,)) (Syntax: '{{{1, 2, 3} ... {4, 5, 6}}}')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{{{1, 2, 3} ... {4, 5, 6}}}')
       Element Values(2):
           IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{{1, 2, 3}}')
             Element Values(1):
@@ -603,7 +635,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()(,)) (
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32()(,)) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -643,7 +675,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Sy
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(1)')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,)) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -675,7 +707,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Sy
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,)) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -707,7 +739,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsI
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
-    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,), IsInvalid) (Syntax: '{{}}')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{{}}')
       Element Values(1):
           IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{}')
             Element Values(0)
@@ -748,7 +780,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsI
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
-    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,), IsInvalid) (Syntax: '{{}, {}}')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{{}, {}}')
       Element Values(2):
           IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{}')
             Element Values(0)
@@ -791,7 +823,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsI
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
-    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,), IsInvalid) (Syntax: '{{1, 2}}')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{{1, 2}}')
       Element Values(1):
           IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{1, 2}')
             Element Values(2):
@@ -831,7 +863,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsI
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
-    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,), IsInvalid) (Syntax: '{{1, 2}, {}}')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{{1, 2}, {}}')
       Element Values(2):
           IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2}')
             Element Values(2):
@@ -873,7 +905,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Sy
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
-    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,)) (Syntax: '{{1, 2}, {1, 2}}')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{{1, 2}, {1, 2}}')
       Element Values(2):
           IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2}')
             Element Values(2):
@@ -957,7 +989,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String(,), Is
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.String(,)) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -984,7 +1016,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syn
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'New C() {1}')
   Initializer: 
-    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: C(), IsInvalid) (Syntax: '{1}')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{1}')
       Element Values(1):
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: '1')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1022,7 +1054,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syn
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'c')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -1060,7 +1092,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M()')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -1098,7 +1130,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -1136,7 +1168,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syn
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'M()')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -1178,7 +1210,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syn
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
@@ -1201,20 +1233,23 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x(2) As Integer')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x(2)')
-    Variables: Local_1: x As System.Int32()
-    Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(2)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(2)')
-          Dimension Sizes(1):
-              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
-                Left: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x(2) As Integer')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x(2) As Integer')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: x As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x(2)')
           Initializer: 
-            null
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(2)')
+              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(2)')
+                Dimension Sizes(1):
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+                      Left: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+                Initializer: 
+                  null
+    Initializer: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1245,7 +1280,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String(), IsI
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
   Initializer: 
-    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.String()) (Syntax: '{}')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 

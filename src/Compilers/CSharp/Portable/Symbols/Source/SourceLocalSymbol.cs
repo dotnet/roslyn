@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected uint _refEscapeScope;
 
         /// <summary>
-        /// Scope to which the local's values can "escape" via ordinary assignemnts.
+        /// Scope to which the local's values can "escape" via ordinary assignments.
         /// Not readonly because we can only know escape values after binding the initializer.
         /// </summary>
         protected uint _valEscapeScope;
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Diagnostic>.Empty;
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _refKind; }
         }

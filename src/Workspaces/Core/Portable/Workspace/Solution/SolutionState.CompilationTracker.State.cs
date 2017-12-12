@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
                 /// null if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
                 /// </summary>
-                public virtual bool? HasSuccessfullyLoadedTransitively => null;
+                public virtual bool? HasSuccessfullyLoaded => null;
 
                 /// <summary>
                 /// The final compilation if available, otherwise an empty <see cref="ValueSource{Compilation}"/>.
@@ -132,15 +132,15 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FinalState : State
             {
-                private readonly bool _hasSuccessfullyLoadedTransitively;
+                private readonly bool _hasSuccessfullyLoaded;
 
-                public override bool? HasSuccessfullyLoadedTransitively => _hasSuccessfullyLoadedTransitively;
+                public override bool? HasSuccessfullyLoaded => _hasSuccessfullyLoaded;
                 public override ValueSource<Compilation> FinalCompilation => this.Compilation;
 
-                public FinalState(ValueSource<Compilation> finalCompilationSource, bool hasSuccessfullyLoadedTransitively)
+                public FinalState(ValueSource<Compilation> finalCompilationSource, bool hasSuccessfullyLoaded)
                     : base(finalCompilationSource, finalCompilationSource.GetValue().Clone().RemoveAllReferences())
                 {
-                    _hasSuccessfullyLoadedTransitively = hasSuccessfullyLoadedTransitively;
+                    _hasSuccessfullyLoaded = hasSuccessfullyLoaded;
                 }
             }
         }

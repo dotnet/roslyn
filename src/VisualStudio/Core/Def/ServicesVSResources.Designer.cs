@@ -227,6 +227,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer auto properties.
+        /// </summary>
+        internal static string analyzer_Prefer_auto_properties {
+            get {
+                return ResourceManager.GetString("analyzer_Prefer_auto_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analyzer reference to &apos;{0}&apos; in project &apos;{1}&apos;.
         /// </summary>
         internal static string Analyzer_reference_to_0_in_project_1 {
@@ -380,6 +389,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t apply changes -- module &apos;{0}&apos; has been unloaded..
+        /// </summary>
+        internal static string CantApplyChangesModuleHasBeenUnloaded {
+            get {
+                return ResourceManager.GetString("CantApplyChangesModuleHasBeenUnloaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Capitalization:.
         /// </summary>
         internal static string Capitalization_colon {
@@ -459,6 +477,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Code_block_preferences_colon {
             get {
                 return ResourceManager.GetString("Code_block_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to prefer auto properties.
+        /// </summary>
+        internal static string codegen_prefer_auto_properties {
+            get {
+                return ResourceManager.GetString("codegen_prefer_auto_properties", resourceCulture);
             }
         }
         
@@ -571,6 +598,26 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+        /// 
+        ///You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:   [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Decompiler_Legal_Notice_Message {
+            get {
+                return ResourceManager.GetString("Decompiler_Legal_Notice_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decompiler Legal Notice.
+        /// </summary>
+        internal static string Decompiler_Legal_Notice_Title {
+            get {
+                return ResourceManager.GetString("Decompiler_Legal_Notice_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Default.
         /// </summary>
         internal static string Default_ {
@@ -679,6 +726,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable navigation to decompiled sources (experimental).
+        /// </summary>
+        internal static string Enable_navigation_to_decompiled_sources {
+            get {
+                return ResourceManager.GetString("Enable_navigation_to_decompiled_sources", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
         /// </summary>
         internal static string End_of_inner_exception_stack {
@@ -749,6 +805,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Error_while_reading_0_colon_1 {
             get {
                 return ResourceManager.GetString("Error_while_reading_0_colon_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while reading a file.
+        /// </summary>
+        internal static string ErrorReadingFile {
+            get {
+                return ResourceManager.GetString("ErrorReadingFile", resourceCulture);
             }
         }
         
@@ -1225,6 +1290,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Module has been unloaded..
+        /// </summary>
+        internal static string ModuleHasBeenUnloaded {
+            get {
+                return ResourceManager.GetString("ModuleHasBeenUnloaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to More about {0}.
         /// </summary>
         internal static string More_about_0 {
@@ -1564,15 +1638,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Pick_members {
             get {
                 return ResourceManager.GetString("Pick_members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to prefer auto properties.
-        /// </summary>
-        internal static string prefer_auto_properties {
-            get {
-                return ResourceManager.GetString("prefer_auto_properties", resourceCulture);
             }
         }
         
@@ -1993,6 +2058,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Restore_0 {
             get {
                 return ResourceManager.GetString("Restore_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore Visual Studio keybindings.
+        /// </summary>
+        internal static string Restore_Visual_Studio_keybindings {
+            get {
+                return ResourceManager.GetString("Restore_Visual_Studio_keybindings", resourceCulture);
             }
         }
         
@@ -2498,6 +2572,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use keybindings for ReSharper/IntelliJ/Vim/etc..
+        /// </summary>
+        internal static string Use_Keybindings_for_extensions {
+            get {
+                return ResourceManager.GetString("Use_Keybindings_for_extensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Validating breakpoint location....
         /// </summary>
         internal static string Validating_breakpoint_location {
@@ -2530,6 +2613,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread {
             get {
                 return ResourceManager.GetString("VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor..
+        /// </summary>
+        internal static string We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor {
+            get {
+                return ResourceManager.GetString("We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_" +
+                        "continue_to_navigate_and_refactor", resourceCulture);
             }
         }
         
@@ -2584,6 +2677,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string You_must_select_at_least_one_member {
             get {
                 return ResourceManager.GetString("You_must_select_at_least_one_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your keybindings are no longer mapped to Visual Studio commands..
+        /// </summary>
+        internal static string Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands {
+            get {
+                return ResourceManager.GetString("Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands", resourceCulture);
             }
         }
     }

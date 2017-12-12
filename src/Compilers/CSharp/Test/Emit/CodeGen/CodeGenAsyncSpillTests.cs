@@ -967,7 +967,7 @@ public class C
                 }, module.GetFieldNames("C.<F>d__3"));
             });
 
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: false, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Passes, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
              {
                  AssertEx.Equal(new[]
                  {
@@ -1764,6 +1764,78 @@ class TestCase
 42
 ";
             CompileAndVerify(source, expected);
+        }
+
+        [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
+        [Fact]
+        public void SpillArrayAssign2()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static int[] array = new int[5];
+
+    static void Main(string[] args)
+    {
+        try
+        {
+            System.Console.WriteLine(""test not awaited"");
+            TestNotAwaited().Wait();
+        }
+        catch
+        {
+            System.Console.WriteLine(""exception thrown"");
+        }
+
+    System.Console.WriteLine();
+
+        try
+        {
+            System.Console.WriteLine(""test awaited"");
+            TestAwaited().Wait();
+        }
+        catch
+        {
+            System.Console.WriteLine(""exception thrown"");
+        }
+
+    }
+
+    static async Task TestNotAwaited()
+    {
+        array[6] = Moo1();
+    }
+
+    static async Task TestAwaited()
+    {
+        array[6] = await Moo();
+    }
+
+    static int Moo1()
+    {
+        System.Console.WriteLine(""hello"");
+        return 123;
+    }
+
+    static async Task<int> Moo()
+    {
+        System.Console.WriteLine(""hello"");
+        return 123;
+    }
+}";
+
+            var expected = @"
+test not awaited
+hello
+exception thrown
+
+test awaited
+hello
+exception thrown
+";
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -3108,8 +3180,8 @@ public class AsyncBug {
 
             var v = CompileAndVerify(source, "System.Int32");
         }
-        [Fact]
 
+        [Fact]
         [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
         public void MethodGroupConversionWithSpill()
         {

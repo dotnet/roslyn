@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
-        private const string LoggingFunctionIdTextFileName = "ServiceHubFunctionIds.txt";
+        // it is saved here more on debugging purpose.
+        private static Func<FunctionId, bool> s_logChecker = _ => false;
 
         private string _host;
         private int _primaryInstance;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // this is the very first service which will be called from client (VS)
             // we set up logger here
-            RoslynLogger.SetLogger(new EtwLogger(GetLoggingChecker()));
+            RoslynLogger.SetLogger(new EtwLogger(s_logChecker));
 
             SetNativeDllSearchDirectories();
         }
@@ -149,44 +150,52 @@ namespace Microsoft.CodeAnalysis.Remote
             }, CancellationToken.None);
         }
 
-        private static Func<FunctionId, bool> GetLoggingChecker()
+        public void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken)
         {
-            try
+            RunService(token =>
             {
-                var loggingConfigFile = Path.Combine(typeof(RemoteHostService).Assembly.Location, LoggingFunctionIdTextFileName);
+                var functionIdType = typeof(FunctionId);
 
-                if (File.Exists(loggingConfigFile))
+                var set = new HashSet<FunctionId>();
+                foreach (var functionIdString in functionIds)
                 {
-                    var set = new HashSet<FunctionId>();
+                    token.ThrowIfCancellationRequested();
 
-                    var functionIdType = typeof(FunctionId);
-                    var functionIdStrings = File.ReadAllLines(loggingConfigFile);
-
-                    foreach (var functionIdString in functionIdStrings)
+                    try
                     {
-                        try
-                        {
-                            set.Add((FunctionId)Enum.Parse(functionIdType, functionIdString.Trim(), ignoreCase: true));
-                        }
-                        catch
-                        {
-                            // unknown functionId, move on
-                            continue;
-                        }
+                        set.Add((FunctionId)Enum.Parse(functionIdType, functionIdString.Trim(), ignoreCase: true));
                     }
-
-                    return id => set.Contains(id);
+                    catch
+                    {
+                        // unknown functionId, move on
+                        continue;
+                    }
                 }
-            }
-            catch
-            {
-                // we don't care any exception here. 
-                // this is for debugging and performance investigation purpose.
-            }
 
-            // if there was any kind of issue, 
-            // don't log anything
-            return _ => false;
+                Func<FunctionId, bool> logChecker = id => set.Contains(id);
+                lock (s_logChecker)
+                {
+                    // holding onto it for debugging purpose
+                    s_logChecker = logChecker;
+                }
+
+                // we only support 2 types of loggers
+                SetRoslynLogger(loggerTypes, () => new EtwLogger(logChecker));
+                SetRoslynLogger(loggerTypes, () => new TraceLogger(logChecker));
+
+            }, cancellationToken);
+        }
+
+        private static void SetRoslynLogger<T>(List<string> loggerTypes, Func<T> creator) where T : ILogger
+        {
+            if (loggerTypes.Contains(typeof(T).Name))
+            {
+                RoslynLogger.SetLogger(AggregateLogger.AddOrReplace(creator(), RoslynLogger.GetLogger(), l => l is T));
+            }
+            else
+            {
+                RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
+            }
         }
 
         private void SetSessionInfo(Dictionary<string, object> m)

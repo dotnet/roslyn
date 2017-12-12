@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     internal sealed class VsReadOnlyDocumentTracker : ForegroundThreadAffinitizedObject, IDisposable
     {
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private readonly IVsEditorAdaptersFactoryService _adapters;
         private readonly Workspace _workspace;
         private readonly AbstractProject _vsProject;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         internal static readonly TraceLog log = new TraceLog(2048, "VsReadOnlyDocumentTracker");
 
-        public VsReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, IVsEditorAdaptersFactoryService adapters, AbstractProject vsProject)
+        public VsReadOnlyDocumentTracker(IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters, AbstractProject vsProject)
             : base(assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);

@@ -28,8 +28,10 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\CSharpWorkspace\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" target="lib\netstandard1.3" />
     <file src="Dlls\CSharpWorkspace\Microsoft.CodeAnalysis.CSharp.Workspaces.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\CSharpWorkspace\Microsoft.CodeAnalysis.CSharp.Workspaces.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

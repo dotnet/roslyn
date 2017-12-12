@@ -69,8 +69,10 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
     <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

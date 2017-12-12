@@ -303,19 +303,22 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int[] x = { 1, 2 };')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x = { 1, 2 }')
-    Variables: Local_1: System.Int32[] x
-    Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= { 1, 2 }')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: '{ 1, 2 }')
-          Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int[] x = { 1, 2 };')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int[] x = { 1, 2 }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = { 1, 2 }')
           Initializer: 
-            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 2 }')
-              Element Values(2):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= { 1, 2 }')
+              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: '{ 1, 2 }')
+                Dimension Sizes(1):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
+                Initializer: 
+                  IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 2 }')
+                    Element Values(2):
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

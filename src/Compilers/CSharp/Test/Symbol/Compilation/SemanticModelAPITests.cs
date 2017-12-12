@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void RangeVariableSymbolsAreDifferentArossSemanticModelsFromDifferentCompilations()
+        public void RangeVariableSymbolsAreDifferentAcrossSemanticModelsFromDifferentCompilations()
         {
             var text = @"using System.Linq; public class C { public void M() { var q = from c in string.Empty select c; } }";
             var tree = Parse(text);

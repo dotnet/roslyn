@@ -388,9 +388,12 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
     Local_2: b As C2
     Local_3: c As C2
     Local_4: d As C2
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a As Ne ... .a = "goo"}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
-      Variables: Local_1: a As C2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ne ... .a = "goo"}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As New C2 ... .a = "goo"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: a As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C2() ... .a = "goo"}')
           IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Wi ... .a = "goo"}')
@@ -405,9 +408,12 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo") (Syntax: '"goo"')
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim b As Ne ... lo World!"}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'b')
-      Variables: Local_1: b As C2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim b As Ne ... lo World!"}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'b As New C2 ... lo World!"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: b As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C2() ... lo World!"}')
           IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Fr ... lo World!"}')
@@ -418,9 +424,12 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                     ICollectionElementInitializerOperation (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
                       Arguments(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim c As C2 ... lo World!"}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c')
-      Variables: Local_1: c As C2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim c As C2 ... lo World!"}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c As C2 = N ... lo World!"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: c As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New C2()  ... lo World!"}')
           IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Fr ... lo World!"}')
@@ -431,9 +440,12 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                     ICollectionElementInitializerOperation (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
                       Arguments(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim d As C2 ... .a = "goo"}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'd')
-      Variables: Local_1: d As C2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim d As C2 ... .a = "goo"}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'd As C2 = N ... .a = "goo"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: d As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New C2()  ... .a = "goo"}')
           IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
@@ -1093,6 +1105,27 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'New T() Fro ... , "World!"}')
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsInvalid) (Syntax: 'From {"Hell ... , "World!"}')
+      Initializers(3):
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello"')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Hello"')
+                  Children(1):
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello", IsInvalid) (Syntax: '"Hello"')
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '" "')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '" "')
+                  Children(1):
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ", IsInvalid) (Syntax: '" "')
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"World!"')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"World!"')
+                  Children(1):
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World!", IsInvalid) (Syntax: '"World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

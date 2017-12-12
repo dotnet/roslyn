@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.IsPinned; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _originalVariable.RefKind; }
         }

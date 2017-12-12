@@ -43,7 +43,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -59,7 +59,7 @@ class Program
   IL_0024:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"12");
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -114,7 +114,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1}, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1}, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -130,7 +130,7 @@ class Program
   IL_0024:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"12");
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -180,7 +180,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -198,7 +198,7 @@ class Program
   IL_002a:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"12");
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -253,7 +253,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"hello2");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -272,7 +272,7 @@ class Program
   IL_002f:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"hello2");
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -333,7 +333,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"hello2");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -352,7 +352,7 @@ class Program
   IL_002f:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"hello2");
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -406,7 +406,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -452,7 +452,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -503,7 +503,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"Program+S1Program+S1");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -554,7 +554,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"4242");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
 
             comp.VerifyIL("Program.S1..ctor(int)", @"
 {
@@ -1075,7 +1075,7 @@ class Test
     }
 }", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "10", verify: false).VerifyIL("Test.Main", @"
+            CompileAndVerify(comp, expectedOutput: "10", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -1122,7 +1122,7 @@ class Test
     }
 }", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "12345", verify: false).VerifyIL("Test.Main", @"
+            CompileAndVerify(comp, expectedOutput: "12345", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       44 (0x2c)
   .maxstack  2
@@ -1183,7 +1183,7 @@ unsafe class Test
     }
 }", TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: false);
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: Verification.Fails);
         }
 
         [Fact]
@@ -1205,7 +1205,7 @@ unsafe class Test
     }
 }", TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: false);
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
         }
     }
 }

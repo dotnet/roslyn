@@ -94,11 +94,28 @@ Public Class ParseExpressionTest
 
 #Region "Literal Test"
 
-
-    <Fact>
-    Public Sub ParseIntegerLiteralTest()
+    <Fact, Trait("IntegerLiteral_Prefix", "Hex")>
+    Public Sub ParseIntegerLiteralTest_HexPrefix()
         ParseExpression("&H1")
+        ParseExpression("&h1")
+        ParseExpression("&Ｈ1")
+        ParseExpression("&ｈ1")
+    End Sub
+
+    <Fact, Trait("IntegerLiteral_Prefix", "Oct")>
+    Public Sub ParseIntegerLiteralTest_OctPrefix()
         ParseExpression("&O1")
+        ParseExpression("&o1")
+        ParseExpression("&Ｏ1")
+        ParseExpression("&ｏ1")
+    End Sub
+
+    <Fact, Trait("IntegerLiteral_Prefix", "Bin")>
+    Public Sub ParseIntegerLiteralTest_BinPrefix()
+        ParseExpression("&B1")
+        ParseExpression("&b1")
+        ParseExpression("&Ｂ1")
+        ParseExpression("&ｂ1")
     End Sub
 
     <Fact>
