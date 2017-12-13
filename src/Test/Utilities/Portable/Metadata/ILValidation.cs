@@ -85,12 +85,9 @@ namespace Roslyn.Test.Utilities
                 IEnumerable<Blob> content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
                 byte[] hash = SigningUtilities.CalculateSha1(content);
 
-                var publicKey = CryptoBlobParser.ToRSAParameters(TestResources.General.snKey,
-                    includePrivateParameters: false);
-
                 using (var rsa = RSA.Create())
                 {
-                    rsa.ImportParameters(publicKey);
+                    rsa.ImportParameters(snKey);
                     var reversedSignature = signature.ToArray();
 
                     // Unknown why the signature is reversed, but this matches the behavior of the CLR

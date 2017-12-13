@@ -2470,17 +2470,6 @@ class B
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
-        [Fact]
-        public void VerifyMscorlib()
-        {
-            // This test is meant to verify that our verification code correctly calculates
-            // the signature for a well-known signed framework assembly
-            using (var fileStream = new FileStream(typeof(object).Assembly.Location, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                Assert.True(ILValidation.IsStreamFullSigned(fileStream));
-            }
-        }
-
         #endregion
     }
 }
