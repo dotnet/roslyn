@@ -451,22 +451,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // do not expose PooledHashSet<T> outside of this class
         protected IEnumerable<Symbol> GetCapturedInside() => _capturedInside.ToArray();
         protected IEnumerable<Symbol> GetCapturedOutside() => _capturedOutside.ToArray();
+        protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
+        protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
 
-        protected IEnumerable<Symbol> GetCaptured()
-        {
-            // do not expose poolable capturedVariables outside of this class
-            return _capturedVariables.ToArray();
-        }
-
-        protected IEnumerable<Symbol> GetUnsafeAddressTaken()
-        {
-            // do not expose poolable unsafeAddressTakenVariables outside of this class
-            return _unsafeAddressTakenVariables.Keys.ToArray();
-        }
-
-#region Tracking reads/writes of variables for warnings
+        #region Tracking reads/writes of variables for warnings
 
         protected virtual void NoteRead(
             Symbol variable,

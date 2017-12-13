@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_dataFlowsIn == null)
+                if (_dataFlowsIn.IsDefault)
                 {
                     _succeeded = !_context.Failed;
                     var result = _context.Failed ? ImmutableArray<ISymbol>.Empty :
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 var discarded = DataFlowsIn; // force DataFlowsIn to be computed
-                if (_dataFlowsOut == null)
+                if (_dataFlowsOut.IsDefault)
                 {
                     var result = Succeeded
                         ? Sort(DataFlowsOutWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, _dataFlowsIn))
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_alwaysAssigned == null)
+                if (_alwaysAssigned.IsDefault)
                 {
                     var result = Succeeded
                         ? Sort(AlwaysAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_readInside == null)
+                if (_readInside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_writtenInside == null)
+                if (_writtenInside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_readOutside == null)
+                if (_readOutside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_writtenOutside == null)
+                if (_writtenOutside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_captured == null)
+                if (_captured.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_capturedInside == null)
+                if (_capturedInside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_capturedOutside == null)
+                if (_capturedOutside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_unsafeAddressTaken == null)
+                if (_unsafeAddressTaken.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
