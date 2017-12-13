@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get <see cref="QuickTypeIdentifierAttributeChecker"/> that can be used to quickly
-        /// check for TypeIdentifier attribute applications in context of this binder.
+        /// Get <see cref="QuickAttributeChecker"/> that can be used to quickly
+        /// check for certain attribute applications in context of this binder.
         /// </summary>
-        internal override QuickTypeIdentifierAttributeChecker QuickTypeIdentifierAttributeChecker
+        internal override QuickAttributeChecker QuickAttributeChecker
         {
             get
             {
-                return QuickTypeIdentifierAttributeChecker.Predefined;
+                return QuickAttributeChecker.Predefined;
             }
         }
 

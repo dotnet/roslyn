@@ -122,6 +122,13 @@ then
     build_args+=" /p:BootstrapBuildPath=${bootstrap_path}"
 fi
 
+# https://github.com/dotnet/roslyn/issues/23736
+UNAME="$(uname)"
+if [[ "$UNAME" == "Darwin" ]]
+then
+    build_args+=" /p:UseRoslynAnalyzers=false"
+fi
+
 if [[ "${build}" == true ]]
 then
     echo "Building Compilers.sln"

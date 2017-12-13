@@ -45,8 +45,8 @@ do
     runtimeconfig_json="${file_name%.*}".runtimeconfig.json
 
     # If the user specifies a test on the command line, only run that one
-    # "${2:-}" => take second arg, empty string if unset (regex always matches if empty)
-    if [[ ! "${file_name}" =~ "${2:-}" ]]
+    # "${2:-}" => take second arg, empty string if unset
+    if [[ ("${2:-}" != "") && (! "${file_name}" =~ "${2:-}") ]]
     then
         echo "Skipping ${file_name}"
         continue
