@@ -49,4 +49,4 @@ Such test can be debugged by opening `C:\Program Files\dotnet\dotnet.exe` as a p
 
 
 # Investigating squiggles in the IDE
-All the Roslyn diagnostics that appear as IDE squiggles are channeled through the `AnalyzeXYZ`methods in [CompilationAnalyzer](http://source.roslyn.io/#Microsoft.CodeAnalysis/DiagnosticAnalyzer/CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs).
+All the compiler diagnostics that appear as IDE squiggles are channeled through the `AnalyzeXYZ`methods in [CompilationAnalyzer](http://source.roslyn.io/#Microsoft.CodeAnalysis/DiagnosticAnalyzer/CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs).
