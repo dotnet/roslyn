@@ -10,21 +10,21 @@ namespace Analyzer.Utilities
     internal static class DiagnosticHelpers
     {
         public const DiagnosticSeverity DefaultDiagnosticSeverity =
-#if DEFAULT_SEVERITY_SUGGESTION
+#if BUILDING_VSIX
             DiagnosticSeverity.Info;
 #else
             DiagnosticSeverity.Warning;
 #endif
 
         public const bool EnabledByDefaultIfNotBuildingVSIX =
-#if USE_INTERNAL_IOPERATION_APIS // Building Analyzer VSIX
+#if BUILDING_VSIX
             false;
 #else
             true;
 #endif
 
         public const bool EnabledByDefaultOnlyIfBuildingVSIX =
-#if USE_INTERNAL_IOPERATION_APIS // Building Analyzer VSIX
+#if BUILDING_VSIX
             true;
 #else
             false;
