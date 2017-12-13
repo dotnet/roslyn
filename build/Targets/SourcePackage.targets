@@ -11,8 +11,6 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <RoslynProjectType>SourcePackage</RoslynProjectType>
-
     <!-- We only build to validate the code, we are not interested in any outputs. -->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>

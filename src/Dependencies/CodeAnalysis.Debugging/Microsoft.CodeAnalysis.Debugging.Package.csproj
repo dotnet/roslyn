@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <PackageId>Microsoft.CodeAnalysis.Debugging</PackageId>
+    <RoslynProjectType>SourcePackage</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections" Version="$(SystemCollectionsVersion)" />
