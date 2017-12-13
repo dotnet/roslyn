@@ -48,6 +48,7 @@ echo "Using ${xunit_console}"
 # Discover and run the tests
 mkdir -p "${log_dir}"
 
+exit_code=0
 for test_path in "${unittest_dir}"/*/"${target_framework}"
 do
     file_name=( "${test_path}"/*.UnitTests.dll )
@@ -68,10 +69,18 @@ do
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CompilerServer.UnitTests.dll' ]]
+        then
+            echo "Skipping ${file_name[@]}"
+            continue
+        fi
     fi
-    ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
-    if [[ $? -ne 0 ]]; then
-        echo Unit test failed
-        exit 1
+    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
+    then
+        echo "Assembly ${file_name[@]} passed"
+    else
+        echo "Assembly ${file_name[@]} failed"
+        exit_code=1
     fi
 done
+exit ${exit_code}
