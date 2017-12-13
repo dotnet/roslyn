@@ -1,0 +1,29 @@
+﻿# This file contains the allowed analyzer rule "Category" and corresponding "Diagnostic ID range"
+# FORMAT:
+# 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
+
+# FxCop rules
+Design: CA1000-CA1099
+Globalization: CA1300-CA1399, CA2101
+Mobility: CA1600-CA1699
+Performance: CA1800-CA1899
+Security: CA2100-CA2199
+Usage: CA1801, CA1806, CA1816, CA2200-CA2299
+Naming: CA1700-CA1799
+Maintainability: CA1500-CA1599
+Reliability: CA2000-CA2099, CA9999
+Documentation: CA1200-CA1299
+
+# Microsoft CodeAnalysis API rules
+MicrosoftCodeAnalysisCorrectness: RS1000-RS1999
+MicrosoftCodeAnalysisDocumentation: RS1000-RS1999
+MicrosoftCodeAnalysisLocalization: RS1000-RS1999
+MicrosoftCodeAnalysisPerformance: RS1000-RS1999
+MicrosoftCodeAnalysisCompatibility: RS1000-RS1999
+
+# Roslyn specific rules
+RoslyDiagnosticsDesign: RS0000-RS0999
+RoslyDiagnosticsMaintainability: RS0000-RS0999
+RoslyDiagnosticsPerformance: RS0000-RS0999
+RoslyDiagnosticsReliability: RS0000-RS0999
+RoslyDiagnosticsUsage: RS0000-RS0999

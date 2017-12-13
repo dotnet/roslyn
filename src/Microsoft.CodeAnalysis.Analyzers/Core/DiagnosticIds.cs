@@ -20,5 +20,10 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation = "RS1014";
         public const string ProvideHelpUriInDescriptorRuleId = "RS1015";
         public const string OverrideGetFixAllProviderRuleId = "RS1016";
+        public const string DiagnosticIdMustBeAConstantRuleId = "RS1017";
+        public const string DiagnosticIdMustBeInSpecifiedFormatRuleId = "RS1018";
+        public const string UseUniqueDiagnosticIdRuleId = "RS1019";
+        public const string UseCategoriesFromSpecifiedRangeRuleId = "RS1020";
+        public const string AnalyzerCategoryAndIdRangeFileInvalidRuleId = "RS1021";        
     }
 }

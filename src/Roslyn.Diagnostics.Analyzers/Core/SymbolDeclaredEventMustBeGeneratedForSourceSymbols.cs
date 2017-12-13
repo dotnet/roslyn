@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,7 +24,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.SymbolDeclaredEventRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            "Reliability",
+            DiagnosticCategory.RoslyDiagnosticsReliability,
             DiagnosticSeverity.Error,
             isEnabledByDefault: false,
             description: s_localizableDescription,

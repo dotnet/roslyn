@@ -262,6 +262,81 @@
         <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
+        <source>DiagnosticId for analyzers must be in specified format.</source>
+        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
+        <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</source>
+        <target state="new">Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
+        <source>DiagnosticId for analyzers must be in specified format.</source>
+        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdTitle">
+        <source>DiagnosticId must be unique across analyzers.</source>
+        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdMessage">
+        <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
+        <target state="new">Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdDescription">
+        <source>DiagnosticId must be unique across analyzers.</source>
+        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
+        <source>Category for analyzers must be from the specified values.</source>
+        <target state="new">Category for analyzers must be from the specified values.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
+        <source>Category '{0}' is not from the allowed categories specified in the file '{1}'.</source>
+        <target state="new">Category '{0}' is not from the allowed categories specified in the file '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
+        <source>Category for analyzers must be from the specified values.</source>
+        <target state="new">Category for analyzers must be from the specified values.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
+        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
+        <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</source>
+        <target state="new">Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
+        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantTitle">
+        <source>DiagnosticId for analyzers must be a non-null constant.</source>
+        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantMessage">
+        <source>Diagnostic Id for rule '{0}' must be a non-null constant.</source>
+        <target state="new">Diagnostic Id for rule '{0}' must be a non-null constant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantDescription">
+        <source>DiagnosticId for analyzers must be a non-null constant.</source>
+        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

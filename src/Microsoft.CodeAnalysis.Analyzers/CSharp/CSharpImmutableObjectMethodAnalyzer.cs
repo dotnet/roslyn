@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
             s_localizableTitle,
             s_localizableMessage,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescription,

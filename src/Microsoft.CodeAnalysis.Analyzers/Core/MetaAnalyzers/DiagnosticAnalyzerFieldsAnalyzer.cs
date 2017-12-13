@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            AnalyzerDiagnosticCategory.AnalyzerPerformance,
+            DiagnosticCategory.MicrosoftCodeAnalysisPerformance,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescription,

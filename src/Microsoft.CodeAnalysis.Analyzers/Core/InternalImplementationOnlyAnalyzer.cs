@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
                                                         DiagnosticIds.InternalImplementationOnlyRuleId,
                                                         s_localizableTitle,
                                                         s_localizableMessageFormat,
-                                                        AnalyzerDiagnosticCategory.Compatibility,
+                                                        DiagnosticCategory.MicrosoftCodeAnalysisCompatibility,
                                                         DiagnosticSeverity.Error,
                                                         isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
                                                         description: s_localizableDescription);
