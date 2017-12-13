@@ -864,7 +864,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(projFileName, GetResourceText("CSharpProject_CSharpProject.csproj")));
 
-            AssertThrows<InvalidOperationException>(delegate
+            AssertEx.Throws<InvalidOperationException>(delegate
             {
                 MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(projFileName)).Wait();
             },
@@ -881,7 +881,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var language = "lingo";
-            AssertThrows<InvalidOperationException>(delegate
+            AssertEx.Throws<InvalidOperationException>(delegate
             {
                 var ws = MSBuildWorkspace.Create();
                 ws.AssociateFileExtensionWithLanguage("csproj", language); // non-existent language
@@ -942,7 +942,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName("NonExistentSolution.sln");
 
-            AssertThrows<FileNotFoundException>(() =>
+            AssertEx.Throws<FileNotFoundException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace())
                 {
@@ -957,7 +957,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"http://localhost/Invalid/InvalidSolution.sln");
 
-            AssertThrows<InvalidOperationException>(() =>
+            AssertEx.Throws<InvalidOperationException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace())
                 {
@@ -1100,7 +1100,7 @@ class C1
             {
                 workspace.SkipUnrecognizedProjects = false;
 
-                AssertThrows<InvalidOperationException>(() =>
+                AssertEx.Throws<InvalidOperationException>(() =>
                 {
                     workspace.OpenSolutionAsync(solutionFilePath).Wait();
                 });
@@ -1143,7 +1143,7 @@ class C1
             {
                 workspace.SkipUnrecognizedProjects = false;
 
-                AssertThrows<FileNotFoundException>(() =>
+                AssertEx.Throws<FileNotFoundException>(() =>
                 {
                     workspace.OpenSolutionAsync(solutionFilePath).Wait();
                 });
@@ -1214,7 +1214,7 @@ class C1
                 .WithFile(@"TestSolution.sln", GetResourceText("TestSolution_CSharp_UnknownProjectTypeGuidAndUnknownExtension.sln"))
                 .WithFile(noProjFileName, GetResourceText("CSharpProject_CSharpProject.csproj")));
 
-            AssertThrows<InvalidOperationException>(() =>
+            AssertEx.Throws<InvalidOperationException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace())
                 {
@@ -1240,7 +1240,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            AssertThrows<InvalidOperationException>(() =>
+            AssertEx.Throws<InvalidOperationException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace(_hostServicesWithoutCSharp))
                 {
@@ -1291,7 +1291,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
             var projectName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-            AssertThrows<InvalidOperationException>(() =>
+            AssertEx.Throws<InvalidOperationException>(() =>
             {
                 var project = ws.OpenProjectAsync(projectName).Result;
             },
@@ -1308,7 +1308,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var projectFilePath = GetSolutionFileName(@"http://localhost/Invalid/InvalidProject.csproj");
 
-            AssertThrows<InvalidOperationException>(() =>
+            AssertEx.Throws<InvalidOperationException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace())
                 {
@@ -1323,7 +1323,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var projectFilePath = GetSolutionFileName(@"CSharpProject\NonExistentProject.csproj");
 
-            AssertThrows<FileNotFoundException>(() =>
+            AssertEx.Throws<FileNotFoundException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace())
                 {
@@ -1362,7 +1362,7 @@ class C1
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText(@"VisualBasicProject_VisualBasicProject_InvalidProjectReference.vbproj")));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            AssertThrows<InvalidOperationException>(() =>
+            AssertEx.Throws<InvalidOperationException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace())
                 {
@@ -1402,7 +1402,7 @@ class C1
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText(@"VisualBasicProject_VisualBasicProject_NonExistentProjectReference.vbproj")));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            AssertThrows<FileNotFoundException>(() =>
+            AssertEx.Throws<FileNotFoundException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace())
                 {
@@ -1444,7 +1444,7 @@ class C1
                 .WithFile(@"CSharpProject\CSharpProject.noproj", GetResourceText(@"CSharpProject_CSharpProject.csproj")));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            AssertThrows<InvalidOperationException>(() =>
+            AssertEx.Throws<InvalidOperationException>(() =>
             {
                 using (var workspace = CreateMSBuildWorkspace())
                 {
