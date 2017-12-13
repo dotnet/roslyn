@@ -34,6 +34,29 @@ BC37257: Option 'CryptoKeyFile' must be an absolute path.
 </errors>)
         End Sub
 
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                    WithPublicSign(True).WithCryptoKeyFile("")
+            AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+</errors>)
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath2()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                    WithPublicSign(True).WithCryptoKeyFile("""""")
+            AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+BC37257: Option 'CryptoKeyFile' must be an absolute path.
+</errors>)
+        End Sub
+
         <Fact>
         Public Sub LocalizableErrorArgumentToStringDoesntStackOverflow()
             ' Error ID is arbitrary
