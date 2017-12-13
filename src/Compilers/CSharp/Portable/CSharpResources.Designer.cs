@@ -3293,6 +3293,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a pattern. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. To match everything, use a discard pattern &apos;var _&apos;..
+        /// </summary>
+        internal static string ERR_DefaultInPattern {
+            get {
+                return ResourceManager.GetString("ERR_DefaultInPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a case constant. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. If you intended to write the default label, use &apos;default:&apos; without &apos;case&apos;..
+        /// </summary>
+        internal static string ERR_DefaultInSwitch {
+            get {
+                return ResourceManager.GetString("ERR_DefaultInSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use of default literal is not valid in this context.
         /// </summary>
         internal static string ERR_DefaultLiteralNotValid {
@@ -12641,24 +12659,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DebugFullNameTooLong_Title {
             get {
                 return ResourceManager.GetString("WRN_DebugFullNameTooLong_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
-        /// </summary>
-        internal static string WRN_DefaultInSwitch {
-            get {
-                return ResourceManager.GetString("WRN_DefaultInSwitch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
-        /// </summary>
-        internal static string WRN_DefaultInSwitch_Title {
-            get {
-                return ResourceManager.GetString("WRN_DefaultInSwitch_Title", resourceCulture);
             }
         }
         

@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1287,9 +1285,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         #endregion
 
+        [Fact]
         [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void Bug530209()
+        public void Bug530209_DecimalConstant()
+        {
+            var compilation = CreateStandardCompilation(
+@"
+public class Class1
+{
+    public const decimal d1 = -7;
+
+    public void M1(decimal d1 = -7)
+    {}
+}");
+
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var peModule = (PEModuleSymbol)module;
+                var class1 = module.GlobalNamespace.GetTypeMember("Class1");
+                var field = class1.GetMember<PEFieldSymbol>("d1");
+                var parameter = (PEParameterSymbol)class1.GetMethod("M1").GetParameters().Single();
+
+                Assert.Empty(field.GetAttributes());
+                Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", peModule.GetCustomAttributesForToken(field.Handle).Single().ToString());
+                Assert.Equal(field.ConstantValue, -7m);
+
+                Assert.Empty(parameter.GetAttributes());
+                Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", peModule.GetCustomAttributesForToken(parameter.Handle).Single().ToString());
+                Assert.Equal(parameter.ExplicitDefaultValue, -7m);
+            });
+        }
+
+        [Fact]
+        [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
+        public void Bug530209_DecimalConstant_FromIL()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit Class1
@@ -1388,69 +1417,62 @@ System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64)
 } // end of class Class1
 ";
 
-            var c1 = CreateStandardCompilation(
-@"
-public class Class1
+            var csSource = @"
+class Class2 : Class1
 {
-    public const decimal d1 = -7;
+}";
 
-    public void M1(decimal d1 = -7)
-    {}
-}");
+            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            {
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType;
+                Assert.Equal("Class1", class1.ToTestDisplayString());
 
+                var field1 = class1.GetField("d1");
 
-            var class1 = c1.GetTypeByMetadataName("Class1");
-            var d1 = class1.GetMember<FieldSymbol>("d1");
-            var m1 = class1.GetMember<MethodSymbol>("M1");
+                Assert.Empty(field1.GetAttributes());
+                Assert.Equal(field1.ConstantValue, -7m);
 
-            var builder = GetDefaultPEBuilder(c1);
+                var field2 = class1.GetField("d2");
 
-            Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(builder).Single().ToString());
-            Assert.Equal(d1.ConstantValue, -7m);
-            Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(builder).Single().ToString());
-            Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
+                Assert.Equal(2, field2.GetAttributes().Length);
+                Assert.Null(field2.ConstantValue);
 
-            var c2 = CreateCompilationWithCustomILSource("", ilSource);
+                var parameters = class1.GetMethod("M1").GetParameters();
+                Assert.Equal(2, parameters.Count());
 
-            class1 = c2.GetTypeByMetadataName("Class1");
-            d1 = class1.GetMember<FieldSymbol>("d1");
-            var d2 = class1.GetMember<FieldSymbol>("d2");
-            m1 = class1.GetMember<MethodSymbol>("M1");
+                Assert.Empty(parameters.First().GetAttributes());
+                Assert.Equal(parameters.First().ExplicitDefaultValue, -7m);
 
-            Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(builder).Single().ToString());
-            Assert.Equal(d1.ConstantValue, -7m);
-            Assert.Equal(2, d2.GetAttributes().Length);
-            Assert.Equal(2, d2.GetCustomAttributesToEmit(builder).Count());
-            Assert.Null(d2.ConstantValue);
-            Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(builder).Single().ToString());
-            Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
-            Assert.Empty(m1.Parameters[1].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(builder).Single().ToString());
-            Assert.Equal(m1.Parameters[1].ExplicitDefaultValue, new DateTime(2013, 1, 1));
+                Assert.Empty(parameters.Last().GetAttributes());
+                Assert.Equal(parameters.Last().ExplicitDefaultValue, new DateTime(2013, 1, 1));
+            });
 
-            var c3 = CreateCompilationWithCustomILSource("", ilSource);
+            // Switch order of API calls
 
-            class1 = c3.GetTypeByMetadataName("Class1");
-            d1 = class1.GetMember<FieldSymbol>("d1");
-            d2 = class1.GetMember<FieldSymbol>("d2");
-            m1 = class1.GetMember<MethodSymbol>("M1");
+            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            {
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType;
+                Assert.Equal("Class1", class1.ToTestDisplayString());
 
-            Assert.Equal(d1.ConstantValue, -7m);
-            Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(builder).Single().ToString());
-            Assert.Null(d2.ConstantValue);
-            Assert.Equal(2, d2.GetAttributes().Length);
-            Assert.Equal(2, d2.GetCustomAttributesToEmit(builder).Count());
-            Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
-            Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(builder).Single().ToString());
-            Assert.Equal(m1.Parameters[1].ExplicitDefaultValue, new DateTime(2013, 1, 1));
-            Assert.Empty(m1.Parameters[1].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(builder).Single().ToString());
+                var field1 = class1.GetField("d1");
+
+                Assert.Equal(field1.ConstantValue, -7m);
+                Assert.Empty(field1.GetAttributes());
+
+                var field2 = class1.GetField("d2");
+
+                Assert.Null(field2.ConstantValue);
+                Assert.Equal(2, field2.GetAttributes().Length);
+
+                var parameters = class1.GetMethod("M1").GetParameters();
+                Assert.Equal(2, parameters.Count());
+
+                Assert.Equal(parameters.First().ExplicitDefaultValue, -7m);
+                Assert.Empty(parameters.First().GetAttributes());
+
+                Assert.Equal(parameters.Last().ExplicitDefaultValue, new DateTime(2013, 1, 1));
+                Assert.Empty(parameters.Last().GetAttributes());
+            });
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

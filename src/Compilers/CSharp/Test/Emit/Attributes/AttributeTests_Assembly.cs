@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,7 +10,6 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -956,31 +954,35 @@ public class C {}
             return ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
         }
 
-        private static void TestDuplicateAssemblyAttributesNotEmitted(AssemblySymbol assembly, int expectedSrcAttrCount, int expectedDuplicateAttrCount, string attrTypeName)
+        private void TestDuplicateAssemblyAttributesNotEmitted(CSharpCompilation compilation, int expectedSrcAttrCount, int expectedDuplicateAttrCount, string attrTypeName)
         {
             // SOURCE ATTRIBUTES
 
-            var allSrcAttrs = assembly.GetAttributes();
-            var srcAttrs = allSrcAttrs.Where((a) => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal)).AsImmutable();
+            var sourceAttributes = compilation.Assembly
+                .GetAttributes()
+                .Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal));
 
-            Assert.Equal(expectedSrcAttrCount, srcAttrs.Length);
-
+            Assert.Equal(expectedSrcAttrCount, sourceAttributes.Count());
 
             // EMITTED ATTRIBUTES
 
-            // We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
-            int expectedEmittedAttrsCount = expectedSrcAttrCount - expectedDuplicateAttrCount;
-
-            var allEmittedAttrs = ((SourceAssemblySymbol)assembly).GetCustomAttributesToEmit(GetDefaultPEBuilder(assembly.DeclaringCompilation),
-                emittingRefAssembly: false, emittingAssemblyAttributesInNetModule: false);
-            var emittedAttrs = allEmittedAttrs.Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal)).AsImmutable();
-
-            Assert.Equal(expectedEmittedAttrsCount, emittedAttrs.Length);
-            var uniqueAttributes = new HashSet<CSharpAttributeData>(comparer: CommonAttributeDataComparer.Instance);
-            foreach (var attr in emittedAttrs)
+            CompileAndVerify(compilation, symbolValidator: module =>
             {
-                Assert.True(uniqueAttributes.Add(attr));
-            }
+                // We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
+                var expectedEmittedAttrsCount = expectedSrcAttrCount - expectedDuplicateAttrCount;
+
+                var metadataAttributes = module.ContainingAssembly
+                    .GetAttributes()
+                    .Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal));
+
+                Assert.Equal(expectedEmittedAttrsCount, metadataAttributes.Count());
+
+                var uniqueAttributes = new HashSet<CSharpAttributeData>(comparer: CommonAttributeDataComparer.Instance);
+                foreach (var attr in metadataAttributes)
+                {
+                    Assert.True(uniqueAttributes.Add(attr));
+                }
+            });
         }
 
         #endregion
@@ -1204,12 +1206,12 @@ public class C {}
             var consoleappCompilation = CreateStandardCompilation(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
             var diagnostics = consoleappCompilation.GetDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
@@ -1254,41 +1256,41 @@ public class C {}
                 ";
 
             var consoleappCompilation = CreateStandardCompilation(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
-            var diagnostics = consoleappCompilation.GetDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "AssemblyTitleAttribute");
 
-            var attrs = ((SourceAssemblySymbol)consoleappCompilation.Assembly).GetCustomAttributesToEmit(GetDefaultPEBuilder(consoleappCompilation),
-                emittingRefAssembly: false, emittingAssemblyAttributesInNetModule: false);
-            foreach (var a in attrs)
+            CompileAndVerify(consoleappCompilation, symbolValidator: module =>
             {
-                switch (a.AttributeClass.Name)
+                foreach (var a in module.ContainingAssembly.GetAttributes())
                 {
-                    case "AssemblyTitleAttribute":
-                        Assert.Equal(@"System.Reflection.AssemblyTitleAttribute(""AssemblyTitle (from source)"")", a.ToString());
-                        break;
-                    case "FileIOPermissionAttribute":
-                        Assert.Equal(@"System.Security.Permissions.FileIOPermissionAttribute(System.Security.Permissions.SecurityAction.RequestOptional)", a.ToString());
-                        break;
-                    case "UserDefinedAssemblyAttrNoAllowMultipleAttribute":
-                        Assert.Equal(@"UserDefinedAssemblyAttrNoAllowMultipleAttribute(""UserDefinedAssemblyAttrNoAllowMultiple"")", a.ToString());
-                        break;
-                    case "UserDefinedAssemblyAttrAllowMultipleAttribute":
-                        Assert.Equal(@"UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString());
-                        break;
-                    case "CompilationRelaxationsAttribute":
-                    case "RuntimeCompatibilityAttribute":
-                    case "DebuggableAttribute":
-                        // synthesized attributes
-                        break;
-                    default:
-                        Assert.Equal("Unexpected Attr", a.AttributeClass.Name);
-                        break;
+                    switch (a.AttributeClass.Name)
+                    {
+                        case "AssemblyTitleAttribute":
+                            Assert.Equal(@"System.Reflection.AssemblyTitleAttribute(""AssemblyTitle (from source)"")", a.ToString());
+                            break;
+                        case "FileIOPermissionAttribute":
+                            Assert.Equal(@"System.Security.Permissions.FileIOPermissionAttribute(System.Security.Permissions.SecurityAction.RequestOptional)", a.ToString());
+                            break;
+                        case "UserDefinedAssemblyAttrNoAllowMultipleAttribute":
+                            Assert.Equal(@"UserDefinedAssemblyAttrNoAllowMultipleAttribute(""UserDefinedAssemblyAttrNoAllowMultiple"")", a.ToString());
+                            break;
+                        case "UserDefinedAssemblyAttrAllowMultipleAttribute":
+                            Assert.Equal(@"UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString());
+                            break;
+                        case "CompilationRelaxationsAttribute":
+                        case "RuntimeCompatibilityAttribute":
+                        case "DebuggableAttribute":
+                            // synthesized attributes
+                            break;
+                        default:
+                            Assert.Equal("Unexpected Attr", a.AttributeClass.Name);
+                            break;
+                    }
                 }
-            }
+            });
         }
 
         [Fact]
@@ -1390,7 +1392,7 @@ using System.Runtime.CompilerServices;
             var compilation = CreateStandardCompilation(source);
             CompileAndVerify(compilation);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                 expectedSrcAttrCount: 2,
                 expectedDuplicateAttrCount: 1,
                 attrTypeName: "InternalsVisibleToAttribute");
@@ -1429,7 +1431,7 @@ class Program
 
             var compilation = CreateStandardCompilation(source, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                 expectedSrcAttrCount: 20,
                 expectedDuplicateAttrCount: 5,
                 attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
@@ -1457,7 +1459,7 @@ using System;
             // duplicate ignored, no error because identical
             compilation.VerifyDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
@@ -1467,7 +1469,7 @@ using System;
             // duplicate ignored, no error because identical
             compilation.VerifyDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
@@ -1508,7 +1510,7 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,
                expectedDuplicateAttrCount: 5,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
@@ -1561,7 +1563,7 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleDefsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 21,
                expectedDuplicateAttrCount: 6,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
@@ -1603,7 +1605,7 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,
                expectedDuplicateAttrCount: 5,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
@@ -1650,7 +1652,7 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 25,
                expectedDuplicateAttrCount: 10,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");

@@ -42,6 +42,9 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Humanizer.dll")]
 
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Mono.Cecil.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\ICSharpCode.Decompiler.dll")]
+
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.VisualStudio.CallHierarchy.Package.Definitions",
     GenerateCodeBase = false,

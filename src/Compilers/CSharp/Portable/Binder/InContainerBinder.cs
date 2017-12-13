@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Func<ConsList<Symbol>, Imports> _computeImports;
         private Imports _lazyImports;
         private ImportChain _lazyImportChain;
+        private QuickTypeIdentifierAttributeChecker _lazyQuickTypeIdentifierAttributeChecker;
 
         /// <summary>
         /// Creates a binder for a container with imports (usings and extern aliases) that can be
@@ -98,6 +99,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_lazyImportChain != null);
 
                 return _lazyImportChain;
+            }
+        }
+
+        /// <summary>
+        /// Get <see cref="QuickTypeIdentifierAttributeChecker"/> that can be used to quickly
+        /// check for TypeIdentifier attribute applications in context of this binder.
+        /// </summary>
+        internal override QuickTypeIdentifierAttributeChecker QuickTypeIdentifierAttributeChecker
+        {
+            get
+            {
+                if (_lazyQuickTypeIdentifierAttributeChecker == null)
+                {
+                    QuickTypeIdentifierAttributeChecker result = this.Next.QuickTypeIdentifierAttributeChecker;
+
+                    if ((object)_container == null || _container.Kind == SymbolKind.Namespace)
+                    {
+                        result = result.AddAliasesIfAny(GetImports(basesBeingResolved: null).UsingAliases);
+                    }
+
+                    _lazyQuickTypeIdentifierAttributeChecker = result;
+                }
+
+                return _lazyQuickTypeIdentifierAttributeChecker;
             }
         }
 

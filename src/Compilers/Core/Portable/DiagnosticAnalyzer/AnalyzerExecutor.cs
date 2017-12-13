@@ -1188,16 +1188,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            AllowCaptures = false)]
         private void ExecuteAndCatchIfThrows_NoLock<TArg>(DiagnosticAnalyzer analyzer, Action<TArg> analyze, TArg argument, AnalysisContextInfo? info)
         {
             try
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                Stopwatch timer = null;
+                PooledStopwatch timer = null;
                 if (_analyzerExecutionTimeMapOpt != null)
                 {
-                    timer = Stopwatch.StartNew();
+                    timer = PooledStopwatch.StartInstance();
                 }
 
                 analyze(argument);
@@ -1205,8 +1208,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (timer != null)
                 {
                     timer.Stop();
-
-                    _analyzerExecutionTimeMapOpt.AddOrUpdate(analyzer, timer.Elapsed, (a, accumulatedTime) => accumulatedTime + timer.Elapsed);
+                    _analyzerExecutionTimeMapOpt.AddOrUpdate(analyzer, timer.Elapsed, timer.UpdateValueFactory);
+                    timer.Free();
                 }
             }
             catch (Exception e) when (ExceptionFilter(e))

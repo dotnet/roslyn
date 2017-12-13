@@ -183,10 +183,6 @@ function Make-BootstrapBuild() {
 function Build-Artifacts() { 
     Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
 
-    if ($testDesktop) { 
-        Run-MSBuild "src\Samples\Samples.sln" "/p:DeployExtension=false"
-    }
-
     if ($buildAll) {
         Build-ExtraSignArtifacts
     }
@@ -217,18 +213,17 @@ function Build-ExtraSignArtifacts() {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
         Write-Host "Publishing csc"
         Run-MSBuild "..\Compilers\CSharp\csc\csc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-        Write-Host "Publishing csc"
+        Write-Host "Publishing vbc"
         Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing VBCSCompiler"
+        Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
         $dest = @(
-            $configDir,
-            "Templates\CSharp\Diagnostic\Analyzer",
-            "Templates\VisualBasic\Diagnostic\Analyzer\tools")
+            $configDir)
         foreach ($dir in $dest) { 
             Copy-Item "PowerShell\*.ps1" $dir
         }
 
-        Run-MSBuild "Templates\Templates.sln" "/p:VersionType=Release"
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln" -buildArgs ""
         Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
@@ -558,6 +553,8 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
@@ -601,7 +598,7 @@ try {
     Process-Arguments
 
     $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
-    $dotnet, $sdkDir = Ensure-SdkInPathAndData
+    $dotnet = Ensure-DotnetSdk
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $buildConfiguration
     $bootstrapDir = ""

@@ -661,5 +661,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(newPath, appliedDoc.FilePath);
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestDefaultDocumentTextDifferencingService()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var service = ws.Services.GetService<IDocumentTextDifferencingService>();
+                Assert.NotNull(service);
+                Assert.Equal(service.GetType(), typeof(DefaultDocumentTextDifferencingService));
+            }
+        }
     }
 }
