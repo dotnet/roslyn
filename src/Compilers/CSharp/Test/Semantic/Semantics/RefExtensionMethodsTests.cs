@@ -1966,6 +1966,26 @@ public static class Ext
         }
 
         [Fact]
+        public void ParameterSymbolsRetrievedThroughSemanticModel_ModifierOrdering()
+        {
+            var code = @"
+public static class Ext
+{
+    public static void Method1(this in int p) { }
+    public static void Method2(this ref int p) { }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics();
+            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Ext");
+            var method1 = type.GetMember<MethodSymbol>("Method1");
+            var method2 = type.GetMember<MethodSymbol>("Method2");
+            Assert.True(method1.IsExtensionMethod);
+            Assert.True(method2.IsExtensionMethod);
+            Assert.Equal(RefKind.In, method1.Parameters[0].RefKind);
+            Assert.Equal(RefKind.Ref, method2.Parameters[0].RefKind);
+        }
+
+        [Fact]
         public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefSyntax_SameCompilation()
         {
             var code = @"

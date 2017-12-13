@@ -3133,6 +3133,27 @@ public static class GenExtensions<X> where X : struct
         }
 
         [Fact]
+        public void BadParameterModifiers()
+        {
+            var test = @"
+public static class Extensions
+{
+    public static void M1(ref this ref int i) {}
+    public static void M2(ref this in int i) {}
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (6,36): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
+                //     public static void M2(ref this in int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(5, 36),
+                // (5,36): error CS1107: A parameter can only have one 'ref' modifier
+                //     public static void M1(ref this ref int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(4, 36)
+                );
+        }
+
+        [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void InParametersWouldErrorOutInEarlierCSharpVersions()
         {
