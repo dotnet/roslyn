@@ -1,0 +1,1990 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="fr" original="../FeaturesResources.resx">
+    <body>
+      <trans-unit id="Add_project_reference_to_0">
+        <source>Add project reference to '{0}'.</source>
+        <target state="new">Add project reference to '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_reference_to_0">
+        <source>Add reference to '{0}'.</source>
+        <target state="new">Add reference to '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Actions_can_not_be_empty">
+        <source>Actions can not be empty.</source>
+        <target state="new">Actions can not be empty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generic_overload">
+        <source>generic overload</source>
+        <target state="new">generic overload</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generic_overloads">
+        <source>generic overloads</source>
+        <target state="new">generic overloads</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="overload">
+        <source>overload</source>
+        <target state="new">overload</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="overloads_">
+        <source>overloads</source>
+        <target state="new">overloads</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Keyword">
+        <source>{0} Keyword</source>
+        <target state="new">{0} Keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_field_colon_0_and_use_property">
+        <source>Encapsulate field: '{0}' (and use property)</source>
+        <target state="new">Encapsulate field: '{0}' (and use property)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_field_colon_0_but_still_use_field">
+        <source>Encapsulate field: '{0}' (but still use field)</source>
+        <target state="new">Encapsulate field: '{0}' (but still use field)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_fields_and_use_property">
+        <source>Encapsulate fields (and use property)</source>
+        <target state="new">Encapsulate fields (and use property)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_fields_but_still_use_field">
+        <source>Encapsulate fields (but still use field)</source>
+        <target state="new">Encapsulate fields (but still use field)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct">
+        <source>Could not extract interface: The selection is not inside a class/interface/struct.</source>
+        <target state="new">Could not extract interface: The selection is not inside a class/interface/struct.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
+        <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
+        <target state="new">Could not extract interface: The type does not contain any member that can be extracted to an interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="can_t_not_construct_final_tree">
+        <source>can't not construct final tree</source>
+        <target state="new">can't not construct final tree</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
+        <source>Parameters' type or return type cannot be an anonymous type : [{0}]</source>
+        <target state="new">Parameters' type or return type cannot be an anonymous type : [{0}]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_selection_contains_no_active_statement">
+        <source>The selection contains no active statement.</source>
+        <target state="new">The selection contains no active statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_selection_contains_an_error_or_unknown_type">
+        <source>The selection contains an error or unknown type.</source>
+        <target state="new">The selection contains an error or unknown type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_parameter_0_is_hidden_by_another_type_parameter_1">
+        <source>Type parameter '{0}' is hidden by another type parameter '{1}'.</source>
+        <target state="new">Type parameter '{0}' is hidden by another type parameter '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_address_of_a_variable_is_used_inside_the_selected_code">
+        <source>The address of a variable is used inside the selected code.</source>
+        <target state="new">The address of a variable is used inside the selected code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket">
+        <source>Assigning to readonly fields must be done in a constructor : [{0}].</source>
+        <target state="new">Assigning to readonly fields must be done in a constructor : [{0}].</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generated_code_is_overlapping_with_hidden_portion_of_the_code">
+        <source>generated code is overlapping with hidden portion of the code</source>
+        <target state="new">generated code is overlapping with hidden portion of the code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_optional_parameters_to_0">
+        <source>Add optional parameters to '{0}'</source>
+        <target state="new">Add optional parameters to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameters_to_0">
+        <source>Add parameters to '{0}'</source>
+        <target state="new">Add parameters to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_delegating_constructor_0_1">
+        <source>Generate delegating constructor '{0}({1})'</source>
+        <target state="new">Generate delegating constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_0_1">
+        <source>Generate constructor '{0}({1})'</source>
+        <target state="new">Generate constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_assigning_constructor_0_1">
+        <source>Generate field assigning constructor '{0}({1})'</source>
+        <target state="new">Generate field assigning constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Equals_and_GetHashCode">
+        <source>Generate Equals and GetHashCode</source>
+        <target state="new">Generate Equals and GetHashCode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Equals_object">
+        <source>Generate Equals(object)</source>
+        <target state="new">Generate Equals(object)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_GetHashCode">
+        <source>Generate GetHashCode()</source>
+        <target state="new">Generate GetHashCode()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0">
+        <source>Generate constructor in '{0}'</source>
+        <target state="new">Generate constructor in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_all">
+        <source>Generate all</source>
+        <target state="new">Generate all</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_enum_member_1_0">
+        <source>Generate enum member '{1}.{0}'</source>
+        <target state="new">Generate enum member '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_1_0">
+        <source>Generate constant '{1}.{0}'</source>
+        <target state="new">Generate constant '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_1_0">
+        <source>Generate read-only property '{1}.{0}'</source>
+        <target state="new">Generate read-only property '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_1_0">
+        <source>Generate property '{1}.{0}'</source>
+        <target state="new">Generate property '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_1_0">
+        <source>Generate read-only field '{1}.{0}'</source>
+        <target state="new">Generate read-only field '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_1_0">
+        <source>Generate field '{1}.{0}'</source>
+        <target state="new">Generate field '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_local_0">
+        <source>Generate local '{0}'</source>
+        <target state="new">Generate local '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_0_1_in_new_file">
+        <source>Generate {0} '{1}' in new file</source>
+        <target state="new">Generate {0} '{1}' in new file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_nested_0_1">
+        <source>Generate nested {0} '{1}'</source>
+        <target state="new">Generate nested {0} '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Global_Namespace">
+        <source>Global Namespace</source>
+        <target state="new">Global Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_explicitly">
+        <source>Implement interface explicitly</source>
+        <target state="new">Implement interface explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_abstractly">
+        <source>Implement interface abstractly</source>
+        <target state="new">Implement interface abstractly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_through_0">
+        <source>Implement interface through '{0}'</source>
+        <target state="new">Implement interface through '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface">
+        <source>Implement interface</source>
+        <target state="new">Implement interface</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_context_from_0">
+        <source>Loading context from '{0}'.</source>
+        <target state="new">Loading context from '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Sharphelp_for_more_information">
+        <source>Type "#help" for more information.</source>
+        <target state="new">Type "#help" for more information.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specified_file_not_found_colon_0">
+        <source>Specified file not found: {0}</source>
+        <target state="new">Specified file not found: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specified_file_not_found">
+        <source>Specified file not found.</source>
+        <target state="new">Specified file not found.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searched_in_directory_colon">
+        <source>Searched in directory:</source>
+        <target state="new">Searched in directory:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searched_in_directories_colon">
+        <source>Searched in directories:</source>
+        <target state="new">Searched in directories:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field_for_0">
+        <source>Introduce field for '{0}'</source>
+        <target state="new">Introduce field for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local_for_0">
+        <source>Introduce local for '{0}'</source>
+        <target state="new">Introduce local for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant_for_0">
+        <source>Introduce constant for '{0}'</source>
+        <target state="new">Introduce constant for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local_constant_for_0">
+        <source>Introduce local constant for '{0}'</source>
+        <target state="new">Introduce local constant for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field_for_all_occurrences_of_0">
+        <source>Introduce field for all occurrences of '{0}'</source>
+        <target state="new">Introduce field for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local_for_all_occurrences_of_0">
+        <source>Introduce local for all occurrences of '{0}'</source>
+        <target state="new">Introduce local for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant_for_all_occurrences_of_0">
+        <source>Introduce constant for all occurrences of '{0}'</source>
+        <target state="new">Introduce constant for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local_constant_for_all_occurrences_of_0">
+        <source>Introduce local constant for all occurrences of '{0}'</source>
+        <target state="new">Introduce local constant for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable_for_all_occurrences_of_0">
+        <source>Introduce query variable for all occurrences of '{0}'</source>
+        <target state="new">Introduce query variable for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable_for_0">
+        <source>Introduce query variable for '{0}'</source>
+        <target state="new">Introduce query variable for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Anonymous_Types_colon">
+        <source>Anonymous Types:</source>
+        <target state="new">Anonymous Types:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="is_">
+        <source>is</source>
+        <target state="new">is</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_an_object_whose_operations_will_be_resolved_at_runtime">
+        <source>Represents an object whose operations will be resolved at runtime.</source>
+        <target state="new">Represents an object whose operations will be resolved at runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="constant">
+        <source>constant</source>
+        <target state="new">constant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="field">
+        <source>field</source>
+        <target state="new">field</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_constant">
+        <source>local constant</source>
+        <target state="new">local constant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_variable">
+        <source>local variable</source>
+        <target state="new">local variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="label">
+        <source>label</source>
+        <target state="new">label</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="range_variable">
+        <source>range variable</source>
+        <target state="new">range variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="parameter">
+        <source>parameter</source>
+        <target state="new">parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_">
+        <source>in</source>
+        <target state="new">in</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Summary_colon">
+        <source>Summary:</source>
+        <target state="new">Summary:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locals_and_parameters">
+        <source>Locals and parameters</source>
+        <target state="new">Locals and parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_parameters_colon">
+        <source>Type parameters:</source>
+        <target state="new">Type parameters:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_colon">
+        <source>Returns:</source>
+        <target state="new">Returns:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exceptions_colon">
+        <source>Exceptions:</source>
+        <target state="new">Exceptions:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remarks_colon">
+        <source>Remarks:</source>
+        <target state="new">Remarks:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generating_source_for_symbols_of_this_type_is_not_supported">
+        <source>generating source for symbols of this type is not supported</source>
+        <target state="new">generating source for symbols of this type is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assembly">
+        <source>Assembly</source>
+        <target state="new">Assembly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="location_unknown">
+        <source>location unknown</source>
+        <target state="new">location unknown</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface...</source>
+        <target state="new">Extract Interface...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a complex statement containing an await expression will prevent the debug session from continuing.</source>
+        <target state="new">Updating a complex statement containing an await expression will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of a constructor will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
+        <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
+        <target state="new">Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing">
+        <source>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Ceasing to capture variable '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting captured variable '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Deleting captured variable '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing the parameters of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing the return type of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing the type of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing">
+        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</source>
+        <target state="new">Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing">
+        <source>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</source>
+        <target state="new">Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
+        <source>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
+        <target state="new">Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a '{1}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the modifiers of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the Handles clause of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' with the Handles clause will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the variance of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the type of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the initializer of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the size of a '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the underlying type of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a field to an event or vice versa will prevent the debug session from continuing.</source>
+        <target state="new">Updating a field to an event or vice versa will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the kind of a type will prevent the debug session from continuing.</source>
+        <target state="new">Updating the kind of a type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
+        <target state="new">Updating the kind of an property/event accessor will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
+        <target state="new">Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the library name of Declare Statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating the library name of Declare Statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the alias of Declare Statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating the alias of Declare Statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
+        <source>Renaming '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Renaming '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding an extern '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Adding an extern '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding an imported method will prevent the debug session from continuing.</source>
+        <target state="new">Adding an imported method will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a user defined '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Adding a user defined '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a generic '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Adding a generic '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
+        <source>Moving '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Moving '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Deleting '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Deleting '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a method body will prevent the debug session from continuing.</source>
+        <target state="new">Adding a method body will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting a method body will prevent the debug session from continuing.</source>
+        <target state="new">Deleting a method body will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
+        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
+        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</target>
+        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a generic method will prevent the debug session from continuing.</source>
+        <target state="new">Modifying a generic method will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a method inside the context of a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Modifying a method inside the context of a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
+        <target state="new">Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</source>
+        <target state="new">Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing">
+        <source>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</source>
+        <target state="new">Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</source>
+        <target state="new">Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</source>
+        <target state="new">Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a catch handler around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Modifying a catch handler around an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</source>
+        <target state="new">Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying source with experimental language features enabled will prevent the debug session from continuing.</source>
+        <target state="new">Modifying source with experimental language features enabled will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Removing '{0}' that contains an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a new file will prevent the debug session from continuing.</source>
+        <target state="new">Adding a new file will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing">
+        <source>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</source>
+        <target state="new">Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unexpected_interface_member_kind_colon_0">
+        <source>Unexpected interface member kind: {0}</source>
+        <target state="new">Unexpected interface member kind: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_symbol_kind">
+        <source>Unknown symbol kind</source>
+        <target state="new">Unknown symbol kind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_1_0">
+        <source>Generate abstract property '{1}.{0}'</source>
+        <target state="new">Generate abstract property '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_method_1_0">
+        <source>Generate abstract method '{1}.{0}'</source>
+        <target state="new">Generate abstract method '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_1_0">
+        <source>Generate method '{1}.{0}'</source>
+        <target state="new">Generate method '{1}.{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
+        <source>Failed to create a remote process for interactive code execution.</source>
+        <target state="new">Failed to create a remote process for interactive code execution.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_initialize_remote_interactive_process">
+        <source>Failed to initialize remote interactive process.</source>
+        <target state="new">Failed to initialize remote interactive process.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
+        <source>Attempt to connect to process #{0} failed, retrying ...</source>
+        <target state="new">Attempt to connect to process #{0} failed, retrying ...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
+        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
+        <target state="new">Failed to launch '{0}' process (exit code: {1}) with output: </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hosting_process_exited_with_exit_code_0">
+        <source>Hosting process exited with exit code {0}.</source>
+        <target state="new">Hosting process exited with exit code {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive_Host_not_initialized">
+        <source>Interactive Host not initialized.</source>
+        <target state="new">Interactive Host not initialized.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_resolve_reference_0">
+        <source>Cannot resolve reference '{0}'.</source>
+        <target state="new">Cannot resolve reference '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Requested_assembly_already_loaded_from_0">
+        <source>Requested assembly already loaded from '{0}'.</source>
+        <target state="new">Requested assembly already loaded from '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="plus_additional_0_1">
+        <source> + additional {0} {1}</source>
+        <target state="new"> + additional {0} {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_create_hosting_process">
+        <source>Unable to create hosting process.</source>
+        <target state="new">Unable to create hosting process.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_does_not_have_an_icon">
+        <source>The symbol does not have an icon.</source>
+        <target state="new">The symbol does not have an icon.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="new">Unknown</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method">
+        <source>Extract Method</source>
+        <target state="new">Extract Method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method_plus_Local">
+        <source>Extract Method + Local</source>
+        <target state="new">Extract Method + Local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket">
+        <source>Asynchronous method cannot have ref/out parameters : [{0}]</source>
+        <target state="new">Asynchronous method cannot have ref/out parameters : [{0}]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_member_is_defined_in_metadata">
+        <source>The member is defined in metadata.</source>
+        <target state="new">The member is defined in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate">
+        <source>You can only change the signature of a constructor, indexer, method or delegate.</source>
+        <target state="new">You can only change the signature of a constructor, indexer, method or delegate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue">
+        <source>This symbol has related definitions or references in metadata. Changing its signature may result in build errors.
+
+Do you want to continue?</source>
+        <target state="new">This symbol has related definitions or references in metadata. Changing its signature may result in build errors.
+
+Do you want to continue?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_signature">
+        <source>Change signature...</source>
+        <target state="new">Change signature...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_new_type">
+        <source>Generate new type...</source>
+        <target state="new">Generate new type...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Diagnostic_Analyzer_Failure">
+        <source>User Diagnostic Analyzer Failure.</source>
+        <target state="new">User Diagnostic Analyzer Failure.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_0_threw_an_exception_of_type_1_with_message_2">
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
+        <target state="new">Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_0_threw_the_following_exception_colon_1">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="new">Analyzer '{0}' threw the following exception:
+'{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Cast">
+        <source>Remove Unnecessary Cast</source>
+        <target state="new">Remove Unnecessary Cast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="new">Simplify Names</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="new">Simplify Member Access</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_qualification">
+        <source>Remove qualification</source>
+        <target state="new">Remove qualification</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_and_Continue1">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
+        <source>This signature does not contain parameters that can be changed.</source>
+        <target state="new">This signature does not contain parameters that can be changed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_error_occurred">
+        <source>Unknown error occurred</source>
+        <target state="new">Unknown error occurred</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Available">
+        <source>Available</source>
+        <target state="new">Available</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_Available">
+        <source>Not Available</source>
+        <target state="new">Not Available</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_1">
+        <source>    {0} - {1}</source>
+        <target state="new">    {0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
+        <source>You can use the navigation bar to switch context.</source>
+        <target state="new">You can use the navigation bar to switch context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_Source">
+        <source>in Source</source>
+        <target state="new">in Source</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_Suppression_File">
+        <source>in Suppression File</source>
+        <target state="new">in Suppression File</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Suppression_0">
+        <source>Remove Suppression {0}</source>
+        <target state="new">Remove Suppression {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Suppression">
+        <source>Remove Suppression</source>
+        <target state="new">Remove Suppression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pending">
+        <source>&lt;Pending&gt;</source>
+        <target state="new">&lt;Pending&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns">
+        <source>Awaited task returns</source>
+        <target state="new">Awaited task returns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="no_value">
+        <source>no value.</source>
+        <target state="new">no value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
+        <source>Note: Tab twice to insert the '{0}' snippet.</source>
+        <target state="new">Note: Tab twice to insert the '{0}' snippet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
+        <source>Implement interface explicitly with Dispose pattern</source>
+        <target state="new">Implement interface explicitly with Dispose pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_with_Dispose_pattern">
+        <source>Implement interface with Dispose pattern</source>
+        <target state="new">Implement interface with Dispose pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compiler1">
+        <source>Compiler</source>
+        <target state="new">Compiler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_and_Continue2">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Style">
+        <source>Style</source>
+        <target state="new">Style</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="new">Suppress {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Re_triage_0_currently_1">
+        <source>Re-triage {0}(currently '{1}')</source>
+        <target state="new">Re-triage {0}(currently '{1}')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_cannot_have_a_null_element">
+        <source>Argument cannot have a null element.</source>
+        <target state="new">Argument cannot have a null element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_cannot_be_empty">
+        <source>Argument cannot be empty.</source>
+        <target state="new">Argument cannot be empty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
+        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
+        <target state="new">Reported diagnostic with ID '{0}' is not supported by the analyzer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_fix_all_occurrences_code_fix">
+        <source>Computing fix all occurrences code fix...</source>
+        <target state="new">Computing fix all occurrences code fix...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences">
+        <source>Fix all occurrences</source>
+        <target state="new">Fix all occurrences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document">
+        <source>Document</source>
+        <target state="new">Document</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project">
+        <source>Project</source>
+        <target state="new">Project</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Solution">
+        <source>Solution</source>
+        <target state="new">Solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
+        <source>TODO: dispose managed state (managed objects).</source>
+        <target state="new">TODO: dispose managed state (managed objects).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_set_large_fields_to_null">
+        <source>TODO: set large fields to null.</source>
+        <target state="new">TODO: set large fields to null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="To_detect_redundant_calls">
+        <source>To detect redundant calls</source>
+        <target state="new">To detect redundant calls</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compiler2">
+        <source>Compiler</source>
+        <target state="new">Compiler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_And_Continue">
+        <source>Edit And Continue</source>
+        <target state="new">Edit And Continue</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live">
+        <source>Live</source>
+        <target state="new">Live</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="enum_value">
+        <source>enum value</source>
+        <target state="new">enum value</target>
+        <note>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="const_field">
+        <source>const field</source>
+        <target state="new">const field</target>
+        <note>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="method">
+        <source>method</source>
+        <target state="new">method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="operator_">
+        <source>operator</source>
+        <target state="new">operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="constructor">
+        <source>constructor</source>
+        <target state="new">constructor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="auto_property">
+        <source>auto-property</source>
+        <target state="new">auto-property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property_">
+        <source>property</source>
+        <target state="new">property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="event_accessor">
+        <source>event accessor</source>
+        <target state="new">event accessor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type_constraint">
+        <source>type constraint</source>
+        <target state="new">type constraint</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type_parameter">
+        <source>type parameter</source>
+        <target state="new">type parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="attribute">
+        <source>attribute</source>
+        <target state="new">attribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_auto_property">
+        <source>Use auto property</source>
+        <target state="new">Use auto property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_and_1_with_property">
+        <source>Replace '{0}' and '{1}' with property</source>
+        <target state="new">Replace '{0}' and '{1}' with property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_property">
+        <source>Replace '{0}' with property</source>
+        <target state="new">Replace '{0}' with property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_referenced_implicitly">
+        <source>Method referenced implicitly</source>
+        <target state="new">Method referenced implicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_type_0">
+        <source>Generate type '{0}'</source>
+        <target state="new">Generate type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_0_1">
+        <source>Generate {0} '{1}'</source>
+        <target state="new">Generate {0} '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_0_to_1">
+        <source>Change '{0}' to '{1}'.</source>
+        <target state="new">Change '{0}' to '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_invoked_method_cannot_be_replaced_with_property">
+        <source>Non-invoked method cannot be replaced with property.</source>
+        <target state="new">Non-invoked method cannot be replaced with property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_be_replaced_with_a_property">
+        <source>Only methods with a single argument, which is not an out variable declaration, can be replaced with a property.</source>
+        <target state="new">Only methods with a single argument, which is not an out variable declaration, can be replaced with a property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Roslyn_HostError">
+        <source>Roslyn.HostError</source>
+        <target state="new">Roslyn.HostError</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2">
+        <source>An instance of analyzer {0} cannot be created from {1}: {2}.</source>
+        <target state="new">An instance of analyzer {0} cannot be created from {1}: {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_does_not_contain_any_analyzers">
+        <source>The assembly {0} does not contain any analyzers.</source>
+        <target state="new">The assembly {0} does not contain any analyzers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_load_Analyzer_assembly_0_colon_1">
+        <source>Unable to load Analyzer assembly {0}: {1}</source>
+        <target state="new">Unable to load Analyzer assembly {0}: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="new">Make method synchronous</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_this_or_Me_qualification">
+        <source>Add 'this' or 'Me' qualification.</source>
+        <target state="new">Add 'this' or 'Me' qualification.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_Name_Violation_colon_0">
+        <source>Fix Name Violation: {0}</source>
+        <target state="new">Fix Name Violation: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_rule_violation_0">
+        <source>Naming rule violation: {0}</source>
+        <target state="new">Naming rule violation: {0}</target>
+        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
+      </trans-unit>
+      <trans-unit id="Naming_Styles">
+        <source>Naming Styles</source>
+        <target state="new">Naming Styles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="from_0">
+        <source>from {0}</source>
+        <target state="new">from {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_and_install_latest_version">
+        <source>Find and install latest version</source>
+        <target state="new">Find and install latest version</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_local_version_0">
+        <source>Use local version '{0}'</source>
+        <target state="new">Use local version '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_locally_installed_0_version_1_This_version_used_in_colon_2">
+        <source>Use locally installed '{0}' version '{1}'
+This version used in: {2}</source>
+        <target state="new">Use locally installed '{0}' version '{1}'
+This version used in: {2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_and_install_latest_version_of_0">
+        <source>Find and install latest version of '{0}'</source>
+        <target state="new">Find and install latest version of '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_with_package_manager">
+        <source>Install with package manager...</source>
+        <target state="new">Install with package manager...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_0_1">
+        <source>Install '{0} {1}'</source>
+        <target state="new">Install '{0} {1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_version_0">
+        <source>Install version '{0}'</source>
+        <target state="new">Install version '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_variable_0">
+        <source>Generate variable '{0}'</source>
+        <target state="new">Generate variable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Classes">
+        <source>Classes</source>
+        <target state="new">Classes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constants">
+        <source>Constants</source>
+        <target state="new">Constants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegates">
+        <source>Delegates</source>
+        <target state="new">Delegates</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enums">
+        <source>Enums</source>
+        <target state="new">Enums</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Events">
+        <source>Events</source>
+        <target state="new">Events</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extension_methods">
+        <source>Extension methods</source>
+        <target state="new">Extension methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fields">
+        <source>Fields</source>
+        <target state="new">Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interfaces">
+        <source>Interfaces</source>
+        <target state="new">Interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locals">
+        <source>Locals</source>
+        <target state="new">Locals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Methods">
+        <source>Methods</source>
+        <target state="new">Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modules">
+        <source>Modules</source>
+        <target state="new">Modules</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespaces">
+        <source>Namespaces</source>
+        <target state="new">Namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties">
+        <source>Properties</source>
+        <target state="new">Properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Structures">
+        <source>Structures</source>
+        <target state="new">Structures</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameters_colon">
+        <source>Parameters:</source>
+        <target state="new">Parameters:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_cases">
+        <source>Add missing cases</source>
+        <target state="new">Add missing cases</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_both">
+        <source>Add both</source>
+        <target state="new">Add both</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_default_case">
+        <source>Add default case</source>
+        <target state="new">Add default case</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
+        <source>Variadic SignatureHelpItem must have at least one parameter.</source>
+        <target state="new">Variadic SignatureHelpItem must have at least one parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_braces">
+        <source>Add braces</source>
+        <target state="new">Add braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_method">
+        <source>Replace '{0}' with method</source>
+        <target state="new">Replace '{0}' with method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_methods">
+        <source>Replace '{0}' with methods</source>
+        <target state="new">Replace '{0}' with methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_referenced_implicitly">
+        <source>Property referenced implicitly</source>
+        <target state="new">Property referenced implicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_cannot_safely_be_replaced_with_a_method_call">
+        <source>Property cannot safely be replaced with a method call</source>
+        <target state="new">Property cannot safely be replaced with a method call</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_interpolated_string">
+        <source>Convert to interpolated string</source>
+        <target state="new">Convert to interpolated string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_type_to_0">
+        <source>Move type to {0}</source>
+        <target state="new">Move type to {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_to_0">
+        <source>Rename file to {0}</source>
+        <target state="new">Rename file to {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_type_to_0">
+        <source>Rename type to {0}</source>
+        <target state="new">Rename type to {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_tag">
+        <source>Remove tag</source>
+        <target state="new">Remove tag</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_param_nodes">
+        <source>Add missing param nodes</source>
+        <target state="new">Add missing param nodes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_containing_scope_async">
+        <source>Make containing scope async</source>
+        <target state="new">Make containing scope async</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_containing_scope_async_return_Task">
+        <source>Make containing scope async (return Task)</source>
+        <target state="new">Make containing scope async (return Task)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="paren_Unknown_paren">
+        <source>(Unknown)</source>
+        <target state="new">(Unknown)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class">
+        <source>Implement Abstract Class</source>
+        <target state="new">Implement Abstract Class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_framework_type">
+        <source>Use framework type</source>
+        <target state="new">Use framework type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_package_0">
+        <source>Install package '{0}'</source>
+        <target state="new">Install package '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_initialization_can_be_simplified">
+        <source>Object initialization can be simplified</source>
+        <target state="new">Object initialization can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_throw_expression">
+        <source>Use 'throw' expression</source>
+        <target state="new">Use 'throw' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="project_0">
+        <source>project {0}</source>
+        <target state="new">project {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_variable_declaration">
+        <source>Inline variable declaration</source>
+        <target state="new">Inline variable declaration</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching">
+        <source>Use pattern matching</source>
+        <target state="new">Use pattern matching</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_methods">
+        <source>Use expression body for methods</source>
+        <target state="new">Use expression body for methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_methods">
+        <source>Use block body for methods</source>
+        <target state="new">Use block body for methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_accessors">
+        <source>Use block body for accessors</source>
+        <target state="new">Use block body for accessors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_constructors">
+        <source>Use block body for constructors</source>
+        <target state="new">Use block body for constructors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_indexers">
+        <source>Use block body for indexers</source>
+        <target state="new">Use block body for indexers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_operators">
+        <source>Use block body for operators</source>
+        <target state="new">Use block body for operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_properties">
+        <source>Use block body for properties</source>
+        <target state="new">Use block body for properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_accessors">
+        <source>Use expression body for accessors</source>
+        <target state="new">Use expression body for accessors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_constructors">
+        <source>Use expression body for constructors</source>
+        <target state="new">Use expression body for constructors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_indexers">
+        <source>Use expression body for indexers</source>
+        <target state="new">Use expression body for indexers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_operators">
+        <source>Use expression body for operators</source>
+        <target state="new">Use expression body for operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_properties">
+        <source>Use expression body for properties</source>
+        <target state="new">Use expression body for properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Spell_check_0">
+        <source>Spell check '{0}'</source>
+        <target state="new">Spell check '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fully_qualify_0">
+        <source>Fully qualify '{0}'</source>
+        <target state="new">Fully qualify '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_reference_to_0">
+        <source>Remove reference to '{0}'.</source>
+        <target state="new">Remove reference to '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keywords">
+        <source>Keywords</source>
+        <target state="new">Keywords</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippets">
+        <source>Snippets</source>
+        <target state="new">Snippets</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_lowercase">
+        <source>All lowercase</source>
+        <target state="new">All lowercase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_uppercase">
+        <source>All uppercase</source>
+        <target state="new">All uppercase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="First_word_capitalized">
+        <source>First word capitalized</source>
+        <target state="new">First word capitalized</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pascal_Case">
+        <source>Pascal Case</source>
+        <target state="new">Pascal Case</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collection_initialization_can_be_simplified">
+        <source>Collection initialization can be simplified</source>
+        <target state="new">Collection initialization can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_coalesce_expression">
+        <source>Use coalesce expression</source>
+        <target state="new">Use coalesce expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_null_propagation">
+        <source>Use null propagation</source>
+        <target state="new">Use null propagation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_inlined">
+        <source>Variable declaration can be inlined</source>
+        <target state="new">Variable declaration can be inlined</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_check_can_be_simplified">
+        <source>Null check can be simplified</source>
+        <target state="new">Null check can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_collection_initialization">
+        <source>Simplify collection initialization</source>
+        <target state="new">Simplify collection initialization</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_object_initialization">
+        <source>Simplify object initialization</source>
+        <target state="new">Simplify object initialization</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
+        <source>Prefer explicitly provided tuple element name</source>
+        <target state="new">Prefer explicitly provided tuple element name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicitly_provided_tuple_name">
+        <source>Use explicitly provided tuple name</source>
+        <target state="new">Use explicitly provided tuple name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_document_0">
+        <source>Remove document '{0}'</source>
+        <target state="new">Remove document '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_document_0">
+        <source>Add document '{0}'</source>
+        <target state="new">Add document '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_argument_name_0">
+        <source>Add argument name '{0}'</source>
+        <target state="new">Add argument name '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="new">Take '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="new">Take both</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="new">Take bottom</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="new">Take top</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variable">
+        <source>Remove unused variable</source>
+        <target state="new">Remove unused variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_binary">
+        <source>Convert to binary</source>
+        <target state="new">Convert to binary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_decimal">
+        <source>Convert to decimal</source>
+        <target state="new">Convert to decimal</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_hex">
+        <source>Convert to hex</source>
+        <target state="new">Convert to hex</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_thousands">
+        <source>Separate thousands</source>
+        <target state="new">Separate thousands</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_words">
+        <source>Separate words</source>
+        <target state="new">Separate words</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_nibbles">
+        <source>Separate nibbles</source>
+        <target state="new">Separate nibbles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_separators">
+        <source>Remove separators</source>
+        <target state="new">Remove separators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0">
+        <source>Add parameter to '{0}'</source>
+        <target state="new">Add parameter to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor">
+        <source>Generate constructor...</source>
+        <target state="new">Generate constructor...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pick_members_to_be_used_as_constructor_parameters">
+        <source>Pick members to be used as constructor parameters</source>
+        <target state="new">Pick members to be used as constructor parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
+        <source>Pick members to be used in Equals/GetHashCode</source>
+        <target state="new">Pick members to be used in Equals/GetHashCode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
+        <source>Changes to expression trees may result in behavior changes at runtime</source>
+        <target state="new">Changes to expression trees may result in behavior changes at runtime</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_overrides">
+        <source>Generate overrides...</source>
+        <target state="new">Generate overrides...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pick_members_to_override">
+        <source>Pick members to override</source>
+        <target state="new">Pick members to override</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_null_check">
+        <source>Add null check</source>
+        <target state="new">Add null check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_string_IsNullOrEmpty_check">
+        <source>Add 'string.IsNullOrEmpty' check</source>
+        <target state="new">Add 'string.IsNullOrEmpty' check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
+        <source>Add 'string.IsNullOrWhiteSpace' check</source>
+        <target state="new">Add 'string.IsNullOrWhiteSpace' check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_initialize_field_0">
+        <source>Create and initialize field '{0}'</source>
+        <target state="new">Create and initialize field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_initialize_property_0">
+        <source>Create and initialize property '{0}'</source>
+        <target state="new">Create and initialize property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Initialize_field_0">
+        <source>Initialize field '{0}'</source>
+        <target state="new">Initialize field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Initialize_property_0">
+        <source>Initialize property '{0}'</source>
+        <target state="new">Initialize property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_null_checks">
+        <source>Add null checks</source>
+        <target state="new">Add null checks</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_operators">
+        <source>Generate operators</source>
+        <target state="new">Generate operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_0">
+        <source>Implement {0}</source>
+        <target state="new">Implement {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_default_expression">
+        <source>Simplify 'default' expression</source>
+        <target state="new">Simplify 'default' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="default_expression_can_be_simplified">
+        <source>'default' expression can be simplified</source>
+        <target state="new">'default' expression can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_string_contains_invalid_placeholder">
+        <source>Format string contains invalid placeholder</source>
+        <target state="new">Format string contains invalid placeholder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_format_string">
+        <source>Invalid format string</source>
+        <target state="new">Invalid format string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_inferred_member_name">
+        <source>Use inferred member name</source>
+        <target state="new">Use inferred member name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_name_can_be_simplified">
+        <source>Member name can be simplified</source>
+        <target state="new">Member name can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
+        <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
+        <target state="new">Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
+        <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
+        <target state="new">Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unreachable_code_detected">
+        <source>Unreachable code detected</source>
+        <target state="new">Unreachable code detected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unreachable_code">
+        <source>Remove unreachable code</source>
+        <target state="new">Remove unreachable code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifiers_are_not_ordered">
+        <source>Modifiers are not ordered</source>
+        <target state="new">Modifiers are not ordered</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Order_modifiers">
+        <source>Order modifiers</source>
+        <target state="new">Order modifiers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_0_project_1">
+        <source>in {0} (project {1})</source>
+        <target state="new">in {0} (project {1})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Accessibility_modifiers_required">
+        <source>Accessibility modifiers required</source>
+        <target state="new">Accessibility modifiers required</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_accessibility_modifiers">
+        <source>Add accessibility modifiers</source>
+        <target state="new">Add accessibility modifiers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_local_function">
+        <source>Use local function</source>
+        <target state="new">Use local function</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
+        <source>Warning: Declaration changes scope and may change meaning.</source>
+        <target state="new">Warning: Declaration changes scope and may change meaning.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_declaration_near_reference">
+        <source>Move declaration near reference</source>
+        <target state="new">Move declaration near reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_full_property">
+        <source>Convert to full property</source>
+        <target state="new">Convert to full property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_without_fields">
+        <source>Generate constructor in '{0}' (without fields)</source>
+        <target state="new">Generate constructor in '{0}' (without fields)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_file_banner">
+        <source>Add file banner</source>
+        <target state="new">Add file banner</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Method_overrides_symbol_from_metadata">
+        <source>Warning: Method overrides symbol from metadata</source>
+        <target state="new">Warning: Method overrides symbol from metadata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use {0}</source>
+        <target state="new">Use {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
+        <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
+        <target state="new">Switching between a lambda and a local function will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deconstruct_variable_declaration">
+        <source>Deconstruct variable declaration</source>
+        <target state="new">Deconstruct variable declaration</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_deconstructed">
+        <source>Variable declaration can be deconstructed</source>
+        <target state="new">Variable declaration can be deconstructed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_argument_name_0_including_trailing_arguments">
+        <source>Add argument name '{0}' (including trailing arguments)</source>
+        <target state="new">Add argument name '{0}' (including trailing arguments)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
+        <source>Using readonly structs will prevent the debug session from continuing.</source>
+        <target state="new">Using readonly structs will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
+        <source>Using ref structs will prevent the debug session from continuing.</source>
+        <target state="new">Using ref structs will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
+        <source>Using readonly references will prevent the debug session from continuing.</source>
+        <target state="new">Using readonly references will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_function">
+        <source>local function</source>
+        <target state="new">local function</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="indexer_">
+        <source>indexer</source>
+        <target state="new">indexer</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

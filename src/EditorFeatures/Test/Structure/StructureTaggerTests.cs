@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
     public class StructureTaggerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/22345"), Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task CSharpOutliningTagger_RegionIsDefinition()
         {
             var code =

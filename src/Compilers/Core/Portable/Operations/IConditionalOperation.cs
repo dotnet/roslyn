@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operation to be executed if the <see cref="Condition"/> is false.
         /// </summary>
         IOperation WhenFalse { get; }
+
+        /// <summary>
+        /// Is result a managed reference
+        /// </summary>
+        bool IsRef { get; }
     }
 }
 

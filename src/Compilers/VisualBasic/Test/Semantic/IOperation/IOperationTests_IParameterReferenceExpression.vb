@@ -22,6 +22,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITupleOperation (OperationKind.Tuple, Type: (x As System.Int32, System.Int32)) (Syntax: '(x, x + y)')
+  NaturalType: (x As System.Int32, System.Int32)
   Elements(2):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
@@ -157,7 +158,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {x}')
               Initializer: 
-                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{x}')
+                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{x}')
                   Element Values(1):
                       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       Arguments(0)
@@ -672,18 +673,17 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Mid(str, st ... ngth) = str')
   Expression: 
-    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
-      Left: 
-        IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
-      Right: 
-        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
-          Children(4):
-              IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, start, length)')
-                Operand: 
-                  IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
-              IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'start')
-              IParameterReferenceOperation: length (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'length')
-              IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
+    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
+      Children(2):
+          IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
+          IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
+            Children(4):
+                IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, start, length)')
+                  Operand: 
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
+                IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'start')
+                IParameterReferenceOperation: length (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'length')
+                IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -783,7 +783,7 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'Erase x')
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'x')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'Erase x')
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

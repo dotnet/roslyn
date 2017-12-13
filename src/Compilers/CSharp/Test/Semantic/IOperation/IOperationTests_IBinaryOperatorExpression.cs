@@ -188,7 +188,7 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
   Instance Receiver: 
     null
   Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
         IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
           Left: 
             IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... / e % f & g')
@@ -322,7 +322,7 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
   Instance Receiver: 
     null
   Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
         IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
           Left: 
             IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... / e % f & g')

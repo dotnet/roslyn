@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -15,7 +14,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <IsProductComponent>true</IsProductComponent>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
@@ -147,7 +146,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Core\Def\ServicesVisualStudio.csproj">
       <Name>ServicesVisualStudio</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;VsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>true</Ngen>
       <NgenArchitecture>All</NgenArchitecture>
@@ -222,12 +221,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <NuGetPackageToIncludeInVsix Include="Humanizer.Core" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.bundle_green" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in System.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
+    <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
+    <NuGetPackageToIncludeInVsix Include="Mono.Cecil" />
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />
@@ -288,5 +290,4 @@
     <Reference Include="System" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -850,24 +850,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     var declarationStatement = (IVariableDeclarationsOperation)operationContext.Operation;
+                     var declarationStatement = (IVariableDeclarationGroupOperation)operationContext.Operation;
                      if (declarationStatement.GetDeclaredVariables().Count() > 3)
                      {
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
 
-                     foreach (var decl in declarationStatement.Declarations)
+                     foreach (var decl in declarationStatement.Declarations.SelectMany(multiDecl => multiDecl.Declarators))
                      {
-                         if (decl.Initializer != null && !decl.Initializer.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
+                         var initializer = decl.GetVariableInitializer();
+                         if (initializer != null && !initializer.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                          {
-                             foreach (var symbol in decl.Variables)
-                             {
-                                 Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
-                             }
+                             Report(operationContext, decl.Symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
                          }
                      }
                  },
-                 OperationKind.VariableDeclarations);
+                 OperationKind.VariableDeclarationGroup);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
@@ -1542,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     IUnaryOperation unary = (IUnaryOperation)operationContext.Operation;
-                    if (unary.OperatorKind == UnaryOperatorKind.Minus && unary.OperatorMethod  != null && unary.OperatorMethod.Name.Contains("UnaryNegation"))
+                    if (unary.OperatorKind == UnaryOperatorKind.Minus && unary.OperatorMethod != null && unary.OperatorMethod.Name.Contains("UnaryNegation"))
                     {
                         operationContext.ReportDiagnostic(Diagnostic.Create(OperatorMinusMethodDescriptor, unary.Syntax.GetLocation()));
                     }
@@ -2096,34 +2094,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
-    // This analyzer is to test internal operation action registration method in AnalysisContext
-    public class AnalysisContextInternalAnalyzer : DiagnosticAnalyzer
-    {
-        private const string ReliabilityCategory = "Reliability";
-
-        public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
-            "AnalysisContextInternal",
-            "An operation related action is invoked",
-            "An {0} action is invoked in {1} context.",
-            ReliabilityCategory,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(OperationActionInternalDescriptor);
-
-        public sealed override void Initialize(AnalysisContext context)
-        {
-            context.RegisterOperationActionParamsArrayInternal(
-                (operationContext) =>
-                {
-                    operationContext.ReportDiagnostic(
-                        Diagnostic.Create(OperationActionInternalDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "Analysis"));
-                },
-                OperationKind.Literal);
-        }
-    }
-
     // This analyzer is to test operation action registration method in CompilationStartAnalysisContext
     public class CompilationStartAnalysisContextAnalyzer : DiagnosticAnalyzer
     {
@@ -2150,38 +2120,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         {
                             operationContext.ReportDiagnostic(
                                 Diagnostic.Create(OperationActionDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
-                        },
-                        OperationKind.Literal);
-                });
-        }
-    }
-
-    // This analyzer is to test internal operation action registration method in CompilationStartAnalysisContext
-    public class CompilationStartAnalysisContextInternalAnalyzer : DiagnosticAnalyzer
-    {
-        private const string ReliabilityCategory = "Reliability";
-
-        public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
-            "CompilationStartAnalysisContextInternal",
-            "An operation related action is invoked",
-            "An {0} action is invoked in {1} context.",
-            ReliabilityCategory,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(OperationActionInternalDescriptor);
-
-        public sealed override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(
-                (compilationStartContext) =>
-                {
-                    compilationStartContext.RegisterOperationActionParamsArrayInternal(
-                        (operationContext) =>
-                        {
-                            operationContext.ReportDiagnostic(
-                                Diagnostic.Create(OperationActionInternalDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
                         },
                         OperationKind.Literal);
                 });
@@ -2226,52 +2164,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     if (model.GetOperation(node) != null)
                     {
                         syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationDescriptor, node.GetLocation()));
-                    }
-                },
-                Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);
-        }
-    }
-
-    // This analyzer is to test GetOperationInternal method in SemanticModel
-    public class SemanticModelInternalAnalyzer : DiagnosticAnalyzer
-    {
-        private const string ReliabilityCategory = "Reliability";
-
-
-        public static readonly DiagnosticDescriptor GetOperationInternalDescriptor = new DiagnosticDescriptor(
-            "GetOperationInternal",
-            "An IOperation is returned by SemanticModel",
-            "An IOperation is returned by SemanticModel.",
-            ReliabilityCategory,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(GetOperationInternalDescriptor);
-
-        public sealed override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(
-                (syntaxContext) =>
-                {
-                    var node = syntaxContext.Node;
-                    var model = syntaxContext.SemanticModel;
-                    if (model.GetOperationInternal(node) != null)
-                    {
-                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationInternalDescriptor, node.GetLocation()));
-                    }
-                },
-                Microsoft.CodeAnalysis.CSharp.SyntaxKind.NumericLiteralExpression);
-
-            context.RegisterSyntaxNodeAction(
-                (syntaxContext) =>
-                {
-                    var node = syntaxContext.Node;
-                    var model = syntaxContext.SemanticModel;
-                    if (model.GetOperationInternal(node) != null)
-                    {
-                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationInternalDescriptor, node.GetLocation()));
                     }
                 },
                 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);

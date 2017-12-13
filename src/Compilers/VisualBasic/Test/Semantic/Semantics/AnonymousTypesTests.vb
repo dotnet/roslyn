@@ -117,9 +117,12 @@ End Module]]>.Value
 IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Test1(t ... End Sub')
   Locals: Local_1: v1 As System.Object
     Local_2: v2 As System.Object
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim v1 As O ... h {.a = tr}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'v1')
-      Variables: Local_1: v1 As System.Object
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim v1 As O ... h {.a = tr}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'v1 As Objec ... h {.a = tr}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: v1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v1')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With {.a = tr}')
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = tr}')
@@ -134,9 +137,12 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                             null
                       Right: 
                         IParameterReferenceOperation: tr (OperationKind.ParameterReference, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'v2')
-      Variables: Local_1: v2 As System.Object
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'v2 As Objec ... a = {{tr}}}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: v2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v2')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With {.a = {{tr}}}')
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = {{tr}}}')
@@ -468,7 +474,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {. ...  SubName()}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: '.a = SubName()')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.a = SubName()')
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
@@ -576,7 +582,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Object>) (Syntax: 'New With {.a = Nothing}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, Constant: null, IsImplicit) (Syntax: '.a = Nothing')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, Constant: null) (Syntax: '.a = Nothing')
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Object>.a As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'a')
             Instance Receiver: 
@@ -718,17 +724,23 @@ End Module]]>.Value
 IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
     Local_2: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim err = N ...  {<a/>.<_>}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'err')
-      Variables: Local_1: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim err = N ...  {<a/>.<_>}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'err = New W ...  {<a/>.<_>}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'err')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With {<a/>.<_>}')
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid) (Syntax: 'New With {<a/>.<_>}')
             Initializers(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<a/>.<_>')
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ok')
-      Variables: Local_1: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ok = New Wi ... {<a/>.<__>}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ok')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New With {<a/>.<__>}')
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
@@ -905,7 +917,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... ddressOf S}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf S')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf S')
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 

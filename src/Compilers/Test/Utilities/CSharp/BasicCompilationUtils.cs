@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public static class BasicCompilationUtils
     {
-        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, bool verify = true)
+        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, Verification verify = Verification.Passes)
         {
             if (references == null)
             {

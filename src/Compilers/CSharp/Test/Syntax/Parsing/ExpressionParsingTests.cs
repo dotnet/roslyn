@@ -3667,5 +3667,123 @@ select t";
             }
             EOF();
         }
+
+        [Fact, WorkItem(22830, "https://github.com/dotnet/roslyn/issues/22830")]
+        public void TypeArgumentIndexerInitializer()
+        {
+            UsingExpression("new C { [0] = op1 < op2, [1] = true }");
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.ImplicitElementAccess);
+                        {
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.LessThanExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "op1");
+                            }
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "op2");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.ImplicitElementAccess);
+                        {
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.TrueLiteralExpression);
+                        {
+                            N(SyntaxKind.TrueKeyword);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(12214, "https://github.com/dotnet/roslyn/issues/12214")]
+        public void ConditionalExpressionInInterpolation()
+        {
+            UsingExpression("$\"{a ? b : d}\"",
+                // (1,4): error CS8361: A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.
+                // $"{a ? b : d}"
+                Diagnostic(ErrorCode.ERR_ConditionalInInterpolation, "a ? b ").WithLocation(1, 4)
+                );
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        M(SyntaxKind.ColonToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.InterpolationFormatClause);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.InterpolatedStringTextToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
     }
 }

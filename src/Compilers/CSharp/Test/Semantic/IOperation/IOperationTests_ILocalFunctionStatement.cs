@@ -162,7 +162,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local3(System.Int32 p1)) (Operatio
               Instance Receiver: 
                 null
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: System.Int32) (Syntax: 'p1')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: 'p1')
                     IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p1')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -194,7 +194,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (Operation
           Instance Receiver: 
             null
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: System.Int32) (Syntax: 'x + p1')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: 'x + p1')
                 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + p1')
                   Left: 
                     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
@@ -240,7 +240,7 @@ ILocalFunctionOperation (Symbol: System.Threading.Tasks.Task<System.Int32> Local
               Instance Receiver: 
                 null
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument, Type: null) (Syntax: '0')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

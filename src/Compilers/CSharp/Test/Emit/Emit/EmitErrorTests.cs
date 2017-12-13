@@ -109,7 +109,7 @@ public class B
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
         }
 
         [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
@@ -141,7 +141,7 @@ public class B
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
         }
 
         [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
@@ -178,7 +178,7 @@ public class B
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
-                verify: false);
+                verify: Verification.Fails);
             compilation2.VerifyIL("B.Main()", @"
 {
   // Code size       25 (0x19)

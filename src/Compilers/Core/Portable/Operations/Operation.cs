@@ -261,21 +261,20 @@ namespace Microsoft.CodeAnalysis
         {
             var operationAlreadyProcessed = PooledHashSet<IOperation>.GetInstance();
 
-            // start from current node since one node can have multiple operations mapped to
-            var currentCandidate = Syntax;
+            if (SemanticModel.Root == Syntax)
+            {
+                // this is the root
+                return null;
+            }
+
+            var currentCandidate = Syntax.Parent;
 
             try
             {
                 while (currentCandidate != null)
                 {
-                    if (!SemanticModel.Root.FullSpan.Contains(currentCandidate.FullSpan))
-                    {
-                        // reached top of parent chain
-                        break;
-                    }
-
                     // get operation
-                    var tree = SemanticModel.GetOperationInternal(currentCandidate);
+                    var tree = SemanticModel.GetOperation(currentCandidate);
                     if (tree != null)
                     {
                         // walk down operation tree to see whether this tree contains parent of this operation
@@ -284,6 +283,12 @@ namespace Microsoft.CodeAnalysis
                         {
                             return parent;
                         }
+                    }
+
+                    if (SemanticModel.Root == currentCandidate)
+                    {
+                        // reached top of parent chain
+                        break;
                     }
 
                     // move up the tree

@@ -996,5 +996,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return to.WithPrependedLeadingTrivia(finalTrivia)
                      .WithAdditionalAnnotations(Formatter.Annotation);
         }
+
+        public static bool IsInDeconstructionLeft(this SyntaxNode node, out SyntaxNode deconstructionLeft)
+        {
+            SyntaxNode previous = null;
+            for (var current = node; current != null; current = current.GetParent())
+            {
+                if ((current is AssignmentExpressionSyntax assignment && previous == assignment.Left && assignment.IsDeconstruction()) ||
+                    (current is ForEachVariableStatementSyntax @foreach && previous == @foreach.Variable))
+                {
+                    deconstructionLeft = previous;
+                    return true;
+                }
+
+                if (current is StatementSyntax)
+                {
+                    break;
+                }
+
+                previous = current;
+            }
+
+            deconstructionLeft = null;
+            return false;
+        }
     }
 }

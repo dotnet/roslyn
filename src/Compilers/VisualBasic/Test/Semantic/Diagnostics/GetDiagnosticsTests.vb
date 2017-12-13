@@ -62,7 +62,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub DiagnosticsFilteredForInsersectingIntervals()
+        Public Sub DiagnosticsFilteredForIntersectingIntervals()
             Dim source = <project><file>
 Class C
     Inherits Abracadabra
@@ -433,9 +433,9 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
                             Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for same symbol " + symbol.Name)
                         End If
                     Else
-                        Dim compilationCompeletedEvent = TryCast(compEvent, CompilationUnitCompletedEvent)
-                        If compilationCompeletedEvent IsNot Nothing Then
-                            Assert.True(completedCompilationUnits.Add(compilationCompeletedEvent.CompilationUnit.FilePath))
+                        Dim compilationCompletedEvent = TryCast(compEvent, CompilationUnitCompletedEvent)
+                        If compilationCompletedEvent IsNot Nothing Then
+                            Assert.True(completedCompilationUnits.Add(compilationCompletedEvent.CompilationUnit.FilePath))
                         End If
                     End If
                 End If

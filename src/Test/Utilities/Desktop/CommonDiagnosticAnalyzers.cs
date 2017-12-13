@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis
 
                     cc.RegisterOperationBlockStartAction(oc =>
                     {
-                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), OperationKind.VariableDeclarations);
+                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), OperationKind.VariableDeclarationGroup);
                         oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.OperationBlockEnd));
                     });
                 });
@@ -834,12 +835,88 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (_actionKind == ActionKind.Operation)
                 {
-                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), OperationKind.VariableDeclarations);
+                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), OperationKind.VariableDeclarationGroup);
                 }
                 else
                 {
                     context.RegisterOperationBlockAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
                 }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class OperationBlockAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "OperationBlock for {0}: {1}",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(c =>
+                {
+                    foreach (var operationRoot in c.OperationBlocks)
+                    {
+                        var diagnostic = Diagnostic.Create(Descriptor, c.OwningSymbol.Locations[0], c.OwningSymbol.Name, operationRoot.Kind);
+                        c.ReportDiagnostic(diagnostic);
+                    }
+                });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class FieldReferenceOperationAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _doOperationBlockAnalysis;
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title",
+                "Field {0} = {1}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public FieldReferenceOperationAnalyzer(bool doOperationBlockAnalysis)
+            {
+                _doOperationBlockAnalysis = doOperationBlockAnalysis;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_doOperationBlockAnalysis)
+                {
+                    context.RegisterOperationBlockAction(operationBlockAnalysisContext =>
+                    {
+                        foreach (var operationBlock in operationBlockAnalysisContext.OperationBlocks)
+                        {
+                            foreach (var operation in operationBlock.DescendantsAndSelf().OfType<IFieldReferenceOperation>())
+                            {
+                                AnalyzerFieldReferenceOperation(operation, operationBlockAnalysisContext.ReportDiagnostic);
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    context.RegisterOperationAction(AnalyzerOperation, OperationKind.FieldReference);
+                }
+            }
+
+            private static void AnalyzerOperation(OperationAnalysisContext operationAnalysisContext)
+            {
+                AnalyzerFieldReferenceOperation((IFieldReferenceOperation)operationAnalysisContext.Operation, operationAnalysisContext.ReportDiagnostic);
+            }
+
+            private static void AnalyzerFieldReferenceOperation(IFieldReferenceOperation operation, Action<Diagnostic> reportDiagnostic)
+            {
+                var diagnostic = Diagnostic.Create(Descriptor, operation.Syntax.GetLocation(), operation.Field.Name, operation.Field.ConstantValue);
+                reportDiagnostic(diagnostic);
             }
         }
 

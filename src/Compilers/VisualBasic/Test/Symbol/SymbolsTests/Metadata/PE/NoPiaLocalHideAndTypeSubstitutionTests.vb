@@ -191,8 +191,8 @@ End Class
             Dim localFieldSymbol As FieldSymbol = classLocalType.GetMembers("myLocalType").OfType(Of FieldSymbol)().[Single]()
             Dim classRefLocalType As NamedTypeSymbol = localConsumerRefsAsm.First(Function(arg) arg.Name = "ExternalAsm1").GlobalNamespace.GetTypeMembers("ExternalAsm1").[Single]()
             Dim propertySymbol = classRefLocalType.GetMembers("Scen4").OfType(Of PropertySymbol)().[Single]()
-            Dim propertType = propertySymbol.Type
-            Assert.Equal(canonicalType.ToTestDisplayString(), propertType.Name)
+            Dim propertyType = propertySymbol.Type
+            Assert.Equal(canonicalType.ToTestDisplayString(), propertyType.Name)
             Assert.Same(canonicalType, localFieldSymbol.[Type])
             Assert.IsAssignableFrom(Of VisualBasic.Symbols.Metadata.PE.PENamedTypeSymbol)(propertySymbol.Type)
         End Sub
@@ -243,6 +243,48 @@ End Class
             Dim interfaceType = classRefLocalType.Interfaces.First()
             Assert.Same(canonicalType, interfaceType)
             Assert.IsType(Of VisualBasic.Symbols.Metadata.PE.PENamedTypeSymbol)(interfaceType)
+        End Sub
+
+        <Fact>
+        Public Sub NoPiaTypeSubstitutionWithHandAuthoredLocalType()
+            ' Try to apply attributes to the local type that indicates that the type is intended to be used for type equivalence. 
+            Dim compilationDef1 =
+<compilation name="Dummy1">
+    <file><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+Public Class LocalTypes1
+    Public Function Test1() As I1
+        Return Nothing
+    End Function
+End Class
+
+<ComImport, Guid("27E3e649-994b-4F58-b3c6-f8089a5f2c01"), TypeIdentifier, CompilerGenerated, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>
+
+
+            Dim localType = CreateCompilationWithMscorlib(compilationDef1)
+
+            Dim compilationDef2 =
+<compilation name="Dummy2">
+    <file>
+    </file>
+</compilation>
+
+            Dim localConsumer = CompilationUtils.CreateCompilationWithReferences(compilationDef2,
+                {TestReferences.SymbolsTests.NoPia.Pia1, New VisualBasicCompilationReference(localType)})
+
+            Dim localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies()
+            Dim importedTypeComp2 = localConsumerRefsAsm.First(Function(arg) arg.Name = "Dummy1").GlobalNamespace.GetTypeMembers("LocalTypes1").Single()
+            Dim embeddedType = importedTypeComp2.GetMembers("Test1").OfType(Of MethodSymbol)().Single()
+            Dim importedTypeAsm = localConsumerRefsAsm.First(Function(arg) arg.Name = "Pia1").GlobalNamespace.GetTypeMembers("I1").Single()
+
+            Assert.Same(embeddedType.ReturnType, importedTypeAsm)
+            Assert.Equal(SymbolKind.NamedType, embeddedType.ReturnType.Kind)
         End Sub
 
     End Class

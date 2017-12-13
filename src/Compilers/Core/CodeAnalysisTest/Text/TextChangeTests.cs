@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestLargeTextWriterDoesNotResuseSmallChunks()
+        public void TestLargeTextWriterDoesNotReuseSmallChunks()
         {
             var text = SourceText.From("small preamble");
             var chunk1 = "this is the large text".ToArray();

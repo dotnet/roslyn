@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return StaticCast<Declaration>.From(this.Children);
         }
 
-        public IEnumerable<string> MemberNames
+        public ICollection<string> MemberNames
         {
             get
             {

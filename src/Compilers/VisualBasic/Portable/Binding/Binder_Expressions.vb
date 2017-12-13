@@ -1199,12 +1199,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim resultType As TypeSymbol = access.Type
 
                 If Not resultType.IsErrorType() Then
-                    If resultType.IsValueType Then
+                    If resultType.IsValueType AndAlso Not resultType.IsRestrictedType Then
                         If Not resultType.IsNullableType() Then
                             resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
                         End If
                     ElseIf Not resultType.IsReferenceType Then
-                        ' Access cannot have unconstrained generic type
+                        ' Access cannot have unconstrained generic type or a restricted type
                         ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
                         resultType = ErrorTypeSymbol.UnknownResultType
                     End If
@@ -1631,12 +1631,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim initializers = ImmutableArray(Of BoundExpression).Empty
-            For i = 1 To rank
-                arrayInitialization = New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing)
+
+            For i = 1 To rank - 1
+                arrayInitialization = New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing).MakeCompilerGenerated()
                 initializers = ImmutableArray.Create(Of BoundExpression)(arrayInitialization)
             Next
 
-            Return arrayInitialization
+            Return New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing)
         End Function
 
         Private Function ReclassifyTupleLiteralExpression(
@@ -4083,6 +4084,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim numberOfCandidates As Integer
             Dim inferredElementType As TypeSymbol = Nothing
             Dim arrayInitializer = BindArrayInitializerList(node, knownSizes, hasDominantType, numberOfCandidates, inferredElementType, diagnostics)
+
+            ' Similar to ReclassifyArrayLiteralExpression:
+            ' Mark as compiler generated so that semantic model does not select the array initialization bound node.
+            ' The array initialization node is not a real expression and lacks a type.
+            arrayInitializer.SetWasCompilerGenerated()
 
             Dim inferredArrayType = ArrayTypeSymbol.CreateVBArray(inferredElementType, Nothing, knownSizes.Length, Compilation)
 

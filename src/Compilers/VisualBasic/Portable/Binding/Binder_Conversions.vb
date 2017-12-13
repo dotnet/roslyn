@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
 
-            Return ApplyConversion(node, targetType, argument, isExplicit:=True, diagnostics:=diagnostics)
+            Return ApplyConversion(node, targetType, argument, isExplicit:=True, diagnostics)
         End Function
 
         Private Function BindDirectCastExpression(
@@ -577,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportNoConversionError(argument.Syntax, sourceType, targetType, diagnostics, copybackConversionParamName)
                 End If
 
-                Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, hasErrors:=True)
+                Return New BoundConversion(tree, argument, convKind.Key And (Not ConversionKind.UserDefined), CheckOverflow, isExplicit, targetType, hasErrors:=True)
             End If
 
 DoneWithDiagnostics:

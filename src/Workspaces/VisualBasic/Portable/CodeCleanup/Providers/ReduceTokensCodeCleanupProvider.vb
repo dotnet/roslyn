@@ -89,8 +89,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                         Dim base = literal.GetBase()
 
-                        Const digitSeperator = "_"c
-                        If Not base.HasValue OrElse idText.Contains(digitSeperator) Then
+                        Const digitSeparator = "_"c
+                        If Not base.HasValue OrElse idText.Contains(digitSeparator) Then
                             Return newNode
                         End If
 

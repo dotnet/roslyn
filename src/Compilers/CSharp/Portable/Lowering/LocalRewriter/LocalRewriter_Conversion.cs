@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitTupleLiteral:
                     {
                         // we keep tuple literal conversions in the tree for the purpose of semantic model (for example when they are casts in the source)
-                        // for the purpose of lowering/codegeneration thay are identity conversions.
+                        // for the purpose of lowering/codegeneration they are identity conversions.
                         Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, TypeCompareKind.IgnoreDynamicAndTupleNames));
                         return rewrittenOperand;
                     }

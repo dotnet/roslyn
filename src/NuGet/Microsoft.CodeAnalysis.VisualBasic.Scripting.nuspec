@@ -29,8 +29,10 @@
     </dependencies>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\BasicScripting\Microsoft.CodeAnalysis.VisualBasic.Scripting.dll" target="lib\dotnet" />
     <file src="Dlls\BasicScripting\Microsoft.CodeAnalysis.VisualBasic.Scripting.xml" target="lib\dotnet" />
+    <file src="Dlls\BasicScripting\Microsoft.CodeAnalysis.VisualBasic.Scripting.pdb*" target="lib\dotnet" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

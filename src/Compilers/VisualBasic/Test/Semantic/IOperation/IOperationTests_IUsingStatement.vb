@@ -1,9 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Operations
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
@@ -33,12 +33,12 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertNoDiagnostics(comp)
 
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
-            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingOperation)
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperation(node), IUsingOperation)
 
             Assert.NotNull(op.Resources.Syntax)
             Assert.Same(node.UsingStatement, op.Resources.Syntax)
@@ -68,7 +68,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
                                         <expected>
 BC30201: Expression expected.
@@ -78,7 +78,7 @@ BC30201: Expression expected.
 
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
-            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingOperation)
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperation(node), IUsingOperation)
 
             Assert.Equal(OperationKind.Invalid, op.Resources.Kind)
         End Sub
@@ -105,17 +105,23 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 As ... s C = New C')
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
-        Variables: Local_1: c1 As Program.C
+    IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As ... s C = New C')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As C = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2')
-        Variables: Local_1: c2 As Program.C
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2 As C = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -167,9 +173,12 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 As C = New C')
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
-        Variables: Local_1: c1 As Program.C
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As C = New C')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As C = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -221,9 +230,12 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 As New C')
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
-        Variables: Local_1: c1 As Program.C
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As New C')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -275,10 +287,15 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1, c ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1, c2 As New C')
-      IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1, c2 As New C')
-        Variables: Local_1: c1 As Program.C
-          Local_2: c2 As Program.C
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1, c2 As New C')
+      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1, c2 As New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
+              Initializer: 
+                null
+            IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -377,13 +394,15 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Using c1, c2')
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1')
-        Variables: Local_1: c1 As System.Object
-        Initializer: 
-          null
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2')
-        Variables: Local_1: c2 As System.Object
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1, c2')
+      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1, c2')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1')
+              Initializer: 
+                null
+            IVariableDeclaratorOperation (Symbol: c2 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2')
+              Initializer: 
+                null
         Initializer: 
           null
   Body: 
@@ -493,18 +512,26 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 =  ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 =  ... c3 As New C')
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
-        Variables: Local_1: c1 As Program.C
+    IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 =  ... c3 As New C')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
-      IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2, c3 As New C')
-        Variables: Local_1: c2 As Program.C
-          Local_2: c3 As Program.C
+      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2, c3 As New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
+              Initializer: 
+                null
+            IVariableDeclaratorOperation (Symbol: c3 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c3')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -556,17 +583,23 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Using c1 = New C, c2')
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
-        Variables: Local_1: c1 As Program.C
+    IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1 = New C, c2')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2')
-        Variables: Local_1: c2 As System.Object
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c2 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2')
+              Initializer: 
+                null
         Initializer: 
           null
   Body: 
@@ -618,9 +651,12 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 As ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Using c1 As New C')
-      IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1')
-        Variables: Local_1: c1 As Program.C
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1 As New C')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 As New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1')
+              Initializer: 
+                null
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C, IsInvalid) (Syntax: 'New C')
@@ -782,17 +818,23 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 =  ...  c2 = New C')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
-    Variables: Local_1: c1 As Program.C
+IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 =  ...  c2 = New C')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
         IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
           Arguments(0)
           Initializer: 
             null
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2')
-    Variables: Local_1: c2 As Program.C
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2 = New C')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
         IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -833,7 +875,7 @@ End Module]]>
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertNoDiagnostics(comp)
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -870,7 +912,6 @@ End Module]]>.Value
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
-
             VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
@@ -888,7 +929,6 @@ Module Program
             Console.WriteLine()
         End Using
     End Sub
-
     Class C
         Implements IDisposable
 
