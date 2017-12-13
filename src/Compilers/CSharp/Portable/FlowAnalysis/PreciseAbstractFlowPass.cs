@@ -1267,15 +1267,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-            VisitReceiverOfEventAssignmentAsRvalue(node);
+            VisitRvalue(node.ReceiverOpt);
             VisitRvalue(node.Argument);
             if (_trackExceptions) NotePossibleException(node);
             return null;
-        }
-
-        protected virtual void VisitReceiverOfEventAssignmentAsRvalue(BoundEventAssignmentOperator node)
-        {
-            VisitRvalue(node.ReceiverOpt);
         }
 
         private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
@@ -1585,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected void AdjustStateAfterReturnStatement(BoundReturnStatement node)
+        private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
         {
             _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
@@ -1648,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // returns false if expression is not a property access 
         // or if the property has a backing field
         // and accessed in a corresponding constructor
-        protected bool RegularPropertyAccess(BoundExpression expr)
+        private bool RegularPropertyAccess(BoundExpression expr)
         {
             if (expr.Kind != BoundKind.PropertyAccess)
             {
@@ -1765,11 +1760,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverOpt.Kind != BoundKind.TypeExpression &&
                 (object)receiverOpt.Type != null &&
                 !receiverOpt.Type.IsPrimitiveRecursiveStruct());
-            VisitFieldAccess(receiverOpt, fieldSymbol, asLvalue);
-        }
-
-        private void VisitFieldAccess(BoundExpression receiverOpt, FieldSymbol fieldSymbol, bool asLvalue)
-        {
             if (asLvalue)
             {
                 VisitLvalue(receiverOpt);
@@ -2708,15 +2698,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = node.Arguments;
             if (!arguments.IsDefaultOrEmpty)
             {
-                MethodSymbol method = null;
-
-                if (node.MemberSymbol?.Kind == SymbolKind.Property)
+                foreach (var argument in arguments)
                 {
-                    var property = (PropertySymbol)node.MemberSymbol;
-                    method = GetReadMethod(property);
+                    VisitRvalue(argument);
                 }
-
-                VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method);
             }
 
             return null;

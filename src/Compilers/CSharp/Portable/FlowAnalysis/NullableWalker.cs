@@ -2943,21 +2943,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-            var result = base.VisitEventAssignmentOperator(node);
-            SetUnknownResultNullability();
-            return result;
-        }
-
-        protected override void VisitReceiverOfEventAssignmentAsRvalue(BoundEventAssignmentOperator node)
-        {
-            base.VisitReceiverOfEventAssignmentAsRvalue(node);
-
+            VisitRvalue(node.ReceiverOpt);
             Debug.Assert(!IsConditionalState);
             var receiverOpt = node.ReceiverOpt;
             if (!node.Event.IsStatic)
             {
                 CheckPossibleNullReceiver(receiverOpt);
             }
+            VisitRvalue(node.Argument);
+            SetUnknownResultNullability();
+            return null;
         }
 
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
