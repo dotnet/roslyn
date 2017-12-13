@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Visual C#-Skript</target>
         <note />
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Eine leere C#-Skriptdatei.</target>
         <note />
       </trans-unit>
     </body>
