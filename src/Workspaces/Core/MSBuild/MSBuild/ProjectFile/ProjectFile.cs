@@ -74,7 +74,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (!executedProject.Targets.ContainsKey("Compile") &&
                 !executedProject.Targets.ContainsKey("CoreCompile"))
             {
-                // TODO: Add error message when project does not contain appropriate targets
                 return new BuildInfo(executedProject, 
                     errorMessage: "MSBuildWorkspace can only build projects which contain Compile and CoreCompile targets");
             }
