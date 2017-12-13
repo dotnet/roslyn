@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             if (conditionalExpression != null)
             {
                 var documentChangeAction = new MyCodeAction(
-                    cancellationToken => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, cancellationToken));
+                    c => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, c));
                 context.RegisterCodeFix(documentChangeAction, diagnostic);
             }
         }
@@ -56,9 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             if (nodeAtInsertPosition is ParenthesizedExpressionSyntax parenthesizedExpression &&
                 parenthesizedExpression.CloseParenToken.IsMissing)
             {
-                var parenthesizedExpressionWithClosingParen =
-                    parenthesizedExpression.WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken)).
-                    WithTriviaFrom(parenthesizedExpression);
+                var newCloseParen = SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(parenthesizedExpression.CloseParenToken);
+                var parenthesizedExpressionWithClosingParen = parenthesizedExpression.WithCloseParenToken(newCloseParen);
                 syntaxRoot = syntaxRoot.ReplaceNode(parenthesizedExpression, parenthesizedExpressionWithClosingParen);
                 return documentWithOpenParenthesis.WithSyntaxRoot(syntaxRoot);
             }
@@ -69,10 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(
-                      CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string,
-                      createChangedDocument,
-                      CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string)
+                : base(CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string,
+                       createChangedDocument,
+                       CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string)
             {
             }
         }
