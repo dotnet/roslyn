@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
             var syntaxTree = context.Node.SyntaxTree;
-            var cancellationTokan = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var semanticModel = context.SemanticModel;
             var conditionType = semanticModel.GetTypeInfo(
-                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, cancellationTokan).Type;
+                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, cancellationToken).Type;
             if (conditionType != null &&
                 !conditionType.IsReferenceType)
             {

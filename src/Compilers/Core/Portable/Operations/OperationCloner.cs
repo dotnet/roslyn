@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitTuple(ITupleOperation operation, object argument)
         {
-            return new TupleExpression(VisitArray(operation.Elements), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new TupleExpression(VisitArray(operation.Elements), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.NaturalType, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, object argument)

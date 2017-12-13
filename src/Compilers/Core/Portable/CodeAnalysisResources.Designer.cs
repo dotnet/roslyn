@@ -866,15 +866,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A key in the pathMap ends with a path separator..
-        /// </summary>
-        internal static string KeyInPathMapEndsWithSeparator {
-            get {
-                return ResourceManager.GetString("KeyInPathMapEndsWithSeparator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Metadata PE stream should not be given when emitting metadata only..
         /// </summary>
         internal static string MetadataPeStreamUnexpectedWhenEmittingMetadataOnly {

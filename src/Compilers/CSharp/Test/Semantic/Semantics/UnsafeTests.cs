@@ -7657,7 +7657,7 @@ class C
 
         [WorkItem(5712, "https://github.com/dotnet/roslyn/issues/5712")]
         [Fact]
-        public void PathalogicalRefStructPtrMultiDimensionalArray()
+        public void PathologicalRefStructPtrMultiDimensionalArray()
         {
             var text = @"
 class C
@@ -8057,7 +8057,7 @@ class C
         }
 
         [Fact]
-        public void FixedBuffersNoErorsOnValidTypes()
+        public void FixedBuffersNoErrorsOnValidTypes()
         {
             var text = @"
     unsafe struct struct_ForTestingDefiniteAssignmentChecking        

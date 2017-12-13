@@ -697,24 +697,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-            var returnType = this.ReturnType;
-
-            if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length + RefCustomModifiers.Length, RefKind));
-            }
-
-            if (returnType.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(returnType));
-            }
-        }
-
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             return localPosition;

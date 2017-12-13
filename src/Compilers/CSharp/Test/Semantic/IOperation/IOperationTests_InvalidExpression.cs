@@ -268,7 +268,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Object, IsInvalid) (Syntax: '++x')
+IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: ?, IsInvalid) (Syntax: '++x')
   Target: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
 ";

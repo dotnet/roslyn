@@ -12,6 +12,18 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return If(value Is Nothing OrElse value.IsBad, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
         End Function
 
+        Private Shared Function IsMidStatement(node As BoundNode) As Boolean
+            If node.Kind = BoundKind.Conversion Then
+                node = DirectCast(node, BoundConversion).Operand
+
+                If node.Kind = BoundKind.UserDefinedConversion Then
+                    node = DirectCast(node, BoundUserDefinedConversion).Operand
+                End If
+            End If
+
+            Return node.Kind = BoundKind.MidResult
+        End Function
+
         Private Function CreateCompoundAssignment(boundAssignment As BoundAssignmentOperator) As ICompoundAssignmentOperation
             Debug.Assert(boundAssignment.LeftOnTheRightOpt IsNot Nothing)
             Dim binaryOperator As BoundExpression = Nothing
@@ -26,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Case BoundKind.UserDefinedBinaryOperator, BoundKind.BinaryOperator
                     binaryOperator = boundAssignment.Right
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(boundAssignment)
+                    Throw ExceptionUtilities.UnexpectedValue(boundAssignment.Kind)
             End Select
 
             Dim operatorInfo As BinaryOperatorInfo
@@ -40,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     operatorInfo = GetUserDefinedBinaryOperatorInfo(userDefinedOperator)
                     rightOperand = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(userDefinedOperator, operatorInfo.RightOperand))
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(boundAssignment)
+                    Throw ExceptionUtilities.UnexpectedValue(boundAssignment.Kind)
             End Select
 
             Dim leftOnTheRight As BoundExpression = operatorInfo.LeftOperand

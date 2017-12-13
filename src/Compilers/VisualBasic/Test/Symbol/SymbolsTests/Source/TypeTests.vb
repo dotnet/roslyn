@@ -3196,7 +3196,7 @@ BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, 
                 }, TestOptions.ReleaseDll)
 
             ' Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify:=False).VerifyDiagnostics()
+            CompileAndVerify(compilation, verify:=Verification.Fails).VerifyDiagnostics()
 
             compilation = CreateCompilationWithMscorlibAndReferences(emptySource,
                 {
@@ -3396,6 +3396,379 @@ BC30625: 'Module' statement must end with a matching 'End Module'.
             // Note: create custom module catalog
                             ~~~~~~~~~~~~~~~~~~~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<typeidentifier>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<TypeIdentifierAttribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_03()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation.AssertTheseDeclarationDiagnostics(
+<expected><![CDATA[
+BC40056: Namespace or type specified in the Imports 'System.Runtime.InteropServices.TypeIdentifier' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30182: Type expected.
+<alias1>
+ ~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_04()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
+
+<alias1Attribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation.AssertTheseDeclarationDiagnostics(
+<expected><![CDATA[
+BC40056: Namespace or type specified in the Imports 'System.Runtime.InteropServices.TypeIdentifier' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'alias1Attribute' is not defined.
+<alias1Attribute>
+ ~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_05()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.typeIdentifierattribute
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_06()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1attribute = System.Runtime.InteropServices.typeIdentifierattribute
+
+<Alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_07()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1attribute = System.Runtime.InteropServices.typeIdentifierattribute
+
+<Alias1Attribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_08()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1attributeAttribute = System.Runtime.InteropServices.typeIdentifierattribute
+
+<Alias1Attribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_09()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias2 = alias1
+
+<alias2>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("alias1=System.Runtime.InteropServices.typeIdentifierattribute")))
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation.AssertTheseDeclarationDiagnostics(
+<expected><![CDATA[
+BC40056: Namespace or type specified in the Imports 'alias1' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports alias2 = alias1
+                 ~~~~~~
+BC30182: Type expected.
+<alias2>
+ ~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_10()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("alias1=System.Runtime.InteropServices.typeIdentifierattribute")))
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_11()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias2 = I1
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("alias1=System.Runtime.InteropServices.typeIdentifierattribute")))
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_12()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute
+Imports System.Runtime.CompilerServices
+
+<alias1>
+Public Partial Interface I1
+End Interface
+
+<CompilerGenerated>
+Public Partial Interface I2
+End Interface
+    ]]></file>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.ComImportAttribute
+
+<alias1>
+Public Partial Interface I1
+End Interface
+
+<alias1>
+Public Partial Interface I2
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+            Dim i2 = compilation.SourceAssembly.GetTypeByMetadataName("I2")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+            Assert.False(i2.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_13()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.ComImportAttribute
+
+<alias1>
+Public Partial Interface I1
+End Interface
+
+<alias1>
+Public Partial Interface I2
+End Interface
+    ]]></file>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute
+Imports System.Runtime.CompilerServices
+
+<alias1>
+Public Partial Interface I1
+End Interface
+
+<CompilerGenerated>
+Public Partial Interface I2
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+            Dim i2 = compilation.SourceAssembly.GetTypeByMetadataName("I2")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+            Assert.False(i2.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_14()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation.AssertTheseDeclarationDiagnostics(
+<expected><![CDATA[
+BC30182: Type expected.
+<alias1>
+ ~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_15()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+<System.Runtime.InteropServices.TypeIdentifier>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_16()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+<System.Runtime.InteropServices.TypeIdentifierAttribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_17()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
         End Sub
     End Class
 

@@ -723,10 +723,10 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (d) ... }')
         Expression: 
           IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'Console.WriteLine(d)')
             Expression: 
-              IDynamicMemberReferenceOperation (Member Name: ""WriteLine"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'Console.WriteLine')
+              IDynamicMemberReferenceOperation (Member Name: ""WriteLine"", Containing Type: System.Console) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'Console.WriteLine')
                 Type Arguments(0)
                 Instance Receiver: 
-                  IOperation:  (OperationKind.None, Type: null) (Syntax: 'Console')
+                  null
             Arguments(1):
                 ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
             ArgumentNames(0)

@@ -3586,7 +3586,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         <Fact()>
         Public Sub TestFriendEnumInAttribute()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
         ' Friend Enum in an array in an attribute should be an error.
@@ -3611,7 +3611,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         End Namespace
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeNonPublicType1, "MyAttr1").WithArguments("e2()"))
@@ -3622,7 +3622,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         <Fact()>
         Public Sub TestUndefinedEnumInAttribute()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System.ComponentModel
@@ -3634,7 +3634,7 @@ Module Program
 End Module
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotMember2, "EditorBrowsableState.n").WithArguments("n", "System.ComponentModel.EditorBrowsableState"))
@@ -3645,7 +3645,7 @@ End Module
         <Fact>
         Public Sub TestUnboundLambdaInNamedAttributeArgument()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System
@@ -3663,7 +3663,7 @@ Module Program
 End Module
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_UndefinedType1, "A").WithArguments("A"),
@@ -3676,7 +3676,7 @@ End Module
         <Fact>
         Public Sub SpecialNameAttributeFromSource()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System.Runtime.CompilerServices
@@ -3697,7 +3697,7 @@ Public Structure S
 End Structure
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim globalNS = comp.SourceAssembly.GlobalNamespace

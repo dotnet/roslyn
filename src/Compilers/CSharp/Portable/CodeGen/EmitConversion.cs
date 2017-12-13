@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
-                    // from IL prospective ImplicitReference and Boxing conversions are the same thing.
+                    // from IL perspective ImplicitReference and Boxing conversions are the same thing.
                     // both force operand to be an object (O) - which may involve boxing 
                     // and then assume that result has the target type - which may involve unboxing.
                     EmitImplicitReferenceConversion(conversion);
                     break;
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
-                    // from IL prospective ExplicitReference and UnBoxing conversions are the same thing.
+                    // from IL perspective ExplicitReference and UnBoxing conversions are the same thing.
                     // both force operand to be an object (O) - which may involve boxing 
                     // and then reinterpret result as the target type - which may involve unboxing.
                     EmitExplicitReferenceConversion(conversion);
@@ -183,10 +183,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //
             // if target type is verifiably a reference type, we can leave the value as-is otherwise
             // we need to unbox to targetType to keep verifier happy.
-            if (!conversion.Type.IsVerifierReference())
+            var resultType = conversion.Type;
+            if (!resultType.IsVerifierReference())
             {
                 _builder.EmitOpCode(ILOpCode.Unbox_any);
                 EmitSymbolToken(conversion.Type, conversion.Syntax);
+            }
+            else if (resultType.IsArray())
+            {
+                // need a static cast here to satisfy verifier
+                // Example: Derived[] can be used in place of Base[] for all purposes except for LDELEMA <Base> 
+                //          Even though it would be safe due to run time check, verifier requires that the static type of the array is Base[]
+                //          We do not know why we are casting, so to be safe, lets make the cast explicit. JIT elides such casts.
+                EmitStaticCast(conversion.Type, conversion.Syntax);
             }
 
             return;

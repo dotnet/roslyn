@@ -1191,7 +1191,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclara
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void ConversionExpression_Implicit_ReferenceArrayToArrayConversion_InvalidDimenionMismatch()
+        public void ConversionExpression_Implicit_ReferenceArrayToArrayConversion_InvalidDimensionMismatch()
         {
             string source = @"
 using System;
@@ -1891,6 +1891,8 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+            Initializer: 
+              null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1925,6 +1927,8 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'new T()')
+            Initializer: 
+              null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'T' to 'C1'
@@ -1962,6 +1966,8 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+            Initializer: 
+              null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1995,6 +2001,8 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'new T()')
+            Initializer: 
+              null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'T' to 'I1'. An explicit conversion exists (are you missing a cast?)
@@ -2033,6 +2041,8 @@ IVariableDeclaratorOperation (Symbol: U u) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+            Initializer: 
+              null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2067,6 +2077,8 @@ IVariableDeclaratorOperation (Symbol: U u) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'new T()')
+            Initializer: 
+              null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'T' to 'U'
@@ -3096,7 +3108,7 @@ IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "num").WithArguments("lambda expression").WithLocation(9, 60)
             };
 
-            // Due to https://github.com/dotnet/roslyn/issues/20291, we cannot verify that the types of the ioperation tree and the sematic model
+            // Due to https://github.com/dotnet/roslyn/issues/20291, we cannot verify that the types of the ioperation tree and the semantic model
             // match, as they do not actually match.
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);

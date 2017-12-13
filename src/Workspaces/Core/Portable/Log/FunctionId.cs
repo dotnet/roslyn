@@ -401,5 +401,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         RemoteHost_Bitness,
         Intellisense_Completion,
         MetadataOnlyImage_EmitFailure,
+        LiveTableDataSource_OnDiagnosticsUpdated,
     }
 }

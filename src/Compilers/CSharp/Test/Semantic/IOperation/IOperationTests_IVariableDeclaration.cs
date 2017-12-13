@@ -305,7 +305,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void MutlipleVariableDeclarationsExpressionInitializers()
+        public void MultipleVariableDeclarationsExpressionInitializers()
         {
             string source = @"
 class Program
@@ -2039,7 +2039,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void ConstLocalMutlipleDeclarationsNoInitializers()
+        public void ConstLocalMultipleDeclarationsNoInitializers()
         {
             string source = @"
 class Program

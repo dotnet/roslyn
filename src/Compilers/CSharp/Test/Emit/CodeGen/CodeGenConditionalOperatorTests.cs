@@ -2670,21 +2670,21 @@ class Program
             condition ? ref local1 : ref local2 : 
             condition ? ref local1 : ref local2).Mutate();
 
-        // must print '2', the above mutaiton is applied to an rvalue.
+        // must print '2', the above mutation is applied to an rvalue.
         System.Console.WriteLine(local2.field);
 
         (false ? 
             condition ? ref local1 : ref local2 : 
             condition ? ref local1 : ref local2).Mutate();
 
-        // must print '2', the above mutaiton is applied to an rvalue.
+        // must print '2', the above mutation is applied to an rvalue.
         System.Console.WriteLine(local2.field);
 
         (false ? 
             false ? ref local1 : ref local2 : 
             false ? ref local1 : ref local2).Mutate();
 
-        // must print '2', the above mutaiton is applied to an rvalue.
+        // must print '2', the above mutation is applied to an rvalue.
         System.Console.WriteLine(local2.field);
     }
 

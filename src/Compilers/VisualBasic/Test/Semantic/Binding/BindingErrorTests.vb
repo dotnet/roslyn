@@ -18778,8 +18778,10 @@ BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
         End Sub
 
         <Fact()>
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23282, "https://github.com/dotnet/roslyn/issues/23282")>
         Public Sub BC41998WRN_RecursiveAddHandlerCall()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="RecursiveAddHandlerCall">
         <file name="a.vb">
             Module M1
@@ -18811,7 +18813,72 @@ BC41998: Statement recursively calls the containing 'RaiseEvent' for event 't'.
                         RaiseEvent t()
                         ~~~~~~~~~~~~~~
                  </errors>
-            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors1)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim add = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().First()
+
+            Assert.Equal("AddHandler t, AddressOf test_d1", add.ToString())
+
+            compilation.VerifyOperationTree(add, expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... sOf test_d1')
+  Expression: 
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... sOf test_d1')
+      Event Reference: 
+        IEventReferenceOperation: Event M1.t As M1.test_x (Static) (OperationKind.EventReference, Type: M1.test_x) (Syntax: 't')
+          Instance Receiver: 
+            null
+      Handler: 
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: M1.test_x, IsImplicit) (Syntax: 'AddressOf test_d1')
+          Target: 
+            IMethodReferenceOperation: Sub M1.test_d1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf test_d1')
+              Instance Receiver: 
+                null
+]]>.Value)
+
+            Assert.Equal("Event M1.t As M1.test_x", model.GetSymbolInfo(add.EventExpression).Symbol.ToTestDisplayString())
+
+            Dim remove = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().Last()
+
+            Assert.Equal("RemoveHandler t, AddressOf test_d1", remove.ToString())
+
+            compilation.VerifyOperationTree(remove, expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... sOf test_d1')
+  Expression: 
+    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... sOf test_d1')
+      Event Reference: 
+        IEventReferenceOperation: Event M1.t As M1.test_x (Static) (OperationKind.EventReference, Type: M1.test_x) (Syntax: 't')
+          Instance Receiver: 
+            null
+      Handler: 
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: M1.test_x, IsImplicit) (Syntax: 'AddressOf test_d1')
+          Target: 
+            IMethodReferenceOperation: Sub M1.test_d1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf test_d1')
+              Instance Receiver: 
+                null
+]]>.Value)
+
+            Assert.Equal("Event M1.t As M1.test_x", model.GetSymbolInfo(remove.EventExpression).Symbol.ToTestDisplayString())
+
+            Dim raise = tree.GetRoot().DescendantNodes().OfType(Of RaiseEventStatementSyntax)().Single()
+
+            Assert.Equal("RaiseEvent t()", raise.ToString())
+
+            compilation.VerifyOperationTree(raise, expectedOperationTree:=
+            <![CDATA[
+IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent t()')
+  Event Reference: 
+    IEventReferenceOperation: Event M1.t As M1.test_x (Static) (OperationKind.EventReference, Type: M1.test_x) (Syntax: 't')
+      Instance Receiver: 
+        null
+  Arguments(0)
+]]>.Value)
+
+            Assert.Equal("Event M1.t As M1.test_x", model.GetSymbolInfo(raise.Name).Symbol.ToTestDisplayString())
         End Sub
 
         <Fact()>

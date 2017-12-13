@@ -57,6 +57,61 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")>
+        Public Async Function RenameDeconstructionForeachCollection() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+using System.Collections.Generic;
+class Deconstructable
+{
+    void M(IEnumerable<Deconstructable> [|$$x|])
+    {
+        foreach (var (y1, y2) in [|x|])
+        {
+        }
+    }
+    void Deconstruct(out int i, out int j) { i = 0; j = 0; }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "x", "change", renameOverloads:=True)
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameDeconstructMethodInDeconstructionForeach() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+using System.Collections.Generic;
+class Deconstructable
+{
+    void M(IEnumerable<Deconstructable> x)
+    {
+        foreach (var (y1, y2) in x)
+        {
+        }
+        var (z1, z2) = this;
+        [|Deconstruct|](out var t1, out var t2);
+    }
+    void [|$$Deconstruct|](out int i, out int j) { i = 0; j = 0; }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "Deconstruct", "Changed", renameOverloads:=True)
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(540120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540120")>
         Public Async Function SimpleEditAndVerifyTagsPropagatedAndCommit() As Task
             Using workspace = CreateWorkspaceWithWaiter(

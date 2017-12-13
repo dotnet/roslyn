@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             builder.Add((byte)paramCount);
 
             // Return type
-            ParseType(builder, stream);
+            ParseType(builder, stream, allowByRef: true);
 
             // Parameters
             for (int i = 0; i < paramCount; i++)

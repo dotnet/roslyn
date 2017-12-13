@@ -1388,6 +1388,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ITypeParameterObjectCreationOperation));
             LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Initializer, "Initializer");
         }
 
         public override void VisitInvalid(IInvalidOperation operation)
@@ -1453,6 +1455,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ITupleOperation));
             LogCommonPropertiesAndNewLine(operation);
+            Indent();
+            LogType(operation.NaturalType, nameof(operation.NaturalType));
+            LogNewLine();
+            Unindent();
 
             VisitArray(operation.Elements, "Elements", logElementCount: true);
         }

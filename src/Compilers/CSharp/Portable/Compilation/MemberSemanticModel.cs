@@ -837,6 +837,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 enumeratorInfoOpt.CurrentConversion);
         }
 
+        public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)
+        {
+            var boundDeconstruction = GetUpperBoundNode(node) as BoundDeconstructionAssignmentOperator;
+            if (boundDeconstruction is null)
+            {
+                return default;
+            }
+
+            var boundConversion = boundDeconstruction.Right;
+            Debug.Assert(boundConversion != null || boundDeconstruction.HasAnyErrors);
+
+            return new DeconstructionInfo(boundConversion.Conversion);
+        }
+
+        public override DeconstructionInfo GetDeconstructionInfo(ForEachVariableStatementSyntax node)
+        {
+            var boundForEach = (BoundForEachStatement)GetUpperBoundNode(node);
+            if (boundForEach is null)
+            {
+                return default;
+            }
+
+            var boundDeconstruction = boundForEach.DeconstructionOpt;
+            Debug.Assert(boundDeconstruction != null || boundForEach.HasAnyErrors);
+
+            return new DeconstructionInfo(boundDeconstruction.DeconstructionAssignment.Right.Conversion);
+        }
+
         private BoundQueryClause GetBoundQueryClause(CSharpSyntaxNode node)
         {
             CheckSyntaxNode(node);
@@ -996,14 +1024,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // if binding root is enum member decleration, make it equal value
+            // if binding root is enum member declaration, make it equal value
             // we need to do this since node map doesn't contain bound node for enum member decl
             if (bindingRoot is EnumMemberDeclarationSyntax enumMember && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
             {
                 return enumMember.EqualsValue;
             }
 
-            // if binding root is property member decleration, make it equal value
+            // if binding root is property member declaration, make it equal value
             // we need to do this since node map doesn't contain bound node for property initializer
             if (bindingRoot is PropertyDeclarationSyntax propertyMember && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
             {

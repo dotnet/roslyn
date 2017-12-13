@@ -471,6 +471,27 @@ End Class
             End If
         End Sub
 
+        <Fact, WorkItem(18531, "https://github.com/dotnet/roslyn/issues/18531")>
+        Public Sub SyntaxErrors()
+            Const source = "
+Class C
+    Shared Function F(x As String) As Object
+        Return x
+    End Function
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.F")
+                    Dim errorMessage As String = Nothing
+
+                    Dim result = context.CompileAssignment("x", "", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Null(result)
+                    Assert.Equal("error BC30201: Expression expected.", errorMessage)
+                End Sub)
+        End Sub
+
         ''' <summary>
         ''' Locals in the generated method should account for temporary slots
         ''' in the original method.  Also, some temporaries may not be included

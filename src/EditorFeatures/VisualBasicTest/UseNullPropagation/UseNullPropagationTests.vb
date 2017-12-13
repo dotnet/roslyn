@@ -91,6 +91,52 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableType() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Dim f As Integer?
+    Sub M(C c)
+        Dim v = [||]If (c IsNot Nothing, c.f, Nothing)
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Dim f As Integer?
+    Sub M(C c)
+        Dim v = c?.f
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestWithNullableTypeAndObjectCast() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Dim f As Integer?
+    Sub M(C c)
+        Dim v = [||]If (DirectCast(c, Object) IsNot Nothing, c.f, Nothing)
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Dim f As Integer?
+    Sub M(C c)
+        Dim v = c?.f
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestRight_NotEquals() As Task
             Await TestInRegularAndScriptAsync(
 "

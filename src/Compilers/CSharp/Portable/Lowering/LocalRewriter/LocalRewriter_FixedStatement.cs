@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Syntax,
                         _factory.Default(new PointerTypeSymbol(pinnedTemp.Type)),
                         pinnedTemp.Type),
-                        refKind: RefKind.Ref);
+                        isRef: true);
                 }
             }
 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!localSymbol.IsPinned);
 
             // pinnedTemp = ref v;
-            BoundStatement pinnedTempInit = factory.Assignment(factory.Local(pinnedTemp), initializerExpr, refKind: RefKind.Ref);
+            BoundStatement pinnedTempInit = factory.Assignment(factory.Local(pinnedTemp), initializerExpr, isRef: true);
 
             // &pinnedTemp;
             var addr = new BoundAddressOfOperator(

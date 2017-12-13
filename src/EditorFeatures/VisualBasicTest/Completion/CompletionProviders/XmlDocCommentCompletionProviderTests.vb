@@ -939,5 +939,23 @@ End Class
             Await VerifyItemsAbsentAsync(text, "i")
         End Function
 
+        <WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TermAndDescriptionInsideItem() As Task
+            Dim text = "
+class C
+    ''' <summary>
+    '''     <list type=""table"">
+    '''         <item>
+    '''             $$
+    '''         </item>
+    '''     </list>
+    ''' </summary>
+    sub Goo()
+    end sub
+end class"
+            Await VerifyItemExistsAsync(text, "term")
+            Await VerifyItemExistsAsync(text, "description")
+        End Function
     End Class
 End Namespace
