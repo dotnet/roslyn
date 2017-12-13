@@ -32,7 +32,7 @@ namespace Roslyn.Test.Utilities
             {
                 moduleContents.Position = 0;
 
-                using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
+                using (var metadata = ModuleMetadata.CreateFromStream(moduleContents, leaveOpen: true))
                 {
                     var metadataReader = metadata.MetadataReader;
                     var peReader = metadata.Module.PEReaderOpt;
