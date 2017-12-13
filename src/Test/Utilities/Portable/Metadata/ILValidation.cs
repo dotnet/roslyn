@@ -26,83 +26,101 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         public static bool IsStreamFullSigned(Stream moduleContents)
         {
-            moduleContents.Position = 0;
+            var savedPosition = moduleContents.Position;
 
-            using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
+            try
             {
-                var metadataReader = metadata.MetadataReader;
-                var peReader = metadata.Module.PEReaderOpt;
-                var peHeaders = peReader.PEHeaders;
-                var flags = peHeaders.CorHeader.Flags;
-
-                bool is32bit = peHeaders.PEHeader.Magic == PEMagic.PE32;
-                const int SectionHeaderSize = 40;
-
-                if (CorFlags.StrongNameSigned != (flags & CorFlags.StrongNameSigned))
-                {
-                    return false;
-                }
-
-                var snDirectory = peReader.PEHeaders.CorHeader.StrongNameSignatureDirectory;
-                int rva = snDirectory.RelativeVirtualAddress;
-                int size = snDirectory.Size;
-                ImmutableArray<byte> signature = peReader.GetSectionData(rva).GetContent(0, size);
-                if (!peHeaders.TryGetDirectoryOffset(snDirectory, out int snOffset))
-                {
-                    return false;
-                }
-
                 moduleContents.Position = 0;
-                int peSize = checked((int)moduleContents.Length);
-                var peImage = new BlobBuilder(peSize);
-                if (peSize != peImage.TryWriteBytes(moduleContents, peSize))
+
+                using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
                 {
-                    return false;
-                }
+                    var metadataReader = metadata.MetadataReader;
+                    var peReader = metadata.Module.PEReaderOpt;
+                    var peHeaders = peReader.PEHeaders;
+                    var flags = peHeaders.CorHeader.Flags;
 
-                byte[] buffer = GetBlobBuffer(peImage.GetBlobs().Single());
+                    bool is32bit = peHeaders.PEHeader.Magic == PEMagic.PE32;
+                    const int SectionHeaderSize = 40;
 
-                const int ChecksumOffset = 0x40;
-                uint expectedChecksum = peHeaders.PEHeader.CheckSum;
-                Blob checksumBlob = MakeBlob(buffer, peHeaders.PEHeaderStartOffset + ChecksumOffset, sizeof(uint));
-                Blob signatureBlob = MakeBlob(buffer, snOffset, size);
-
-                if (expectedChecksum != PeWriter.CalculateChecksum(peImage, checksumBlob))
-                {
-                    return false;
-                }
-
-                // Signature is calculated with checksum zeroed
-                new BlobWriter(checksumBlob).WriteUInt32(0);
-
-                int peHeadersSize = peHeaders.PEHeaderStartOffset
-                    + PEHeaderSize(is32bit)
-                    + SectionHeaderSize * peHeaders.SectionHeaders.Length;
-                IEnumerable<Blob> content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
-                byte[] hash = SigningUtilities.CalculateSha1(content);
-
-                ImmutableArray<byte> publicKeyBlob = metadataReader.GetBlobContent(metadataReader.GetAssemblyDefinition().PublicKey);
-                // RSA parameters start after the public key offset
-                byte[] publicKeyParams = new byte[publicKeyBlob.Length - CryptoBlobParser.s_publicKeyHeaderSize];
-                publicKeyBlob.CopyTo(CryptoBlobParser.s_publicKeyHeaderSize, publicKeyParams, 0, publicKeyParams.Length);
-                var snKey = publicKeyParams.ToRSAParameters(includePrivateParameters: false);
-
-                using (var rsa = RSA.Create())
-                {
-                    rsa.ImportParameters(snKey);
-                    var reversedSignature = signature.ToArray();
-
-                    // Unknown why the signature is reversed, but this matches the behavior of the CLR
-                    // signing implementation.
-                    Array.Reverse(reversedSignature);
-
-                    if (!rsa.VerifyHash(hash, reversedSignature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
+                    if (CorFlags.StrongNameSigned != (flags & CorFlags.StrongNameSigned))
                     {
                         return false;
                     }
-                }
 
-                return true;
+                    var snDirectory = peReader.PEHeaders.CorHeader.StrongNameSignatureDirectory;
+                    int rva = snDirectory.RelativeVirtualAddress;
+                    int size = snDirectory.Size;
+                    ImmutableArray<byte> signature = peReader.GetSectionData(rva).GetContent(0, size);
+                    if (!peHeaders.TryGetDirectoryOffset(snDirectory, out int snOffset))
+                    {
+                        return false;
+                    }
+
+                    moduleContents.Position = 0;
+                    int peSize;
+                    try
+                    {
+                        peSize = checked((int)moduleContents.Length);
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+
+                    var peImage = new BlobBuilder(peSize);
+                    if (peSize != peImage.TryWriteBytes(moduleContents, peSize))
+                    {
+                        return false;
+                    }
+
+                    byte[] buffer = GetBlobBuffer(peImage.GetBlobs().Single());
+
+                    const int ChecksumOffset = 0x40;
+                    uint expectedChecksum = peHeaders.PEHeader.CheckSum;
+                    Blob checksumBlob = MakeBlob(buffer, peHeaders.PEHeaderStartOffset + ChecksumOffset, sizeof(uint));
+                    Blob signatureBlob = MakeBlob(buffer, snOffset, size);
+
+                    if (expectedChecksum != PeWriter.CalculateChecksum(peImage, checksumBlob))
+                    {
+                        return false;
+                    }
+
+                    // Signature is calculated with checksum zeroed
+                    new BlobWriter(checksumBlob).WriteUInt32(0);
+
+                    int peHeadersSize = peHeaders.PEHeaderStartOffset
+                        + PEHeaderSize(is32bit)
+                        + SectionHeaderSize * peHeaders.SectionHeaders.Length;
+                    IEnumerable<Blob> content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
+                    byte[] hash = SigningUtilities.CalculateSha1(content);
+
+                    ImmutableArray<byte> publicKeyBlob = metadataReader.GetBlobContent(metadataReader.GetAssemblyDefinition().PublicKey);
+                    // RSA parameters start after the public key offset
+                    byte[] publicKeyParams = new byte[publicKeyBlob.Length - CryptoBlobParser.s_publicKeyHeaderSize];
+                    publicKeyBlob.CopyTo(CryptoBlobParser.s_publicKeyHeaderSize, publicKeyParams, 0, publicKeyParams.Length);
+                    var snKey = publicKeyParams.ToRSAParameters(includePrivateParameters: false);
+
+                    using (var rsa = RSA.Create())
+                    {
+                        rsa.ImportParameters(snKey);
+                        var reversedSignature = signature.ToArray();
+
+                        // Unknown why the signature is reversed, but this matches the behavior of the CLR
+                        // signing implementation.
+                        Array.Reverse(reversedSignature);
+
+                        if (!rsa.VerifyHash(hash, reversedSignature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            finally
+            {
+                moduleContents.Position = savedPosition;
             }
         }
 

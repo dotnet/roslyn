@@ -249,6 +249,7 @@ namespace Microsoft.Cci
         private static void FixupChecksum(ExtendedPEBuilder peBuilder, BlobBuilder peBlob)
         {
             // Checksum fixup, workaround for https://github.com/dotnet/corefx/issues/25829
+            // Tracked by https://github.com/dotnet/roslyn/issues/23762
             // Since the checksum is calculated before signing in the PEBuilder,
             // we need to redo the calculation and write in the correct checksum
             Blob checksumBlob = getChecksumBlob(peBuilder);
