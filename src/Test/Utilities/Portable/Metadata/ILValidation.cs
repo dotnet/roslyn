@@ -72,10 +72,6 @@ namespace Roslyn.Test.Utilities
                     return false;
                 }
 
-                var snKey = CryptoBlobParser.ToRSAParameters(
-                    metadataReader.GetBlobBytes(metadataReader.GetAssemblyDefinition().PublicKey),
-                    includePrivateParameters: false);
-
                 // Signature is calculated with checksum zeroed
                 new BlobWriter(checksumBlob).WriteUInt32(0);
 
@@ -84,6 +80,12 @@ namespace Roslyn.Test.Utilities
                     + SectionHeaderSize * peHeaders.SectionHeaders.Length;
                 IEnumerable<Blob> content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
                 byte[] hash = SigningUtilities.CalculateSha1(content);
+
+                ImmutableArray<byte> publicKeyBlob = metadataReader.GetBlobContent(metadataReader.GetAssemblyDefinition().PublicKey);
+                // RSA parameters start after the public key offset
+                byte[] publicKeyParams = new byte[publicKeyBlob.Length - CryptoBlobParser.s_publicKeyHeaderSize];
+                publicKeyBlob.CopyTo(CryptoBlobParser.s_publicKeyHeaderSize, publicKeyParams, 0, publicKeyParams.Length);
+                var snKey = publicKeyParams.ToRSAParameters(includePrivateParameters: false);
 
                 using (var rsa = RSA.Create())
                 {
