@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
+        <target state="translated">Dizin indirilemedi</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_index_failed_0">
         <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
+        <target state="translated">Dizin indirilemedi: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_IntelliSense_index_for_0">
         <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
+        <target state="translated">{0} için IntelliSense dizini indiriliyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
-        <target state="new">Invalid assembly name</target>
+        <target state="translated">Geçersiz derleme adı</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_characters_in_assembly_name">
         <source>Invalid characters in assembly name</source>
-        <target state="new">Invalid characters in assembly name</target>
+        <target state="translated">Derleme adında geçersiz karakterler</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="new">Msbuild failed when processing the file '{0}'</target>
+        <target state="translated">{0}' dosyası işlenirken MsBuild başarısız oldu</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
+        <target state="translated">{0}' dosyası işlenirken MsBuild şu ileti ile başarısız oldu: {1}</target>
         <note />
       </trans-unit>
     </body>

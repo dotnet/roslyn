@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
+        <target state="translated">Index se nepodařilo stáhnout.</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_index_failed_0">
         <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
+        <target state="translated">Index se nepodařilo stáhnout: {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_IntelliSense_index_for_0">
         <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
+        <target state="translated">Stahuje se index IntelliSense pro {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
-        <target state="new">Invalid assembly name</target>
+        <target state="translated">Neplatný název sestavení</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_characters_in_assembly_name">
         <source>Invalid characters in assembly name</source>
-        <target state="new">Invalid characters in assembly name</target>
+        <target state="translated">Neplatné znaky v názvu sestavení</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="new">Msbuild failed when processing the file '{0}'</target>
+        <target state="translated">Při zpracovávání souboru {0} došlo k chybě MSBuildu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
+        <target state="translated">Při zpracovávání souboru {0} došlo k chybě MSBuildu s touto zprávou: {1}</target>
         <note />
       </trans-unit>
     </body>
