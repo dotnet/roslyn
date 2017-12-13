@@ -19234,7 +19234,10 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(14, 30),
                 // (18,58): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             var list2 = new Dictionary<int, long> { [out _] = 6 };
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(18, 58)
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(18, 58),
+                // (9,18): error CS0165: Use of unassigned local variable 'x1'
+                //             [out var x1] = 3,
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var x1").WithArguments("x1").WithLocation(9, 18)
                 );
         }
 
