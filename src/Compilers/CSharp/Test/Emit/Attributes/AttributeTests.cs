@@ -1514,7 +1514,7 @@ public struct Test
 ";
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,16): error CS0625: 'Test.P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                // (7,16): error CS0625: 'Test.P': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
                 //     public int P { get; set; }
                 Diagnostic(ErrorCode.ERR_MissingStructOffset, "P").WithArguments("Test.P").WithLocation(7, 16)
                 );
