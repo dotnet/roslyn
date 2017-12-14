@@ -168,10 +168,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            if (diagnostic.Id.StartsWith("CS", StringComparison.Ordinal)||
-                diagnostic.Id.StartsWith("BC", StringComparison.Ordinal))
+            if (IsCompilerReservedDiagnostic(diagnostic.Id))
             {
-                // Only the compiler analyzer should produce diagnostics with CS or BC prefixes
                 throw new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
             }
 
@@ -184,6 +182,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private static bool IsCompilerReservedDiagnostic(string id)
+        {
+            // Only the compiler analyzer should produce diagnostics with CS or BC prefixes (followed by digit)
+            if (id.Length >= 3 && (id.StartsWith("CS", StringComparison.Ordinal) || id.StartsWith("BC", StringComparison.Ordinal)))
+            {
+                char thirdChar = id[2];
+                return thirdChar >= '0' && thirdChar <= '9';
             }
 
             return false;
