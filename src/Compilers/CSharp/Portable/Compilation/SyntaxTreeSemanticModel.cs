@@ -1998,6 +1998,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case LocalFunctionStatementSyntax localDecl:
                         parameterizedSymbol = GetDeclaredSymbol(localDecl, cancellationToken);
                         break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(typeParameter.Parent.Kind());
                 }
 
                 switch (parameterizedSymbol)

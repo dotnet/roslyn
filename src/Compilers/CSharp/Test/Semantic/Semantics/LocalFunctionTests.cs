@@ -3366,7 +3366,7 @@ class C<T>
 
                 var parameterSymbol = model.GetDeclaredSymbol(parameter);
                 Assert.Equal(expected, parameterSymbol.Type.ToTestDisplayString());
-                Assert.True(symbol == parameterSymbol.Type);
+                Assert.Same(symbol, parameterSymbol.Type);
             }
         }
     }
