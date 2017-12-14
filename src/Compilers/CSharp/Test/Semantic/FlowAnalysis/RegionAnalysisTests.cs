@@ -215,8 +215,6 @@ enum E1
             Assert.Equal(null, GetSymbolNamesJoined(analysis.Captured));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedInside));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedOutside));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedInside));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedOutside));
             Assert.Equal("a, b, c, d, e, f", GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
             Assert.Equal("a, b, c, d, e, f", GetSymbolNamesJoined(analysis.ReadInside));
@@ -1409,8 +1407,6 @@ class Program
 ");
             Assert.Equal("x", GetSymbolNamesJoined(analysis.AlwaysAssigned));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.Captured));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedInside));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedOutside));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedInside));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedOutside));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
