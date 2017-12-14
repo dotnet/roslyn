@@ -2697,8 +2697,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
-        <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="new">'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</target>
+        <source>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
+        <target state="new">'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
