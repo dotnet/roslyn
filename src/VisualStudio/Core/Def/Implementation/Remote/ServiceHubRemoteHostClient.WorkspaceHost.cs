@@ -40,18 +40,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public void OnAfterWorkingFolderChange()
             {
                 this.AssertIsForeground();
-                RegisterPrimarySolution();
+                RegisterPrimarySolution(update: true);
             }
 
             public void OnSolutionAdded(SolutionInfo solutionInfo)
             {
                 this.AssertIsForeground();
-                RegisterPrimarySolution();
+                RegisterPrimarySolution(update: false);
             }
 
-            private void RegisterPrimarySolution()
+            private void RegisterPrimarySolution(bool update)
             {
                 this.AssertIsForeground();
+
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
@@ -59,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 _session.TryInvokeAsync(
                     nameof(IRemoteHostService.RegisterPrimarySolutionId),
-                    new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
+                    new object[] { solutionId, storageLocation, update }, CancellationToken.None).Wait(CancellationToken.None);
             }
 
             public void OnBeforeWorkingFolderChange()

@@ -16,7 +16,13 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
 
         public string GetStorageLocation(Solution solution)
         {
-            _idToStorageLocation.TryGetValue(solution.Id, out var result);
+            return GetStorageLocation(solution.Id);
+        }
+
+        // internal for testing
+        internal static string GetStorageLocation(SolutionId solutionId)
+        {
+            _idToStorageLocation.TryGetValue(solutionId, out var result);
             return result;
         }
 

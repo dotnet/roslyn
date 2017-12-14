@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Nerdbank;
@@ -63,6 +64,29 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal(
                     await solution.State.GetChecksumAsync(CancellationToken.None),
                     await PrimaryWorkspace.Workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestRemoteHostRegisterPrimarySolutionId()
+        {
+            using (var remoteHostService = CreateService())
+            {
+                var solutionId = SolutionId.CreateNewId();
+                var path = @"c:\test";
+
+                remoteHostService.RegisterPrimarySolutionId(solutionId, path, update: false, cancellationToken: CancellationToken.None);
+                Assert.Equal(path + @"\Server", RemotePersistentStorageLocationService.GetStorageLocation(solutionId));
+
+                path = path + "1";
+                remoteHostService.RegisterPrimarySolutionId(solutionId, path, update: true, cancellationToken: CancellationToken.None);
+                Assert.Equal(path + @"\Server", RemotePersistentStorageLocationService.GetStorageLocation(solutionId));
+
+                path = path + "2";
+                remoteHostService.RegisterPrimarySolutionId(solutionId, path, update: true, cancellationToken: CancellationToken.None);
+                Assert.Equal(path + @"\Server", RemotePersistentStorageLocationService.GetStorageLocation(solutionId));
+
+                remoteHostService.UnregisterPrimarySolutionId(solutionId, synchronousShutdown: true, cancellationToken: CancellationToken.None);
             }
         }
 

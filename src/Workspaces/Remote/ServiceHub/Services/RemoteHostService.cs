@@ -113,13 +113,22 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
+        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, bool update, CancellationToken cancellationToken)
         {
             RunService(_ =>
             {
+                // save working folder location info first
+                RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
+
+                if(update)
+                {
+                    // if we are just updating storage, don't register primary workspace
+                    return;
+                }
+
+                // and register new primary solution for persistent service
                 var persistentStorageService = GetPersistentStorageService();
                 persistentStorageService?.RegisterPrimarySolution(solutionId);
-                RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
             }, cancellationToken);
         }
 
