@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Conditional
             var template = @"
 class Application
 {{
-    public static M()
+    public void M()
     {{
         {0}
     }}
