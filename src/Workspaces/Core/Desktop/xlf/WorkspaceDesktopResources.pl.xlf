@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
+        <target state="translated">Pobieranie indeksu nie powiodło się</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_index_failed_0">
         <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
+        <target state="translated">Pobieranie indeksu nie powiodło się: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_IntelliSense_index_for_0">
         <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
+        <target state="translated">Pobieranie indeksu funkcji IntelliSense dla {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
-        <target state="new">Invalid assembly name</target>
+        <target state="translated">Nieprawidłowa nazwa zestawu</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_characters_in_assembly_name">
         <source>Invalid characters in assembly name</source>
-        <target state="new">Invalid characters in assembly name</target>
+        <target state="translated">Nieprawidłowe znaki w nazwie zestawu</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="new">Msbuild failed when processing the file '{0}'</target>
+        <target state="translated">Operacja programu MSBuild nie powiodła się podczas przetwarzania pliku „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
+        <target state="translated">Operacja programu MSBuild nie powiodła się podczas przetwarzania pliku „{0}” z komunikatem: {1}</target>
         <note />
       </trans-unit>
     </body>

@@ -492,7 +492,8 @@ class Test : StaticModClass
             Assert.Equal(stateMachineClass, comp.GetTypeByMetadataName("C+<I<System.Int32>.F>d__0")); // GetTypeByMetadataName works.
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
+        [WorkItem(23761, "https://github.com/dotnet/roslyn/issues/23761")] // reason for skipping mono
         public void EmptyNamespaceNames()
         {
             var ilSource =
