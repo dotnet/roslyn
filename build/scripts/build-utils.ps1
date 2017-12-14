@@ -134,7 +134,7 @@ function Ensure-NuGet() {
 }
 
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
-# SDK.
+# SDK. Returns the location to the dotnet exe
 function Ensure-DotnetSdk() {
 
     # Check to see if the specified dotnet installations meets our build requirements
@@ -191,10 +191,12 @@ function Ensure-BasicTool([string]$name, [string]$version = "") {
         $version = Get-PackageVersion $name
     }
 
-    $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
+    $p = Join-Path (Get-PackagesDir) "$($name)\$($version)"
     if (-not (Test-Path $p)) {
-        $nuget = Ensure-NuGet
-        Exec-Block { & $nuget install $name -OutputDirectory (Get-PackagesDir) -Version $version } | Out-Null
+        $toolsetProject = Join-Path $repoDir "build\ToolsetPackages\RoslynToolset.csproj"
+        $dotnet = Ensure-DotnetSdk
+        Write-Host "Downloading $name"
+        Restore-Project $dotnet $toolsetProject
     }
     
     return $p
@@ -389,34 +391,33 @@ function Get-VisualStudioDir() {
 
 # Clear out the NuGet package cache
 function Clear-PackageCache() {
-    $nuget = Ensure-NuGet
-    Exec-Block { & $nuget locals all -clear } | Out-Host
+    $dotnet = Ensure-DotnetSdk
+    Exec-Console $dotnet "nuget locals all --clear"
 }
 
 # Restore a single project
-function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
+function Restore-Project([string]$dotnetExe, [string]$projectFileName) {
     $nugetConfig = Join-Path $repoDir "nuget.config"
 
-    $filePath = $fileName
-    if (-not (Test-Path $filePath)) {
-        $filePath = Join-Path $repoDir $fileName
+    $projectFilePath = $projectFileName
+    if (-not (Test-Path $projectFilePath)) {
+        $projectFilePath = Join-Path $repoDir $projectFileName
     }
 
-    Exec-Console $nuget "restore $filePath -verbosity quiet -configfile $nugetConfig -MSBuildPath ""$msbuildDir"" -Project2ProjectTimeOut 1200"
+    Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath"
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
-    $nuget = Ensure-NuGet
-    if ($msbuildDir -eq "") {
-        $msbuildDir = Get-MSBuildDir
+function Restore-Packages([string]$dotnetExe = "", [string]$project = "") {
+    if ($dotnetExe -eq "") { 
+        $dotnetExe = Ensure-DotnetSdk
     }
 
-    Write-Host "Restore using MSBuild at $msbuildDir"
+    Write-Host "Restore using dotnet at $dotnetExe"
 
     if ($project -ne "") {
         Write-Host "Restoring project $project"
-        Restore-Project -fileName $project -msbuildDir $msbuildDir -nuget $nuget
+        Restore-Project $dotnetExe $project
     }
     else {
         $all = @(
@@ -427,13 +428,13 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
         foreach ($cur in $all) {
             $both = $cur.Split(':')
             Write-Host "Restoring $($both[0])"
-            Restore-Project -fileName $both[1] -msbuildDir $msbuildDir -nuget $nuget
+            Restore-Project $dotnetExe $both[1]
         }
     }
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([string]$msbuildDir = "") {
-    Restore-Packages -msbuildDir $msbuildDir
+function Restore-All([string]$dotnetExe = "") {
+    Restore-Packages -dotnetExe $dotnetExe
 }
 
