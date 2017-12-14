@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // Report the main module as that is the only one checked. clr does not honor type forwarders in non-primary modules.
                     return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, this.PrimaryModule, firstSymbol, secondSymbol);
                 }
-                
+
                 // Don't bother to check the forwarded-to assembly if we've already seen it.
                 if (visitedAssemblies != null && visitedAssemblies.Contains(firstSymbol))
                 {
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
-            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess);
-            return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
+            FriendAccessConclusion conclusion = MakeFinalFriendAccessDetermination(potentialGiverOfAccess);
+            return conclusion == FriendAccessConclusion.Match || conclusion == FriendAccessConclusion.OneSignedOneNot;
         }
 
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
