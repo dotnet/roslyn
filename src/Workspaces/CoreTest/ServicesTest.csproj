@@ -67,8 +67,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DependentTypeFinderTests.cs" />
-    <Compile Include="EditorConfigStorageLocation\EditorConfigStorageLocationTests.cs" />
-    <Compile Include="Differencing\LongestCommonSubsequenceTests.cs" />
     <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
