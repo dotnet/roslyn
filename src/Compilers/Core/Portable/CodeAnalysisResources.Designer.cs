@@ -406,6 +406,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which only a compiler should be reporting..
+        /// </summary>
+        internal static string CompilerDiagnosticIdReported {
+            get {
+                return ResourceManager.GetString("CompilerDiagnosticIdReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to constructor.
         /// </summary>
         internal static string Constructor {
