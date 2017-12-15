@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET461 || NET46
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -101,3 +102,5 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
     }
 }
+
+#endif
