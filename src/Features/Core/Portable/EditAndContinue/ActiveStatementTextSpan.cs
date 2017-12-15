@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public ActiveStatementTextSpan(ActiveStatementFlags flags, TextSpan span)
         {
-            this.Flags = flags;
-            this.Span = span;
+            Flags = flags;
+            Span = span;
         }
     }
 }

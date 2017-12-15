@@ -13,13 +13,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class EditSession
+    internal sealed partial class EditSession
     {
-        [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
         private struct Analysis
         {
             public readonly Document Document;
@@ -27,18 +28,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public Analysis(Document document, AsyncLazy<DocumentAnalysisResults> results)
             {
-                this.Document = document;
-                this.Results = results;
-            }
-
-            public override bool Equals(object obj)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            public override int GetHashCode()
-            {
-                throw ExceptionUtilities.Unreachable;
+                Document = document;
+                Results = results;
             }
         }
 
@@ -47,10 +38,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // signaled when the session is terminated:
         private readonly CancellationTokenSource _cancellation;
 
-        // document id -> [active statements ordered by position]
-        private readonly IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> _baseActiveStatements;
+        internal readonly AsyncLazy<ActiveStatementsMap> BaseActiveStatements;
+
+        internal readonly AsyncLazy<ImmutableArray<ActiveExceptionRegion>> BaseActiveExceptionRegions;
 
         private readonly DebuggingSession _debuggingSession;
+        private readonly IActiveStatementProvider _activeStatementProvider;
 
         /// <summary>
         /// Stopped at exception, an unwind is required before EnC is allowed. All edits are rude.
@@ -78,35 +71,155 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly object _encEditSessionInfoGuard = new object();
         private EncEditSessionInfo _encEditSessionInfo = new EncEditSessionInfo();
 
+        // Active statement spans that were updated in previous edit sessions.
+        private readonly IReadOnlyDictionary<ActiveInstructionId, LinePositionSpan> _previouslyUpdatedActiveStatementSpans;
+
         internal EditSession(
             Solution baseSolution,
-            IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> baseActiveStatements,
             DebuggingSession debuggingSession,
+            IActiveStatementProvider activeStatementProvider,
             ImmutableDictionary<ProjectId, ProjectReadOnlyReason> projects,
+            IReadOnlyDictionary<ActiveInstructionId, LinePositionSpan> previouslyUpdatedActiveStatementSpans,
             bool stoppedAtException)
         {
             Debug.Assert(baseSolution != null);
             Debug.Assert(debuggingSession != null);
+            Debug.Assert(activeStatementProvider != null);
+            Debug.Assert(previouslyUpdatedActiveStatementSpans != null);
 
             _baseSolution = baseSolution;
             _debuggingSession = debuggingSession;
+            _activeStatementProvider = activeStatementProvider;
             _stoppedAtException = stoppedAtException;
             _projects = projects;
             _cancellation = new CancellationTokenSource();
 
             // TODO: small dict, pool?
             _analyses = new Dictionary<DocumentId, Analysis>();
-            _baseActiveStatements = baseActiveStatements;
 
             // TODO: small dict, pool?
             _documentsWithReportedRudeEdits = new HashSet<DocumentId>();
+
+            _previouslyUpdatedActiveStatementSpans = previouslyUpdatedActiveStatementSpans;
+
+            BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true);
+            BaseActiveExceptionRegions = new AsyncLazy<ImmutableArray<ActiveExceptionRegion>>(GetBaseActiveExceptionRegionsAsync, cacheResult: true);
+        }
+
+        private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                return CreateActiveStatementsMap(_baseSolution, await _activeStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return new ActiveStatementsMap(
+                    SpecializedCollections.EmptyReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>>(), 
+                    SpecializedCollections.EmptyReadOnlyDictionary<int, ActiveStatement>());
+            }
+        }
+
+        private ActiveStatementsMap CreateActiveStatementsMap(Solution solution, ImmutableArray<ActiveStatementDebugInfo> debugInfos)
+        {
+            var byDocument = PooledDictionary<DocumentId, ArrayBuilder<ActiveStatement>>.GetInstance();
+            var idMap = new Dictionary<int, ActiveStatement>();
+
+            foreach (var debugInfo in debugInfos)
+            {
+                // TODO (tomat):
+                // Active statement is in user hidden code. The only information that we have from the debugger
+                // is the method token. We don't need to track the statement (it's not in user code anyways),
+                // but we should probably track the list of such methods in order to preserve their local variables.
+                // Not sure what's exactly the scenario here, perhaps modifying async method/iterator? 
+                // Dev12 just ignores these.
+                if ((debugInfo.Flags & ActiveStatementFlags.NonUserCode) != 0)
+                {
+                    continue;
+                }
+
+                var linePositionSpan = debugInfo.LinePositionSpan;
+                
+                // Map outdated active statement spans - the span reported by the debugger might correspond to an IP that has not been remapped yet.
+                // In that case we use the span where the active statement was located at the end of the previous edit session.
+                if ((debugInfo.Flags & ActiveStatementFlags.MethodUpToDate) == 0 &&
+                    _previouslyUpdatedActiveStatementSpans.TryGetValue(debugInfo.InstructionId, out var updatedLinePositionSpan))
+                {
+                    linePositionSpan = updatedLinePositionSpan;
+                }
+
+                var documentIds = solution.GetDocumentIdsWithFilePath(debugInfo.DocumentName);
+
+                // TODO: warning if no document found for an active statement?
+
+                foreach (var documentId in documentIds)
+                {
+                    if (!byDocument.TryGetValue(documentId, out var documentActiveStatements))
+                    {
+                        byDocument.Add(documentId, documentActiveStatements = ArrayBuilder<ActiveStatement>.GetInstance());
+                    }
+
+                    var activeStatement = new ActiveStatement(
+                        debugInfo.Id,
+                        documentId,
+                        ordinal: documentActiveStatements.Count,
+                        debugInfo.Flags,
+                        linePositionSpan,
+                        debugInfo.InstructionId);
+
+                    idMap.Add(debugInfo.Id, activeStatement);
+                    documentActiveStatements.Add(activeStatement);
+                }
+            }
+
+            return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), idMap);
+        }
+
+        private async Task<ImmutableArray<ActiveExceptionRegion>> GetBaseActiveExceptionRegionsAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var builder = ArrayBuilder<ActiveExceptionRegion>.GetInstance();
+
+                foreach (var (debuggerId, activeStatement) in baseActiveStatements.Ids.OrderBy(entry => entry.Key))
+                {
+                    var document = _baseSolution.GetDocument(activeStatement.DocumentId);
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    var lineSpan = activeStatement.Span;
+
+                    // If the PDB is out of sync with the source we might get bad spans.
+                    var sourceLines = sourceText.Lines;
+                    if (lineSpan.End.Line >= sourceLines.Count || 
+                        sourceLines.GetPosition(lineSpan.End) > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
+                    {
+                        // TODO: log.Write("AS out of bounds (line count is {0})", source.Lines.Count);
+                        continue;
+                    }
+
+                    var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+                    var ehRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, lineSpan, activeStatement.IsLeaf);
+
+                    for (int i = 0; i < ehRegions.Length; i++)
+                    {
+                        builder.Add(new ActiveExceptionRegion(debuggerId, i, ehRegions[i]));
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return ImmutableArray<ActiveExceptionRegion>.Empty;
+            }
         }
 
         internal CancellationTokenSource Cancellation => _cancellation;
 
         internal Solution BaseSolution => _baseSolution;
-
-        internal IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> BaseActiveStatements => _baseActiveStatements;
 
         private Solution CurrentSolution => _baseSolution.Workspace.CurrentSolution;
 
@@ -119,17 +232,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return Projects.TryGetValue(id, out var reason);
         }
 
-        private List<ValueTuple<DocumentId, AsyncLazy<DocumentAnalysisResults>>> GetChangedDocumentsAnalyses(Project baseProject, Project project)
+        private List<(DocumentId, AsyncLazy<DocumentAnalysisResults>)> GetChangedDocumentsAnalyses(Project baseProject, Project project)
         {
             var changes = project.GetChanges(baseProject);
             var changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments());
-            var result = new List<ValueTuple<DocumentId, AsyncLazy<DocumentAnalysisResults>>>();
+            var result = new List<(DocumentId, AsyncLazy<DocumentAnalysisResults>)>();
 
             lock (_analysesGuard)
             {
                 foreach (var changedDocumentId in changedDocuments)
                 {
-                    result.Add(ValueTuple.Create(changedDocumentId, GetDocumentAnalysisNoLock(project.GetDocument(changedDocumentId))));
+                    result.Add((changedDocumentId, GetDocumentAnalysisNoLock(project.GetDocument(changedDocumentId))));
                 }
             }
 
@@ -181,17 +294,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-            if (!_baseActiveStatements.TryGetValue(document.Id, out var activeStatements))
-            {
-                activeStatements = ImmutableArray.Create<ActiveStatementSpan>();
-            }
 
             var lazyResults = new AsyncLazy<DocumentAnalysisResults>(
                 asynchronousComputeFunction: async cancellationToken =>
                 {
                     try
                     {
-                        var result = await analyzer.AnalyzeDocumentAsync(_baseSolution, activeStatements, document, cancellationToken).ConfigureAwait(false);
+                        var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                        if (!baseActiveStatements.DocumentMap.TryGetValue(document.Id, out var documentBaseActiveStatements))
+                        {
+                            documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
+                        }
+
+                        var result = await analyzer.AnalyzeDocumentAsync(_baseSolution, documentBaseActiveStatements, document, cancellationToken).ConfigureAwait(false);
 
                         if (!result.RudeEditErrors.IsDefault)
                         {
@@ -296,13 +411,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var baseProject = _baseSolution.GetProject(project.Id);
-                var allEdits = new List<SemanticEdit>();
-                var allLineEdits = new List<KeyValuePair<DocumentId, ImmutableArray<LineChange>>>();
+                var allEdits = ArrayBuilder<SemanticEdit>.GetInstance();
+                var allLineEdits = ArrayBuilder<(DocumentId, ImmutableArray<LineChange>)>.GetInstance();
+                var allActiveStatements = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>)>.GetInstance();
 
-                foreach (var analysis in GetChangedDocumentsAnalyses(baseProject, project))
+                foreach (var (documentId, asyncResult) in GetChangedDocumentsAnalyses(baseProject, project))
                 {
-                    var documentId = analysis.Item1;
-                    var result = await analysis.Item2.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var result = await asyncResult.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                     // we shouldn't be asking for deltas in presence of errors:
                     Debug.Assert(!result.HasChangesAndErrors);
@@ -310,8 +425,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     allEdits.AddRange(result.SemanticEdits);
                     if (result.LineEdits.Length > 0)
                     {
-                        allLineEdits.Add(KeyValuePair.Create(documentId, result.LineEdits));
+                        allLineEdits.Add((documentId, result.LineEdits));
                     }
+
+                    allActiveStatements.Add((documentId, result.ActiveStatements));
                 }
 
                 // Ideally we shouldn't be asking for deltas in absence of significant changes.
@@ -319,7 +436,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // to the source are not significant. So we emit an empty delta.
                 // Debug.Assert(allEdits.Count > 0 || allLineEdits.Count > 0);
 
-                return new ProjectChanges(allEdits, allLineEdits);
+                return new ProjectChanges(allEdits.ToImmutableAndFree(), allLineEdits.ToImmutableAndFree(), allActiveStatements.ToImmutableAndFree());
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -333,19 +450,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 Debug.Assert(!_stoppedAtException);
 
-                var changes = await GetProjectChangesAsync(project, cancellationToken).ConfigureAwait(false);
+                var projectChanges = await GetProjectChangesAsync(project, cancellationToken).ConfigureAwait(false);
                 var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var allAddedSymbols = await GetAllAddedSymbols(cancellationToken).ConfigureAwait(false);
+                var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                 var pdbStream = new MemoryStream();
                 var updatedMethods = new List<MethodDefinitionHandle>();
+                var updatedActiveStatementSpans = ArrayBuilder<(ActiveInstructionId, LinePositionSpan)>.GetInstance();
 
                 using (var metadataStream = SerializableBytes.CreateWritableStream())
                 using (var ilStream = SerializableBytes.CreateWritableStream())
                 {
                     EmitDifferenceResult result = currentCompilation.EmitDifference(
                         baseline,
-                        changes.SemanticEdits,
+                        projectChanges.SemanticEdits,
                         s => allAddedSymbols?.Contains(s) ?? false,
                         metadataStream,
                         ilStream,
@@ -353,8 +472,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         updatedMethods,
                         cancellationToken);
 
+                    // Determine all active statements whose span changed.
+                    foreach (var (documentId, activeStatements) in projectChanges.ActiveStatements)
+                    {
+                        var oldActiveStatements = baseActiveStatements.DocumentMap[documentId];
+                        Debug.Assert(oldActiveStatements.Length == activeStatements.Length);
+
+                        for (int i = 0; i < activeStatements.Length; i++)
+                        {
+                            if (oldActiveStatements[i].Span != activeStatements[i].Span)
+                            {
+                                updatedActiveStatementSpans.Add((oldActiveStatements[i].InstructionId, activeStatements[i].Span));
+                            }
+                        }
+                    }
+                    
                     int[] updateMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
-                    return new Deltas(ilStream.ToArray(), metadataStream.ToArray(), updateMethodTokens, pdbStream, changes.LineChanges, result);
+                    return new Deltas(ilStream.ToArray(), metadataStream.ToArray(), updateMethodTokens, updatedActiveStatementSpans.ToImmutableAndFree(), pdbStream, projectChanges.LineChanges, result);
                 }
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))

@@ -5,6 +5,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -18,14 +20,47 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </remarks>
     internal class EditAndContinueService : IEditAndContinueService
     {
+        private readonly IActiveStatementProvider _activeStatementProvider;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private DebuggingSession _debuggingSession;
         private EditSession _editSession;
 
-        public EditAndContinueService(IDiagnosticAnalyzerService diagnosticService)
+        // Maps active statement instructions to their latest spans.
+        //
+        // Consider a function F containing a call to function G that is updated a couple of times
+        // before the thread returns from G and is remapped to the latest version of F.
+        // '>' indicates an active statement instruction.
+        //
+        // F v1:        F v2:       F v3:
+        // 0: nop       0: nop      0: nop
+        // 1> G()       1: nop      1: nop
+        // 2: nop       2: G()      2: nop
+        // 3: nop       3: nop      3> G()
+        //
+        // When entering a break state we query the debugger for current active statements.
+        // The returned statements reflect the current state of the threads in the runtime.
+        // When a change is successfully applied we remember changes in active statement spans.
+        // These changes are passed to the next edit session.
+        // We use them to map the spans for active statements returned by the debugger. 
+        // 
+        // In the above case the sequence of events is 
+        // 1st break: get active statements returns (F, v=1, il=1, span1) the active statement is up-to-date
+        // 1st apply: detected span change for active statement (F, v=1, il=1): span1->span2
+        // 2nd break: previously updated statements contains (F, v=1, il=1)->span2
+        //            get active statements returns (F, v=1, il=1, span1) which is mapped to (F, v=1, il=1, span2) using previously updated statements
+        // 2nd apply: detected span change for active statement (F, v=1, il=1): span2->span3
+        // 3rd break: previously updated statements contains (F, v=1, il=1)->span3
+        //            get active statements returns (F, v=3, il=3, span3) the active statement is up-to-date
+        //
+        private Dictionary<ActiveInstructionId, LinePositionSpan> _lazyPreviouslyUpdatedActiveStatementSpans;
+
+        internal EditAndContinueService(IDiagnosticAnalyzerService diagnosticService, IActiveStatementProvider activeStatementProvider)
         {
             Debug.Assert(diagnosticService != null);
+            Debug.Assert(activeStatementProvider != null);
+
             _diagnosticService = diagnosticService;
+            _activeStatementProvider = activeStatementProvider;
         }
 
         public DebuggingSession DebuggingSession => _debuggingSession;
@@ -43,13 +78,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void StartEditSession(
             Solution currentSolution,
-            IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> activeStatements,
             ImmutableDictionary<ProjectId, ProjectReadOnlyReason> projects,
             bool stoppedAtException)
         {
             Debug.Assert(_debuggingSession != null && _editSession == null);
 
-            var newSession = new EditSession(currentSolution, activeStatements, _debuggingSession, projects, stoppedAtException);
+            var newSession = new EditSession(
+                currentSolution, 
+                _debuggingSession, 
+                _activeStatementProvider, 
+                projects, 
+                _lazyPreviouslyUpdatedActiveStatementSpans ?? SpecializedCollections.EmptyReadOnlyDictionary<ActiveInstructionId, LinePositionSpan>(),
+                stoppedAtException);
 
             Interlocked.CompareExchange(ref _editSession, newSession, null);
 
@@ -57,20 +97,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // TODO(tomat): document added
         }
 
-        public void EndEditSession()
+        public void EndEditSession(ImmutableArray<(ActiveInstructionId, LinePositionSpan)> updatedActiveStatementSpansOpt)
         {
             Debug.Assert(_debuggingSession != null && _editSession != null);
 
-            var session = _editSession;
-
             // first, publish null session:
-            _editSession = null;
+            var session = Interlocked.Exchange(ref _editSession, null);
 
             // then cancel all ongoing work bound to the session:
             session.Cancellation.Cancel();
 
             // then clear all reported rude edits:
             _diagnosticService.Reanalyze(_debuggingSession.InitialSolution.Workspace, documentIds: session.GetDocumentsWithReportedRudeEdits());
+
+            // save updated active statement spans for the next edit session:
+            if (!updatedActiveStatementSpansOpt.IsDefaultOrEmpty)
+            {
+                if (_lazyPreviouslyUpdatedActiveStatementSpans == null)
+                {
+                    _lazyPreviouslyUpdatedActiveStatementSpans = new Dictionary<ActiveInstructionId, LinePositionSpan>();
+                }
+
+                foreach (var (instruction, span) in updatedActiveStatementSpansOpt)
+                {
+                    _lazyPreviouslyUpdatedActiveStatementSpans[instruction] = span;
+                }
+            }
 
             // TODO(tomat): allow changing documents
         }

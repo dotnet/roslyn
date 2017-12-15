@@ -5466,10 +5466,10 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            active.OldSpans(0) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame, active.OldSpans(0).Span)
-            active.OldSpans(1) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted, active.OldSpans(1).Span)
-            active.OldSpans(2) = New ActiveStatementSpan(ActiveStatementFlags.LeafFrame, active.OldSpans(2).Span)
-            active.OldSpans(3) = New ActiveStatementSpan(ActiveStatementFlags.None, active.OldSpans(3).Span)
+            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame)
+            active.OldStatements(1) = active.OldStatements(1).WithFlags(ActiveStatementFlags.PartiallyExecuted)
+            active.OldStatements(2) = active.OldStatements(2).WithFlags(ActiveStatementFlags.LeafFrame)
+            active.OldStatements(3) = active.OldStatements(3).WithFlags(ActiveStatementFlags.None)
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10)"),
@@ -5495,7 +5495,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            active.OldSpans(0) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame, active.OldSpans(0).Span)
+            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame)
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()"))

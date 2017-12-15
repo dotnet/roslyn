@@ -30,5 +30,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// The statement IL is not in user code.
         /// </summary>
         NonUserCode = 4,
+
+        /// <summary>
+        /// Indicates that the active statement instruction belongs to the latest version of the containing method.
+        /// If not set, the containing method was updated but the active statement was not remapped yet because the thread 
+        /// has not returned to that instruction yet and was not remapped to the new version.
+        /// </summary>
+        /// <remarks>
+        /// When the debugger asks the CLR for the active statement information it compares ICorDebugFunction.GetVersionNumber()
+        /// and ICorDebugFunction.GetCurrentVersionNumber() to determine the value of this flag.
+        /// </remarks>
+        MethodUpToDate = 8
     }
 }

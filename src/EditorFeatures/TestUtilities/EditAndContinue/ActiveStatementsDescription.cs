@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal class ActiveStatementsDescription
     {
-        public readonly ActiveStatementSpan[] OldSpans;
+        public readonly ActiveStatement[] OldStatements;
         public readonly TextSpan[] NewSpans;
         public readonly ImmutableArray<TextSpan>[] OldRegions;
         public readonly ImmutableArray<TextSpan>[] NewRegions;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private ActiveStatementsDescription()
         {
-            OldSpans = Array.Empty<ActiveStatementSpan>();
+            OldStatements = Array.Empty<ActiveStatement>();
             NewSpans = Array.Empty<TextSpan>();
             OldRegions = Array.Empty<ImmutableArray<TextSpan>>();
             NewRegions = Array.Empty<ImmutableArray<TextSpan>>();
@@ -30,24 +30,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public ActiveStatementsDescription(string oldSource, string newSource)
         {
-            OldSpans = GetActiveStatements(oldSource);
+            OldStatements = GetActiveStatements(oldSource);
             NewSpans = GetActiveSpans(newSource);
-            OldRegions = GetExceptionRegions(oldSource, OldSpans.Length);
+            OldRegions = GetExceptionRegions(oldSource, OldStatements.Length);
             NewRegions = GetExceptionRegions(newSource, NewSpans.Length);
 
             // Tracking spans are marked in the new source since the editor moves them around as the user 
             // edits the source and we get their positions when analyzing the new source.
             // The EnC analyzer uses old trackign spans as hints to find matching nodes.
             // After an edit the tracking spans are updated to match new active statements.
-            OldTrackingSpans = GetTrackingSpans(newSource, OldSpans.Length);
+            OldTrackingSpans = GetTrackingSpans(newSource, OldStatements.Length);
         }
 
         internal static readonly ActiveStatementsDescription Empty = new ActiveStatementsDescription();
 
         internal static string ClearTags(string source)
-        {
-            return s_tags.Replace(source, m => new string(' ', m.Length));
-        }
+            => s_tags.Replace(source, m => new string(' ', m.Length));
+
+        internal static string[] ClearTags(string[] sources)
+            => sources.Select(ClearTags).ToArray();
 
         private static readonly Regex s_tags = new Regex(
             @"[<][/]?(AS|ER|N|TS)[:][.0-9,]+[>]",
@@ -71,24 +72,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
               [<][/]TS[:] (\k<Id>)      [>]",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
-        internal static ActiveStatementSpan[] GetActiveStatements(string src)
-        {
-            var text = SourceText.From(src);
-            var result = new List<ActiveStatementSpan>();
-
-            int i = 0;
-            foreach (var span in GetActiveSpans(src))
-            {
-                result.Add(new ActiveStatementSpan(
-                    (i == 0) ? ActiveStatementFlags.LeafFrame : ActiveStatementFlags.None,
-                    text.Lines.GetLinePositionSpan(span)));
-
-                i++;
-            }
-
-            return result.ToArray();
-        }
-
         internal static IEnumerable<int> GetIds(Match match)
         {
             return match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
@@ -106,7 +89,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                    select ValueTuple.Create(int.Parse(parts[0]), int.Parse(parts[1]));
         }
 
-        private static IEnumerable<ValueTuple<TextSpan, int[]>> GetSpansRecursive(Regex regex, string contentGroupName, string markedSource, int offset)
+        private static IEnumerable<(TextSpan Span, int[] Ids)> GetSpansRecursive(Regex regex, string contentGroupName, string markedSource, int offset)
         {
             foreach (var match in regex.Matches(markedSource).ToEnumerable())
             {
@@ -115,7 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 int absoluteOffset = offset + markedSyntax.Index;
 
                 var span = markedSyntax.Length != 0 ? new TextSpan(absoluteOffset, markedSyntax.Length) : new TextSpan();
-                yield return ValueTuple.Create(span, ids);
+                yield return (span, ids);
 
                 foreach (var nestedSpan in GetSpansRecursive(regex, contentGroupName, markedSyntax.Value, absoluteOffset))
                 {
@@ -126,15 +109,44 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal static TextSpan[] GetActiveSpans(string src)
         {
-            List<TextSpan> result = new List<TextSpan>();
+            var result = new List<TextSpan>();
 
-            foreach (var spanAndIds in GetSpansRecursive(s_activeStatementPattern, "ActiveStatement", src, 0))
+            foreach (var (span, ids) in GetSpansRecursive(s_activeStatementPattern, "ActiveStatement", src, offset: 0))
             {
-                foreach (int id in spanAndIds.Item2)
+                foreach (int id in ids)
                 {
                     EnsureSlot(result, id);
-                    result[id] = spanAndIds.Item1;
+                    result[id] = span;
                 }
+            }
+
+            return result.ToArray();
+        }
+
+        private static readonly DocumentId s_dummyDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
+
+        internal static ActiveStatement CreateActiveStatement(ActiveStatementFlags flags, LinePositionSpan span)
+            => new ActiveStatement(
+                debugId: 0,
+                documentId: s_dummyDocumentId,
+                ordinal: 0,
+                flags, 
+                span,
+                instructionId: default);
+
+        internal static ActiveStatement[] GetActiveStatements(string src)
+        {
+            var text = SourceText.From(src);
+            var result = new List<ActiveStatement>();
+
+            int i = 0;
+            foreach (var span in GetActiveSpans(src))
+            {
+                result.Add(CreateActiveStatement(
+                    (i == 0) ? ActiveStatementFlags.LeafFrame : ActiveStatementFlags.None,
+                    text.Lines.GetLinePositionSpan(span)));
+
+                i++;
             }
 
             return result.ToArray();
