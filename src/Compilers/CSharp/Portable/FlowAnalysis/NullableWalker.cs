@@ -35,8 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly Binder _binder;
 
-        // Invalid type, used only to catch Visit methods that do not set
-        // this.State.ResultType. See VisitExpressionWithoutStackGuard.
+        /// <summary>
+        /// Invalid type, used only to catch Visit methods that do not set
+        /// this.State.ResultType. See VisitExpressionWithoutStackGuard.
+        /// </summary>
         private readonly TypeSymbolWithAnnotations _invalidType;
 
         /// <summary>
@@ -45,6 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol _currentMethodOrLambda;
 
         private readonly bool _includeNonNullableWarnings;
+
+        /// <summary>
+        /// Instances being constructed.
+        /// </summary>
         private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocals;
 
         protected override void Free()
@@ -277,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.Local:
-                    this.State.Result = GetDeclaredLocalType(((BoundLocal)node).LocalSymbol);
+                    this.State.Result = GetDeclaredLocalResult(((BoundLocal)node).LocalSymbol);
                     break;
                 case BoundKind.Parameter:
                     this.State.Result = GetDeclaredParameterType(((BoundParameter)node).ParameterSymbol);
@@ -357,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
                         if (value != null &&
                             (value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
-                            targetType.TypeSymbol == valueType?.TypeSymbol) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
+                            targetType.TypeSymbol.Equals(valueType?.TypeSymbol, TypeCompareKind.ConsiderEverything)) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
                         {
                             if (valueSlot > 0)
                             {
@@ -367,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 else if (targetSlot > 0 && EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                        (value == null || targetType.TypeSymbol == valueType?.TypeSymbol))
+                        (value == null || targetType.TypeSymbol.Equals(valueType?.TypeSymbol, TypeCompareKind.ConsiderEverything)))
                 {
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, IsByRefTarget(targetSlot));
                 }
@@ -746,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable)
             {
-                this.State.Result = GetAdjustedResult(GetDeclaredLocalType(node.LocalSymbol));
+                this.State.Result = GetAdjustedResult(GetDeclaredLocalResult(node.LocalSymbol));
             }
 
             return null;
@@ -2342,7 +2348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(symbol);
         }
 
-        private (TypeSymbolWithAnnotations Type, int Slot) GetDeclaredLocalType(LocalSymbol local)
+        private (TypeSymbolWithAnnotations Type, int Slot) GetDeclaredLocalResult(LocalSymbol local)
         {
             var slot = GetOrCreateSlot(local);
             TypeSymbolWithAnnotations type;
@@ -2586,24 +2592,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return null;
-            }
-        }
-
-        protected override void VisitCondition(BoundExpression node, bool inExpression = false)
-        {
-            base.VisitCondition(node, inExpression);
-
-            if (!inExpression)
-            {
-                if (IsConditionalState)
-                {
-                    this.StateWhenFalse.ResultType = null;
-                    this.StateWhenTrue.ResultType = null;
-                }
-                else
-                {
-                    this.State.ResultType = null;
-                }
             }
         }
 
@@ -3186,7 +3174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        #endregion Visitors
+#endregion Visitors
 
         protected override string Dump(LocalState state)
         {

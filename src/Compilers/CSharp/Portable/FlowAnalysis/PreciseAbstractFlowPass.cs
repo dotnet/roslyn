@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Visit a boolean condition expression.
         /// </summary>
         /// <param name="node"></param>
-        protected virtual void VisitCondition(BoundExpression node, bool inExpression = false)
+        protected void VisitCondition(BoundExpression node)
         {
             Visit(node);
             AdjustConditionalState(node);
@@ -1923,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(stack.Count > 0);
 
-            VisitCondition(child, inExpression: true);
+            VisitCondition(child);
 
             while (true)
             {
