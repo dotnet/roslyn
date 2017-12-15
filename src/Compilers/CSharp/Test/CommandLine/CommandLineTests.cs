@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+extern alias CscExe;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,6 +30,7 @@ using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
+using CscExe.Microsoft.CodeAnalysis.CSharp.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -7895,7 +7897,8 @@ public class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", srcFile.Path },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerThatThrowsInGetMessage()));
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerThatThrowsInGetMessage()),
+               loader: new DesktopAnalyzerAssemblyLoader());
 
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -7920,7 +7923,8 @@ public class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", $"/warnaserror:{AnalyzerExecutor.AnalyzerExceptionDiagnosticId}", srcFile.Path },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerThatThrowsInGetMessage()));
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerThatThrowsInGetMessage()),
+               loader: new DesktopAnalyzerAssemblyLoader());
 
             var exitCode = csc.Run(outWriter);
             Assert.NotEqual(0, exitCode);
@@ -7942,7 +7946,8 @@ public class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", srcFile.Path },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerReportingMisformattedDiagnostic()));
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerReportingMisformattedDiagnostic()),
+               loader: new DesktopAnalyzerAssemblyLoader());
 
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
