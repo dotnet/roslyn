@@ -51,9 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         // projects that entered the break state:
         private static readonly List<KeyValuePair<ProjectId, ProjectReadOnlyReason>> s_breakStateEnteredProjects = new List<KeyValuePair<ProjectId, ProjectReadOnlyReason>>();
 
-        // active statements of projects that entered the break state:
-        private static readonly List<VsActiveStatement> s_pendingActiveStatements = new List<VsActiveStatement>();
-
         private static VsReadOnlyDocumentTracker s_readOnlyDocumentTracker;
 
         internal static readonly TraceLog log = new TraceLog(2048, "EnC");
@@ -75,14 +72,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         private bool _changesApplied;
 
-        // maps VS Active Statement Id, which is unique within this project, to our id
-        private Dictionary<uint, ActiveStatementId> _activeStatementIds;
-
         private ProjectAnalysisSummary _lastEditSessionSummary = ProjectAnalysisSummary.NoChanges;
-        private HashSet<uint> _activeMethods;
-        private List<VsExceptionRegion> _exceptionRegions;
         private EmitBaseline _committedBaseline;
         private EmitBaseline _pendingBaseline;
+        private ImmutableArray<(ActiveInstructionId, LinePositionSpan)> _pendingUpdatedActiveStatementSpans;
         private Project _projectBeingEmitted;
 
         private ImmutableArray<DocumentId> _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
@@ -292,10 +285,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     s_debugStateProjectCount++;
                 }
 
-                _activeMethods = new HashSet<uint>();
-                _exceptionRegions = new List<VsExceptionRegion>();
-                _activeStatementIds = new Dictionary<uint, ActiveStatementId>();
-
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
@@ -365,10 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _diagnosticProvider.ClearDiagnostics(errorId, _vsProject.Workspace.CurrentSolution, _vsProject.Id, documentIdOpt: null);
                 }
 
-                _activeMethods = null;
-                _exceptionRegions = null;
                 _committedBaseline = null;
-                _activeStatementIds = null;
                 _projectBeingEmitted = null;
 
                 var pdbReader = Interlocked.Exchange(ref _pdbReader, null);
@@ -461,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         /// <param name="encBreakReason">Reason for transition to Break state.</param>
         /// <param name="pActiveStatements">Statements active when the debuggee is stopped.</param>
         /// <param name="cActiveStatements">Length of <paramref name="pActiveStatements"/>.</param>
-        public int EnterBreakStateOnPE(Interop.ENC_BREAKSTATE_REASON encBreakReason, ShellInterop.ENC_ACTIVE_STATEMENT[] pActiveStatements, uint cActiveStatements)
+        public int EnterBreakStateOnPE(ENC_BREAKSTATE_REASON encBreakReason, ENC_ACTIVE_STATEMENT[] pActiveStatements, uint cActiveStatements)
         {
             try
             {
@@ -471,7 +457,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     Debug.Assert(cActiveStatements == (pActiveStatements != null ? pActiveStatements.Length : 0));
                     Debug.Assert(s_breakStateProjectCount < s_debugStateProjectCount);
-                    Debug.Assert(s_breakStateProjectCount > 0 || _exceptionRegions.Count == 0);
                     Debug.Assert(s_breakStateProjectCount == s_breakStateEnteredProjects.Count);
                     Debug.Assert(IsDebuggable);
 
@@ -489,7 +474,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     ProjectReadOnlyReason state;
                     if (pActiveStatements != null)
                     {
-                        AddActiveStatements(s_breakStateEntrySolution, pActiveStatements);
                         state = ProjectReadOnlyReason.None;
                     }
                     else
@@ -508,12 +492,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     if (s_breakStateEnteredProjects.Count == s_debugStateProjectCount)
                     {
                         Debug.Assert(_encService.EditSession == null);
-                        Debug.Assert(s_pendingActiveStatements.TrueForAll(s => s.Owner._activeStatementIds.Count == 0));
-
-                        var byDocument = new Dictionary<DocumentId, ImmutableArray<ActiveStatementSpan>>();
-
-                        // note: fills in activeStatementIds of projects that own the active statements:
-                        GroupActiveStatements(s_pendingActiveStatements, byDocument);
 
                         // When stopped at exception: All documents are read-only, but the files might be changed outside of VS.
                         // So we start an edit session as usual and report a rude edit for all changes we see.
@@ -521,7 +499,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                         var projectStates = ImmutableDictionary.CreateRange(s_breakStateEnteredProjects);
 
-                        _encService.StartEditSession(s_breakStateEntrySolution, byDocument, projectStates, stoppedAtException);
+                        _encService.StartEditSession(s_breakStateEntrySolution, projectStates, stoppedAtException);
                         _trackingService.StartTracking(_encService.EditSession);
 
                         s_readOnlyDocumentTracker.UpdateWorkspaceDocuments();
@@ -547,7 +525,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 if (s_breakStateEnteredProjects.Count == s_debugStateProjectCount)
                 {
                     // we don't need these anymore:
-                    s_pendingActiveStatements.Clear();
                     s_breakStateEnteredProjects.Clear();
                     s_breakStateEntrySolution = null;
                 }
@@ -570,252 +547,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             //}
         }
 
-        private struct VsActiveStatement
-        {
-            public readonly DocumentId DocumentId;
-            public readonly uint StatementId;
-            public readonly ActiveStatementSpan Span;
-            public readonly VsENCRebuildableProjectImpl Owner;
-
-            public VsActiveStatement(VsENCRebuildableProjectImpl owner, uint statementId, DocumentId documentId, ActiveStatementSpan span)
-            {
-                this.Owner = owner;
-                this.StatementId = statementId;
-                this.DocumentId = documentId;
-                this.Span = span;
-            }
-        }
-
-        private struct VsExceptionRegion
-        {
-            public readonly uint ActiveStatementId;
-            public readonly int Ordinal;
-            public readonly uint MethodToken;
-            public readonly LinePositionSpan Span;
-
-            public VsExceptionRegion(uint activeStatementId, int ordinal, uint methodToken, LinePositionSpan span)
-            {
-                this.ActiveStatementId = activeStatementId;
-                this.Span = span;
-                this.MethodToken = methodToken;
-                this.Ordinal = ordinal;
-            }
-        }
-
-        // See InternalApis\vsl\inc\encbuild.idl
-        private const int TEXT_POSITION_ACTIVE_STATEMENT = 1;
-
-        private void AddActiveStatements(Solution solution, ShellInterop.ENC_ACTIVE_STATEMENT[] vsActiveStatements)
-        {
-            Debug.Assert(_activeMethods.Count == 0);
-            Debug.Assert(_exceptionRegions.Count == 0);
-
-            foreach (var vsActiveStatement in vsActiveStatements)
-            {
-                log.DebugWrite("+AS[{0}]: {1} {2} {3} {4} '{5}'",
-                    unchecked((int)vsActiveStatement.id),
-                    vsActiveStatement.tsPosition.iStartLine,
-                    vsActiveStatement.tsPosition.iStartIndex,
-                    vsActiveStatement.tsPosition.iEndLine,
-                    vsActiveStatement.tsPosition.iEndIndex,
-                    vsActiveStatement.filename);
-
-                // TODO (tomat):
-                // Active statement is in user hidden code. The only information that we have from the debugger
-                // is the method token. We don't need to track the statement (it's not in user code anyways),
-                // but we should probably track the list of such methods in order to preserve their local variables.
-                // Not sure what's exactly the scenario here, perhaps modifying async method/iterator? 
-                // Dev12 just ignores these.
-                if (vsActiveStatement.posType != TEXT_POSITION_ACTIVE_STATEMENT)
-                {
-                    continue;
-                }
-
-                var flags = (ActiveStatementFlags)vsActiveStatement.ASINFO;
-
-                // Finds a document id in the solution with the specified file path.
-                DocumentId documentId = solution.GetDocumentIdsWithFilePath(vsActiveStatement.filename)
-                    .Where(dId => dId.ProjectId == _vsProject.Id).SingleOrDefault();
-
-                if (documentId != null)
-                {
-                    var document = solution.GetDocument(documentId);
-                    Debug.Assert(document != null);
-
-                    SourceText source = document.GetTextAsync(default).Result;
-                    LinePositionSpan lineSpan = vsActiveStatement.tsPosition.ToLinePositionSpan();
-
-                    // If the PDB is out of sync with the source we might get bad spans.
-                    var sourceLines = source.Lines;
-                    if (lineSpan.End.Line >= sourceLines.Count || sourceLines.GetPosition(lineSpan.End) > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
-                    {
-                        log.Write("AS out of bounds (line count is {0})", source.Lines.Count);
-                        continue;
-                    }
-
-                    SyntaxNode syntaxRoot = document.GetSyntaxRootAsync(default).Result;
-
-                    var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-
-                    s_pendingActiveStatements.Add(new VsActiveStatement(
-                        this,
-                        vsActiveStatement.id,
-                        document.Id,
-                        new ActiveStatementSpan(flags, lineSpan)));
-
-                    bool isLeaf = (flags & ActiveStatementFlags.LeafFrame) != 0;
-                    var ehRegions = analyzer.GetExceptionRegions(source, syntaxRoot, lineSpan, isLeaf);
-
-                    for (int i = 0; i < ehRegions.Length; i++)
-                    {
-                        _exceptionRegions.Add(new VsExceptionRegion(
-                            vsActiveStatement.id,
-                            i,
-                            vsActiveStatement.methodToken,
-                            ehRegions[i]));
-                    }
-                }
-
-                _activeMethods.Add(vsActiveStatement.methodToken);
-            }
-        }
-
-        private static void GroupActiveStatements(
-            IEnumerable<VsActiveStatement> activeStatements,
-            Dictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> byDocument)
-        {
-            var spans = new List<ActiveStatementSpan>();
-
-            foreach (var grouping in activeStatements.GroupBy(s => s.DocumentId))
-            {
-                var documentId = grouping.Key;
-
-                foreach (var activeStatement in grouping.OrderBy(s => s.Span.Span.Start))
-                {
-                    int ordinal = spans.Count;
-
-                    // register vsid with the project that owns the active statement:
-                    activeStatement.Owner._activeStatementIds.Add(activeStatement.StatementId, new ActiveStatementId(documentId, ordinal));
-
-                    spans.Add(activeStatement.Span);
-                }
-
-                byDocument.Add(documentId, spans.AsImmutable());
-                spans.Clear();
-            }
-        }
-
-        /// <summary>
-        /// Returns the number of exception regions around current active statements.
-        /// This is called when the project is entering a break right after 
-        /// <see cref="EnterBreakStateOnPE"/> and prior to <see cref="GetExceptionSpans"/>.
-        /// </summary>
-        /// <remarks>
-        /// Called by EnC manager.
-        /// </remarks>
+        // obsolete
         public int GetExceptionSpanCount(out uint pcExceptionSpan)
-        {
-            pcExceptionSpan = (uint)_exceptionRegions.Count;
-            return VSConstants.S_OK;
-        }
+            => throw ExceptionUtilities.Unreachable;
 
-        /// <summary>
-        /// Returns information about exception handlers in the source.
-        /// </summary>
-        /// <remarks>
-        /// Called by EnC manager.
-        /// </remarks>
-        public int GetExceptionSpans(uint celt, ShellInterop.ENC_EXCEPTION_SPAN[] rgelt, ref uint pceltFetched)
-        {
-            Debug.Assert(celt == rgelt.Length);
-            Debug.Assert(celt == _exceptionRegions.Count);
+        // obsolete
+        public int GetExceptionSpans(uint celt, ENC_EXCEPTION_SPAN[] rgelt, ref uint pceltFetched)
+            => throw ExceptionUtilities.Unreachable;
 
-            for (int i = 0; i < _exceptionRegions.Count; i++)
-            {
-                rgelt[i] = new ShellInterop.ENC_EXCEPTION_SPAN()
-                {
-                    id = (uint)i,
-                    methodToken = _exceptionRegions[i].MethodToken,
-                    tsPosition = _exceptionRegions[i].Span.ToVsTextSpan()
-                };
-            }
-
-            pceltFetched = celt;
-            return VSConstants.S_OK;
-        }
-
-        /// <summary>
-        /// Called by the debugger whenever it needs to determine a position of an active statement.
-        /// E.g. the user clicks on a frame in a call stack.
-        /// </summary>
-        /// <remarks>
-        /// Called when applying change, when setting current IP, a notification is received from 
-        /// <see cref="IDebugEncNotify.NotifyEncUpdateCurrentStatement"/>, etc.
-        /// In addition this API is exposed on IDebugENC2 COM interface so it can be used anytime by other components.
-        /// </remarks>
+        // obsolete
         public int GetCurrentActiveStatementPosition(uint vsId, VsTextSpan[] ptsNewPosition)
-        {
-            try
-            {
-                using (NonReentrantContext)
-                {
-                    Debug.Assert(IsDebuggable);
+            => throw ExceptionUtilities.Unreachable;
 
-                    var session = _encService.EditSession;
-                    var ids = _activeStatementIds;
-                    // Can be called anytime, even outside of an edit/debug session.
-                    // We might not have an active statement available if PDB got out of sync with the source.
-                    if (session == null || ids == null || !ids.TryGetValue(vsId, out var id))
-                    {
-                        log.Write("GetCurrentActiveStatementPosition failed for AS {0}.", unchecked((int)vsId));
-                        return VSConstants.E_FAIL;
-                    }
-
-                    Document document = _vsProject.Workspace.CurrentSolution.GetDocument(id.DocumentId);
-                    SourceText text = document.GetTextAsync(default).Result;
-                    LinePositionSpan lineSpan;
-                    // Try to get spans from the tracking service first.
-                    // We might get an imprecise result if the document analysis hasn't been finished yet and 
-                    // the active statement has structurally changed, but that's ok. The user won't see an updated tag
-                    // for the statement until the analysis finishes anyways.
-                    if (_trackingService.TryGetSpan(id, text, out var span) && span.Length > 0)
-                    {
-                        lineSpan = text.Lines.GetLinePositionSpan(span);
-                    }
-                    else
-                    {
-                        var activeSpans = session.GetDocumentAnalysis(document).GetValue(default).ActiveStatements;
-                        if (activeSpans.IsDefault)
-                        {
-                            // The document has syntax errors and the tracking span is gone.
-                            log.Write("Position not available for AS {0} due to syntax errors", unchecked((int)vsId));
-                            return VSConstants.E_FAIL;
-                        }
-
-                        lineSpan = activeSpans[id.Ordinal];
-                    }
-
-                    ptsNewPosition[0] = lineSpan.ToVsTextSpan();
-                    log.DebugWrite("AS position: {0} ({1},{2})-({3},{4}) {5}", 
-                        unchecked((int)vsId), 
-                        lineSpan.Start.Line, lineSpan.Start.Character, lineSpan.End.Line, lineSpan.End.Character,
-                        (int)session.BaseActiveStatements[id.DocumentId][id.Ordinal].Flags);
-
-                    return VSConstants.S_OK;
-                }
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-            {
-                return VSConstants.E_FAIL;
-            }
-        }
+        // obsolete
+        public int GetCurrentExceptionSpanPosition(uint exceptionRegionId, VsTextSpan[] ptsNewPosition)
+            => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Returns the state of the changes made to the source. 
         /// The EnC manager calls this to determine whether there are any changes to the source 
         /// and if so whether there are any rude edits.
         /// </summary>
-        public int GetENCBuildState(ShellInterop.ENC_BUILD_STATE[] pENCBuildState)
+        public int GetENCBuildState(ENC_BUILD_STATE[] pENCBuildState)
         {
             try
             {
@@ -945,17 +698,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
                         _encService.EditSession.LogEditSession(s_encDebuggingSessionInfo);
-                        _encService.EndEditSession();
+
+                        _encService.EndEditSession(_changesApplied ? _pendingUpdatedActiveStatementSpans : default);
+                        _pendingUpdatedActiveStatementSpans = default;
+
                         _trackingService.EndTracking();
 
                         s_readOnlyDocumentTracker.UpdateWorkspaceDocuments();
 
                         _trackingService.TrackingSpansChanged -= TrackingSpansChanged;
                     }
-
-                    _exceptionRegions.Clear();
-                    _activeMethods.Clear();
-                    _activeStatementIds.Clear();
 
                     s_breakStateProjectCount--;
                     Debug.Assert(s_breakStateProjectCount >= 0);
@@ -1008,7 +760,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 Debug.Assert(_lastEditSessionSummary == ProjectAnalysisSummary.ValidInsignificantChanges ||
                              _lastEditSessionSummary == ProjectAnalysisSummary.ValidChanges);
 
-                var updater = (IDebugUpdateInMemoryPE2)pUpdatePE;
+                var updater = (IDebugUpdateInMemoryPE3)pUpdatePE;
 
                 if (_committedBaseline == null)
                 {
@@ -1056,7 +808,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 updater.SetRemapMethods(delta.Pdb.UpdatedMethods, (uint)delta.Pdb.UpdatedMethods.Length);
                 updater.SetDeltaMetadata(delta.Metadata.Bytes, (uint)delta.Metadata.Bytes.Length);
 
+                var ranges = GetExceptionRanges(delta.ExceptionRegionSpanDeltas);
+                updater.SetExceptionRanges(ranges, ranges.Length);
+
+                var remapActiveStatements = GetRemapActiveStatements(delta.ActiveStatementsInUpdatedMethods);
+                updater.SetRemapActiveStatements(remapActiveStatements, remapActiveStatements.Length);
+
                 _pendingBaseline = delta.EmitResult.Baseline;
+                _pendingUpdatedActiveStatementSpans = delta.UpdatedActiveStatementSpans;
 
 #if DEBUG
                 fixed (byte* deltaMetadataPtr = &delta.Metadata.Bytes[0])
@@ -1080,11 +839,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
         }
 
+        internal static ENCPROG_ACTIVE_STATEMENT_REMAP[] GetRemapActiveStatements(ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> remaps)
+        {
+            var result = new ENCPROG_ACTIVE_STATEMENT_REMAP[remaps.Length];
+            for (int i = 0; i < remaps.Length; i++)
+            {
+                result[i] = new ENCPROG_ACTIVE_STATEMENT_REMAP
+                {
+                    ThreadId = remaps[i].ThreadId,
+                    MethodToken = remaps[i].OldInstructionId.MethodToken,
+                    OldMethodVersion = remaps[i].OldInstructionId.MethodVersion,
+                    OldILOffset = remaps[i].OldInstructionId.ILOffset,
+                    NewStartLine = remaps[i].NewSpan.Start.Line + 1,
+                    NewStartCol = remaps[i].NewSpan.Start.Character + 1,
+                    NewEndLine = remaps[i].NewSpan.End.Line + 1,
+                    NewEndCol = remaps[i].NewSpan.End.Character + 1,
+                };
+            }
+
+            return result;
+        }
+
+        internal static ENCPROG_EXCEPTION_RANGE[] GetExceptionRanges(ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> deltas)
+        {
+            var result = new ENCPROG_EXCEPTION_RANGE[deltas.Length];
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                // Debugger line and column numbers are 1-based.
+                // 
+                // The range span is the new span.
+                //   old = new + delta
+                //   new = old – delta
+
+                result[i] = new ENCPROG_EXCEPTION_RANGE
+                {
+                    MethodToken = deltas[i].MethodToken,
+                    MethodVersion = deltas[i].OldMethodVersion,
+                    StartLine = deltas[i].NewSpan.Start.Line + 1,
+                    StartCol = deltas[i].NewSpan.Start.Character + 1,
+                    EndLine = deltas[i].NewSpan.End.Line + 1,
+                    EndCol = deltas[i].NewSpan.End.Character + 1,
+                    Delta = deltas[i].OldSpan.Start.Line - deltas[i].NewSpan.Start.Line,
+                };
+            }
+
+            return result;
+        }
+
         private unsafe void SetFileUpdates(
             IDebugUpdateInMemoryPE2 updater,
-            List<KeyValuePair<DocumentId, ImmutableArray<LineChange>>> edits)
+            ImmutableArray<(DocumentId DocumentId, ImmutableArray<LineChange> Deltas)> edits)
         {
-            int totalEditCount = edits.Sum(e => e.Value.Length);
+            int totalEditCount = edits.Sum(e => e.Deltas.Length);
             if (totalEditCount == 0)
             {
                 return;
@@ -1094,11 +900,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             fixed (LINEUPDATE* lineUpdatesPtr = lineUpdates)
             {
                 int index = 0;
-                var fileUpdates = new FILEUPDATE[edits.Count];
+                var fileUpdates = new FILEUPDATE[edits.Length];
                 for (int f = 0; f < fileUpdates.Length; f++)
                 {
-                    var documentId = edits[f].Key;
-                    var deltas = edits[f].Value;
+                    var (documentId, deltas) = edits[f];
 
                     fileUpdates[f].FileName = _vsProject.GetDocumentOrAdditionalDocument(documentId).FilePath;
                     fileUpdates[f].LineUpdateCount = (uint)deltas.Length;
@@ -1314,51 +1119,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 _committedBaseline = _pendingBaseline;
                 _pendingBaseline = null;
-
-                return VSConstants.S_OK;
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-            {
-                return VSConstants.E_FAIL;
-            }
-        }
-
-        /// <summary>
-        /// Called when changes are being applied.
-        /// </summary>
-        /// <param name="exceptionRegionId">
-        /// The value of <see cref="ShellInterop.ENC_EXCEPTION_SPAN.id"/>. 
-        /// Set by <see cref="GetExceptionSpans(uint, ShellInterop.ENC_EXCEPTION_SPAN[], ref uint)"/> to the index into <see cref="_exceptionRegions"/>. 
-        /// </param>
-        /// <param name="ptsNewPosition">Output value holder.</param>
-        public int GetCurrentExceptionSpanPosition(uint exceptionRegionId, VsTextSpan[] ptsNewPosition)
-        {
-            try
-            {
-                using (NonReentrantContext)
-                {
-                    Debug.Assert(IsDebuggable);
-                    Debug.Assert(_encService.EditSession != null);
-                    Debug.Assert(!_encService.EditSession.StoppedAtException);
-                    Debug.Assert(ptsNewPosition.Length == 1);
-
-                    var exceptionRegion = _exceptionRegions[(int)exceptionRegionId];
-
-                    var session = _encService.EditSession;
-                    var asid = _activeStatementIds[exceptionRegion.ActiveStatementId];
-
-                    var document = _projectBeingEmitted.GetDocument(asid.DocumentId);
-                    var analysis = session.GetDocumentAnalysis(document).GetValue(default);
-                    var regions = analysis.ExceptionRegions;
-
-                    // the method shouldn't be called in presence of errors:
-                    Debug.Assert(!analysis.HasChangesAndErrors);
-                    Debug.Assert(!regions.IsDefault);
-
-                    // Absence of rude edits guarantees that the exception regions around AS haven't semantically changed.
-                    // Only their spans might have changed.
-                    ptsNewPosition[0] = regions[asid.Ordinal][exceptionRegion.Ordinal].ToVsTextSpan();
-                }
 
                 return VSConstants.S_OK;
             }
