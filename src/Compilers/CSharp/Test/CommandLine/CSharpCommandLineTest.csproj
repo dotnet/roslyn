@@ -17,7 +17,6 @@
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\csc\csc.csproj" />
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
