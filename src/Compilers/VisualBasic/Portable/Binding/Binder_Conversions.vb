@@ -1180,16 +1180,6 @@ DoneWithDiagnostics:
                         If ReclassifyExpression(enclosed, conversionSemantics, enclosed.Syntax, convKind, isExplicit, targetType, diagnostics) Then
                             argument = parenthesized.Update(enclosed, enclosed.Type)
 
-                            If conversionSemantics = SyntaxKind.CTypeKeyword Then
-                                argument = ApplyConversion(tree, targetType, argument, isExplicit, diagnostics)
-                            ElseIf conversionSemantics = SyntaxKind.DirectCastKeyword Then
-                                argument = ApplyDirectCastConversion(tree, argument, targetType, diagnostics)
-                            ElseIf conversionSemantics = SyntaxKind.TryCastKeyword Then
-                                argument = ApplyTryCastConversion(tree, argument, targetType, diagnostics)
-                            Else
-                                Throw ExceptionUtilities.UnexpectedValue(conversionSemantics)
-                            End If
-
                             Return True
                         End If
                     End If

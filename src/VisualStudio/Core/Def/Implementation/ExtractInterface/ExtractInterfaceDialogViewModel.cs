@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 if (SetProperty(ref _interfaceName, value))
                 {
                     FileName = string.Format("{0}{1}", value.Trim(), _fileExtension);
-                    NotifyPropertyChanged("GeneratedName");
+                    NotifyPropertyChanged(nameof(GeneratedName));
                 }
             }
         }

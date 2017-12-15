@@ -16,6 +16,7 @@ usage()
     echo "  --restore             Restore projects required to build"
     echo "  --build               Build all projects"
     echo "  --test                Run unit tests"
+    echo "  --mono                Run unit tests with mono"
     echo "  --build-bootstrap     Build the bootstrap compilers"
     echo "  --use-bootstrap       Use the built bootstrap compilers when running main build"
     echo "  --bootstrap           Implies --build-bootstrap and --use-bootstrap"
@@ -30,6 +31,7 @@ build_configuration=Debug
 restore=false
 build=false
 test_=false
+use_mono=false
 build_bootstrap=false
 use_bootstrap=false
 stop_vbcscompiler=false
@@ -72,6 +74,10 @@ do
         ;;
         --test|-t)
         test_=true
+        shift 1
+        ;;
+        --mono)
+        use_mono=true
         shift 1
         ;;
         --build-bootstrap)
@@ -122,6 +128,13 @@ then
     build_args+=" /p:BootstrapBuildPath=${bootstrap_path}"
 fi
 
+# https://github.com/dotnet/roslyn/issues/23736
+UNAME="$(uname)"
+if [[ "$UNAME" == "Darwin" ]]
+then
+    build_args+=" /p:UseRoslynAnalyzers=false"
+fi
+
 if [[ "${build}" == true ]]
 then
     echo "Building Compilers.sln"
@@ -142,5 +155,11 @@ fi
 
 if [[ "${test_}" == true ]]
 then
-    "${root_path}"/build/scripts/tests.sh "${build_configuration}"
+    if [[ "${use_mono}" == true ]]
+    then
+        test_runtime=mono
+    else
+        test_runtime=dotnet
+    fi
+    "${root_path}"/build/scripts/tests.sh "${build_configuration}" "${test_runtime}"
 fi

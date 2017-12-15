@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.CodeAnalysis.SymbolSearch
 
@@ -100,7 +101,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC32016, BC36610, BC36719, BC30512, BC30390, BC42309, BC30182)
+                Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC32016, BC36610,
+                                             BC36719, BC30512, BC30390, BC42309, BC30182, IDEDiagnosticIds.UnboundIdentifierId)
             End Get
         End Property
     End Class

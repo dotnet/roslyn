@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
-        <target state="new">     (Press TAB to insert)</target>
+        <target state="translated">     (Premere TAB per inserire)</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
-        <target state="new">Smart Indenting</target>
+        <target state="translated">Rientro automatico</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">
         <source>Split string</source>
-        <target state="new">Split string</target>
+        <target state="translated">Dividi stringa</target>
         <note />
       </trans-unit>
     </body>
