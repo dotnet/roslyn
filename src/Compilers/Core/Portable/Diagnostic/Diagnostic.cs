@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, string> properties,
             params object[] messageArgs)
         {
-            return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs: messageArgs);
+            return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
         }
 
         /// <summary>
