@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.0, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.0);
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 1.0);
         }
 
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.5, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.5, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.4, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.4);
         }
 
         [Fact]
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 1.0);
         }
 
         [Fact]
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.75, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.75);
         }
 
         [Fact]
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.5, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
         }
 
         [Fact]
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.4, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.4);
         }
 
         [Fact]
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 1.0);
         }
 
         [Fact]
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.75, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.75);
         }
 
         [Fact]
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.6, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.6);
         }
 
         [Fact]
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.4, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.4);
         }
 
         [Fact]
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.556, lcs.ComputeDistance(str1, str2), precision: 3);
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.556, 3);
         }
 
         [Fact]
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.6, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.6);
         }
 
         [Fact]
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.429, lcs.ComputeDistance(str1, str2), precision: 3);
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.429, 3);
         }
 
         [Fact]
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
-            Assert.Equal(0.5, lcs.ComputeDistance(str1, str2));
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
         }
 
         [Fact]
