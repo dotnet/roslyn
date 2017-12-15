@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -12,23 +13,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ILDelta IL;
         public readonly MetadataDelta Metadata;
 
-        public readonly List<KeyValuePair<DocumentId, ImmutableArray<LineChange>>> LineEdits;
+        public readonly ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> LineEdits;
         public readonly PdbDelta Pdb;
         public readonly EmitDifferenceResult EmitResult;
+        public readonly ImmutableArray<(ActiveInstructionId, LinePositionSpan)> UpdatedActiveStatementSpans;
+        public readonly ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> ExceptionRegionSpanDeltas;
+        public readonly ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
 
         public Deltas(
             byte[] il,
             byte[] metadata,
-            int[] updatedMethods,
             MemoryStream pdb,
-            List<KeyValuePair<DocumentId, ImmutableArray<LineChange>>> lineEdits,
+            int[] updatedMethods,
+            ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineEdits,
+            ImmutableArray<(ActiveInstructionId, LinePositionSpan)> updatedActiveStatementSpans,
+            ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> exceptionRegionSpanDeltas,
+            ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
             EmitDifferenceResult emitResult)
         {
-            this.IL = new ILDelta(il);
-            this.Metadata = new MetadataDelta(metadata);
-            this.Pdb = new PdbDelta(pdb, updatedMethods);
-            this.EmitResult = emitResult;
-            this.LineEdits = lineEdits;
+            IL = new ILDelta(il);
+            Metadata = new MetadataDelta(metadata);
+            Pdb = new PdbDelta(pdb, updatedMethods);
+            UpdatedActiveStatementSpans = updatedActiveStatementSpans;
+            ExceptionRegionSpanDeltas = exceptionRegionSpanDeltas;
+            ActiveStatementsInUpdatedMethods = activeStatementsInUpdatedMethods;
+            EmitResult = emitResult;
+            LineEdits = lineEdits;
         }
     }
 }

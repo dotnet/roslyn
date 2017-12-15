@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Spans of active statements in the document, or null if the document has syntax errors.
         /// </summary>
-        public readonly ImmutableArray<LinePositionSpan> ActiveStatements;
+        public readonly ImmutableArray<ActiveStatement> ActiveStatements;
 
         /// <summary>
         /// Diagnostics for rude edits in the document, or null if the document is unchanged or has syntax errors.
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// For example:
         ///   try { } |finally { try { ... AS ... } catch {  } }|
         ///   try { } |finally { try { } catch { ... AS ... } }|
+        ///   try { try { } |finally { ... AS ... }| } |catch { } catch { } finally { }|
         /// </remarks>
         public readonly ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions;
 
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public DocumentAnalysisResults(
-            ImmutableArray<LinePositionSpan> activeStatements,
+            ImmutableArray<ActiveStatement> activeStatements,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             ImmutableArray<SemanticEdit> semanticEditsOpt,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt,
@@ -79,6 +81,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             bool? hasSemanticErrors)
         {
             Debug.Assert(!activeStatements.IsDefault);
+            Debug.Assert(activeStatements.All(a => a != null));
 
             if (hasSemanticErrors.HasValue)
             {
@@ -147,7 +150,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static DocumentAnalysisResults Unchanged(
-            ImmutableArray<LinePositionSpan> activeStatements,
+            ImmutableArray<ActiveStatement> activeStatements,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt)
         {
             return new DocumentAnalysisResults(
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static DocumentAnalysisResults Errors(
-            ImmutableArray<LinePositionSpan> activeStatements,
+            ImmutableArray<ActiveStatement> activeStatements,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             bool hasSemanticErrors = false)
         {
