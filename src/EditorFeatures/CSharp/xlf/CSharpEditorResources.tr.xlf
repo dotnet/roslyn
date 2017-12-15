@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
-        <target state="new">     (Press TAB to insert)</target>
+        <target state="translated">     (Eklemek için TAB tuşuna basın)</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
-        <target state="new">Smart Indenting</target>
+        <target state="translated">Akıllı Girintileme</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">
         <source>Split string</source>
-        <target state="new">Split string</target>
+        <target state="translated">Dizeyi böl</target>
         <note />
       </trans-unit>
     </body>

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             switch (diagnosticId)
             {
                 case CS0103:
+                case IDEDiagnosticIds.UnboundIdentifierId:
                 case CS0246:
                 case CS0305:
                 case CS0308:

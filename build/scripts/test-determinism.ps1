@@ -26,7 +26,7 @@ function Run-Build([string]$rootDir, [switch]$restore = $false, [string]$logFile
 
         if ($restore) {
             Write-Host "Restoring the packages"
-            Restore-Project -fileName "Roslyn.sln" -nuget (Ensure-NuGet) -msbuildDir (Split-Path -parent $msbuild)
+            Restore-Project $dotnet "Roslyn.sln"
         }
 
         $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false Roslyn.sln"
@@ -197,6 +197,7 @@ function Run-Test() {
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
+    $dotnet = Ensure-DotnetSdk
     $msbuild = Ensure-MSBuild
     if (($bootstrapDir -eq "") -or (-not ([IO.Path]::IsPathRooted($script:bootstrapDir)))) {
         Write-Host "The bootstrap build path must be absolute"
