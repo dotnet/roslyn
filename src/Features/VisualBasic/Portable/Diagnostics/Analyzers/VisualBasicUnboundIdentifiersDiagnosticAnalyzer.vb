@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
     Friend NotInheritable Class VisualBasicUnboundIdentifiersDiagnosticAnalyzer
         Inherits UnboundIdentifiersDiagnosticAnalyzerBase(Of SyntaxKind, SimpleNameSyntax, QualifiedNameSyntax, IncompleteMemberSyntax, LambdaExpressionSyntax)
 
-        Private Const s_undefinedType1 As String = "BC30002"
         Private ReadOnly _messageFormat As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.Type_0_is_not_defined), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
-        Private Const s_undefinedType2 As String = "BC30057"
         Private ReadOnly _messageFormat2 As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.Too_many_arguments_to_0), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
 
 
@@ -31,13 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
         Protected Overrides ReadOnly Property DiagnosticDescriptor As DiagnosticDescriptor
             Get
-                Return GetDiagnosticDescriptor(s_undefinedType1, _messageFormat)
+                Return GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundIdentifierId, _messageFormat)
             End Get
         End Property
 
         Protected Overrides ReadOnly Property DiagnosticDescriptor2 As DiagnosticDescriptor
             Get
-                Return GetDiagnosticDescriptor(s_undefinedType2, _messageFormat2)
+                Return GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundConstructorId, _messageFormat2)
             End Get
         End Property
 
