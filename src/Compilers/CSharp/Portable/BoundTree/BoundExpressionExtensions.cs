@@ -218,9 +218,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var right = op.RightOperand.IsNullable();
                         return (left == true) ? right : left;
                     }
+                case BoundKind.NewT:
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DelegateCreationExpression:
-                    return false;
+                case BoundKind.NoPiaObjectCreationExpression:
+                case BoundKind.InterpolatedString:
+                case BoundKind.TypeOfOperator:
+                case BoundKind.NameOfOperator:
                 case BoundKind.TupleLiteral:
                     return false;
                 case BoundKind.DefaultExpression:

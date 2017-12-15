@@ -2697,7 +2697,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bestType = BestTypeInferrer.InferBestType(
                 boundInitializerExpressions,
                 this.Conversions,
-                includeNullability: false,
                 hadMultipleCandidates: out hadMultipleCandidates,
                 useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -2705,16 +2704,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
-                bestType = TypeSymbolWithAnnotations.Create(CreateErrorType());
+                bestType = CreateErrorType();
             }
 
             if (bestType.IsRestrictedType())
             {
                 // CS0611: Array elements cannot be of type '{0}'
-                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType.TypeSymbol);
+                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
             }
 
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, bestType, rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, TypeSymbolWithAnnotations.Create(bestType), rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }

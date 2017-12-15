@@ -338,6 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                case ErrorCode.WRN_NoBestNullabilityArrayElements:
+                case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_DefaultInSwitch:
                     return 1;

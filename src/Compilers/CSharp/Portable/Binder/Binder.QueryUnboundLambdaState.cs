@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _bodyFactory = bodyFactory;
             }
 
+            public override UnboundLambdaState Clone(UnboundLambda unboundLambda, Binder binder)
+            {
+                return new QueryUnboundLambdaState(binder, _rangeVariableMap, _parameters, _bodyFactory);
+            }
+
             public override string ParameterName(int index) { return _parameters[index].Name; }
             public override bool HasSignature { get { return true; } }
             public override bool HasExplicitlyTypedParameterList { get { return false; } }

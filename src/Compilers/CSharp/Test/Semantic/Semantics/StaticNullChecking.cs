@@ -3761,16 +3761,37 @@ class CL0<T>
                 // (12,16): warning CS8620: Nullability of reference types in argument of type 'CL0<string?>' doesn't match target type 'CL0<string>' for parameter 'x' in 'void C.M1(ref CL0<string> x)'.
                 //         M1(ref x1);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("CL0<string?>", "CL0<string>", "x", "void C.M1(ref CL0<string> x)").WithLocation(12, 16),
-                // (12,16): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
-                //         M1(ref x1);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(12, 16),
-                // (19,16): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+                // (19,16): warning CS8620: Nullability of reference types in argument of type 'CL0<string>' doesn't match target type 'CL0<string?>' for parameter 'x' in 'void C.M2(out CL0<string?> x)'.
                 //         M2(out x2);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("CL0<string?>", "CL0<string>").WithLocation(19, 16),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("CL0<string>", "CL0<string?>", "x", "void C.M2(out CL0<string?> x)").WithLocation(19, 16),
                 // (26,12): warning CS8620: Nullability of reference types in argument of type 'CL0<string?>' doesn't match target type 'CL0<string>' for parameter 'x' in 'void C.M3(CL0<string> x)'.
                 //         M3(x3);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x3").WithArguments("CL0<string?>", "CL0<string>", "x", "void C.M3(CL0<string> x)").WithLocation(26, 12)
                 );
+        }
+
+        [Fact]
+        public void RefOutParameters_05()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+        object? x = null;
+        object? y = null;
+        G(out x, ref y);
+    }
+    static void G(out object x, ref object y)
+    {
+        x = new object();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,22): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(out object x, ref object y)'.
+                //         G(out x, ref y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(out object x, ref object y)").WithLocation(7, 22));
         }
 
         [Fact]
@@ -9833,9 +9854,6 @@ class CL0<T>
                 // (12,37): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<string>(string x)' doesn't match the target delegate 'Action<string?>'.
                 //         System.Action<string?> u1 = M1<string>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<string>").WithArguments("x", "void C.M1<string>(string x)", "System.Action<string?>").WithLocation(12, 37),
-                // (17,36): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<string?>(string? x)' doesn't match the target delegate 'Action<string>'.
-                //         System.Action<string> u2 = M1<string?>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<string?>").WithArguments("x", "void C.M1<string?>(string? x)", "System.Action<string>").WithLocation(17, 36),
                 // (22,42): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<CL0<string>>(CL0<string> x)' doesn't match the target delegate 'Action<CL0<string?>>'.
                 //         System.Action<CL0<string?>> u3 = M1<CL0<string>>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<CL0<string>>").WithArguments("x", "void C.M1<CL0<string>>(CL0<string> x)", "System.Action<CL0<string?>>").WithLocation(22, 42),
@@ -9926,9 +9944,6 @@ class CL0<T>
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (12,35): warning CS8621: Nullability of reference types in return type of 'string C.M1<string>()' doesn't match the target delegate 'Func<string?>'.
-                 //         System.Func<string?> u1 = M1<string>;
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1<string>").WithArguments("string C.M1<string>()", "System.Func<string?>").WithLocation(12, 35),
                  // (17,34): warning CS8621: Nullability of reference types in return type of 'string? C.M1<string?>()' doesn't match the target delegate 'Func<string>'.
                  //         System.Func<string> u2 = M1<string?>;
                  Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1<string?>").WithArguments("string? C.M1<string?>()", "System.Func<string>").WithLocation(17, 34),
@@ -10594,12 +10609,15 @@ class C
 ", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (16,22): warning CS8601: Possible null reference assignment.
-                 //         dynamic u2 = x2++;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 22),
-                 // (27,22): hidden CS8607: Expression is probably never null.
-                 //         dynamic v4 = u4 ?? new object(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 22)
+                // (16,22): warning CS8601: Possible null reference assignment.
+                //         dynamic u2 = x2++;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 22),
+                // (21,22): warning CS8601: Possible null reference assignment.
+                //         dynamic u3 = --x3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x3").WithLocation(21, 22),
+                // (27,22): hidden CS8607: Expression is probably never null.
+                //         dynamic v4 = u4 ?? new object(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 22)
                 );
         }
 
@@ -15724,12 +15742,12 @@ class C
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (11,14): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
+                // (11,14): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
                 //         a1 = b1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("A<object?>", "A<object>").WithLocation(11, 14),
-                // (14,14): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("B<object?>", "A<object>").WithLocation(11, 14),
+                // (14,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
                 //         a2 = b2;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("A<object>", "A<object?>").WithLocation(14, 14));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("B<object>", "A<object?>").WithLocation(14, 14));
         }
 
         [Fact]
@@ -16058,6 +16076,25 @@ class C
                 // (6,11): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
                 //         G(c.P!);
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.P").WithArguments("C.P").WithLocation(6, 11));
+        }
+
+        // PROTOTYPE(NullableReferenceType): Assert failure in Binder.GenerateImplicitConversionError.
+        [Fact(Skip = "TODO")]
+        public void SuppressNullableWarning_InvalidArrayInitializer()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+        var a = new object[] { new object(), F! };
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,46): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         var a = new object[] { new object(), F };
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(5, 46));
         }
 
         [Fact]
@@ -16774,6 +16811,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInAssignment.
         [Fact]
         public void DeconstructionConversion_NoDeconstructMethod()
         {
@@ -16800,7 +16838,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(5, 14),
                 // (5,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
                 //         var (x, y) = c;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(5, 17));
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(5, 17),
+                // (5,22): warning CS8619: Nullability of reference types in value of type 'C' doesn't match target type '(var x, var y)'.
+                //         var (x, y) = c;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C", "(var x, var y)").WithLocation(5, 22));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Error is reported on `type 'T'` rather than `type 'Func<T>'`.

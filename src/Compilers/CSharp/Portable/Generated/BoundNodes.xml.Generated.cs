@@ -5632,21 +5632,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLambda : BoundExpression
     {
-        public BoundLambda(SyntaxNode syntax, LambdaSymbol symbol, BoundBlock body, ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Binder binder, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.Lambda, syntax, type, hasErrors || body.HasErrors())
+        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, LambdaSymbol symbol, BoundBlock body, ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Binder binder, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.Lambda, syntax, type, hasErrors || unboundLambda.HasErrors() || body.HasErrors())
         {
 
+            Debug.Assert(unboundLambda != null, "Field 'unboundLambda' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(symbol != null, "Field 'symbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(body != null, "Field 'body' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!diagnostics.IsDefault, "Field 'diagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(binder != null, "Field 'binder' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.UnboundLambda = unboundLambda;
             this.Symbol = symbol;
             this.Body = body;
             this.Diagnostics = diagnostics;
             this.Binder = binder;
         }
 
+
+        public UnboundLambda UnboundLambda { get; }
 
         public LambdaSymbol Symbol { get; }
 
@@ -5661,11 +5665,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitLambda(this);
         }
 
-        public BoundLambda Update(LambdaSymbol symbol, BoundBlock body, ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Binder binder, TypeSymbol type)
+        public BoundLambda Update(UnboundLambda unboundLambda, LambdaSymbol symbol, BoundBlock body, ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Binder binder, TypeSymbol type)
         {
-            if (symbol != this.Symbol || body != this.Body || diagnostics != this.Diagnostics || binder != this.Binder || type != this.Type)
+            if (unboundLambda != this.UnboundLambda || symbol != this.Symbol || body != this.Body || diagnostics != this.Diagnostics || binder != this.Binder || type != this.Type)
             {
-                var result = new BoundLambda(this.Syntax, symbol, body, diagnostics, binder, type, this.HasErrors);
+                var result = new BoundLambda(this.Syntax, unboundLambda, symbol, body, diagnostics, binder, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8469,6 +8473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLambda(BoundLambda node)
         {
+            this.Visit(node.UnboundLambda);
             this.Visit(node.Body);
             return null;
         }
@@ -9352,9 +9357,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLambda(BoundLambda node)
         {
+            UnboundLambda unboundLambda = (UnboundLambda)this.Visit(node.UnboundLambda);
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Symbol, body, node.Diagnostics, node.Binder, type);
+            return node.Update(unboundLambda, node.Symbol, body, node.Diagnostics, node.Binder, type);
         }
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
         {
@@ -10877,6 +10883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("lambda", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("unboundLambda", null, new TreeDumperNode[] { Visit(node.UnboundLambda, null) }),
                 new TreeDumperNode("symbol", node.Symbol, null),
                 new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
                 new TreeDumperNode("diagnostics", node.Diagnostics, null),

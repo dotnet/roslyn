@@ -1516,6 +1516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
         ERR_ExplicitNullableAttribute = 8623,
         ERR_NotNullableOperatorNotReferenceType = 8624,
+        WRN_NoBestNullabilityArrayElements = 8625,
+        WRN_NoBestNullabilityConditionalExpression = 8626,
 
         #endregion diagnostics introduced for C# 7.1
 

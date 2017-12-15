@@ -3581,7 +3581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trueExpr,
                     falseExpr,
                     this.Conversions,
-                    includeNullability: false,
                     hadMultipleCandidates: out hadMultipleCandidates,
                     useSiteDiagnostics: ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
@@ -3616,7 +3615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (bestType.IsErrorType())
                 {
-                    type = bestType.TypeSymbol;
+                    type = bestType;
                     hasErrors = true;
                 }
                 else if (isRef)
@@ -3629,15 +3628,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType.TypeSymbol));
-                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType.TypeSymbol));
-                        type = bestType.TypeSymbol;
+                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType));
+                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType));
+                        type = bestType;
                     }
                 }
                 else
                 {
-                    trueExpr = GenerateConversionForAssignment(bestType.TypeSymbol, trueExpr, diagnostics);
-                    falseExpr = GenerateConversionForAssignment(bestType.TypeSymbol, falseExpr, diagnostics);
+                    trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
+                    falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
 
                     if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
                     {
@@ -3648,7 +3647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        type = bestType.TypeSymbol;
+                        type = bestType;
                     }
                 }
             }

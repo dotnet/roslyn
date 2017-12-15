@@ -13812,6 +13812,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No best nullability for elements of implicitly-typed array..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityArrayElements {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityArrayElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best nullability for elements of implicitly-typed array..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityArrayElements_Title {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityArrayElements_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best nullability for operands of conditional expression &apos;{0}&apos; and &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityConditionalExpression {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityConditionalExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best nullability for operands of conditional expression..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityConditionalExpression_Title {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityConditionalExpression_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ignoring /noconfig option because it was specified in a response file.
         /// </summary>
         internal static string WRN_NoConfigNotOnCommandLine {

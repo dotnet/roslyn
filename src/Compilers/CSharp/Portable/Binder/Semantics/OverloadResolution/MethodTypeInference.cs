@@ -90,8 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<TypeSymbolWithAnnotations> _formalParameterTypes;
         private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
         private readonly ImmutableArray<BoundExpression> _arguments;
-        // PROTOTYPE(NullableReferenceTypes): Remove conditional and infer nullability always.
-        private readonly bool _includeNullability;
 
         private readonly TypeSymbolWithAnnotations[] _fixedResults;
         private readonly HashSet<TypeSymbolWithAnnotations>[] _exactBounds;
@@ -214,8 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool includeNullability = false)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -239,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedContainingTypeOfMethod,
                 formalParameterTypes,
                 formalParameterRefKinds,
-                arguments,
-                includeNullability);
+                arguments);
             return inferrer.InferTypeArgs(binder, ref useSiteDiagnostics);
         }
 
@@ -259,8 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol constructedContainingTypeOfMethod,
             ImmutableArray<TypeSymbolWithAnnotations> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
-            ImmutableArray<BoundExpression> arguments,
-            bool includeNullability)
+            ImmutableArray<BoundExpression> arguments)
         {
             _conversions = conversions;
             _methodTypeParameters = methodTypeParameters;
@@ -268,7 +263,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _formalParameterTypes = formalParameterTypes;
             _formalParameterRefKinds = formalParameterRefKinds;
             _arguments = arguments;
-            _includeNullability = includeNullability;
             _fixedResults = new TypeSymbolWithAnnotations[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeSymbolWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeSymbolWithAnnotations>[methodTypeParameters.Length];
@@ -2343,6 +2337,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Fix considering nullability, if possible, otherwise fix ignoring nullability.
             // PROTOTYPE(NullableReferenceTypes): Avoid calling Fix ignoring nullability if the nullability call succeeds.
 
+            // PROTOTYPE(NullableReferenceTypes): Avoid comparing with and without nullability here.
+            // Initial binding should use includeNullability: false, and NullableWalker should use
+            // includeNullability: true, and NullableWalker should compare the two.
             HashSet<DiagnosticInfo> ignoredDiagnostics = null;
             var withNullability = Fix(exact, lower, upper, ref ignoredDiagnostics, _conversions, includeNullability: true);
             var withoutNullability = Fix(exact, lower, upper, ref useSiteDiagnostics, _conversions, includeNullability: false);
@@ -2534,13 +2531,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool? IsNullable(BoundExpression expr)
         {
-            if (!_includeNullability)
+            if (!_conversions.IncludeNullability)
             {
                 return false;
             }
             return expr.IsNullable();
         }
 
+        internal static TypeSymbol Merge(TypeSymbol first, TypeSymbol second, AssemblySymbol corLibrary)
+        {
+            var firstWithAnnotations = TypeSymbolWithAnnotations.Create(first);
+            var secondWithAnnotations = TypeSymbolWithAnnotations.Create(second);
+            return MergeNullability(MergeTupleNames(MergeDynamic(firstWithAnnotations, secondWithAnnotations, corLibrary), secondWithAnnotations), secondWithAnnotations).TypeSymbol;
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Remove this overload.
         internal static TypeSymbolWithAnnotations Merge(TypeSymbolWithAnnotations first, TypeSymbolWithAnnotations second, AssemblySymbol corLibrary)
         {
             return MergeNullability(MergeTupleNames(MergeDynamic(first, second, corLibrary), second), second);
@@ -2786,7 +2791,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionsBase conversions,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
-            bool includeNullability,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)method != null);
@@ -2809,8 +2813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedFromMethod.ContainingType,
                 constructedFromMethod.GetParameterTypes(),
                 constructedFromMethod.ParameterRefKinds,
-                arguments,
-                includeNullability);
+                arguments);
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteDiagnostics))
             {

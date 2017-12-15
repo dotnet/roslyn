@@ -1203,12 +1203,6 @@ class C
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,11): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>((string, string?) t)'.
-                //         F(x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("(string, string)", "(string, string?)", "t", "string C.F<string>((string, string?) t)").WithLocation(6, 11),
-                // (8,11): warning CS8620: Nullability of reference types in argument of type '(string?, string)' doesn't match target type '(string?, string?)' for parameter 't' in 'string? C.F<string?>((string?, string?) t)'.
-                //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("(string?, string)", "(string?, string?)", "t", "string? C.F<string?>((string?, string?) t)").WithLocation(8, 11),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(z).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(z)").WithLocation(8, 9),
@@ -1244,15 +1238,9 @@ class C
                 // (7,15): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(ref (string, string?) t)'.
                 //         F(ref t1).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t1").WithArguments("(string, string)", "(string, string?)", "t", "string C.F<string>(ref (string, string?) t)").WithLocation(7, 15),
-                // (7,15): warning CS8619: Nullability of reference types in value of type '(string, string?)' doesn't match target type '(string, string)'.
-                //         F(ref t1).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t1").WithArguments("(string, string?)", "(string, string)").WithLocation(7, 15),
                 // (11,15): warning CS8620: Nullability of reference types in argument of type '(string?, string)' doesn't match target type '(string?, string?)' for parameter 't' in 'string? C.F<string?>(ref (string?, string?) t)'.
                 //         F(ref t3).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t3").WithArguments("(string?, string)", "(string?, string?)", "t", "string? C.F<string?>(ref (string?, string?) t)").WithLocation(11, 15),
-                // (11,15): warning CS8619: Nullability of reference types in value of type '(string?, string?)' doesn't match target type '(string?, string)'.
-                //         F(ref t3).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t3").WithArguments("(string?, string?)", "(string?, string)").WithLocation(11, 15),
                 // (11,9): warning CS8602: Possible dereference of a null reference.
                 //         F(ref t3).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(ref t3)").WithLocation(11, 9),
@@ -1281,12 +1269,12 @@ class C
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,15): warning CS8619: Nullability of reference types in value of type '(string, string?)' doesn't match target type '(string, string)'.
+                // (6,15): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(out (string, string?) t)'.
                 //         F(out (string, string) t1).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(string, string) t1").WithArguments("(string, string?)", "(string, string)").WithLocation(6, 15),
-                // (8,15): warning CS8619: Nullability of reference types in value of type '(string?, string?)' doesn't match target type '(string?, string)'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(string, string) t1").WithArguments("(string, string)", "(string, string?)", "t", "string C.F<string>(out (string, string?) t)").WithLocation(6, 15),
+                // (8,15): warning CS8620: Nullability of reference types in argument of type '(string?, string)' doesn't match target type '(string?, string?)' for parameter 't' in 'string? C.F<string?>(out (string?, string?) t)'.
                 //         F(out (string?, string) t3).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(string?, string) t3").WithArguments("(string?, string?)", "(string?, string)").WithLocation(8, 15),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(string?, string) t3").WithArguments("(string?, string)", "(string?, string?)", "t", "string? C.F<string?>(out (string?, string?) t)").WithLocation(8, 15),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(out (string?, string) t3).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(out (string?, string) t3)").WithLocation(8, 9),
@@ -1373,6 +1361,128 @@ class C
         }
 
         [Fact]
+        public void Tuple_Constructor()
+        {
+            var source =
+@"class C
+{
+    C((string x, string? y) t) { }
+    static void M(string x, string? y)
+    {
+        C c;
+        c = new C((x, x));
+        c = new C((x, y));
+        c = new C((y, x));
+        c = new C((y, y));
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,19): warning CS8620: Nullability of reference types in argument of type '(string? y, string x)' doesn't match target type '(string x, string? y)' for parameter 't' in 'C.C((string x, string? y) t)'.
+                //         c = new C((y, x));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, x)").WithArguments("(string? y, string x)", "(string x, string? y)", "t", "C.C((string x, string? y) t)").WithLocation(9, 19),
+                // (10,19): warning CS8620: Nullability of reference types in argument of type '(string?, string?)' doesn't match target type '(string x, string? y)' for parameter 't' in 'C.C((string x, string? y) t)'.
+                //         c = new C((y, y));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, y)").WithArguments("(string?, string?)", "(string x, string? y)", "t", "C.C((string x, string? y) t)").WithLocation(10, 19));
+        }
+
+        [Fact]
+        public void Tuple_Indexer()
+        {
+            var source =
+@"class C
+{
+    object? this[(string x, string? y) t] => null;
+    static void M(string x, string? y)
+    {
+        var c = new C();
+        object? o;
+        o = c[(x, x)];
+        o = c[(x, y)];
+        o = c[(y, x)];
+        o = c[(y, y)];
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,15): warning CS8620: Nullability of reference types in argument of type '(string? y, string x)' doesn't match target type '(string x, string? y)' for parameter 't' in 'object? C.this[(string x, string? y) t].get'.
+                //         o = c[(y, x)];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, x)").WithArguments("(string? y, string x)", "(string x, string? y)", "t", "object? C.this[(string x, string? y) t].get").WithLocation(10, 15),
+                // (11,15): warning CS8620: Nullability of reference types in argument of type '(string?, string?)' doesn't match target type '(string x, string? y)' for parameter 't' in 'object? C.this[(string x, string? y) t].get'.
+                //         o = c[(y, y)];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, y)").WithArguments("(string?, string?)", "(string x, string? y)", "t", "object? C.this[(string x, string? y) t].get").WithLocation(11, 15));
+        }
+
+        [Fact]
+        public void Tuple_CollectionInitializer()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static void M(string x, string? y)
+    {
+        var c = new List<(string, string?)>
+        {
+            (x, x),
+            (x, y),
+            (y, x),
+            (y, y),
+        };
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8620: Nullability of reference types in argument of type '(string? y, string x)' doesn't match target type '(string, string?)' for parameter 'item' in 'void List<(string, string?)>.Add((string, string?) item)'.
+                //             (y, x),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, x)").WithArguments("(string? y, string x)", "(string, string?)", "item", "void List<(string, string?)>.Add((string, string?) item)").WithLocation(10, 13),
+                // (11,13): warning CS8620: Nullability of reference types in argument of type '(string?, string?)' doesn't match target type '(string, string?)' for parameter 'item' in 'void List<(string, string?)>.Add((string, string?) item)'.
+                //             (y, y),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, y)").WithArguments("(string?, string?)", "(string, string?)", "item", "void List<(string, string?)>.Add((string, string?) item)").WithLocation(11, 13));
+        }
+
+        [Fact]
+        public void ImplicitConversion_CollectionInitializer()
+        {
+            var source =
+@"using System.Collections.Generic;
+class A<T> { }
+class B<T> : A<T> { }
+class C
+{
+    static void M(B<object>? x, B<object?> y)
+    {
+        var c = new List<A<object>>
+        {
+            x,
+            y,
+        };
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8604: Possible null reference argument for parameter 'item' in 'void List<A<object>>.Add(A<object> item)'.
+                //             x,
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("item", "void List<A<object>>.Add(A<object> item)").WithLocation(10, 13),
+                // (11,13): warning CS8620: Nullability of reference types in argument of type 'B<object?>' doesn't match target type 'A<object>' for parameter 'item' in 'void List<A<object>>.Add(A<object> item)'.
+                //             y,
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("B<object?>", "A<object>", "item", "void List<A<object>>.Add(A<object> item)").WithLocation(11, 13));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Infer lambda return type nullability.
+        [Fact(Skip = "TODO")]
         public void ReturnTypeInference_01()
         {
             var source =
@@ -1398,7 +1508,8 @@ class C
         }
 
         // Multiple returns, one of which is null.
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Infer lambda return type nullability.
+        [Fact(Skip = "TODO")]
         public void ReturnTypeInference_02()
         {
             var source =
@@ -1564,6 +1675,9 @@ static class E
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (8,27): warning CS8619: Nullability of reference types in value of type '(string?, string)' doesn't match target type '(string x, string? y)'.
+                //         var t = ((x, y) = F());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "F()").WithArguments("(string?, string)", "(string x, string? y)").WithLocation(8, 27),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         t.y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(10, 9),
@@ -1666,10 +1780,7 @@ class C
             comp.VerifyDiagnostics(
                 // (13,22): error CS1061: '(object?, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object?, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         c.F((o, -1)).x.ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object?, int)", "x").WithLocation(13, 22),
-                // (13,13): warning CS8620: Nullability of reference types in argument of type '(object o, int)' doesn't match target type '(object?, int)' for parameter 't' in '(object?, int) E.F<(object?, int)>(C<(object?, int)> c, (object?, int) t)'.
-                //         c.F((o, -1)).x.ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(o, -1)").WithArguments("(object o, int)", "(object?, int)", "t", "(object?, int) E.F<(object?, int)>(C<(object?, int)> c, (object?, int) t)").WithLocation(13, 13));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object?, int)", "x").WithLocation(13, 22));
         }
 
         [Fact]
@@ -1728,10 +1839,7 @@ class C
                 source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (13,13): warning CS8620: Nullability of reference types in argument of type '(dynamic x, object y)' doesn't match target type '(dynamic, object?)' for parameter 't' in '(dynamic, object?) E.F<(dynamic, object?)>(C<(dynamic, object?)> c, (dynamic, object?) t)'.
-                //         c.F((x, y)).Item1.G();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(dynamic x, object y)", "(dynamic, object?)", "t", "(dynamic, object?) E.F<(dynamic, object?)>(C<(dynamic, object?)> c, (dynamic, object?) t)").WithLocation(13, 13));
+            comp.VerifyDiagnostics();
         }
 
         // Assert failure in ConversionsBase.IsValidExtensionMethodThisArgConversion.
@@ -2062,6 +2170,95 @@ class C
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y ?? y).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y ?? y)").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void TypeInference_DelegateConversion_01()
+        {
+            var source =
+@"delegate T D<T>();
+class C
+{
+    static void F(object? o)
+    {
+        D<object?> d = () => o;
+        D<object> e = () => o;
+        if (o == null) return;
+        d = () => o;
+        e = () => o;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,29): warning CS8621: Nullability of reference types in return type of 'lambda' doesn't match the target delegate 'D<object>'.
+                //         D<object> e = () => o;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "() => o").WithArguments("lambda", "D<object>").WithLocation(7, 29),
+                // (7,29): warning CS8603: Possible null reference return.
+                //         D<object> e = () => o;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void TypeInference_DelegateConversion_02()
+        {
+            var source =
+@"delegate T D<T>();
+class A<T>
+{
+    internal T M() => throw new System.NotImplementedException();
+}
+class B
+{
+    static A<T> F<T>(T t) => null!;
+    static void G(object? o)
+    {
+        var x = F(o);
+        D<object?> d = x.M;
+        D<object> e = x.M;
+        if (o == null) return;
+        var y = F(o);
+        d = y.M;
+        e = y.M;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,23): warning CS8621: Nullability of reference types in return type of 'object? A<object?>.M()' doesn't match the target delegate 'D<object>'.
+                //         D<object> e = x.M;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.M").WithArguments("object? A<object?>.M()", "D<object>").WithLocation(13, 23));
+        }
+
+        [Fact]
+        public void TypeInference_DelegateConversion_03()
+        {
+            var source =
+@"delegate T D<T>();
+abstract class A<T>
+{
+}
+static class E
+{
+    internal static T M<T>(this A<T> x) => throw new System.NotImplementedException();
+}
+class B
+{
+    static A<T> F<T>(T t) => null!;
+    static void G(object? o)
+    {
+        var x = F(o);
+        D<object?> d = x.M;
+        D<object> e = x.M;
+        if (o == null) return;
+        var y = F(o);
+        d = y.M;
+        e = y.M;
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (16,23): warning CS8621: Nullability of reference types in return type of 'object? E.M<object?>()' doesn't match the target delegate 'D<object>'.
+                //         D<object> e = x.M;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.M").WithArguments("object? E.M<object?>()", "D<object>").WithLocation(16, 23));
         }
     }
 }
