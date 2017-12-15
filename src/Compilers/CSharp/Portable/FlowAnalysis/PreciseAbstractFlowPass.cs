@@ -1273,10 +1273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        protected virtual void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
         {
-            Debug.Assert(!(this is NullableWalker));  // Should call NullableWalker.VisitArguments instead, for null warnings.
-
             // first value and ref parameters are read...
             for (int i = 0; i < arguments.Length; i++)
             {

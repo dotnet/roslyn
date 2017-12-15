@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly Binder _binder;
 
+        // Invalid type, used only to catch Visit methods that do not set
+        // this.State.ResultType. See VisitExpressionWithoutStackGuard.
         private readonly TypeSymbolWithAnnotations _invalidType;
 
         /// <summary>
@@ -306,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void TrackNullableStateForAssignment(BoundNode node, int slot, TypeSymbolWithAnnotations targetType, BoundExpression value, TypeSymbolWithAnnotations valueType, int valueSlot)
+        private void TrackNullableStateForAssignment(BoundNode node, int targetSlot, TypeSymbolWithAnnotations targetType, BoundExpression value, TypeSymbolWithAnnotations valueType, int valueSlot)
         {
             Debug.Assert(!IsConditionalState);
             if (this.State.Reachable)
@@ -318,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (targetType.IsReferenceType)
                 {
-                    bool isByRefTarget = IsByRefTarget(slot);
+                    bool isByRefTarget = IsByRefTarget(targetSlot);
 
                     if (targetType.IsNullable == false)
                     {
@@ -327,22 +329,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, (value ?? node).Syntax);
                         }
                     }
-                    else if (slot > 0)
+                    else if (targetSlot > 0)
                     {
-                        if (slot >= this.State.Capacity) Normalize(ref this.State);
+                        if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
 
-                        this.State[slot] = isByRefTarget ?
+                        this.State[targetSlot] = isByRefTarget ?
                             // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                             // regardless of what value is being assigned. 
                             (targetType.IsNullable == true) ? (bool?)false : null :
                             !valueType?.IsNullable;
                     }
 
-                    if (slot > 0)
+                    if (targetSlot > 0)
                     {
                         // PROTOTYPE(NullableReferenceTypes): Might this clear state that
                         // should be copied in InheritNullableStateOfTrackableType?
-                        InheritDefaultState(slot);
+                        InheritDefaultState(targetSlot);
 
                         // PROTOTYPE(NullableReferenceTypes): We should copy all tracked state from `value`,
                         // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
@@ -355,19 +357,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
                         if (value != null &&
                             (value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
-                            targetType.TypeSymbol == valueType.TypeSymbol) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
+                            targetType.TypeSymbol == valueType?.TypeSymbol) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
                         {
                             if (valueSlot > 0)
                             {
-                                InheritNullableStateOfTrackableType(slot, valueSlot, isByRefTarget);
+                                InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget);
                             }
                         }
                     }
                 }
-                else if (slot > 0 && EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                        (value == null || targetType.TypeSymbol == valueType.TypeSymbol))
+                else if (targetSlot > 0 && EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
+                        (value == null || targetType.TypeSymbol == valueType?.TypeSymbol))
                 {
-                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, slot, valueSlot, IsByRefTarget(slot));
+                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, IsByRefTarget(targetSlot));
                 }
 
                 if ((object)valueType?.TypeSymbol != null && IsNullabilityMismatch(targetType.TypeSymbol, valueType.TypeSymbol))
@@ -744,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable)
             {
-                this.State.Result = GetAdjustedType(GetDeclaredLocalType(node.LocalSymbol));
+                this.State.Result = GetAdjustedResult(GetDeclaredLocalType(node.LocalSymbol));
             }
 
             return null;
@@ -1487,6 +1489,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected override void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        {
+            // Callers should be using VisitArguments overload below.
+            throw ExceptionUtilities.Unreachable;
+        }
+
         private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
             var results = VisitArgumentsEvaluate(arguments, refKindsOpt, method, argsToParamsOpt, expanded);
@@ -1654,13 +1662,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private (TypeSymbolWithAnnotations Type, int Slot) GetAdjustedType((TypeSymbolWithAnnotations Type, int Slot) pair)
+        private (TypeSymbolWithAnnotations Type, int Slot) GetAdjustedResult((TypeSymbolWithAnnotations Type, int Slot) pair)
         {
-            var type = pair.Type;
-            var slot = pair.Slot;
+            var (type, slot) = pair;
             if (type.IsNullable == true && slot > 0 && slot < this.State.Capacity)
             {
-                var isNullable = !this.State[slot];
+                bool? isNullable = !this.State[slot];
                 if (isNullable != type.IsNullable)
                 {
                     return (TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable), slot);
@@ -2080,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable)
             {
-                this.State.Result = GetAdjustedType(GetDeclaredParameterType(node.ParameterSymbol));
+                this.State.Result = GetAdjustedResult(GetDeclaredParameterType(node.ParameterSymbol));
             }
 
             return null;
@@ -2219,7 +2226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable)
             {
-                var leftOnRight = GetAdjustedType(left);
+                var leftOnRight = GetAdjustedResult(left);
 
                 if (node.LeftConversion.IsUserDefined && (object)node.LeftConversion.Method != null && node.LeftConversion.Method.ParameterCount == 1)
                 {
@@ -3251,6 +3258,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : AbstractLocalState
 #endif
         {
+            // PROTOTYPE(NullableReferenceTypes): Consider storing as bool?[] rather than
+            // two BitVectors, and consider storing nullability rather than non-nullability.
             private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
             private BitVector _notNull;
             internal (TypeSymbolWithAnnotations Type, int Slot) Result; // PROTOTYPE(NullableReferenceTypes): Should be return value from the visitor, not mutable state.
@@ -3304,7 +3313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns></returns>
             public LocalState Clone()
             {
-                return new LocalState( _knownNullState.Clone(), _notNull.Clone(), Result);
+                return new LocalState(_knownNullState.Clone(), _notNull.Clone(), Result);
             }
 
             public bool Reachable
