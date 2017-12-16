@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             bool? hasSemanticErrors)
         {
             Debug.Assert(!activeStatements.IsDefault);
+            Debug.Assert(activeStatements.All(a => a != null));
 
             if (hasSemanticErrors.HasValue)
             {
