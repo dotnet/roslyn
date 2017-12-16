@@ -2,39 +2,24 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../WorkspaceDesktopResources.resx">
     <body>
-      <trans-unit id="Downloading_index_failed">
-        <source>Downloading index failed</source>
-        <target state="translated">Fehler beim Herunterladen des Index.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed_0">
-        <source>Downloading index failed:{0}</source>
-        <target state="translated">Fehler beim Herunterladen von Index: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_IntelliSense_index_for_0">
-        <source>Downloading IntelliSense index for {0}</source>
-        <target state="translated">Der IntelliSense-Index für "{0}" wird heruntergeladen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
-        <target state="translated">Ungültiger Assemblyname.</target>
+        <target state="new">Invalid assembly name</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_characters_in_assembly_name">
         <source>Invalid characters in assembly name</source>
-        <target state="translated">Assemblyname enthält ungültige Zeichen.</target>
+        <target state="new">Invalid characters in assembly name</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="translated">Msbuild ist beim Verarbeiten der Datei "{0}" fehlgeschlagen</target>
+        <target state="new">Msbuild failed when processing the file '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">Msbuild ist beim Verarbeiten der Datei "{0}" fehlgeschlagen mit der Meldung: {1}</target>
+        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
         <note />
       </trans-unit>
     </body>

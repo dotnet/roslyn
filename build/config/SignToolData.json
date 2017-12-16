@@ -53,6 +53,8 @@
         "Dlls\\Diagnostics\\Roslyn.Hosting.Diagnostics.dll",
         "Dlls\\EditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "Dlls\\EditorFeatures\\*\\Microsoft.CodeAnalysis.EditorFeatures.resources.dll",
+        "Dlls\\EditorFeatures.Wpf\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
+        "Dlls\\EditorFeatures.Wpf\\*\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
         "Dlls\\Features\\Microsoft.CodeAnalysis.Features.dll",
         "Dlls\\Features\\*\\Microsoft.CodeAnalysis.Features.resources.dll",
         "Dlls\\InteractiveEditorFeatures\\Microsoft.CodeAnalysis.InteractiveEditorFeatures.dll",
