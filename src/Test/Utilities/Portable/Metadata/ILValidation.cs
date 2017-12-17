@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,15 +33,15 @@ namespace Roslyn.Test.Utilities
             {
                 moduleContents.Position = 0;
 
+                var peHeaders = new PEHeaders(moduleContents);
+
+                moduleContents.Position = 0;
+
                 using (var metadata = ModuleMetadata.CreateFromStream(moduleContents, leaveOpen: true))
                 {
                     var metadataReader = metadata.MetadataReader;
                     var peReader = metadata.Module.PEReaderOpt;
-                    var peHeaders = peReader.PEHeaders;
                     var flags = peHeaders.CorHeader.Flags;
-
-                    bool is32bit = peHeaders.PEHeader.Magic == PEMagic.PE32;
-                    const int SectionHeaderSize = 40;
 
                     if (CorFlags.StrongNameSigned != (flags & CorFlags.StrongNameSigned))
                     {
@@ -48,9 +49,6 @@ namespace Roslyn.Test.Utilities
                     }
 
                     var snDirectory = peReader.PEHeaders.CorHeader.StrongNameSignatureDirectory;
-                    int rva = snDirectory.RelativeVirtualAddress;
-                    int size = snDirectory.Size;
-                    ImmutableArray<byte> signature = peReader.GetSectionData(rva).GetContent(0, size);
                     if (!peHeaders.TryGetDirectoryOffset(snDirectory, out int snOffset))
                     {
                         return false;
@@ -78,21 +76,14 @@ namespace Roslyn.Test.Utilities
                     const int ChecksumOffset = 0x40;
                     uint expectedChecksum = peHeaders.PEHeader.CheckSum;
                     Blob checksumBlob = MakeBlob(buffer, peHeaders.PEHeaderStartOffset + ChecksumOffset, sizeof(uint));
-                    Blob signatureBlob = MakeBlob(buffer, snOffset, size);
 
                     if (expectedChecksum != PeWriter.CalculateChecksum(peImage, checksumBlob))
                     {
                         return false;
                     }
 
-                    // Signature is calculated with checksum zeroed
-                    new BlobWriter(checksumBlob).WriteUInt32(0);
-
-                    int peHeadersSize = peHeaders.PEHeaderStartOffset
-                        + PEHeaderSize(is32bit)
-                        + SectionHeaderSize * peHeaders.SectionHeaders.Length;
-                    IEnumerable<Blob> content = GetContentToSign(peImage, peHeadersSize, peHeaders.PEHeader.FileAlignment, signatureBlob);
-                    byte[] hash = SigningUtilities.CalculateSha1(content);
+                    int snSize = snDirectory.Size;
+                    byte[] hash = ComputeSigningHash(peImage, peHeaders, checksumBlob, snOffset, snSize);
 
                     ImmutableArray<byte> publicKeyBlob = metadataReader.GetBlobContent(metadataReader.GetAssemblyDefinition().PublicKey);
                     // RSA parameters start after the public key offset
@@ -103,7 +94,7 @@ namespace Roslyn.Test.Utilities
                     using (var rsa = RSA.Create())
                     {
                         rsa.ImportParameters(snKey);
-                        var reversedSignature = signature.ToArray();
+                        var reversedSignature = peReader.GetSectionData(snDirectory.RelativeVirtualAddress).GetContent(0, snSize).ToArray();
 
                         // Unknown why the signature is reversed, but this matches the behavior of the CLR
                         // signing implementation.
@@ -121,6 +112,60 @@ namespace Roslyn.Test.Utilities
             finally
             {
                 moduleContents.Position = savedPosition;
+            }
+        }
+
+        private static byte[] ComputeSigningHash(
+            BlobBuilder peImage,
+            PEHeaders peHeaders,
+            Blob checksumBlob,
+            int strongNameOffset,
+            int strongNameSize)
+        {
+            const int SectionHeaderSize = 40;
+
+            bool is32bit = peHeaders.PEHeader.Magic == PEMagic.PE32;
+            int peHeadersSize = peHeaders.PEHeaderStartOffset
+                + PEHeaderSize(is32bit)
+                + SectionHeaderSize * peHeaders.SectionHeaders.Length;
+
+            // Signature is calculated with the checksum and authenticode signature zeroed
+            new BlobWriter(checksumBlob).WriteUInt32(0);
+            var buffer = peImage.GetBlobs().Single().GetBytes().Array;
+            int AuthenticodeOffset = is32bit ? 280 : 296;
+            var authenticodeDir = peHeaders.PEHeader.CertificateTableDirectory;
+            for (int i = 0; i < 2 * sizeof(int); i++)
+            {
+                buffer[AuthenticodeOffset + i] = 0;
+            }
+
+            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            {
+                // First hash the DOS header and PE headers
+                hash.AppendData(buffer, 0, peHeadersSize);
+
+                // Now each section, skipping the strong name signature if present
+                foreach (var sectionHeader in peHeaders.SectionHeaders)
+                {
+                    int sectionOffset = sectionHeader.PointerToRawData;
+                    int sectionSize = sectionHeader.SizeOfRawData;
+
+                    if ((strongNameOffset + strongNameSize) < sectionOffset ||
+                        strongNameOffset >= (sectionOffset + sectionSize))
+                    {
+                        // No signature overlap, hash the whole section
+                        hash.AppendData(buffer, sectionOffset, sectionSize);
+                    }
+                    else
+                    {
+                        // There is overlap. Hash both sides of signature
+                        hash.AppendData(buffer, sectionOffset, strongNameOffset - sectionOffset);
+                        var strongNameEndOffset = strongNameOffset + strongNameSize;
+                        hash.AppendData(buffer, strongNameEndOffset, sectionSize - (strongNameEndOffset - sectionOffset));
+                    }
+                }
+
+                return hash.GetHashAndReset();
             }
         }
 
