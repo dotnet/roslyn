@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.CanApplyChangeDocument = true;
 
-            //_backgroundCompiler = new BackgroundCompiler(this);
-            //_backgroundParser = new BackgroundParser(this);
-            //_backgroundParser.Start();
+            _backgroundCompiler = new BackgroundCompiler(this);
+            _backgroundParser = new BackgroundParser(this);
+            _backgroundParser.Start();
         }
 
         /// <summary>
