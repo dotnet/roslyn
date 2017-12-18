@@ -555,7 +555,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for optional parameters is an accessor of that property (or an overridden
             // property), or the methodOrIndexer is used for optional parameters directly.
             Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && 
-                (optionalParametersMethod.IsAccessor() || ((PropertySymbol)methodOrIndexer).MustCallMethodsDirectly)) ||
+                (optionalParametersMethod.IsAccessor() || 
+                 ((PropertySymbol)methodOrIndexer).MustCallMethodsDirectly)) || // This condition is a temporary workaround for https://github.com/dotnet/roslyn/issues/23852
                 (object)methodOrIndexer == optionalParametersMethod);
 
             // We need to do a fancy rewrite under the following circumstances:

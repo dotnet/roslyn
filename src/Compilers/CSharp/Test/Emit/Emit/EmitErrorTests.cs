@@ -268,11 +268,7 @@ public class B
                 Diagnostic(ErrorCode.ERR_NetModuleNameMismatch).WithArguments("ModuleNameMismatch.netmodule", "ModuleNameMismatch.mod"));
         }
 
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         public void CS0204_ERR_TooManyLocals()
         {
             var builder = new System.Text.StringBuilder();

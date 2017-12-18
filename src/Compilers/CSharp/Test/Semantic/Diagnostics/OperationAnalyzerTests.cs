@@ -1306,11 +1306,7 @@ class C
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
         }
 
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         [WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
         public void LongArithmeticExpressionCSharp()
         {

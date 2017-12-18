@@ -422,11 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// a maximum number of local functions, and a maximum scope depth to decide the
         /// limits of the combinations.
         /// </summary>
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         public void AllCaptureTests()
         {
             var methods = MakeAllMethods().ToList();

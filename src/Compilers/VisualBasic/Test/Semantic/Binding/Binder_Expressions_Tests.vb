@@ -61,15 +61,9 @@ End Module
 expectedOutput:="123")
         End Sub
 
-#If TEST_IOPERATION_INTERFACE Then
         <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         Public Sub Bug679765()
-#Else
-        <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
-        <Fact>
-        Public Sub Bug679765()
-#End If
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

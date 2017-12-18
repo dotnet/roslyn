@@ -5638,13 +5638,8 @@ End Class
 
         End Sub
 
-#If TEST_IOPERATION_INTERFACE Then
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         Public Sub HugeTupleCreationParses()
-#Else
-        <Fact>
-        Public Sub HugeTupleCreationParses()
-#End If
 
             Dim b = New StringBuilder()
             b.Append("(")
@@ -5669,13 +5664,8 @@ End Class
 
         End Sub
 
-#If TEST_IOPERATION_INTERFACE Then
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         Public Sub HugeTupleDeclarationParses()
-#Else
-        <Fact>
-        Public Sub HugeTupleDeclarationParses()
-#End If
 
             Dim b = New StringBuilder()
             b.Append("(")

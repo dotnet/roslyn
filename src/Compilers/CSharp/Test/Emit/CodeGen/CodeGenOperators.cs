@@ -5007,11 +5007,7 @@ class test<T> where T : c0
 ");
         }
 
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_01()
         {
@@ -5071,11 +5067,7 @@ class Test
             return builder.ToString();
         }
 
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_02()
         {
@@ -5104,11 +5096,7 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5169,11 +5157,7 @@ class Test
             return builder.ToString();
         }
 
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
@@ -5207,11 +5191,7 @@ class Test
                 );
         }
 
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_05()
         {
@@ -5264,11 +5244,7 @@ class Test
 5180801");
         }
 
-#if TEST_IOPERATION_INTERFACE
-        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
-#else
-        [Fact]
-#endif
+        [NoIOperationValidationFact]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {

@@ -13173,15 +13173,9 @@ End Module
 }]]>)
         End Sub
 
-#If TEST_IOPERATION_INTERFACE Then
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_01()
-#Else
-        <Fact>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
-        Public Sub EmitSequenceOfBinaryExpressions_01()
-#End If
             Dim source =
 $"
 Class Test
@@ -13231,15 +13225,9 @@ End Class
             Return builder.ToString()
         End Function
 
-#If TEST_IOPERATION_INTERFACE Then
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_02()
-#Else
-        <Fact>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
-        Public Sub EmitSequenceOfBinaryExpressions_02()
-#End If
             Dim source =
 $"
 Class Test
@@ -13262,17 +13250,10 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-#If TEST_IOPERATION_INTERFACE Then
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
-#Else
-        <Fact>
-        <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
-        Public Sub EmitSequenceOfBinaryExpressions_03()
-#End If
 
             Dim diagnostics = ImmutableArray(Of Diagnostic).Empty
 
@@ -13326,15 +13307,9 @@ End Class
             Return builder.ToString()
         End Function
 
-#If TEST_IOPERATION_INTERFACE Then
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
-#Else
-        <Fact>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
-        Public Sub EmitSequenceOfBinaryExpressions_04()
-#End If
             Dim source =
 $"
 Class Test
@@ -13359,15 +13334,9 @@ End Class
                 )
         End Sub
 
-#If TEST_IOPERATION_INTERFACE Then
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_05()
-#Else
-        <Fact>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
-        Public Sub EmitSequenceOfBinaryExpressions_05()
-#End If
             Dim count As Integer = 50
             Dim source =
 $"
@@ -13411,15 +13380,9 @@ End Class
 5180801")
         End Sub
 
-#If TEST_IOPERATION_INTERFACE Then
-        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        <NoIOperationValidationFact>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
-#Else
-        <Fact>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
-        Public Sub EmitSequenceOfBinaryExpressions_06()
-#End If
             Dim source =
 $"
 Class Test
