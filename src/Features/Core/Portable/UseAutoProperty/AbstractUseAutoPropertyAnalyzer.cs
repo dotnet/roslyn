@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
+            if (property.ExplicitInterfaceImplementations.Length != 0)
+            {
+                return;
+            }
+
             var containingType = property.ContainingType;
             if (containingType == null)
             {
