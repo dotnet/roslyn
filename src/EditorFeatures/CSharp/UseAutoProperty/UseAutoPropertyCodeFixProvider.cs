@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             if (accessorList == null)
             {
                 var getter = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                          .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
                 return SyntaxFactory.AccessorList(SyntaxFactory.List(Enumerable.Repeat(getter, 1)));
             }
 
@@ -164,10 +164,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         {
             foreach (var accessor in accessors)
             {
-                yield return accessor
-                             .WithBody(null)
-                             .WithExpressionBody(null)
-                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                yield return accessor.WithBody(null)
+                                     .WithExpressionBody(null)
+                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
         }
     }
