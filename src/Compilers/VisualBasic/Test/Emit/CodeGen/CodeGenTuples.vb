@@ -8845,6 +8845,28 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")>
+        Public Sub GetSymbolInfo_WithDuplicateInferredNames()
+            Dim source = "
+ Class C
+    Shared Sub M(Bob As String)
+         Dim x1 = (Bob, Bob)
+    End Sub
+End Class
+ "
+
+            Dim tree = Parse(source, options:=TestOptions.Regular)
+            Dim comp = CreateCompilationWithMscorlib(tree)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim tuple = nodes.OfType(Of TupleExpressionSyntax)().Single()
+            Dim type = DirectCast(model.GetTypeInfo(tuple).Type, TypeSymbol)
+            Assert.True(type.TupleElementNames.IsDefault)
+        End Sub
+
+        <Fact>
         Public Sub RetargetTupleErrorType()
             Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
  <compilation>
