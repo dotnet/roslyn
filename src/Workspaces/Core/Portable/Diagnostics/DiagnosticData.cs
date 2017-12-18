@@ -443,6 +443,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
+        /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
+        /// </summary>
         public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default)
         {
             diagnosticData = null;
@@ -452,24 +456,52 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, messageArguments);
+            DiagnosticSeverity effectiveSeverity;
             if (project.SupportsCompilation)
             {
-                // Get diagnostic with effective severity.
-                // Additionally, if the diagnostic was suppressed by a source suppression, effectiveDiagnostics will have a diagnostic with IsSuppressed = true.
-                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var effectiveDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(SpecializedCollections.SingletonEnumerable(diagnostic), compilation);
-                if (effectiveDiagnostics == null || effectiveDiagnostics.IsEmpty())
+                // Get the effective severity of the diagnostic from the compilation options.
+                // PERF: We do not check if the diagnostic was suppressed by a source suppression, as this requires us to force complete the assembly attributes, which is very expensive.
+                ReportDiagnostic reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions);
+                if (reportDiagnostic == ReportDiagnostic.Suppress)
                 {
                     // Rule is disabled by compilation options.
                     return false;
                 }
 
-                diagnostic = effectiveDiagnostics.Single();
+                effectiveSeverity = GetEffectiveSeverity(reportDiagnostic, descriptor.DefaultSeverity);
+            }
+            else
+            {
+                effectiveSeverity = descriptor.DefaultSeverity;
             }
 
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
             diagnosticData = diagnostic.ToDiagnosticData(project);
             return true;
+        }
+
+        private static DiagnosticSeverity GetEffectiveSeverity(ReportDiagnostic effectiveReportDiagnostic, DiagnosticSeverity defaultSeverity)
+        {
+            switch (effectiveReportDiagnostic)
+            {
+                case ReportDiagnostic.Default:
+                    return defaultSeverity;
+
+                case ReportDiagnostic.Error:
+                    return DiagnosticSeverity.Error;
+
+                case ReportDiagnostic.Hidden:
+                    return DiagnosticSeverity.Hidden;
+
+                case ReportDiagnostic.Info:
+                    return DiagnosticSeverity.Info;
+
+                case ReportDiagnostic.Warn:
+                    return DiagnosticSeverity.Warning;
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private static void GetLocationInfo(Document document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
