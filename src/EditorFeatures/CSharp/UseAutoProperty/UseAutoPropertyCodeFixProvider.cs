@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             var project = propertyDocument.Project;
             var sourceText = await propertyDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var getAccessor = propertyDeclaration.AccessorList.Accessors.First(d => d.IsKind(SyntaxKind.GetAccessorDeclaration));
-
-            var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList));
+            var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
+                                                     .WithExpressionBody(null)
+                                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
 
             // We may need to add a setter if the field is written to outside of the constructor
             // of it's class.
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
         private bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
         {
-            if (propertyDeclaration.AccessorList.Accessors.Any(SyntaxKind.SetAccessorDeclaration))
+            if (propertyDeclaration.AccessorList?.Accessors.Any(SyntaxKind.SetAccessorDeclaration) == true)
             {
                 // Already has a setter.
                 return false;
@@ -150,6 +150,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
         private AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
         {
+            if (accessorList == null)
+            {
+                var getter = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                return SyntaxFactory.AccessorList(SyntaxFactory.List(Enumerable.Repeat(getter, 1)));
+            }
+
             return accessorList.WithAccessors(SyntaxFactory.List(GetAccessors(accessorList.Accessors)));
         }
 
@@ -157,7 +164,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         {
             foreach (var accessor in accessors)
             {
-                yield return accessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                yield return accessor
+                             .WithBody(null)
+                             .WithExpressionBody(null)
+                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
         }
     }
