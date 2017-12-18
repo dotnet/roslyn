@@ -2824,6 +2824,12 @@ namespace Microsoft.CodeAnalysis
         internal abstract int CompareSourceLocations(Location loc1, Location loc2);
 
         /// <summary>
+        /// Compare two source locations, using their containing trees, and then by Span.First within a tree.
+        /// Can be used to get a total ordering on declarations, for example.
+        /// </summary>
+        internal abstract int CompareSourceLocations(SyntaxReference loc1, SyntaxReference loc2);
+
+        /// <summary>
         /// Return the lexically first of two locations.
         /// </summary>
         internal TLocation FirstSourceLocation<TLocation>(TLocation first, TLocation second)

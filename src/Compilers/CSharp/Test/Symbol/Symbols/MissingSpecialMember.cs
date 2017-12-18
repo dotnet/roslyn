@@ -561,6 +561,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
+                    case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_Range:
                     case WellKnownType.System_LongRange:
                     // Not yet in the platform.
@@ -862,6 +863,10 @@ namespace System
                         continue;
                     case WellKnownMember.System_Array__Empty:
                     case WellKnownMember.System_Span_T__ctor:
+                    case WellKnownMember.System_Span_T__get_Item:
+                    case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__get_Item:
+                    case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_Range__Create:
                     case WellKnownMember.System_LongRange__Create:
                         // Not yet in the platform.

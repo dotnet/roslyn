@@ -803,7 +803,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
                     Initializers(2):
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+                        IParameterReferenceOperation: $315 (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
                         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: '')
                           Children(1):
                               IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group ')

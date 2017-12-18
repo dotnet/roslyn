@@ -294,10 +294,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly Property ContainsExplicitDefinitionOfNoPiaLocalTypes As Boolean
             Get
                 If _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = ThreeState.Unknown Then
-                    ' TODO: This will recursively visit all top level types and bind attributes on them.
-                    '       This might be very expensive to do, but explicitly declared local types are 
-                    '       very uncommon. We should consider optimizing this by analyzing syntax first, 
-                    '       for example, the way VB handles ExtensionAttribute, etc.
                     _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = NamespaceContainsExplicitDefinitionOfNoPiaLocalTypes(GlobalNamespace).ToThreeState()
                 End If
 
@@ -325,11 +321,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function CreateQuickAttributeChecker() As QuickAttributeChecker
             ' First, initialize for the predefined attributes.
             Dim checker As New QuickAttributeChecker()
-            checker.AddName("ExtensionAttribute", QuickAttributes.Extension)
-            checker.AddName("ObsoleteAttribute", QuickAttributes.Obsolete)
-            checker.AddName("DeprecatedAttribute", QuickAttributes.Obsolete)
-            checker.AddName("ExperimentalAttribute", QuickAttributes.Obsolete)
-            checker.AddName("MyGroupCollectionAttribute", QuickAttributes.MyGroupCollection)
+            checker.AddName(AttributeDescription.CaseInsensitiveExtensionAttribute.Name, QuickAttributes.Extension)
+            checker.AddName(AttributeDescription.ObsoleteAttribute.Name, QuickAttributes.Obsolete)
+            checker.AddName(AttributeDescription.DeprecatedAttribute.Name, QuickAttributes.Obsolete)
+            checker.AddName(AttributeDescription.ExperimentalAttribute.Name, QuickAttributes.Obsolete)
+            checker.AddName(AttributeDescription.MyGroupCollectionAttribute.Name, QuickAttributes.MyGroupCollection)
+            checker.AddName(AttributeDescription.TypeIdentifierAttribute.Name, QuickAttributes.TypeIdentifier)
 
             ' Now process alias imports
             For Each globalImport In Options.GlobalImports

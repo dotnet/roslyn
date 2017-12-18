@@ -1,10 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1817,6 +1812,259 @@ class Program
         Print(9);
     }
 }", expectedOutput: "5-9");
+        }
+
+        [WorkItem(23338, "https://github.com/dotnet/roslyn/issues/23338")]
+        [Fact]
+        public void InParamsNullable()
+        {
+            var text = @"
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        S1 s = new S1();
+        s.val = 42;
+
+        S1? ns = s;
+
+        Test1(in ns);
+        Test2(ref ns);
+    }
+
+    static void Test1(in S1? arg)
+    {
+        // cannot not mutate
+        System.Console.Write(arg.GetValueOrDefault());
+        // should not mutate
+        arg.ToString();
+        // cannot not mutate
+        System.Console.Write(arg.GetValueOrDefault());
+    }
+
+    static void Test2(ref S1? arg)
+    {
+        // cannot not mutate
+        System.Console.Write(arg.GetValueOrDefault());
+        // can mutate
+        arg.ToString();
+        // cannot not mutate
+        System.Console.Write(arg.GetValueOrDefault());
+    }
+
+}
+
+struct S1
+{
+    public int val;
+
+    public override string ToString()
+    {
+        var result = val.ToString();
+        val = 0;
+
+        return result;
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
+
+            comp.VerifyIL("Program.Test1(in S1?)", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  1
+  .locals init (S1? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0006:  box        ""S1""
+  IL_000b:  call       ""void System.Console.Write(object)""
+  IL_0010:  ldarg.0
+  IL_0011:  ldobj      ""S1?""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  constrained. ""S1?""
+  IL_001f:  callvirt   ""string object.ToString()""
+  IL_0024:  pop
+  IL_0025:  ldarg.0
+  IL_0026:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_002b:  box        ""S1""
+  IL_0030:  call       ""void System.Console.Write(object)""
+  IL_0035:  ret
+}");
+
+            comp.VerifyIL("Program.Test2(ref S1?)", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0006:  box        ""S1""
+  IL_000b:  call       ""void System.Console.Write(object)""
+  IL_0010:  ldarg.0
+  IL_0011:  constrained. ""S1?""
+  IL_0017:  callvirt   ""string object.ToString()""
+  IL_001c:  pop
+  IL_001d:  ldarg.0
+  IL_001e:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0023:  box        ""S1""
+  IL_0028:  call       ""void System.Console.Write(object)""
+  IL_002d:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(in Test a, in Test b)
+    {
+        return a.Value + b.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = 3 };
+        var b = new Test { Value = 6 };
+
+        System.Console.WriteLine(a + b);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary_Right()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(Test a, in Test b)
+    {
+        return a.Value + b.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = 3 };
+        var b = new Test { Value = 6 };
+
+        System.Console.WriteLine(a + b);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary_Left()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(in Test a, Test b)
+    {
+        return a.Value + b.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = 3 };
+        var b = new Test { Value = 6 };
+
+        System.Console.WriteLine(a + b);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Unary()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public bool Value { get; set; }
+
+    public static bool operator !(in Test a)
+    {
+        return !a.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = true };
+
+        System.Console.WriteLine(!a);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Conversion()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public bool Value { get; set; }
+
+    public static explicit operator int(in Test a)
+    {
+        return a.Value ? 3 : 5;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = true };
+
+        System.Console.WriteLine((int)a);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
         }
     }
 }

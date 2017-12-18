@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, object> _getAnalyzerGateOpt;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
-        private readonly Func<Location, bool> _isGeneratedCodeLocation;
+        private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeMapOpt;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
         private readonly CancellationToken _cancellationToken;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
-            Func<Location, bool> isGeneratedCodeLocation,
+            Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
             Func<DiagnosticAnalyzer, object> getAnalyzerGate,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt = null,
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isCompilerAnalyzer: null,
                 shouldSkipAnalysisOnGeneratedCode: _ => false,
                 shouldSuppressGeneratedCodeDiagnostic: (diagnostic, analyzer, compilation, ct) => false,
-                isGeneratedCodeLocation: _ => false,
+                isGeneratedCodeLocation: (_1, _2) => false,
                 getAnalyzerGateOpt: null,
                 onAnalyzerException: onAnalyzerException,
                 analyzerExceptionFilter: null,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
-            Func<Location, bool> isGeneratedCodeLocation,
+            Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
             Func<DiagnosticAnalyzer, object> getAnalyzerGateOpt,
             ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan> analyzerExecutionTimeMapOpt,
             Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt,
@@ -1160,6 +1160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 case SymbolKind.Event:
                 case SymbolKind.Property:
                 case SymbolKind.NamedType:
+                case SymbolKind.Namespace: // We are exposing assembly/module attributes on global namespace symbol.
                     return true;
 
                 case SymbolKind.Field:
@@ -1187,16 +1188,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            AllowCaptures = false)]
         private void ExecuteAndCatchIfThrows_NoLock<TArg>(DiagnosticAnalyzer analyzer, Action<TArg> analyze, TArg argument, AnalysisContextInfo? info)
         {
             try
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                Stopwatch timer = null;
+                PooledStopwatch timer = null;
                 if (_analyzerExecutionTimeMapOpt != null)
                 {
-                    timer = Stopwatch.StartNew();
+                    timer = PooledStopwatch.StartInstance();
                 }
 
                 analyze(argument);
@@ -1204,8 +1208,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (timer != null)
                 {
                     timer.Stop();
-
-                    _analyzerExecutionTimeMapOpt.AddOrUpdate(analyzer, timer.Elapsed, (a, accumulatedTime) => accumulatedTime + timer.Elapsed);
+                    _analyzerExecutionTimeMapOpt.AddOrUpdate(analyzer, timer.Elapsed, timer.UpdateValueFactory);
+                    timer.Free();
                 }
             }
             catch (Exception e) when (ExceptionFilter(e))
@@ -1488,7 +1492,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Check if the node is generated code that must be skipped.
-            if (_shouldSkipAnalysisOnGeneratedCode(analyzer) && _isGeneratedCodeLocation(node.GetLocation()))
+            if (_shouldSkipAnalysisOnGeneratedCode(analyzer) &&
+                _isGeneratedCodeLocation(node.SyntaxTree, node.Span))
             {
                 return false;
             }
@@ -1505,7 +1510,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Check if the operation syntax is generated code that must be skipped.
-            if (operation.Syntax != null && _shouldSkipAnalysisOnGeneratedCode(analyzer) && _isGeneratedCodeLocation(operation.Syntax.GetLocation()))
+            if (operation.Syntax != null && _shouldSkipAnalysisOnGeneratedCode(analyzer) &&
+                _isGeneratedCodeLocation(operation.Syntax.SyntaxTree, operation.Syntax.Span))
             {
                 return false;
             }

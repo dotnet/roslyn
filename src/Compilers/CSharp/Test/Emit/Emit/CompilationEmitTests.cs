@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -3725,9 +3724,9 @@ class C
 }";
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestMinimum,
                     ParentKind = SymbolKind.Assembly,
@@ -3744,6 +3743,7 @@ class C
                         "SkipVerification" + // property name
                         "\u0001", // argument value (true)
                 });
+            });
         }
 
         // Verify via MetadataReader - comp option, module case
@@ -3760,7 +3760,12 @@ class C
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
             compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation); //no assembly => no decl security row
+
+            CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
+            {
+                //no assembly => no decl security row
+                ValidateDeclSecurity(module);
+            });
         }
 
         // Verify via MetadataReader - attr in source
@@ -3788,8 +3793,9 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestMinimum,
                     ParentKind = SymbolKind.Assembly,
@@ -3806,6 +3812,7 @@ class C
                         "SkipVerification" + // property name
                         "\u0001", // argument value (true)
                 });
+            });
         }
 
         // Verify via MetadataReader - two attrs in source, same action
@@ -3836,8 +3843,9 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestMinimum,
                     ParentKind = SymbolKind.Assembly,
@@ -3865,6 +3873,7 @@ class C
                         "UnmanagedCode" + // property name
                         "\u0001", // argument value (true)
                 });
+            });
         }
 
         // Verify via MetadataReader - two attrs in source, different actions
@@ -3895,8 +3904,9 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestOptional,
                     ParentKind = SymbolKind.Assembly,
@@ -3930,6 +3940,7 @@ class C
                         "UnmanagedCode" + // property name
                         "\u0001", // argument value (true)
                 });
+            });
         }
 
         // Verify via MetadataReader - one attr in source, one synthesized, same action
@@ -3956,8 +3967,9 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, RemotingConfiguration = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestMinimum,
                     ParentKind = SymbolKind.Assembly,
@@ -3985,6 +3997,7 @@ class C
                         "SkipVerification" + // property name
                         "\u0001", // argument value (true)
                 });
+            });
         }
 
         // Verify via MetadataReader - one attr in source, one synthesized, different actions
@@ -4011,8 +4024,9 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestOptional").WithArguments("System.Security.Permissions.SecurityAction.RequestOptional", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestOptional,
                     ParentKind = SymbolKind.Assembly,
@@ -4046,7 +4060,9 @@ class C
                         "SkipVerification" + // property name
                         "\u0001", // argument value (true)
                 });
+            });
         }
+
         [Fact]
         [WorkItem(545651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545651")]
 
@@ -4984,6 +5000,29 @@ public class DerivingClass<T> : BaseClass<T>
                 // (11,26): error CS0508: 'DerivingClass<T>.Method(T)': return type must be 'int' to match overridden member 'BaseClass<T>.Method(T)'
                 //     public override void Method(T input)
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Method").WithArguments("DerivingClass<T>.Method(T)", "BaseClass<T>.Method(T)", "int").WithLocation(11, 26));
+        }
+
+        [Fact]
+        public void CompileAndVerifyModuleIncludesAllModules()
+        {
+            // Before this change, CompileAndVerify() didn't include other modules when testing a PEModule.
+            // Verify that symbols from other modules are accessible as well.
+
+            var modRef = CreateStandardCompilation("public class A { }", options: TestOptions.ReleaseModule, assemblyName: "refMod").EmitToImageReference();
+            var comp = CreateStandardCompilation("public class B : A { }", references: new[] { modRef }, assemblyName: "sourceMod");
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var b = module.GlobalNamespace.GetTypeMember("B");
+                Assert.Equal("B", b.Name);
+                Assert.False(b.IsErrorType());
+                Assert.Equal("sourceMod.dll", b.ContainingModule.Name);
+
+                var a = b.BaseType;
+                Assert.Equal("A", a.Name);
+                Assert.False(a.IsErrorType());
+                Assert.Equal("refMod.netmodule", a.ContainingModule.Name);
+            });
         }
     }
 }

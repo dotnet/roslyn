@@ -272,7 +272,16 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// </summary>
         public ImmutableArray<T> ToImmutableAndFree()
         {
-            var result = this.ToImmutable();
+            ImmutableArray<T> result;
+            if (_builder.Capacity == Count)
+            {
+                result = _builder.MoveToImmutable();
+            }
+            else
+            {
+                result = ToImmutable();
+            }
+
             this.Free();
             return result;
         }

@@ -16616,6 +16616,31 @@ partial struct A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "j").WithArguments("A.j"));
         }
 
+        [Fact]
+        [WorkItem(23668, "https://github.com/dotnet/roslyn/issues/23668")]
+        public void CS0282WRN_PartialWithPropertyButSingleField()
+        {
+            string program =
+@"partial struct X // No warning CS0282
+{
+    // The only field of X is a backing field of A.
+    public int A { get; set; }
+}
+
+partial struct X : I
+{
+    // This partial definition has no field.
+    int I.A { get => A; set => A = value; }
+}
+
+interface I
+{
+    int A { get; set; }
+}";
+            var comp = CreateStandardCompilation(program);
+            comp.VerifyDiagnostics();
+        }
+
         /// <summary>
         /// import - Lib:  class A     { class B {} } 
         ///      vs. curr: Namespace A { class B {} } - use B
