@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUnreachable();
             }
 
-            var leftType = InferResultNullability(node.LeftConversion, node.LeftOperand.Type, node.Type, leftState.ResultType);
+            var leftType = InferResultNullability(node.LeftConversion, node.Type, leftState.ResultType);
 
             VisitRvalue(node.RightOperand);
             var rightType = this.State.ResultType;
@@ -1838,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    resultType = InferResultNullability(node.Conversion, node.Operand.Type, node.Type, operandType);
+                    resultType = InferResultNullability(node.Conversion, node.Type, operandType);
                 }
                 this.State.ResultType = resultType;
             }
@@ -1911,7 +1911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypeSymbolWithAnnotations InferResultNullability(Conversion conversion, TypeSymbol sourceTypeOpt, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
+        private static TypeSymbolWithAnnotations InferResultNullability(Conversion conversion, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
         {
             bool? isNullable = null;
 
@@ -1940,15 +1940,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.Boxing:
-                    if (sourceTypeOpt?.IsValueType == true)
+                    if (operandType?.IsValueType == true)
                     {
                         // PROTOTYPE(NullableReferenceTypes): Should we worry about a pathological case of boxing nullable value known to be not null?
                         //       For example, new int?(0)
-                        isNullable = sourceTypeOpt.IsNullableType();
+                        isNullable = operandType.IsNullableType();
                     }
                     else
                     {
-                        Debug.Assert(sourceTypeOpt?.IsReferenceType != true);
+                        Debug.Assert(operandType?.IsReferenceType != true);
                     }
                     break;
 
@@ -2042,12 +2042,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
             IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
-            this.State.ResultType = null;
+            this.State.ResultType = _invalidType;
             foreach (PendingBranch pending in pendingReturns)
             {
                 this.State = pending.State;
                 IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
-                this.State.ResultType = null;
+                this.State.ResultType = _invalidType;
             }
 
             this.State = finalState;
@@ -2147,7 +2147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should something special be done for targetTypeOfOperandConversion for lifted case?
                     resultOfOperandConversionType = InferResultNullability(node.OperandConversion,
-                                                                                node.Operand.Type,
                                                                                 targetTypeOfOperandConversion,
                                                                                 operandResult.Type);
                 }
@@ -2174,7 +2173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 resultOfIncrementType = InferResultNullability(node.ResultConversion,
-                                                                    incrementOperator?.ReturnType.TypeSymbol,
                                                                     node.Type,
                                                                     resultOfIncrementType);
 
@@ -2225,7 +2223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)node.Operator.LeftType != null)
                 {
                     leftOnRightType = InferResultNullability(node.LeftConversion,
-                                                                             node.Left.Type,
                                                                              node.Operator.LeftType,
                                                                              leftOnRight.Type);
                 }
@@ -2253,7 +2250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     resultType = InferResultNullability(node.FinalConversion,
-                                                             node.Operator.ReturnType,
                                                              node.Type,
                                                              resultType);
                 }
