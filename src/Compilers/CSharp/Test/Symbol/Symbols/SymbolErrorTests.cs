@@ -13794,6 +13794,7 @@ class A : IFace<int>
         }
 
         [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
         public void CS0842ERR_ExplicitLayoutAndAutoImplementedProperty()
         {
             var text = @"
@@ -13804,7 +13805,7 @@ namespace TestNamespace
     [StructLayout(LayoutKind.Explicit)]
     struct Str
     {
-        public int Num // CS0842
+        public int Num // CS0625
         {
             get;
             set;
@@ -13818,8 +13819,10 @@ namespace TestNamespace
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (9,20): error CS0842: 'TestNamespace.Str.Num': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)
-                Diagnostic(ErrorCode.ERR_ExplicitLayoutAndAutoImplementedProperty, "Num").WithArguments("TestNamespace.Str.Num"));
+                // (9,20): error CS0625: 'Str.Num': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                //         public int Num // CS0625
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "Num").WithArguments("TestNamespace.Str.Num").WithLocation(9, 20)
+                );
         }
 
         [Fact]

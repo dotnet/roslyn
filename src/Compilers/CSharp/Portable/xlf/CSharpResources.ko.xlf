@@ -2697,8 +2697,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
-        <source>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="translated">'{0}': StructLayout(LayoutKind.Explicit)으로 표시된 인스턴스 필드 형식에는 FieldOffset 특성이 있어야 합니다.</target>
+        <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
+        <target state="needs-review-translation">'{0}': StructLayout(LayoutKind.Explicit)으로 표시된 인스턴스 필드 형식에는 FieldOffset 특성이 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -3469,11 +3469,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">이니셜라이저가 직간접적으로 정의를 참조하고 있어 '{0}' 형식을 유추할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitLayoutAndAutoImplementedProperty">
-        <source>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</source>
-        <target state="translated">'{0}': 자동으로 구현된 속성은 StructLayout(LayoutKind.Explicit)으로 표시된 형식 내부에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoProperty">
@@ -8588,6 +8583,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
         <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
+        <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
+        <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
+        <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
+        <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
     </body>
