@@ -48,7 +48,7 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
             }
 
             if (-not $test) {
-                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey -v q"
+                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
             }
         }
     } 
