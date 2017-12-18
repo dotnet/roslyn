@@ -503,7 +503,7 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Span_T,
-                         WellKnownType.System_ReadOnlySpan_T
+                         WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Range,
                          WellKnownType.System_LongRange
                         ' Not available on all platforms.
@@ -544,7 +544,7 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Span_T,
-                         WellKnownType.System_ReadOnlySpan_T
+                         WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Range,
                          WellKnownType.System_LongRange
                         ' Not available on all platforms.
@@ -594,7 +594,7 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
-                         WellKnownMember.System_ReadOnlySpan_T__get_Length
+                         WellKnownMember.System_ReadOnlySpan_T__get_Length,
                          WellKnownMember.System_Range__Create,
                          WellKnownMember.System_LongRange__Create
                         ' Not available yet, but will be in upcoming release.
@@ -684,7 +684,7 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
-                         WellKnownMember.System_ReadOnlySpan_T__get_Length
+                         WellKnownMember.System_ReadOnlySpan_T__get_Length,
                          WellKnownMember.System_Range__Create,
                          WellKnownMember.System_LongRange__Create
                         ' Not available yet, but will be in upcoming release.

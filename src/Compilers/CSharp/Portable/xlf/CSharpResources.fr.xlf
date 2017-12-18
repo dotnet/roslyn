@@ -8580,6 +8580,21 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRange">
+        <source>range</source>
+        <target state="new">range</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RangeNotFound">
+        <source>Cannot create a range value because the compiler required type '{0}' cannot be found. Are you missing a reference?</source>
+        <target state="new">Cannot create a range value because the compiler required type '{0}' cannot be found. Are you missing a reference?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TripleDotNotAllowed">
+        <source>Unexpected character sequence '...'</source>
+        <target state="new">Unexpected character sequence '...'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
