@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {
-            // First try to compute the referenced symbol and attempt to go to definition for the symbol.
+            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, span) = symbolService.GetSymbolAndBoundSpanAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (symbol == null)
+            var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (symbol is null)
             {
                 return false;
             }

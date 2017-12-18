@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -39,28 +40,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
+            try
             {
-                // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
-                var workspace = document.Project.Solution.Workspace;
-                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                     workspace.Kind == WorkspaceKind.Debugger ||
-                     workspace.Kind == WorkspaceKind.Interactive)
+                var document = context.Document;
+                var position = context.Position;
+                var options = context.Options;
+                var cancellationToken = context.CancellationToken;
+
+                using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
                 {
-                    return;
+                    // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
+                    var workspace = document.Project.Solution.Workspace;
+                    if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                         workspace.Kind == WorkspaceKind.Debugger ||
+                         workspace.Kind == WorkspaceKind.Interactive)
+                    {
+                        return;
+                    }
+
+                    var snippetCompletionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                        UnionCompletionItemComparer.Instance,
+                        (d, c) => GetSnippetsForDocumentAsync(d, position, workspace, c),
+                        cancellationToken).ConfigureAwait(false);
+
+                    context.AddItems(snippetCompletionItems);
                 }
-
-                var snippetCompletionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
-                    UnionCompletionItemComparer.Instance,
-                    (d, c) => GetSnippetsForDocumentAsync(d, position, workspace, c),
-                    cancellationToken).ConfigureAwait(false);
-
-                context.AddItems(snippetCompletionItems);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
 

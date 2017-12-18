@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
+            var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(destination));
 
             if (expression.Kind() == SyntaxKind.DeclarationExpression)
             {

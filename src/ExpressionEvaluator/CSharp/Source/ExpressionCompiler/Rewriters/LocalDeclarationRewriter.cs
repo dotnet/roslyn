@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     syntax,
                     new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type),
                     initializer,
-                    RefKind.None,
+                    false,
                     local.Type);
                 statements.Add(new BoundExpressionStatement(syntax, assignment));
             }

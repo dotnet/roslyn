@@ -356,7 +356,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInNormalForm(
+                constructor, 
+                arguments.Arguments.Count, 
+                argumentAnalysis.ArgsToParamsOpt, 
+                arguments.RefKinds, 
+                isMethodGroupConversion: false, 
+                allowRefOmittedArguments: false);
 
             return IsApplicable(
                 constructor,
@@ -388,7 +394,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInExpandedForm(
+                constructor, 
+                arguments.Arguments.Count, 
+                argumentAnalysis.ArgsToParamsOpt, 
+                arguments.RefKinds, 
+                isMethodGroupConversion: false, 
+                allowRefOmittedArguments: false);
 
             // A vararg ctor is never applicable in its expanded form because
             // it is never a params method.
@@ -1222,20 +1234,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             worse.Free();
         }
 
-        // Return the parameter type corresponding to the given argument index.
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        /// <summary>
+        /// Returns the parameter type (considering params).
+        /// </summary>
+        private static TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
-            RefKind discarded;
-            return GetParameterType(argIndex, result, parameters, out discarded);
-        }
-
-        // Return the parameter type corresponding to the given argument index.
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out RefKind refKind)
-        {
-            int paramIndex = result.ParameterFromArgument(argIndex);
-            ParameterSymbol parameter = parameters[paramIndex];
-            refKind = parameter.RefKind;
-
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
                 parameter.IsParams && parameter.Type.IsSZArray())
             {
@@ -1245,6 +1248,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return parameter.Type;
             }
+        }
+
+        /// <summary>
+        /// Returns the parameter corresponding to the given argument index.
+        /// </summary>
+        private static ParameterSymbol GetParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        {
+            int paramIndex = result.ParameterFromArgument(argIndex);
+            return parameters[paramIndex];
         }
 
         private BetterResult BetterFunctionMember<TMember>(
@@ -1308,6 +1320,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // implicit conversion from EX to PX, and for at least one argument, the conversion from
             // EX to PX is better than the conversion from EX to QX.
 
+            var m1LeastOverridenParameters = m1.LeastOverriddenMember.GetParameters();
+            var m2LeastOverridenParameters = m2.LeastOverriddenMember.GetParameters();
+
             bool allSame = true; // Are all parameter types equivalent by identify conversions, ignoring Task-like differences?
             int i;
             for (i = 0; i < arguments.Count; ++i)
@@ -1323,9 +1338,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                RefKind refKind1, refKind2;
-                var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
-                var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
+                var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                var type1 = GetParameterType(parameter1, m1.Result);
+
+                var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                var type2 = GetParameterType(parameter2, m2.Result);
 
                 bool okToDowngradeToNeither;
                 BetterResult r;
@@ -1333,10 +1350,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 r = BetterConversionFromExpression(arguments[i],
                                                    type1,
                                                    m1.Result.ConversionForArg(i),
-                                                   refKind1,
+                                                   parameter1.RefKind,
                                                    type2,
                                                    m2.Result.ConversionForArg(i),
-                                                   refKind2,
+                                                   parameter2.RefKind,
                                                    considerRefKinds,
                                                    ref useSiteDiagnostics,
                                                    out okToDowngradeToNeither);
@@ -1454,11 +1471,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    RefKind refKind1, refKind2;
-                    var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
-                    var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
-
+                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                    var type1 = GetParameterType(parameter1, m1.Result);
                     var type1Normalized = type1.NormalizeTaskTypes(Compilation);
+
+                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                    var type2 = GetParameterType(parameter2, m2.Result);
                     var type2Normalized = type2.NormalizeTaskTypes(Compilation);
 
                     if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
@@ -1515,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return BetterResult.Neither;
+                return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
@@ -1608,8 +1626,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                uninst1.Add(GetParameterType(i, m1.Result, m1Original));
-                uninst2.Add(GetParameterType(i, m2.Result, m2Original));
+                var parameter1 = GetParameter(i, m1.Result, m1Original);
+                uninst1.Add(GetParameterType(parameter1, m1.Result));
+
+                var parameter2 = GetParameter(i, m2.Result, m2Original);
+                uninst2.Add(GetParameterType(parameter2, m2.Result));
             }
 
             result = MoreSpecificType(uninst1, uninst2, ref useSiteDiagnostics);
@@ -1624,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: Otherwise if one member is a non-lifted operator and  the other is a lifted
             // operator, the non-lifted one is better.
 
-            // The penultimate rule: Position in interactive submission chain. The last definition wins.
+            // Otherwise: Position in interactive submission chain. The last definition wins.
             if (m1.Member.ContainingType.TypeKind == TypeKind.Submission && m2.Member.ContainingType.TypeKind == TypeKind.Submission)
             {
                 // script class is always defined in source:
@@ -1644,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Finally, if one has fewer custom modifiers, that is better
+            // Otherwise, if one has fewer custom modifiers, that is better
             int m1ModifierCount = m1.LeastOverriddenMember.CustomModifierCount();
             int m2ModifierCount = m2.LeastOverriddenMember.CustomModifierCount();
             if (m1ModifierCount != m2ModifierCount)
@@ -1652,8 +1673,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (m1ModifierCount < m2ModifierCount) ? BetterResult.Left : BetterResult.Right;
             }
 
-            // Otherwise, neither function member is better.
-            return BetterResult.Neither;
+            // Otherwise, prefer methods with 'val' parameters over 'in' parameters.
+            return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
+        }
+
+        private static BetterResult PreferValOverInParameters<TMember>(
+            ArrayBuilder<BoundExpression> arguments,
+            MemberResolutionResult<TMember> m1,
+            ImmutableArray<ParameterSymbol> parameters1,
+            MemberResolutionResult<TMember> m2,
+            ImmutableArray<ParameterSymbol> parameters2)
+            where TMember : Symbol
+        {
+            BetterResult valOverInPreference = BetterResult.Neither;
+
+            for (int i = 0; i < arguments.Count; ++i)
+            {
+                if (arguments[i].Kind != BoundKind.ArgListOperator)
+                {
+                    var p1 = GetParameter(i, m1.Result, parameters1);
+                    var p2 = GetParameter(i, m2.Result, parameters2);
+
+                    if (p1.RefKind == RefKind.None && p2.RefKind == RefKind.In)
+                    {
+                        if (valOverInPreference == BetterResult.Right)
+                        {
+                            return BetterResult.Neither;
+                        }
+                        else
+                        {
+                            valOverInPreference = BetterResult.Left;
+                        }
+                    }
+                    else if (p2.RefKind == RefKind.None && p1.RefKind == RefKind.In)
+                    {
+                        if (valOverInPreference == BetterResult.Left)
+                        {
+                            return BetterResult.Neither;
+                        }
+                        else
+                        {
+                            valOverInPreference = BetterResult.Right;
+                        }
+                    }
+                }
+            }
+
+            return valOverInPreference;
         }
 
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
@@ -2503,11 +2569,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
+            bool isMethodGroupConversion,
             bool allowRefOmittedArguments)
             where TMember : Symbol
         {
             bool discarded;
-            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
         }
 
         private EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
@@ -2515,6 +2582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
+            bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
@@ -2551,7 +2619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parameter.Type);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
 
                 if (refs == null)
                 {
@@ -2571,12 +2639,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
         }
 
-        private RefKind GetEffectiveParameterRefKind(ParameterSymbol parameter, RefKind argRefKind, bool allowRefOmittedArguments, ref bool hasAnyRefOmittedArgument)
+        private RefKind GetEffectiveParameterRefKind(
+            ParameterSymbol parameter, 
+            RefKind argRefKind,
+            bool isMethodGroupConversion,
+            bool allowRefOmittedArguments, 
+            ref bool hasAnyRefOmittedArgument)
         {
             var paramRefKind = parameter.RefKind;
 
             // 'None' argument is allowed to match 'In' parameter and should behave like 'None' for the purpose of overload resolution
-            if (argRefKind == RefKind.None && paramRefKind == RefKind.In)
+            // unless this is a method group conversion where 'In' must match 'In'
+            if (!isMethodGroupConversion && argRefKind == RefKind.None && paramRefKind == RefKind.In)
             {
                 return RefKind.None;
             }
@@ -2598,10 +2672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
+            bool isMethodGroupConversion,
             bool allowRefOmittedArguments) where TMember : Symbol
         {
             bool discarded;
-            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
         }
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
@@ -2609,6 +2684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
+            bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
@@ -2629,7 +2705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
 
                 refs.Add(paramRefKind);
                 if (paramRefKind != RefKind.None)
@@ -2689,6 +2765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
+                isMethodGroupConversion,
                 allowRefOmittedArguments,
                 out hasAnyRefOmittedArgument);
 
@@ -2700,6 +2777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
+                isMethodGroupConversion,
                 allowRefOmittedArguments);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
@@ -2756,6 +2834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments,
                 out hasAnyRefOmittedArgument);
 
@@ -2767,6 +2846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
@@ -3115,13 +3195,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   exists from the argument to the type of the corresponding parameter, or
             // - for a ref or out parameter, the type of the argument is identical to the type of the corresponding parameter. 
 
-            // RefKind has to match unless 
-            //   the ref kind is None and either:
-            //    1) parameter is an 'In'  or
-            //    2) argument expression is of the type dynamic. This is a bug in Dev11 which we also implement. 
+            // effective RefKind has to match unless argument expression is of the type dynamic. 
+            // This is a bug in Dev11 which we also implement. 
             //       The spec is correct, this is not an intended behavior. We don't fix the bug to avoid a breaking change.
             if (!(argRefKind == parRefKind ||
-                 (argRefKind == RefKind.None && (parRefKind == RefKind.In || argument.HasDynamicType()))))
+                 (argRefKind == RefKind.None && argument.HasDynamicType())))
             {
                 return Conversion.NoConversion;
             }
