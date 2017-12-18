@@ -286,24 +286,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State.Result = GetDeclaredLocalResult(((BoundLocal)node).LocalSymbol);
                     break;
                 case BoundKind.Parameter:
-                    this.State.Result = GetDeclaredParameterType(((BoundParameter)node).ParameterSymbol);
+                    this.State.Result = GetDeclaredParameterResult(((BoundParameter)node).ParameterSymbol);
                     break;
                 case BoundKind.FieldAccess:
                     {
                         var fieldAccess = (BoundFieldAccess)node;
-                        VisitMemberAccess(node, fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol, asLvalue: true);
+                        VisitMemberAccess(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        VisitMemberAccess(node, propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, asLvalue: true);
+                        VisitMemberAccess(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.EventAccess:
                     {
                         var eventAccess = (BoundEventAccess)node;
-                        VisitMemberAccess(node, eventAccess.ReceiverOpt, eventAccess.EventSymbol, asLvalue: true);
+                        VisitMemberAccess(eventAccess.ReceiverOpt, eventAccess.EventSymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.ObjectInitializerMember:
@@ -314,6 +314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Report nullable mismatch warnings and optionally update tracked value on assignment.
+        /// </summary>
         private void TrackNullableStateForAssignment(BoundNode node, int targetSlot, TypeSymbolWithAnnotations targetType, BoundExpression value, TypeSymbolWithAnnotations valueType, int valueSlot)
         {
             Debug.Assert(!IsConditionalState);
@@ -750,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // That's because this code assumes the variable is being read, not written.
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.Result = GetAdjustedResult(GetDeclaredLocalResult(node.LocalSymbol));
             }
@@ -800,6 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#if DEBUG
         // For asserts only.
         private static bool AreCloseEnough(TypeSymbol typeA, TypeSymbol typeB)
         {
@@ -809,6 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeB.IsDynamic() ||
                 typeA.Equals(typeB, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames); // Ignore TupleElementNames (see https://github.com/dotnet/roslyn/issues/23651).
         }
+#endif
 
         protected override void VisitStatement(BoundStatement statement)
         {
@@ -909,7 +914,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             VisitArguments(objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt, method, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
                         }
                         int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(symbol, containingSlot);
-                        var right = node.Right;
                         VisitObjectCreationInitializer(symbol, slot, node.Right);
                     }
                     break;
@@ -935,9 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            // PROTOTYPE(NullableReferenceTypes): Is it necessary to check
-            // this.State.Reachable for null checks, here or elsewhere?
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type);
             }
@@ -1063,6 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             elementBuilder.Free();
+            this.State.ResultType = _invalidType;
             return arrayType;
         }
 
@@ -1099,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(i);
             }
 
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.ResultType = type?.ElementType;
             }
@@ -1297,9 +1300,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetUnreachable();
             }
-            VisitRvalue(node.RightOperand);
 
             var leftType = InferResultNullability(node.LeftConversion, node.LeftOperand.Type, node.Type, leftState.ResultType);
+
+            VisitRvalue(node.RightOperand);
             var rightType = this.State.ResultType;
 
             IntersectWith(ref this.State, ref leftState);
@@ -1312,8 +1316,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+#if DEBUG
                 Debug.Assert((object)leftType == null || AreCloseEnough(leftType.TypeSymbol, node.Type));
                 Debug.Assert((object)rightType == null || AreCloseEnough(rightType.TypeSymbol, node.Type));
+#endif
 
                 // PROTOTYPE(NullableReferenceTypes): This seems incorrect. The result should be
                 // node.Type with some nullability applied from leftType and rightType.
@@ -1464,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.ResultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(method);
             }
@@ -1507,7 +1513,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArgumentsWarn(arguments, refKindsOpt, method, argsToParamsOpt, expanded, results);
         }
 
-        private ImmutableArray<(TypeSymbolWithAnnotations Type, int Slot)> VisitArgumentsEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        private ImmutableArray<(TypeSymbolWithAnnotations Type, int Slot)> VisitArgumentsEvaluate(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            MethodSymbol method,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
         {
             Debug.Assert(!IsConditionalState);
             int n = arguments.Length;
@@ -1516,7 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<(TypeSymbolWithAnnotations, int)>.Empty;
             }
             var builder = ArrayBuilder<(TypeSymbolWithAnnotations, int)>.GetInstance(n);
-            for (int i = 0; i < arguments.Length; i++)
+            for (int i = 0; i < n; i++)
             {
                 RefKind refKind = GetRefKind(refKindsOpt, i);
                 var argument = arguments[i];
@@ -1530,10 +1541,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 builder.Add(this.State.Result);
             }
+            this.State.ResultType = _invalidType;
             return builder.ToImmutableAndFree();
         }
 
-        private void VisitArgumentsWarn(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded, ImmutableArray<(TypeSymbolWithAnnotations Type, int Slot)> results)
+        private void VisitArgumentsWarn(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            MethodSymbol method,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded,
+            ImmutableArray<(TypeSymbolWithAnnotations Type, int Slot)> results)
         {
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -1554,48 +1572,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ParameterSymbol GetCorrespondingParameter(int argumentOrdinal, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, ref bool expanded)
         {
-            ParameterSymbol parameter;
-            if ((object)method != null)
+            if ((object)method == null)
             {
-                if (argsToParamsOpt.IsDefault)
+                expanded = false;
+                return null;
+            }
+
+            ParameterSymbol parameter;
+
+            if (argsToParamsOpt.IsDefault)
+            {
+                if (argumentOrdinal < method.ParameterCount)
                 {
-                    if (argumentOrdinal < method.ParameterCount)
-                    {
-                        parameter = method.Parameters[argumentOrdinal];
-                    }
-                    else if (expanded)
-                    {
-                        parameter = method.Parameters[method.ParameterCount - 1];
-                    }
-                    else
-                    {
-                        parameter = null;
-                    }
+                    parameter = method.Parameters[argumentOrdinal];
+                }
+                else if (expanded)
+                {
+                    parameter = method.Parameters[method.ParameterCount - 1];
                 }
                 else
                 {
-                    int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
-
-                    if (parameterOrdinal < method.ParameterCount)
-                    {
-                        parameter = method.Parameters[parameterOrdinal];
-                    }
-                    else
-                    {
-                        parameter = null;
-                        expanded = false;
-                    }
-                }
-
-                Debug.Assert((object)parameter != null || !expanded);
-                if (expanded && (parameter.Ordinal < method.ParameterCount - 1 || !parameter.Type.IsSZArray()))
-                {
-                    expanded = false;
+                    parameter = null;
                 }
             }
             else
             {
-                parameter = null;
+                int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
+
+                if (parameterOrdinal < method.ParameterCount)
+                {
+                    parameter = method.Parameters[parameterOrdinal];
+                }
+                else
+                {
+                    parameter = null;
+                    expanded = false;
+                }
+            }
+
+            Debug.Assert((object)parameter != null || !expanded);
+            if (expanded && (parameter.Ordinal < method.ParameterCount - 1 || !parameter.Type.IsSZArray()))
+            {
                 expanded = false;
             }
 
@@ -1668,55 +1685,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Adjust declared type based on inferred nullability at the point of declaration.
+        /// </summary>
         private (TypeSymbolWithAnnotations Type, int Slot) GetAdjustedResult((TypeSymbolWithAnnotations Type, int Slot) pair)
         {
             var (type, slot) = pair;
             if (type.IsNullable == true && slot > 0 && slot < this.State.Capacity)
             {
                 bool? isNullable = !this.State[slot];
-                if (isNullable != type.IsNullable)
+                if (isNullable != true)
                 {
                     return (TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable), slot);
                 }
             }
             return pair;
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Argument shouldn't be a node, it should be a containing slot.
-        private (TypeSymbolWithAnnotations Type, int Slot) GetResult(BoundExpression node, Symbol resultSymbol)
-        {
-            Debug.Assert(resultSymbol.Kind != SymbolKind.Local); // Should be handled in VisitLocal.
-            Debug.Assert(resultSymbol.Kind != SymbolKind.Parameter); // Should be handled in VisitParameter.
-
-            resultSymbol = AsMemberOfResultType(resultSymbol);
-
-            TypeSymbolWithAnnotations resultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(resultSymbol);
-
-            if ((object)resultType != null && !resultType.IsVoid && resultType.IsReferenceType)
-            {
-                // If the symbol is statically declared as not-nullable
-                // or null-oblivious, ignore flow state.
-                if (resultType.IsNullable != true)
-                {
-                    return (resultType, -1);
-                }
-
-                int slot = MakeSlot(node);
-
-                // We are supposed to track information for the node. Use whatever we managed to
-                // accumulate so far.
-                if (slot > 0 && slot < this.State.Capacity)
-                {
-                    var isNullable = !this.State[slot];
-                    if (isNullable != resultType.IsNullable)
-                    {
-                        resultType = TypeSymbolWithAnnotations.Create(resultType.TypeSymbol, isNullable);
-                    }
-                    return (resultType, slot);
-                }
-            }
-
-            return (resultType, -1);
         }
 
         private Symbol AsMemberOfResultType(Symbol symbol)
@@ -1745,11 +1728,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case SymbolKind.Property:
                 case SymbolKind.Event:
-                case SymbolKind.Method:
-                case SymbolKind.NamedType:
                     break;
                 default:
-                    return symbol;
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
             var symbolDef = symbol.OriginalDefinition;
             var symbolDefContainer = symbolDef.ContainingType;
@@ -1817,7 +1798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             var operand = node.Operand;
 
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 switch (node.ConversionKind)
                 {
@@ -2024,7 +2005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckPossibleNullReceiver(receiverOpt);
             }
 
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 SetResult(node);
             }
@@ -2091,9 +2072,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitParameter(BoundParameter node)
         {
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                this.State.Result = GetAdjustedResult(GetDeclaredParameterType(node.ParameterSymbol));
+                this.State.Result = GetAdjustedResult(GetDeclaredParameterResult(node.ParameterSymbol));
             }
 
             return null;
@@ -2107,6 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = this.State.Result;
 
             VisitRvalue(node.Right);
+            var right = this.State.Result;
 
             // byref assignment is also a potential write
             if (node.RefKind != RefKind.None)
@@ -2114,10 +2096,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WriteArgument(node.Right, node.RefKind, method: null);
             }
 
-            var right = this.State.Result;
             TrackNullableStateForAssignment(node.Left, left.Slot, left.Type, node.Right, right.Type, right.Slot);
 
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.Result = node.HasErrors ? (TypeSymbolWithAnnotations.Create(node.Type), -1) : right;
             }
@@ -2230,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations resultType;
             Debug.Assert(!IsConditionalState);
 
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 var leftOnRight = GetAdjustedResult(left);
 
@@ -2359,7 +2340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (type, slot);
         }
 
-        private (TypeSymbolWithAnnotations Type, int Slot) GetDeclaredParameterType(ParameterSymbol parameter)
+        private (TypeSymbolWithAnnotations Type, int Slot) GetDeclaredParameterResult(ParameterSymbol parameter)
         {
             var slot = GetOrCreateSlot(parameter);
             return (parameter.Type, slot);
@@ -2373,13 +2354,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
-            VisitMemberAccess(node, node.ReceiverOpt, node.FieldSymbol, asLvalue: false);
+            VisitMemberAccess(node.ReceiverOpt, node.FieldSymbol, asLvalue: false);
             return null;
         }
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
-            VisitMemberAccess(node, node.ReceiverOpt, node.PropertySymbol, asLvalue: false);
+            VisitMemberAccess(node.ReceiverOpt, node.PropertySymbol, asLvalue: false);
             return null;
         }
 
@@ -2392,7 +2373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.ResultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.Indexer);
             }
@@ -2402,17 +2383,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAccess(BoundEventAccess node)
         {
-            VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol, asLvalue: false);
+            VisitMemberAccess(node.ReceiverOpt, node.EventSymbol, asLvalue: false);
             return null;
         }
 
-        private void VisitMemberAccess(BoundExpression node, BoundExpression receiverOpt, Symbol member, bool asLvalue)
+        private void VisitMemberAccess(BoundExpression receiverOpt, Symbol member, bool asLvalue)
         {
             Debug.Assert(!IsConditionalState);
 
             VisitRvalue(receiverOpt);
 
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 var receiverResult = this.State.Result;
 
@@ -2460,6 +2441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
+            // Should be handled by VisitObjectCreationExpression.
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -2625,7 +2607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind);
                 }
 
                 Debug.Assert((object)trueFalseOperator == null || ((object)logicalOperator != null && left != null));
@@ -2694,7 +2676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     return InferResultNullability((BoundUserDefinedConditionalLogicalOperator)node);
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
         }
 
@@ -2703,7 +2685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitAwaitExpression(node);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 if (!node.Type.IsReferenceType || node.HasErrors || (object)node.GetResult == null)
                 {
@@ -2744,7 +2726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitDefaultExpression(node);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.ResultType = (object)node.Type == null ?
                     null :
@@ -2767,7 +2749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitAsOperator(node);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 bool? isNullable = null;
                 if (node.Type.IsReferenceType)
@@ -2811,7 +2793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitSuppressNullableWarningExpression(node);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.ResultType = this.State.ResultType?.SetUnknownNullabilityForReferenceTypes();
             }
@@ -2847,7 +2829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitLiteral(node);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 var constant = node.ConstantValue;
 
@@ -2920,7 +2902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 if (node.Type?.IsReferenceType == true)
                 {
@@ -3014,10 +2996,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Some Visit methods call SetUnknownResultNullability,
+        // some set ResultType = null directly. Use the same approach for all.
         private void SetUnknownResultNullability()
         {
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 this.State.ResultType = null;
             }
@@ -3041,7 +3025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(!IsConditionalState);
 
-            //if (this.State.Reachable)
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 bool? isNullable = (node.Type?.IsReferenceType == true) ?
                     InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
@@ -3246,8 +3230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : AbstractLocalState
 #endif
         {
-            // PROTOTYPE(NullableReferenceTypes): Consider storing as bool?[] rather than
-            // two BitVectors, and consider storing nullability rather than non-nullability.
+            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability.
             private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
             private BitVector _notNull;
             internal (TypeSymbolWithAnnotations Type, int Slot) Result; // PROTOTYPE(NullableReferenceTypes): Should be return value from the visitor, not mutable state.
