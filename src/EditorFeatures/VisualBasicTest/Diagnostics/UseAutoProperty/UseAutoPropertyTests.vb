@@ -581,7 +581,5 @@ Namespace RoslynSandbox
 End Namespace
 ")
         End Function
-
-
     End Class
 End Namespace
