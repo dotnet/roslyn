@@ -3128,7 +3128,11 @@ class C
             verifier.VerifyDiagnostics();
         }
 
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
         [Fact]
+#endif
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3151,7 +3155,11 @@ class C
             CreateStandardCompilation(source);
         }
 
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
         [Fact]
+#endif
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();

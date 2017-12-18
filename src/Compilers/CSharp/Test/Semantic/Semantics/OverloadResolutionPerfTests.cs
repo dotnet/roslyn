@@ -13,7 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class OverloadResolutionPerfTests : CSharpTestBase
     {
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
         [Fact]
+#endif
         public void Overloads()
         {
             const int n = 3000;
@@ -39,7 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
         [Fact]
+#endif
         public void BinaryOperatorOverloads()
         {
             const int n = 3000;
@@ -153,7 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
         [Fact]
+#endif
         public void ExtensionMethodsWithLambdaAndErrors()
         {
             const int n = 200;

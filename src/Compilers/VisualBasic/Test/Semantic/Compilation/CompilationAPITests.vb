@@ -1884,8 +1884,13 @@ End Class
             End Function
         End Class
 
+#If TEST_IOPERATION_INTERFACE Then
+        <Fact(Skip:="TEST_IOPERATION_INTERFACE")>
+        Public Sub MetadataConsistencyWhileEvolvingCompilation()
+#Else
         <Fact>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
+#End If
             Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim reference = New EvolvingTestReference({md1, md2})

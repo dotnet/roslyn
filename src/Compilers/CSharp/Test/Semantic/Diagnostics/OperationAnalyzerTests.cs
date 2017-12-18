@@ -1306,7 +1306,12 @@ class C
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
         }
 
-        [Fact, WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
+        [Fact]
+#endif
+        [WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
         public void LongArithmeticExpressionCSharp()
         {
             Func<int, string> buildSequenceOfBinaryExpressions =

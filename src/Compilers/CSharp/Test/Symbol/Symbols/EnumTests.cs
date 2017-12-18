@@ -260,7 +260,11 @@ enum F
         }
 
         [WorkItem(843037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
         [Fact]
+#endif
         public void CircularDefinitionManyMembers_Explicit()
         {
             // enum E { M0 = Mn + 1, M1 = M0 + 1, ..., Mn = Mn-1 + 1, }
@@ -273,7 +277,11 @@ enum F
         }
 
         [WorkItem(843037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
         [Fact]
+#endif
         public void InvertedDefinitionManyMembers_Explicit()
         {
             // enum E { M0 = M1 - 1, M1 = M2 - 1, ..., Mn = n, }

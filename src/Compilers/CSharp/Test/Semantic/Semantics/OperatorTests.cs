@@ -7129,7 +7129,11 @@ class Module1
             }
         }
 
-        [Fact()]
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
+        [Fact]
+#endif
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =
@@ -7302,7 +7306,11 @@ class Module1
             Assert.Equal(n, nodes.Length);
         }
 
-        [Fact()]
+#if TEST_IOPERATION_INTERFACE
+        [Fact(Skip = "TEST_IOPERATION_INTERFACE")]
+#else
+        [Fact]
+#endif
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =
