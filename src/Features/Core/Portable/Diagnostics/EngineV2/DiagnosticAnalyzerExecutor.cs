@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,8 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -21,31 +18,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    [ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerExecutor)), Shared]
-    internal class DiagnosticAnalyzerExecutor : IWorkspaceServiceFactory
+    internal partial class DiagnosticIncrementalAnalyzer
     {
-        private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
-
-        [ImportingConstructor]
-        public DiagnosticAnalyzerExecutor([Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-        {
-            // hostDiagnosticUpdateSource can be null in unit test
-            _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new AnalyzerExecutor(_hostDiagnosticUpdateSourceOpt);
-        }
-
-        private class AnalyzerExecutor : ICodeAnalysisDiagnosticAnalyzerExecutor
+        // internal for testing
+        internal class InProcOrRemoteHostAnalyzerRunner
         {
             private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
 
             // TODO: this should be removed once we move options down to compiler layer
             private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
-            public AnalyzerExecutor(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public InProcOrRemoteHostAnalyzerRunner(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             {
                 _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
 
