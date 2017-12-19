@@ -1965,6 +1965,7 @@ public static class Ext
             Assert.Equal(RefKind.In, symbol.RefKind);
         }
 
+        [Fact]
         public void ParameterSymbolsRetrievedThroughSemanticModel_RefExtensionMethods2()
         {
             var code = @"
