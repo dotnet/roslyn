@@ -127,6 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
+        internal override int CallerArgumentExpressionParameterIndex
+            => GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex ?? -1;
+
         private ConstantValue DefaultSyntaxValue
         {
             get
@@ -448,9 +451,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerMemberNameAttribute = true;
                 }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
+                {
+                    return EarlyDecodeAttributeFoCallerInfoAttribute(AttributeDescription.CallerArgumentExpressionAttribute, ref arguments);
+                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
+        private CSharpAttributeData EarlyDecodeAttributeFoCallerInfoAttribute(AttributeDescription description, ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        {
+            Debug.Assert(description.Equals(AttributeDescription.CallerArgumentExpressionAttribute));
+
+            var attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out bool hasAnyDiagnostics);
+            string parameterName;
+            if (attribute.HasErrors)
+            {
+                parameterName = null;
+                hasAnyDiagnostics = true;
+            }
+            else
+            {
+                parameterName = attribute.DecodeParameterName();
+            }
+
+            if (parameterName != null && !hasAnyDiagnostics)
+            {
+                int index = 0;
+                foreach (var parameter in this.ContainingSymbol.GetParameters())
+                {
+                    if (parameter.Name == parameterName)
+                    {
+                        arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().CallerArgumentExpressionParameterIndex = index;
+                        return attribute;
+                    }
+
+                    index++;
+                }
+            }
+
+            return null;
         }
 
         private CSharpAttributeData EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription description, ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
@@ -550,6 +591,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerMemberNameAttribute))
             {
                 ValidateCallerMemberNameAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerArgumentExpressionAttribute))
+            {
+                ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -832,6 +877,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (HasCallerFilePathAttribute)
+            {
+                // CS7080: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+
+            diagnostics.Add(node.Name.Location, useSiteDiagnostics);
+        }
+
+        private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, DiagnosticBag diagnostics)
+        {
+            // TODO(caller-info): check if the parameter name exists
+            // TODO(caller-info): check if the parameter is preceding current parameter
+            // TODO(caller-info): create appropriate diagnostics and unify with others
+
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            if (!IsValidCallerInfoContext(node))
+            {
+                // CS4026: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect because it applies to a
+                //         member that is used in contexts that do not allow optional arguments
+                diagnostics.Add(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type, ref useSiteDiagnostics))
+            {
+                // CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
+                TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerMemberNameParam, node.Name.Location, stringType, Type);
+            }
+            else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
+            {
+                // Unconsumed location checks happen first, so we require a default value.
+
+                // CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
+                diagnostics.Add(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, node.Name.Location);
+            }
+            else if (HasCallerLineNumberAttribute)
+            {
+                // CS7081: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (HasCallerFilePathAttribute)
+            {
+                // CS7080: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (HasCallerMemberNameAttribute)
             {
                 // CS7080: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);

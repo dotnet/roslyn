@@ -11,6 +11,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
     {
+
+        [Fact]
+        public void TestGoodCallerArgumentExpressionAttribute()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute(string p) {}
+    }
+
+    class Test
+    {
+        public static void Main()
+        {
+            Log(123);
+        }
+
+        const string p = nameof(p);
+
+        static void Log(int p, [CallerArgumentExpression(p)] string arg = null)
+        {
+            Console.WriteLine(arg);
+        }
+    }
+}";
+
+            var compilation = CreateStandardCompilation(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "123");
+        }
+
         [Fact]
         public void TestCallerInfoAttributesWithSaneDefaultValues()
         {

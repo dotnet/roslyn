@@ -76,6 +76,26 @@ namespace Microsoft.CodeAnalysis
                 SetDataStored();
             }
         }
+
+        // TODO(caller-info): encapsulate this and the three above in CallerInfoAttributeData
+
+        private int _argumentExpressionParameterIndex = -1;
+        public int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _argumentExpressionParameterIndex;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(_argumentExpressionParameterIndex == -1);
+                _argumentExpressionParameterIndex = value;
+                SetDataStored();
+            }
+        }
+
         #endregion
     }
 }

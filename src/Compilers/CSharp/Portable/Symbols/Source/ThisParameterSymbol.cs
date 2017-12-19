@@ -114,6 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override int CallerArgumentExpressionParameterIndex => -1;
+
         public override int Ordinal
         {
             get { return -1; }

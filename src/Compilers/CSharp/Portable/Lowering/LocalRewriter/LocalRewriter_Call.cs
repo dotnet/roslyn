@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ParameterSymbol parameter = parameters[p];
                     Debug.Assert(parameter.IsOptional);
-                    arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfo);
+                    arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfo, arguments);
                     Debug.Assert(arguments[p].Type == parameter.Type);
                 }
             }
@@ -1126,7 +1126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         enableCallerInfo: ThreeState.Unknown,
                         localRewriter: null,
                         binder: binder,
-                        diagnostics: unusedDiagnostics);
+                        diagnostics: unusedDiagnostics,
+                        argumentsOpt: null);
                     kind = ArgumentKind.DefaultValue;
 
                     unusedDiagnostics.Free();
@@ -1194,10 +1195,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// we will provide caller information as a value of this parameter.
         /// This is done to match the native compiler behavior and user requests (see http://roslyn.codeplex.com/workitem/171). This behavior
         /// does not match the C# spec that currently requires to provide caller information only in explicit invocations and query expressions.
-        /// </remarks>  
-        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, ThreeState enableCallerInfo)
+        /// </remarks>
+        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, ThreeState enableCallerInfo, BoundExpression[] arguments)
         {
-            return GetDefaultParameterValue(syntax, parameter, enableCallerInfo, this, null, this._diagnostics);
+            return GetDefaultParameterValue(syntax, parameter, enableCallerInfo, this, null, this._diagnostics, arguments);
         }
 
         /// <summary>
@@ -1212,7 +1213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ThreeState enableCallerInfo,
             LocalRewriter localRewriter,
             Binder binder,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            BoundExpression[] argumentsOpt)
         {
             Debug.Assert(localRewriter == null ^ binder == null);
             Debug.Assert(diagnostics != null);
@@ -1279,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), compilation.GetSpecialType(SpecialType.System_String), localRewriter);
                 defaultValue = MakeConversionNode(memberNameLiteral, parameterType, @checked: false);
             }
-            else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
+            else if (parameter.IsCallerMemberName && (GetCallerLocation(syntax, enableCallerInfo) != null))
             {
                 string memberName;
 
@@ -1344,6 +1346,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), compilation.GetSpecialType(SpecialType.System_String), localRewriter);
                 defaultValue = MakeConversionNode(memberNameLiteral, parameterType, @checked: false);
+            }
+            else if (isLowering && parameter.CallerArgumentExpressionParameterIndex >= 0 && (GetCallerLocation(syntax, enableCallerInfo) != null))
+            {
+                // TODO(caller-info): handle extension methods
+                // TODO(caller-info): handle IOperation where isLowering is false and argumentsOpt is null
+                var argumnet = argumentsOpt[parameter.CallerArgumentExpressionParameterIndex].Syntax.ToString();
+                var literal = MakeLiteral(syntax, ConstantValue.Create(argumnet), compilation.GetSpecialType(SpecialType.System_String), localRewriter);
+                defaultValue = MakeConversionNode(literal, parameterType, @checked: false);
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
             {

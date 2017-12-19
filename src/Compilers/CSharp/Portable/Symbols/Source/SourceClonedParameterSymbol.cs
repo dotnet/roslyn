@@ -156,6 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsCallerMemberName; }
         }
 
+        internal override int CallerArgumentExpressionParameterIndex => _originalParam.CallerArgumentExpressionParameterIndex;
+
         #endregion
     }
 }

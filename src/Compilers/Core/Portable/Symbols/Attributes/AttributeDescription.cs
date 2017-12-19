@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfCallerFilePathAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfCallerLineNumberAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfCallerMemberNameAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfCallerArgumentExpressionAttribute = { s_signature_HasThis_Void_String };
         private static readonly byte[][] s_signaturesOfIDispatchConstantAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfParamArrayAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfDllImportAttribute = { s_signature_HasThis_Void_String };
@@ -435,6 +436,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription CallerFilePathAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CallerFilePathAttribute", s_signaturesOfCallerFilePathAttribute);
         internal static readonly AttributeDescription CallerLineNumberAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CallerLineNumberAttribute", s_signaturesOfCallerLineNumberAttribute);
         internal static readonly AttributeDescription CallerMemberNameAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CallerMemberNameAttribute", s_signaturesOfCallerMemberNameAttribute);
+        internal static readonly AttributeDescription CallerArgumentExpressionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CallerArgumentExpressionAttribute", s_signaturesOfCallerArgumentExpressionAttribute);
         internal static readonly AttributeDescription IDispatchConstantAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IDispatchConstantAttribute", s_signaturesOfIDispatchConstantAttribute);
         internal static readonly AttributeDescription DefaultParameterValueAttribute = new AttributeDescription("System.Runtime.InteropServices", "DefaultParameterValueAttribute", s_signaturesOfDefaultParameterValueAttribute);
         internal static readonly AttributeDescription UnverifiableCodeAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnverifiableCodeAttribute", s_signaturesOfUnverifiableCodeAttribute);

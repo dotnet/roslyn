@@ -548,6 +548,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        private bool HasCallerArgumentExpressionAttribute
+        {
+            get
+            {
+                // TODO(caller-info): use PackedFlags to cache values
+                // TODO(caller-info): use CallerInfoAttributeData to streamline attribute handling
+                return _moduleSymbol.Module.HasAttribute(_handle,
+                        AttributeDescription.CallerArgumentExpressionAttribute);
+            }
+        }
+
         internal override bool IsCallerLineNumber
         {
             get
@@ -605,6 +616,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
                 return value;
+            }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                // TODO(caller-info): use CallerInfoAttributeData to streamline attribute handling
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                bool isCallerArgumentExpression = !HasCallerLineNumberAttribute
+                                          && !HasCallerFilePathAttribute
+                                          && !HasCallerMemberNameAttribute
+                                          && HasCallerArgumentExpressionAttribute
+                                          && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+
+                if (isCallerArgumentExpression)
+                {
+                    var parameterName = _moduleSymbol.Module.TryGetCallerArgumentExpressionArgumnetName(_handle);
+                    int index = 0;
+                    foreach (var parameter in this._containingSymbol.GetParameters())
+                    {
+                        if (parameterName == parameter.Name)
+                        {
+                            return index;
+                        }
+
+                        index++;
+                    }
+                }
+
+                return -1;
             }
         }
 

@@ -381,6 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        // TODO(caller-info): encapsulate this and the three above in CallerInfoAttributeData
+        internal abstract int CallerArgumentExpressionParameterIndex { get; }
+
         protected sealed override int HighestPriorityUseSiteError
         {
             get

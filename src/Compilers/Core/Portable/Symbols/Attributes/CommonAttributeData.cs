@@ -194,6 +194,11 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        internal string DecodeParameterName()
+        {
+            return this.CommonConstructorArguments[0].DecodeValue<string>(SpecialType.System_String);
+        }
+
         internal ObsoleteAttributeData DecodeObsoleteAttribute(ObsoleteAttributeKind kind)
         {
             switch (kind)
