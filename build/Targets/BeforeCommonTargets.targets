@@ -22,6 +22,11 @@
     <When Condition="'$(RoslynProjectType)' == 'Custom'">
       <!-- Do nothing -->
     </When>
+    <When Condition="'$(RoslynProjectType)' == 'SourcePackage'">
+      <PropertyGroup>
+        <OutputPath>$(OutputPath)SourcePackages\$(MSBuildProjectName)\</OutputPath>
+      </PropertyGroup>
+    </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'Library'">
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
@@ -63,7 +68,7 @@
 
   <PropertyGroup Condition="'$(TargetFrameworks)' != ''">
     <IntermediateOutputPath>$(IntermediateOutputPath)$(TargetFramework.ToLowerInvariant())\</IntermediateOutputPath>
-    <OutputPath>$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
+    <OutputPath Condition="'$(RoslynProjectType)' != 'SourcePackage'">$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
     <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(ProjectLanguage)' == 'CSharp'">$(IntermediateOutputPath)$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 

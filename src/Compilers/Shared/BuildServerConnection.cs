@@ -416,7 +416,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    Process.Start(expectedPath, processArguments);
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = expectedPath,
+                        Arguments = processArguments,
+                        UseShellExecute = false,
+                        WorkingDirectory = clientDir,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    Process.Start(startInfo);
                     return true;
                 }
                 catch

@@ -1394,7 +1394,9 @@ class C
 
                 Assert.Equal("(System.Int32, System.Int32 x) c", model.GetDeclaredSymbol(declarations.ElementAt(6)).ToTestDisplayString());
 
-                Assert.Equal("(System.Int32, System.Int32) d", model.GetDeclaredSymbol(declarations.ElementAt(7)).ToTestDisplayString());
+                var x = (LocalSymbol)model.GetDeclaredSymbol(declarations.ElementAt(7));
+                Assert.Equal("(System.Int32, System.Int32) d", x.ToTestDisplayString());
+                Assert.True(x.Type.TupleElementNames.IsDefault);
 
                 Assert.Equal("(System.Int32 x, System.Int32, System.Int32 y, (System.Int32, System.Int32, System.Int32), (System.Int32 x, System.Int32 y)) nested",
                     model.GetDeclaredSymbol(declarations.ElementAt(8)).ToTestDisplayString());
