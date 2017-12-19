@@ -2069,6 +2069,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_NoArgs()
         {
@@ -2112,6 +2113,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (Operation
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_OneArg()
         {
@@ -2155,6 +2157,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (Operation
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_Optional_NoArgs()
         {
@@ -2205,6 +2208,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_Optional_OneArg()
         {
@@ -2255,6 +2259,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_Optional_TwoArgs()
         {
@@ -2305,6 +2310,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Required_Optional_OneArg()
         {
@@ -2355,6 +2361,7 @@ IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Required_Optional_TwoArgs()
         {
@@ -2405,6 +2412,7 @@ IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_CompoundAssignment_Optional_Optional_OneArg()
         {
@@ -2484,6 +2492,7 @@ IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1],
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_CompoundAssignment_Optional_Optional_TwoArgs()
         {
@@ -2563,6 +2572,7 @@ IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1],
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_CompoundAssignment_Required_Optional_OneArg()
         {
@@ -2642,6 +2652,7 @@ IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in S
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_CompoundAssignment_Required_Optional_TwoArgs()
         {
@@ -2721,6 +2732,7 @@ IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in S
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void Issue23691_PassingInOptionalArgumentsByRef_OneArg()
         {
@@ -2773,6 +2785,7 @@ IInvocationOperation (void Program.A([in System.Double x = 1], [in System.String
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
         [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void Issue23691_PassingInOptionalArgumentsByRef_TwoArgs()
         {
