@@ -2698,7 +2698,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var argument in arguments)
                 {
-                    VisitRvalue(argument);
+                    MethodSymbol method = null;
+
+                    if (node.MemberSymbol?.Kind == SymbolKind.Property)
+                    {
+                        var property = (PropertySymbol)node.MemberSymbol;
+                        method = GetReadMethod(property);
+                    }
+
+                    VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method);
                 }
             }
 
