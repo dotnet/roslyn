@@ -6339,7 +6339,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "finally", CSharpFeaturesResources.finally_clause));
         }
 
-        [Fact]
+        [Fact, WorkItem(23865, "https://github.com/dotnet/roslyn/issues/23865")]
         public void TryCatchFinally_Regions()
         {
             string src1 = @"
@@ -6402,6 +6402,103 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
+            // TODO: this is incorrect, we need to report a rude edit:
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact, WorkItem(23865, "https://github.com/dotnet/roslyn/issues/23865")]
+        public void TryCatchFinally2_Regions()
+        {
+            string src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        try
+        {    
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        <AS:1>Goo();</AS:1>
+                    }
+                    <ER:1.3>catch 
+                    {
+                    }</ER:1.3>
+                }
+                <ER:1.2>catch (Exception)
+                {
+                }</ER:1.2>
+            }
+            <ER:1.1>finally
+            {
+            }</ER:1.1>
+        }
+        <ER:1.0>catch (IOException)
+        {
+            
+        }
+        finally
+        {
+            
+        }</ER:1.0>
+    }
+
+    static void Goo()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        try
+        {    
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        <AS:1>Goo();</AS:1>
+                    }
+                    <ER:1.3>catch 
+                    {
+
+                    }</ER:1.3>
+                }
+                <ER:1.2>catch (Exception)
+                {
+                }</ER:1.2>
+            }
+            <ER:1.1>finally
+            {
+            }</ER:1.1>
+        }
+        <ER:1.0>catch (IOException)
+        {
+            
+        }
+        finally
+        {
+            
+        }</ER:1.0>
+    }
+
+    static void Goo()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // TODO: this is incorrect, we need to report a rude edit since an ER span has been changed (empty line added):
             edits.VerifyRudeDiagnostics(active);
         }
 

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly int ActiveStatementDebuggerId;
 
         /// <summary>
-        /// The ordinal of the exception region in a sequence of exception regions that contain the active statement.
+        /// The ordinal of the exception region in a sequence of exception regions that are associated with the active statement.
         /// </summary>
         public readonly int Ordinal;
 

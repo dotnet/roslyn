@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return ImmutableArray.Create<LinePositionSpan>();
             }
 
-            var result = new List<LinePositionSpan>();
+            var result = ArrayBuilder<LinePositionSpan>.GetInstance();
 
             for (int i = exceptionHandlingAncestors.Count - 1; i >= 0; i--)
             {
@@ -1481,14 +1481,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 result.Add(text.Lines.GetLinePositionSpan(span));
 
                 // Exception regions describe regions of code that can't be edited.
-                // If the span covers all of the nodes children we don't need to descend further.
+                // If the span covers all the children nodes we don't need to descend further.
                 if (coversAllChildren)
                 {
                     break;
                 }
             }
 
-            return result.AsImmutable();
+            return result.ToImmutableAndFree();
         }
 
         private TextSpan GetDeletedNodeDiagnosticSpan(SyntaxNode deletedLambdaBody, Match<SyntaxNode> match, Dictionary<SyntaxNode, LambdaInfo> lambdaInfos)

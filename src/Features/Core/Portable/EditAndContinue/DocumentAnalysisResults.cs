@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// For example:
         ///   try { } |finally { try { ... AS ... } catch {  } }|
         ///   try { } |finally { try { } catch { ... AS ... } }|
+        ///   try { try { } |finally { ... AS ... }| } |catch { } catch { } finally { }|
         /// </remarks>
         public readonly ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions;
 
