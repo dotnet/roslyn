@@ -8581,6 +8581,11 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAsyncStreams">
+        <source>async streams</source>
+        <target state="new">async streams</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
