@@ -41,7 +41,7 @@ End Class
 
         <Fact>
         <WorkItem(23659, "https://github.com/dotnet/roslyn/issues/23659")>
-        Public Async Function TestBug() As Task
+        Public Async Function TestMissingForObjectCreation() As Task
             Await TestMissingAsync(
 "
 Public Class C
