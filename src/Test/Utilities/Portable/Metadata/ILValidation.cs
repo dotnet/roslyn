@@ -21,6 +21,8 @@ namespace Roslyn.Test.Utilities
 {
     public static class ILValidation
     {
+        private const int ChecksumOffset = 0x40;
+
         /// <summary>
         /// Validates that the given stream is marked as signed, the signature matches
         /// the public key, and the header checksum is correct.
@@ -73,7 +75,6 @@ namespace Roslyn.Test.Utilities
 
                     byte[] buffer = GetBlobBuffer(peImage.GetBlobs().Single());
 
-                    const int ChecksumOffset = 0x40;
                     uint expectedChecksum = peHeaders.PEHeader.CheckSum;
                     Blob checksumBlob = MakeBlob(buffer, peHeaders.PEHeaderStartOffset + ChecksumOffset, sizeof(uint));
 
@@ -132,11 +133,11 @@ namespace Roslyn.Test.Utilities
             // Signature is calculated with the checksum and authenticode signature zeroed
             new BlobWriter(checksumBlob).WriteUInt32(0);
             var buffer = peImage.GetBlobs().Single().GetBytes().Array;
-            int AuthenticodeOffset = is32bit ? 280 : 296;
+            int authenticodeOffset = GetAuthenticodeOffset(peHeaders, is32bit);
             var authenticodeDir = peHeaders.PEHeader.CertificateTableDirectory;
             for (int i = 0; i < 2 * sizeof(int); i++)
             {
-                buffer[AuthenticodeOffset + i] = 0;
+                buffer[authenticodeOffset + i] = 0;
             }
 
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
@@ -167,6 +168,19 @@ namespace Roslyn.Test.Utilities
 
                 return hash.GetHashAndReset();
             }
+        }
+
+        private static int GetAuthenticodeOffset(PEHeaders peHeaders, bool is32bit)
+        {
+            return peHeaders.PEHeaderStartOffset
+                + ChecksumOffset
+                + sizeof(int)                                  // Checksum
+                + sizeof(short)                                // Subsystem
+                + sizeof(short)                                // DllCharacteristics
+                + 4 * (is32bit ? sizeof(int) : sizeof(long)) + // SizeOfStackReserve, SizeOfStackCommit, SizeOfHeapReserve, SizeOfHeapCommit
+                + sizeof(int) +                                // LoaderFlags
+                + sizeof(int) +                                // NumberOfRvaAndSizes
+                + 4 * sizeof(long);                            // directory entries before Authenticode
         }
 
         private static MethodInfo s_peheaderSizeMethod;
