@@ -15,12 +15,12 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 namespace Microsoft.CodeAnalysis.Remote
 {
     // root level service for all Roslyn services
-    internal partial class CodeAnalysisService
+    internal partial class CodeAnalysisService : IRemoteDiagnosticAnalyzerService
     {
         /// <summary>
-        /// This is top level entry point for diagnostic calculation from client (VS).
-        /// 
-        /// This will be called by ServiceHub/JsonRpc framework
+        /// Calculate dignostics. this works differently than other ones such as todo comments or designer attribute scanner
+        /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
+        /// that needs to pass through between processes
         /// </summary>
         public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken)
         {

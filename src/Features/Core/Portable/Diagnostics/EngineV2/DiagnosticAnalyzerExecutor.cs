@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         session.AddAdditionalAssets(optionAsset);
 
                         var result = await session.InvokeAsync(
-                            WellKnownServiceHubServices.CodeAnalysisService_CalculateDiagnosticsAsync,
+                            nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                             new object[] { argument },
                             (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
 
