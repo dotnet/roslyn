@@ -2499,7 +2499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<RefKind> parameterRefKinds)
         {
             bool hasAnyRefOmittedArgument;
-            var effectiveParameters = expanded ?
+            EffectiveParameters effectiveParameters = expanded ?
                 GetEffectiveParametersInExpandedForm(method, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument) :
                 GetEffectiveParametersInNormalForm(method, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument);
             parameterTypes = effectiveParameters.ParameterTypes;
@@ -2557,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var parameter = parameters[parm];
-                types.Add(binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter));
+                types.Add(parameter.Type);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
@@ -2624,7 +2624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 var parameter = parameters[parm];
-                var type = binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter);
+                var type = parameter.Type;
 
                 types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type.TypeSymbol).ElementType : type);
 
