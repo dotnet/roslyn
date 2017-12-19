@@ -4707,6 +4707,34 @@ class C
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[1].Type).ToTestDisplayString());
         }
 
+        [Fact]
+        [WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")]
+        public void StandAlone_05_WithDuplicateNames()
+        {
+            string source1 = @"
+using var = System.Int32;
+
+class C
+{
+    static void Main()
+    {
+        (var (a, a), var c);
+    }
+}
+";
+
+            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+
+            var tree = comp1.SyntaxTrees.Single();
+            var model = comp1.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var aa = nodes.OfType<DeclarationExpressionSyntax>().ElementAt(0);
+            Assert.Equal("var (a, a)", aa.ToString());
+            var aaType = (TypeSymbol)model.GetTypeInfo(aa).Type;
+            Assert.True(aaType.TupleElementNames.IsDefault);
+        }
+
         [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_06()
         {
