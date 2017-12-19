@@ -115,6 +115,14 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+
+    <!-- This reference is necessary to pull down the assemblies we compile + run against 
+         in the compiler layer when running on CoreClr. Don't actually want to reference 
+         anything here, just have it available -->
+    <PackageReference Include="NETStandard.Library" Version="$(NETStandardLibraryFixedVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>all</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ProjectExtensions />
 </Project>
