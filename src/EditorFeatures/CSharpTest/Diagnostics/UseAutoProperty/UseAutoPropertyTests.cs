@@ -1124,5 +1124,41 @@ partial class Class
     int P { get; } = 1;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task ExpressionBodiedGetterAndSetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int [|i|];
+    int P { 
+        get => i;
+        set => i = value;
+    }
+}",
+@"class Class
+{
+    int P { get; set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task ExpressionBodiedGetterAndSetterWithInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int [|i|] = 1;
+    int P { 
+        get => i;
+        set => i = value;
+    }
+}",
+@"class Class
+{
+    int P { get; set; } = 1;
+}");
+        }
     }
 }

@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             {
                 case AccessorDeclarationSyntax accessorDeclaration:
                     return accessorDeclaration.ExpressionBody?.Expression ??
-                           GetReturnExpressionFromSingleStatementBlock(accessorDeclaration.Body);
+                           GetSingleStatementFromAccessor<ReturnStatementSyntax>(accessorDeclaration)?.Expression;
                 case ArrowExpressionClauseSyntax arrowExpression:
                     return arrowExpression.Expression;
                 case null: return null;
@@ -165,16 +165,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             }
         }
 
-        private ExpressionSyntax GetReturnExpressionFromSingleStatementBlock(BlockSyntax block)
+        private T GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax accessorDeclaration) where T : StatementSyntax
         {
-            var statements = block?.Statements;
+            var statements = accessorDeclaration?.Body?.Statements;
             if (statements?.Count == 1)
             {
                 var statement = statements.Value[0];
-                if (statement.Kind() == SyntaxKind.ReturnStatement)
-                {
-                    return ((ReturnStatementSyntax)statement).Expression;
-                }
+                return statement as T;
             }
 
             return null;
@@ -184,30 +181,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         {
             // Setter has to be of the form:
             //
-            //     set { field = value; } or
+            //     set { field = value; }
             //     set { this.field = value; }
+            //     set => field = value; 
+            //     set => this.field = value; 
             var setAccessor = setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
-            var statements = setAccessor?.Body?.Statements;
-            if (statements?.Count == 1)
+            var setExpression = GetExpressionFromSetter(setAccessor);
+            if (setExpression?.Kind() == SyntaxKind.SimpleAssignmentExpression)
             {
-                var statement = statements.Value[0];
-                if (statement.IsKind(SyntaxKind.ExpressionStatement))
+                var assignmentExpression = (AssignmentExpressionSyntax)setExpression;
+                if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
+                    ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
                 {
-                    var expressionStatement = (ExpressionStatementSyntax)statement;
-                    if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
-                    {
-                        var assignmentExpression = (AssignmentExpressionSyntax)expressionStatement.Expression;
-                        if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
-                            ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
-                        {
-                            return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
-                        }
-                    }
+                    return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
                 }
             }
 
             return null;
         }
+
+        private ExpressionSyntax GetExpressionFromSetter(AccessorDeclarationSyntax setAccessor)
+            => setAccessor?.ExpressionBody?.Expression ??
+               GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
 
         protected override SyntaxNode GetNodeToFade(FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
         {
