@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         internal Compilation Compilation;
 
         public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args)
-            : this(responseFile, baseDirectory, args, ImmutableArray<DiagnosticAnalyzer>.Empty, new ThrowingAnalyzerAssemblyLoader())
+            : this(responseFile, baseDirectory, args, ImmutableArray<DiagnosticAnalyzer>.Empty, RuntimeUtilities.CreateAnalyzerAssemblyLoader())
         {
         }
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _analyzers = analyzers;
         }
 
-        private static BuildPaths CreateBuildPaths(string workingDirectory) => BuildPathsUtil.Create(workingDirectory);
+        private static BuildPaths CreateBuildPaths(string workingDirectory) => RuntimeUtilities.CreateBuildPaths(workingDirectory);
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
