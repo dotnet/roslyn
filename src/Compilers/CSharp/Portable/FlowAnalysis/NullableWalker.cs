@@ -516,17 +516,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableState()
         {
-            return new LocalState(BitVector.Create(nextVariableSlot), BitVector.Create(nextVariableSlot), (null, -1));
+            return new LocalState(BitVector.Create(nextVariableSlot), BitVector.Create(nextVariableSlot), Result.Unset);
         }
 
         protected override LocalState UnreachableState()
         {
-            return new LocalState(BitVector.Empty, BitVector.Empty, (null, -1));
+            return new LocalState(BitVector.Empty, BitVector.Empty, Result.Unset);
         }
 
         protected override LocalState AllBitsSet()
         {
-            return new LocalState(BitVector.Create(nextVariableSlot), BitVector.Create(nextVariableSlot), (null, -1));
+            return new LocalState(BitVector.Create(nextVariableSlot), BitVector.Create(nextVariableSlot), Result.Unset);
         }
 
         private void EnterParameters(ImmutableArray<ParameterSymbol> parameters)
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initializer != null)
             {
                 VisitRvalue(initializer);
-                var value = this.State.Result;
+                Result value = this.State.Result;
                 TypeSymbolWithAnnotations type = local.Type;
                 TypeSymbolWithAnnotations valueType = value.Type;
 
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitObjectCreationInitializer(receiver, slot, initializerOpt);
             }
 
-            this.State.Result = (TypeSymbolWithAnnotations.Create(node.Type), slot);
+            this.State.Result = Result.Create(TypeSymbolWithAnnotations.Create(node.Type), slot);
         }
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argument = arguments[i];
                     VisitRvalue(argument);
 
-                    var argumentResult = this.State.Result;
+                    Result argumentResult = this.State.Result;
                     var parameter = constructor.Parameters[i];
                     WarnOnNullReferenceArgument(argument, argumentResult.Type, parameter, expanded: false);
 
@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(NullableReferenceType): Result.Type may need to be a new anonymous
                 // type since the properties may have distinct nullability from original.
                 // (See StaticNullChecking_FlowAnalysis.AnonymousObjectCreation_02.)
-                this.State.Result = (TypeSymbolWithAnnotations.Create(node.Type), receiverSlot);
+                this.State.Result = Result.Create(TypeSymbolWithAnnotations.Create(node.Type), receiverSlot);
                 return null;
             }
             else
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var element in elementBuilder)
             {
                 VisitRvalue(element);
-                var elementResult = this.State.Result;
+                Result elementResult = this.State.Result;
                 if (typeBuilder != null)
                 {
                     typeBuilder.Add(elementResult.Type);
@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckPossibleNullReceiver(receiverOpt);
             }
 
-            var results = VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
+            ImmutableArray<Result> results = VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
             if (method.IsGenericMethod && !HasExplicitTypeArguments(node))
             {
                 method = InferMethod(node, method, results.SelectAsArray(r => r.Type));
@@ -1511,11 +1511,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
-            var results = VisitArgumentsEvaluate(arguments, refKindsOpt, method, argsToParamsOpt, expanded);
+            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, method, argsToParamsOpt, expanded);
             VisitArgumentsWarn(arguments, refKindsOpt, method, argsToParamsOpt, expanded, results);
         }
 
-        private ImmutableArray<(TypeSymbolWithAnnotations Type, int Slot)> VisitArgumentsEvaluate(
+        private ImmutableArray<Result> VisitArgumentsEvaluate(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
             MethodSymbol method,
@@ -1526,9 +1526,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             int n = arguments.Length;
             if (n == 0)
             {
-                return ImmutableArray<(TypeSymbolWithAnnotations, int)>.Empty;
+                return ImmutableArray<Result>.Empty;
             }
-            var builder = ArrayBuilder<(TypeSymbolWithAnnotations, int)>.GetInstance(n);
+            var builder = ArrayBuilder<Result>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
                 RefKind refKind = GetRefKind(refKindsOpt, i);
@@ -1553,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded,
-            ImmutableArray<(TypeSymbolWithAnnotations Type, int Slot)> results)
+            ImmutableArray<Result> results)
         {
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -1690,15 +1690,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Adjust declared type based on inferred nullability at the point of reference.
         /// </summary>
-        private (TypeSymbolWithAnnotations Type, int Slot) GetAdjustedResult((TypeSymbolWithAnnotations Type, int Slot) pair)
+        private Result GetAdjustedResult(Result pair)
         {
-            var (type, slot) = pair;
+            var type = pair.Type;
+            var slot = pair.Slot;
             if (type.IsNullable != false && slot > 0 && slot < this.State.Capacity)
             {
                 bool? isNullable = !this.State[slot];
                 if (isNullable != type.IsNullable)
                 {
-                    return (TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable), slot);
+                    return Result.Create(TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable), slot);
                 }
             }
             return pair;
@@ -2065,7 +2066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var thisParameter = MethodThisParameter;
             int slot = (object)thisParameter == null ? -1 : GetOrCreateSlot(thisParameter);
-            this.State.Result = (TypeSymbolWithAnnotations.Create(node.Type), slot);
+            this.State.Result = Result.Create(TypeSymbolWithAnnotations.Create(node.Type), slot);
         }
 
         public override BoundNode VisitParameter(BoundParameter node)
@@ -2099,7 +2100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                this.State.Result = node.HasErrors ? (TypeSymbolWithAnnotations.Create(node.Type), -1) : right;
+                this.State.Result = node.HasErrors ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : right;
             }
 
             return null;
@@ -2324,7 +2325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(symbol);
         }
 
-        private (TypeSymbolWithAnnotations Type, int Slot) GetDeclaredLocalResult(LocalSymbol local)
+        private Result GetDeclaredLocalResult(LocalSymbol local)
         {
             var slot = GetOrCreateSlot(local);
             TypeSymbolWithAnnotations type;
@@ -2332,13 +2333,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 type = local.Type;
             }
-            return (type, slot);
+            return Result.Create(type, slot);
         }
 
-        private (TypeSymbolWithAnnotations Type, int Slot) GetDeclaredParameterResult(ParameterSymbol parameter)
+        private Result GetDeclaredParameterResult(ParameterSymbol parameter)
         {
             var slot = GetOrCreateSlot(parameter);
-            return (parameter.Type, slot);
+            return Result.Create(parameter.Type, slot);
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
@@ -2421,7 +2422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                this.State.Result = (resultType, slot);
+                this.State.Result = Result.Create(resultType, slot);
             }
         }
 
@@ -3221,6 +3222,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal struct Result
+        {
+            internal readonly TypeSymbolWithAnnotations Type;
+            internal readonly int Slot;
+
+            internal static readonly Result Unset = new Result(null, -1);
+
+            internal static Result Create(TypeSymbolWithAnnotations type, int slot = -1)
+            {
+                return new Result(type, slot);
+            }
+
+            private Result(TypeSymbolWithAnnotations type, int slot)
+            {
+                Type = type;
+                Slot = slot;
+            }
+        }
+
 #if REFERENCE_STATE
         internal class LocalState : AbstractLocalState
 #else
@@ -3230,15 +3250,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability.
             private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
             private BitVector _notNull;
-            internal (TypeSymbolWithAnnotations Type, int Slot) Result; // PROTOTYPE(NullableReferenceTypes): Should be return value from the visitor, not mutable state.
+            internal Result Result; // PROTOTYPE(NullableReferenceTypes): Should be return value from the visitor, not mutable state.
 
             internal TypeSymbolWithAnnotations ResultType
             {
                 get => Result.Type;
-                set => Result = (value, -1);
+                set => Result = Result.Create(value);
             }
 
-            internal LocalState(BitVector unknownNullState, BitVector notNull, (TypeSymbolWithAnnotations Type, int Slot) result)
+            internal LocalState(BitVector unknownNullState, BitVector notNull, Result result)
             {
                 Debug.Assert(!unknownNullState.IsNull);
                 Debug.Assert(!notNull.IsNull);
