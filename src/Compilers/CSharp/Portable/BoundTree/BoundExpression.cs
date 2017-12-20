@@ -568,6 +568,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return (object)this.GetResult == null; }
         }
+
+        internal BoundAwaitExpression WithExpression(BoundExpression newExpression)
+        {
+            return this.Update(newExpression, this.GetAwaiter, this.IsCompleted, this.GetResult, this.Type);
+        }
     }
 
     internal partial class BoundCollectionElementInitializer

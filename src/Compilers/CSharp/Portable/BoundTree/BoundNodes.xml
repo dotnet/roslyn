@@ -90,6 +90,13 @@
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
+  <!--
+  This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
+  It will be replaced by an actual bound node during lowering.
+  -->
+  <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -892,6 +899,8 @@
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
+    <!-- A bound await, but with a placeholder instead of an awaited expression -->
+    <Field Name="AwaitOpt" Type="BoundAwaitExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">

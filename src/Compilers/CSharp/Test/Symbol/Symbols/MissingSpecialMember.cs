@@ -562,6 +562,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
+                    case WellKnownType.System_IAsyncDisposable:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -591,7 +592,7 @@ namespace System
 
                 var symbol = comp.GetWellKnownType(wkt);
                 Assert.NotNull(symbol);
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                Assert.True(symbol.Kind != SymbolKind.ErrorType, $"{wkt} should not be an error type");
             }
         }
 
@@ -865,6 +866,7 @@ namespace System
                     case WellKnownMember.System_Span_T__get_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -877,7 +879,7 @@ namespace System
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.
 
                 var symbol = comp.GetWellKnownTypeMember(wkm);
-                Assert.NotNull(symbol);
+                Assert.True((object)symbol != null, $"Unexpected null for {wkm}");
             }
         }
 

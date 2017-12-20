@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -311,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// A pending branch.  There are created for a return, break, continue, goto statement,
-        /// yield return, yield break, await expression, and if PreciseAbstractFlowPass.trackExceptions
+        /// yield return, yield break, await expression, foreach/using await, and if PreciseAbstractFlowPass.trackExceptions
         /// is true for other
         /// constructs that can cause an exception to be raised such as a throw statement or method
         /// invocation.
@@ -2469,6 +2470,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitStatement(node.DeclarationsOpt);
             }
 
+            if (((UsingStatementSyntax)node.Syntax).AwaitKeyword != default)
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.State));
+            }
             if (_trackExceptions) NotePossibleException(node);
             VisitStatement(node.Body);
             return null;

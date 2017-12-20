@@ -2924,6 +2924,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
     <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</value>
   </data>
+  <data name="ERR_NoConvToIAsyncDisp" xml:space="preserve">
+    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</value>
+  </data>
   <data name="ERR_BadParamRef" xml:space="preserve">
     <value>Parameter {0} must be declared with the '{1}' keyword</value>
   </data>

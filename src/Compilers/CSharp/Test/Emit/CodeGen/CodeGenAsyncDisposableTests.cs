@@ -1,0 +1,900 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+{
+    [CompilerTrait(CompilerFeature.AsyncStreams)]
+    public class CodeGenAsyncDisposableTests : CSharpTestBase
+    {
+        private static readonly string s_interfaces = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.Task DisposeAsync();
+    }
+}
+";
+
+        [Fact]
+        public void TestWithCSharp7_1()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    async System.Threading.Tasks.Task M()
+    {
+        using await (var x = new C())
+        {
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS8302: Feature 'async streams' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "await").WithArguments("async streams", "7.2").WithLocation(6, 15)
+                );
+            // PROTOTYPE(async-streams) LangVersion for async-streams will be adjusted before release
+        }
+
+        [Fact]
+        public void TestInNonAsyncVoidMethod()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    void M()
+    {
+        using await (var x = new C())
+        {
+            return;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,22): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "var x = new C()").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void TestInNonAsyncMethodReturningInt()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    int M()
+    {
+        using await (var x = new C())
+        {
+            return 1;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,22): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "var x = new C()").WithArguments("int").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void TestInNonAsyncAnonymousMethod()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    void M()
+    {
+        System.Action x = () =>
+        {
+            using await (var y = new C())
+            {
+                return;
+            }
+        };
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (8,26): error CS4034: The 'await' operator can only be used within an async lambda expression. Consider marking this lambda expression with the 'async' modifier.
+                //             using await (var y = new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncLambda, "var y = new C()").WithArguments("lambda expression").WithLocation(8, 26)
+                );
+        }
+
+        [Fact]
+        public void TestInAsyncAnonymousMethod()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    C()
+    {
+        System.Console.Write(""C "");
+    }
+    public static void Main()
+    {
+        System.Action x = async () =>
+        {
+            using await (var y = new C())
+            {
+                System.Console.Write(""body "");
+                return;
+            }
+        };
+        x();
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C body DisposeAsync");
+        }
+
+        [Fact]
+        public void TestInUnsafeRegion()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    async System.Threading.Tasks.Task<int> M<T>()
+    {
+        unsafe
+        {
+            using await (var x = new C())
+            {
+                return 1;
+            }
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (8,26): error CS4004: Cannot await in an unsafe context
+                //             using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "var x = new C()").WithLocation(8, 26)
+                );
+        }
+
+        [Fact]
+        public void TestInLock()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    async System.Threading.Tasks.Task<int> M<T>()
+    {
+        lock(this)
+        {
+            using await (var x = new C())
+            {
+                return 1;
+            }
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (8,26): error CS1996: Cannot await in the body of a lock statement
+                //             using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitInLock, "var x = new C()").WithLocation(8, 26)
+                );
+        }
+
+        [Fact]
+        public void TestInCatchBlock()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        try
+        {
+            System.Console.Write(""try "");
+            throw new System.ArgumentNullException();
+        }
+        catch (System.ArgumentNullException)
+        {
+            using await (var x = new C())
+            {
+                System.Console.Write(""using "");
+                return;
+            }
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""dispose"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "try using dispose");
+        }
+
+        [Fact]
+        public void TestInFinallyBlock()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    async System.Threading.Tasks.Task<int> M()
+    {
+        try
+        {
+        }
+        finally
+        {
+            using await (var x = new C())
+            {
+            }
+        }
+        return 1;
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS0157: Control cannot leave the body of a finally clause
+                //             using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "using").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void TestMissingIAsyncDisposable()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task<int> M()
+    {
+        using await (new C())
+        {
+        }
+        using await (var x = new C())
+        {
+            return 1;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
+                //         using await (new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 15),
+                // (9,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 15)
+                );
+        }
+
+        [Fact]
+        public void TestMissingDisposeAsync()
+        {
+            string source = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        // missing DisposeAsync
+    }
+}
+class C : System.IAsyncDisposable
+{
+    async System.Threading.Tasks.Task<int> M()
+    {
+        using await (new C()) { }
+        using await (var x = new C()) { return 1; }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                //         using await (new C()) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (new C()) { }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 9),
+                // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                //         using await (var x = new C()) { return 1; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (var x = new C()) { return 1; }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void TestBadDisposeAsync()
+        {
+            string source = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        int DisposeAsync(); // bad return type
+    }
+}
+class C : System.IAsyncDisposable
+{
+    async System.Threading.Tasks.Task<int> M<T>()
+    {
+        using await (new C()) { }
+        using await (var x = new C()) { return 1; }
+    }
+    public int DisposeAsync()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                //         using await (new C()) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (new C()) { }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 9),
+                // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                //         using await (var x = new C()) { return 1; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (var x = new C()) { return 1; }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void TestMissingTaskType()
+        {
+            string lib_cs = @"
+public class Base : System.IAsyncDisposable
+{
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+
+            string comp_cs = @"
+public class C : Base
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        using await (var x = new C())
+        {
+            System.Console.Write(""body "");
+            return 1;
+        }
+    }
+}
+";
+            var libComp = CreateCompilationWithMscorlib46(lib_cs + s_interfaces);
+            var comp = CreateCompilationWithMscorlib46(comp_cs, references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.Task").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void TestWithDeclaration()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        using await (var x = new C())
+        {
+            System.Console.Write(""body "");
+            return 1;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void TestWithMultipleDeclarations()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    int _i;
+    C(int i) { _i = i; }
+
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        using await (C x = new C(1), y = new C(2))
+        {
+            System.Console.Write(""body "");
+            return 1;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write($""DisposeAsync{_i} "");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync2 DisposeAsync1");
+        }
+
+        [Fact]
+        public void TestWithDynamicDeclaration()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        using await (dynamic x = new C())
+        {
+            System.Console.Write(""body "");
+            return 1;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void TestWithExpression()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        using await (new C())
+        {
+            System.Console.Write(""body "");
+            return;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      302 (0x12e)
+  .maxstack  3
+  .locals init (int V_0,
+                object V_1,
+                System.Runtime.CompilerServices.TaskAwaiter V_2,
+                C.<Main>d__0 V_3,
+                System.Exception V_4,
+                int V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_0011
+    IL_000c:  br         IL_0095
+    IL_0011:  nop
+    IL_0012:  ldarg.0
+    IL_0013:  newobj     ""C..ctor()""
+    IL_0018:  stfld      ""C C.<Main>d__0.<>s__1""
+    IL_001d:  ldarg.0
+    IL_001e:  ldnull
+    IL_001f:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.0
+    IL_0026:  stfld      ""int C.<Main>d__0.<>s__3""
+    .try
+    {
+      IL_002b:  nop
+      IL_002c:  ldstr      ""body ""
+      IL_0031:  call       ""void System.Console.Write(string)""
+      IL_0036:  nop
+      IL_0037:  br.s       IL_0039
+      IL_0039:  ldarg.0
+      IL_003a:  ldc.i4.1
+      IL_003b:  stfld      ""int C.<Main>d__0.<>s__3""
+      IL_0040:  leave.s    IL_004c
+    }
+    catch object
+    {
+      IL_0042:  stloc.1
+      IL_0043:  ldarg.0
+      IL_0044:  ldloc.1
+      IL_0045:  stfld      ""object C.<Main>d__0.<>s__2""
+      IL_004a:  leave.s    IL_004c
+    }
+    IL_004c:  ldarg.0
+    IL_004d:  ldfld      ""C C.<Main>d__0.<>s__1""
+    IL_0052:  brfalse.s  IL_00b9
+    IL_0054:  ldarg.0
+    IL_0055:  ldfld      ""C C.<Main>d__0.<>s__1""
+    IL_005a:  callvirt   ""System.Threading.Tasks.Task System.IAsyncDisposable.DisposeAsync()""
+    IL_005f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_0064:  stloc.2
+    IL_0065:  ldloca.s   V_2
+    IL_0067:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_006c:  brtrue.s   IL_00b1
+    IL_006e:  ldarg.0
+    IL_006f:  ldc.i4.0
+    IL_0070:  dup
+    IL_0071:  stloc.0
+    IL_0072:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0077:  ldarg.0
+    IL_0078:  ldloc.2
+    IL_0079:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<Main>d__0.<>u__1""
+    IL_007e:  ldarg.0
+    IL_007f:  stloc.3
+    IL_0080:  ldarg.0
+    IL_0081:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0086:  ldloca.s   V_2
+    IL_0088:  ldloca.s   V_3
+    IL_008a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Main>d__0)""
+    IL_008f:  nop
+    IL_0090:  leave      IL_012d
+    IL_0095:  ldarg.0
+    IL_0096:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<Main>d__0.<>u__1""
+    IL_009b:  stloc.2
+    IL_009c:  ldarg.0
+    IL_009d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<Main>d__0.<>u__1""
+    IL_00a2:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_00a8:  ldarg.0
+    IL_00a9:  ldc.i4.m1
+    IL_00aa:  dup
+    IL_00ab:  stloc.0
+    IL_00ac:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00b1:  ldloca.s   V_2
+    IL_00b3:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_00b8:  nop
+    IL_00b9:  ldarg.0
+    IL_00ba:  ldfld      ""object C.<Main>d__0.<>s__2""
+    IL_00bf:  stloc.1
+    IL_00c0:  ldloc.1
+    IL_00c1:  brfalse.s  IL_00de
+    IL_00c3:  ldloc.1
+    IL_00c4:  isinst     ""System.Exception""
+    IL_00c9:  stloc.s    V_4
+    IL_00cb:  ldloc.s    V_4
+    IL_00cd:  brtrue.s   IL_00d1
+    IL_00cf:  ldloc.1
+    IL_00d0:  throw
+    IL_00d1:  ldloc.s    V_4
+    IL_00d3:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00d8:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00dd:  nop
+    IL_00de:  ldarg.0
+    IL_00df:  ldfld      ""int C.<Main>d__0.<>s__3""
+    IL_00e4:  stloc.s    V_5
+    IL_00e6:  ldloc.s    V_5
+    IL_00e8:  ldc.i4.1
+    IL_00e9:  beq.s      IL_00ed
+    IL_00eb:  br.s       IL_00ef
+    IL_00ed:  leave.s    IL_0119
+    IL_00ef:  ldarg.0
+    IL_00f0:  ldnull
+    IL_00f1:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_00f6:  ldarg.0
+    IL_00f7:  ldnull
+    IL_00f8:  stfld      ""C C.<Main>d__0.<>s__1""
+    IL_00fd:  leave.s    IL_0119
+  }
+  catch System.Exception
+  {
+    IL_00ff:  stloc.s    V_4
+    IL_0101:  ldarg.0
+    IL_0102:  ldc.i4.s   -2
+    IL_0104:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0109:  ldarg.0
+    IL_010a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_010f:  ldloc.s    V_4
+    IL_0111:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0116:  nop
+    IL_0117:  leave.s    IL_012d
+  }
+  IL_0119:  ldarg.0
+  IL_011a:  ldc.i4.s   -2
+  IL_011c:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_0121:  ldarg.0
+  IL_0122:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_0127:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_012c:  nop
+  IL_012d:  ret
+}");
+        }
+
+        [Fact]
+        public void TestWithDynamicExpression()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        dynamic d = new C();
+        using await (d)
+        {
+            System.Console.Write(""body "");
+            return;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void TestWithStructExpression()
+        {
+            string source = @"
+struct S : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        using await (new S())
+        {
+            System.Console.Write(""body "");
+            return;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+            verifier.VerifyIL("S.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      294 (0x126)
+  .maxstack  3
+  .locals init (int V_0,
+                object V_1,
+                System.Runtime.CompilerServices.TaskAwaiter V_2,
+                S.<Main>d__0 V_3,
+                System.Exception V_4,
+                int V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int S.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_0011
+    IL_000c:  br         IL_0094
+    IL_0011:  nop
+    IL_0012:  ldarg.0
+    IL_0013:  ldflda     ""S S.<Main>d__0.<>s__1""
+    IL_0018:  initobj    ""S""
+    IL_001e:  ldarg.0
+    IL_001f:  ldnull
+    IL_0020:  stfld      ""object S.<Main>d__0.<>s__2""
+    IL_0025:  ldarg.0
+    IL_0026:  ldc.i4.0
+    IL_0027:  stfld      ""int S.<Main>d__0.<>s__3""
+    .try
+    {
+      IL_002c:  nop
+      IL_002d:  ldstr      ""body ""
+      IL_0032:  call       ""void System.Console.Write(string)""
+      IL_0037:  nop
+      IL_0038:  br.s       IL_003a
+      IL_003a:  ldarg.0
+      IL_003b:  ldc.i4.1
+      IL_003c:  stfld      ""int S.<Main>d__0.<>s__3""
+      IL_0041:  leave.s    IL_004d
+    }
+    catch object
+    {
+      IL_0043:  stloc.1
+      IL_0044:  ldarg.0
+      IL_0045:  ldloc.1
+      IL_0046:  stfld      ""object S.<Main>d__0.<>s__2""
+      IL_004b:  leave.s    IL_004d
+    }
+    IL_004d:  ldarg.0
+    IL_004e:  ldflda     ""S S.<Main>d__0.<>s__1""
+    IL_0053:  constrained. ""S""
+    IL_0059:  callvirt   ""System.Threading.Tasks.Task System.IAsyncDisposable.DisposeAsync()""
+    IL_005e:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_0063:  stloc.2
+    IL_0064:  ldloca.s   V_2
+    IL_0066:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_006b:  brtrue.s   IL_00b0
+    IL_006d:  ldarg.0
+    IL_006e:  ldc.i4.0
+    IL_006f:  dup
+    IL_0070:  stloc.0
+    IL_0071:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_0076:  ldarg.0
+    IL_0077:  ldloc.2
+    IL_0078:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter S.<Main>d__0.<>u__1""
+    IL_007d:  ldarg.0
+    IL_007e:  stloc.3
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+    IL_0085:  ldloca.s   V_2
+    IL_0087:  ldloca.s   V_3
+    IL_0089:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, S.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref S.<Main>d__0)""
+    IL_008e:  nop
+    IL_008f:  leave      IL_0125
+    IL_0094:  ldarg.0
+    IL_0095:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter S.<Main>d__0.<>u__1""
+    IL_009a:  stloc.2
+    IL_009b:  ldarg.0
+    IL_009c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter S.<Main>d__0.<>u__1""
+    IL_00a1:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldc.i4.m1
+    IL_00a9:  dup
+    IL_00aa:  stloc.0
+    IL_00ab:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_00b0:  ldloca.s   V_2
+    IL_00b2:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_00b7:  nop
+    IL_00b8:  ldarg.0
+    IL_00b9:  ldfld      ""object S.<Main>d__0.<>s__2""
+    IL_00be:  stloc.1
+    IL_00bf:  ldloc.1
+    IL_00c0:  brfalse.s  IL_00dd
+    IL_00c2:  ldloc.1
+    IL_00c3:  isinst     ""System.Exception""
+    IL_00c8:  stloc.s    V_4
+    IL_00ca:  ldloc.s    V_4
+    IL_00cc:  brtrue.s   IL_00d0
+    IL_00ce:  ldloc.1
+    IL_00cf:  throw
+    IL_00d0:  ldloc.s    V_4
+    IL_00d2:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00d7:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00dc:  nop
+    IL_00dd:  ldarg.0
+    IL_00de:  ldfld      ""int S.<Main>d__0.<>s__3""
+    IL_00e3:  stloc.s    V_5
+    IL_00e5:  ldloc.s    V_5
+    IL_00e7:  ldc.i4.1
+    IL_00e8:  beq.s      IL_00ec
+    IL_00ea:  br.s       IL_00ee
+    IL_00ec:  leave.s    IL_0111
+    IL_00ee:  ldarg.0
+    IL_00ef:  ldnull
+    IL_00f0:  stfld      ""object S.<Main>d__0.<>s__2""
+    IL_00f5:  leave.s    IL_0111
+  }
+  catch System.Exception
+  {
+    IL_00f7:  stloc.s    V_4
+    IL_00f9:  ldarg.0
+    IL_00fa:  ldc.i4.s   -2
+    IL_00fc:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_0101:  ldarg.0
+    IL_0102:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+    IL_0107:  ldloc.s    V_4
+    IL_0109:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_010e:  nop
+    IL_010f:  leave.s    IL_0125
+  }
+  IL_0111:  ldarg.0
+  IL_0112:  ldc.i4.s   -2
+  IL_0114:  stfld      ""int S.<Main>d__0.<>1__state""
+  IL_0119:  ldarg.0
+  IL_011a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+  IL_011f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0124:  nop
+  IL_0125:  ret
+}");
+        }
+
+        [Fact]
+        public void TestWithNullableExpression()
+        {
+            string source = @"
+struct S : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        S? s = new S();
+        using await (s)
+        {
+            System.Console.Write(""body "");
+            return;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+    }
+}

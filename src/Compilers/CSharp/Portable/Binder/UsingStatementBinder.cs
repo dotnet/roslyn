@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -61,63 +60,90 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
             VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
+            bool hasAwait = _syntax.AwaitKeyword.Kind() != default;
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
 
             bool hasErrors = false;
-            BoundMultipleLocalDeclarations declarationsOpt = null;
-            BoundExpression expressionOpt = null;
-            Conversion iDisposableConversion = Conversion.NoConversion;
-            TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable); // no need for diagnostics, so use the Compilation version
-            Debug.Assert((object)iDisposable != null);
-
-            if (expressionSyntax != null)
+            TypeSymbol iDisposable;
+            if (hasAwait)
             {
-                expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
-                diagnostics.Add(expressionSyntax, useSiteDiagnostics);
-
-                if (!iDisposableConversion.IsImplicit)
-                {
-                    TypeSymbol expressionType = expressionOpt.Type;
-                    if ((object)expressionType == null || !expressionType.IsErrorType())
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
-                    }
-                    hasErrors = true;
-                }
+                iDisposable = this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+                hasErrors |= ReportUseSiteDiagnostics(iDisposable, diagnostics, _syntax.AwaitKeyword.GetLocation());
             }
             else
             {
-                ImmutableArray<BoundLocalDeclaration> declarations;
-                originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+                iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable); // no need for diagnostics, so use the Compilation version
+            }
+            Debug.Assert((object)iDisposable != null);
 
-                Debug.Assert(!declarations.IsEmpty);
-
-                declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
-
-                TypeSymbol declType = declarations[0].DeclaredType.Type;
-
-                if (declType.IsDynamic())
+            Conversion iDisposableConversion = Conversion.NoConversion;
+            BoundMultipleLocalDeclarations declarationsOpt = null;
+            BoundExpression expressionOpt = null;
+            BoundAwaitExpression boundAwaitOpt = null;
+            if (!hasErrors)
+            {
+                if (expressionSyntax != null)
                 {
-                    iDisposableConversion = Conversion.ImplicitDynamic;
-                }
-                else
-                {
+                    expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
+
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
-                    diagnostics.Add(declarationSyntax, useSiteDiagnostics);
+                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
+                    diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
                     if (!iDisposableConversion.IsImplicit)
                     {
-                        if (!declType.IsErrorType())
+                        TypeSymbol expressionType = expressionOpt.Type;
+                        if ((object)expressionType == null || !expressionType.IsErrorType())
                         {
-                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                            Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
                         }
-
                         hasErrors = true;
+                    }
+                }
+                else
+                {
+                    ImmutableArray<BoundLocalDeclaration> declarations;
+                    originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+
+                    Debug.Assert(!declarations.IsEmpty);
+
+                    declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
+
+                    TypeSymbol declType = declarations[0].DeclaredType.Type;
+
+                    if (declType.IsDynamic())
+                    {
+                        iDisposableConversion = Conversion.ImplicitDynamic;
+                    }
+                    else
+                    {
+                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
+                        diagnostics.Add(declarationSyntax, useSiteDiagnostics);
+
+                        if (!iDisposableConversion.IsImplicit)
+                        {
+                            if (!declType.IsErrorType())
+                            {
+                                Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                            }
+
+                            hasErrors = true;
+                        }
+                    }
+                }
+
+                if (!hasErrors && hasAwait)
+                {
+                    TypeSymbol taskType = this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                    hasErrors = ReportUseSiteDiagnostics(taskType, diagnostics, _syntax.AwaitKeyword.GetLocation());
+
+                    if (!hasErrors)
+                    {
+                        var syntaxForAwait = (SyntaxNode)expressionSyntax ?? declarationSyntax;
+                        BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntaxForAwait, taskType);
+                        boundAwaitOpt = BindAwait(placeholder, syntaxForAwait, diagnostics).MakeCompilerGenerated();
                     }
                 }
             }
@@ -132,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
+                boundAwaitOpt,
                 hasErrors);
         }
 
