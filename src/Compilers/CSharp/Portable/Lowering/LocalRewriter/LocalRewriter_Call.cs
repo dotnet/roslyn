@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Step three: Now fill in the optional arguments.
-            InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, enableCallerInfo);
+            InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, refKinds, enableCallerInfo);
 
             if (isComReceiver)
             {
@@ -554,7 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
             // property), or the methodOrIndexer is used for optional parameters directly.
-            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && optionalParametersMethod.IsAccessor()) ||
+            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && 
+                (optionalParametersMethod.IsAccessor() || 
+                 ((PropertySymbol)methodOrIndexer).MustCallMethodsDirectly)) || // This condition is a temporary workaround for https://github.com/dotnet/roslyn/issues/23852
                 (object)methodOrIndexer == optionalParametersMethod);
 
             // We need to do a fancy rewrite under the following circumstances:
@@ -1070,16 +1072,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void InsertMissingOptionalArguments(SyntaxNode syntax,
             ImmutableArray<ParameterSymbol> parameters,
             BoundExpression[] arguments,
+            ArrayBuilder<RefKind> refKinds,
             ThreeState enableCallerInfo = ThreeState.Unknown)
         {
+            Debug.Assert(refKinds.Count == arguments.Length);
+
             for (int p = 0; p < arguments.Length; ++p)
             {
                 if (arguments[p] == null)
                 {
                     ParameterSymbol parameter = parameters[p];
                     Debug.Assert(parameter.IsOptional);
+
                     arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfo);
                     Debug.Assert(arguments[p].Type == parameter.Type);
+
+                    if (parameters[p].RefKind == RefKind.In)
+                    {
+                        Debug.Assert(refKinds[p] == RefKind.None);
+                        refKinds[p] = RefKind.In;
+                    }
                 }
             }
         }
