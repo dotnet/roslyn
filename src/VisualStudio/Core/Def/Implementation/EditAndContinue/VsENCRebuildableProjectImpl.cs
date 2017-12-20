@@ -856,7 +856,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 Debug.Assert(_lastEditSessionSummary == ProjectAnalysisSummary.ValidInsignificantChanges ||
                              _lastEditSessionSummary == ProjectAnalysisSummary.ValidChanges);
 
-                var updater = (IDebugUpdateInMemoryPE2)pUpdatePE;
+                var updater = (IDebugUpdateInMemoryPE3)pUpdatePE;
 
                 if (_committedBaseline == null)
                 {
@@ -904,6 +904,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 updater.SetRemapMethods(delta.Pdb.UpdatedMethods, (uint)delta.Pdb.UpdatedMethods.Length);
                 updater.SetDeltaMetadata(delta.Metadata.Bytes, (uint)delta.Metadata.Bytes.Length);
 
+                var ranges = GetExceptionRanges(delta.ExceptionRegionSpanDeltas);
+                updater.SetExceptionRanges(ranges, ranges.Length);
+
                 _pendingBaseline = delta.EmitResult.Baseline;
                 _pendingUpdatedActiveStatementSpans = delta.UpdatedActiveStatementSpans;
 
@@ -927,6 +930,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 return VSConstants.E_FAIL;
             }
+        }
+
+        internal static ENCPROG_EXCEPTION_RANGE[] GetExceptionRanges(ImmutableArray<(int MethodToken, int MethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> deltas)
+        {
+            var result = new ENCPROG_EXCEPTION_RANGE[deltas.Length];
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                // Debugger line and column numbers are 1-based.
+                // 
+                // The range span is the new span.
+                //   old = new + delta
+                //   new = old – delta
+
+                result[i] = new ENCPROG_EXCEPTION_RANGE
+                {
+                    MethodToken = deltas[i].MethodToken,
+                    MethodVersion = deltas[i].MethodVersion,
+                    StartLine = deltas[i].NewSpan.Start.Line + 1,
+                    StartCol = deltas[i].NewSpan.Start.Character + 1,
+                    EndLine = deltas[i].NewSpan.End.Line + 1,
+                    EndCol = deltas[i].NewSpan.End.Character + 1,
+                    Delta = deltas[i].OldSpan.Start.Line - deltas[i].NewSpan.Start.Line,
+                };
+            }
+
+            return result;
         }
 
         private unsafe void SetFileUpdates(

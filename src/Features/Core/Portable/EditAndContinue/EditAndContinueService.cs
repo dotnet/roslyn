@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -169,6 +172,81 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             sessionReason = SessionReadOnlyReason.None;
             projectReason = ProjectReadOnlyReason.MetadataNotAvailable;
             return true;
+        }
+
+        // TODO: export as implementation of Microsoft.VisualStudio.Debugger.IManagedActiveStatementTracker 
+
+        public async Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (_editSession == null)
+                {
+                    return null;
+                }
+
+                Debug.Assert(_debuggingSession != null);
+
+                var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                if (!baseActiveStatements.InstructionMap.TryGetValue(instructionId, out var baseActiveStatement))
+                {
+                    return null;
+                }
+
+                Document document = _debuggingSession.InitialSolution.Workspace.CurrentSolution.GetDocument(baseActiveStatement.DocumentId);
+                SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // TODO:is this needed?
+                // Try to get spans from the tracking service first.
+                // We might get an imprecise result if the document analysis hasn't been finished yet and 
+                // the active statement has structurally changed, but that's ok. The user won't see an updated tag
+                // for the statement until the analysis finishes anyways.
+                //if (_trackingService.TryGetSpan(baseActiveStatement.Id, text, out var trackedSpan) && trackedSpan.Length > 0)
+                //{
+                //    lineSpan = text.Lines.GetLinePositionSpan(trackedSpan);
+                //}
+
+                var documentAnalysis = await _editSession.GetDocumentAnalysis(document).GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var currentActiveStatements = documentAnalysis.ActiveStatements;
+                if (currentActiveStatements.IsDefault)
+                {
+                    // The document has syntax errors.
+                    return null;
+                }
+
+                return currentActiveStatements[baseActiveStatement.Ordinal].Span;
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return null;
+            }
+        }
+
+        public async Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (_editSession == null)
+                {
+                    return null;
+                }
+
+                Debug.Assert(_debuggingSession != null);
+
+                var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                if (!baseActiveStatements.InstructionMap.TryGetValue(instructionId, out var baseActiveStatement))
+                {
+                    return null;
+                }
+
+                // TODO: avoid waiting for ERs of all active statements to be calculated and just calculate the one we are interested inat this moment:
+                var baseExceptionRegions = await _editSession.BaseActiveExceptionRegions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return baseExceptionRegions[baseActiveStatement.Index].IsActiveStatementCovered;
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return null;
+            }
         }
     }
 }

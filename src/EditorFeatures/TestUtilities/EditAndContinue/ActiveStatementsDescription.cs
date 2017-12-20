@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal static ActiveStatement CreateActiveStatement(ActiveStatementFlags flags, LinePositionSpan span)
             => new ActiveStatement(
-                debugId: 0,
+                index: 0,
                 documentId: s_dummyDocumentId,
                 ordinal: 0,
                 flags, 

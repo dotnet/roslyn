@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -20,12 +21,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// All active statements in changed documents.
         /// </summary>
-        public readonly ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>)> ActiveStatements;
+        public readonly ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)> ActiveStatements;
 
         public ProjectChanges(
             ImmutableArray<SemanticEdit> semanticEdits,
             ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineChanges,
-            ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>)> activeStatements)
+            ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)> activeStatements)
         {
             SemanticEdits = semanticEdits;
             LineChanges = lineChanges;

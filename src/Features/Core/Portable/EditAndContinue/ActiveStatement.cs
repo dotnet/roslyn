@@ -8,20 +8,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal sealed class ActiveStatement
     {
-        public readonly int DebugId;
+        public readonly int Index;
         public readonly DocumentId DocumentId;
         public readonly int Ordinal;
         public readonly ActiveStatementFlags Flags;
         public readonly LinePositionSpan Span;
         public readonly ActiveInstructionId InstructionId;
 
-        public ActiveStatement(int debugId, DocumentId documentId, int ordinal, ActiveStatementFlags flags, LinePositionSpan span, ActiveInstructionId instructionId)
+        public ActiveStatement(int index, DocumentId documentId, int ordinal, ActiveStatementFlags flags, LinePositionSpan span, ActiveInstructionId instructionId)
         {
-            Debug.Assert(debugId >= 0);
+            Debug.Assert(index >= 0);
             Debug.Assert(documentId != null);
             Debug.Assert(ordinal >= 0);
 
-            DebugId = debugId;
+            Index = index;
             DocumentId = documentId;
             Ordinal = ordinal;
             Flags = flags;
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ActiveStatementId Id => new ActiveStatementId(DocumentId, Ordinal);
 
         internal ActiveStatement WithSpan(LinePositionSpan span)
-            => new ActiveStatement(DebugId, DocumentId, Ordinal, Flags, span, InstructionId);
+            => new ActiveStatement(Index, DocumentId, Ordinal, Flags, span, InstructionId);
 
         internal ActiveStatement WithFlags(ActiveStatementFlags flags)
-            => new ActiveStatement(DebugId, DocumentId, Ordinal, flags, Span, InstructionId);
+            => new ActiveStatement(Index, DocumentId, Ordinal, flags, Span, InstructionId);
     }
 }

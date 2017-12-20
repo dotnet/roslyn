@@ -70,8 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             new ActiveInstructionId(
                                                 dkmStatement.InstructionSymbol.Module.Id.Mvid,
                                                 dkmStatement.InstructionAddress.MethodId.Token,
-                                                dkmStatement.InstructionAddress.MethodId.Version,
-                                                dkmStatement.InstructionAddress.ILOffset),
+                                                unchecked((int)dkmStatement.InstructionAddress.MethodId.Version),
+                                                unchecked((int)dkmStatement.InstructionAddress.ILOffset)),
                                             sourcePositionResult.SourcePosition.DocumentName,
                                             ToLinePositionSpan(sourcePositionResult.SourcePosition.TextSpan),
                                             (ActiveStatementFlags)dkmStatement.Flags);

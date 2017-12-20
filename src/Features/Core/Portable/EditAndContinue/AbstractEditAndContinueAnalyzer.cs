@@ -1452,21 +1452,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        ImmutableArray<LinePositionSpan> IEditAndContinueAnalyzer.GetExceptionRegions(SourceText text, SyntaxNode syntaxRoot, LinePositionSpan activeStatementSpan, bool isLeaf)
-        {
-            return GetExceptionRegions(text, syntaxRoot, activeStatementSpan, isLeaf);
-        }
-
-        internal ImmutableArray<LinePositionSpan> GetExceptionRegions(SourceText text, SyntaxNode syntaxRoot, LinePositionSpan activeStatementSpan, bool isLeaf)
+        public ImmutableArray<LinePositionSpan> GetExceptionRegions(SourceText text, SyntaxNode syntaxRoot, LinePositionSpan activeStatementSpan, bool isLeaf, out bool isCovered)
         {
             var textSpan = text.Lines.GetTextSpan(activeStatementSpan);
             var token = syntaxRoot.FindToken(textSpan.Start);
             var ancestors = GetExceptionHandlingAncestors(token.Parent, isLeaf);
-            return GetExceptionRegions(ancestors, text);
+            return GetExceptionRegions(ancestors, text, out isCovered);
         }
 
         private ImmutableArray<LinePositionSpan> GetExceptionRegions(List<SyntaxNode> exceptionHandlingAncestors, SourceText text)
+            => GetExceptionRegions(exceptionHandlingAncestors, text, out _);
+
+        private ImmutableArray<LinePositionSpan> GetExceptionRegions(List<SyntaxNode> exceptionHandlingAncestors, SourceText text, out bool isCovered)
         {
+            isCovered = false;
+
             if (exceptionHandlingAncestors.Count == 0)
             {
                 return ImmutableArray.Create<LinePositionSpan>();
@@ -1484,6 +1484,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // If the span covers all the children nodes we don't need to descend further.
                 if (coversAllChildren)
                 {
+                    isCovered = true;
                     break;
                 }
             }

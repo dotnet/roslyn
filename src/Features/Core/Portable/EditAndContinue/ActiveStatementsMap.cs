@@ -15,19 +15,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>> DocumentMap;
 
         /// <summary>
-        /// Maps active statement debugger ids to <see cref="ActiveStatementId"/> and <see cref="ActiveInstructionId"/>,
-        /// which is a document and an ordinal in the corresponding <see cref="DocumentMap"/> array.
+        /// Maps active instruction ids to <see cref="ActiveStatement"/>. 
+        /// </summary>
+        public readonly IReadOnlyDictionary<ActiveInstructionId, ActiveStatement> InstructionMap;
+
+        /// <summary>
+        /// Maps active statement debugger ids to <see cref="ActiveStatement"/>. 
+        /// TODO: remove
         /// </summary>
         public readonly IReadOnlyDictionary<int, ActiveStatement> Ids;
 
         public ActiveStatementsMap(
-            IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>> spans,
+            IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>> documentMap,
+            IReadOnlyDictionary<ActiveInstructionId, ActiveStatement> instructionMap,
             IReadOnlyDictionary<int, ActiveStatement> ids)
         {
-            Debug.Assert(spans != null);
+            Debug.Assert(documentMap != null);
+            Debug.Assert(instructionMap != null);
             Debug.Assert(ids != null);
 
-            DocumentMap = spans;
+            DocumentMap = documentMap;
+            InstructionMap = instructionMap;
             Ids = ids;
         }
     }

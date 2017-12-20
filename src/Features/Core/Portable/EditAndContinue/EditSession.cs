@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal sealed partial class EditSession
     {
-        private struct Analysis
+        private readonly struct Analysis
         {
             public readonly Document Document;
             public readonly AsyncLazy<DocumentAnalysisResults> Results;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly AsyncLazy<ActiveStatementsMap> BaseActiveStatements;
 
-        internal readonly AsyncLazy<ImmutableArray<ActiveExceptionRegion>> BaseActiveExceptionRegions;
+        internal readonly AsyncLazy<ImmutableArray<ActiveStatementExceptionRegions>> BaseActiveExceptionRegions;
 
         private readonly DebuggingSession _debuggingSession;
         private readonly IActiveStatementProvider _activeStatementProvider;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _previouslyUpdatedActiveStatementSpans = previouslyUpdatedActiveStatementSpans;
 
             BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true);
-            BaseActiveExceptionRegions = new AsyncLazy<ImmutableArray<ActiveExceptionRegion>>(GetBaseActiveExceptionRegionsAsync, cacheResult: true);
+            BaseActiveExceptionRegions = new AsyncLazy<ImmutableArray<ActiveStatementExceptionRegions>>(GetBaseActiveExceptionRegionsAsync, cacheResult: true);
         }
 
         private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 return new ActiveStatementsMap(
                     SpecializedCollections.EmptyReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>>(), 
+                    SpecializedCollections.EmptyReadOnlyDictionary<ActiveInstructionId, ActiveStatement>(), 
                     SpecializedCollections.EmptyReadOnlyDictionary<int, ActiveStatement>());
             }
         }
@@ -123,8 +124,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private ActiveStatementsMap CreateActiveStatementsMap(Solution solution, ImmutableArray<ActiveStatementDebugInfo> debugInfos)
         {
             var byDocument = PooledDictionary<DocumentId, ArrayBuilder<ActiveStatement>>.GetInstance();
+            var byInstruction = new Dictionary<ActiveInstructionId, ActiveStatement>();
             var idMap = new Dictionary<int, ActiveStatement>();
 
+            int index = 0;
             foreach (var debugInfo in debugInfos)
             {
                 // TODO (tomat):
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var activeStatement = new ActiveStatement(
-                        debugInfo.Id,
+                        index++,
                         documentId,
                         ordinal: documentActiveStatements.Count,
                         debugInfo.Flags,
@@ -168,44 +171,44 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         debugInfo.InstructionId);
 
                     idMap.Add(debugInfo.Id, activeStatement);
+                    byInstruction.Add(debugInfo.InstructionId, activeStatement);
                     documentActiveStatements.Add(activeStatement);
                 }
             }
 
-            return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), idMap);
+            return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), byInstruction, idMap);
         }
 
-        private async Task<ImmutableArray<ActiveExceptionRegion>> GetBaseActiveExceptionRegionsAsync(CancellationToken cancellationToken)
+        private async Task<ImmutableArray<ActiveStatementExceptionRegions>> GetBaseActiveExceptionRegionsAsync(CancellationToken cancellationToken)
         {
             try
             {
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var builder = ArrayBuilder<ActiveExceptionRegion>.GetInstance();
+                var builder = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(baseActiveStatements.Ids.Count);
+                builder.Count = baseActiveStatements.Ids.Count;
 
-                foreach (var (debuggerId, activeStatement) in baseActiveStatements.Ids.OrderBy(entry => entry.Key))
+                foreach (var documentActiveStatements in baseActiveStatements.DocumentMap.Values)
                 {
-                    var document = _baseSolution.GetDocument(activeStatement.DocumentId);
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    var lineSpan = activeStatement.Span;
-
-                    // If the PDB is out of sync with the source we might get bad spans.
-                    var sourceLines = sourceText.Lines;
-                    if (lineSpan.End.Line >= sourceLines.Count || 
-                        sourceLines.GetPosition(lineSpan.End) > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
+                    foreach (var activeStatement in documentActiveStatements)
                     {
-                        // TODO: log.Write("AS out of bounds (line count is {0})", source.Lines.Count);
-                        continue;
-                    }
+                        var document = _baseSolution.GetDocument(activeStatement.DocumentId);
+                        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                    var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        var lineSpan = activeStatement.Span;
 
-                    var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-                    var ehRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, lineSpan, activeStatement.IsLeaf);
+                        // If the PDB is out of sync with the source we might get bad spans.
+                        var sourceLines = sourceText.Lines;
+                        if (lineSpan.End.Line >= sourceLines.Count ||
+                            sourceLines.GetPosition(lineSpan.End) > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
+                        {
+                            // TODO: log.Write("AS out of bounds (line count is {0})", source.Lines.Count);
+                            continue;
+                        }
 
-                    for (int i = 0; i < ehRegions.Length; i++)
-                    {
-                        builder.Add(new ActiveExceptionRegion(debuggerId, i, ehRegions[i]));
+                        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                        var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+                        builder[activeStatement.Index] = new ActiveStatementExceptionRegions(analyzer.GetExceptionRegions(sourceText, syntaxRoot, lineSpan, activeStatement.IsLeaf, out bool isCovered), isCovered);
                     }
                 }
 
@@ -213,7 +216,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return ImmutableArray<ActiveExceptionRegion>.Empty;
+                return ImmutableArray<ActiveStatementExceptionRegions>.Empty;
             }
         }
 
@@ -413,7 +416,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var baseProject = _baseSolution.GetProject(project.Id);
                 var allEdits = ArrayBuilder<SemanticEdit>.GetInstance();
                 var allLineEdits = ArrayBuilder<(DocumentId, ImmutableArray<LineChange>)>.GetInstance();
-                var allActiveStatements = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>)>.GetInstance();
+                var allActiveStatements = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance();
 
                 foreach (var (documentId, asyncResult) in GetChangedDocumentsAnalyses(baseProject, project))
                 {
@@ -428,7 +431,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         allLineEdits.Add((documentId, result.LineEdits));
                     }
 
-                    allActiveStatements.Add((documentId, result.ActiveStatements));
+                    allActiveStatements.Add((documentId, result.ActiveStatements, result.ExceptionRegions));
                 }
 
                 // Ideally we shouldn't be asking for deltas in absence of significant changes.
@@ -454,6 +457,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var allAddedSymbols = await GetAllAddedSymbols(cancellationToken).ConfigureAwait(false);
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var baseActiveExceptionRegions = await BaseActiveExceptionRegions.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                 var pdbStream = new MemoryStream();
                 var updatedMethods = new List<MethodDefinitionHandle>();
@@ -472,23 +476,66 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         updatedMethods,
                         cancellationToken);
 
-                    // Determine all active statements whose span changed.
-                    foreach (var (documentId, activeStatements) in projectChanges.ActiveStatements)
+                    // Determine all active statements whose span changed and exception region span deltas.
+                    int exceptionRegionCount = baseActiveExceptionRegions.Sum(regions => regions.Spans.Length);
+                    var exceptionRegionSpanDeltas = ArrayBuilder<(int MethodToken, int MethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)>.GetInstance(exceptionRegionCount);
+                    var changedActiveStatementSet = BitVector.Create(baseActiveExceptionRegions.Length);
+
+                    foreach (var (documentId, newActiveStatements, newExceptionRegions) in projectChanges.ActiveStatements)
                     {
                         var oldActiveStatements = baseActiveStatements.DocumentMap[documentId];
-                        Debug.Assert(oldActiveStatements.Length == activeStatements.Length);
+                        Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
 
-                        for (int i = 0; i < activeStatements.Length; i++)
+                        for (int i = 0; i < newActiveStatements.Length; i++)
                         {
-                            if (oldActiveStatements[i].Span != activeStatements[i].Span)
+                            var oldActiveStatement = oldActiveStatements[i];
+                            var newActiveStatement = newActiveStatements[i];
+                            var instructionId = oldActiveStatement.InstructionId;
+                            var index = oldActiveStatement.Index;
+
+                            if (oldActiveStatement.Span != newActiveStatement.Span)
                             {
-                                updatedActiveStatementSpans.Add((oldActiveStatements[i].InstructionId, activeStatements[i].Span));
+                                updatedActiveStatementSpans.Add((instructionId, newActiveStatement.Span));
+                            }
+
+                            Debug.Assert(!changedActiveStatementSet[index]);
+
+                            int j = 0;
+                            foreach (var oldSpan in baseActiveExceptionRegions[index].Spans)
+                            {
+                                var newSpan = newExceptionRegions[index][j++];
+                                exceptionRegionSpanDeltas.Add((instructionId.MethodToken, instructionId.MethodVersion, oldSpan, newSpan));
+                            }
+
+                            changedActiveStatementSet[index] = true;
+                        }
+                    }
+
+                    // Fill in unchanged exception regions:
+                    foreach (var (instructionId, oldActiveStatement) in baseActiveStatements.InstructionMap)
+                    {
+                        int index = oldActiveStatement.Index;
+
+                        if (!changedActiveStatementSet[index])
+                        {
+                            foreach (var span in baseActiveExceptionRegions[index].Spans)
+                            {
+                                exceptionRegionSpanDeltas.Add((instructionId.MethodToken, instructionId.MethodVersion, span, span));
                             }
                         }
                     }
                     
                     int[] updateMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
-                    return new Deltas(ilStream.ToArray(), metadataStream.ToArray(), updateMethodTokens, updatedActiveStatementSpans.ToImmutableAndFree(), pdbStream, projectChanges.LineChanges, result);
+
+                    return new Deltas(
+                        ilStream.ToArray(),
+                        metadataStream.ToArray(),
+                        pdbStream,
+                        updateMethodTokens,
+                        projectChanges.LineChanges,
+                        updatedActiveStatementSpans.ToImmutableAndFree(),
+                        exceptionRegionSpanDeltas.ToImmutableAndFree(),
+                        result);
                 }
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
