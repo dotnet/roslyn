@@ -8869,6 +8869,25 @@ class C
         }
 
         [Fact]
+        public void DynamicMemberAccess_02()
+        {
+            // PROTOTYPE(NullableReferenceTypes): Consider adding test infrastructure to verify
+            // nullability based on /*[...]*/ annotations such as [dynamic], [dynamic!], [dynamic?].
+            var source =
+@"class C
+{
+    static void M(dynamic x)
+    {
+        x.F/*[dynamic]*/.ToString();
+        var y/*[dynamic]*/ = x.F;
+        y = null;
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DynamicObjectCreationExpression_01()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -17244,6 +17263,26 @@ class C
                 // (6,37): error CS1628: Cannot use ref or out parameter 'i' inside an anonymous method, lambda expression, or query expression
                 //         return await Task.Run(() => i++);
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "i").WithArguments("i").WithLocation(6, 37));
+        }
+
+        [Fact]
+        public void NullCastToValueType()
+        {
+            var source =
+@"struct S { }
+class C
+{
+    static void M()
+    {
+        S s = (S)null;
+        s.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0037: Cannot convert null to 'S' because it is a non-nullable value type
+                //         S s = (S)null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(S)null").WithArguments("S").WithLocation(6, 15));
         }
     }
 }

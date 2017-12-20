@@ -1713,11 +1713,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol;
             }
-            return AsMemberOfType(symbol, containingType);
-        }
-
-        private static Symbol AsMemberOfType(Symbol symbol, NamedTypeSymbol containingType)
-        {
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
@@ -1726,6 +1721,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var index = field.TupleElementIndex;
                         if (index >= 0)
                         {
+                            // PROTOTYPE(NullableReferenceTypes): Handle other members of
+                            // tuple type (such as TuplePropertySymbol), perhaps using
+                            // TupleTypeSymbol.GetTupleMemberSymbolForUnderlyingMember
                             return containingType.TupleElements[index];
                         }
                     }
@@ -1959,6 +1957,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.ExplicitReference:
                     // Inherit state from the operand
+                    // PROTOTYPE(NullableReferenceTypes): Should an explicit cast cast away
+                    // outermost nullability? For instance, is `s` a `string!` or `string?`?
+                    // object? obj = ...; var s = (string)obj;
                     isNullable = operandType?.IsNullable;
                     break;
 
@@ -2102,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                this.State.Result = node.HasErrors ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : right;
+                this.State.Result = node.Type.IsErrorType() ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : right;
             }
 
             return null;
@@ -2417,7 +2418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If the symbol is statically declared as not-nullable
                     // or null-oblivious, ignore flow state.
-                    if (resultType.IsNullable == true)
+                    if (resultType.IsNullable == true && resultType.IsReferenceType)
                     {
                         // We are supposed to track information for the node. Use whatever we managed to
                         // accumulate so far.
@@ -2902,7 +2903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckPossibleNullReceiver(receiver);
 
             Debug.Assert(node.Type.IsDynamic());
-            SetResult(node);
+            this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
             return null;
         }
 
@@ -2912,19 +2913,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
+            Debug.Assert(node.Type.IsReferenceType);
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                if (node.Type?.IsReferenceType == true)
-                {
-                    // PROTOTYPE(NullableReferenceTypes): Update applicable members based on inferred argument types.
-                    bool? isNullable = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
-                    this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
-                }
-                else
-                {
-                    this.State.ResultType = null;
-                }
+                // PROTOTYPE(NullableReferenceTypes): Update applicable members based on inferred argument types.
+                bool? isNullable = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
+                this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
             }
 
             return null;
