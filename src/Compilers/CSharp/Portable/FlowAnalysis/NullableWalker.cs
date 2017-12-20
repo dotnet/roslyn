@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Invalid type, used only to catch Visit methods that do not set
         /// this.State.ResultType. See VisitExpressionWithoutStackGuard.
         /// </summary>
-        private readonly TypeSymbolWithAnnotations _invalidType;
+        private static readonly TypeSymbolWithAnnotations _invalidType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
 
         /// <summary>
         /// Reflects the enclosing method or lambda at the current location (in the bound tree).
@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool includeNonNullableWarnings)
             : base(compilation, member, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
         {
-            _invalidType = TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, "Invalid", 0, null));
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this._currentMethodOrLambda = member as MethodSymbol;
             _includeNonNullableWarnings = includeNonNullableWarnings;
@@ -168,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                     {
+                        // PROTOTYPE(NullableReferenceTypes): State of containing struct should not be important.
                         int containingSlot = variable.ContainingSlot;
                         if (variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct &&
                             state[containingSlot] == null)
@@ -243,6 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var containingType = property.ContainingType;
                 if (containingType.TypeKind == TypeKind.Struct)
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Relying on field name
+                    // will not work for properties declared in other languages.
                     var fieldName = GeneratedNames.MakeBackingFieldName(property.Name);
                     return _emptyStructTypeCache.GetStructInstanceFields(containingType).FirstOrDefault(f => f.Name == fieldName);
                 }
@@ -771,8 +773,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(initializer);
                 var value = this.State.Result;
-                var type = local.Type;
-                var valueType = value.Type;
+                TypeSymbolWithAnnotations type = local.Type;
+                TypeSymbolWithAnnotations valueType = value.Type;
 
                 if (type.IsReferenceType && node.DeclaredType.InferredType && (object)valueType != null)
                 {
@@ -835,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LocalSymbol receiver = null;
             int slot = -1;
-            var type = node.Type;
+            TypeSymbol type = node.Type;
             if ((object)type != null)
             {
                 bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
@@ -1021,8 +1023,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(expr);
             }
-            var resultType = (node.InitializerOpt == null) ? node.Type : VisitArrayInitializer(node);
-            this.State.ResultType = TypeSymbolWithAnnotations.Create(resultType, isNullableIfReferenceType: false);
+            TypeSymbol resultType = (node.InitializerOpt == null) ? node.Type : VisitArrayInitializer(node);
+            this.State.ResultType = TypeSymbolWithAnnotations.Create(resultType);
             return null;
         }
 
@@ -1034,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             GetArrayElements(node.InitializerOpt, elementBuilder);
 
-            var typeBuilder = (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression) ? ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance() : null;
+            var typeBuilder = (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression) ? ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(elementBuilder.Count) : null;
             foreach (var element in elementBuilder)
             {
                 VisitRvalue(element);
@@ -1321,8 +1323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)rightType == null || AreCloseEnough(rightType.TypeSymbol, node.Type));
 #endif
 
-                // PROTOTYPE(NullableReferenceTypes): This seems incorrect. The result should be
-                // node.Type with some nullability applied from leftType and rightType.
+                // PROTOTYPE(NullableReferenceTypes): Capture in BindNullCoalescingOperator
+                // which side provides type and use that to determine nullability.
                 resultType = TypeSymbolWithAnnotations.Create((leftType ?? rightType)?.TypeSymbol, isNullableIfReferenceType: rightType?.IsNullable & leftType?.IsNullable);
 
                 ReportNullabilityMismatchIfAny(node.LeftOperand, resultType, leftType);
@@ -1628,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): MethodTypeInferrer.Infer relies
             // on the BoundExpressions for tuple element types and method groups.
             // By using a generic BoundValuePlaceholder, we're losing inference in those cases.
-            var arguments = argumentTypes.ZipAsArray(node.Arguments, (t, a) => ((object)t == null) ? a : new BoundValuePlaceholder(a.Syntax, t.IsNullable, t.TypeSymbol));
+            ImmutableArray<BoundExpression> arguments = argumentTypes.ZipAsArray(node.Arguments, (t, a) => ((object)t == null) ? a : new BoundValuePlaceholder(a.Syntax, t.IsNullable, t.TypeSymbol));
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
             if (node.ArgumentRefKindsOpt != null)
             {
@@ -1642,8 +1644,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowRefOmittedArguments: true,
                 binder: _binder,
                 expanded: node.Expanded,
-                parameterTypes: out var parameterTypes,
-                parameterRefKinds: out var parameterRefKinds);
+                parameterTypes: out ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
+                parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
             refKinds.Free();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var result = MethodTypeInferrer.Infer(
@@ -1686,15 +1688,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Adjust declared type based on inferred nullability at the point of declaration.
+        /// Adjust declared type based on inferred nullability at the point of reference.
         /// </summary>
         private (TypeSymbolWithAnnotations Type, int Slot) GetAdjustedResult((TypeSymbolWithAnnotations Type, int Slot) pair)
         {
             var (type, slot) = pair;
-            if (type.IsNullable == true && slot > 0 && slot < this.State.Capacity)
+            if (type.IsNullable != false && slot > 0 && slot < this.State.Capacity)
             {
                 bool? isNullable = !this.State[slot];
-                if (isNullable != true)
+                if (isNullable != type.IsNullable)
                 {
                     return (TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable), slot);
                 }
@@ -1736,23 +1738,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbolDefContainer = symbolDef.ContainingType;
             while (true)
             {
-                var containingTypeDef = containingType.OriginalDefinition;
-                if (containingTypeDef.Equals(symbolDefContainer, TypeCompareKind.ConsiderEverything))
+                if (containingType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.ConsiderEverything))
                 {
                     return symbolDef.SymbolAsMember(containingType);
                 }
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if (!containingType.OriginalDefinition.IsDerivedFrom(symbolDefContainer, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics))
-                {
-                    break;
-                }
-                containingType = containingType.BaseType;
+                containingType = containingType.BaseTypeNoUseSiteDiagnostics;
                 if ((object)containingType == null)
                 {
                     break;
                 }
             }
             // PROTOTYPE(NullableReferenceTypes): Handle other cases such as interfaces.
+            Debug.Assert(symbolDefContainer.IsInterface);
             return symbol;
         }
 
@@ -1858,13 +1855,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitTupleExpression(BoundTupleExpression node)
         {
-            var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
-            foreach (var arg in node.Arguments)
+            var arguments = node.Arguments;
+            var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Length);
+            foreach (var arg in arguments)
             {
                 VisitRvalue(arg);
                 builder.Add(this.State.ResultType);
             }
-            var elementNames = ((TupleTypeSymbol)node.Type).TupleElementNames;
+            var tupleType = (TupleTypeSymbol)node.Type;
+            var elementNames = tupleType is null ? default : tupleType.TupleElementNames;
             var resultType = TupleTypeSymbol.Create(
                 locationOpt: node.Syntax.Location,
                 elementTypes: builder.ToImmutableAndFree(),
@@ -2007,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                SetResult(node);
+                this.State.ResultType = null;
             }
 
             return null;
@@ -3179,6 +3178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Callers should merge Result explicitly.
             self.ResultType = _invalidType;
         }
 
@@ -3205,6 +3205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                // PROTOTYPE(NullableReferenceTypes): Callers should merge Result explicitly.
                 //self.ResultType = _invalidType;
                 return result;
             }
