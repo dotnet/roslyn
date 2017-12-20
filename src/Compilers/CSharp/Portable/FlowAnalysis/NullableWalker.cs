@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return false;
                         }
+                        // PROTOTYPE(NullableReferenceTypes): Use AssociatedField for field-like events?
                         member = eventSymbol;
                         receiver = eventAccess.ReceiverOpt;
                         break;
@@ -1314,9 +1315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbolWithAnnotations resultType;
 
-            if (node.HasErrors)
+            if (node.Type.IsErrorType())
             {
-                // PROTOTYPE(NullableReferenceTypes): Can we set resultType correctly in some error situations?
                 resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
             }
             else
@@ -1405,13 +1405,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                var consequenceType = consequenceState.ResultType;
                 Unsplit();
                 consequenceState = this.State;
                 VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                var alternativeType = alternativeState.ResultType;
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
-                var consequenceType = consequenceState.ResultType;
-                var alternativeType = this.State.ResultType;
                 this.State.ResultType = (object)consequenceType == null || (object)alternativeType == null || !consequenceType.Equals(alternativeType, TypeCompareKind.ConsiderEverything) ?
                     TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true) :
                     GetMoreNullableType(consequenceType, alternativeType);
@@ -1457,6 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(receiverOpt);
                 CheckPossibleNullReceiver(receiverOpt);
+                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
             }
 
             ImmutableArray<Result> results = VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
@@ -1491,19 +1492,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
             syntax = ((Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax)syntax).Expression;
-            while (true)
+            if (syntax.Kind() == SyntaxKind.QualifiedName)
             {
-                switch (syntax.Kind())
-                {
-                    case SyntaxKind.GenericName:
-                        return true;
-                    case SyntaxKind.QualifiedName:
-                        syntax = ((Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax)syntax).Right;
-                        break;
-                    default:
-                        return false;
-                }
+                syntax = ((Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax)syntax).Right;
             }
+            return syntax.Kind() == SyntaxKind.GenericName;
         }
 
         protected override void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
@@ -1633,6 +1626,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): MethodTypeInferrer.Infer relies
             // on the BoundExpressions for tuple element types and method groups.
             // By using a generic BoundValuePlaceholder, we're losing inference in those cases.
+            // PROTOTYPE(NullableReferenceTypes): Inference should be based on
+            // unconverted arguments. Consider cases such as `default`, lambdas, tuples.
             ImmutableArray<BoundExpression> arguments = argumentTypes.ZipAsArray(node.Arguments, (t, a) => ((object)t == null) ? a : new BoundValuePlaceholder(a.Syntax, t.IsNullable, t.TypeSymbol));
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
             if (node.ArgumentRefKindsOpt != null)
@@ -1644,6 +1639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Arguments.Length,
                 node.ArgsToParamsOpt,
                 refKinds,
+                // PROTOTYPE(NullableReferenceTypes): `allowRefOmittedArguments` should be
+                // false for constructors and several other cases (see Binder use). Should we
+                // capture the original value in the BoundCall?
                 allowRefOmittedArguments: true,
                 binder: _binder,
                 expanded: node.Expanded,
@@ -1931,6 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var methodOpt = conversion.Method;
                     if ((object)methodOpt != null && methodOpt.ParameterCount == 1)
                     {
+                        // PROTOTYPE(NullableReferenceTypes): Update method based on operandType.
                         return methodOpt.ReturnType;
                     }
                     break;
@@ -2088,10 +2087,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             VisitLvalue(node.Left);
-            var left = this.State.Result;
+            Result left = this.State.Result;
 
             VisitRvalue(node.Right);
-            var right = this.State.Result;
+            Result right = this.State.Result;
 
             // byref assignment is also a potential write
             if (node.RefKind != RefKind.None)
@@ -2126,9 +2125,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.State.Reachable)
             {
+                // PROTOTYPE(NullableReferenceTypes): Update increment method based on operand type.
                 MethodSymbol incrementOperator = (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1) ? node.MethodOpt : null;
                 TypeSymbol targetTypeOfOperandConversion;
 
+                // PROTOTYPE(NullableReferenceTypes): Update conversion method based on operand type.
                 if (node.OperandConversion.IsUserDefined && (object)node.OperandConversion.Method != null && node.OperandConversion.Method.ParameterCount == 1)
                 {
                     WarnOnNullReferenceArgument(node.Operand, operandResult.Type, node.OperandConversion.Method.Parameters[0], expanded: false);
@@ -2179,6 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                     node.Type,
                                                                     resultOfIncrementType);
 
+                // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
                 if (!node.HasErrors)
                 {
                     var op = node.OperatorKind.Operator();
@@ -2207,15 +2209,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             VisitLvalue(node.Left); // PROTOTYPE(NullableReferenceTypes): Method should be called VisitValue rather than VisitLvalue.
-            var left = this.State.Result;
+            Result left = this.State.Result;
 
             TypeSymbolWithAnnotations resultType;
             Debug.Assert(!IsConditionalState);
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                var leftOnRight = GetAdjustedResult(left);
+                Result leftOnRight = GetAdjustedResult(left);
 
+                // PROTOTYPE(NullableReferenceTypes): Update conversion method based on inferred operand type.
                 if (node.LeftConversion.IsUserDefined && (object)node.LeftConversion.Method != null && node.LeftConversion.Method.ParameterCount == 1)
                 {
                     WarnOnNullReferenceArgument(node.Left, leftOnRight.Type, node.LeftConversion.Method.Parameters[0], expanded: false);
@@ -2223,6 +2226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbolWithAnnotations leftOnRightType;
 
+                // PROTOTYPE(NullableReferenceTypes): Update operator based on inferred argument types.
                 if ((object)node.Operator.LeftType != null)
                 {
                     leftOnRightType = InferResultNullability(node.LeftConversion,
@@ -2247,6 +2251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
 
+                    // PROTOTYPE(NullableReferenceTypes): Update final conversion based on inferred operand type.
                     if (node.FinalConversion.IsUserDefined && (object)node.FinalConversion.Method != null && node.FinalConversion.Method.ParameterCount == 1)
                     {
                         WarnOnNullReferenceArgument(node, resultType, node.FinalConversion.Method.Parameters[0], expanded: false);
@@ -2365,10 +2370,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
-            var method = node.Indexer.GetOwnOrInheritedGetMethod();
             var receiverOpt = node.ReceiverOpt;
             VisitRvalue(receiverOpt);
             CheckPossibleNullReceiver(receiverOpt);
+
+            // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
+            var method = node.Indexer.GetOwnOrInheritedGetMethod();
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
 
             Debug.Assert(!IsConditionalState);
@@ -2394,7 +2401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                var receiverResult = this.State.Result;
+                Result receiverResult = this.State.Result;
 
                 if (!member.IsStatic)
                 {
@@ -2402,7 +2409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckPossibleNullReceiver(receiverOpt);
                 }
 
-                var containingSlot = receiverResult.Slot;
+                int containingSlot = receiverResult.Slot;
                 int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot);
                 var resultType = member.GetTypeOrReturnType();
 
@@ -2494,6 +2501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (this.State.Reachable)
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
                     if (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
                     {
                         WarnOnNullReferenceArgument(node.Operand, this.State.ResultType, node.MethodOpt.Parameters[0], expanded: false);
@@ -2510,6 +2518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.OperatorKind.IsUserDefined())
             {
+                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
                 if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
                 {
                     return GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.MethodOpt);
@@ -2566,6 +2575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbolWithAnnotations InferResultNullability(BoundUserDefinedConditionalLogicalOperator node)
         {
+            // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand types.
             if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
             {
                 return GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.LogicalOperator);
@@ -2582,6 +2592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.State.Reachable)
             {
                 TypeSymbolWithAnnotations leftType = this.State.ResultType;
+                // PROTOTYPE(NullableReferenceTypes): Update operator methods based on inferred operand types.
                 MethodSymbol logicalOperator = null;
                 MethodSymbol trueFalseOperator = null;
                 BoundExpression left = null;
@@ -2692,6 +2703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
                     this.State.ResultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.GetResult);
                 }
             }
@@ -2905,6 +2917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.Type?.IsReferenceType == true)
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Update applicable members based on inferred argument types.
                     bool? isNullable = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
                     this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
                 }
@@ -3026,6 +3039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
+                // PROTOTYPE(NullableReferenceTypes): Update applicable members based on inferred argument types.
                 bool? isNullable = (node.Type?.IsReferenceType == true) ?
                     InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
                     null;
@@ -3153,7 +3167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
-            SetResult(node);
+            SetUnknownResultNullability();
             return null;
         }
 
