@@ -866,7 +866,7 @@ IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary
 ]]>.Value)
         End Sub
 
-        <Fact()>
+        <NoIOperationValidationFact>
         Public Sub IntrinsicSymbols()
             Dim operators() As BinaryOperatorKind =
             {

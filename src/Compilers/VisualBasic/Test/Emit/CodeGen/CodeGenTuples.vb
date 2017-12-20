@@ -5638,7 +5638,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub HugeTupleCreationParses()
 
             Dim b = New StringBuilder()
@@ -5664,7 +5664,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub HugeTupleDeclarationParses()
 
             Dim b = New StringBuilder()

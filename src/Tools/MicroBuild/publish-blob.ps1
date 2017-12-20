@@ -17,7 +17,8 @@ $ErrorActionPreference="Stop"
 
 try {
     . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
-    $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
+
+    $msbuild = Ensure-MSBuild
 
     if ($blobFeedUrl -eq "") {
         Write-Host "Need a value for -blobFeedUrl"

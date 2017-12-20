@@ -3128,7 +3128,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3151,7 +3151,7 @@ class C
             CreateStandardCompilation(source);
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
