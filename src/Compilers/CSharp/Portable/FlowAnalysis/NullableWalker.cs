@@ -1707,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Symbol AsMemberOfResultType(Symbol symbol)
         {
             var containingType = this.State.Result.Type?.TypeSymbol as NamedTypeSymbol;
-            if ((object)containingType == null)
+            if ((object)containingType == null || containingType.IsErrorType())
             {
                 return symbol;
             }
