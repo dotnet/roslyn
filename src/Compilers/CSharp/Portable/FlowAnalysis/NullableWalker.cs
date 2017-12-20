@@ -1129,6 +1129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Should return methodOpt.ReturnType
+                    // since that type might include nested nullability inferred from this flow analysis.
                     return IsResultNullable(methodOpt);
                 }
                 else
@@ -1314,6 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.HasErrors)
             {
+                // PROTOTYPE(NullableReferenceTypes): Can we set resultType correctly in some error situations?
                 resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
             }
             else
