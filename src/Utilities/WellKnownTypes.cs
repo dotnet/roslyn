@@ -46,16 +46,6 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Collections.Generic.IList`1");
         }
 
-        public static INamedTypeSymbol CollectionBase(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Collections.CollectionBase");
-        }
-
-        public static INamedTypeSymbol ReadOnlyCollectionBase(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Collections.ReadOnlyCollectionBase");
-        }
-
         public static INamedTypeSymbol Array(Compilation compilation)
         {
             return compilation.GetSpecialType(SpecialType.System_Array);
