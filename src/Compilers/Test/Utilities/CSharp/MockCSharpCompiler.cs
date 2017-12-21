@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -15,24 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         internal Compilation Compilation;
 
         public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args)
-            : this(responseFile, baseDirectory, args, ImmutableArray<DiagnosticAnalyzer>.Empty)
+            : this(responseFile, baseDirectory, args, ImmutableArray<DiagnosticAnalyzer>.Empty, RuntimeUtilities.CreateAnalyzerAssemblyLoader())
         {
         }
 
-        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
-            : base(CSharpCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory), Environment.GetEnvironmentVariable("LIB"), new DesktopAnalyzerAssemblyLoader())
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerAssemblyLoader loader)
+            : base(CSharpCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory), Environment.GetEnvironmentVariable("LIB"), loader)
         {
             _analyzers = analyzers;
         }
 
-        private static BuildPaths CreateBuildPaths(string workingDirectory)
-        {
-            return new BuildPaths(
-                clientDir: Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location),
-                workingDir: workingDirectory,
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
-                tempDir: Path.GetTempPath());
-        }
+        private static BuildPaths CreateBuildPaths(string workingDirectory) => RuntimeUtilities.CreateBuildPaths(workingDirectory);
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
