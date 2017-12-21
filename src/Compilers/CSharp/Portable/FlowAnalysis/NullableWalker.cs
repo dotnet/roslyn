@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly SourceAssemblySymbol _sourceAssembly;
 
+        // PROTOTYPE(NullableReferenceTypes): Remove the Binder if possible. 
         private readonly Binder _binder;
 
         /// <summary>
@@ -1856,23 +1857,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitTupleExpression(BoundTupleExpression node)
         {
             var arguments = node.Arguments;
-            var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Length);
             foreach (var arg in arguments)
             {
                 VisitRvalue(arg);
-                builder.Add(this.State.ResultType);
             }
-            var tupleType = (TupleTypeSymbol)node.Type;
-            var elementNames = tupleType is null ? default : tupleType.TupleElementNames;
-            var resultType = TupleTypeSymbol.Create(
-                locationOpt: node.Syntax.Location,
-                elementTypes: builder.ToImmutableAndFree(),
-                elementLocations: default(ImmutableArray<Location>),
-                elementNames: elementNames,
-                compilation: compilation,
-                shouldCheckConstraints: false,
-                errorPositions: default(ImmutableArray<bool>));
-            this.State.ResultType = TypeSymbolWithAnnotations.Create(resultType);
+            // PROTOTYPE(NullableReferenceTypes): Result should include nullability of arguments.
+            this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type);
         }
 
         private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
@@ -2103,7 +2093,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                this.State.Result = node.Type.IsErrorType() ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : right;
+                // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
+                this.State.Result = node.HasErrors ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : right;
             }
 
             return null;
