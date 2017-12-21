@@ -16,21 +16,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
     static void F(object x, object? y)
     {
         var a = new[] { x, x };
+        a.ToString();
         a[0].ToString();
         var b = new[] { x, y };
+        b.ToString();
         b[0].ToString();
         var c = new[] { b };
+        c[0].ToString();
         c[0][0].ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         b[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(8, 9),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         b[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(10, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
                 //         c[0][0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0][0]").WithLocation(10, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0][0]").WithLocation(13, 9));
         }
 
         [Fact]
@@ -47,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         b[0].ToString();
         var c = new[] { a, b };
         c[0][0].ToString();
+        var d = new[] { a, b! };
+        d[0][0].ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
@@ -289,6 +294,8 @@ class C
         a[0].ToString();
         var b = new object?[] { x, y };
         b[0].ToString();
+        var c = new object[] { x, y! };
+        c[0].ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
