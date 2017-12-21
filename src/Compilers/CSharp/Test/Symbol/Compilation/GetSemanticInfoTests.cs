@@ -5389,7 +5389,7 @@ class C2<T> : E2<T> { }";
             Assert.Throws<InvalidOperationException>(() => type.Construct(objectType)); // non-generic type
 
             // Non-generic error type.
-            type = type.BaseType;
+            type = type.BaseType();
             Assert.False(type.IsGenericType);
             Assert.True(type.IsErrorType());
             Assert.Throws<InvalidOperationException>(() => type.Construct(objectType)); // non-generic type
@@ -5403,7 +5403,7 @@ class C2<T> : E2<T> { }";
             Assert.Throws<InvalidOperationException>(() => type.Construct(objectType).Construct(objectType)); // constructed type
 
             // Generic error type.
-            type = type.BaseType.ConstructedFrom;
+            type = type.BaseType().ConstructedFrom;
             Assert.True(type.IsGenericType);
             Assert.True(type.IsErrorType());
             Assert.Throws<ArgumentException>(() => type.Construct(new TypeSymbol[] { null })); // null type arg

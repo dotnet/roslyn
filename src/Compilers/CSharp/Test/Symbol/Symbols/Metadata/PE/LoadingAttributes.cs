@@ -1425,7 +1425,7 @@ class Class2 : Class1
 
             CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
             {
-                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType;
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
                 Assert.Equal("Class1", class1.ToTestDisplayString());
 
                 var field1 = class1.GetField("d1");
@@ -1452,7 +1452,7 @@ class Class2 : Class1
 
             CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
             {
-                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType;
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
                 Assert.Equal("Class1", class1.ToTestDisplayString());
 
                 var field1 = class1.GetField("d1");

@@ -166,41 +166,41 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(_base2Class.GetAttributes(), expectedDynamicAttribute: false);
 
                 // public class Derived<T> : Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>
-                Assert.True(_derivedClass.BaseType.ContainsDynamic());
+                Assert.True(_derivedClass.BaseType().ContainsDynamic());
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 0B 00 00 00 * 00 01 00 00 01 00 00 01 00 01 01 * 00 00 )
                 _expectedTransformFlags = new bool[] { false, true, false, false, true, false, false, true, false, true, true };
                 ValidateDynamicAttribute(_derivedClass.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
 
                 // public class Outer<T> : Base1<dynamic>
-                Assert.True(_outerClass.BaseType.ContainsDynamic());
+                Assert.True(_outerClass.BaseType().ContainsDynamic());
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
                 _expectedTransformFlags = new bool[] { false, true };
                 ValidateDynamicAttribute(_outerClass.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
 
                 // public class Inner<U, V> : Base2<dynamic, V>
-                Assert.True(_innerClass.BaseType.ContainsDynamic());
+                Assert.True(_innerClass.BaseType().ContainsDynamic());
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 * 00 01 00 * 00 00 ) 
                 _expectedTransformFlags = new bool[] { false, true, false };
                 ValidateDynamicAttribute(_innerClass.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
 
                 // public class InnerInner<W> : Base1<dynamic> { }
-                Assert.True(_innerInnerClass.BaseType.ContainsDynamic());
+                Assert.True(_innerInnerClass.BaseType().ContainsDynamic());
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
                 _expectedTransformFlags = new bool[] { false, true };
                 ValidateDynamicAttribute(_innerInnerClass.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
 
                 // public class Outer2<T> : Base1<dynamic>
-                Assert.True(_outer2Class.BaseType.ContainsDynamic());
+                Assert.True(_outer2Class.BaseType().ContainsDynamic());
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
                 _expectedTransformFlags = new bool[] { false, true };
                 ValidateDynamicAttribute(_outer2Class.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
 
                 // public class Inner2<U, V> : Base0
-                Assert.False(_inner2Class.BaseType.ContainsDynamic());
+                Assert.False(_inner2Class.BaseType().ContainsDynamic());
                 ValidateDynamicAttribute(_inner2Class.GetAttributes(), expectedDynamicAttribute: false);
 
                 // public class InnerInner2<W> : Base0 { }
-                Assert.False(_innerInner2Class.BaseType.ContainsDynamic());
+                Assert.False(_innerInner2Class.BaseType().ContainsDynamic());
                 ValidateDynamicAttribute(_innerInner2Class.GetAttributes(), expectedDynamicAttribute: false);
 
                 // public class Inner3<U>
@@ -434,7 +434,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 14 00 00 00 * 00 00 00 00 00 00 00 01 00 00 01 00 00 01 00 00 00 00 01 01 * 00 00 ) 
                 _expectedTransformFlags = new bool[] { false, false, false, false, false, false, false, true, false, false, true, false, false, true, false, false, false, false, true, true };
                 Assert.False(_unsafeClass.ContainsDynamic());
-                Assert.True(_unsafeClass.BaseType.ContainsDynamic());
+                Assert.True(_unsafeClass.BaseType().ContainsDynamic());
                 ValidateDynamicAttribute(_unsafeClass.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
             }
 

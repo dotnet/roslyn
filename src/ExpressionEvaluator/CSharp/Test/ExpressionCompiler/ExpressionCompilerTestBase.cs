@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         internal static void VerifyTypeParameters(NamedTypeSymbol type)
         {
             AssertEx.All(type.TypeParameters, typeParameter => type.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(type.TypeArguments, typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
+            AssertEx.All(type.TypeArguments(), typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
             var container = type.ContainingType;
             if ((object)container != null)
             {

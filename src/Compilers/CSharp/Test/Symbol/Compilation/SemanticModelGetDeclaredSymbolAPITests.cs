@@ -4637,7 +4637,7 @@ class C : A<object>.B<> { }";
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType;
+            type = type.BaseType();
             Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<object>.B<?>");
         }
 
@@ -4652,7 +4652,7 @@ class C : A<,,>.B<object> { }";
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType;
+            type = type.BaseType();
             Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?, ?, ?>.B<object>");
         }
 
@@ -4667,7 +4667,7 @@ class C : A<>.B<> { }";
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType;
+            type = type.BaseType();
             Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?>.B<?>");
         }
 
