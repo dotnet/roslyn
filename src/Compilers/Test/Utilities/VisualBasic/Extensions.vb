@@ -320,6 +320,6 @@ Friend Module Extensions
 
     <Extension>
     Public Function ConstraintTypes(symbol As TypeParameterSymbol) As ImmutableArray(Of TypeSymbol)
-        Return symbol.ConstraintTypes
+        Return symbol.ConstraintTypesNoUseSiteDiagnostics
     End Function
 End Module
