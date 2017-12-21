@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 elem.Add(new XAttribute("Of", typeParams));
             }
 
-            if (t.BaseType != null)
+            if (t.BaseType() != null)
             {
-                elem.Add(new XAttribute("base", t.BaseType.ToTestDisplayString()));
+                elem.Add(new XAttribute("base", t.BaseType().ToTestDisplayString()));
             }
 
             var fields = t.GetMembers().Where(m => m.Kind == SymbolKind.Field).OrderBy(f => f.Name).Cast<FieldSymbol>();

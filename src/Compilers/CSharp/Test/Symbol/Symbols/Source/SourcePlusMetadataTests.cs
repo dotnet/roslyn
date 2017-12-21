@@ -22,11 +22,11 @@ class Y {}
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
-            Assert.Equal(SymbolKind.NamedType, x.BaseType.Kind);
+            Assert.Equal(SymbolKind.NamedType, x.BaseType().Kind);
             var y = global.GetTypeMembers("Y", 0).Single();
-            Assert.Equal(SymbolKind.NamedType, y.BaseType.Kind);
-            Assert.Equal(x.BaseType, y.BaseType);
-            Assert.Equal("Object", y.BaseType.Name);
+            Assert.Equal(SymbolKind.NamedType, y.BaseType().Kind);
+            Assert.Equal(x.BaseType(), y.BaseType());
+            Assert.Equal("Object", y.BaseType().Name);
         }
 
         [Fact]
@@ -39,8 +39,8 @@ struct X {}
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
-            Assert.Equal(SymbolKind.NamedType, x.BaseType.Kind);
-            Assert.Equal("ValueType", x.BaseType.Name);
+            Assert.Equal(SymbolKind.NamedType, x.BaseType().Kind);
+            Assert.Equal("ValueType", x.BaseType().Name);
         }
 
         [Fact]
@@ -55,13 +55,13 @@ class Z {}
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
-            Assert.Null(x.BaseType);
+            Assert.Null(x.BaseType());
             var y = global.GetTypeMembers("Y", 0).Single();
-            Assert.Equal(SymbolKind.NamedType, y.BaseType.Kind);
+            Assert.Equal(SymbolKind.NamedType, y.BaseType().Kind);
             var z = global.GetTypeMembers("Z", 0).Single();
-            Assert.Equal(SymbolKind.NamedType, z.BaseType.Kind);
-            Assert.Equal(z.BaseType, y.BaseType);
-            Assert.Equal("Object", y.BaseType.Name);
+            Assert.Equal(SymbolKind.NamedType, z.BaseType().Kind);
+            Assert.Equal(z.BaseType(), y.BaseType());
+            Assert.Equal("Object", y.BaseType().Name);
         }
 
         [Fact]
@@ -77,8 +77,8 @@ namespace System {
             var global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
             var a = system.GetTypeMembers("A", 0).Single();
-            Assert.Equal(SymbolKind.NamedType, a.BaseType.Kind);
-            Assert.Equal("Object", a.BaseType.Name);
+            Assert.Equal(SymbolKind.NamedType, a.BaseType().Kind);
+            Assert.Equal("Object", a.BaseType().Name);
         }
 
         [Fact]
@@ -186,7 +186,7 @@ namespace NS
             var ref2 = TestReferences.SymbolsTests.InheritIComparable;
             var comp2 = CSharpCompilation.Create("Compilation2", references: new MetadataReference[] { ref2, MscorlibRef });
             var metaSym = comp2.GlobalNamespace.GetTypeMembers("BaseTypeSpecifierClass").First();
-            Assert.Equal(srcSym.Interfaces[0], metaSym.Interfaces[0]);
+            Assert.Equal(srcSym.Interfaces()[0], metaSym.Interfaces()[0]);
         }
 
         [WorkItem(527532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527532")]
@@ -202,7 +202,7 @@ namespace NS
             var ref2 = TestReferences.SymbolsTests.InheritIComparable;
             var comp2 = CSharpCompilation.Create("Compilation2", references: new MetadataReference[] { ref2, MscorlibRef });
             var metaSym = comp2.GlobalNamespace.GetTypeMembers("FooAttribute").First();
-            Assert.Equal(srcSym.BaseType, metaSym.BaseType);
+            Assert.Equal(srcSym.BaseType(), metaSym.BaseType());
         }
 
         [WorkItem(4084, "DevDiv_Projects/Roslyn")]
@@ -246,8 +246,8 @@ class B : Box<System." + systemTypeName + @"> {}
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var b = global.GetTypeMembers("B", 0).Single();
-            var key = a.BaseType.TypeArguments[0] as NamedTypeSymbol;
-            var nam = b.BaseType.TypeArguments[0] as NamedTypeSymbol;
+            var key = a.BaseType().TypeArguments()[0] as NamedTypeSymbol;
+            var nam = b.BaseType().TypeArguments()[0] as NamedTypeSymbol;
             Assert.Equal(SymbolKind.NamedType, key.Kind);
             Assert.Equal(SymbolKind.NamedType, nam.Kind);
             Assert.Equal(nam, key);

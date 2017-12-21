@@ -5018,7 +5018,7 @@ public class DerivingClass<T> : BaseClass<T>
                 Assert.False(b.IsErrorType());
                 Assert.Equal("sourceMod.dll", b.ContainingModule.Name);
 
-                var a = b.BaseType;
+                var a = b.BaseType();
                 Assert.Equal("A", a.Name);
                 Assert.False(a.IsErrorType());
                 Assert.Equal("refMod.netmodule", a.ContainingModule.Name);

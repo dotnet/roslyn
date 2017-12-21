@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new InContainerBinder(substitutedSourceType, binder);
                 if (substitutedSourceType.Arity > 0)
                 {
-                    binder = new WithTypeArgumentsBinder(substitutedSourceType.TypeArguments, binder);
+                    binder = new WithTypeArgumentsBinder(substitutedSourceType.TypeArgumentsNoUseSiteDiagnostics, binder);
                 }
             }
 
@@ -1645,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     {
                         return desiredTypeParameters.Length == 0
                             ? candidateMethod
-                            : candidateMethod.Construct(candidateSubstitutedSourceType.TypeArguments);
+                            : candidateMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsNoUseSiteDiagnostics);
                     }
                 }
 

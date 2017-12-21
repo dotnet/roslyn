@@ -9165,23 +9165,23 @@ class Program
             Assert.Equal("B", type.Name);
             Assert.True(type.IsUnboundGenericType);
             Assert.False(type.IsErrorType());
-            Assert.True(type.TypeArguments[0].IsErrorType());
+            Assert.True(type.TypeArguments()[0].IsErrorType());
 
             var constructedFrom = type.ConstructedFrom;
             Assert.Equal(constructedFrom, constructedFrom.ConstructedFrom);
             Assert.Equal(constructedFrom, constructedFrom.TypeParameters[0].ContainingSymbol);
-            Assert.Equal(constructedFrom.TypeArguments[0], constructedFrom.TypeParameters[0]);
+            Assert.Equal(constructedFrom.TypeArguments()[0], constructedFrom.TypeParameters[0]);
             Assert.Equal(type.ContainingSymbol, constructedFrom.ContainingSymbol);
             Assert.Equal(type.TypeParameters[0], constructedFrom.TypeParameters[0]);
-            Assert.False(constructedFrom.TypeArguments[0].IsErrorType());
+            Assert.False(constructedFrom.TypeArguments()[0].IsErrorType());
             Assert.NotEqual(type, constructedFrom);
             Assert.False(constructedFrom.IsUnboundGenericType);
             var a = type.ContainingType;
             Assert.Equal(constructedFrom, a.GetTypeMembers("B").Single());
             Assert.NotEqual(type.TypeParameters[0], type.OriginalDefinition.TypeParameters[0]); // alpha renamed
-            Assert.Null(type.BaseType);
-            Assert.Empty(type.Interfaces);
-            Assert.NotNull(constructedFrom.BaseType);
+            Assert.Null(type.BaseType());
+            Assert.Empty(type.Interfaces());
+            Assert.NotNull(constructedFrom.BaseType());
             Assert.Empty(type.GetMembers());
             Assert.NotEmpty(constructedFrom.GetMembers());
             Assert.True(a.IsUnboundGenericType);
