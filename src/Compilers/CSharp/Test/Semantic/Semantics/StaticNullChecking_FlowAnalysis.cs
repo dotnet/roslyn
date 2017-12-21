@@ -521,6 +521,114 @@ class C
         }
 
         [Fact]
+        public void ConditionalOperator_08()
+        {
+            var source =
+@"class C
+{
+    static void F1(bool b, UnknownA x, UnknownB y)
+    {
+        (b ? x : y).ToString();
+        (b ? y : x).ToString();
+    }
+    static void F2(bool b, UnknownA? x, UnknownB y)
+    {
+        (b ? x : y).ToString();
+        (b ? y : x).ToString();
+    }
+    static void F3(bool b, UnknownA? x, UnknownB? y)
+    {
+        (b ? x : y).ToString();
+        (b ? y : x).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,28): error CS0246: The type or namespace name 'UnknownA' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F1(bool b, UnknownA x, UnknownB y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnknownA").WithArguments("UnknownA").WithLocation(3, 28),
+                // (3,40): error CS0246: The type or namespace name 'UnknownB' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F1(bool b, UnknownA x, UnknownB y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnknownB").WithArguments("UnknownB").WithLocation(3, 40),
+                // (8,28): error CS0246: The type or namespace name 'UnknownA' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F2(bool b, UnknownA? x, UnknownB y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnknownA").WithArguments("UnknownA").WithLocation(8, 28),
+                // (8,41): error CS0246: The type or namespace name 'UnknownB' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F2(bool b, UnknownA? x, UnknownB y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnknownB").WithArguments("UnknownB").WithLocation(8, 41),
+                // (13,28): error CS0246: The type or namespace name 'UnknownA' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F3(bool b, UnknownA? x, UnknownB? y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnknownA").WithArguments("UnknownA").WithLocation(13, 28),
+                // (13,41): error CS0246: The type or namespace name 'UnknownB' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F3(bool b, UnknownA? x, UnknownB? y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnknownB").WithArguments("UnknownB").WithLocation(13, 41),
+                // (10,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? x : y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x : y").WithLocation(10, 10),
+                // (11,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? y : x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y : x").WithLocation(11, 10),
+                // (15,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? x : y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x : y").WithLocation(15, 10),
+                // (16,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? y : x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y : x").WithLocation(16, 10));
+        }
+
+        [Fact]
+        public void ConditionalOperator_09()
+        {
+            var source =
+@"struct A { }
+struct B { }
+class C
+{
+    static void F1(bool b, A x, B y)
+    {
+        (b ? x : y).ToString();
+        (b ? y : x).ToString();
+    }
+    static void F2(bool b, A x, C y)
+    {
+        (b ? x : y).ToString();
+        (b ? y : x).ToString();
+    }
+    static void F3(bool b, B x, C? y)
+    {
+        (b ? x : y).ToString();
+        (b ? y : x).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A' and 'B'
+                //         (b ? x : y).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? x : y").WithArguments("A", "B").WithLocation(7, 10),
+                // (8,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'B' and 'A'
+                //         (b ? y : x).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? y : x").WithArguments("B", "A").WithLocation(8, 10),
+                // (12,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A' and 'C'
+                //         (b ? x : y).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? x : y").WithArguments("A", "C").WithLocation(12, 10),
+                // (13,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'C' and 'A'
+                //         (b ? y : x).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? y : x").WithArguments("C", "A").WithLocation(13, 10),
+                // (17,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'B' and 'C'
+                //         (b ? x : y).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? x : y").WithArguments("B", "C").WithLocation(17, 10),
+                // (18,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'C' and 'B'
+                //         (b ? y : x).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? y : x").WithArguments("C", "B").WithLocation(18, 10),
+                // (17,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? x : y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x : y").WithLocation(17, 10),
+                // (18,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? y : x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y : x").WithLocation(18, 10));
+        }
+
+        [Fact]
         public void NullCoalescingOperator_01()
         {
             var source =

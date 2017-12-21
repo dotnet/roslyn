@@ -1374,9 +1374,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            VisitRvalue(node.AccessExpression);
+            if (IsConstantNull(node.Receiver))
+            {
+                SetUnreachable();
+            }
 
+            VisitRvalue(node.AccessExpression);
             IntersectWith(ref this.State, ref receiverState);
+
             // PROTOTYPE(NullableReferenceTypes): Use flow analysis type rather than node.Type
             // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
             this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: receiverState.ResultType?.IsNullable | this.State.ResultType?.IsNullable);
@@ -1413,9 +1418,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var alternativeType = alternativeState.ResultType;
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
-                this.State.ResultType = (object)consequenceType == null || (object)alternativeType == null || !consequenceType.Equals(alternativeType, TypeCompareKind.ConsiderEverything) ?
-                    TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true) :
-                    GetMoreNullableType(consequenceType, alternativeType);
+                if ((object)consequenceType == null || (object)alternativeType == null || !consequenceType.Equals(alternativeType, TypeCompareKind.ConsiderEverything))
+                {
+                    var consequenceIsNullable = (object)consequenceType == null ? true : consequenceType.IsNullable;
+                    var alternativeIsNullable = (object)alternativeType == null ? true : alternativeType.IsNullable;
+                    this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: consequenceIsNullable | alternativeIsNullable);
+                }
+                else
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Use BestTypeInferrer.InferBestTypeForConditionalOperator
+                    // to ensure nested nullability is considered.
+                    this.State.ResultType = GetMoreNullableType(consequenceType, alternativeType);
+                }
+
                 // it may not be a boolean state at this point (5.3.3.28)
                 // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
             }
@@ -2009,7 +2024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             var result = VisitLambdaOrLocalFunction(node);
-            this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
+            this.State.ResultType = null;
             return result;
         }
 
@@ -2317,6 +2332,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(NullableReferenceTypes): If support for [NullableOptOut] or [NullableOptOutForAssembly]
+        // is re-enabled, we'll need to call this helper for method symbols before inferring nullability of
+        // arguments to avoid warnings when nullability checking of the method is suppressed.
+        // (See all uses of this helper for method symbols.)
         private TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
         {
             Debug.Assert(symbol.Kind != SymbolKind.Local); // Handled in VisitLocal.
