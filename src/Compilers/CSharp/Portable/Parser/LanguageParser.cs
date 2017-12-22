@@ -9102,7 +9102,7 @@ tryAgain:
 
             else if (tk == SyntaxKind.SwitchKeyword && precedence < Precedence.Coalescing)
             {
-                // TODO(patterns2): for better error recovery when an expression is typed on a line before
+                // PROTOTYPE(patterns2): for better error recovery when an expression is typed on a line before
                 // a switch statement, we should check if the cases between the parens look like cases with
                 // arrows, and whether the
                 // switch keyword is on the same line as the end of the expression. If those are not satisfied,
@@ -9112,7 +9112,7 @@ tryAgain:
                 var switchKeyword = this.EatToken();
                 var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
                 var arms = this.ParseSwitchExpressionArms();
-                // TODO(patterns2): Should skip any unexpected tokens up through the close brace token.
+                // PROTOTYPE(patterns2): Should skip any unexpected tokens up through the close brace token.
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
                 leftOperand = _syntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBrace, arms, closeBrace);
                 leftOperand = this.CheckFeatureAvailability(leftOperand, MessageID.IDS_FeatureRecursivePatterns);
@@ -9123,7 +9123,7 @@ tryAgain:
 
         private SeparatedSyntaxList<SwitchExpressionArmSyntax> ParseSwitchExpressionArms()
         {
-            // TODO(patterns2): Error recovery here leaves much to be desired.
+            // PROTOTYPE(patterns2): Error recovery here leaves much to be desired.
             var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
             do
             {

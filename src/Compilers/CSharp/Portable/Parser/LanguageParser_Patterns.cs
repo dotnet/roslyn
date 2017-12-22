@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
                 case SyntaxKind.IdentifierToken:
-                    var result = this.IsTrueIdentifier();
+                    bool result = this.IsTrueIdentifier();
                     this.EatToken();
                     return result;
                 case SyntaxKind.OpenParenToken:
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // type of a declaration or recursive pattern, nor as a type in an in-type expression starting
                 // in C# 7. The binder will give a diagnostic if
                 // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
-                // TODO(patterns2): Should we use the "contextual keyword" infrastructure for this?
+                // PROTOTYPE(patterns2): Should we use the "contextual keyword" infrastructure for this?
                 return _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
             }
 
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
                     var varToken = ConvertToKeyword(typeIdentifierToken);
-                    var wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
+                    bool wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
                     var varDesignation = ParseDesignation();
                     if (wasTupleDesignator)
                     {

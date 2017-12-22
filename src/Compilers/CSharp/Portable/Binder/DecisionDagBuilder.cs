@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // TODO(patterns2): This should not occur except in error cases. Perhaps this will be used to handle the ITuple case.
+                    // PROTOTYPE(patterns2): This should not occur except in error cases. Perhaps this will be used to handle the ITuple case.
                     Debug.Assert(recursive.HasAnyErrors);
                 }
             }
