@@ -16,12 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
         [ImportingConstructor]
         public DeferredContentFrameworkElementFactory(
-            [ImportMany] IEnumerable<Lazy<IDeferredQuickInfoContentToFrameworkElementConverter, IQuickInfoConverterMetadata>> converters,
+            [ImportMany] IEnumerable<Lazy<IDeferredQuickInfoContentToFrameworkElementConverter, QuickInfoConverterMetadata>> converters,
             [ImportMany] IEnumerable<Lazy<IDeferredQuickInfoContentToFrameworkElementConverter>> convertersWithoutMetadata)
         {
-            _convertersByTypeFullName = converters.ToDictionary(
-                lazy => lazy.Metadata.DeferredTypeFullName,
-                lazy => (Lazy<IDeferredQuickInfoContentToFrameworkElementConverter>)lazy);
+            _convertersByTypeFullName = converters
+                .Where(i => !string.IsNullOrEmpty(i.Metadata.DeferredTypeFullName))
+                .ToDictionary(
+                    lazy => lazy.Metadata.DeferredTypeFullName,
+                    lazy => (Lazy<IDeferredQuickInfoContentToFrameworkElementConverter>)lazy);
 
             _convertersWithoutMetadata = convertersWithoutMetadata;
         }
@@ -47,9 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             return converter.Value.CreateFrameworkElement(deferredContent, this);
         }
 
-        internal interface IQuickInfoConverterMetadata
+        internal class QuickInfoConverterMetadata
         {
-            string DeferredTypeFullName { get; }
+            public QuickInfoConverterMetadata(IDictionary<string, object> data)
+            {
+                DeferredTypeFullName = (string)data.GetValueOrDefault(nameof(QuickInfoConverterMetadataAttribute.DeferredTypeFullName));
+            }
+
+            public string DeferredTypeFullName { get; set; }
         }
     }
 }
