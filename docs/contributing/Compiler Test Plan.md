@@ -30,7 +30,8 @@ This document provides guidance for thinking about language interactions and tes
 - Performance and stress testing
  
 # Type and members
-- Access modifiers (public, protected, internal, protected internal, private protected, private), static modifier
+- Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
+    - If adding a new modifier, check modifiers for accessors as well.
 - Parameter modifiers (ref, out, params)
 - Attributes (including security attribute)
 - Generics (type arguments, constraints, variance)
