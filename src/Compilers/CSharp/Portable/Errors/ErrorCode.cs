@@ -1558,6 +1558,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE(async-streams) Compact error IDs
         ERR_NoConvToIAsyncDisp = 9000,
+        ERR_AsyncForEachMissingMember = 9001,
+        ERR_BadGetAsyncEnumerator = 9002,
+        ERR_MultipleIAsyncEnumOfT = 9003,
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }

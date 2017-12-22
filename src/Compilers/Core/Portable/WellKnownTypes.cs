@@ -273,6 +273,8 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T,
 
         System_IAsyncDisposable,
+        System_Collections_Generic_IAsyncEnumerable_T,
+        System_Collections_Generic_IAsyncEnumerator_T,
 
         NextAvailable,
     }
@@ -540,6 +542,8 @@ namespace Microsoft.CodeAnalysis
             "System.Span`1",
             "System.ReadOnlySpan`1",
             "System.IAsyncDisposable",
+            "System.Collections.Generic.IAsyncEnumerable`1",
+            "System.Collections.Generic.IAsyncEnumerator`1",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

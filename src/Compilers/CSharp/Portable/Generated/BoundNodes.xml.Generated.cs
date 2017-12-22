@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ParameterEqualsValue,
         GlobalStatementInitializer,
         DeconstructValuePlaceholder,
+        TryGetNextArgumentPlaceholder,
         AwaitableValuePlaceholder,
         Dup,
         BadExpression,
@@ -444,6 +445,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (valEscape != this.ValEscape || type != this.Type)
             {
                 var result = new BoundDeconstructValuePlaceholder(this.Syntax, valEscape, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundTryGetNextArgumentPlaceholder : BoundValuePlaceholderBase
+    {
+        public BoundTryGetNextArgumentPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.TryGetNextArgumentPlaceholder, syntax, type, hasErrors)
+        {
+
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundTryGetNextArgumentPlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.TryGetNextArgumentPlaceholder, syntax, type)
+        {
+
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitTryGetNextArgumentPlaceholder(this);
+        }
+
+        public BoundTryGetNextArgumentPlaceholder Update(TypeSymbol type)
+        {
+            if (type != this.Type)
+            {
+                var result = new BoundTryGetNextArgumentPlaceholder(this.Syntax, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -3178,7 +3215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundForEachStatement : BoundLoopStatement
     {
-        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, Boolean @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, AwaitableInfo awaitOpt, BoundStatement body, Boolean @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
             : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || iterationVariableType.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || body.HasErrors())
         {
 
@@ -3195,6 +3232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IterationVariables = iterationVariables;
             this.Expression = expression;
             this.DeconstructionOpt = deconstructionOpt;
+            this.AwaitOpt = awaitOpt;
             this.Body = body;
             this.Checked = @checked;
         }
@@ -3212,6 +3250,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundForEachDeconstructStep DeconstructionOpt { get; }
 
+        public AwaitableInfo AwaitOpt { get; }
+
         public BoundStatement Body { get; }
 
         public Boolean Checked { get; }
@@ -3221,11 +3261,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitForEachStatement(this);
         }
 
-        public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, Boolean @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, AwaitableInfo awaitOpt, BoundStatement body, Boolean @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || body != this.Body || @checked != this.Checked || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
+            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || awaitOpt != this.AwaitOpt || body != this.Body || @checked != this.Checked || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
             {
-                var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, expression, deconstructionOpt, body, @checked, breakLabel, continueLabel, this.HasErrors);
+                var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, expression, deconstructionOpt, awaitOpt, body, @checked, breakLabel, continueLabel, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6203,6 +6243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitGlobalStatementInitializer(node as BoundGlobalStatementInitializer, arg);
                 case BoundKind.DeconstructValuePlaceholder: 
                     return VisitDeconstructValuePlaceholder(node as BoundDeconstructValuePlaceholder, arg);
+                case BoundKind.TryGetNextArgumentPlaceholder: 
+                    return VisitTryGetNextArgumentPlaceholder(node as BoundTryGetNextArgumentPlaceholder, arg);
                 case BoundKind.AwaitableValuePlaceholder: 
                     return VisitAwaitableValuePlaceholder(node as BoundAwaitableValuePlaceholder, arg);
                 case BoundKind.Dup: 
@@ -6522,6 +6564,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7130,6 +7176,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node)
         {
             return this.DefaultVisit(node);
         }
@@ -7743,6 +7793,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            return null;
+        }
+        public override BoundNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node)
         {
             return null;
         }
@@ -8528,6 +8582,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.ValEscape, type);
         }
+        public override BoundNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(type);
+        }
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
         {
             TypeSymbol type = this.VisitType(node.Type);
@@ -8939,7 +8998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundForEachDeconstructStep deconstructionOpt = (BoundForEachDeconstructStep)this.Visit(node.DeconstructionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.EnumeratorInfoOpt, node.ElementConversion, iterationVariableType, node.IterationVariables, expression, deconstructionOpt, body, node.Checked, node.BreakLabel, node.ContinueLabel);
+            return node.Update(node.EnumeratorInfoOpt, node.ElementConversion, iterationVariableType, node.IterationVariables, expression, deconstructionOpt, node.AwaitOpt, body, node.Checked, node.BreakLabel, node.ContinueLabel);
         }
         public override BoundNode VisitForEachDeconstructStep(BoundForEachDeconstructStep node)
         {
@@ -9444,6 +9503,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("deconstructValuePlaceholder", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("valEscape", node.ValEscape, null),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node, object arg)
+        {
+            return new TreeDumperNode("tryGetNextArgumentPlaceholder", null, new TreeDumperNode[]
+            {
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10166,6 +10233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("iterationVariables", node.IterationVariables, null),
                 new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
                 new TreeDumperNode("deconstructionOpt", null, new TreeDumperNode[] { Visit(node.DeconstructionOpt, null) }),
+                new TreeDumperNode("awaitOpt", node.AwaitOpt, null),
                 new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
                 new TreeDumperNode("@checked", node.Checked, null),
                 new TreeDumperNode("breakLabel", node.BreakLabel, null),

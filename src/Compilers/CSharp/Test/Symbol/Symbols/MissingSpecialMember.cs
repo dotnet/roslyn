@@ -563,6 +563,8 @@ namespace System
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_IAsyncDisposable:
+                    case WellKnownType.System_Collections_Generic_IAsyncEnumerable_T:
+                    case WellKnownType.System_Collections_Generic_IAsyncEnumerator_T:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -867,6 +869,9 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

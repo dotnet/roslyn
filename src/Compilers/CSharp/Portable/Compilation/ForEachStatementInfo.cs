@@ -27,6 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IPropertySymbol CurrentProperty { get; }
 
         /// <summary>
+        /// Gets the &quot;WaitForNextAsyncMethod&quot; method.
+        /// </summary>
+        public IMethodSymbol WaitForNextAsyncMethod { get; }
+
+        /// <summary>
+        /// Gets the &quot;TryGetNext&quot; method.
+        /// </summary>
+        public IMethodSymbol TryGetNextMethod { get; }
+
+        /// <summary>
         /// Gets the &quot;Dispose&quot; method.
         /// </summary>
         public IMethodSymbol DisposeMethod { get; }
@@ -62,12 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       IMethodSymbol disposeMethod,
                                       ITypeSymbol elementType,
                                       Conversion elementConversion,
-                                      Conversion currentConversion)
+                                      Conversion currentConversion,
+                                      IMethodSymbol waitForNextAsyncMethod = null,
+                                      IMethodSymbol tryGetNextMethod = null)
         {
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.MoveNextMethod = moveNextMethod;
             this.CurrentProperty = currentProperty;
             this.DisposeMethod = disposeMethod;
+            this.WaitForNextAsyncMethod = waitForNextAsyncMethod;
+            this.TryGetNextMethod = tryGetNextMethod;
             this.ElementType = elementType;
             this.ElementConversion = elementConversion;
             this.CurrentConversion = currentConversion;
@@ -86,7 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && object.Equals(this.DisposeMethod, other.DisposeMethod)
                 && object.Equals(this.ElementType, other.ElementType)
                 && this.ElementConversion == other.ElementConversion
-                && this.CurrentConversion == other.CurrentConversion;
+                && this.CurrentConversion == other.CurrentConversion
+                && object.Equals(this.WaitForNextAsyncMethod, other.WaitForNextAsyncMethod)
+                && object.Equals(this.TryGetNextMethod, other.TryGetNextMethod);
         }
 
         public override int GetHashCode()
@@ -97,7 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(DisposeMethod,
                    Hash.Combine(ElementType,
                    Hash.Combine(ElementConversion.GetHashCode(),
-                                CurrentConversion.GetHashCode()))))));
+                   Hash.Combine(CurrentConversion.GetHashCode(),
+                   Hash.Combine(WaitForNextAsyncMethod.GetHashCode(),
+                                TryGetNextMethod.GetHashCode()))))))));
         }
     }
 }

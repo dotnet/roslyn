@@ -674,6 +674,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public definition for &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_AsyncForEachMissingMember {
+            get {
+                return ResourceManager.GetString("ERR_AsyncForEachMissingMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: an attribute argument cannot use type parameters.
         /// </summary>
         internal static string ERR_AttrArgWithTypeVars {
@@ -1552,6 +1561,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadForeachDecl {
             get {
                 return ResourceManager.GetString("ERR_BadForeachDecl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have suitable public WaitForNextAsync and TryGetNext methods.
+        /// </summary>
+        internal static string ERR_BadGetAsyncEnumerator {
+            get {
+                return ResourceManager.GetString("ERR_BadGetAsyncEnumerator", resourceCulture);
             }
         }
         
@@ -6560,6 +6578,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because it implements multiple instantiations of &apos;{1}&apos;; try casting to a specific interface instantiation.
+        /// </summary>
+        internal static string ERR_MultipleIAsyncEnumOfT {
+            get {
+                return ResourceManager.GetString("ERR_MultipleIAsyncEnumOfT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because it implements multiple instantiations of &apos;{1}&apos;; try casting to a specific interface instantiation.
         /// </summary>
         internal static string ERR_MultipleIEnumOfT {
@@ -10251,7 +10278,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                               form: /t:exe)
         /// /target:winexe                Build a Windows executable (Short form:
         ///                               /t:winexe)
-        /// /target:library        [rest of string was truncated]&quot;;.
+        /// /target:library               Bu [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {
@@ -13722,7 +13749,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///
         ///Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
         ///
-        ///Give the compiler some way to differentiate the methods. For example, you ca [rest of string was truncated]&quot;;.
+        ///Give the compiler some way to differentiate the methods. For example, you can gi [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WRN_MultipleRuntimeImplementationMatches_Description {
             get {
@@ -14156,7 +14183,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to You have added a reference to an assembly using /link (Embed Interop Types property set to True). This instructs the compiler to embed interop type information from that assembly. However, the compiler cannot embed interop type information from that assembly because another assembly that you have referenced also references that assembly using /reference (Embed Interop Types property set to False).
         ///
-        ///To embed interop type information for both assemblies, use /link for references to each assembly (set the Em [rest of string was truncated]&quot;;.
+        ///To embed interop type information for both assemblies, use /link for references to each assembly (set the Embe [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WRN_ReferencedAssemblyReferencesLinkedPIA_Description {
             get {
@@ -14572,7 +14599,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to This warning is caused when a catch() block has no specified exception type after a catch (System.Exception e) block. The warning advises that the catch() block will not catch any exceptions.
         ///
-        ///A catch() block after a catch (System.Exception e) block can catch non-CLS exceptions if the RuntimeCompatibilityAttribute is set to false in the AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. If this attribute is not set explicitly to false, all thrown non-CLS excep [rest of string was truncated]&quot;;.
+        ///A catch() block after a catch (System.Exception e) block can catch non-CLS exceptions if the RuntimeCompatibilityAttribute is set to false in the AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. If this attribute is not set explicitly to false, all thrown non-CLS excepti [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WRN_UnreachableGeneralCatch_Description {
             get {

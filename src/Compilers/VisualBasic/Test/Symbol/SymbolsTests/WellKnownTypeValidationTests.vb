@@ -504,7 +504,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
-                         WellKnownType.System_IAsyncDisposable
+                         WellKnownType.System_IAsyncDisposable,
+                         WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
+                         WellKnownType.System_Collections_Generic_IAsyncEnumerator_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -544,7 +546,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
-                         WellKnownType.System_IAsyncDisposable
+                         WellKnownType.System_IAsyncDisposable,
+                         WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
+                         WellKnownType.System_Collections_Generic_IAsyncEnumerator_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -559,7 +563,7 @@ End Namespace
 
                 Dim symbol = comp.GetWellKnownType(wkt)
                 Assert.NotNull(symbol)
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
+                Assert.True(SymbolKind.ErrorType <> symbol.Kind, $"{symbol} should not be an error type")
             Next
         End Sub
 
@@ -593,7 +597,10 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
-                         WellKnownMember.System_IAsyncDisposable__DisposeAsync
+                         WellKnownMember.System_IAsyncDisposable__DisposeAsync,
+                         WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
+                         WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext,
+                         WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -682,7 +689,10 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
-                         WellKnownMember.System_IAsyncDisposable__DisposeAsync
+                         WellKnownMember.System_IAsyncDisposable__DisposeAsync,
+                         WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
+                         WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext,
+                         WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

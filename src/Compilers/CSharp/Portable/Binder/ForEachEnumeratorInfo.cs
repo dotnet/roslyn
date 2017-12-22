@@ -2,8 +2,6 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,9 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol CurrentPropertyGetter;
         public readonly MethodSymbol MoveNextMethod;
 
+        // In async-foreach, those two methods will be populated instead of CurrentPropertyGetter and MoveNextMethod
+        public readonly MethodSymbol WaitForNextAsyncMethod;
+        public readonly MethodSymbol TryGetNextMethod;
+
         // Dispose method to be called on the enumerator (may be null).
         // Computed during initial binding so that we can expose it in the semantic model.
         public readonly bool NeedsDisposeMethod;
+
+        // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
+        public AwaitableInfo DisposeAwaitableInfo;
 
         // Conversions that will be required when the foreach is lowered.
         public readonly Conversion CollectionConversion; //collection expression to collection type
@@ -35,30 +40,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly BinderFlags Location;
 
+        internal bool IsAsync
+            => (object)WaitForNextAsyncMethod != null;
+
         private ForEachEnumeratorInfo(
             TypeSymbol collectionType,
             TypeSymbol elementType,
             MethodSymbol getEnumeratorMethod,
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
+            MethodSymbol waitForNextAsyncMethod,
+            MethodSymbol tryGetNextMethod,
             bool needsDisposeMethod,
+            AwaitableInfo disposeAwaitableInfo,
             Conversion collectionConversion,
             Conversion currentConversion,
             Conversion enumeratorConversion,
             BinderFlags location)
         {
-            Debug.Assert((object)collectionType != null, "Field 'collectionType' cannot be null");
-            Debug.Assert((object)elementType != null, "Field 'elementType' cannot be null");
-            Debug.Assert((object)getEnumeratorMethod != null, "Field 'getEnumeratorMethod' cannot be null");
-            Debug.Assert((object)currentPropertyGetter != null, "Field 'currentPropertyGetter' cannot be null");
-            Debug.Assert((object)moveNextMethod != null, "Field 'moveNextMethod' cannot be null");
-
             this.CollectionType = collectionType;
             this.ElementType = elementType;
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
+            this.WaitForNextAsyncMethod = waitForNextAsyncMethod;
+            this.TryGetNextMethod = tryGetNextMethod;
             this.NeedsDisposeMethod = needsDisposeMethod;
+            this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.CollectionConversion = collectionConversion;
             this.CurrentConversion = currentConversion;
             this.EnumeratorConversion = enumeratorConversion;
@@ -74,8 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MethodSymbol GetEnumeratorMethod;
             public MethodSymbol CurrentPropertyGetter;
             public MethodSymbol MoveNextMethod;
+            public MethodSymbol WaitForNextAsyncMethod;
+            public MethodSymbol TryGetNextMethod;
 
             public bool NeedsDisposeMethod;
+            public AwaitableInfo DisposeAwaitableInfo;
 
             public Conversion CollectionConversion;
             public Conversion CurrentConversion;
@@ -83,18 +94,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public ForEachEnumeratorInfo Build(BinderFlags location)
             {
+                Debug.Assert((object)CollectionType != null, "'CollectionType' cannot be null");
+                Debug.Assert((object)ElementType != null, "'ElementType' cannot be null");
+                Debug.Assert((object)GetEnumeratorMethod != null, "'GetEnumeratorMethod' cannot be null");
+
+                Debug.Assert(IsAsync == MoveNextMethod is null);
+                Debug.Assert(IsAsync == CurrentPropertyGetter is null);
+                Debug.Assert(IsAsync != TryGetNextMethod is null);
+                Debug.Assert(IsAsync != WaitForNextAsyncMethod is null);
+                Debug.Assert((DisposeAwaitableInfo != null) == (IsAsync && NeedsDisposeMethod));
+
                 return new ForEachEnumeratorInfo(
                     CollectionType,
                     ElementType,
                     GetEnumeratorMethod,
                     CurrentPropertyGetter,
                     MoveNextMethod,
+                    WaitForNextAsyncMethod,
+                    TryGetNextMethod,
                     NeedsDisposeMethod,
+                    DisposeAwaitableInfo,
                     CollectionConversion,
                     CurrentConversion,
                     EnumeratorConversion,
                     location);
             }
+
+            private bool IsAsync
+                => (object)WaitForNextAsyncMethod != null;
+
+            public bool IsIncomplete
+                => (object)GetEnumeratorMethod == null ||
+                (IsAsync ? ((object)WaitForNextAsyncMethod == null || (object)TryGetNextMethod == null) : ((object)MoveNextMethod == null || (object)CurrentPropertyGetter == null));
         }
     }
 }

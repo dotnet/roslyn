@@ -91,7 +91,14 @@
   </Node>
 
   <!--
-  This node is used to represent an awaitable expression of a certain type, when binding an async using statement.
+  This node is used to represent the argument for a TryGetNext(out bool) method.
+  It is used to perform initial binding only.
+  -->
+  <Node Name="BoundTryGetNextArgumentPlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
+  <!--
+  This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
   It does not survive past initial binding.
   -->
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
@@ -879,6 +886,7 @@
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="Boolean"/>

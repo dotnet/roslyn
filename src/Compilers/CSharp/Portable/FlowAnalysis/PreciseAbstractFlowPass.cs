@@ -2132,7 +2132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
-            // foreach ( var v in node.Expression ) { node.Body; node.ContinueLabel: } node.BreakLabel:
+            // foreach [await] ( var v in node.Expression ) { node.Body; node.ContinueLabel: } node.BreakLabel:
             VisitRvalue(node.Expression);
             var breakState = this.State.Clone();
             LoopHead(node);
@@ -2141,6 +2141,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ResolveContinues(node.ContinueLabel);
             LoopTail(node);
             ResolveBreaks(breakState, node.BreakLabel);
+
+            if (((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.State));
+            }
+            //if (_trackExceptions) NotePossibleException(node); // PROTOTYPE(async-streams)
+
             return null;
         }
 
