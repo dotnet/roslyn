@@ -3185,6 +3185,12 @@ parse_member_name:;
             // to the user that this is not allowed.
             if (IsPossibleModifier())
             {
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                {
+                    // Although a legal modifier, it is never parsed unless before a struct definition
+                    return false;
+                }
+
                 var peekIndex = 1;
                 while (IsPossibleModifier(this.PeekToken(peekIndex)))
                 {

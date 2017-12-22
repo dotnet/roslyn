@@ -6333,5 +6333,129 @@ class C<T> : where T : X
             }
             EOF();
         }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Get()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        ref get => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //         ref get => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
+                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //         ref get => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                // (4,16): error CS0548: 'Program.P': property or indexer must have at least one accessor
+                //     public int P
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("Program.P").WithLocation(4, 16));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Set()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        ref set => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //         ref set => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
+                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //         ref set => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                // (4,16): error CS0548: 'Program.P': property or indexer must have at least one accessor
+                //     public int P
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("Program.P").WithLocation(4, 16));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Events_Ref_Add()
+        {
+            var code = @"
+public class Program
+{
+    event System.EventHandler E
+    {
+        ref add => throw null; 
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //         ref add => throw null; 
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
+                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //         ref add => throw null; 
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                // (4,31): error CS0065: 'Program.E': event property must have both add and remove accessors
+                //     event System.EventHandler E
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("Program.E").WithLocation(4, 31));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Events_Ref_Remove()
+        {
+            var code = @"
+public class Program
+{
+    event System.EventHandler E
+    {
+        ref remove => throw null; 
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (6,20): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //         ref remove => throw null; 
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 20),
+                // (6,20): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //         ref remove => throw null; 
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 20),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                // (4,31): error CS0065: 'Program.E': event property must have both add and remove accessors
+                //     event System.EventHandler E
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("Program.E").WithLocation(4, 31));
+        }
     }
 }
