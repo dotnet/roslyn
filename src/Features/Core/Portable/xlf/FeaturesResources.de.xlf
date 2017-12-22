@@ -881,7 +881,7 @@
         <source>This symbol has related definitions or references in metadata. Changing its signature may result in build errors.
 
 Do you want to continue?</source>
-        <target state="translated">Definitionen oder Verweise im Zusammenhang mit diesem Symbol befinden sich in den Metadaten. Durch Ändern der Signatur können Fehler beim beim Erstellen auftreten.
+        <target state="translated">Definitionen oder Verweise im Zusammenhang mit diesem Symbol befinden sich in den Metadaten. Durch Ändern der Signatur können Fehler beim Erstellen auftreten.
 
 Möchten Sie fortfahren?</target>
         <note />
@@ -898,7 +898,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="User_Diagnostic_Analyzer_Failure">
         <source>User Diagnostic Analyzer Failure.</source>
-        <target state="translated">Benutzerfehler bei Diagnoseanalyse.</target>
+        <target state="translated">Benutzerfehler bei Diagnoseanalysetool.</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_0_threw_an_exception_of_type_1_with_message_2">
@@ -909,7 +909,7 @@ Möchten Sie fortfahren?</target>
       <trans-unit id="Analyzer_0_threw_the_following_exception_colon_1">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="translated">Analyzer "{0}" hat die folgende Ausnahme ausgelöst:
+        <target state="translated">Das Analysetool "{0}" hat die folgende Ausnahme ausgelöst:
 "{1}".</target>
         <note />
       </trans-unit>
@@ -1055,7 +1055,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">Die gemeldete Diagnose mit ID "{0}" wird vom Analyzer nicht unterstützt.</target>
+        <target state="translated">Die gemeldete Diagnose mit ID "{0}" wird vom Diagnoseanalysetool nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -1080,7 +1080,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="Solution">
         <source>Solution</source>
-        <target state="translated">Lösung</target>
+        <target state="translated">Projektmappe</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
@@ -1215,7 +1215,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_be_replaced_with_a_property">
         <source>Only methods with a single argument, which is not an out variable declaration, can be replaced with a property.</source>
-        <target state="translated">Nur Methoden mit einem einzelnen Argument , das keine out-Variablendeklaration ist, können durch eine Eigenschaft ersetzt werden.</target>
+        <target state="translated">Nur Methoden mit einem einzelnen Argument, das keine out-Variablendeklaration ist, können durch eine Eigenschaft ersetzt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Roslyn_HostError">
@@ -1225,17 +1225,17 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2">
         <source>An instance of analyzer {0} cannot be created from {1}: {2}.</source>
-        <target state="translated">Eine Instanz des {0}-Analyzers kann nicht aus {1} erstellt werden: {2}.</target>
+        <target state="translated">Eine Instanz des Analysetools "{0}" kann nicht aus {1} erstellt werden: {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_assembly_0_does_not_contain_any_analyzers">
         <source>The assembly {0} does not contain any analyzers.</source>
-        <target state="translated">Die Assembly "{0}" enthält keine Analyzer.</target>
+        <target state="translated">Die Assembly "{0}" enthält keine Analysetools.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_Analyzer_assembly_0_colon_1">
         <source>Unable to load Analyzer assembly {0}: {1}</source>
-        <target state="translated">Fehler beim Laden der Analyzer-Assembly {0}: {1}</target>
+        <target state="translated">Fehler beim Laden der Assembly "{0}" des Analysetools: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_synchronous">

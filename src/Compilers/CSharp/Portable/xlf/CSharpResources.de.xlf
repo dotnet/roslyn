@@ -5545,7 +5545,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="WRN_CLS_OverloadUnnamed_Description">
         <source>This error occurs if you have an overloaded method that takes a jagged array and the only difference between the method signatures is the element type of the array. To avoid this error, consider using a rectangular array rather than a jagged array; use an additional parameter to disambiguate the function call; rename one or more of the overloaded methods; or, if CLS Compliance is not needed, remove the CLSCompliantAttribute attribute.</source>
-        <target state="translated">Dieser Fehler tritt auf, wenn Sie eine überladene Methode besitzen, die ein verzweigtes Array aufnimmt, liegt der einzige Unterschied zwischen den Methodensignaturen im Elementtyp des Arrays. Um diesen Fehler zu vermeiden, sollte ein rechteckiges Array in Betracht gezogen werden, statt eines verzweigten Arrays; verwenden Sie einen zusätzlichen Parameter, um den Funktionsaufruf eindeutig zu machen; benennen Sie eine oder mehrere der überladenen Methoden um; oder falls keine CLS-Kompatibilität erforderlich ist, entfernen Sie das CLSCompliantAttribute-Attribut.</target>
+        <target state="translated">Dieser Fehler tritt auf, wenn Sie eine überladene Methode besitzen, die ein Jagged Array aufnimmt, liegt der einzige Unterschied zwischen den Methodensignaturen im Elementtyp des Arrays. Um diesen Fehler zu vermeiden, sollte ein rechteckiges Array in Betracht gezogen werden, statt eines Jagged Arrays; verwenden Sie einen zusätzlichen Parameter, um den Funktionsaufruf eindeutig zu machen; benennen Sie eine oder mehrere der überladenen Methoden um; oder falls keine CLS-Kompatibilität erforderlich ist, entfernen Sie das CLSCompliantAttribute-Attribut.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadIdentifier">
@@ -7426,7 +7426,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
  /ruleset:&lt;Datei&gt;               Gibt eine Rulesetdatei an, die bestimmte Diagnosevorgänge
                                deaktiviert.
  /errorlog:&lt;Datei&gt;              Gibt eine Datei zur Protokollierung aller Diagnosevorgänge von Compiler und
-                               Analyzer an.
+                               Analysetool an.
  /reportanalyzer               Berichtet zusätzliche Analyseinformationen wie etwa die
                                Ausführungszeit.
 
@@ -7469,30 +7469,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
  /main:&lt;Typ&gt;                  Gibt den Typ an, der den Einstiegspunkt enthält
                                (alle anderen möglichen Einstiegspunkte werden ignoriert) (Kurz-
                                form: /m)
- /fullpaths                    Der Compiler generiert vollqualifizierte Pfade.
- /filealign:&lt;n&gt;                Gibt die Ausrichtung an, die für Ausgabedateiabschnitte
-                               verwendet werden soll.
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Gibt eine Zuordnung für die Quellpfadnamen an, die vom 
-                               Compiler ausgegeben werden.
- /pdb:&lt;Datei&gt;                   Gibt den Namen der Debuginformationsdatei an (Standard:
-                               Ausgabedateiname mit der Erweiterung .pdb)
- /errorendlocation             Die Ausgabezeile und -spalte des Endpunkts
-                               jedes Fehlers 
- /preferreduilang              Gibt den bevorzugten Namen der Ausgabesprache an.
- /nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
- /subsystemversion:&lt;Zeichenfolge&gt;    Verweist nicht auf die Standardbibliothek 
- /lib:&lt;Dateiliste&gt;              Gibt zusätzliche Verzeichnisse an, in denen nach Verweisen
-                               gesucht werden soll.
- /errorreport:&lt;Zeichenfolge&gt;         Gibt die Verarbeitung interner Compilerfehler an:
-                               "prompt", "send", "queue" oder "none". Der Standardwert ist
-                               "queue".
- /appconfig:&lt;Datei&gt;             Gibt eine Anwendungskonfigurationsdatei
-                               mit Assemblybindungseinstellungen an.
- /moduleassemblyname:&lt;Zeichenfolge&gt;  Der Name der Assembly, zu der dieses Modul
-                               gehören wird .
- /modulename:&lt;Zeichenfolge&gt;          Gibt den Quellmodulnamen an.
-</target>
+ /fullpaths                    Der Compiler generiert vollqualifizierte </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -7522,7 +7499,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">
         <source>An instance of analyzer {0} cannot be created from {1} : {2}.</source>
-        <target state="translated">Eine Instanz des {0}-Analyzers kann nicht aus {1} erstellt werden: {2}.</target>
+        <target state="translated">Eine Instanz des Analysetools "{0}" kann nicht aus {1} erstellt werden: {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated_Title">
@@ -7532,7 +7509,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_NoAnalyzerInAssembly">
         <source>The assembly {0} does not contain any analyzers.</source>
-        <target state="translated">Die Assembly "{0}" enthält keine Analyzer.</target>
+        <target state="translated">Die Assembly "{0}" enthält keine Analysetools.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoAnalyzerInAssembly_Title">
@@ -7542,7 +7519,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_UnableToLoadAnalyzer">
         <source>Unable to load Analyzer assembly {0} : {1}</source>
-        <target state="translated">Fehler beim Laden der Analyzer-Assembly {0}: {1}</target>
+        <target state="translated">Fehler beim Laden der Assembly "{0}" des Analysetools: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnableToLoadAnalyzer_Title">
@@ -7552,7 +7529,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="INF_UnableToLoadSomeTypesInAnalyzer">
         <source>Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}.</source>
-        <target state="translated">Einige Typen werden in der Analyzer-Assembly {0} aufgrund von ReflectionTypeLoadException übersprungen: {1}.</target>
+        <target state="translated">Einige Typen werden in der Assembly "{0}" des Analysetools aufgrund von ReflectionTypeLoadException übersprungen: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReadRulesetFile">
@@ -8582,12 +8559,12 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">Das Standardliteral "default" ist als case-Konstante ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder NULL). Wenn Sie die Standardbezeichnung schreiben möchten, verwenden Sie "default" ohne "case".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">Das Standardliteral "default" ist als Muster ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder NULL). Für einen Abgleich aller Elemente verwenden Sie ein discard-Muster "var _".</target>
         <note />
       </trans-unit>
     </body>

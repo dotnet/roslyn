@@ -1454,7 +1454,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">'{0}: Nejde přepsat zděděný člen {1}, protože je zapečetěný.</target>
+        <target state="translated">{0}: Nejde přepsat zděděný člen {1}, protože je zapečetěný.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -1849,7 +1849,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
         <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'{0}: Abstraktní třída nemůže být sealed nebo static.</target>
+        <target state="translated">{0}: Abstraktní třída nemůže být zapečetěná nebo statická.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -1984,7 +1984,7 @@
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
         <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'{0}: Třída nemůže být zároveň statická i zapečetěná.</target>
+        <target state="translated">{0}: Třída nemůže být zároveň statická i zapečetěná.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -2183,7 +2183,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">'{0} nemůže být extern i sealed.</target>
+        <target state="translated">{0} nemůže být abstraktní i zapečetěná.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -2223,7 +2223,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">'{0}: Nejde odvozovat ze zapečetěného typu {1}.</target>
+        <target state="translated">{0}: Nejde odvozovat ze zapečetěného typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
@@ -2398,7 +2398,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
         <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0} je nový virtuální člen v zapečetěné třídě {1}.</target>
+        <target state="translated">{0} je nový virtuální člen v zapečetěné třídě {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -2713,12 +2713,12 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
         <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}: V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
+        <target state="translated">{0}: V zapečetěné třídě je deklarovaný nový zapečetěný člen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
         <source>New protected member declared in sealed class</source>
-        <target state="translated">V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
+        <target state="translated">V zapečetěné třídě je deklarovaný nový zapečetěný člen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -8569,12 +8569,12 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">Výchozí literál default není platný jako konstanta case. Podle potřeby použijte jiný literál (například 0 nebo null). Pokud jste chtěli zapsat výchozí popisek, použijte default: bez case.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">Výchozí literál default není platný jako vzor. Podle potřeby použijte jiný literál (například 0 nebo null). Pokud chcete, aby odpovídalo vše, použijte vzor „var _“.</target>
         <note />
       </trans-unit>
     </body>

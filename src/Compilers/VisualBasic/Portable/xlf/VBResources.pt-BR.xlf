@@ -1347,7 +1347,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadingPropertyKind2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'"{0}" e "{1}" não pode carregar um ao outro porque diferem apenas por "ReadOnly" ou "WriteOnly".</target>
+        <target state="translated">'"{0}" e "{1}" não pode sobrecarregar um ao outro porque diferem apenas por "ReadOnly" ou "WriteOnly".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDefaultNotExtend1">

@@ -1719,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewConstraintNotSatisfied">
         <source>'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">'{2}' doit être un type non abstrait avec un constructeur sans paramètre public afin de l'utiliser comme paramètre '{1}' dans le type ou la méthode générique '{0}'</target>
+        <target state="translated">'{2}' doit être un type non abstract avec un constructeur sans paramètre public afin de l'utiliser comme paramètre '{1}' dans le type ou la méthode générique '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedRefType">
@@ -6192,7 +6192,7 @@ Supprimez l'avertissement seulement si vous êtes sûr de ne pas vouloir attendr
       </trans-unit>
       <trans-unit id="ERR_NamedArgumentUsedInPositional">
         <source>Named argument '{0}' specifies a parameter for which a positional argument has already been given</source>
-        <target state="translated">L'argument nommé '{0}' spécifie un paramètre pour lequel un paramètre positionnel a déjà été donné</target>
+        <target state="translated">L'argument nommé '{0}' spécifie un paramètre pour lequel un argument positionnel a déjà été donné</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNonTrailingNamedArgument">
@@ -8557,12 +8557,12 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">Un littéral par défaut 'default' n'est pas valide en tant que constante case. Utilisez un autre littéral (comme '0' ou 'null') selon le cas. Si vous souhaitez écrire l'étiquette par défaut, utilisez 'default:' sans 'case'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">Un littéral par défaut 'default' n'est pas valide en tant que modèle. Utilisez un autre littéral (comme '0' ou 'null') selon le cas. Pour tout faire correspondre, utilisez un modèle de rejet 'var _'.</target>
         <note />
       </trans-unit>
     </body>

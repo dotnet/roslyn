@@ -669,7 +669,7 @@
       </trans-unit>
       <trans-unit id="ERR_EnumNotExpression1">
         <source>'{0}' is an Enum type and cannot be used as an expression.</source>
-        <target state="translated">'{0}' es un tipo Enum y no se puede usar como una expresión.</target>
+        <target state="translated">“{0}” es un tipo de enumeración y no se puede usar como una expresión.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
@@ -1148,7 +1148,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadEmptyEnum1">
         <source>Enum '{0}' must contain at least one member.</source>
-        <target state="translated">Enum '{0}' debe contener al menos un miembro.</target>
+        <target state="translated">La enumeración “{0}” debe contener al menos un miembro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidConstructorCall">
@@ -1447,7 +1447,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'{0}' no es válido en una declaración Enum.</target>
+        <target state="translated">“{0}” no es válido en una declaración de enumeración.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
@@ -5810,7 +5810,7 @@
       </trans-unit>
       <trans-unit id="WRN_EnumUnderlyingTypeNotCLS1">
         <source>Underlying type '{0}' of Enum is not CLS-compliant.</source>
-        <target state="translated">El tipo subyacente '{0}' de Enum no es conforme a CLS.</target>
+        <target state="translated">El tipo subyacente “{0}” de la enumeración no es conforme a CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EnumUnderlyingTypeNotCLS1_Title">
@@ -6135,7 +6135,7 @@
       </trans-unit>
       <trans-unit id="WRN_MustShadowOnMultipleInheritance2_Title">
         <source>Method conflicts with other members of the same name across the inheritance hierarchy and so should be declared 'Shadows'</source>
-        <target state="translated">El método está en conflicto con otros miembros del mismo nombre en la jerarquía de la herencia y, por lo tanto, se debe declarar como 'Shadows'</target>
+        <target state="translated">El método está en conflicto con otros miembros del mismo nombre en la jerarquía de herencia y, por lo tanto, se debe declarar como “Shadows”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecursiveOperatorCall">

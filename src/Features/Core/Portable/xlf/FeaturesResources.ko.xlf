@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket">
         <source>Assigning to readonly fields must be done in a constructor : [{0}].</source>
-        <target state="translated">생성자 [{0}]에서 읽기 전용 필드에 대한 할당 작업을 수행해야 합니다. </target>
+        <target state="translated">생성자 [{0}]에서 읽기 전용 필드에 대한 할당 작업을 수행해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_code_is_overlapping_with_hidden_portion_of_the_code">
@@ -809,7 +809,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
         <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">출력에서 '{0}' 프로세스(종료 코드: {1})를 실행하지 못했습니다.</target>
+        <target state="translated">출력에서 '{0}' 프로세스(종료 코드: {1})를 실행하지 못했습니다. </target>
         <note />
       </trans-unit>
       <trans-unit id="Hosting_process_exited_with_exit_code_0">

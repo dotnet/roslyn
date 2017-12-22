@@ -825,7 +825,7 @@
       </trans-unit>
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
-        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
+        <target state="translated">Avertissement : Impossible d'activer le JIT multicœur en raison de l'exception suivante : {0}.</target>
         <note />
       </trans-unit>
     </body>
