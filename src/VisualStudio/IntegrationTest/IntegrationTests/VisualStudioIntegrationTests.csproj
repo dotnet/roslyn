@@ -38,7 +38,6 @@
     <ProjectReference Include="..\..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
     <ProjectReference Include="..\..\..\Test\Diagnostics\Diagnostics.csproj" />
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
-    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />

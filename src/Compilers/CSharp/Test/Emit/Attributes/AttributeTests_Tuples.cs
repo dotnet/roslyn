@@ -244,7 +244,7 @@ class C
                 var srcType = srcTypes[i];
                 var peType = peTypes[i];
 
-                Assert.Equal(ToTestString(srcType.BaseType), ToTestString(peType.BaseType));
+                Assert.Equal(ToTestString(srcType.BaseType()), ToTestString(peType.BaseType()));
 
                 var srcMembers = srcType.GetMembers()
                     .Where(m => !m.Name.Contains("k__BackingField"))
@@ -272,7 +272,7 @@ class C
                     break;
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)symbol;
-                    typeSymbols.Add(namedType.BaseType ?? namedType);
+                    typeSymbols.Add(namedType.BaseType() ?? namedType);
                     break;
                 case SymbolKind.Field:
                     typeSymbols.Add(((FieldSymbol)symbol).Type);
@@ -399,7 +399,7 @@ class C
                 ValidateTupleNameAttribute(_base2Class.GetAttributes(), expectedTupleNamesAttribute: false);
 
                 // public class Outer<T> : Base1<(int key, int val)>
-                Assert.True(_outerClass.BaseType.ContainsTuple());
+                Assert.True(_outerClass.BaseType().ContainsTuple());
                 var expectedElementNames = new[] { "key", "val" };
                 ValidateTupleNameAttribute(_outerClass.GetAttributes(),
                     expectedTupleNamesAttribute: true,
@@ -473,7 +473,7 @@ class C
                 var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type);
                 Assert.Equal("Base1", field6Type.Name);
                 Assert.Equal(1, field6Type.TypeParameters.Length);
-                var firstTuple = field6Type.TypeArguments.Single();
+                var firstTuple = field6Type.TypeArguments().Single();
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
                 Assert.Equal(2, firstTuple.TupleElementTypes.Length);
@@ -923,8 +923,8 @@ public interface I3<T>
                 void verifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
                     var typeParam = t.TypeParameters.Single();
-                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes.Single();
-                    var typeArg = constraint.TypeArguments.Single();
+                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes().Single();
+                    var typeArg = constraint.TypeArguments().Single();
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }
@@ -1022,8 +1022,8 @@ public interface I3 : I1<(int c, int d)> {}";
 
                 void VerifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
-                    var interfaceImpl = t.Interfaces.Single();
-                    var typeArg = interfaceImpl.TypeArguments.Single();
+                    var interfaceImpl = t.Interfaces().Single();
+                    var typeArg = interfaceImpl.TypeArguments().Single();
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }

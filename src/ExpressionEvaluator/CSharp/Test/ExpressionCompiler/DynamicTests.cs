@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
-                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
@@ -258,7 +258,7 @@ class Generic<T>
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
-                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
 {
@@ -731,7 +731,7 @@ class Generic<T>
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
-                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{

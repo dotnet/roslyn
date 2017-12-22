@@ -26,8 +26,8 @@ namespace N
             var n = ((NamespaceSymbol)c.Assembly.GlobalNamespace.GetMembers("N").Single());
             var implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
             Assert.Equal(0, implicitClass.GetAttributes().Length);
-            Assert.Equal(0, implicitClass.Interfaces.Length);
-            Assert.Equal(c.ObjectType, implicitClass.BaseType);
+            Assert.Equal(0, implicitClass.Interfaces().Length);
+            Assert.Equal(c.ObjectType, implicitClass.BaseType());
             Assert.Equal(0, implicitClass.Arity);
             Assert.True(implicitClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.NamespaceDeclaration, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
@@ -39,8 +39,8 @@ namespace N
             n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
             implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingNamedTypeSymbol>(implicitClass);
-            Assert.Equal(0, implicitClass.Interfaces.Length);
-            Assert.Equal(c2.ObjectType, implicitClass.BaseType);
+            Assert.Equal(0, implicitClass.Interfaces().Length);
+            Assert.Equal(c2.ObjectType, implicitClass.BaseType());
         }
 
         [Fact]
@@ -55,8 +55,8 @@ void Goo()
 
             var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
             Assert.Equal(0, scriptClass.GetAttributes().Length);
-            Assert.Equal(0, scriptClass.Interfaces.Length);
-            Assert.Null(scriptClass.BaseType);
+            Assert.Equal(0, scriptClass.Interfaces().Length);
+            Assert.Null(scriptClass.BaseType());
             Assert.Equal(0, scriptClass.Arity);
             Assert.True(scriptClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.CompilationUnit, scriptClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());

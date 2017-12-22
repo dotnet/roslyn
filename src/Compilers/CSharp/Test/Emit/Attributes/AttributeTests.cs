@@ -331,7 +331,7 @@ public class RefersToLibAttribute : C
             Assert.Equal("System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(C))", attribute.ToString());
 
             var derived = (NamedTypeSymbol)newLibComp.GetMember("Derived");
-            var c = derived.BaseType; // get C
+            var c = derived.BaseType(); // get C
             Assert.Equal("C", c.ToTestDisplayString());
             Assert.False(c.IsErrorType());
         }
