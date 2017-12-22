@@ -3910,7 +3910,7 @@ public static class C
                 Assert.Equal(RefKind.In, parameter.RefKind);
             }
 
-            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
         }
 
         [Fact]
@@ -3940,7 +3940,7 @@ public static class C
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
             }
 
-            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
         }
     }
 }
