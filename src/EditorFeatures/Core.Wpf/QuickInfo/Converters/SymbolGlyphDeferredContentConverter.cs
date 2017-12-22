@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.PlatformUI;
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
     [Export(typeof(IDeferredQuickInfoContentToFrameworkElementConverter))]
+    [QuickInfoConverterMetadata(typeof(SymbolGlyphDeferredContent))]
     class SymbolGlyphDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
         public FrameworkElement CreateFrameworkElement(IDeferredQuickInfoContent deferredContent, DeferredContentFrameworkElementFactory factory)
