@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
     [Export(typeof(IDeferredQuickInfoContentToFrameworkElementConverter))]
+    [QuickInfoConverterMetadata(typeof(QuickInfoDisplayDeferredContent))]
     class QuickInfoDisplayDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
         public FrameworkElement CreateFrameworkElement(IDeferredQuickInfoContent deferredContent, DeferredContentFrameworkElementFactory factory)
