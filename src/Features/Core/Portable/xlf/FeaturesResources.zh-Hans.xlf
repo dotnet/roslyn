@@ -419,7 +419,7 @@
       </trans-unit>
       <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
@@ -504,12 +504,12 @@
       </trans-unit>
       <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的修饰符将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的修饰符将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的 Handles 子句将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的 Handles 子句将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的 Implements 子句将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的 Implements 子句将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
@@ -529,37 +529,37 @@
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的方差将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的方差将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的类型将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的类型将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的初始值设定项将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的初始值设定项将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的大小将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的大小将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的基础类型将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的基础类型将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的基类和/或基接口将阻止调试会话继续。 </target>
+        <target state="translated">更新“{0}”的基类和/或基接口将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
         <source>Updating a field to an event or vice versa will prevent the debug session from continuing.</source>
-        <target state="translated">更新事件的字段或更新字段的事件都将阻止调试会话继续。 </target>
+        <target state="translated">更新事件的字段或更新字段的事件都将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing">
@@ -569,22 +569,22 @@
       </trans-unit>
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
-        <target state="translated">更新一个属性/事件访问器的种类将阻止调试会话继续。 </target>
+        <target state="translated">更新一个属性/事件访问器的种类将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">更新方法 (Sub/Function) 的种类将阻止调试会话继续。 </target>
+        <target state="translated">更新方法 (Sub/Function) 的种类将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating the library name of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新 Declare 语句的库名将阻止调试会话继续。 </target>
+        <target state="translated">更新 Declare 语句的库名将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating the alias of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新“Declare 语句”的别名将阻止调试会话继续。 </target>
+        <target state="translated">更新“Declare 语句”的别名将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
@@ -664,7 +664,7 @@
       </trans-unit>
       <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新活动语句周围的“{0}”语句将阻止调试会话继续。 </target>
+        <target state="translated">更新活动语句周围的“{0}”语句将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -749,7 +749,7 @@
       </trans-unit>
       <trans-unit id="Updating_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新活动语句将阻止调试会话继续。 </target>
+        <target state="translated">更新活动语句将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">

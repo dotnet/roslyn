@@ -652,7 +652,7 @@ Iterator Function(&lt;Parameterliste&gt;) As IEnumerable(Of &lt;T&gt;)</target>
         <source>Compares a string against a pattern. Wildcards available include ? to match 1 character and * to match 0 or more characters.
 &lt;result&gt; = &lt;string&gt; Like &lt;pattern&gt;</source>
         <target state="translated">Vergleicht eine Zeichenfolge mit einem Muster. Die verfügbaren Platzhalter umfassen "?" für ein Zeichen und "*" für 0 oder mehrere Zeichen.
-&lt;Ergebnis&gt; = &lt;Zeichenfolge&gt; Like &lt;Muster&gt; </target>
+&lt;Ergebnis&gt; = &lt;Zeichenfolge&gt; Like &lt;Muster&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Returns_the_difference_between_two_numeric_expressions_or_the_negative_value_of_a_numeric_expression">

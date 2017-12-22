@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReservedEnumerator">
         <source>The enumerator name '{0}' is reserved and cannot be used</source>
-        <target state="translated">Nazwa typu wyliczeniowego „{0}” jest zarezerwowana i nie można jej użyć</target>
+        <target state="translated">Nazwa modułu wyliczającego „{0}” jest zarezerwowana i nie można jej użyć</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AsMustHaveReferenceType">
@@ -1449,12 +1449,12 @@
       </trans-unit>
       <trans-unit id="ERR_SealedNonOverride">
         <source>'{0}' cannot be sealed because it is not an override</source>
-        <target state="translated">'Elementu „{0}” nie można zapieczętować, ponieważ nie jest przesłonięciem</target>
+        <target state="translated">Elementu „{0}” nie można zapieczętować, ponieważ nie jest przesłonięciem</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">'„{0}”: nie można przesłonić odziedziczonej składowej „{1}”, ponieważ jest ona zapieczętowana</target>
+        <target state="translated">„{0}”: nie można przesłonić odziedziczonej składowej „{1}”, ponieważ jest ona zapieczętowana</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -1849,7 +1849,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
         <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'„{0}”: klasa abstrakcyjna nie może być zapieczętowana ani statyczna</target>
+        <target state="translated">„{0}”: klasa abstrakcyjna nie może być zapieczętowana ani statyczna</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -1984,7 +1984,7 @@
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
         <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'„{0}”: klasa nie może być jednocześnie statyczna i zapieczętowana</target>
+        <target state="translated">„{0}”: klasa nie może być jednocześnie statyczna i zapieczętowana</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -2183,7 +2183,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">'Element „{0}” nie może być zewnętrzny i zapieczętowany</target>
+        <target state="translated">Element „{0}” nie może być zewnętrzny i zapieczętowany</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -2223,7 +2223,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">'„{0}”: pochodzenie od zapieczętowanego typu „{1}” jest niemożliwe</target>
+        <target state="translated">„{0}”: pochodzenie od zapieczętowanego typu „{1}” jest niemożliwe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
@@ -2233,7 +2233,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">
         <source>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</source>
-        <target state="translated">'„{0}”: konstruktor statyczny nie może zawierać jawnego wywołania konstruktora „this” lub „base”</target>
+        <target state="translated">„{0}”: konstruktor statyczny nie może zawierać jawnego wywołania konstruktora „this” lub „base”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithAccessModifiers">
@@ -2273,7 +2273,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
         <source>'{0}': structs cannot call base class constructors</source>
-        <target state="translated">'„{0}”: struktury nie mogą wywoływać konstruktorów klasy bazowej</target>
+        <target state="translated">„{0}”: struktury nie mogą wywoływać konstruktorów klasy bazowej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCycle">
@@ -2368,7 +2368,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_EnumeratorOverflow">
         <source>'{0}': the enumerator value is too large to fit in its type</source>
-        <target state="translated">'„{0}”: wartość, która wystąpiła w module wyliczającym, jest zbyt duża, aby można było ją stosować przy użyciu typu tego modułu</target>
+        <target state="translated">„{0}”: wartość, która wystąpiła w module wyliczającym, jest zbyt duża, aby można było ją stosować przy użyciu typu tego modułu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonProperty">
@@ -2398,7 +2398,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
         <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'„{0}” to nowa wirtualna składowa klasy zapieczętowanej „{1}”</target>
+        <target state="translated">„{0}” to nowa wirtualna składowa klasy zapieczętowanej „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -2493,7 +2493,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_CantCallSpecialMethod">
         <source>'{0}': cannot explicitly call operator or accessor</source>
-        <target state="translated">'„{0}”: nie można jawnie wywołać operatora lub metody dostępu.</target>
+        <target state="translated">„{0}”: nie można jawnie wywołać operatora lub metody dostępu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeReference">
@@ -2713,7 +2713,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
         <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'„{0}”: w klasie zapieczętowanej została zadeklarowana nowa chroniona składowa</target>
+        <target state="translated">„{0}”: w klasie zapieczętowanej została zadeklarowana nowa chroniona składowa</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
@@ -2878,7 +2878,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_OverloadRefKind">
         <source>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</source>
-        <target state="translated">'Element „{0}” nie może definiować przeciążonego elementu {1}, który różni się tylko modyfikatorami parametru „{2}” i „{3}”</target>
+        <target state="translated">Element „{0}” nie może definiować przeciążonego elementu {1}, który różni się tylko modyfikatorami parametru „{2}” i „{3}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LiteralDoubleCast">
@@ -3043,7 +3043,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">'„{0}” to nieprawidłowy typ ograniczenia. Typ używany jako ograniczenie musi być interfejsem, klasą niezapieczętowaną lub parametrem typu.</target>
+        <target state="translated">„{0}” to nieprawidłowy typ ograniczenia. Typ używany jako ograniczenie musi być interfejsem, klasą niezapieczętowaną lub parametrem typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -3832,7 +3832,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_BadArgCount">
         <source>No overload for method '{0}' takes {1} arguments</source>
-        <target state="translated">Żadne przeładowanie metody „{0}” nie pobiera następującej liczby argumentów: „{1}”</target>
+        <target state="translated">Żadne przeciążenie metody „{0}” nie pobiera następującej liczby argumentów: „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgType">
@@ -5132,7 +5132,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_BadInstanceArgType">
         <source>'{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'</source>
-        <target state="translated">'„{0}” nie zawiera definicji dla „{1}”, a najlepsze przeciążenie metody rozszerzenia „{2}” wymaga odbiorcy typu „{3}”</target>
+        <target state="translated">„{0}” nie zawiera definicji dla „{1}”, a najlepsze przeciążenie metody rozszerzenia „{2}” wymaga odbiorcy typu „{3}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryDuplicateRangeVariable">
@@ -6177,7 +6177,7 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
       </trans-unit>
       <trans-unit id="ERR_BadNamedArgument">
         <source>The best overload for '{0}' does not have a parameter named '{1}'</source>
-        <target state="translated">Najlepsza metoda przeładowania dla elementu „{0}” nie ma parametru o nazwie „{1}”.</target>
+        <target state="translated">Najlepsze przeciążenie dla elementu „{0}” nie ma parametru o nazwie „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedArgumentForDelegateInvoke">
@@ -8021,7 +8021,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
         <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez odwołanie</target>
+        <target state="translated">Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">
@@ -8561,12 +8561,12 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">Domyślny literał „default” nie jest prawidłowy jako stała case. Użyj innego odpowiedniego literału (np. „0” lub „null”). Jeśli chodziło Ci o napisanie etykiety domyślnej, użyj zapisu „default:”, bez „case”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">Domyślny literał „default” nie jest prawidłowy jako wzorzec. Użyj innego odpowiedniego literału (np. „0” lub „null”). Aby dopasować wszystko, użyj wzorca odrzucania „var _”.</target>
         <note />
       </trans-unit>
     </body>

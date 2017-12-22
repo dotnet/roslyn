@@ -316,7 +316,7 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
       </trans-unit>
       <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
         <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
-        <target state="translated">Die Analyzerassembly "{0}" wurde geändert. Die Diagnose ist bis zu einem Neustart von Visual Studio möglicherweise nicht korrekt.</target>
+        <target state="translated">Die Analysetoolassembly "{0}" wurde geändert. Die Diagnose ist bis zu einem Neustart von Visual Studio möglicherweise nicht korrekt.</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VB_Diagnostics_Table_Data_Source">
@@ -506,7 +506,7 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
       </trans-unit>
       <trans-unit id="Analyzer_reference_to_0_in_project_1">
         <source>Analyzer reference to '{0}' in project '{1}'</source>
-        <target state="translated">Analyzerverweis auf "{0}" in Projekt "{1}"</target>
+        <target state="translated">Analysetoolverweis auf "{0}" in Projekt "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_reference_to_0_in_project_1">
@@ -521,7 +521,7 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
       </trans-unit>
       <trans-unit id="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly">
         <source>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</source>
-        <target state="translated">Die Analyzerassemblys "{0}" und "{1}" weisen beide die Identität "{2}", aber unterschiedliche Inhalte auf. Nur eine Assembly wird geladen, und Analyzer, die diese Assemblys verwenden, werden möglicherweise nicht ordnungsgemäß ausgeführt.</target>
+        <target state="translated">Die Assemblys "{0}" des Analysetools und "{1}" weisen beide die Identität "{2}", aber unterschiedliche Inhalte auf. Nur eine Assembly wird geladen, und Analysetools, die diese Assemblys verwenden, werden möglicherweise nicht ordnungsgemäß ausgeführt.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -581,7 +581,7 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
       </trans-unit>
       <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
         <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
-        <target state="translated">Die Analyzerassembly "{0}" hängt von "{1}" ab, diese Assembly wurde aber nicht gefunden. Analyzer werden möglicherweise nicht ordnungsgemäß ausgeführt, wenn die fehlende Assembly nicht als Analyzerverweis hinzugefügt wird.</target>
+        <target state="translated">Die Assembly "{0}" des Analysetools hängt von "{1}" ab, diese Assembly wurde aber nicht gefunden. Analysetools werden möglicherweise nicht ordnungsgemäß ausgeführt, wenn die fehlende Assembly nicht als Analysetoolverweis hinzugefügt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppression_State">
@@ -1449,27 +1449,27 @@ Für die aktuelle Projektmappe ist die Option "Lightweight-Ladevorgang für Proj
       </trans-unit>
       <trans-unit id="Restore_Visual_Studio_keybindings">
         <source>Restore Visual Studio keybindings</source>
-        <target state="new">Restore Visual Studio keybindings</target>
+        <target state="translated">Wiederherstellen von Visual Studio-Tastenzuordnungen</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
+        <target state="translated">Verwenden Sie Tastenzuordnungen für ReSharper/IntelliJ/Vim usw.</target>
         <note />
       </trans-unit>
       <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
         <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
+        <target state="translated">Ihre Tastenzuordnungen sind nicht länger Visual Studio-Befehlen zugeordnet.</target>
         <note />
       </trans-unit>
       <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
         <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
+        <target state="translated">Wir haben festgestellt, dass Sie "ReSharper Ultimate" angehalten haben. Stellen Sie die Visual Studio-Tastenzuordnungen wieder her, um Navigation und Refactoring fortzusetzen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="new">Enable navigation to decompiled sources (experimental)</target>
+        <target state="translated">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
@@ -1482,20 +1482,20 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
- 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+        <target state="translated">WICHTIG: Visual Studio umfasst eine Funktionalität für die Dekompilierung ("Decompiler"), der das Reproduzieren von Quellcode aus Binärcode ermöglicht. Indem Sie auf den Decompiler zugreifen und ihn verwenden, stimmen Sie den nachstehend aufgeführten Visual Studio-Lizenzbedingungen und den Bedingungen für den Decompiler zu. Wenn Sie diesen kombinierten Nutzungsbedingungen nicht zustimmen, greifen Sie nicht auf den Decompiler zu, und verwenden Sie ihn nicht.
 
-I agree to all of the foregoing:</target>
+Sie erkennen an, dass der Binärcode und der Quellcode möglicherweise durch Urheberrechts- und Markengesetze geschützt sind. Bevor Sie den Compiler für Binärcode einsetzen, müssen Sie Folgendes sicherstellen: 
+(i) Vergewissern Sie sich, dass die Lizenzbedingungen zur Verwendung des Binärcodes keine Klausel enthalten, die das Dekompilieren der Software verbietet. Oder: 
+(ii) Holen Sie beim Besitzer der Software eine Genehmigung zum Dekompilieren des Binärcodes ein.
+
+Die Verwendung des Decompilers ist optional. Microsoft übernimmt keine Verantwortung und lehnt jede Haftung für Ihre Nutzung des Decompilers ab, die gegen Gesetze oder Softwarelizenzbedingungen verstößt, die das Dekompilieren der Software verbieten.
+
+Ich stimme allen vorstehenden Bedingungen zu:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
-        <target state="new">Decompiler Legal Notice</target>
+        <target state="translated">Rechtlicher Hinweis zum Decompiler</target>
         <note />
       </trans-unit>
     </body>

@@ -669,7 +669,7 @@
       </trans-unit>
       <trans-unit id="ERR_EnumNotExpression1">
         <source>'{0}' is an Enum type and cannot be used as an expression.</source>
-        <target state="translated">'{0}'은(는) Enum 형식이므로 식으로 사용할 수 없습니다.</target>
+        <target state="translated">'{0}'은(는) 열거형 형식이므로 식으로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
@@ -1148,7 +1148,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadEmptyEnum1">
         <source>Enum '{0}' must contain at least one member.</source>
-        <target state="translated">Enum '{0}'는 멤버를 하나 이상 포함해야 합니다.</target>
+        <target state="translated">열거형 '{0}'에는 하나 이상의 멤버가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidConstructorCall">
@@ -1442,17 +1442,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordFlags1">
         <source>'{0}' is not valid on a Structure declaration.</source>
-        <target state="translated">'구조체 선언에서는 '{0}'이(가) 유효하지 않습니다.</target>
+        <target state="translated">구조체 선언에서는 '{0}'이(가) 유효하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'Enum 선언에서는 '{0}'이(가) 유효하지 않습니다.</target>
+        <target state="translated">열거형 선언에서는 '{0}'이(가) 유효하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
         <source>'{0}' is not valid on an Interface declaration.</source>
-        <target state="translated">'인터페이스 선언에서는 '{0}'이(가) 유효하지 않습니다.</target>
+        <target state="translated">인터페이스 선언에서는 '{0}'이(가) 유효하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithByref2">
@@ -2039,12 +2039,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideEnum">
         <source>Statement cannot appear within an Enum body.</source>
-        <target state="translated">Enum 본문 안에는 문을 사용할 수 없습니다.</target>
+        <target state="translated">열거형 본문 안에는 문을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvInsideEndsEnum">
         <source>Statement cannot appear within an Enum body. End of Enum assumed.</source>
-        <target state="translated">Enum 본문 안에는 문을 사용할 수 없습니다. 열거형의 끝으로 간주합니다.</target>
+        <target state="translated">열거형 본문 안에는 문을 사용할 수 없습니다. 열거형의 끝으로 간주합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidOptionStrict">
@@ -3102,7 +3102,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceEnumSpecifier1">
         <source>Enum in an interface cannot be declared '{0}'.</source>
-        <target state="translated">인터페이스의 Enum은 '{0}'(으)로 선언할 수 없습니다.</target>
+        <target state="translated">인터페이스의 열거형은 '{0}'(으)로 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceClassSpecifier1">
@@ -5148,7 +5148,7 @@
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeNeedField">
         <source>Anonymous type must contain at least one member.</source>
-        <target state="translated">익명 형식에는 적어도 하나의 멤버가 있어야 합니다.</target>
+        <target state="translated">익명 형식에는 하나 이상의 멤버가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeNameWithoutPeriod">
@@ -5378,7 +5378,7 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfInSelectCaseExpr">
         <source>'AddressOf' expressions are not valid in the first expression of a 'Select Case' statement.</source>
-        <target state="translated">'Select Case' 문의 첫 번째 식에서는 'AddressOf' 식을 사용할 수 없습니다. </target>
+        <target state="translated">'Select Case' 문의 첫 번째 식에서는 'AddressOf' 식을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableCharNotSupported">
@@ -7362,7 +7362,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceInterfaceNesting">
         <source>Enumerations, classes, and structures cannot be declared in an interface that has an 'In' or 'Out' type parameter.</source>
-        <target state="translated">열거형, 클래스 및 구조체는 'In' 또는 'Out' 형식 매개 변수가 있는 인터페이스에 선언할 수 없습니다.</target>
+        <target state="translated">열거형, 클래스 및 구조체는 'In' 또는 'Out' 형식 매개 변수가 있는 인터페이스에서 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariancePreventsSynthesizedEvents2">
@@ -8502,7 +8502,7 @@
 /quiet                            자동 출력 모드입니다.
 /verbose                          자세한 메시지를 표시합니다.
 /parallel[+|-]                    동시 빌드입니다. 
-/version                          컴파일러 버전 번호를 표시하고 종료합니다. 
+/version                          컴파일러 버전 번호를 표시하고 종료합니다.
 
                                   - 고급 -
 /baseaddress:&lt;number&gt;             16진수로 지정된 라이브러리 또는 모듈의 기준 
@@ -8552,8 +8552,7 @@
 /vbruntime[+|-|*]                 기본 Visual Basic 런타임을 사용하거나 사용하지 않고
                                   컴파일합니다.
 /vbruntime:&lt;file&gt;                 &lt;file&gt;에서 대체 Visual Basic 런타임을 사용하여 
-                                  컴파일합니다.
-</target>
+                                  컴파일합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PdbLocalNameTooLong">

@@ -494,12 +494,12 @@
       </trans-unit>
       <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を '{1}' に追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">{0}' を '{1}' に追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を明示的なレイアウトまたはシーケンシャル レイアウトがあるクラスに追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">{0}' を明示的なレイアウトまたはシーケンシャル レイアウトがあるクラスに追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">{0}' を追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
@@ -609,27 +609,27 @@
       </trans-unit>
       <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding an extern '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">extern '{0}' を追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">extern '{0}' を追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding an imported method will prevent the debug session from continuing.</source>
-        <target state="translated">インポートしたメソッドを追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">インポートしたメソッドを追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding a user defined '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">ユーザー定義の '{0}' を追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">ユーザー定義の '{0}' を追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">ジェネリックな '{0}' を追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">ジェネリックな '{0}' を追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメントの前後に '{0}' を追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">アクティブ ステートメントの前後に '{0}' を追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
         <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">メソッドの本体を追加すると、デバッグ セッションは続行されません。 </target>
+        <target state="translated">メソッドの本体を追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
@@ -804,7 +804,7 @@
       </trans-unit>
       <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
         <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">プロセス #{0} に接続できませんでした。再試行しています..</target>
+        <target state="translated">プロセス #{0} に接続できませんでした。再試行しています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
@@ -1195,7 +1195,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Generate_type_0">
         <source>Generate type '{0}'</source>
-        <target state="translated">型 '{0}' を生成する </target>
+        <target state="translated">型 '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_0_1">
@@ -1307,7 +1307,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Generate_variable_0">
         <source>Generate variable '{0}'</source>
-        <target state="translated">変数 '{0}' を生成する </target>
+        <target state="translated">変数 '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">

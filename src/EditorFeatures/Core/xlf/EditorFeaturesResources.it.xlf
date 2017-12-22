@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Enums">
         <source>User Types - Enums</source>
-        <target state="translated">Tipi utente - Enum</target>
+        <target state="translated">Tipi utente - Enumerazioni</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Interfaces">

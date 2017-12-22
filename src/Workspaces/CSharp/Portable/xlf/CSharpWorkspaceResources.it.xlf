@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
-        <target state="translated">Implementa interfaccia</target>
+        <target state="translated">Implementa l'interfaccia</target>
         <note />
       </trans-unit>
     </body>

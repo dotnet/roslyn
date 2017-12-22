@@ -1120,7 +1120,7 @@ Voulez-vous continuer ?</target>
       </trans-unit>
       <trans-unit id="enum_value">
         <source>enum value</source>
-        <target state="translated">valeur d'énumération</target>
+        <target state="translated">valeur enum</target>
         <note>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="const_field">
