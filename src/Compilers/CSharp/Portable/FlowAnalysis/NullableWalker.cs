@@ -1411,12 +1411,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-                var consequenceType = this.State.ResultType;
                 Unsplit();
+                var consequenceType = this.State.ResultType;
                 consequenceState = this.State;
                 VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-                var alternativeType = this.State.ResultType;
                 Unsplit();
+                var alternativeType = this.State.ResultType;
                 IntersectWith(ref this.State, ref consequenceState);
                 if ((object)consequenceType == null || (object)alternativeType == null || !consequenceType.Equals(alternativeType, TypeCompareKind.ConsiderEverything))
                 {
