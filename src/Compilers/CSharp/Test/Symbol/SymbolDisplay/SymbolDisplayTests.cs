@@ -2359,7 +2359,7 @@ public class X : GC1<BOGUS> {}
 
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
                 global.GetTypeMembers("X", 0).Single().
-                BaseType;
+                BaseType();
 
             var format = new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);

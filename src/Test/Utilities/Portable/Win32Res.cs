@@ -7,6 +7,7 @@ using System.Text;
 using System.Xml;
 using System.IO;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -82,8 +83,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static string ManifestResourceToXml(IntPtr mftRsrc, uint size)
         {
-            XmlDocument doc = new XmlDocument();
-            using (XmlWriter xw = doc.CreateNavigator().AppendChild())
+            var doc = new XDocument();
+            using (XmlWriter xw = doc.CreateWriter())
             {
                 xw.WriteStartDocument();
                 xw.WriteStartElement("ManifestResource");
@@ -165,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var memoryStream = new MemoryStream(entireResourceBytes);
             var reader = new BinaryReader(memoryStream, Encoding.Unicode);
 
-            XmlDocument doc = new XmlDocument();
-            using (XmlWriter xw = doc.CreateNavigator().AppendChild())
+            var doc = new XDocument();
+            using (XmlWriter xw = doc.CreateWriter())
             {
                 xw.WriteStartDocument();
                 xw.WriteStartElement("VersionResource");

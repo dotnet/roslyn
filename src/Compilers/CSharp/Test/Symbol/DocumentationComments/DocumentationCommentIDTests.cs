@@ -86,7 +86,7 @@ class C : M.N.O
 ";
             var comp = CreateStandardCompilation(source);
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var symbol = type.BaseType;
+            var symbol = type.BaseType();
             Assert.Equal(SymbolKind.ErrorType, symbol.Kind);
             Assert.Equal("!:M.N.O", symbol.GetDocumentationCommentId());
         }

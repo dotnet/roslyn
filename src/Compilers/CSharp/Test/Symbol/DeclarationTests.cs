@@ -298,7 +298,7 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
 
             // Getting the interfaces will cause us to do some more binding of the current type.
-            var interfaces = type.Interfaces;
+            var interfaces = type.Interfaces();
             Assert.Equal(1, countedTree.AccessCount);
 
             // Now bind the members.
