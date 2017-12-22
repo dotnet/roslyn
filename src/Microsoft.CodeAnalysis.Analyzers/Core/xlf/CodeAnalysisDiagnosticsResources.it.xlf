@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
         <source>Missing diagnostic analyzer attribute.</source>
-        <target state="translated">Manca l'attributo dell'analizzatore di diagnostica.</target>
+        <target state="translated">Manca l'attributo dell'analizzatore diagnostico.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerMessage">
         <source>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</source>
-        <target state="translated">L'analizzatore di diagnostica '{0}' potrebbe riuscire a supportare sia C# che Visual Basic. Provare ad aggiungere a DiagnosticAnalyzerAttribute un argomento per includere il supporto per la lingua '{1}'.</target>
+        <target state="translated">L'analizzatore diagnostico '{0}' potrebbe riuscire a supportare sia C# che Visual Basic. Provare ad aggiungere a DiagnosticAnalyzerAttribute un argomento per includere il supporto per la lingua '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerTitle">
         <source>Recommend adding language support to diagnostic analyzer.</source>
-        <target state="translated">Consigliare l'aggiunta del supporto per la lingua all'analizzatore di diagnostica.</target>
+        <target state="translated">Consigliare l'aggiunta del supporto per la lingua all'analizzatore diagnostico.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerDescription">
         <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
-        <target state="translated">L'analizzatore di diagnostica è contrassegnato in modo da supportare una sola lingua, ma l'assembly dell'analizzatore non sembra fare riferimento ad alcun assembly CodeAnalysis specifico della lingua, di conseguenza è probabile che funziono per più lingue. Provare ad aggiungere a DiagnosticAnalyzerAttribute un argomento per una lingua aggiuntiva.</target>
+        <target state="translated">L'analizzatore diagnostico è contrassegnato in modo da supportare una sola lingua, ma l'assembly dell'analizzatore non sembra fare riferimento ad alcun assembly CodeAnalysis specifico della lingua, di conseguenza è probabile che funziono per più lingue. Provare ad aggiungere a DiagnosticAnalyzerAttribute un argomento per una lingua aggiuntiva.</target>
         <note />
       </trans-unit>
       <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
@@ -154,22 +154,22 @@
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorDescription">
         <source>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</source>
-        <target state="translated">Se l'analizzatore di diagnostica e i relativi dati di diagnostica restituiti devono essere localizzabili, devono essere localizzabili anche gli elementi DiagnosticDescriptor supportati usati per costruire i dati di diagnostica. In tal caso, è necessario fornire argomenti localizzabili per il parametro 'title' (e facoltativamente per 'description') al costruttore del descrittore di diagnostica per garantire che il descrittore sia localizzabile.</target>
+        <target state="translated">Se l'analizzatore diagnostico e i relativi dati di diagnostica restituiti devono essere localizzabili, devono essere localizzabili anche gli elementi DiagnosticDescriptor supportati usati per costruire i dati di diagnostica. In tal caso, è necessario fornire argomenti localizzabili per il parametro 'title' (e facoltativamente per 'description') al costruttore del descrittore di diagnostica per garantire che il descrittore sia localizzabile.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
         <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</source>
-        <target state="translated">Evitare di archiviare dati per compilazione di tipo '{0}' nei campi di un analizzatore di diagnostica.</target>
+        <target state="translated">Evitare di archiviare dati per compilazione di tipo '{0}' nei campi di un analizzatore diagnostico.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
         <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer.</source>
-        <target state="translated">Evitare di archiviare dati per compilazione nei campi di un analizzatore di diagnostica.</target>
+        <target state="translated">Evitare di archiviare dati per compilazione nei campi di un analizzatore diagnostico.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
         <source>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</source>
-        <target state="translated">L'istanza di un analizzatore di diagnostica potrebbe sopravvivere alla durata della compilazione. Di conseguenza, se si archiviano i dati per compilazione, ad esempio i simboli, nei campi di un analizzatore di diagnostica, compilazioni obsolete potrebbero continuare a esistere e causare perdite di memoria.  È invece consigliabile archiviare questi dati in un tipo separato di cui viene creata un'istanza in un'azione di avvio della compilazione, registrata con l'API '{0}.{1}'. Un'istanza di questo tipo verrà creata per compilazione e non sopravviverà alla durata della compilazione, evitando in tal modo perdite di memoria.</target>
+        <target state="translated">L'istanza di un analizzatore diagnostico potrebbe sopravvivere alla durata della compilazione. Di conseguenza, se si archiviano i dati per compilazione, ad esempio i simboli, nei campi di un analizzatore diagnostico, compilazioni obsolete potrebbero continuare a esistere e causare perdite di memoria. È invece consigliabile archiviare questi dati in un tipo separato di cui viene creata un'istanza in un'azione di avvio della compilazione, registrata con l'API '{0}.{1}'. Un'istanza di questo tipo verrà creata per compilazione e non sopravviverà alla durata della compilazione, evitando in tal modo perdite di memoria.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyDescription">
@@ -229,112 +229,112 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
         <source>Code fix providers should provide FixAll support.</source>
-        <target state="new">Code fix providers should provide FixAll support.</target>
+        <target state="translated">I provider di correzione del codice devono fornire il supporto per FixAll.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
         <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
-        <target state="new">'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</target>
+        <target state="translated">'{0}' registra una o più correzioni del codice, ma non esegue l'override del metodo 'CodeFixProvider.GetFixAllProvider'. Eseguire l'override di questo metodo e fornire un elemento FixAllProvider non Null per il supporto per FixAll, possibilmente 'WellKnownFixAllProviders.BatchFixer', oppure 'null' per disabilitare in modo esplicito il supporto per FixAll.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="new">A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</target>
+        <target state="translated">Un elemento CodeFixProvider deve fornire il supporto per FixAll per consentire agli utenti di correggere più istanze della diagnostica sottostante con un'unica correzione del codice. Per maggiori dettagli, vedere la documentazione all'indirizzo https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
         <source>Override GetFixAllProvider.</source>
-        <target state="new">Override GetFixAllProvider.</target>
+        <target state="translated">Eseguire l'override di GetFixAllProvider.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorMessage">
         <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
-        <target state="new">Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</target>
+        <target state="translated">Provare a fornire un valore 'helpLinkUri' non Null al costruttore del descrittore di diagnostica in modo da visualizzare le informazioni quando questa diagnostica è presente nell'elenco errori.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorTitle">
         <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
-        <target state="new">Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</target>
+        <target state="translated">Fornire un valore 'helpLinkUri' non Null al costruttore del descrittore di diagnostica.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorDescription">
         <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
-        <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
+        <target state="translated">Il valore 'helpLinkUri' viene usato per visualizzare le informazioni quando questa diagnostica è presente nell'elenco errori. È necessario specificare per ogni analizzatore un elemento helpLinkUri che punta a una pagina che non cambia nel tempo.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">Gli ID diagnostica per gli analizzatori devono essere nel formato specificato.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
         <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</source>
-        <target state="new">Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</target>
+        <target state="translated">L'ID diagnostica '{0}' appartenente alla categoria '{1}' non è incluso nell'intervallo e/o nel formato '{2}' richiesto specificato nel file '{3}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">Gli ID diagnostica per gli analizzatori devono essere nel formato specificato.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdTitle">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">L'ID diagnostica deve essere univoco tra gli analizzatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdMessage">
         <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
-        <target state="new">Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</target>
+        <target state="translated">L'ID diagnostica '{0}' è già usato dall'analizzatore '{1}'. Usarne uno diverso.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdDescription">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">L'ID diagnostica deve essere univoco tra gli analizzatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">La categoria per gli analizzatori deve essere inclusa nei valori specificati.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
         <source>Category '{0}' is not from the allowed categories specified in the file '{1}'.</source>
-        <target state="new">Category '{0}' is not from the allowed categories specified in the file '{1}'.</target>
+        <target state="translated">La categoria '{0}' non è inclusa nelle categorie consentite specificate nel file '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">La categoria per gli analizzatori deve essere inclusa nei valori specificati.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">La voce nella categoria dell'analizzatore e nel file di specifica dell'intervallo degli ID diagnostica non è valida.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
         <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</source>
-        <target state="new">Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</target>
+        <target state="translated">La voce '{0}' nella categoria dell'analizzatore e nel file '{1}' di specifica dell'intervallo degli ID diagnostica non è valida.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">La voce nella categoria dell'analizzatore e nel file di specifica dell'intervallo degli ID diagnostica non è valida.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantTitle">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">Gli ID diagnostica per gli analizzatori devono essere una costante non Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantMessage">
         <source>Diagnostic Id for rule '{0}' must be a non-null constant.</source>
-        <target state="new">Diagnostic Id for rule '{0}' must be a non-null constant.</target>
+        <target state="translated">L'ID diagnostica per la regola '{0}' deve essere una costante non Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantDescription">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">Gli ID diagnostica per gli analizzatori devono essere una costante non Null.</target>
         <note />
       </trans-unit>
     </body>

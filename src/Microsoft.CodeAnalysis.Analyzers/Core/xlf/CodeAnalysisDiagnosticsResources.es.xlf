@@ -229,112 +229,112 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
         <source>Code fix providers should provide FixAll support.</source>
-        <target state="new">Code fix providers should provide FixAll support.</target>
+        <target state="translated">Los proveedores de corrección de código deberían proporcionar soporte FixAll.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
         <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
-        <target state="new">'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</target>
+        <target state="translated">"{0}" registra una o varias correcciones de código, pero no reemplaza el método "CodeFixProvider.GetFixAllProvider". Reemplace este método y proporcione un valor FixAllProvider que no sea nulo para el soporte FixAll; potencialmente "WellKnownFixAllProviders.BatchFixer" o "null" para deshabilitar explícitamente el soporte FixAll.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="new">A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</target>
+        <target state="translated">Un valor CodeFixProvider debe proporcionar soporte FixAll para permitir a los usuarios corregir varias instancias del diagnóstico subyacente con una única corrección de código. Vea la documentación en https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md para obtener más información.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
         <source>Override GetFixAllProvider.</source>
-        <target state="new">Override GetFixAllProvider.</target>
+        <target state="translated">Reemplace GetFixAllProvider.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorMessage">
         <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
-        <target state="new">Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</target>
+        <target state="translated">Considere la posibilidad de proporcionar un valor "helpLinkUri" que no sea nulo para diagnosticar el constructor del descriptor a fin de mostrar información cuando este diagnóstico aparece en la lista de errores.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorTitle">
         <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
-        <target state="new">Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</target>
+        <target state="translated">Proporcione un valor "helpLinkUri" que no sea nulo para diagnosticar el constructor del descriptor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorDescription">
         <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
-        <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
+        <target state="translated">El valor "helpLinkUri" se utiliza para mostrar información cuando este diagnóstico figura en la lista de errores. Todos los analizadores deben tener un helpLinkUri especificado que apunte a una página de ayuda que no cambie con el tiempo.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">El valor DiagnosticId para los analizadores debe estar en el formato especificado.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
         <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</source>
-        <target state="new">Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</target>
+        <target state="translated">El identificador de diagnóstico "{0}" que pertenece a la categoría "{1}" no se encuentra en el rango o el formato requerido "{2}" que se especifica en el archivo "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">El valor DiagnosticId para los analizadores debe estar en el formato especificado.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdTitle">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">El valor de DiagnosticId debe ser único en los analizadores.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdMessage">
         <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
-        <target state="new">Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</target>
+        <target state="translated">El identificador de diagnóstico "{0}" ya se ha utilizado por el analizador "{1}". Utilice un identificador de diagnóstico diferente.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdDescription">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">El valor de DiagnosticId debe ser único en los analizadores.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">La categoría de los analizadores debe proceder de los valores especificados.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
         <source>Category '{0}' is not from the allowed categories specified in the file '{1}'.</source>
-        <target state="new">Category '{0}' is not from the allowed categories specified in the file '{1}'.</target>
+        <target state="translated">La categoría "{0}" no se corresponde con las categorías permitidas que se especifican en el archivo "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">La categoría de los analizadores debe proceder de los valores especificados.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">Entrada no válida en la categoría del analizador y el archivo de especificación del rango de identificadores de diagnóstico.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
         <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</source>
-        <target state="new">Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</target>
+        <target state="translated">Entrada no válida "{0}" en la categoría del analizador y el archivo de especificación del rango de identificadores de diagnóstico "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">Entrada no válida en la categoría del analizador y el archivo de especificación del rango de identificadores de diagnóstico.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantTitle">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">El valor DiagnosticId de los analizadores debe ser una constante no nula.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantMessage">
         <source>Diagnostic Id for rule '{0}' must be a non-null constant.</source>
-        <target state="new">Diagnostic Id for rule '{0}' must be a non-null constant.</target>
+        <target state="translated">El identificador de diagnóstico de la regla "{0}" debe ser una constante no nula.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantDescription">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">El valor DiagnosticId de los analizadores debe ser una constante no nula.</target>
         <note />
       </trans-unit>
     </body>

@@ -229,112 +229,112 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
         <source>Code fix providers should provide FixAll support.</source>
-        <target state="new">Code fix providers should provide FixAll support.</target>
+        <target state="translated">代码修复提供程序应提供 FixAll 支持。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
         <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
-        <target state="new">'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</target>
+        <target state="translated">“{0}”注册了一个或多个代码修补程序，但是未重写方法 "CodeFixProvider.GetFixAllProvider"。请重写该方法并向 FixAll 支持提供非 null 型 FixAllProvider (可能为 "WellKnownFixAllProviders.BatchFixer")或提供 "null" 以显式启用 FixAll 支持。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="new">A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</target>
+        <target state="translated">CodeFixProvider 应提供 FixAll 支持，以允许用户通过单个代码修补程序修复基础诊断的多个实例。有关更多详细信息，请参阅 https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md 中的文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
         <source>Override GetFixAllProvider.</source>
-        <target state="new">Override GetFixAllProvider.</target>
+        <target state="translated">重写 GetFixAllProvider。</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorMessage">
         <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
-        <target state="new">Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</target>
+        <target state="translated">请考虑向诊断描述符构造函数提供一个非 null 型 "helpLinkUri"，以在错误列表中出现该诊断时显示信息。</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorTitle">
         <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
-        <target state="new">Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</target>
+        <target state="translated">向诊断描述符构造函数提供非 null 型 "helpLinkUri" 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorDescription">
         <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
-        <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
+        <target state="translated">"helpLinkUri" 值用于在错误列表中出现该诊断时显示信息。应对每个分析器指定一个 helpLinkUri，用于指向一个不会随时间推移而更改的帮助页面。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">分析器的 DiagnosticId 必须为指定格式。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
         <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</source>
-        <target state="new">Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</target>
+        <target state="translated">属于类别“{1}”的诊断 Id“{0}”不符合文件“{3}”中指定的要求范围和/或格式“{2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">分析器的 DiagnosticId 必须为指定格式。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdTitle">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">分析器的 DiagnosticId 必须唯一。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdMessage">
         <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
-        <target state="new">Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</target>
+        <target state="translated">诊断 Id“{0}”已被分析器“{1}”使用。请使用其他诊断 ID。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdDescription">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">分析器的 DiagnosticId 必须唯一。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">分析器的类别必须源自指定的值。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
         <source>Category '{0}' is not from the allowed categories specified in the file '{1}'.</source>
-        <target state="new">Category '{0}' is not from the allowed categories specified in the file '{1}'.</target>
+        <target state="translated">类别“{0}”不属于文件“{1}”中指定的允许类别</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">分析器的类别必须源自指定的值。</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">分析器类别和诊断 ID 范围规定文件中的条目无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
         <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</source>
-        <target state="new">Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</target>
+        <target state="translated">分析器类别和诊断 ID 范围规定文件“{1}”中的条目“{0}”无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">分析器类别和诊断 ID 范围规定文件中的条目无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantTitle">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">分析器的 DiagnosticId 必须为非 null 常量。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantMessage">
         <source>Diagnostic Id for rule '{0}' must be a non-null constant.</source>
-        <target state="new">Diagnostic Id for rule '{0}' must be a non-null constant.</target>
+        <target state="translated">规则“{0}”的诊断 ID 必须为非 null 常量。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantDescription">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">分析器的 DiagnosticId 必须为非 null 常量。</target>
         <note />
       </trans-unit>
     </body>

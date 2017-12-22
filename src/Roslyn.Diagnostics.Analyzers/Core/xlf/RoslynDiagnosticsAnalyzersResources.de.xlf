@@ -194,32 +194,32 @@
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
         <source>Do not mix attributes from different versions of MEF</source>
-        <target state="new">Do not mix attributes from different versions of MEF</target>
+        <target state="translated">Keine Attribute aus verschiedenen Versionen des MEF kombinieren</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
         <source>Do not mix attributes from different versions of MEF</source>
-        <target state="new">Do not mix attributes from different versions of MEF</target>
+        <target state="translated">Keine Attribute aus verschiedenen Versionen des MEF kombinieren</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
         <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
-        <target state="new">Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</target>
+        <target state="translated">Das Attribut "{0}" stammt aus einer anderen Version des MEF als das Exportattribut für "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
         <source>Parts exported with MEFv2 must be marked as Shared</source>
-        <target state="new">Parts exported with MEFv2 must be marked as Shared</target>
+        <target state="translated">Mit MEFv2 exportierte Teile müssen als "Shared" markiert werden</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
         <source>Part exported with MEFv2 must be marked with the Shared attribute.</source>
-        <target state="new">Part exported with MEFv2 must be marked with the Shared attribute.</target>
+        <target state="translated">Ein mit MEFv2 exportiertes Teil muss mit dem Shared-Attribut markiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
-        <target state="new">'{0}' is exported with MEFv2 and hence must be marked as Shared</target>
+        <target state="translated">"{0}" wurde mit MEFv2 exportiert und muss daher als "Shared" markiert werden.</target>
         <note />
       </trans-unit>
     </body>
