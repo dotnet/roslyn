@@ -1766,12 +1766,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IConstantPatternOperation CreateBoundConstantPatternOperation(BoundConstantPattern boundConstantPattern)
         {
-                Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundConstantPattern.Value));
-                SyntaxNode syntax = boundConstantPattern.Syntax;
-                ITypeSymbol type = null;
-                Optional<object> constantValue = default(Optional<object>);
-                bool isImplicit = boundConstantPattern.WasCompilerGenerated;
-                return new LazyConstantPattern(value, _semanticModel, syntax, type, constantValue, isImplicit);
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundConstantPattern.Value));
+            SyntaxNode syntax = boundConstantPattern.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundConstantPattern.WasCompilerGenerated;
+            return new LazyConstantPattern(value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)

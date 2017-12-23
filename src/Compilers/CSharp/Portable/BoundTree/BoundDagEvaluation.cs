@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override int GetHashCode()
         {
-            return this.Input.GetHashCode() ^ (this.Symbol?.GetHashCode() ?? 0);
+            return Hash.Combine(this.Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
         public static bool operator ==(BoundDagEvaluation left, BoundDagEvaluation right)
         {

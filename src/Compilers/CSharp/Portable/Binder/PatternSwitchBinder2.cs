@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundPatternSwitchLabel defaultLabel)
         {
             // Bind match sections
-            var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
+            var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance(SwitchSyntax.Sections.Count);
             defaultLabel = null;
             foreach (SwitchSectionSyntax sectionSyntax in SwitchSyntax.Sections)
             {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             // Bind match section labels
-            var boundLabelsBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance();
+            var boundLabelsBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance(node.Labels.Count);
             Binder sectionBinder = originalBinder.GetBinder(node); // this binder can bind pattern variables from the section.
             Debug.Assert(sectionBinder != null);
             Dictionary<SyntaxNode, LabelSymbol> labelsByNode = LabelsByNode;
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Bind switch section statements
-            var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+            var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Count);
             foreach (StatementSyntax statement in node.Statements)
             {
                 boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));

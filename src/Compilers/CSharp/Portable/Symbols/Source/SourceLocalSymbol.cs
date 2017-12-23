@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                declType = typeBinder.BindType(_typeSyntax.SkipRef(out var refKind), diagnostics, out isVar);
+                declType = typeBinder.BindType(_typeSyntax.SkipRef(out _), diagnostics, out isVar);
             }
 
             if (isVar)

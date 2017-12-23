@@ -396,9 +396,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!hasErrors)
                     {
                         diagnostics.Add(ErrorCode.ERR_InferredRecursivePatternType, typeSyntax.Location);
+                        hasErrors = true;
                     }
 
-                    boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt: null, inferredType: true, type: operandType.StrippedType(), hasErrors: hasErrors = true);
+                    boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt: null, inferredType: true, type: operandType.StrippedType(), hasErrors: hasErrors);
                 }
 
                 return boundDeclType.Type;
@@ -415,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax typeSyntax = node.Type;
             TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, ref hasErrors, out BoundTypeExpression boundDeclType, diagnostics);
 
-            var patterns = ArrayBuilder<BoundPattern>.GetInstance();
+            var patterns = ArrayBuilder<BoundPattern>.GetInstance(node.SubPatterns.Count);
             MethodSymbol deconstructMethod = null;
             if (declType.IsTupleType)
             {
@@ -506,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
                         var tupleDesignation = (ParenthesizedVariableDesignationSyntax)designation;
-                        var patterns = ArrayBuilder<BoundPattern>.GetInstance();
+                        var patterns = ArrayBuilder<BoundPattern>.GetInstance(tupleDesignation.Variables.Count);
                         MethodSymbol deconstructMethod = null;
                         if (operandType.IsTupleType)
                         {
@@ -574,13 +575,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ref bool hasErrors)
         {
-            var builder = ArrayBuilder<(Symbol property, BoundPattern pattern)>.GetInstance();
+            var builder = ArrayBuilder<(Symbol property, BoundPattern pattern)>.GetInstance(node.SubPatterns.Count);
             foreach (SubpatternElementSyntax p in node.SubPatterns)
             {
                 IdentifierNameSyntax name = p.NameColon?.Name;
                 PatternSyntax pattern = p.Pattern;
-                Symbol property = null;
-                TypeSymbol propertyType;
+                Symbol member = null;
+                TypeSymbol memberType;
                 if (name == null)
                 {
                     if (!hasErrors)
@@ -588,32 +589,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_PropertyPatternNameMissing, pattern.Location, pattern);
                     }
 
-                    propertyType = CreateErrorType();
+                    memberType = CreateErrorType();
                     hasErrors = true;
                 }
                 else
                 {
-                    property = LookupPropertyForPattern(inputType, name, out propertyType, ref hasErrors, diagnostics);
+                    member = LookupMemberForPropertyPattern(inputType, name, out memberType, ref hasErrors, diagnostics);
                 }
 
-                BoundPattern boundPattern = BindPattern(pattern, propertyType, hasErrors, diagnostics);
-                builder.Add((property, boundPattern));
+                BoundPattern boundPattern = BindPattern(pattern, memberType, hasErrors, diagnostics);
+                builder.Add((member, boundPattern));
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private Symbol LookupPropertyForPattern(TypeSymbol inputType, IdentifierNameSyntax name, out TypeSymbol propertyType, ref bool hasErrors, DiagnosticBag diagnostics)
+        private Symbol LookupMemberForPropertyPattern(TypeSymbol inputType, IdentifierNameSyntax name, out TypeSymbol memberType, ref bool hasErrors, DiagnosticBag diagnostics)
         {
             Symbol symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
             if (inputType.IsErrorType() || hasErrors)
             {
-                propertyType = CreateErrorType();
+                memberType = CreateErrorType();
                 return null;
             }
 
-            propertyType = symbol.GetTypeOrReturnType();
+            memberType = symbol.GetTypeOrReturnType();
             return symbol;
         }
 
