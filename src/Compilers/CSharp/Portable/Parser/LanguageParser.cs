@@ -7739,7 +7739,7 @@ tryAgain:
                 @foreach = this.EatToken(SyntaxKind.ForEachKeyword);
             }
 
-            var awaitToken = ParseAwaitTokenInUsingOrForEach();
+            var awaitToken = ParseOptionalAwaitKeywordForAsyncStreams();
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
@@ -8050,7 +8050,7 @@ tryAgain:
         private UsingStatementSyntax ParseUsingStatement()
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
-            var awaitToken = ParseAwaitTokenInUsingOrForEach();
+            var awaitToken = ParseOptionalAwaitKeywordForAsyncStreams();
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
@@ -8067,7 +8067,7 @@ tryAgain:
             return _syntaxFactory.UsingStatement(@using, awaitToken, openParen, declaration, expression, closeParen, statement);
         }
 
-        private SyntaxToken ParseAwaitTokenInUsingOrForEach()
+        private SyntaxToken ParseOptionalAwaitKeywordForAsyncStreams()
         {
             SyntaxToken awaitToken;
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
