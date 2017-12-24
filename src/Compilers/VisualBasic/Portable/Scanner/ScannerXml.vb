@@ -16,38 +16,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ScanXmlTrivia(c As Char) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             Debug.Assert(Not IsScanningXmlDoc)
             Debug.Assert(c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse c = " "c OrElse c = CHARACTER_TABULATION)
+            Dim result As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
+            Using builder = _triviaListPool.PoolAllocate(Of VisualBasicSyntaxNode)
+                With builder
+                    Dim len = 0
+                    Do
+                        If c = " "c OrElse c = CHARACTER_TABULATION Then
+                            len += 1
+                        ElseIf c = CARRIAGE_RETURN OrElse c = LINE_FEED Then
+                            If len > 0 Then
+                                .Builder.Add(MakeWhiteSpaceTrivia(GetText(len)))
+                                len = 0
+                            End If
+                            .Builder.Add(ScanNewlineAsTrivia(c))
+                        Else
+                            Exit Do
+                        End If
 
-            Dim builder = _triviaListPool.Allocate
+                        If Not CanGet(len) Then
+                            Exit Do
+                        End If
+                        c = Peek(len)
+                    Loop
 
-            Dim len = 0
-            Do
-                If c = " "c OrElse c = CHARACTER_TABULATION Then
-                    len += 1
-                ElseIf c = CARRIAGE_RETURN OrElse c = LINE_FEED Then
                     If len > 0 Then
-                        builder.Add(MakeWhiteSpaceTrivia(GetText(len)))
+                        .Builder.Add(MakeWhiteSpaceTrivia(GetText(len)))
                         len = 0
                     End If
-                    builder.Add(ScanNewlineAsTrivia(c))
-                Else
-                    Exit Do
-                End If
-
-                If Not CanGet(len) Then
-                    Exit Do
-                End If
-                c = Peek(len)
-            Loop
-
-            If len > 0 Then
-                builder.Add(MakeWhiteSpaceTrivia(GetText(len)))
-                len = 0
-            End If
-            Debug.Assert(builder.Count > 0)
-
-            Dim result = builder.ToList
-            _triviaListPool.Free(builder)
-
+                    Debug.Assert(.Builder.Count > 0)
+                    result = .Builder.ToList
+                End With
+            End Using
             Return result
         End Function
 
@@ -643,73 +642,75 @@ ScanChars:
             ' // [17]    PITarget    ::=    Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
             Debug.Assert(state = ScannerState.StartProcessingInstruction OrElse
                          state = ScannerState.ProcessingInstruction)
-
-            Dim precedingTrivia = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
             Dim result As SyntaxToken
 
-            If state = ScannerState.StartProcessingInstruction AndAlso CanGet() Then
-                ' // Whitespace
-                ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                Dim c = Peek()
-                Select Case c
-                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
-                        Dim wsTrivia = ScanXmlTrivia(c)
-                        precedingTrivia.AddRange(wsTrivia)
-                End Select
-            End If
+            Using precedingTrivia = _triviaListPool.PoolAllocate(Of VisualBasicSyntaxNode)()
+                With precedingTrivia
 
-            Dim Here = 0
-            While CanGet(Here)
-                Dim c As Char = Peek(Here)
-                Select Case (c)
+                    If state = ScannerState.StartProcessingInstruction AndAlso CanGet() Then
+                        ' // Whitespace
+                        ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
+                        Dim c = Peek()
+                        Select Case c
+                            Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
+                                Dim wsTrivia = ScanXmlTrivia(c)
+                                .Builder.AddRange(wsTrivia)
+                        End Select
+                    End If
 
-                    Case CARRIAGE_RETURN, LINE_FEED
-                        result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here + LengthOfLineBreak(c, Here))
-                        GoTo CleanUp
+                    Dim Here = 0
+                    While CanGet(Here)
+                        Dim c As Char = Peek(Here)
+                        Select Case (c)
 
-                    Case "?"c
-                        If NextIs(Here + 1, ">"c) Then
-
-                            '// If valid characters found then return them.
-                            If Here <> 0 Then
-                                result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)
+                            Case CARRIAGE_RETURN, LINE_FEED
+                                result = XmlMakeProcessingInstructionToken(.Builder.ToList, Here + LengthOfLineBreak(c, Here))
                                 GoTo CleanUp
-                            End If
 
-                            ' // Create token for the '?>' termination sequence
-                            result = XmlMakeEndProcessingInstructionToken(precedingTrivia.ToList)
-                            GoTo CleanUp
-                        End If
-                        GoTo ScanChars
+                            Case "?"c
+                                If NextIs(Here + 1, ">"c) Then
 
-                    Case Else
+                                    '// If valid characters found then return them.
+                                    If Here <> 0 Then
+                                        result = XmlMakeProcessingInstructionToken(.Builder.ToList, Here)
+                                        GoTo CleanUp
+                                    End If
+
+                                    ' // Create token for the '?>' termination sequence
+                                    result = XmlMakeEndProcessingInstructionToken(.Builder.ToList)
+                                    GoTo CleanUp
+                                End If
+                                GoTo ScanChars
+
+                            Case Else
 ScanChars:
-                        Dim xmlCh = ScanXmlChar(Here)
-                        If xmlCh.Length > 0 Then
-                            Here += xmlCh.Length
-                            Continue While
-                        End If
+                                Dim xmlCh = ScanXmlChar(Here)
+                                If xmlCh.Length > 0 Then
+                                    Here += xmlCh.Length
+                                    Continue While
+                                End If
 
-                        ' bad char
-                        If Here <> 0 Then
-                            result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)
-                            GoTo CleanUp
-                        Else
-                            result = XmlMakeBadToken(precedingTrivia.ToList, 1, ERRID.ERR_IllegalChar)
-                            GoTo CleanUp
-                        End If
-                End Select
-            End While
+                                ' bad char
+                                If Here <> 0 Then
+                                    result = XmlMakeProcessingInstructionToken(.Builder.ToList, Here)
+                                    GoTo CleanUp
+                                Else
+                                    result = XmlMakeBadToken(.Builder.ToList, 1, ERRID.ERR_IllegalChar)
+                                    GoTo CleanUp
+                                End If
+                        End Select
+                    End While
 
-            ' no more chars
-            If Here > 0 Then
-                result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)
-            Else
-                result = MakeEofToken(precedingTrivia.ToList)
-            End If
+                    ' no more chars
+                    If Here > 0 Then
+                        result = XmlMakeProcessingInstructionToken(.Builder.ToList, Here)
+                    Else
+                        result = MakeEofToken(.Builder.ToList)
+                    End If
 
 CleanUp:
-            _triviaListPool.Free(precedingTrivia)
+                End With
+            End Using
             Return result
         End Function
 
