@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
             if (arg.Length > 1)
             {
                 int separator = arg.IndexOf('/', 1);
-                if (separator > 0 && (colon < 0 || separator < colon))
+                if (separator > 0 && (colon < 0 || separator < colon) && arg[0] != '-')
                 {
                     //   "/goo/
                     //   "//
