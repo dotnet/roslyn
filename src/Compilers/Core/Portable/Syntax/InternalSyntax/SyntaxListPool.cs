@@ -15,6 +15,22 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             this.Builder = Builder;
             this.Pool = Pool;
         }
+        public bool Any()
+        {
+            return this.Builder.ToListNode() != null;
+        }
+
+        public static void SwapWith(ref PooledSyntaxListBuilder<TNode> thisnode, ref PooledSyntaxListBuilder<TNode> withThis)
+        {
+            var tmp = thisnode;
+            thisnode = withThis;
+            withThis = tmp;
+        }
+        public static implicit operator SyntaxList<TNode>(PooledSyntaxListBuilder<TNode> pslb)
+        {
+            Debug.Assert(pslb != null);
+            return pslb.Builder.ToList();
+        }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
