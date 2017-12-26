@@ -9,11 +9,12 @@ This package not only includes the C# and Visual Basic compilers, it also modifi
 Once installed, this package requires Microsoft Build Tools 2015.
 
 ## Versioning
+Below are the versions of the language available in the NuGet packages. Remember to set a specific language version (or "latest") if you want to use one that is newer than "default" (ie. latest major version).
 
 - Versions `1.x` mean C# 6.0 and VB 14 (Visual Studio 2015 and updates). For instance, `1.3.2` corresponds to the most recent update (update 3) of Visual Studio 2015.
 - Version `2.0` means C# 7.0 and VB 15 (Visual Studio 2017 version 15.0).
 - Version `2.1` is still C# 7.0, but with a couple fixes (Visual Studio 2017 version 15.1).
-- Version `2.2` is still C# 7.0, but with a couple more fixes (Visual Studio 2017 version 15.2).
+- Version `2.2` is still C# 7.0, but with a couple more fixes (Visual Studio 2017 version 15.2). Language version "default" was updated to mean "7.0".
 - Version `2.3` means C# 7.1 and VB 15.3 (Visual Studio 2017 version 15.3). For instance, `2.3.0-beta1` corresponds to Visual Studio 2017 version 15.3 (Preview 1).
 - Version `2.4` is still C# 7.1 and VB 15.3, but with a couple fixes (Visual Studio 2017 version 15.4).
 - Version `2.6` means C# 7.2 and VB 15.5 (Visual Studio 2017 version 15.5).
