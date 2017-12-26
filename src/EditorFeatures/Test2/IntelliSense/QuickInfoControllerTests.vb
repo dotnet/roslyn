@@ -14,6 +14,8 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
+
+#Disable Warning BC40000 ' IQuickInfo* is obsolete
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Public Class QuickInfoControllerTests
@@ -241,3 +243,4 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Class
     End Class
 End Namespace
+#Enable Warning BC40000 ' IQuickInfo* is obsolete

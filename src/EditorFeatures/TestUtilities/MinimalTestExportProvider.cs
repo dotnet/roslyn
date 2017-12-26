@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public static ExportProvider CreateExportProvider(ComposableCatalog catalog)
         {
-            var configuration = CompositionConfiguration.Create(catalog.WithDesktopSupport().WithCompositionService());
+            var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
         }
