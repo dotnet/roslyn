@@ -829,11 +829,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' EoL may be consumed as whitespace only as a part of line continuation ( _ )
         ''' </summary>
         Friend Function ScanSingleLineTrivia() As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
-            Dim tList = _triviaListPool.Allocate()
-            ScanSingleLineTrivia(tList)
-            Dim result = MakeTriviaArray(tList)
-            _triviaListPool.Free(tList)
-            Return result
+            Using tList = _triviaListPool.PoolAllocate(Of VisualBasicSyntaxNode)
+                ScanSingleLineTrivia(tList)
+                Return MakeTriviaArray(tList)
+            End Using
         End Function
 
         Private Sub ScanSingleLineTrivia(tList As SyntaxListBuilder)
@@ -872,11 +871,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Function ScanLeadingTrivia() As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
-            Dim tList = _triviaListPool.Allocate()
-            ScanWhitespaceAndLineContinuations(tList)
-            Dim result = MakeTriviaArray(tList)
-            _triviaListPool.Free(tList)
-            Return result
+            Using tList = _triviaListPool.PoolAllocate(Of VisualBasicSyntaxNode)
+                ScanWhitespaceAndLineContinuations(tList)
+                Return MakeTriviaArray(tList)
+            End Using
+
         End Function
 
         Private Sub ScanWhitespaceAndLineContinuations(tList As SyntaxListBuilder)
@@ -889,36 +888,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Function ScanSingleLineTrivia(includeFollowingBlankLines As Boolean) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
-            Dim tList = _triviaListPool.Allocate()
-            ScanSingleLineTrivia(tList)
+            Using tList = _triviaListPool.PoolAllocate(Of VisualBasicSyntaxNode)
+                ScanSingleLineTrivia(tList)
 
-            If includeFollowingBlankLines AndAlso IsBlankLine(tList) Then
-                Dim more = _triviaListPool.Allocate()
+                If includeFollowingBlankLines AndAlso IsBlankLine(tList) Then
+                    Using more = _triviaListPool.PoolAllocate(Of VisualBasicSyntaxNode)
 
-                While True
-                    Dim offsets = CreateOffsetRestorePoint()
+                        While True
+                            Dim offsets = CreateOffsetRestorePoint()
 
-                    _lineBufferOffset = _endOfTerminatorTrivia
-                    ScanSingleLineTrivia(more)
+                            _lineBufferOffset = _endOfTerminatorTrivia
+                            ScanSingleLineTrivia(more)
 
-                    If Not IsBlankLine(more) Then
-                        offsets.Restore()
-                        Exit While
-                    End If
+                            If Not IsBlankLine(more) Then
+                                offsets.Restore()
+                                Exit While
+                            End If
 
-                    Dim n = more.Count
-                    For i = 0 To n - 1
-                        tList.Add(more(i))
-                    Next
-                    more.Clear()
-                End While
+                            Dim n = more.Builder.Count
+                            For i = 0 To n - 1
+                                tList.Builder.Add(more.Builder(i))
+                            Next
+                            more.Builder.Clear()
+                        End While
 
-                _triviaListPool.Free(more)
-            End If
+                    End Using
+                End If
 
-            Dim result = tList.ToList()
-            _triviaListPool.Free(tList)
-            Return result
+                Return tList.Builder.ToList()
+            End Using
         End Function
 
         ''' <summary>
