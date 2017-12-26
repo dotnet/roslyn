@@ -914,7 +914,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethDelegateMismatch">
         <source>No overload for '{0}' matches delegate '{1}'</source>
-        <target state="translated">Hiçbir '{0}' yeniden yüklemesi '{1}' temsilcisiyle eşleşmiyor</target>
+        <target state="translated">Hiçbir '{0}' aşırı yüklemesi '{1}' temsilcisiyle eşleşmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RetObjectRequired">
@@ -1449,12 +1449,12 @@
       </trans-unit>
       <trans-unit id="ERR_SealedNonOverride">
         <source>'{0}' cannot be sealed because it is not an override</source>
-        <target state="translated">'Bir geçersiz kılma olmadığından '{0}' korunamıyor</target>
+        <target state="translated">'Bir geçersiz kılma olmadığından '{0}' mühürlenemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">'{0}': korumalı olduğundan '{1}' devralınmış üyesi geçersiz kılınamaz</target>
+        <target state="translated">'{0}': mühürlü olduğundan '{1}' devralınmış üyesi geçersiz kılınamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -1849,7 +1849,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
         <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'{0}': bir soyut sınıfı korumalı veya statik olamaz</target>
+        <target state="translated">'{0}': bir soyut sınıfı mühürlü veya statik olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -1984,7 +1984,7 @@
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
         <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'{0}': bir sınıf hem statik hem korumalı olamaz</target>
+        <target state="translated">'{0}': bir sınıf hem statik hem mühürlü olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -2183,7 +2183,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">'{0}' hem soyut hem korumalı olamaz</target>
+        <target state="translated">'{0}' hem soyut hem mühürlü olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -2223,7 +2223,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">'{0}': korumalı '{1}' türünden türetilemiyor</target>
+        <target state="translated">'{0}': mühürlü '{1}' türünden türetilemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
@@ -2398,7 +2398,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
         <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0}', '{1}' korumalı sınıfındaki yeni sanal üyedir</target>
+        <target state="translated">'{0}', '{1}' mühürlü sınıfındaki yeni sanal üyedir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -2463,7 +2463,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">Tekrar yüklenen kaydırma işlecinin ilk işleneninin türü kapsayan tür ile aynı, ikinci işlenenin türü de tamsayı olmalıdır</target>
+        <target state="translated">Aşırı yüklenen kaydırma işlecinin ilk işleneninin türü kapsayan tür ile aynı, ikinci işlenenin türü de tamsayı olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainOperators">
@@ -2713,12 +2713,12 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
         <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}': yeni korunan üye korumalı sınıfta belirtildi</target>
+        <target state="translated">'{0}': yeni korunan üye mühürlü sınıfta belirtildi</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
         <source>New protected member declared in sealed class</source>
-        <target state="translated">Korumalı sınıfta bildirilen yeni korunan üye </target>
+        <target state="translated">Mühürlü sınıfta bildirilen yeni korunan üye </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -3043,7 +3043,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">'{0}' geçerli bir kısıtlama değil. Kısıtlama olarak kullanılan bir türün arabirim, korumalı olmayan bir sınıf veya tür parametresi olması gerekir.</target>
+        <target state="translated">'{0}' geçerli bir kısıtlama değil. Kısıtlama olarak kullanılan bir türün arabirim, mühürlü olmayan bir sınıf veya tür parametresi olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -3063,7 +3063,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
         <source>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">Geçersiz kısıtlama türü. Kısıtlama olarak kullanılan bir türün bir arabirim, korumalı olmayan bir sınıf veya bir tür parametresi olması gerekir.</target>
+        <target state="translated">Geçersiz kısıtlama türü. Kısıtlama olarak kullanılan bir türün bir arabirim, mühürlü olmayan bir sınıf veya bir tür parametresi olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
@@ -3568,12 +3568,12 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_OvlUnaryOperatorExpected">
         <source>Overloadable unary operator expected</source>
-        <target state="translated">Yeniden yüklenebilir birli işleç bekleniyor</target>
+        <target state="translated">Aşırı yüklenebilir birli işleç bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OvlBinaryOperatorExpected">
         <source>Overloadable binary operator expected</source>
-        <target state="translated">Yeniden yüklenebilir ikili işleç bekleniyor</target>
+        <target state="translated">Aşırı yüklenebilir ikili işleç bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IntOverflow">
@@ -3673,7 +3673,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_OvlOperatorExpected">
         <source>Overloadable operator expected</source>
-        <target state="translated">Yeniden yüklenebilir işleç bekleniyor</target>
+        <target state="translated">Aşırı yüklenebilir işleç bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionDirectiveExpected">
@@ -3827,7 +3827,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadArgCount">
         <source>No overload for method '{0}' takes {1} arguments</source>
-        <target state="translated">{0}' yöntemi için hiçbir tekrar yükleme {1} bağımsız değişken almaz</target>
+        <target state="translated">{0}' yöntemi için hiçbir aşırı yükleme {1} bağımsız değişken almaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgType">
@@ -3952,12 +3952,12 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadBinOpArgs">
         <source>Overloaded binary operator '{0}' takes two parameters</source>
-        <target state="translated">Fazla yüklenmiş '{0}' ikili işleci iki parametre alır</target>
+        <target state="translated">Aşırı yüklenmiş '{0}' ikili işleci iki parametre alır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUnOpArgs">
         <source>Overloaded unary operator '{0}' takes one parameter</source>
-        <target state="translated">Fazla yüklenmiş '{0}' tek işlem işleci bir parametre alır</target>
+        <target state="translated">Aşırı yüklenmiş '{0}' tek işlem işleci bir parametre alır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoVoidParameter">
@@ -5102,7 +5102,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasWrongSignature">
         <source>The best overloaded method match for '{0}' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.</source>
-        <target state="translated">{0}' ile en iyi eşleşen tekrar yüklenen yöntem, başlatıcı öğesi için yanlış imza içeriyor. Başlatılabilir Add, erişilebilir bir örnek yöntemi olmalıdır.</target>
+        <target state="translated">{0}' ile en iyi eşleşen aşırı yüklenen yöntem, başlatıcı öğesi için yanlış imza içeriyor. Başlatılabilir Add, erişilebilir bir örnek yöntemi olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionInitRequiresIEnumerable">
@@ -5127,7 +5127,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadInstanceArgType">
         <source>'{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'</source>
-        <target state="translated">'{0}' bir '{1}' tanımı içermiyor ve en iyi genişletme yöntemi yeniden yüklemesi olan '{2}', '{3}' türünün bir alıcısını gerektiriyor</target>
+        <target state="translated">'{0}' bir '{1}' tanımı içermiyor ve en iyi genişletme yöntemi aşırı yüklemesi olan '{2}', '{3}' türünün bir alıcısını gerektiriyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryDuplicateRangeVariable">
@@ -5227,7 +5227,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadArgTypesForCollectionAdd">
         <source>The best overloaded Add method '{0}' for the collection initializer has some invalid arguments</source>
-        <target state="translated">Koleksiyon başlatıcısı için en iyi Add yöntemi olan '{0}' bazı geçersiz bağımsız değişkenlere sahip</target>
+        <target state="translated">Koleksiyon başlatıcısı için en iyi aşırı yüklenmiş Add yöntemi olan '{0}' bazı geçersiz bağımsız değişkenlere sahip</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
@@ -5247,7 +5247,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
         <source>The best overloaded method match '{0}' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.</source>
-        <target state="translated">Koleksiyon başlatıcı öğesi için en iyi yeniden yüklenmiş yöntem eşleşmesi olan '{0}' kullanılamıyor. Koleksiyon başlatıcı 'Add' yöntemleri ref veya out parametreleri içeremez.</target>
+        <target state="translated">Koleksiyon başlatıcı öğesi için en iyi aşırı yüklenmiş yöntem eşleşmesi olan '{0}' kullanılamıyor. Koleksiyon başlatıcı 'Add' yöntemleri ref veya out parametreleri içeremez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInvocableMemberCalled">
@@ -5540,7 +5540,7 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       </trans-unit>
       <trans-unit id="WRN_CLS_OverloadUnnamed_Description">
         <source>This error occurs if you have an overloaded method that takes a jagged array and the only difference between the method signatures is the element type of the array. To avoid this error, consider using a rectangular array rather than a jagged array; use an additional parameter to disambiguate the function call; rename one or more of the overloaded methods; or, if CLS Compliance is not needed, remove the CLSCompliantAttribute attribute.</source>
-        <target state="translated">Bu hata, basit bir dizi alan aşırı yüklü bir yönteminiz varsa ve yöntem imzaları arasındaki tek fark dizinin öğe türü ise oluşur. Bu hatadan kaçınmak için, basit dizi yerine dikdörtgen dizi kullanmayı deneyin; işlev çağrısını netleştirmek için ek bir parametre kullanın; aşırı yüklü yöntemlerden birini veya birden fazlasını yeniden adlandırın ya da CLS Uyumluluğu gerekmiyorsa, CLSCompliantAttribute özniteliğini kaldırın.</target>
+        <target state="translated">Bu hata, düzensiz bir dizi alan aşırı yüklü bir yönteminiz varsa ve yöntem imzaları arasındaki tek fark dizinin öğe türü ise oluşur. Bu hatadan kaçınmak için, düzensiz dizi yerine dikdörtgen dizi kullanmayı deneyin; işlev çağrısını netleştirmek için ek bir parametre kullanın; aşırı yüklü yöntemlerden birini veya birden fazlasını yeniden adlandırın ya da CLS Uyumluluğu gerekmiyorsa, CLSCompliantAttribute özniteliğini kaldırın.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadIdentifier">
@@ -6057,7 +6057,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplCollisionOnRefOut">
         <source>Cannot inherit interface '{0}' with the specified type parameters because it causes method '{1}' to contain overloads which differ only on ref and out</source>
-        <target state="translated">{1}' yönteminin yalnızca ref ve out bakımından farklı tekrar yüklemeler içermesine neden olduğundan belirtilen tür parametreleriyle '{0}' arabirimi devralınamaz</target>
+        <target state="translated">{1}' yönteminin yalnızca ref ve out bakımından farklı aşırı yüklemeler içermesine neden olduğundan belirtilen tür parametreleriyle '{0}' arabirimi devralınamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParamsVariance">
@@ -6172,7 +6172,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_BadNamedArgument">
         <source>The best overload for '{0}' does not have a parameter named '{1}'</source>
-        <target state="translated">{0}' için en iyi yeniden yükleme, '{1}' adlı bir parametre içermiyor</target>
+        <target state="translated">{0}' için en iyi aşırı yükleme, '{1}' adlı bir parametre içermiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedArgumentForDelegateInvoke">
@@ -8565,12 +8565,12 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">'default' varsayılan sabit değeri bir case sabiti olarak geçerli değil. Uygun olan başka bir sabit değeri (ör. '0' veya 'null') kullanın. Varsayılan etiketi yazmak istediyseniz, 'case' olmadan 'default:' kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">'default' varsayılan sabit değeri bir desen olarak geçerli değil. Uygun olan başka bir sabit değeri (ör. '0' veya 'null') kullanın. Tüm öğeleri eşleştirmek için 'var _' atma desenini kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

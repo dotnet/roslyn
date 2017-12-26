@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
-        <target state="translated">新しいフィールドを宣言するには、ここに名前を入力します。 </target>
+        <target state="translated">新しいフィールドを宣言するには、ここに名前を入力します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Type_a_new_name_for_the_column_followed_by_Otherwise_the_original_column_name_with_be_used">
         <source>Type a new name for the column, followed by '='. Otherwise, the original column name with be used.</source>
-        <target state="translated">列の新しい名前 (名前の後に '=' が続く) を入力します。これを入力しない場合、元の列名が使用されます。 </target>
+        <target state="translated">列の新しい名前 (名前の後に '=' が続く) を入力します。これを入力しない場合、元の列名が使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Use_tab_for_automatic_completion_space_completion_is_disabled_to_avoid_interfering_with_a_new_name">
@@ -1215,7 +1215,7 @@ Do...Loop While &lt;condition&gt;</target>
       </trans-unit>
       <trans-unit id="Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides">
         <source>Provides a way to refer to the class instance members as originally implemented, ignoring any derived class overrides.</source>
-        <target state="translated">最初に実装されたときの状態のクラスのインスタンス メンバーを参照する (派生クラスのオーバーライドをすべて無視する) 方法を提供します。 </target>
+        <target state="translated">最初に実装されたときの状態のクラスのインスタンス メンバーを参照する (派生クラスのオーバーライドをすべて無視する) 方法を提供します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_new_object_instance">
@@ -1593,7 +1593,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Lambda">
         <source>Lambda</source>
-        <target state="translated">ラムダ </target>
+        <target state="translated">ラムダ</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_clause">

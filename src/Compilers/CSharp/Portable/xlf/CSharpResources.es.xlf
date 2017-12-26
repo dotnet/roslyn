@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="IDS_XMLFAILEDINCLUDE">
         <source> Failed to insert some or all of included XML </source>
-        <target state="translated"> Error al insertar algunos de los XML de inclusión o todos ellos</target>
+        <target state="translated">Error al insertar algunos de los XML de inclusión o todos ellos</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLBADINCLUDE">
@@ -2718,7 +2718,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
         <source>New protected member declared in sealed class</source>
-        <target state="translated">Nuevo miembro protegido declarado en la clase sealed</target>
+        <target state="translated">Nuevo miembro protegido declarado en una clase sellada</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -8551,12 +8551,12 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">Un literal predeterminado "default" no es válido como constante de caso. Use otro literal (como "0" o "null") según corresponda. Si pretendía escribir la etiqueta predeterminada, use "default:" sin "case".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">Un literal predeterminado "default" no es válido como modelo. Use otro literal (como "0" o "null") según corresponda. Para hacer coincidir todo, use un patrón de descarte "var _".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

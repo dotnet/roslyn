@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">Non è possibile semplificare il nome</target>
+        <target state="translated">Il nome può essere semplificato</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">

@@ -659,7 +659,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseClass">
         <source>Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'</source>
-        <target state="translated">Accessibilità incoerente: la classe base '{1}' è meno accessibile della classe '{0}'</target>
+        <target state="translated">Accessibilità incoerente: la classe di base '{1}' è meno accessibile della classe '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseInterface">
@@ -829,7 +829,7 @@
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
         <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">Una variabile è stata dichiarata con lo stesso nome di una variabile nella classe base, tuttavia non è stata usata la parola chiave new. Questo avviso informa l'utente che è necessario usare new. La variabile viene dichiarata come se nella dichiarazione fosse stata usata la parola chiave new.</target>
+        <target state="translated">Una variabile è stata dichiarata con lo stesso nome di una variabile nella classe di base, tuttavia non è stata usata la parola chiave new. Questo avviso informa l'utente che è necessario usare new. La variabile viene dichiarata come se nella dichiarazione fosse stata usata la parola chiave new.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
@@ -999,7 +999,7 @@
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
         <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">Dipendenza della classe base circolare che comprende '{0}' e '{1}'</target>
+        <target state="translated">Dipendenza della classe di base circolare che comprende '{0}' e '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">
@@ -1019,7 +1019,7 @@
       </trans-unit>
       <trans-unit id="ERR_V6SwitchGoverningTypeValueExpected">
         <source>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.</source>
-        <target state="translated">L'espressione switch o l'etichetta case deve essere un tipo bool, char, string, integrale, enum o un tipo nullable corrispondente in C# 6 e versioni precedenti.</target>
+        <target state="translated">L'espressione switch o l'etichetta case deve essere un tipo bool, char, string, integrale, enumerazione o un tipo nullable corrispondente in C# 6 e versioni precedenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IntegralTypeValueExpected">
@@ -1164,7 +1164,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoBaseClass">
         <source>A base class is required for a 'base' reference</source>
-        <target state="translated">È necessaria una classe base per il riferimento 'base'</target>
+        <target state="translated">È necessaria una classe di base per il riferimento 'base'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseIllegal">
@@ -1284,7 +1284,7 @@
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyStatic">
         <source>A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)</source>
-        <target state="translated">Impossibile effettuare un'assegnazione a un campo statico in sola lettura (tranne che in un costruttore statico o in un inizializzatore di variabile)</target>
+        <target state="translated">Non è possibile effettuare un'assegnazione a un campo statico di sola lettura (tranne che in un costruttore statico o in un inizializzatore di variabile)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyStatic">
@@ -1314,7 +1314,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractBaseCall">
         <source>Cannot call an abstract base member: '{0}'</source>
-        <target state="translated">Impossibile chiamare un membro di base astratto: '{0}'</target>
+        <target state="translated">Non è possibile chiamare un membro di base astratto: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
@@ -1349,7 +1349,7 @@
       </trans-unit>
       <trans-unit id="ERR_FixedNotNeeded">
         <source>You cannot use the fixed statement to take the address of an already fixed expression</source>
-        <target state="translated">Impossibile utilizzare l'istruzione fixed per accettare l'indirizzo di un'espressione già di tipo fixed</target>
+        <target state="translated">Non è possibile usare l'istruzione fixed per accettare l'indirizzo di un'espressione già di tipo fixed</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeNeeded">
@@ -1469,12 +1469,12 @@
       </trans-unit>
       <trans-unit id="ERR_PointerInAsOrIs">
         <source>Neither 'is' nor 'as' is valid on pointer types</source>
-        <target state="translated">is' o 'as' non valido per tipi puntatore</target>
+        <target state="translated">'is' o 'as' non è valido per tipi puntatore</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallingFinalizeDeprecated">
         <source>Destructors and object.Finalize cannot be called directly. Consider calling IDisposable.Dispose if available.</source>
-        <target state="translated">Impossibile chiamare direttamente i distruttori e object.Finalize. Provare a chiamare IDisposable.Dispose se disponibile.</target>
+        <target state="translated">Non è possibile chiamare direttamente i distruttori e object.Finalize. Provare a chiamare IDisposable.Dispose se disponibile.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleTypeNameNotFound">
@@ -1484,7 +1484,7 @@
       </trans-unit>
       <trans-unit id="ERR_NegativeStackAllocSize">
         <source>Cannot use a negative size with stackalloc</source>
-        <target state="translated">Impossibile utilizzare dimensioni negative con stackalloc</target>
+        <target state="translated">Non è possibile usare dimensioni negative con stackalloc</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NegativeArraySize">
@@ -1499,7 +1499,7 @@
       </trans-unit>
       <trans-unit id="ERR_CallingBaseFinalizeDeprecated">
         <source>Do not directly call your base class Finalize method. It is called automatically from your destructor.</source>
-        <target state="translated">Non chiamare direttamente il metodo Finalize della classe base. Viene chiamato automaticamente dal distruttore.</target>
+        <target state="translated">Non chiamare direttamente il metodo Finalize della classe di base. Viene chiamato automaticamente dal distruttore.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NegativeArrayIndex">
@@ -1589,7 +1589,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
         <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">Il tipo importato '{0}' non è valido perché contiene una dipendenza circolare della classe base.</target>
+        <target state="translated">Il tipo importato '{0}' non è valido perché contiene una dipendenza circolare della classe di base.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">
@@ -1599,7 +1599,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArraySizeInDeclaration">
         <source>Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)</source>
-        <target state="translated">Impossibile specificare la dimensione della matrice in una dichiarazione di variabile. Provare a inizializzare con un'espressione 'new'</target>
+        <target state="translated">Non è possibile specificare la dimensione della matrice in una dichiarazione di variabile. Provare a inizializzare con un'espressione 'new'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InaccessibleGetter">
@@ -1884,7 +1884,7 @@
       </trans-unit>
       <trans-unit id="ERR_ComImportWithBase">
         <source>'{0}': a class with the ComImport attribute cannot specify a base class</source>
-        <target state="translated">'{0}': una classe con l'attributo ComImport non può specificare una classe base</target>
+        <target state="translated">'{0}': una classe con l'attributo ComImport non può specificare una classe di base</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplBadConstraints">
@@ -2104,7 +2104,7 @@
       </trans-unit>
       <trans-unit id="WRN_FinalizeMethod">
         <source>Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?</source>
-        <target state="translated">L'introduzione di un metodo 'Finalize' può interferire con la chiamata di un distruttore. Si desiderava dichiarare un distruttore?</target>
+        <target state="translated">L'introduzione di un metodo 'Finalize' può interferire con la chiamata di un distruttore. Si intendeva dichiarare un distruttore?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FinalizeMethod_Title">
@@ -2118,7 +2118,7 @@
 If such a class is used as a base class and if the deriving class defines a destructor, the destructor will override the base class Finalize method, not Finalize.</source>
         <target state="translated">Questo avviso viene visualizzato quando si crea una classe con un metodo la cui firma è public virtual void Finalize.
 
-Se si usa tale classe come classe base e se la classe di derivazione definisce un distruttore, il distruttore eseguirà l'override del metodo Finalize della classe base e non di Finalize.</target>
+Se si usa tale classe come classe di base e se la classe di derivazione definisce un distruttore, il distruttore eseguirà l'override del metodo Finalize della classe di base e non di Finalize.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplParams">
@@ -2253,7 +2253,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_ObjectCallingBaseConstructor">
         <source>'{0}' has no base class and cannot call a base constructor</source>
-        <target state="translated">'{0}' non ha una classe base e non può chiamare un costruttore base</target>
+        <target state="translated">'{0}' non ha una classe di base e non può chiamare un costruttore di base</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeNotFound">
@@ -2273,7 +2273,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
         <source>'{0}': structs cannot call base class constructors</source>
-        <target state="translated">'{0}': le struct non possono chiamare costruttori della classe base</target>
+        <target state="translated">'{0}': gli struct non possono chiamare costruttori della classe di base</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCycle">
@@ -2338,7 +2338,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_ObjectCantHaveBases">
         <source>The class System.Object cannot have a base class or implement an interface</source>
-        <target state="translated">La classe System.Object non può avere una classe base o implementare un'interfaccia</target>
+        <target state="translated">La classe System.Object non può avere una classe di base o implementare un'interfaccia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationNotInterface">
@@ -2418,7 +2418,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
         <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'{0}': non sono consentite conversioni definite dall'utente da o verso una classe base</target>
+        <target state="translated">'{0}': non sono consentite conversioni definite dall'utente da o verso una classe di base</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
@@ -2773,7 +2773,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_DefaultMemberOnIndexedType">
         <source>Cannot specify the DefaultMember attribute on a type containing an indexer</source>
-        <target state="translated">Impossibile specificare l'attributo DefaultMember in un tipo contenente un indicizzatore</target>
+        <target state="translated">Non è possibile specificare l'attributo DefaultMember in un tipo contenente un indicizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BogusType">
@@ -2818,7 +2818,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_MissingPredefinedMember">
         <source>Missing compiler required member '{0}.{1}'</source>
-        <target state="translated">Manca il membro '{0}.{1}, necessario per il compilatore</target>
+        <target state="translated">Manca il membro '{0}.{1}', necessario per il compilatore</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeLocationOnBadDeclaration">
@@ -3043,7 +3043,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">'{0}' non è un vincolo valido. Un tipo usato come vincolo deve essere un'interfaccia, una classe non sealed o un parametro di tipo.</target>
+        <target state="translated">'{0}' non è un vincolo valido. Un tipo usato come vincolo deve essere un'interfaccia, una classe unsealed o un parametro di tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -3063,7 +3063,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
         <source>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">Il tipo vincolo non è valido. Un tipo usato come vincolo deve essere un'interfaccia, una classe non sealed o un parametro di tipo.</target>
+        <target state="translated">Il tipo vincolo non è valido. Un tipo usato come vincolo deve essere un'interfaccia, una classe unsealed o un parametro di tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
@@ -3258,7 +3258,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInvalidModifier">
         <source>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</source>
-        <target state="translated">Un metodo parziale non può avere modificatori di accesso o il modificatore virtual, abstract, override, new, sealed o extern</target>
+        <target state="translated">Un metodo parziale non può includere modificatori di accesso o il modificatore virtual, abstract, override, new, sealed o extern</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
@@ -3403,7 +3403,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedArrayNoBestType">
         <source>No best type found for implicitly-typed array</source>
-        <target state="translated">Impossibile trovare il tipo migliore per la matrice tipizzata in modo implicito</target>
+        <target state="translated">Non è stato trovato alcun tipo migliore per la matrice tipizzata in modo implicito</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypePropertyAssignedBadValue">
@@ -3438,7 +3438,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeNotAvailable">
         <source>Cannot use anonymous type in a constant expression</source>
-        <target state="translated">Impossibile utilizzare il tipo anonimo in un'espressione costante</target>
+        <target state="translated">Non è possibile usare il tipo anonimo in un'espressione costante</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaInIsAs">
@@ -3643,7 +3643,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_PPDefFollowsToken">
         <source>Cannot define/undefine preprocessor symbols after first token in file</source>
-        <target state="translated">Impossibile definire o annullare la definizione dei simboli del preprocessore dopo il primo token nel file</target>
+        <target state="translated">Non è possibile definire o annullare la definizione dei simboli del preprocessore dopo il primo token nel file</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPReferenceFollowsToken">
@@ -3703,7 +3703,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_MultiTypeInDeclaration">
         <source>Cannot use more than one type in a for, using, fixed, or declaration statement</source>
-        <target state="translated">Impossibile utilizzare più di un tipo nelle istruzioni for, using, fixed e nelle dichiarazioni</target>
+        <target state="translated">Non è possibile usare più di un tipo nelle istruzioni for, using, fixed e nelle dichiarazioni</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddOrRemoveExpected">
@@ -3942,7 +3942,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_BadVarDecl">
         <source>Expected ; or = (cannot specify constructor arguments in declaration)</source>
-        <target state="translated">È previsto il segno ; oppure = (impossibile specificare gli argomenti del costruttore nella dichiarazione)</target>
+        <target state="translated">È previsto il segno ; oppure = (non è possibile specificare gli argomenti del costruttore nella dichiarazione)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingAfterElements">
@@ -4287,7 +4287,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_NoModifiersOnAccessor">
         <source>Modifiers cannot be placed on event accessor declarations</source>
-        <target state="translated">Impossibile inserire modificatori nelle dichiarazioni delle funzioni di accesso agli eventi</target>
+        <target state="translated">Non è possibile inserire modificatori nelle dichiarazioni delle funzioni di accesso agli eventi</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCantBeWithModifier">
@@ -4357,7 +4357,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_ReturnInIterator">
         <source>Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.</source>
-        <target state="translated">Impossibile restituire un valore da un iteratore. Utilizzare l'istruzione yield return per restituire un valore o l'istruzione yield break per terminare l'iterazione.</target>
+        <target state="translated">Non è possibile restituire un valore da un iteratore. Usare l'istruzione yield return per restituire un valore o l'istruzione yield break per terminare l'iterazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
@@ -4372,12 +4372,12 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_BadYieldInFinally">
         <source>Cannot yield in the body of a finally clause</source>
-        <target state="translated">Impossibile eseguire la produzione nel corpo di una clausola finally</target>
+        <target state="translated">Non è possibile eseguire la produzione nel corpo di una clausola finally</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInTryOfCatch">
         <source>Cannot yield a value in the body of a try block with a catch clause</source>
-        <target state="translated">Impossibile produrre un valore nel corpo di un blocco try con una clausola catch</target>
+        <target state="translated">Non è possibile produrre un valore nel corpo di un blocco try con una clausola catch</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmptyYield">
@@ -4397,7 +4397,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_BadYieldInCatch">
         <source>Cannot yield a value in the body of a catch clause</source>
-        <target state="translated">Impossibile produrre un valore nel corpo di una clausola catch</target>
+        <target state="translated">Non è possibile produrre un valore nel corpo di una clausola catch</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateLeave">
@@ -4622,7 +4622,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_FixedBufferNotFixed">
         <source>You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.</source>
-        <target state="translated">Impossibile utilizzare buffer a dimensione fissa contenuti in espressioni unfixed. Provare a utilizzare l'istruzione fixed.</target>
+        <target state="translated">Non è possibile usare buffer a dimensione fissa contenuti in espressioni unfixed. Provare a usare l'istruzione fixed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnAccessor">
@@ -4987,7 +4987,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="translated">La classe base '{0}' deve precedere le interfacce</target>
+        <target state="translated">La classe di base '{0}' deve precedere le interfacce</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">
@@ -5222,7 +5222,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_TypeVarNotFoundRangeVariable">
         <source>The contextual keyword 'var' cannot be used in a range variable declaration</source>
-        <target state="translated">Impossibile utilizzare la parola chiave contestuale 'var' in una dichiarazione di variabile di intervallo</target>
+        <target state="translated">Non è possibile usare la parola chiave contestuale 'var' in una dichiarazione di variabile di intervallo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgTypesForCollectionAdd">
@@ -5295,7 +5295,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="ERR_InvalidConstantDeclarationType">
         <source>'{0}' is of type '{1}'. The type specified in a constant declaration must be sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, an enum-type, or a reference-type.</source>
-        <target state="translated">'{0}' è di tipo '{1}'. Il tipo specificato in una dichiarazione di costante deve essere sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, enum-type o reference-type.</target>
+        <target state="translated">'{0}' è di tipo '{1}'. Il tipo specificato in una dichiarazione di costante deve essere sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, di tipo enumerazione o di tipo riferimento.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileNotFound">
@@ -5330,7 +5330,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="WRN_NoSources">
         <source>No source files specified.</source>
-        <target state="translated">Non sono stati specificati file di origine</target>
+        <target state="translated">Non sono stati specificati file di origine.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoSources_Title">
@@ -5390,12 +5390,12 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="WRN_NoConfigNotOnCommandLine">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
-        <target state="translated">Opzione /noconfig ignorata perché specificata in un file di risposta</target>
+        <target state="translated">L'opzione /noconfig è stata ignorata perché è stata specificata in un file di risposta</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoConfigNotOnCommandLine_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
-        <target state="translated">Opzione /noconfig ignorata perché specificata in un file di risposta</target>
+        <target state="translated">L'opzione /noconfig è stata ignorata perché è stata specificata in un file di risposta</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFileAlignment">
@@ -5540,7 +5540,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="WRN_CLS_OverloadUnnamed_Description">
         <source>This error occurs if you have an overloaded method that takes a jagged array and the only difference between the method signatures is the element type of the array. To avoid this error, consider using a rectangular array rather than a jagged array; use an additional parameter to disambiguate the function call; rename one or more of the overloaded methods; or, if CLS Compliance is not needed, remove the CLSCompliantAttribute attribute.</source>
-        <target state="translated">Questo errore si verifica quando si usa un metodo di overload che accetta una matrice irregolare e le firme del metodo si differenziano solo per il tipo di elemento della matrice. Per evitare questo errore, provarea a usare una matrice rettangolare invece di una irregolare, aggiungere un parametro in modo da evitare ambiguità nella chiamata della funzione oppure ridenominare uno o più metodi di overload. In alternativa, se la compatibilità con CLS non è necessaria, rimuovere l'attributo.</target>
+        <target state="translated">Questo errore si verifica quando si usa un metodo di overload che accetta una matrice di matrici e le firme del metodo si differenziano solo per il tipo di elemento della matrice. Per evitare questo errore, provare a usare una matrice rettangolare invece di una matrice di matrici, aggiungere un parametro in modo da evitare ambiguità nella chiamata della funzione oppure ridenominare uno o più metodi di overload. In alternativa, se la compatibilità con CLS non è necessaria, rimuovere l'attributo CLSCompliantAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadIdentifier">
@@ -5640,12 +5640,12 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="WRN_CLS_NotOnModules2">
         <source>You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly</source>
-        <target state="translated">Impossibile specificare l'attributo CLSCompliant su un modulo che differisce dall'attributo CLSCompliant sull'assembly</target>
+        <target state="translated">Non è possibile specificare l'attributo CLSCompliant su un modulo che differisce dall'attributo CLSCompliant sull'assembly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_NotOnModules2_Title">
         <source>You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly</source>
-        <target state="translated">Impossibile specificare l'attributo CLSCompliant su un modulo che differisce dall'attributo CLSCompliant sull'assembly</target>
+        <target state="translated">Non è possibile specificare l'attributo CLSCompliant su un modulo che differisce dall'attributo CLSCompliant sull'assembly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_IllegalTrueInFalse">
@@ -5855,7 +5855,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
         <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Non è possibile dichiarare parametri o variabili locali di tipo '{0}' in metodi asincroni o espressioni lambda</target>
+        <target state="translated">Non è possibile dichiarare parametri o variabili locali di tipo '{0}' in metodi asincroni o espressioni lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
@@ -5865,7 +5865,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">
         <source>Security attribute '{0}' cannot be applied to an Async method.</source>
-        <target state="translated">Non è possibile applicare l'attributo di sicurezza '{0}' a un metodo Async</target>
+        <target state="translated">Non è possibile applicare l'attributo di sicurezza '{0}' a un metodo Async.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct">
@@ -6197,7 +6197,7 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
       </trans-unit>
       <trans-unit id="ERR_DefaultValueUsedWithAttributes">
         <source>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</source>
-        <target state="translated">Impossibile specificare un valore di parametro predefinito insieme a DefaultParameterAttribute o OptionalAttribute</target>
+        <target state="translated">Non è possibile specificare un valore di parametro predefinito insieme a DefaultParameterAttribute o OptionalAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueMustBeConstant">
@@ -6212,12 +6212,12 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForExtensionParameter">
         <source>Cannot specify a default value for the 'this' parameter</source>
-        <target state="translated">Impossibile specificare un valore predefinito per il parametro 'this'</target>
+        <target state="translated">Non è possibile specificare un valore predefinito per il parametro 'this'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
         <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Impossibile specificare un valore predefinito per una matrice di parametri</target>
+        <target state="translated">Non è possibile specificare un valore predefinito per una matrice di parametri</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">
@@ -6780,7 +6780,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="WRN_RefCultureMismatch">
         <source>Referenced assembly '{0}' has different culture setting of '{1}'.</source>
-        <target state="translated">Le impostazioni cultura dell'assembly '{0}' al quale si fa riferimento sono diverse da '{1}'</target>
+        <target state="translated">Le impostazioni cultura dell'assembly '{0}' al quale si fa riferimento sono diverse da '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefCultureMismatch_Title">
@@ -8028,7 +8028,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_RefConditionalDifferentTypes">
         <source>The expression must be of type '{0}' to match the alternative ref value</source>
-        <target state="translated">L'espressione deve essere di tipo '{0}' per essere uguale al valore ref alternativo </target>
+        <target state="translated">L'espressione deve essere di tipo '{0}' per essere uguale al valore ref alternativo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsLocalFunction">
@@ -8513,7 +8513,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnInParam">
         <source>An in parameter cannot have the Out attribute.</source>
-        <target state="translated">Un parametro in non può avere l'attributo Out</target>
+        <target state="translated">Un parametro in non può avere l'attributo Out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment">
@@ -8553,12 +8553,12 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">Non è possibile usare un valore letterale predefinito 'default' come costante di case. Usare un altro valore letterale, ad esempio '0' o 'null'. Se si intendeva scrivere l'etichetta predefinita, usare 'default:' senza 'case'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">Non è possibile usare un valore letterale predefinito 'default' come criterio. Usare un altro valore letterale, ad esempio '0' o 'null'. Per abbinare tutto, usare un criterio di rimozione 'var _'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

@@ -659,7 +659,7 @@
       </trans-unit>
       <trans-unit id="Enum">
         <source>Enum</source>
-        <target state="translated">Typ wyliczeniowy</target>
+        <target state="translated">Wyliczenie</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Event">

@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Type_Parameters_colon">
         <source>Type Parameters:</source>
-        <target state="translated">Parametri del tipo:</target>
+        <target state="translated">Parametri di tipo:</target>
         <note />
       </trans-unit>
       <trans-unit id="File_already_exists">
@@ -1449,27 +1449,27 @@ L'opzione 'Caricamento leggero soluzioni' è abilitata per la soluzione corrente
       </trans-unit>
       <trans-unit id="Restore_Visual_Studio_keybindings">
         <source>Restore Visual Studio keybindings</source>
-        <target state="new">Restore Visual Studio keybindings</target>
+        <target state="translated">Ripristina i tasti di scelta rapida di Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
+        <target state="translated">Usa i tasti di scelta rapida per ReSharper/IntelliJ/Vim e così via.</target>
         <note />
       </trans-unit>
       <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
         <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
+        <target state="translated">I tasti di scelta rapida non sono più associati a comandi di Visual Studio.</target>
         <note />
       </trans-unit>
       <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
         <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
+        <target state="translated">È stato notato che ‘ReSharper Ultimate’ è stato sospeso. Per continuare a esplorare e a eseguire il refactoring, ripristinare i tasti di scelta rapida di Visual Studio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="new">Enable navigation to decompiled sources (experimental)</target>
+        <target state="translated">Abilita lo spostamento in origini decompilate (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
@@ -1482,20 +1482,20 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+        <target state="translated">IMPORTANTE: Visual Studio include la funzionalità di decompilazione (“Decompilatore”) che consente di riprodurre codice sorgente da codice binario. L'accesso e l'uso del Decompilatore implica l'accettazione delle condizioni di licenza di Visual Studio e delle condizioni per l'uso del Decompilatore riportate sotto. Se non si accettano entrambi tali condizioni, non accedere o usare il Decompilatore.
  
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
+L'utente riconosce che il codice binario e il codice sorgente potrebbero essere protetti dalle normative su marchi e copyright. Prima di usare il Decompilatore su qualsiasi codice binario, l'utente deve:  
+(i) confermare che le condizioni di licenza che regolano l'uso del codice binario non contengono una disposizione che impedisce la decompilazione del software; oppure
+(ii) ottenere l'autorizzazione alla decompilazione del codice binario dal proprietario del software.
  
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+L'uso del Decompilatore è facoltativo. Microsoft non è responsabile e non riconosce alcuna responsabilità nel caso in cui l'utente usi il Decompilatore in violazione di normative o condizioni di licenza software che proibiscono la decompilazione del software.
 
-I agree to all of the foregoing:</target>
+L'utente accetta le condizioni sopra riportate:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
-        <target state="new">Decompiler Legal Notice</target>
+        <target state="translated">Note legali sul decompilatore</target>
         <note />
       </trans-unit>
     </body>

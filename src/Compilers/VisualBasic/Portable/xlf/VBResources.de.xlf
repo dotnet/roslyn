@@ -7092,7 +7092,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string does not conform to the required format - major[.minor[.build|*[.revision|*]]]</source>
-        <target state="translated">Die angegebene Versionszeichenfolge weist nicht das erforderliche Format auf - Hauptversion[.Nebenversion[.Build|*[.Revision|*]]]</target>
+        <target state="translated">Die angegebene Versionszeichenfolge weist nicht das erforderliche Format auf: Hauptversion[.Nebenversion[.Build|*[.Revision|*]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
@@ -7452,7 +7452,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceOutParamDisallowedHereForGeneric4">
         <source>Type '{0}' cannot be used for the '{2}' of '{3}' in '{1}' in this context because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">Der Typ "{0}" kann nicht für "{2}" von "{3}" in "{1}" in diesem Kontext verwendet werden, weil "{0}" ein Parameter vom Typ "In" ist.</target>
+        <target state="translated">Der Typ "{0}" kann nicht für "{2}" von "{3}" in "{1}" in diesem Kontext verwendet werden, weil "{0}" ein Parameter vom Typ "Out" ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutPropertyDisallowed1">
@@ -8593,17 +8593,17 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">
         <source>An instance of analyzer {0} cannot be created from {1} : {2}.</source>
-        <target state="translated">Eine Instanz des {0}-Analyzers kann nicht aus {1} erstellt werden: {2}.</target>
+        <target state="translated">Eine Instanz des Analysetools "{0}" kann nicht aus {1} erstellt werden: {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated_Title">
         <source>Instance of analyzer cannot be created</source>
-        <target state="translated">Es kein keine Instanz des Analyzers erstellt werden.</target>
+        <target state="translated">Es kann keine Instanz des Analysetools erstellt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoAnalyzerInAssembly">
         <source>The assembly {0} does not contain any analyzers.</source>
-        <target state="translated">Die Assembly "{0}" enthält keine Analyzer.</target>
+        <target state="translated">Die Assembly "{0}" enthält keine Analysetools.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoAnalyzerInAssembly_Title">
@@ -8613,17 +8613,17 @@
       </trans-unit>
       <trans-unit id="WRN_UnableToLoadAnalyzer">
         <source>Unable to load analyzer assembly {0} : {1}.</source>
-        <target state="translated">Analyzer-Assembly {0} kann nicht geladen werden: {1}.</target>
+        <target state="translated">Die Assembly "{0}" des Analysetools kann nicht geladen werden: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnableToLoadAnalyzer_Title">
         <source>Unable to load analyzer assembly</source>
-        <target state="translated">Die Analyzer-Assembly konnte nicht geladen werden.</target>
+        <target state="translated">Die Assembly des Analysetools konnte nicht geladen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_UnableToLoadSomeTypesInAnalyzer">
         <source>Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}.</source>
-        <target state="translated">Einige Typen werden in der Analyzer-Assembly {0} aufgrund von ReflectionTypeLoadException übersprungen: {1}.</target>
+        <target state="translated">Einige Typen werden in der Assembly "{0}" des Analysetools aufgrund von ReflectionTypeLoadException übersprungen: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_UnableToLoadSomeTypesInAnalyzer_Title">

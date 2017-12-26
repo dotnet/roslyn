@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="CannotEmbedInteropTypesFromModule">
         <source>Can't embed interop types from module.</source>
-        <target state="translated">モジュールから相互運用型を埋め込むことはできません。 </target>
+        <target state="translated">モジュールから相互運用型を埋め込むことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotAliasModule">
@@ -825,7 +825,7 @@
       </trans-unit>
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
-        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
+        <target state="translated">警告: 次の例外によりマルチコア JIT を有効にできませんでした: {0}。</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerDiagnosticIdReported">

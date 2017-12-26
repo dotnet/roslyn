@@ -1019,7 +1019,7 @@
       </trans-unit>
       <trans-unit id="ERR_V6SwitchGoverningTypeValueExpected">
         <source>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.</source>
-        <target state="translated">Uma expressão de switch ou um rótulo case deve ser um bool, char, cadeia, integral ou um tipo que permite valor nulo correspondente em C# 6 e anterior.</target>
+        <target state="translated">Uma expressão de switch ou um rótulo case deve ser um bool, char, cadeia, integral, enum ou um tipo que permite valor nulo correspondente em C# 6 e anterior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IntegralTypeValueExpected">
@@ -1719,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewConstraintNotSatisfied">
         <source>'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">'"{2}" deve ser um tipo non-abstract com um construtor público sem-parâmetros para que possa ser usado como parâmetro "{1}" no tipo ou método genérico "{0}"</target>
+        <target state="translated">'"{2}" deve ser um tipo não abstrato com um construtor público sem-parâmetros para que possa ser usado como parâmetro "{1}" no tipo ou método genérico "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedRefType">
@@ -2148,7 +2148,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="WRN_NubExprIsConstBool_Title">
         <source>The result of the expression is always the same since a value of this type is never equal to 'null'</source>
-        <target state="translated">O resultado da expressão é sempre o mesmo, pois um valor deste tipo nunca é 'null' </target>
+        <target state="translated">O resultado da expressão é sempre o mesmo, pois um valor deste tipo nunca é 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NubExprIsConstBool2">
@@ -2158,7 +2158,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="WRN_NubExprIsConstBool2_Title">
         <source>The result of the expression is always the same since a value of this type is never equal to 'null'</source>
-        <target state="translated">O resultado da expressão é sempre o mesmo, pois um valor deste tipo nunca é 'null' </target>
+        <target state="translated">O resultado da expressão é sempre o mesmo, pois um valor deste tipo nunca é 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExplicitImplCollision">
@@ -2718,7 +2718,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
         <source>New protected member declared in sealed class</source>
-        <target state="translated">Novo membro protegido declarado na classe bloqueada</target>
+        <target state="translated">Novo membro protegido declarado na classe sealed</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -3043,7 +3043,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">'"{0}" não é uma restrição válida. Um tipo usado como uma restrição deve ser uma interface, uma classe não selada ou um parâmetro de tipo.</target>
+        <target state="translated">'"{0}" não é uma restrição válida. Um tipo usado como uma restrição deve ser uma interface, uma classe não sealed ou um parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -6272,7 +6272,7 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
       </trans-unit>
       <trans-unit id="ERR_DynamicAttributeMissing">
         <source>Cannot define a class or member that utilizes 'dynamic' because the compiler required type '{0}' cannot be found. Are you missing a reference?</source>
-        <target state="translated">Não é possível definir uma classe ou membro que utiliza "dynamic" porque o tipo necessário pelo compilador "{0}" não pode ser encontrado. </target>
+        <target state="translated">Não é possível definir uma classe ou membro que utiliza "dynamic" porque o tipo necessário pelo compilador "{0}" não pode ser encontrado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotPassNullForFriendAssembly">
@@ -8557,12 +8557,12 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">Um literal padrão 'default' não é válido como uma constante case. Use outro literal (por exemplo, '0' ou 'null') conforme apropriado. Se sua intenção era gravar o rótulo padrão, use 'default:' sem 'case'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">Um literal padrão 'default' não é válido como um padrão. Use outro literal (por exemplo, '0' ou 'null') conforme apropriado. Para corresponder a tudo, use um padrão de descarte 'var _'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

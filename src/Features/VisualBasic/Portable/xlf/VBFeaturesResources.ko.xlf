@@ -1594,7 +1594,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Lambda">
         <source>Lambda</source>
-        <target state="translated">람다 </target>
+        <target state="translated">람다</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_clause">

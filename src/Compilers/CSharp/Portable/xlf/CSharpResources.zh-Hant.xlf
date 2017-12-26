@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED2">
         <source> Badly formed XML file "{0}" cannot be included </source>
-        <target state="translated"> 無法納入格式錯誤的 XML 檔 "{0}"</target>
+        <target state="translated"> 無法納入格式錯誤的 XML 檔 "{0}" </target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLFAILEDINCLUDE">
@@ -7190,7 +7190,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="IDS_LogoLine1">
         <source>{0} version {1}</source>
-        <target state="translated">{0} 版 {1} </target>
+        <target state="translated">{0} 版 {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine2">
@@ -7647,7 +7647,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
-        <target state="translated">以 '{' 開頭的插入運算式遺漏結束分隔符號 '}' </target>
+        <target state="translated">以 '{' 開頭的插入運算式遺漏結束分隔符號 '}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleLineCommentInExpressionHole">
@@ -8577,12 +8577,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">預設常值 'default' 為無效的 case 常數。請使用另一個適當的常值 (例如 '0' 或 'null')。如果您想要寫入預設標籤，請使用無 'case' 的 'default:'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">預設常值 'default' 為無效的模式。請使用另一個適當的常值 (例如 '0' 或 'null')。若要與所有項目相符，請使用捨棄模式 'var_'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
