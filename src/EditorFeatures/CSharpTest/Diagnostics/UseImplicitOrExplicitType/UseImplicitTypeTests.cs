@@ -1534,8 +1534,7 @@ namespace System
             var after = @"class C { static void M() { var s = (a: 1, ""hello""); } }";
 
             await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
-
-            // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparentAndForIntrinsics());
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 

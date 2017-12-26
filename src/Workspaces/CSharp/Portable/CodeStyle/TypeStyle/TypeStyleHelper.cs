@@ -75,6 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             CancellationToken cancellationToken,
             ITypeSymbol typeInDeclaration = null)
         {
+            // tuple literals
+            if (initializerExpression.IsKind(SyntaxKind.TupleExpression))
+            {
+                var tuple = (TupleExpressionSyntax)initializerExpression;
+                return tuple.Arguments.All(a => IsTypeApparentInAssignmentExpression(stylePreferences, a.Expression,
+                    semanticModel, cancellationToken, typeInDeclaration));
+            }
+
             // default(type)
             if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
             {
