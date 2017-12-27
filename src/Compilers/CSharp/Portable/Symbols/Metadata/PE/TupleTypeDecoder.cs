@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute: !elementNames.IsDefaultOrEmpty);
         }
 
+        private static readonly Func<TypeSymbol, object, bool, bool> s_containsErrorPredicate = (type, unused1, unused2) => type.IsErrorType();
+
         private static TypeSymbol DecodeTupleTypesInternal(TypeSymbol metadataType, ImmutableArray<string> elementNames, bool hasTupleElementNamesAttribute)
         {
             Debug.Assert((object)metadataType != null);
@@ -108,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var decoded = decoder.DecodeType(metadataType);
                 // If not all of the names have been used, the metadata is bad
                 if (!hasTupleElementNamesAttribute ||
-                    decoder._namesIndex == 0)
+                    decoder._namesIndex == 0 ||
+                    (object)decoded.VisitType(s_containsErrorPredicate, null) != null)
                 {
                     return decoded;
                 }

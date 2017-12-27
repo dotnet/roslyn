@@ -24363,5 +24363,58 @@ namespace System
                 //         tuple.Item1 = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "tuple.Item1").WithLocation(8, 9));
         }
+
+        [Fact]
+        [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
+        public void FailedDecodingOfTupleNamesWhenMissingValueTupleType()
+        {
+            var lib_cs = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class ClassA : IEnumerable<(int alice, int bob)>
+{
+    private readonly List<(int alice, int bob)> _values = new List<(int, int)>();
+
+    public void Add(int alice, int bob) => _values.Add((alice, bob));
+
+    public IEnumerator<(int alice, int bob)> GetEnumerator() => _values.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var lib = CreateCompilation(lib_cs, references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            lib.VerifyDiagnostics();
+
+            var client_cs = @"
+public class ClassB
+{
+    public ClassB()
+    {
+        new ClassA { { 42, 10 } };
+    }
+}";
+            var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() });
+            comp.VerifyDiagnostics();
+
+            var client2_cs = @"
+public class ClassB
+{
+    public ClassB()
+    {
+        var collectionA = new ClassA { { 42, 10 } };
+        foreach (var i in collectionA)
+        {
+        }
+    }
+}";
+            var comp2 = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() });
+            comp2.VerifyDiagnostics(
+                // (7,27): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                //         foreach (var i in collectionA)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(7, 27),
+                // (7,27): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                //         foreach (var i in collectionA)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(7, 27)
+                );
+        }
     }
 }
