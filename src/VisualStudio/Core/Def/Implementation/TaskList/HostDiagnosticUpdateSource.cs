@@ -70,6 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             Contract.ThrowIfNull(key);
             Contract.ThrowIfNull(items);
 
+            if (!_workspace.CurrentSolution.ContainsProject(projectId))
+            {
+                // Project already removed from the workspace
+                return;
+            }
+
             lock (_gate)
             {
                 _diagnosticMap.GetOrAdd(projectId, id => new HashSet<object>()).Add(key);

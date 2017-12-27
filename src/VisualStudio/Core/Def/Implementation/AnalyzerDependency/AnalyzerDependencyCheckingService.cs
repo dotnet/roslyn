@@ -80,48 +80,55 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var conflicts = results.Conflicts;
             var missingDependencies = results.MissingDependencies;
+            var projects = _workspace.DeferredState.ProjectTracker.ImmutableProjects;
 
-            foreach (var project in _workspace.DeferredState.ProjectTracker.ImmutableProjects)
+            // Report conflict resolution diagnostics on a background thread.
+            // This is done to avoid blocking the UI thread for attribute binding to determine diagnostic suppression.
+            // See https://github.com/dotnet/roslyn/issues/20476 for further details.
+            await Task.Run(() =>
             {
-                builder.Clear();
+                foreach (var project in projects)
+                {
+                    builder.Clear();
+
+                    foreach (var conflict in conflicts)
+                    {
+                        if (project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath1) ||
+                            project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath2))
+                        {
+                            var messageArguments = new string[] { conflict.AnalyzerFilePath1, conflict.AnalyzerFilePath2, conflict.Identity.ToString() };
+                            if (DiagnosticData.TryCreate(_analyzerDependencyConflictRule, messageArguments, project.Id, _workspace, out var diagnostic))
+                            {
+                                builder.Add(diagnostic);
+                            }
+                        }
+                    }
+
+                    foreach (var missingDependency in missingDependencies)
+                    {
+                        if (project.CurrentProjectAnalyzersContains(missingDependency.AnalyzerPath))
+                        {
+                            var messageArguments = new string[] { missingDependency.AnalyzerPath, missingDependency.DependencyIdentity.ToString() };
+                            if (DiagnosticData.TryCreate(_missingAnalyzerReferenceRule, messageArguments, project.Id, _workspace, out var diagnostic))
+                            {
+                                builder.Add(diagnostic);
+                            }
+                        }
+                    }
+
+                    _updateSource.UpdateDiagnosticsForProject(project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
+                }
 
                 foreach (var conflict in conflicts)
                 {
-                    if (project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath1) ||
-                        project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath2))
-                    {
-                        var messageArguments = new string[] { conflict.AnalyzerFilePath1, conflict.AnalyzerFilePath2, conflict.Identity.ToString() };
-                        if (DiagnosticData.TryCreate(_analyzerDependencyConflictRule, messageArguments, project.Id, _workspace, out var diagnostic))
-                        {
-                            builder.Add(diagnostic);
-                        }
-                    }
+                    LogConflict(conflict);
                 }
 
                 foreach (var missingDependency in missingDependencies)
                 {
-                    if (project.CurrentProjectAnalyzersContains(missingDependency.AnalyzerPath))
-                    {
-                        var messageArguments = new string[] { missingDependency.AnalyzerPath, missingDependency.DependencyIdentity.ToString() };
-                        if (DiagnosticData.TryCreate(_missingAnalyzerReferenceRule, messageArguments, project.Id, _workspace, out var diagnostic))
-                        {
-                            builder.Add(diagnostic);
-                        }
-                    }
+                    LogMissingDependency(missingDependency);
                 }
-
-                _updateSource.UpdateDiagnosticsForProject(project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
-            }
-
-            foreach (var conflict in conflicts)
-            {
-                LogConflict(conflict);
-            }
-
-            foreach (var missingDependency in missingDependencies)
-            {
-                LogMissingDependency(missingDependency);
-            }
+            }).ConfigureAwait(false);
         }
 
         private void LogConflict(AnalyzerDependencyConflict conflict)
