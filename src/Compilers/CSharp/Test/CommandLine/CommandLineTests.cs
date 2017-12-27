@@ -288,11 +288,10 @@ d.cs
 
         [Fact]
         [WorkItem(21508, "https://github.com/dotnet/roslyn/issues/21508")]
-        public void ArgumentStartwithDashAndContainingSlash()
+        public void ArgumentStartWithDashAndContainingSlash()
         {
             CSharpCommandLineArguments args;
             var folder = Temp.CreateDirectory();
-            CreateFile(folder, "a.cs");
 
             args = DefaultParse(new[] { "-debug+/debug:portable" }, folder.Path);
             args.Errors.Verify(

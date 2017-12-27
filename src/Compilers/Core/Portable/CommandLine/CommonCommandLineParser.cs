@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis
             // pattern /goo/*  or  //* will not be treated as a compiler option
             //
             // TODO: consider introducing "/s:path" to disambiguate paths starting with /
-            if (arg.Length > 1)
+            if (arg.Length > 1 && arg[0] != '-')
             {
                 int separator = arg.IndexOf('/', 1);
-                if (separator > 0 && (colon < 0 || separator < colon) && arg[0] != '-')
+                if (separator > 0 && (colon < 0 || separator < colon))
                 {
                     //   "/goo/
                     //   "//
