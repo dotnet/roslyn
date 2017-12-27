@@ -2077,6 +2077,9 @@
     <Field Name="ForEachKeyword" Type="SyntaxToken">
       <Kind Name="ForEachKeyword"/>
     </Field>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
@@ -2095,6 +2098,9 @@
     <Kind Name="ForEachStatement"/>
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
+    </Field>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="AwaitKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
@@ -2123,6 +2129,9 @@
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
     </Field>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
     </Field>
@@ -2146,10 +2155,17 @@
     <Field Name="Statement" Type="StatementSyntax" Override="true"/>
   </Node>
 
+  <!--
+  - using (...) { ... }
+  - using await (...) { ... }
+  -->
   <Node Name="UsingStatementSyntax" Base="StatementSyntax">
     <Kind Name="UsingStatement"/>
     <Field Name="UsingKeyword" Type="SyntaxToken">
       <Kind Name="UsingKeyword"/>
+    </Field>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AwaitKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
@@ -2161,6 +2177,7 @@
     </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
   </Node>
+
   <Node Name="FixedStatementSyntax" Base="StatementSyntax">
     <Kind Name="FixedStatement"/>
     <Field Name="FixedKeyword" Type="SyntaxToken">

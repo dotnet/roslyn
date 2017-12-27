@@ -210,6 +210,9 @@
   <data name="IDS_FeatureDefault" xml:space="preserve">
     <value>default operator</value>
   </data>
+  <data name="IDS_FeatureAsyncStreams" xml:space="preserve">
+    <value>async streams</value>
+  </data>
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>
