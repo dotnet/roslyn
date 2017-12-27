@@ -560,7 +560,6 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task EventHookupInUnformattedPosition1()
         {
-            System.Diagnostics.Debugger.Launch();
             var markup = @"
 class C
 {
