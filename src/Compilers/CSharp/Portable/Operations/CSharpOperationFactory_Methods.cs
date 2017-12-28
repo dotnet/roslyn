@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             internal static BinaryOperatorKind DeriveBinaryOperatorKind(CSharp.BinaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.BinaryOperatorKind.OpMask)
+                switch (operatorKind.OperatorWithLogical())
                 {
                     case CSharp.BinaryOperatorKind.Addition:
                         return BinaryOperatorKind.Add;
@@ -346,6 +346,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     case CSharp.BinaryOperatorKind.GreaterThan:
                         return BinaryOperatorKind.GreaterThan;
+
+                    case CSharp.BinaryOperatorKind.LogicalAnd:
+                        return BinaryOperatorKind.ConditionalAnd;
+
+                    case CSharp.BinaryOperatorKind.LogicalOr:
+                        return BinaryOperatorKind.ConditionalOr;
                 }
 
                 return BinaryOperatorKind.None;

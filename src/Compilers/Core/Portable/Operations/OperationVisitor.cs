@@ -494,6 +494,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitFlowCapture(IFlowCaptureOperation operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -991,6 +996,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         
         public virtual TResult VisitRaiseEvent(IRaiseEventOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitFlowCapture(IFlowCaptureOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
