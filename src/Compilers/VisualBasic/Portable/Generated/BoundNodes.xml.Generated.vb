@@ -193,6 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         TypeAsValueExpression
         InterpolatedStringExpression
         Interpolation
+        FlagsEnumOperationExpressionSyntax
     End Enum
 
 
@@ -9790,6 +9791,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Friend NotInheritable Partial Class BoundFlagsEnumOperationExpressionSyntax
+        Inherits BoundExpression
+
+        Public Sub New(syntax As SyntaxNode, enumFlags As BoundExpression, op As FlagsEnumOperatorKind, enumFlag As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.FlagsEnumOperationExpressionSyntax, syntax, type, hasErrors OrElse enumFlags.NonNullAndHasErrors() OrElse enumFlag.NonNullAndHasErrors())
+
+            Debug.Assert(enumFlags IsNot Nothing, "Field 'enumFlags' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(enumFlag IsNot Nothing, "Field 'enumFlag' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+
+            Me._EnumFlags = enumFlags
+            Me._Op = op
+            Me._EnumFlag = enumFlag
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
+        End Sub
+
+
+        Private ReadOnly _EnumFlags As BoundExpression
+        Public ReadOnly Property EnumFlags As BoundExpression
+            Get
+                Return _EnumFlags
+            End Get
+        End Property
+
+        Private ReadOnly _Op As FlagsEnumOperatorKind
+        Public ReadOnly Property Op As FlagsEnumOperatorKind
+            Get
+                Return _Op
+            End Get
+        End Property
+
+        Private ReadOnly _EnumFlag As BoundExpression
+        Public ReadOnly Property EnumFlag As BoundExpression
+            Get
+                Return _EnumFlag
+            End Get
+        End Property
+
+        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+            Return visitor.VisitFlagsEnumOperationExpressionSyntax(Me)
+        End Function
+
+        Public Function Update(enumFlags As BoundExpression, op As FlagsEnumOperatorKind, enumFlag As BoundExpression, type As TypeSymbol) As BoundFlagsEnumOperationExpressionSyntax
+            If enumFlags IsNot Me.EnumFlags OrElse op <> Me.Op OrElse enumFlag IsNot Me.EnumFlag OrElse type IsNot Me.Type Then
+                Dim result = New BoundFlagsEnumOperationExpressionSyntax(Me.Syntax, enumFlags, op, enumFlag, type, Me.HasErrors)
+                
+                If Me.WasCompilerGenerated Then
+                    result.SetWasCompilerGenerated()
+                End If
+                
+                Return result
+            End If
+            Return Me
+        End Function
+    End Class
+
     Friend MustInherit Partial Class BoundTreeVisitor(Of A,R)
 
         <MethodImpl(MethodImplOptions.NoInlining)>
@@ -10145,6 +10206,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return VisitInterpolatedStringExpression(CType(node, BoundInterpolatedStringExpression), arg)
                 Case BoundKind.Interpolation: 
                     Return VisitInterpolation(CType(node, BoundInterpolation), arg)
+                Case BoundKind.FlagsEnumOperationExpressionSyntax: 
+                    Return VisitFlagsEnumOperationExpressionSyntax(CType(node, BoundFlagsEnumOperationExpressionSyntax), arg)
             End Select
             Return DefaultVisit(node, arg)
         End Function
@@ -10852,6 +10915,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.DefaultVisit(node, arg)
         End Function
 
+        Public Overridable Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax, arg As A) As R
+            Return Me.DefaultVisit(node, arg)
+        End Function
+
     End Class
 
     Friend MustInherit Partial Class BoundTreeVisitor
@@ -11552,6 +11619,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitInterpolation(node As BoundInterpolation) As BoundNode
+            Return Me.DefaultVisit(node)
+        End Function
+
+        Public Overridable Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax) As BoundNode
             Return Me.DefaultVisit(node)
         End Function
 
@@ -12500,6 +12571,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.Visit(node.Expression)
             Me.Visit(node.AlignmentOpt)
             Me.Visit(node.FormatStringOpt)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitFlagsEnumOperationExpressionSyntax(node as BoundFlagsEnumOperationExpressionSyntax) As BoundNode
+            Me.Visit(node.EnumFlags)
+            Me.Visit(node.EnumFlag)
             Return Nothing
         End Function
 
@@ -13590,6 +13667,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim alignmentOpt As BoundExpression = DirectCast(Me.Visit(node.AlignmentOpt), BoundExpression)
             Dim formatStringOpt As BoundLiteral = DirectCast(Me.Visit(node.FormatStringOpt), BoundLiteral)
             Return node.Update(expression, alignmentOpt, formatStringOpt)
+        End Function
+
+        Public Overrides Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax) As BoundNode
+            Dim enumFlags As BoundExpression = DirectCast(Me.Visit(node.EnumFlags), BoundExpression)
+            Dim enumFlag As BoundExpression = DirectCast(Me.Visit(node.EnumFlag), BoundExpression)
+            Dim type as TypeSymbol = Me.VisitType(node.Type)
+            Return node.Update(enumFlags, node.Op, enumFlag, type)
         End Function
 
     End Class
@@ -15047,6 +15131,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
                 New TreeDumperNode("alignmentOpt", Nothing, new TreeDumperNode() { Visit(node.AlignmentOpt, Nothing) }),
                 New TreeDumperNode("formatStringOpt", Nothing, new TreeDumperNode() { Visit(node.FormatStringOpt, Nothing) })
+            })
+        End Function
+
+        Public Overrides Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax, arg As Object) As TreeDumperNode
+            Return New TreeDumperNode("flagsEnumOperationExpressionSyntax", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("enumFlags", Nothing, new TreeDumperNode() { Visit(node.EnumFlags, Nothing) }),
+                New TreeDumperNode("op", node.Op, Nothing),
+                New TreeDumperNode("enumFlag", Nothing, new TreeDumperNode() { Visit(node.EnumFlag, Nothing) }),
+                New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
 

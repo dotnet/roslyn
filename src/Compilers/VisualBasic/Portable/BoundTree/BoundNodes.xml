@@ -35,6 +35,7 @@
     <ValueType Name="NoOpStatementFlavor"/>
     <ValueType Name="BoundTypeOrValueData"/>
     <ValueType Name="BitVector" />
+    <ValueType Name="FlagsEnumOperatorKind"/>
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="allow"/>
@@ -1927,6 +1928,16 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="AlignmentOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="FormatStringOpt" Type="BoundLiteral" Null="allow"/>
+  </Node>
+  
+  <Node Name="BoundFlagsEnumOperationExpressionSyntax" Base="BoundExpression" HasValidate="true">
+    <!-- Type is always Object. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <!--What we are invoking. BoundLateMemberAccess or BoundBadExpression -->
+    <Field Name="EnumFlags" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Op"        Type="FlagsEnumOperatorKind" Null="NotApplicable"/>
+    <Field Name="EnumFlag"  Type="BoundExpression" Null ="disallow"/>
   </Node>
 
 </Tree>

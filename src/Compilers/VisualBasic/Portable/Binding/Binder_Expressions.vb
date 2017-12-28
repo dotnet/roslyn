@@ -62,6 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DictionaryAccessExpression
                     Return BindDictionaryAccess(DirectCast(node, MemberAccessExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.FlagsEnumOperationExpression
+                    Return Bind_FlagsEnumOperation(DirectCast(node, FlagsEnumOperationExpressionSyntax), diagnostics)
+
                 Case SyntaxKind.InvocationExpression
                     Return BindInvocationExpression(DirectCast(node, InvocationExpressionSyntax), diagnostics)
 
@@ -794,10 +797,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' become invocations.
         ''' </summary>
         Friend Function BindValue(
-             node As ExpressionSyntax,
-             diagnostics As DiagnosticBag,
-             Optional isOperandOfConditionalBranch As Boolean = False
-         ) As BoundExpression
+                                   node As ExpressionSyntax,
+                                   diagnostics As DiagnosticBag,
+                          Optional isOperandOfConditionalBranch As Boolean = False
+                                 ) As BoundExpression
             Dim expr = BindExpression(node, diagnostics:=diagnostics, isOperandOfConditionalBranch:=isOperandOfConditionalBranch, isInvocationOrAddressOf:=False, eventContext:=False)
 
             Return MakeValue(expr, diagnostics)
@@ -913,7 +916,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return receiver
         End Function
 
-
         ''' <summary>
         ''' Adjusts receiver of a call or a member access if it is a value
         '''  * will turn Unknown property access into Get property access
@@ -940,9 +942,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function ReclassifyAsValue(
-           expr As BoundExpression,
-           diagnostics As DiagnosticBag
-        ) As BoundExpression
+                                           expr As BoundExpression,
+                                           diagnostics As DiagnosticBag
+                                         ) As BoundExpression
             If expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
                 Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
                 Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
@@ -973,6 +975,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not expr.IsNothingLiteral() Then
                         Return MakeRValue(expr, diagnostics)
                     End If
+                'Case BoundKind.EnumFlagExpression
+                '    expr = BindEnumFlagExpression(expr.ExpressionSymbol., expr.Syntax, expr, s_noArguments, diagnostics)
 
                 Case BoundKind.MethodGroup,
                      BoundKind.PropertyGroup
@@ -3703,15 +3707,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If left Is Nothing Then
                     ' Didn't find binder that can handle member access with omitted left part
 
-                    Return BadExpression(
-                        node,
-                        ImmutableArray.Create(
-                            ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_BadWithRef),
-                            New BoundLiteral(
-                                node.Name,
-                                ConstantValue.Create(node.Name.Identifier.ValueText),
-                                GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
-                        ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(node, ImmutableArray.Create(
+                                          ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_BadWithRef),
+                                          New BoundLiteral(
+                                                node.Name,
+                                                ConstantValue.Create(node.Name.Identifier.ValueText),
+                                                GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
+                                          ErrorTypeSymbol.UnknownResultType)
                 End If
             Else
                 left = Me.BindExpression(leftOpt, diagnostics)
@@ -3749,20 +3751,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If defaultPropertyGroup IsNot Nothing AndAlso defaultPropertyGroup.Kind = BoundKind.PropertyGroup Then
                     Dim name = node.Name
                     Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
-                    Return BindInvocationExpression(
-                        node,
-                        left.Syntax,
-                        TypeCharacter.None,
-                        DirectCast(defaultPropertyGroup, BoundPropertyGroup),
-                        boundArguments:=ImmutableArray.Create(Of BoundExpression)(arg),
-                        argumentNames:=Nothing,
-                        diagnostics:=diagnostics,
-                        isDefaultMemberAccess:=True,
-                        callerInfoOpt:=node)
+                    Return BindInvocationExpression(node,
+                                                     left.Syntax,
+                                                     TypeCharacter.None,
+                                                     DirectCast(defaultPropertyGroup, BoundPropertyGroup),
+                                                     boundArguments:=ImmutableArray.Create(Of BoundExpression)(arg),
+                                                      argumentNames:=Nothing,
+                                                        diagnostics:=diagnostics,
+                                              isDefaultMemberAccess:=True,
+                                                      callerInfoOpt:=node)
 
                 ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
+
                     Select Case type.TypeKind
-                        Case TypeKind.Array, TypeKind.Enum
+                        Case TypeKind.Enum ' Needs to be Feature conditional
+                            ' IF Feature.FlagsEnumOperators.IsAvaiable() Then
+                            ' Make sure the enum has the <Flags> attribute.
+                            Dim original = type.OriginalDefinition
+                            If IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
+                                Return BindEnumFlagExpression(original, node, left, node, diagnostics)
+                            Else
+                                ' Return BindEnumFlagExpression(original, node, left, node, diagnostics)
+                                Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_MissingFlagsAttributeOnEnum, original.Name)
+                            End If
+                            ' Else
+                            '   ReportFeatureUnvailable()
+                            ' End If
+                            ReportQualNotObjectRecord(left, diagnostics)
+
+                        Case TypeKind.Array '#, TypeKind.Enum
                             ReportQualNotObjectRecord(left, diagnostics)
                         Case TypeKind.Class
                             If type.SpecialType = SpecialType.System_Array Then
@@ -3784,15 +3801,145 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return BadExpression(
-                node,
-                ImmutableArray.Create(
-                    left,
-                    New BoundLiteral(
-                        node.Name,
-                        ConstantValue.Create(node.Name.Identifier.ValueText),
-                        GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
-                ErrorTypeSymbol.UnknownResultType)
+            Return BadExpression(node,
+                                  ImmutableArray.Create(left,
+                                                         New BoundLiteral(node.Name,
+                                                                           ConstantValue.Create(node.Name.Identifier.ValueText),
+                                                                           GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
+                                 ErrorTypeSymbol.UnknownResultType)
+        End Function
+
+        Private Shared ReadOnly IsFlagsAttribute As Func(Of AttributeData, Boolean) =
+            Function(attribute)
+                Dim ctor = attribute.AttributeConstructor
+                If (ctor Is Nothing) Then Return False
+                Dim [Type] = ctor.ContainingType
+                If (ctor.Parameters.Any() OrElse [Type].Name <> "FlagsAttribute") Then Return False
+                Dim containingSymbol = Type.ContainingSymbol
+                Return (containingSymbol.Kind = SymbolKind.Namespace) AndAlso
+                       (containingSymbol.Name = "System") AndAlso DirectCast(containingSymbol.ContainingSymbol, INamespaceSymbol).IsGlobalNamespace
+            End Function
+
+        Private Function IsFlagsEnum(typeSymbol As INamedTypeSymbol) As Boolean
+            Return (typeSymbol.TypeKind = TypeKind.Enum) AndAlso typeSymbol.GetAttributes().Any(IsFlagsAttribute)
+        End Function
+
+        Private Function IsMemberOfThisEnum(thisEnumSymbol As TypeSymbol, member As String, ByRef result As FieldSymbol) As Boolean
+            Dim members = thisEnumSymbol.GetMembers(member)
+            result = DirectCast(members.FirstOrDefault(), FieldSymbol)
+            Return result IsNot Nothing
+        End Function
+
+        Friend Function BindEnumFlagExpression(
+                                                original As TypeSymbol,
+                                                node As SyntaxNode,
+                                                expr As BoundExpression,
+                                                member As MemberAccessExpressionSyntax,
+                                                diagBag As DiagnosticBag
+                                              ) As BoundExpression
+            Dim EnumMember = TryCast(member.Expression, SimpleNameSyntax)
+            If EnumMember IsNot Nothing Then
+                Dim FlagName = EnumMember.Identifier.ValueText
+                Return Bind_FlagsEnumOperation_WithEnumMember(FlagName, member, EnumMember, member.OperatorToken, member.Name, diagBag)
+            ElseIf member.Name IsNot Nothing Then
+                Return Bind_FlagsEnumOperation_WithExpression(member, member.Expression, member.OperatorToken, member.Name, diagBag)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Private Function GetFlagsEnumOperationKind(node As SyntaxToken) As FlagsEnumOperatorKind
+            Select Case node.Kind
+                Case SyntaxKind.FlagsEnumClearToken : Return FlagsEnumOperatorKind.Clear
+                Case SyntaxKind.FlagsEnumIsSetToken,
+                     SyntaxKind.ExclamationToken
+                    Return FlagsEnumOperatorKind.IsSet
+                Case SyntaxKind.FlagsEnumSetToken : Return FlagsEnumOperatorKind.Set
+                Case SyntaxKind.FlagsEnumIsAnyToken : Return FlagsEnumOperatorKind.IsAny
+            End Select
+            Return FlagsEnumOperatorKind.None
+        End Function
+
+        Private Function Bind_FlagsEnumOperation_WithEnumMember(
+                                                  FlagName As String,
+                                                  node As ExpressionSyntax,
+                                                  EnumFlags As ExpressionSyntax,
+                                                  opToken As SyntaxToken,
+                                                  EnumFlag As SimpleNameSyntax,
+                                                  diagBag As DiagnosticBag
+                                                ) As BoundExpression
+            Dim eFlag As FieldSymbol = Nothing
+            Dim bFlags = BindExpression(EnumFlags, diagBag)
+            Dim original = bFlags.Type.OriginalDefinition
+
+            If Not IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlags, ERRID.ERR_EnumNotExpression1)
+            End If
+
+            If Not IsMemberOfThisEnum(original, FlagName, eFlag) Then
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlag, ERRID.ERR_NameNotMember2, FlagName, original.Name)
+            End If
+
+            Dim op As FlagsEnumOperatorKind = GetFlagsEnumOperationKind(opToken)
+            If op = FlagsEnumOperatorKind.None Then
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, node, ERRID.ERR_NameNotMember2, FlagName, original.Name)
+            End If
+
+            Return New BoundFlagsEnumOperationExpressionSyntax(
+                syntax:=node,
+               enumFlags:=bFlags, op,
+                enumFlag:=New BoundFieldAccess(EnumFlag, bFlags, eFlag, False, original),
+                    type:=If(op = FlagsEnumOperatorKind.IsSet Or op = FlagsEnumOperatorKind.IsAny,
+                                  GetSpecialType(SpecialType.System_Boolean, EnumFlag, diagBag), original)
+                    )
+        End Function
+
+        Private Function Bind_FlagsEnumOperation(
+                                                  node As FlagsEnumOperationExpressionSyntax,
+                                                  diagBag As DiagnosticBag
+                                                ) As BoundExpression
+            Dim Sn = TryCast(node.EnumFlag, SimpleNameSyntax)
+            If Sn IsNot Nothing Then
+                Dim FlagName = Sn.Identifier.ValueText
+                FlagName = If(FlagName, String.Empty)
+                Return Bind_FlagsEnumOperation_WithEnumMember(FlagName, node, node.EnumFlags, node.OperatorToken, Sn, diagBag)
+            Else
+                Return Bind_FlagsEnumOperation_WithExpression(node, node.EnumFlags, node.OperatorToken, node.EnumFlag, diagBag)
+
+            End if
+        End Function
+
+        Private Function Bind_FlagsEnumOperation_WithExpression(
+                                                  node As ExpressionSyntax,
+                                                  EnumFlags As ExpressionSyntax,
+                                                  opToken As SyntaxToken,
+                                                  EnumFlag As ExpressionSyntax,
+                                                  diagBag As DiagnosticBag
+                                                ) As BoundExpression
+            Dim eFlag As FieldSymbol = Nothing
+            Dim bFlags = BindExpression(EnumFlags, diagBag)
+            Dim original = bFlags.Type.OriginalDefinition
+
+            If Not IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlags, ERRID.ERR_EnumNotExpression1)
+            End If
+
+            'If Not IsMemberOfThisEnum(original, FlagName, eFlag) Then
+            '    Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlag, ERRID.ERR_NameNotMember2, FlagName, original.Name)
+            'End If
+
+            Dim op As FlagsEnumOperatorKind = GetFlagsEnumOperationKind(opToken)
+            If op = FlagsEnumOperatorKind.None Then
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, node, ERRID.ERR_NameNotMember2, "", original.Name)
+            End If
+
+            Return New BoundFlagsEnumOperationExpressionSyntax(
+                syntax:=node,
+               enumFlags:=bFlags, op,
+                enumFlag:=BindExpression(EnumFlag, diagBag),
+                    type:=If(op = FlagsEnumOperatorKind.IsSet Or op = FlagsEnumOperatorKind.IsAny,
+                             GetSpecialType(SpecialType.System_Boolean, EnumFlag, diagBag), original)
+                    )
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)

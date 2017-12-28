@@ -1219,6 +1219,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "!"c
+                    ' Check to see if could be a FlagsEnum Operator.
+                    If CanGet(1) Then
+                        Dim nc = Peek(1)
+                        Select Case nc
+                            Case "+"c
+                                AdvanceChar(2)
+                                Return SyntaxFactory.FlagsEnumSetToken("!+", precedingTrivia.Node, Nothing)
+                            Case "-"c
+                                AdvanceChar(2)
+                                Return SyntaxFactory.FlagsEnumClearToken("!-", precedingTrivia.Node, Nothing)
+                            Case "/"c
+                                AdvanceChar(2)
+                                Return SyntaxFactory.FlagsEnumIsAnyToken("!/", precedingTrivia.Node, Nothing)
+                        End Select
+                    End If
                     Return MakeExclamationToken(precedingTrivia, fullWidth)
 
                 Case "."c
@@ -1520,6 +1535,10 @@ FullWidthRepeat:
 
                             If IsIdentifierStartCharacter(NextChar) OrElse
                                 MatchOneOrAnotherOrFullwidth(NextChar, "["c, "]"c) Then
+                                Exit Select
+                            ElseIf NextChar = "+"c OrElse NextChar = "-"c OrElse NextChar = "/"c Then
+                                Exit Select
+                            ElseIf NextChar = "("c Then
                                 Exit Select
                             End If
                         End If
