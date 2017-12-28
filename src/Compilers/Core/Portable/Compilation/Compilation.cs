@@ -1853,6 +1853,15 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
+        internal void ReportAndFilterUnusedImports(
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
+        {
+            var bag = new DiagnosticBag();
+            ReportUnusedImports(filterTree: null, bag, cancellationToken);
+            FilterAndAppendDiagnostics(diagnostics, bag.AsEnumerable(), exclude: null);
+        }
+
         /// <summary>
         /// Signals the event queue, if any, that we are done compiling.
         /// There should not be more compiling actions after this step.
@@ -2215,7 +2224,11 @@ namespace Microsoft.CodeAnalysis
 
                         if (success)
                         {
-                            ReportUnusedImports(null, diagnostics, cancellationToken);
+                            ReportAndFilterUnusedImports(diagnostics, cancellationToken);
+                            if (diagnostics.HasAnyErrors())
+                            {
+                                success = false;
+                            }
                         }
                    }
                 }

@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -433,6 +435,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Same(options, options.WithCryptoPublicKey(default(ImmutableArray<byte>)));
             Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray<byte>.Empty));
+        }
+
+        [Fact]
+        [WorkItem(22579, "https://github.com/dotnet/roslyn/issues/22579")]
+        public void UncessaryUsingReportedAsErrorWithRuleset()
+        {
+            var source = @"using System;";
+            var ruleset = new Dictionary<string, ReportDiagnostic>() { { "CS8019", ReportDiagnostic.Error } };
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ruleset));
+
+            using (MemoryStream peStream = new MemoryStream())
+            {
+                var result = compilation.Emit(
+                    peStream: peStream,
+                    pdbStream: null,
+                    metadataPEStream: null,
+                    xmlDocumentationStream: null,
+                    cancellationToken: default,
+                    win32Resources: null,
+                    manifestResources: null,
+                    options: null,
+                    debugEntryPoint: null,
+                    sourceLinkStream: null,
+                    embeddedTexts: null,
+                    testData: null);
+
+                var diagnostics = result.Diagnostics;
+                Assert.False(result.Success);
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+                var diagnostics2 = model.GetDiagnostics();
+
+                var diagnostics3 = compilation.GetDiagnostics();
+
+                foreach (var diag in new[] { diagnostics, diagnostics2, diagnostics3})
+                {
+                    Assert.Equal(DiagnosticSeverity.Error, diag.Single().Severity);
+                    diag.Verify(
+                        // (1,1): error CS8019: Unnecessary using directive.
+                        // using System;
+                        Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1)
+                    );
+                }
+            }
         }
     }
 }
