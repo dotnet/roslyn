@@ -145,6 +145,17 @@ Microsoft.CodeAnalysis.Operations.ArgumentKind.DefaultValue = 3 -> Microsoft.Cod
 Microsoft.CodeAnalysis.Operations.ArgumentKind.Explicit = 1 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
 Microsoft.CodeAnalysis.Operations.ArgumentKind.None = 0 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
 Microsoft.CodeAnalysis.Operations.ArgumentKind.ParamArray = 2 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
+Microsoft.CodeAnalysis.Operations.BasicBlock
+Microsoft.CodeAnalysis.Operations.BasicBlock.BasicBlock(Microsoft.CodeAnalysis.Operations.BasicBlockKind kind) -> void
+Microsoft.CodeAnalysis.Operations.BasicBlock.Conditional.get -> (Microsoft.CodeAnalysis.IOperation Condition, bool JumpIfTrue, Microsoft.CodeAnalysis.Operations.BasicBlock Destination)
+Microsoft.CodeAnalysis.Operations.BasicBlock.Kind.get -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.BasicBlock.Next.get -> Microsoft.CodeAnalysis.Operations.BasicBlock
+Microsoft.CodeAnalysis.Operations.BasicBlock.Predecessors.get -> System.Collections.Immutable.ImmutableHashSet<Microsoft.CodeAnalysis.Operations.BasicBlock>
+Microsoft.CodeAnalysis.Operations.BasicBlock.Statements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
+Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.BasicBlockKind.Block = 2 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.BasicBlockKind.Entry = 0 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.BasicBlockKind.Exit = 1 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.Add = 1 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.And = 10 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
@@ -489,6 +500,7 @@ Microsoft.CodeAnalysis.Operations.UnaryOperatorKind.Plus = 3 -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Operations.UnaryOperatorKind.True = 5 -> Microsoft.CodeAnalysis.Operations.UnaryOperatorKind
 Microsoft.CodeAnalysis.RefKind.In = 3 -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.RefKind.RefReadOnly = 3 -> Microsoft.CodeAnalysis.RefKind
+Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IBlockOperation body) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.BasicBlock>
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.SyntaxList<TNode>.SyntaxList(System.Collections.Generic.IEnumerable<TNode> nodes) -> void
 Microsoft.CodeAnalysis.SyntaxList<TNode>.SyntaxList(TNode node) -> void
@@ -709,3 +721,4 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitVariableDeclarator(Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitVariableInitializer(Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitWhileLoop(Microsoft.CodeAnalysis.Operations.IWhileLoopOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraphCore(Microsoft.CodeAnalysis.Operations.IBlockOperation body) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.BasicBlock>

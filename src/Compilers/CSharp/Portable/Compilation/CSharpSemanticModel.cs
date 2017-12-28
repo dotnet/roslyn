@@ -479,6 +479,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CSharpOperationCloner.Instance.Visit(operation);
         }
 
+        protected override ImmutableArray<BasicBlock> GetControlFlowGraphCore(IBlockOperation body)
+        {
+            return ControlFlowGraphBuilder.Create(body);
+        }
+
         #region GetSymbolInfo
 
         /// <summary>

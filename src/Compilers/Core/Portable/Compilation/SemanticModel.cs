@@ -86,6 +86,16 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
+        public ImmutableArray<Operations.BasicBlock> GetControlFlowGraph(Operations.IBlockOperation body)
+        {
+            return GetControlFlowGraphCore(body);
+        }
+
+        protected virtual ImmutableArray<Operations.BasicBlock> GetControlFlowGraphCore(Operations.IBlockOperation body)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Deep Clone given IOperation
         /// </summary>
