@@ -2968,9 +2968,9 @@ L2:
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'E'.
+BC37306: Enum 'E' requires &lt;Flags&gt; attribute.
             M([enum]!P)
-              ~~~~~~
+              ~~~~~~~~
 BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Boolean'.
             M([boolean]!P)
               ~~~~~~~~~

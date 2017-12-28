@@ -5344,7 +5344,7 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Qualified" />
         <native-equiv name="Expression.Opcodes.BangQualified" />
       </node-kind>
-
+      
       <child name="Expression" optional="true" kind="@ExpressionSyntax">
         <description>The expression on the left-hand-side of the "." or "!" token.</description>
         <lm-equiv name="Base"></lm-equiv>
@@ -5365,7 +5365,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Name"></native-equiv>
       </child>
     </node-structure>
-
+    
     <node-structure name="XmlMemberAccessExpressionSyntax" parent="ExpressionSyntax">
       <description>
         Represents an XML member element access (node.&lt;Element&gt;), attribute access (node.@Attribute) or descendants access (node...&lt;Descendant&gt;).
@@ -8591,7 +8591,7 @@ Unify Enum declarations with other block type declarations.
       </node-kind>
 
     </node-structure>
-
+    
     <!--********************
       -  Punctuation
       **********************-->
@@ -9557,5 +9557,70 @@ Unify Enum declarations with other block type declarations.
       </description>
       <node-kind name="BadDirectiveTrivia"></node-kind>
     </node-structure>
+  
+   <node-structure name="FlagsEnumOperationExpressionSyntax" parent="ExpressionSyntax"  partial="true">
+      <node-kind name="FlagsEnumOperationExpression">
+        <lm-equiv name="Qualified" />
+        <native-equiv name="Expression.Opcodes.BangQualified" />
+      </node-kind>
+      <child name="EnumFlags" optional="true" kind="@ExpressionSyntax">
+        <description>The expression on the left-hand-side of the "." or "!" token.</description>
+        <lm-equiv name="Base"></lm-equiv>
+        <native-equiv name="Base"></native-equiv>
+      </child>
+      <child name="OperatorToken" kind="@FlagsEnumOperatorSyntax"></child>
+      <child name="EnumFlag" kind="@ExpressionSyntax" optional="true">
+        <description>The identifier after the "!", "!+", "!-" or "!/" token.</description>
+        <lm-equiv name="Value"></lm-equiv>
+        <native-equiv name="Name"></native-equiv>
+      </child>
+    </node-structure>
+      
+    <node-structure name="FlagsEnumOperatorSyntax" parent ="SyntaxToken" has-default-factory ="true" default-trailing-trivia="space" >
+      <node-kind name="FlagsEnumIsAnyToken"  token-text="!/">
+        <lm-equiv name="BangPlusToken" />
+        <native-equiv name="" />
+      </node-kind>
+      <node-kind name="FlagsEnumSetToken"  token-text="!+">
+        <lm-equiv name="BangPlusToken" />
+        <native-equiv name="" />
+      </node-kind>
+      <node-kind name="FlagsEnumClearToken" token-text="!-">
+        <lm-equiv name="BangMinusToken" />
+        <native-equiv name="" />
+      </node-kind>
+      <node-kind name="FlagsEnumIsSetToken" token-text="!">
+        <lm-equiv name="BangToken" />
+        <native-equiv name="" />
+      </node-kind> 
+    </node-structure>
+    
+    <!--********************
+      -  FlagsEnumOperatorKind
+      **********************-->
+    <enumeration name="FlagsEnumOperatorKind">
+      <description>
+        Represents one of the type characters or literal suffixes of VB. Used to describe
+        a) the type character suffixes that can be placed on identifiers, and
+        b) the suffixes that can be placed on integer literals.
+      </description>
+      <lm-equiv name="FlagsEnumOperator"></lm-equiv>
+      <enumerators>
+        <enumerator name="None" hexvalue="0"></enumerator>
+        <enumerator name="IsSet" hexvalue="1">
+          <description>The "!" flagsEnum operator."</description>
+        </enumerator>
+        <enumerator name="[Set]" hexvalue="2">
+          <description>The "!+" flagsEnum operator."</description>
+        </enumerator>
+        <enumerator name="Clear" hexvalue="3">
+          <description>The "!=" flagsEnum operator."</description>
+        </enumerator>
+        <enumerator name="IsAny" hexvalue="4">
+          <description>The "!/" flagsEnum operator."</description>
+        </enumerator>
+      </enumerators>
+    </enumeration>
+    
   </definitions>
 </define-parse-tree>

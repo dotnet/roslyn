@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseWithStackGuard(Of TNode As VisualBasicSyntaxNode)(parseFunc As Func(Of TNode), defaultFunc As Func(Of TNode)) As TNode
-            Debug.Assert(_recursionDepth = 0)
+            Debug.Assert(_recursionDepth >= 0)
             Dim restorePoint = _scanner.CreateRestorePoint()
             Try
                 Return parseFunc()

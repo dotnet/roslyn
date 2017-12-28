@@ -96,6 +96,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Generated\" />
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>

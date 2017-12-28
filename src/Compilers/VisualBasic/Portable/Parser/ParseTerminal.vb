@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16998 - 16998
         ' IdentifierDescriptor .Parser::ParseIdentifierAllowingKeyword( [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseIdentifierAllowingKeyword() As IdentifierTokenSyntax
+        Private Function ParseIdentifierAllowingKeyword(Optional ReportError As Boolean = True) As IdentifierTokenSyntax
 
             Dim identifier As IdentifierTokenSyntax
 
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 ' Current token is not advanced. Let caller decide what to do.
                 identifier = InternalSyntaxFactory.MissingIdentifier()
-                identifier = ReportSyntaxError(identifier, ERRID.ERR_ExpectedIdentifier)
+                If ReportError Then identifier = ReportSyntaxError(identifier, ERRID.ERR_ExpectedIdentifier)
             End If
 
             Return identifier
@@ -129,9 +129,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 17021 - 17021
         ' Expression* .Parser::ParseIdentifierExpressionAllowingKeyword( [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseIdentifierNameAllowingKeyword() As IdentifierNameSyntax
+        Private Function ParseIdentifierNameAllowingKeyword(Optional ReturnNothingOnError As Boolean = False) As IdentifierNameSyntax
 
             Dim Name = ParseIdentifierAllowingKeyword()
+            If ReturnNothingOnError AndAlso Name.ContainsDiagnostics Then Return Nothing
             Return SyntaxFactory.IdentifierName(Name)
 
         End Function
