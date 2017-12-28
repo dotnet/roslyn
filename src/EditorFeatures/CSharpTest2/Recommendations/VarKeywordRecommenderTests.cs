@@ -3,7 +3,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -207,6 +206,20 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAsyncForEach()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach await ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestnotInAsyncForEach()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"foreach await (var $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsing()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -218,6 +231,20 @@ $$"));
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"using (var $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAsyncUsing()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"using await ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInAsyncUsing()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"using await (var $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

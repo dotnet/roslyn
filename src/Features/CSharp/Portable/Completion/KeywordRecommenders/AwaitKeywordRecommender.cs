@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return true;
             }
 
+            if (context.TargetToken.IsKind(SyntaxKind.UsingKeyword, SyntaxKind.ForEachKeyword))
+            {
+                return true;
+            }
+
             return false;
         }
     }

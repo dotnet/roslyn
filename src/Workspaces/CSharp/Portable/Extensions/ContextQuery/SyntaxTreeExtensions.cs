@@ -1512,7 +1512,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //  out var
             //  for (var
             //  foreach (var
+            //  foreach await (var
             //  using (var
+            //  using await (var
             //  from var
             //  join var
 
@@ -1540,6 +1542,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     previous.IsKind(SyntaxKind.UsingKeyword))
                 {
                     return true;
+                }
+
+                if (previous.IsKind(SyntaxKind.AwaitKeyword))
+                {
+                    var beforeAwait = previous.GetPreviousToken(includeSkipped: true);
+                    if (beforeAwait.IsKind(SyntaxKind.ForEachKeyword, SyntaxKind.UsingKeyword))
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -2270,6 +2281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // foreach (var v in |
+            // foreach await (var v in |
             // from a in |
             // join b in |
             if (token.IsKind(SyntaxKind.InKeyword))
@@ -2359,6 +2371,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // using ( |
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
                 token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword))
+            {
+                return true;
+            }
+
+            // using await ( |
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.AwaitKeyword) &&
+                token.GetPreviousToken(includeSkipped: true).GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword))
             {
                 return true;
             }
