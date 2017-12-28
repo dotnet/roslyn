@@ -3726,28 +3726,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not type.IsErrorType() Then
 
                 If type.SpecialType = SpecialType.System_Object OrElse type.IsExtensibleInterfaceNoUseSiteDiagnostics() Then
-                    Dim name = node.Name
-                    Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
-                    Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
-                    Return BindLateBoundInvocation(node, Nothing, left, boundArguments, Nothing, diagnostics)
-                End If
+                        Dim name = node.Name
+                        Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
+                        Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
+                        Return BindLateBoundInvocation(node, Nothing, left, boundArguments, Nothing, diagnostics)
+                    End If
 
-                If type.IsInterfaceType Then
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
-                    type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                    diagnostics.Add(node, useSiteDiagnostics)
-                End If
+                    If type.IsInterfaceType Then
+                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
+                        type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                        diagnostics.Add(node, useSiteDiagnostics)
+                    End If
 
-                Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node, left, diagnostics)
-                Debug.Assert(defaultPropertyGroup Is Nothing OrElse defaultPropertyGroup.Kind = BoundKind.PropertyGroup OrElse
+                    Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node, left, diagnostics)
+                    Debug.Assert(defaultPropertyGroup Is Nothing OrElse defaultPropertyGroup.Kind = BoundKind.PropertyGroup OrElse
                              defaultPropertyGroup.Kind = BoundKind.MethodGroup OrElse defaultPropertyGroup.HasErrors)
 
-                ' Dev10 limits Dictionary access to properties.
-                If defaultPropertyGroup IsNot Nothing AndAlso defaultPropertyGroup.Kind = BoundKind.PropertyGroup Then
-                    Dim name = node.Name
-                    Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
-                    Return BindInvocationExpression(
+                    ' Dev10 limits Dictionary access to properties.
+                    If defaultPropertyGroup IsNot Nothing AndAlso defaultPropertyGroup.Kind = BoundKind.PropertyGroup Then
+                        Dim name = node.Name
+                        Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
+                        Return BindInvocationExpression(
                         node,
                         left.Syntax,
                         TypeCharacter.None,
@@ -3758,31 +3758,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         isDefaultMemberAccess:=True,
                         callerInfoOpt:=node)
 
-                ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
-                    Select Case type.TypeKind
-                        Case TypeKind.Array, TypeKind.Enum
-                            ReportQualNotObjectRecord(left, diagnostics)
-                        Case TypeKind.Class
-                            If type.SpecialType = SpecialType.System_Array Then
-                                ReportDefaultMemberNotProperty(left, diagnostics)
-                            Else
-                                ReportNoDefaultProperty(left, diagnostics)
-                            End If
-                        Case TypeKind.TypeParameter, TypeKind.Interface
-                            ReportNoDefaultProperty(left, diagnostics)
-                        Case TypeKind.Structure
-                            If type.IsIntrinsicValueType() Then
-                                ReportQualNotObjectRecord(left, diagnostics)
-                            Else
-                                ReportNoDefaultProperty(left, diagnostics)
-                            End If
-                        Case Else
-                            ReportDefaultMemberNotProperty(left, diagnostics)
-                    End Select
-                End If
-            End If
+                    ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
 
-            Return BadExpression(
+                        Select Case type.TypeKind
+                        Case TypeKind.Enum
+                            If IsFlagsEnum(DirectCast(type.OriginalDefinition, INamedTypeSymbol)) Then
+                                Dim name = node.Name
+                                Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
+                                Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
+                                Return BindEnumFlagExpression(node, left, boundArguments, diagnostics)
+                            End If
+                            ReportQualNotObjectRecord(left, diagnostics)
+
+                        Case TypeKind.Array '#, TypeKind.Enum
+                            ReportQualNotObjectRecord(left, diagnostics)
+                            Case TypeKind.Class
+                                If type.SpecialType = SpecialType.System_Array Then
+                                    ReportDefaultMemberNotProperty(left, diagnostics)
+                                Else
+                                    ReportNoDefaultProperty(left, diagnostics)
+                                End If
+                            Case TypeKind.TypeParameter, TypeKind.Interface
+                                ReportNoDefaultProperty(left, diagnostics)
+                            Case TypeKind.Structure
+                                If type.IsIntrinsicValueType() Then
+                                    ReportQualNotObjectRecord(left, diagnostics)
+                                Else
+                                    ReportNoDefaultProperty(left, diagnostics)
+                                End If
+                            Case Else
+                                ReportDefaultMemberNotProperty(left, diagnostics)
+                        End Select
+                    End If
+                End If
+
+                Return BadExpression(
                 node,
                 ImmutableArray.Create(
                     left,
@@ -3791,6 +3801,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ConstantValue.Create(node.Name.Identifier.ValueText),
                         GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
                 ErrorTypeSymbol.UnknownResultType)
+        End Function
+
+        Private Function IsFlagsEnum(typeSymbol As INamedTypeSymbol) As Boolean
+            If (typeSymbol.TypeKind <> TypeKind.Enum) Then Return False
+
+            For Each attribute In typeSymbol.GetAttributes()
+                Dim ctor = attribute.AttributeConstructor
+                If (ctor Is Nothing) Then Continue For
+                Dim [Type] = ctor.ContainingType
+                If (Not ctor.Parameters.Any() AndAlso [Type].Name = "FlagsAttribute") Then
+
+                    Dim containingSymbol = Type.ContainingSymbol
+                    If (containingSymbol.Kind = SymbolKind.Namespace AndAlso
+                        containingSymbol.Name = "System" AndAlso
+                        DirectCast(containingSymbol.ContainingSymbol, INamespaceSymbol).IsGlobalNamespace) Then
+                        Return True
+                    End If
+                End If
+            Next
+
+            Return False
+        End Function
+
+        Friend Function BindEnumFlagExpression(
+            node As SyntaxNode,
+            expr As BoundExpression,
+            boundArguments As ImmutableArray(Of BoundExpression),
+            Diagnostics As DiagnosticBag
+        ) As BoundExpression
+            'ExceptionUtilities.UnexpectedValue("<FLAGS>")
+            'Return BadExpression(
+            '    node, expr, ErrorTypeSymbol.UnknownResultType)
+            Return New BoundEnumFlagExpression(node, expr, expr, ErrorTypeSymbol.UnknownResultType)
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)

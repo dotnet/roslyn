@@ -5344,7 +5344,11 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Qualified" />
         <native-equiv name="Expression.Opcodes.BangQualified" />
       </node-kind>
-
+      <node-kind name="EnumFlagExpression">
+        <lm-equiv name="Qualified" />
+        <native-equiv name="Expression.Opcodes.BangQualified" />
+      </node-kind>
+      
       <child name="Expression" optional="true" kind="@ExpressionSyntax">
         <description>The expression on the left-hand-side of the "." or "!" token.</description>
         <lm-equiv name="Base"></lm-equiv>

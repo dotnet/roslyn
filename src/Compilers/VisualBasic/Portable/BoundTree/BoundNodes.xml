@@ -691,6 +691,15 @@
     <Field Name="AccessKind" Type="LateBoundAccessKind"/>
   </Node>
 
+  <Node Name="BoundEnumFlagExpression" Base="BoundExpression" HasValidate="true">
+    <!-- Type is always Object. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <!--What we are invoking. BoundLateMemberAccess or BoundBadExpression -->
+    <Field Name="Member" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Flag" Type ="BoundExpression" Null ="disallow"/>
+  </Node>
+
   <Node Name="BoundLateInvocation" Base="BoundExpression" HasValidate="true">
     <!-- Type is always Object. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
