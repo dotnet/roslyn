@@ -587,6 +587,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.EqualsGreaterThanToken))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -1798,6 +1803,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        public bool IdentifiesLambda(SyntaxToken token)
+        {
+            return token.IsKind(SyntaxKind.EqualsGreaterThanToken);
         }
     }
 }

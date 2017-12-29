@@ -797,6 +797,11 @@
         <target state="translated">不支援變更文件屬性</target>
         <note />
       </trans-unit>
+      <trans-unit id="Captures_colon">
+        <source>Captures:</source>
+        <target state="new">Captures:</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

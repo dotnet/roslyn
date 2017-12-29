@@ -4762,6 +4762,124 @@ namespace MyNs
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnLocalFunction()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        int i;
+        local$$();
+
+        void local() { i++; this.M(); }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Captures_colon} @this, i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnLocalFunction2()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        int i;
+        local$$(i);
+
+        void local(int j) { j++; M(); }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Captures_colon} @this"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnLambda()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        int i;
+        System.Action a = () =$$> { i++; M(); };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Captures_colon} @this, i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnLambda2()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        int i;
+        System.Action<int> a = j =$$> { i++; j++; M(); };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Captures_colon} @this, i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnLambda2_DifferentOrder()
+        {
+            await TestAsync(@"
+class C
+{
+    void M(int j)
+    {
+        int i;
+        System.Action a = () =$$> { M(); i++; j++; };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Captures_colon} @this, j, i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnLambda3()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        int i;
+        N(() =$$> { M(); }, () => { i++; });
+    }
+    void N(System.Action x, System.Action y) { }
+}",
+                Captures($"\r\n{WorkspacesResources.Captures_colon} @this"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnLambda4()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        int i;
+        N(() => { M(); }, () =$$> { i++; });
+    }
+    void N(System.Action x, System.Action y) { }
+}",
+                Captures($"\r\n{WorkspacesResources.Captures_colon} i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(1516, "https://github.com/dotnet/roslyn/issues/1516")]
         public async Task QuickInfoWithNonStandardSeeAttributesAppear()
         {

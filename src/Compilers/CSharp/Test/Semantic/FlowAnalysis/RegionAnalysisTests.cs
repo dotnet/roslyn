@@ -3953,6 +3953,26 @@ class C {
         }
 
         [Fact]
+        public void TestMultipleLambdaExpressions()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        int i;
+        N(/*<bind>*/() => { M(); }/*</bind>*/, () => { i++; });
+    }
+    void N(System.Action x, System.Action y) { }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("this, i",  GetSymbolNamesJoined(analysis.Captured));
+            Assert.Equal("this",  GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Equal("i",  GetSymbolNamesJoined(analysis.CapturedOutside));
+        }
+
+        [Fact]
         public void TestReturnFromLambda()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"

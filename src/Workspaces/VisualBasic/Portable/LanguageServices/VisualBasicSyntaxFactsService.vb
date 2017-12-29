@@ -1719,5 +1719,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return Nothing
         End Function
+
+        Public Function IdentifiesLambda(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IdentifiesLambda
+            ' TODO
+            Return False
+        End Function
     End Class
 End Namespace

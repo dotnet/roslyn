@@ -9085,6 +9085,7 @@ class C
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
         {
+            // PROTOTYPE NotSupportedException
             await VerifyItemExistsAsync(@"
 class C
 {
@@ -9103,6 +9104,7 @@ class C
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
         {
+            // PROTOTYPE NotSupportedException
             await VerifyItemExistsAsync(@"
 using System;
 class C

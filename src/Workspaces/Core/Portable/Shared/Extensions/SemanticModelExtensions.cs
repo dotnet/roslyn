@@ -194,6 +194,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 declaredSymbol = null;
                 allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create(overriddenSymbol);
             }
+            else if (syntaxFacts.IdentifiesLambda(token))
+            {
+                aliasSymbol = null;
+                var bindableParent = syntaxFacts.GetBindableParent(token);
+                var lambda = semanticModel.GetSymbolInfo(bindableParent);
+                declaredSymbol = lambda.Symbol;
+                type = null;
+
+                allSymbols = semanticModel.GetSymbolInfo(bindableParent, cancellationToken)
+                                              .GetBestOrAllSymbols()
+                                              .WhereAsArray(s => !s.Equals(declaredSymbol))
+                                              .SelectAsArray(s => MapSymbol(s, type));
+            }
             else
             {
                 aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);

@@ -797,6 +797,11 @@
         <target state="translated">La modifica delle proprietà del documento non è supportata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Captures_colon">
+        <source>Captures:</source>
+        <target state="new">Captures:</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

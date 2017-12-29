@@ -151,6 +151,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "r", semanticModel, position))
             End Sub
 
+            Protected Overrides Sub AddCaptures(symbol As ISymbol)
+                ' PROTOTYPE
+            End Sub
+
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat
                 Get
                     Return s_minimallyQualifiedFormat

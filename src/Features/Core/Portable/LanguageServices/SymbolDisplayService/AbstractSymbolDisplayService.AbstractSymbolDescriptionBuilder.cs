@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 AddOverloadCountPart(symbols);
                 FixAllAnonymousTypes(symbols[0]);
                 AddExceptions(symbols[0]);
+                AddCaptures(symbols[0]);
             }
 
             private void AddExceptions(ISymbol symbol)
@@ -174,6 +175,36 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddToGroup(SymbolDescriptionGroups.Exceptions, parts);
                 }
             }
+
+            protected abstract void AddCaptures(ISymbol symbol);
+
+            protected void AddCaptures(SyntaxNode syntax)
+            {
+                var semanticModel = GetSemanticModel(syntax.SyntaxTree);
+                var analysis = semanticModel.AnalyzeDataFlow(syntax);
+                var captures = analysis.CapturedInside;
+                if (!captures.IsEmpty)
+                {
+                    var parts = new List<SymbolDisplayPart>();
+                    parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Captures_colon}"));
+                    bool first = true;
+                    foreach (var captured in captures)
+                    {
+                        if (!first)
+                        {
+                            parts.AddRange(Punctuation(","));
+                        }
+                        parts.AddRange(Space(count: 1));
+                        parts.AddRange(ToMinimalDisplayParts(captured, s_formatForCaptures));
+                        first = false;
+                    }
+                    AddToGroup(SymbolDescriptionGroups.Captures, parts);
+                }
+            }
+
+            private static readonly SymbolDisplayFormat s_formatForCaptures = SymbolDisplayFormat.MinimallyQualifiedFormat
+                .RemoveLocalOptions(SymbolDisplayLocalOptions.IncludeType)
+                .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeType);
 
             public async Task<ImmutableArray<SymbolDisplayPart>> BuildDescriptionAsync(
                 ImmutableArray<ISymbol> symbolGroup, SymbolDescriptionGroups groups)
@@ -296,6 +327,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                     case SymbolDescriptionGroups.Exceptions:
                     case SymbolDescriptionGroups.TypeParameterMap:
+                    case SymbolDescriptionGroups.Captures:
                         // Everything else is in a group on its own
                         return 2;
 

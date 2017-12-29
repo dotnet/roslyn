@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class WorkspacesResources {
@@ -419,6 +419,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Cannot_serialize_type_0 {
             get {
                 return ResourceManager.GetString("Cannot_serialize_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Captures:.
+        /// </summary>
+        internal static string Captures_colon {
+            get {
+                return ResourceManager.GetString("Captures_colon", resourceCulture);
             }
         }
         
