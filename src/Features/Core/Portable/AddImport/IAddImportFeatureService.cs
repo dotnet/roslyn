@@ -16,5 +16,12 @@ namespace Microsoft.CodeAnalysis.AddImport
             Document document, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
+
+        Task<Document> AddImportAsync(
+            SyntaxNode contextNode,
+            INamespaceOrTypeSymbol namespaceOrTypeSymbol,
+            Document document,
+            bool placeSystemNamespaceFirst,
+            CancellationToken cancellationToken);
     }
 }

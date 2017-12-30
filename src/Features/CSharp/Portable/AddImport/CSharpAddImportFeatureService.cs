@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 : $"using static {displayString};";
         }
 
-        protected override async Task<Document> AddImportAsync(
+        public override async Task<Document> AddImportAsync(
             SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             Document document,
