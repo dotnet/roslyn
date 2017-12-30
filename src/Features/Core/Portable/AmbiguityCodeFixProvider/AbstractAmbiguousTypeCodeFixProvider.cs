@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
             var span = context.Span;
             var diagnostic = context.Diagnostics.First();
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var addImportService = document.GetLanguageService<IAddImportsService>();
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
@@ -41,12 +40,10 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
                 var typeName = diagnosticNode.ToString();
                 foreach (var symbol in symbolInfo.CandidateSymbols)
                 {
+                    var aliasDirective = GetAliasDirective(typeName, symbol);
+                    var newRoot = addImportService.AddImport(semanticModel.Compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
                     codeActionsBuilder.Add(new MyCodeAction(symbol.ContainingNamespace.Name,
-                                                            c => addImportService.AddImportAsync(diagnosticNode,
-                                                                                                 (INamespaceOrTypeSymbol)symbol,
-                                                                                                 document,
-                                                                                                 placeSystemNamespaceFirst,
-                                                                                                 c)));
+                                                            c => Task.FromResult(document.WithSyntaxRoot(newRoot))));
                 }
                 context.RegisterFixes(codeActionsBuilder.ToImmutable(), diagnostic);
             }

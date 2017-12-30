@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return symbol IsNot Nothing AndAlso symbol.Locations.Length > 0
         End Function
 
-        Public Overloads Overrides Async Function AddImportAsync(
+        Protected Overloads Overrides Async Function AddImportAsync(
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
