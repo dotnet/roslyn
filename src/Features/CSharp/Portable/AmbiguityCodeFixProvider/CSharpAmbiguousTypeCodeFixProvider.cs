@@ -28,42 +28,5 @@ namespace Microsoft.CodeAnalysis.CSharp.AmbiguityCodeFixProvider
         protected override SyntaxNode GetAliasDirective(string typeName, ISymbol symbol)
             => SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals(typeName),
                                             SyntaxFactory.IdentifierName(symbol.ToNameDisplayString()));
-
-        protected override async Task<Document> InsertAliasDirective(Document document, SyntaxNode nodeReferencingType, SyntaxNode aliasDirectiveToInsert, CancellationToken cancellationToken)
-        {
-            Debug.Assert(aliasDirectiveToInsert.IsKind(SyntaxKind.UsingDirective));
-            var (parent, usings, withUsings) = GetNearestUsingBlock(nodeReferencingType);
-            if (parent != null)
-            {
-                var newUsingList = InsertNewAliasDirectiveInUsingList((UsingDirectiveSyntax)aliasDirectiveToInsert, usings);
-                var newUsingParent = withUsings(newUsingList);
-                return await document.ReplaceNodeAsync(parent, newUsingParent, cancellationToken).ConfigureAwait(false);
-            }
-
-            return document;
-        }
-
-        private static SyntaxList<UsingDirectiveSyntax> InsertNewAliasDirectiveInUsingList(UsingDirectiveSyntax aliasDirectiveToInsert, SyntaxList<UsingDirectiveSyntax> usings)
-            => usings.Add(aliasDirectiveToInsert);
-
-        private (SyntaxNode parent, SyntaxList<UsingDirectiveSyntax> usings, Func<SyntaxList<SyntaxNode>, SyntaxNode> withUsingFunc) GetNearestUsingBlock(SyntaxNode nodeReferencingType)
-        {
-            // Look for the nearest using block that is not empty.
-            var node = nodeReferencingType;
-            while (node != null)
-            {
-                switch (node)
-                {
-                    case NamespaceDeclarationSyntax namespaceDeclaration when namespaceDeclaration.Usings.Count > 0:
-                        return (namespaceDeclaration, namespaceDeclaration.Usings, newUsings => namespaceDeclaration.WithUsings(newUsings));
-                    case CompilationUnitSyntax compilationUnit:
-                        return (compilationUnit, compilationUnit.Usings, newUsings => compilationUnit.WithUsings(newUsings));
-                }
-
-                node = node.Parent;
-            }
-
-            return default;
-        }
     }
 }

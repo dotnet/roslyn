@@ -5,8 +5,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -17,29 +19,31 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
     {
         protected abstract SyntaxNode GetAliasDirective(string typeName, ISymbol symbol);
 
-        protected abstract Task<Document> InsertAliasDirective(Document document, SyntaxNode nodeReferencingType, SyntaxNode aliasDirectiveToInsert, CancellationToken cancellationToken);
-
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var span = context.Span;
-            var diagnostics = context.Diagnostics;
-            var diagnostic = diagnostics.First();
+            var diagnostic = context.Diagnostics.First();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var addImportService = document.GetLanguageService<IAddImportsService>();
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var diagnosticNode = root.FindNode(span);
-            var typeName = diagnosticNode.ToString();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolInfo = semanticModel.GetSymbolInfo(diagnosticNode, cancellationToken);
             if (SymbolInfoContainesSupportedSymbols(symbolInfo))
             {
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
+                var typeName = diagnosticNode.ToString();
                 foreach (var symbol in symbolInfo.CandidateSymbols)
                 {
                     var aliasDirective = GetAliasDirective(typeName, symbol);
+                    var newRoot = addImportService.AddImport(semanticModel.Compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
                     codeActionsBuilder.Add(new MyCodeAction(symbol.ContainingNamespace.Name,
-                                                            c => InsertAliasDirective(document, diagnosticNode, aliasDirective, c)));
+                                                            c => Task.FromResult(document.WithSyntaxRoot(newRoot))));
                 }
                 context.RegisterFixes(codeActionsBuilder.ToImmutable(), diagnostic);
             }
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
                // It is unlikely that the user wants that and so generic types are not supported.
                // SymbolKind.Namespace: see test method TestAmbiguousAliasNoDiagnostics
                symbolInfo.CandidateSymbols.All(symbol => symbol.GetArity() == 0 &&
-                                                         !symbol.IsKind(SymbolKind.Namespace)); 
+                                                         !symbol.IsKind(SymbolKind.Namespace));
 
         private static string GetNodeName(ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
