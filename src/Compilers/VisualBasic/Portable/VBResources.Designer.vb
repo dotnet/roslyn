@@ -7153,6 +7153,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Enum &apos;{0}&apos; requires &lt;Flags&gt; attribute..
+        '''</summary>
+        Friend ReadOnly Property ERR_MissingFlagsAttributeOnEnum() As String
+            Get
+                Return ResourceManager.GetString("ERR_MissingFlagsAttributeOnEnum", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Command-line syntax error: Missing Guid for option &apos;{1}&apos;.
         '''</summary>
         Friend ReadOnly Property ERR_MissingGuidForOption() As String

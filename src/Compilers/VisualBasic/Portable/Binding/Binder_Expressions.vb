@@ -793,157 +793,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' BindValue evaluates the node and returns a BoundExpression.  BindValue snaps expressions to values.  For now that means that method groups
         ''' become invocations.
         ''' </summary>
-        Friend Function BindValue(
-             node As ExpressionSyntax,
-             diagnostics As DiagnosticBag,
-             Optional isOperandOfConditionalBranch As Boolean = False
-         ) As BoundExpression
-            Dim expr = BindExpression(node, diagnostics:=diagnostics, isOperandOfConditionalBranch:=isOperandOfConditionalBranch, isInvocationOrAddressOf:=False, eventContext:=False)
-
-            Return MakeValue(expr, diagnostics)
-        End Function
-
-        Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
-                              node As SyntaxNode,
-                              isShared As Boolean,
-                              diagnostics As DiagnosticBag,
-                              ByRef resolvedTypeOrValueExpression As BoundExpression) As BoundExpression
-            Dim unused As QualificationKind
-            Return AdjustReceiverTypeOrValue(receiver, node, isShared, True, diagnostics, unused, resolvedTypeOrValueExpression)
-        End Function
-
-        Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
-                              node As SyntaxNode,
-                              isShared As Boolean,
-                              diagnostics As DiagnosticBag,
-                              ByRef qualKind As QualificationKind) As BoundExpression
-            Dim unused As BoundExpression = Nothing
-            Return AdjustReceiverTypeOrValue(receiver, node, isShared, False, diagnostics, qualKind, unused)
-        End Function
-
-        ''' <summary>
-        ''' Adjusts receiver of a call or a member access.
-        '''  * will turn Unknown property access into Get property access
-        '''  * will turn TypeOrValueExpression into a value expression
-        ''' </summary>
-        Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
-                              node As SyntaxNode,
-                              isShared As Boolean,
-                              clearIfShared As Boolean,
-                              diagnostics As DiagnosticBag,
-                              ByRef qualKind As QualificationKind,
-                              ByRef resolvedTypeOrValueExpression As BoundExpression) As BoundExpression
-            If receiver Is Nothing Then
-                Return receiver
-            End If
-
-            If isShared Then
-                If receiver.Kind = BoundKind.TypeOrValueExpression Then
-                    Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
-                    diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics)
-                    receiver = typeOrValue.Data.TypeExpression
-                    qualKind = QualificationKind.QualifiedViaTypeName
-                    resolvedTypeOrValueExpression = receiver
-                End If
-
-                If clearIfShared Then
-                    receiver = Nothing
-                End If
-            Else
-                If receiver.Kind = BoundKind.TypeOrValueExpression Then
-                    Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
-                    diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics)
-                    receiver = MakeValue(typeOrValue.Data.ValueExpression, diagnostics)
-                    qualKind = QualificationKind.QualifiedViaValue
-                    resolvedTypeOrValueExpression = receiver
-                End If
-
-                receiver = AdjustReceiverValue(receiver, node, diagnostics)
-            End If
-
-            Return receiver
-        End Function
-
-        ''' <summary>
-        ''' Adjusts receiver of a call or a member access if the receiver is an
-        ''' ambiguous BoundTypeOrValueExpression. This can only happen if the
-        ''' receiver is the LHS of a member access expression in which the
-        ''' RHS cannot be resolved (i.e. the RHS is an error or a late-bound
-        ''' invocation/access).
-        ''' </summary>
-        Private Shared Function AdjustReceiverAmbiguousTypeOrValue(receiver As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
-            If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
-                Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
-                diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics)
-                receiver = typeOrValue.Data.ValueExpression
-            End If
-
-            Return receiver
-        End Function
-
-        Private Shared Function AdjustReceiverAmbiguousTypeOrValue(ByRef group As BoundMethodOrPropertyGroup, diagnostics As DiagnosticBag) As BoundExpression
-            Debug.Assert(group IsNot Nothing)
-
-            Dim receiver = group.ReceiverOpt
-            If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
-                receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
-
-                Select Case group.Kind
-                    Case BoundKind.MethodGroup
-                        Dim methodGroup = DirectCast(group, BoundMethodGroup)
-                        group = methodGroup.Update(methodGroup.TypeArgumentsOpt,
-                                                   methodGroup.Methods,
-                                                   methodGroup.PendingExtensionMethodsOpt,
-                                                   methodGroup.ResultKind,
-                                                   receiver,
-                                                   methodGroup.QualificationKind)
-
-                    Case BoundKind.PropertyGroup
-                        Dim propertyGroup = DirectCast(group, BoundPropertyGroup)
-                        group = propertyGroup.Update(propertyGroup.Properties,
-                                                     propertyGroup.ResultKind,
-                                                     receiver,
-                                                     propertyGroup.QualificationKind)
-
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(group.Kind)
-                End Select
-            End If
-
-            Return receiver
-        End Function
-
-
-        ''' <summary>
-        ''' Adjusts receiver of a call or a member access if it is a value
-        '''  * will turn Unknown property access into Get property access
-        ''' </summary>
-        Private Function AdjustReceiverValue(receiver As BoundExpression,
-                      node As SyntaxNode,
-                      diagnostics As DiagnosticBag) As BoundExpression
-
-            If Not receiver.IsValue() Then
-                receiver = MakeValue(receiver, diagnostics)
-            End If
-
-            If Not receiver.IsLValue AndAlso Not receiver.IsPropertyOrXmlPropertyAccess() Then
-                receiver = MakeRValue(receiver, diagnostics)
-            End If
-
-            Dim type = receiver.Type
-
-            If type Is Nothing OrElse type.IsErrorType() Then
-                Return BadExpression(node, receiver, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
-            End If
-
-            Return receiver
-        End Function
-
-        Friend Function ReclassifyAsValue(
-           expr As BoundExpression,
-           diagnostics As DiagnosticBag
-        ) As BoundExpression
-
             If expr.HasErrors Then
                 Return expr
             End If
@@ -953,6 +802,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not expr.IsNothingLiteral() Then
                         Return MakeRValue(expr, diagnostics)
                     End If
+                Case BoundKind.EnumFlagExpression
+                    expr = BindEnumFlagExpression(expr.Syntax, expr, s_noArguments, diagnostics)
 
                 Case BoundKind.MethodGroup,
                      BoundKind.PropertyGroup
@@ -3701,15 +3552,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If left Is Nothing Then
                     ' Didn't find binder that can handle member access with omitted left part
 
-                    Return BadExpression(
-                        node,
-                        ImmutableArray.Create(
-                            ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_BadWithRef),
-                            New BoundLiteral(
-                                node.Name,
-                                ConstantValue.Create(node.Name.Identifier.ValueText),
-                                GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
-                        ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(node, ImmutableArray.Create(
+                                          ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_BadWithRef),
+                                          New BoundLiteral(
+                                                node.Name,
+                                                ConstantValue.Create(node.Name.Identifier.ValueText),
+                                                GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
+                                          ErrorTypeSymbol.UnknownResultType)
                 End If
             Else
                 left = Me.BindExpression(leftOpt, diagnostics)
@@ -3726,110 +3575,110 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not type.IsErrorType() Then
 
                 If type.SpecialType = SpecialType.System_Object OrElse type.IsExtensibleInterfaceNoUseSiteDiagnostics() Then
-                        Dim name = node.Name
-                        Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
-                        Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
-                        Return BindLateBoundInvocation(node, Nothing, left, boundArguments, Nothing, diagnostics)
-                    End If
+                    Dim name = node.Name
+                    Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
+                    Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
+                    Return BindLateBoundInvocation(node, Nothing, left, boundArguments, Nothing, diagnostics)
+                End If
 
-                    If type.IsInterfaceType Then
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                        ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
-                        type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                        diagnostics.Add(node, useSiteDiagnostics)
-                    End If
+                If type.IsInterfaceType Then
+                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
+                    type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    diagnostics.Add(node, useSiteDiagnostics)
+                End If
 
-                    Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node, left, diagnostics)
-                    Debug.Assert(defaultPropertyGroup Is Nothing OrElse defaultPropertyGroup.Kind = BoundKind.PropertyGroup OrElse
+                Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node, left, diagnostics)
+                Debug.Assert(defaultPropertyGroup Is Nothing OrElse defaultPropertyGroup.Kind = BoundKind.PropertyGroup OrElse
                              defaultPropertyGroup.Kind = BoundKind.MethodGroup OrElse defaultPropertyGroup.HasErrors)
 
-                    ' Dev10 limits Dictionary access to properties.
-                    If defaultPropertyGroup IsNot Nothing AndAlso defaultPropertyGroup.Kind = BoundKind.PropertyGroup Then
-                        Dim name = node.Name
-                        Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
-                        Return BindInvocationExpression(
-                        node,
-                        left.Syntax,
-                        TypeCharacter.None,
-                        DirectCast(defaultPropertyGroup, BoundPropertyGroup),
-                        boundArguments:=ImmutableArray.Create(Of BoundExpression)(arg),
-                        argumentNames:=Nothing,
-                        diagnostics:=diagnostics,
-                        isDefaultMemberAccess:=True,
-                        callerInfoOpt:=node)
+                ' Dev10 limits Dictionary access to properties.
+                If defaultPropertyGroup IsNot Nothing AndAlso defaultPropertyGroup.Kind = BoundKind.PropertyGroup Then
+                    Dim name = node.Name
+                    Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
+                    Return BindInvocationExpression(node,
+                                                     left.Syntax,
+                                                     TypeCharacter.None,
+                                                     DirectCast(defaultPropertyGroup, BoundPropertyGroup),
+                                                     boundArguments:=ImmutableArray.Create(Of BoundExpression)(arg),
+                                                      argumentNames:=Nothing,
+                                                        diagnostics:=diagnostics,
+                                              isDefaultMemberAccess:=True,
+                                                      callerInfoOpt:=node)
 
-                    ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
+                ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
 
-                        Select Case type.TypeKind
-                        Case TypeKind.Enum
-                            If IsFlagsEnum(DirectCast(type.OriginalDefinition, INamedTypeSymbol)) Then
+                    Select Case type.TypeKind
+                        Case TypeKind.Enum ' Needs to be Feature conditional
+                            ' IF Feature.FlagsEnumOperators.IsAvaiable() Then
+                            ' Make sure the enum has the <Flags> attribute.
+                            Dim original = type.OriginalDefinition
+                            If IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
                                 Dim name = node.Name
                                 Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
                                 Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
                                 Return BindEnumFlagExpression(node, left, boundArguments, diagnostics)
+                            Else
+                                Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_MissingFlagsAttributeOnEnum, original.Name)
                             End If
+                            ' Else
+                            '   ReportFeatureUnvailable()
+                            ' End If
                             ReportQualNotObjectRecord(left, diagnostics)
 
                         Case TypeKind.Array '#, TypeKind.Enum
                             ReportQualNotObjectRecord(left, diagnostics)
-                            Case TypeKind.Class
-                                If type.SpecialType = SpecialType.System_Array Then
-                                    ReportDefaultMemberNotProperty(left, diagnostics)
-                                Else
-                                    ReportNoDefaultProperty(left, diagnostics)
-                                End If
-                            Case TypeKind.TypeParameter, TypeKind.Interface
-                                ReportNoDefaultProperty(left, diagnostics)
-                            Case TypeKind.Structure
-                                If type.IsIntrinsicValueType() Then
-                                    ReportQualNotObjectRecord(left, diagnostics)
-                                Else
-                                    ReportNoDefaultProperty(left, diagnostics)
-                                End If
-                            Case Else
+                        Case TypeKind.Class
+                            If type.SpecialType = SpecialType.System_Array Then
                                 ReportDefaultMemberNotProperty(left, diagnostics)
-                        End Select
-                    End If
+                            Else
+                                ReportNoDefaultProperty(left, diagnostics)
+                            End If
+                        Case TypeKind.TypeParameter, TypeKind.Interface
+                            ReportNoDefaultProperty(left, diagnostics)
+                        Case TypeKind.Structure
+                            If type.IsIntrinsicValueType() Then
+                                ReportQualNotObjectRecord(left, diagnostics)
+                            Else
+                                ReportNoDefaultProperty(left, diagnostics)
+                            End If
+                        Case Else
+                            ReportDefaultMemberNotProperty(left, diagnostics)
+                    End Select
                 End If
+            End If
 
-                Return BadExpression(
-                node,
-                ImmutableArray.Create(
-                    left,
-                    New BoundLiteral(
-                        node.Name,
-                        ConstantValue.Create(node.Name.Identifier.ValueText),
-                        GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
-                ErrorTypeSymbol.UnknownResultType)
+            Return BadExpression(node,
+                                  ImmutableArray.Create(left,
+                                                         New BoundLiteral(node.Name,
+                                                                           ConstantValue.Create(node.Name.Identifier.ValueText),
+                                                                           GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
+                                 ErrorTypeSymbol.UnknownResultType)
         End Function
+
+        Private Shared ReadOnly IsFlagsAttribute As Func(Of AttributeData, Boolean) =
+            Function(attribute)
+                Dim ctor = attribute.AttributeConstructor
+                If (ctor Is Nothing) Then Return False
+                Dim [Type] = ctor.ContainingType
+                If (ctor.Parameters.Any() OrElse [Type].Name <> "FlagsAttribute") Then Return False
+                Dim containingSymbol = Type.ContainingSymbol
+                Return (containingSymbol.Kind = SymbolKind.Namespace) AndAlso
+                       (containingSymbol.Name = "System") AndAlso DirectCast(containingSymbol.ContainingSymbol, INamespaceSymbol).IsGlobalNamespace
+            End Function
 
         Private Function IsFlagsEnum(typeSymbol As INamedTypeSymbol) As Boolean
             If (typeSymbol.TypeKind <> TypeKind.Enum) Then Return False
-
-            For Each attribute In typeSymbol.GetAttributes()
-                Dim ctor = attribute.AttributeConstructor
-                If (ctor Is Nothing) Then Continue For
-                Dim [Type] = ctor.ContainingType
-                If (Not ctor.Parameters.Any() AndAlso [Type].Name = "FlagsAttribute") Then
-
-                    Dim containingSymbol = Type.ContainingSymbol
-                    If (containingSymbol.Kind = SymbolKind.Namespace AndAlso
-                        containingSymbol.Name = "System" AndAlso
-                        DirectCast(containingSymbol.ContainingSymbol, INamespaceSymbol).IsGlobalNamespace) Then
-                        Return True
-                    End If
-                End If
-            Next
-
-            Return False
+            Return typeSymbol.GetAttributes().Any(IsFlagsAttribute)
         End Function
 
         Friend Function BindEnumFlagExpression(
-            node As SyntaxNode,
-            expr As BoundExpression,
-            boundArguments As ImmutableArray(Of BoundExpression),
-            Diagnostics As DiagnosticBag
-        ) As BoundExpression
+                                                node As SyntaxNode,
+                                                expr As BoundExpression,
+                                                boundArguments As ImmutableArray(Of BoundExpression),
+                                                Diagnostics As DiagnosticBag
+                                              ) As BoundExpression
+
             'ExceptionUtilities.UnexpectedValue("<FLAGS>")
             'Return BadExpression(
             '    node, expr, ErrorTypeSymbol.UnknownResultType)
