@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            this.State.ResultType = _invalidType;
+            this.State.ResultType = _invalidType; // PROTOTYPE(NullableReferenceTypes): Move to `Visit` method?
             var result = base.VisitExpressionWithoutStackGuard(node);
 #if DEBUG
             // Verify Visit method set ResultType.
@@ -859,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitObjectCreationInitializer(receiver, slot, initializerOpt);
             }
 
-            this.State.Result = Result.Create(TypeSymbolWithAnnotations.Create(node.Type), slot);
+            this.State.Result = Result.Create(TypeSymbolWithAnnotations.Create(type), slot);
         }
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
