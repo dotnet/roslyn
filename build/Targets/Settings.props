@@ -82,10 +82,6 @@
 
     <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
 
-    <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir
-         (see https://github.com/Microsoft/msbuild/issues/1307) -->
-    <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.dll.config;.exe.config</AllowedReferenceRelatedFileExtensions>
-
     <!-- This controls the places MSBuild will consult to resolve assembly references.  This is 
          kept as minimal as possible to make our build reliable from machine to machine.  Global
          locations such as GAC, AssemblyFoldersEx, etc ... are deliberately removed from this 
