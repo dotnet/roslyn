@@ -203,7 +203,7 @@ class myClass : [|alias|]::Uri
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasType)]
         public async Task TestAmbiguousNestedClass()
         {
             await TestInRegularAndScriptAsync(@"
