@@ -176,6 +176,10 @@
     <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(DevEnvDir)' == '' AND '$(VsInstallRoot)' != ''">
+    <DevEnvDir>$(VsInstallRoot)\Common7\IDE</DevEnvDir>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
     <DevEnvDir>$([System.Environment]::ExpandEnvironmentVariables("%VS$(VisualStudioReferenceMajorVersion)0COMNTOOLS%"))</DevEnvDir>
     <DevEnvDir>$(DevEnvDir)\..\IDE</DevEnvDir>
