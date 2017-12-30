@@ -5812,24 +5812,24 @@ class CL1
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (13,14): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
-                 //         u1 = new [] { y1, z1 };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { y1, z1 }").WithArguments("CL1?[]", "CL1[]").WithLocation(13, 14),
-                 // (14,14): warning CS8619: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
-                 //         v1 = new [,] { {y1}, {z1} };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [,] { {y1}, {z1} }").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(14, 14),
-                 // (25,14): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
-                 //         u2 = a2;
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("CL1?[]", "CL1[]").WithLocation(25, 14),
-                 // (26,14): warning CS8619: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
-                 //         v2 = b2;
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(26, 14),
-                 // (31,21): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
-                 //         CL1 [] x8 = new [] { y8, z8 };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { y8, z8 }").WithArguments("CL1?[]", "CL1[]").WithLocation(31, 21),
-                 // (36,22): warning CS8619: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
-                 //         CL1 [,] x9 = new [,] { {y9}, {z9} };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [,] { {y9}, {z9} }").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(36, 22)
+                // (13,14): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
+                //         u1 = new [] { y1, z1 };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { y1, z1 }").WithArguments("CL1?[]", "CL1[]").WithLocation(13, 14),
+                // (14,14): warning CS8619: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
+                //         v1 = new [,] { {y1}, {z1} };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [,] { {y1}, {z1} }").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(14, 14),
+                // (25,14): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
+                //         u2 = a2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("CL1?[]", "CL1[]").WithLocation(25, 14),
+                // (26,14): warning CS8619: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
+                //         v2 = b2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(26, 14),
+                // (31,21): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
+                //         CL1 [] x8 = new [] { y8, z8 };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { y8, z8 }").WithArguments("CL1?[]", "CL1[]").WithLocation(31, 21),
+                // (36,22): warning CS8619: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
+                //         CL1 [,] x9 = new [,] { {y9}, {z9} };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [,] { {y9}, {z9} }").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(36, 22)
                 );
         }
 
@@ -8428,9 +8428,12 @@ class CL1
 ", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (15,17): warning CS8601: Possible null reference assignment.
-                 //         z2[0] = y2;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(15, 17)
+                // (14,26): warning CS8601: Possible null reference assignment.
+                //         x2[(dynamic)0] = y2;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(14, 26),
+                // (15,17): warning CS8601: Possible null reference assignment.
+                //         z2[0] = y2;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(15, 17)
                 );
         }
 
@@ -8863,6 +8866,25 @@ class C
                  //         dynamic y3 = x3.M1;
                  Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(19, 22)
                 );
+        }
+
+        [Fact]
+        public void DynamicMemberAccess_02()
+        {
+            // PROTOTYPE(NullableReferenceTypes): Consider adding test infrastructure to verify
+            // nullability based on /*[...]*/ annotations such as [dynamic], [dynamic!], [dynamic?].
+            var source =
+@"class C
+{
+    static void M(dynamic x)
+    {
+        x.F/*[dynamic]*/.ToString();
+        var y/*[dynamic]*/ = x.F;
+        y = null;
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -9300,9 +9322,6 @@ class CL0
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator &(CL0 x, CL0? y)'.
                  //         CL0? z1 = x1 && y1;
                  Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator &(CL0 x, CL0? y)").WithLocation(10, 19),
-                 // (11,18): warning CS8601: Possible null reference assignment.
-                 //         CL0 u1 = z1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z1").WithLocation(11, 18),
                  // (17,18): hidden CS8607: Expression is probably never null.
                  //         CL0 u2 = z2 ?? new CL0();
                  Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z2").WithLocation(17, 18)
@@ -9570,12 +9589,6 @@ class CL0
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
-                 //         CL0? u1 = x1 && y1 || z1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "bool CL0.operator true(CL0 x)").WithLocation(10, 19),
-                 // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator |(CL0 x, CL0? y)'.
-                 //         CL0? u1 = x1 && y1 || z1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "CL0 CL0.operator |(CL0 x, CL0? y)").WithLocation(10, 19)
                 );
         }
 
@@ -9699,6 +9712,48 @@ class CL0
                  // (10,25): warning CS8604: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0? x, CL0 y)'.
                  //         CL0? u1 = x1 && !y1;
                  Diagnostic(ErrorCode.WRN_NullReferenceArgument, "!y1").WithArguments("y", "CL0 CL0.operator &(CL0? x, CL0 y)").WithLocation(10, 25)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_13()
+        {
+            CSharpCompilation c = CreateStandardCompilation(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, CL0 y1)
+    {
+        CL0 z1 = x1 && y1;
+    }
+}
+
+class CL0
+{
+    public static CL0? operator &(CL0 x, CL0 y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0 x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0? x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (10,18): warning CS8601: Possible null reference assignment.
+                //         CL0 z1 = x1 && y1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1 && y1").WithLocation(10, 18)
                 );
         }
 
@@ -11224,7 +11279,9 @@ class Test
                 );
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Events are not tracked for structs.
+        // (This should be fixed if/when struct member state is populated lazily.)
+        [Fact(Skip = "TODO")]
         public void Events_02()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -11278,7 +11335,9 @@ struct TS1
                 );
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Events are not tracked for structs.
+        // (This should be fixed if/when struct member state is populated lazily.)
+        [Fact(Skip = "TODO")]
         public void Events_03()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -17167,6 +17226,63 @@ namespace System
                 // (16,22): warning CS8602: Possible dereference of a null reference.
                 //             _value = _f.GetHashCode();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_f").WithLocation(16, 22));
+        }
+
+        [Fact]
+        public void Pointer()
+        {
+            var source =
+@"class C
+{
+    static unsafe void F(int* p)
+    {
+        *p = 0;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IncrementWithErrors()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    static async Task<int> F(ref int i)
+    {
+        return await Task.Run(() => i++);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,38): error CS1988: Async methods cannot have ref or out parameters
+                //     static async Task<int> F(ref int i)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i").WithLocation(4, 38),
+                // (6,37): error CS1628: Cannot use ref or out parameter 'i' inside an anonymous method, lambda expression, or query expression
+                //         return await Task.Run(() => i++);
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "i").WithArguments("i").WithLocation(6, 37));
+        }
+
+        [Fact]
+        public void NullCastToValueType()
+        {
+            var source =
+@"struct S { }
+class C
+{
+    static void M()
+    {
+        S s = (S)null;
+        s.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0037: Cannot convert null to 'S' because it is a non-nullable value type
+                //         S s = (S)null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(S)null").WithArguments("S").WithLocation(6, 15));
         }
     }
 }

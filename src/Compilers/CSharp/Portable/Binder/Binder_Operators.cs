@@ -3581,9 +3581,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trueExpr,
                     falseExpr,
                     this.Conversions,
-                    this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking),
-                    out hadMultipleCandidates,
-                    ref useSiteDiagnostics);
+                    includeNullability: false,
+                    hadMultipleCandidates: out hadMultipleCandidates,
+                    useSiteDiagnostics: ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
                 if ((object)bestType == null)

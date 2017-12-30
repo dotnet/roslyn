@@ -1751,7 +1751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method, ParameterSymbol parameter)
+        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
         {
             if (refKind == RefKind.Ref)
             {

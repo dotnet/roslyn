@@ -2697,9 +2697,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bestType = BestTypeInferrer.InferBestType(
                 boundInitializerExpressions,
                 this.Conversions,
-                this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking),
-                out hadMultipleCandidates,
-                ref useSiteDiagnostics);
+                includeNullability: false,
+                hadMultipleCandidates: out hadMultipleCandidates,
+                useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.

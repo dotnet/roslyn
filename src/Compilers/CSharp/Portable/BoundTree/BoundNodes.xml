@@ -1651,8 +1651,10 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
   </Node>
 
-  <!-- Special node, used only during Data Flow Pass -->
+  <!-- Special node, used only during nullability flow analysis -->
+  <!-- PROTOTYPE(NullableReferenceTypes): Derive from BoundValuePlaceholderBase and give specific name. -->
   <Node Name="BoundValuePlaceholder" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="IsNullable" Type="bool?" Null="allow"/>
   </Node>
 </Tree>

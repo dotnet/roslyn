@@ -1890,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: ImmutableArray<int>.Empty,
                 resultKind: resultKind,
                 binderOpt: null,
-                type: baseType,
+                type: baseConstructor.ReturnType.TypeSymbol,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
         }

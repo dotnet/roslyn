@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false, binder: _binder, hasAnyRefOmittedArgument: out _);
 
             return IsApplicable(
                 constructor,
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false, binder: _binder, hasAnyRefOmittedArgument: out _);
 
             // A vararg ctor is never applicable in its expanded form because
             // it is never a params method.
@@ -2487,6 +2487,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static void GetEffectiveParameterTypes(
+            MethodSymbol method,
+            int argumentCount,
+            ImmutableArray<int> argToParamMap,
+            ArrayBuilder<RefKind> argumentRefKinds,
+            bool allowRefOmittedArguments,
+            Binder binder,
+            bool expanded,
+            out ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
+            out ImmutableArray<RefKind> parameterRefKinds)
+        {
+            bool hasAnyRefOmittedArgument;
+            EffectiveParameters effectiveParameters = expanded ?
+                GetEffectiveParametersInExpandedForm(method, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument) :
+                GetEffectiveParametersInNormalForm(method, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument);
+            parameterTypes = effectiveParameters.ParameterTypes;
+            parameterRefKinds = effectiveParameters.ParameterRefKinds;
+        }
+
         private struct EffectiveParameters
         {
             internal readonly ImmutableArray<TypeSymbolWithAnnotations> ParameterTypes;
@@ -2499,24 +2518,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
-            TMember member,
-            int argumentCount,
-            ImmutableArray<int> argToParamMap,
-            ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments)
-            where TMember : Symbol
-        {
-            bool discarded;
-            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
-        }
-
-        private EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
+        private static EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
             TMember member,
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
             bool allowRefOmittedArguments,
+            Binder binder,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
             Debug.Assert(argumentRefKinds != null);
@@ -2549,10 +2557,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var parameter = parameters[parm];
-                types.Add(_binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter));
+                types.Add(parameter.Type);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
 
                 if (refs == null)
                 {
@@ -2572,7 +2580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
         }
 
-        private RefKind GetEffectiveParameterRefKind(ParameterSymbol parameter, RefKind argRefKind, bool allowRefOmittedArguments, ref bool hasAnyRefOmittedArgument)
+        private static RefKind GetEffectiveParameterRefKind(ParameterSymbol parameter, RefKind argRefKind, bool allowRefOmittedArguments, Binder binder, ref bool hasAnyRefOmittedArgument)
         {
             var paramRefKind = parameter.RefKind;
 
@@ -2585,7 +2593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
             // We must ignore the 'ref' on the parameter while determining the applicability of argument for the given method call.
             // During argument rewriting, we will replace the argument value with a temporary local and pass that local by reference.
-            if (allowRefOmittedArguments && paramRefKind == RefKind.Ref && argRefKind == RefKind.None && !_binder.InAttributeArgument)
+            if (allowRefOmittedArguments && paramRefKind == RefKind.Ref && argRefKind == RefKind.None && !binder.InAttributeArgument)
             {
                 hasAnyRefOmittedArgument = true;
                 return RefKind.None;
@@ -2594,23 +2602,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return paramRefKind;
         }
 
-        private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
-            TMember member,
-            int argumentCount,
-            ImmutableArray<int> argToParamMap,
-            ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments) where TMember : Symbol
-        {
-            bool discarded;
-            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
-        }
-
-        private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
+        private static EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
             TMember member,
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
             bool allowRefOmittedArguments,
+            Binder binder,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
             Debug.Assert(argumentRefKinds != null);
@@ -2626,12 +2624,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 var parameter = parameters[parm];
-                var type = _binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter);
+                var type = parameter.Type;
 
                 types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type.TypeSymbol).ElementType : type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
 
                 refs.Add(paramRefKind);
                 if (paramRefKind != RefKind.None)
@@ -2692,6 +2690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 allowRefOmittedArguments,
+                _binder,
                 out hasAnyRefOmittedArgument);
 
             Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
@@ -2702,7 +2701,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
-                allowRefOmittedArguments);
+                allowRefOmittedArguments,
+                _binder,
+                out _);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
@@ -2759,6 +2760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 allowRefOmittedArguments,
+                _binder,
                 out hasAnyRefOmittedArgument);
 
             Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
@@ -2769,7 +2771,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
-                allowRefOmittedArguments);
+                allowRefOmittedArguments,
+                _binder,
+                out _);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
@@ -2937,6 +2941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var inferenceResult = MethodTypeInferrer.Infer(
                 _binder,
+                _binder.Conversions,
                 originalTypeParameters,
                 method.ContainingType,
                 originalEffectiveParameters.ParameterTypes,

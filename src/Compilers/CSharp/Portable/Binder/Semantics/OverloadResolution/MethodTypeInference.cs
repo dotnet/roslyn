@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static MethodTypeInferenceResult Infer(
             Binder binder,
+            ConversionsBase conversions,
             ImmutableArray<TypeParameterSymbol> methodTypeParameters,
             // We are attempting to build a map from method type parameters 
             // to inferred type arguments.
@@ -213,7 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            bool includeNullability = false)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -232,13 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var inferrer = new MethodTypeInferrer(
-                binder.Conversions,
+                conversions,
                 methodTypeParameters,
                 constructedContainingTypeOfMethod,
                 formalParameterTypes,
                 formalParameterRefKinds,
                 arguments,
-                binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
+                includeNullability);
             return inferrer.InferTypeArgs(binder, ref useSiteDiagnostics);
         }
 
