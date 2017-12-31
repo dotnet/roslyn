@@ -613,4 +613,94 @@
   <data name="Changing_document_property_is_not_supported" xml:space="preserve">
     <value>Changing document properties is not supported</value>
   </data>
+  <data name="Alternation_conditions_cannot_be_comments" xml:space="preserve">
+    <value>Alternation conditions cannot be comments</value>
+  </data>
+  <data name="Alternation_conditions_do_not_capture_and_cannot_be_named" xml:space="preserve">
+    <value>Alternation conditions do not capture and cannot be named</value>
+  </data>
+  <data name="A_subtraction_must_be_the_last_element_in_a_character_class" xml:space="preserve">
+    <value>A subtraction must be the last element in a character class</value>
+  </data>
+  <data name="Cannot_include_class_0_in_character_range" xml:space="preserve">
+    <value>Cannot include class \{0} in character range</value>
+  </data>
+  <data name="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue" xml:space="preserve">
+    <value>Capture group numbers must be less than or equal to Int32.MaxValue</value>
+  </data>
+  <data name="Capture_number_cannot_be_zero" xml:space="preserve">
+    <value>Capture number cannot be zero</value>
+  </data>
+  <data name="Illegal_backslash_at_end_of_pattern" xml:space="preserve">
+    <value>Illegal \ at end of pattern</value>
+  </data>
+  <data name="Illegal_x_y_with_x_less_than_y" xml:space="preserve">
+    <value>Illegal {x,y} with x &gt; y</value>
+  </data>
+  <data name="Incomplete_character_escape" xml:space="preserve">
+    <value>Incomplete \p{X} character escape</value>
+  </data>
+  <data name="Insufficient_hexadecimal_digits" xml:space="preserve">
+    <value>Insufficient hexadecimal digits</value>
+  </data>
+  <data name="Invalid_group_name_Group_names_must_begin_with_a_word_character" xml:space="preserve">
+    <value>Invalid group name: Group names must begin with a word character</value>
+  </data>
+  <data name="Malformed" xml:space="preserve">
+    <value>malformed</value>
+  </data>
+  <data name="Malformed_character_escape" xml:space="preserve">
+    <value>Malformed \p{X} character escape</value>
+  </data>
+  <data name="Malformed_named_back_reference" xml:space="preserve">
+    <value>Malformed \k&lt;...&gt; named back reference</value>
+  </data>
+  <data name="Missing_control_character" xml:space="preserve">
+    <value>Missing control character</value>
+  </data>
+  <data name="Nested_quantifier_0" xml:space="preserve">
+    <value>Nested quantifier {0}</value>
+  </data>
+  <data name="Not_enough_close_parens" xml:space="preserve">
+    <value>Not enough )'s</value>
+  </data>
+  <data name="Quantifier_x_y_following_nothing" xml:space="preserve">
+    <value>Quantifier {x,y} following nothing</value>
+  </data>
+  <data name="Reference_to_undefined_group" xml:space="preserve">
+    <value>reference to undefined group</value>
+  </data>
+  <data name="Reference_to_undefined_group_name_0" xml:space="preserve">
+    <value>Reference to undefined group name {0}</value>
+  </data>
+  <data name="Reference_to_undefined_group_number_0" xml:space="preserve">
+    <value>Reference to undefined group number {0}</value>
+  </data>
+  <data name="Too_many_bars_in_conditional_grouping" xml:space="preserve">
+    <value>Too many | in (?()|)</value>
+  </data>
+  <data name="Too_many_close_parens" xml:space="preserve">
+    <value>Too many )'s</value>
+  </data>
+  <data name="Unknown_property" xml:space="preserve">
+    <value>Unknown property</value>
+  </data>
+  <data name="Unknown_property_0" xml:space="preserve">
+    <value>Unknown property '{0}'</value>
+  </data>
+  <data name="Unrecognized_control_character" xml:space="preserve">
+    <value>Unrecognized control character</value>
+  </data>
+  <data name="Unrecognized_escape_sequence_0" xml:space="preserve">
+    <value>Unrecognized escape sequence \{0}</value>
+  </data>
+  <data name="Unrecognized_grouping_construct" xml:space="preserve">
+    <value>Unrecognized grouping construct</value>
+  </data>
+  <data name="Unterminated_character_class_set" xml:space="preserve">
+    <value>Unterminated [] set</value>
+  </data>
+  <data name="Unterminated_regex_comment" xml:space="preserve">
+    <value>Unterminated (?#...) comment</value>
+  </data>
 </root>

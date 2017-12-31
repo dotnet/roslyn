@@ -1985,6 +1985,11 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Indexer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Regex_issue_0">
+        <source>Regex issue: {0}</source>
+        <target state="new">Regex issue: {0}</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

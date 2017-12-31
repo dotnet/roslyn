@@ -1334,4 +1334,7 @@ This version used in: {2}</value>
   <data name="indexer_" xml:space="preserve">
     <value>indexer</value>
   </data>
+  <data name="Regex_issue_0" xml:space="preserve">
+    <value>Regex issue: {0}</value>
+  </data>
 </root>
