@@ -793,6 +793,156 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' BindValue evaluates the node and returns a BoundExpression.  BindValue snaps expressions to values.  For now that means that method groups
         ''' become invocations.
         ''' </summary>
+        Friend Function BindValue(
+                                   node As ExpressionSyntax,
+                                   diagnostics As DiagnosticBag,
+                          Optional isOperandOfConditionalBranch As Boolean = False
+                                 ) As BoundExpression
+            Dim expr = BindExpression(node, diagnostics:=diagnostics, isOperandOfConditionalBranch:=isOperandOfConditionalBranch, isInvocationOrAddressOf:=False, eventContext:=False)
+
+            Return MakeValue(expr, diagnostics)
+        End Function
+
+        Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
+                              node As SyntaxNode,
+                              isShared As Boolean,
+                              diagnostics As DiagnosticBag,
+                              ByRef resolvedTypeOrValueExpression As BoundExpression) As BoundExpression
+            Dim unused As QualificationKind
+            Return AdjustReceiverTypeOrValue(receiver, node, isShared, True, diagnostics, unused, resolvedTypeOrValueExpression)
+        End Function
+
+        Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
+                              node As SyntaxNode,
+                              isShared As Boolean,
+                              diagnostics As DiagnosticBag,
+                              ByRef qualKind As QualificationKind) As BoundExpression
+            Dim unused As BoundExpression = Nothing
+            Return AdjustReceiverTypeOrValue(receiver, node, isShared, False, diagnostics, qualKind, unused)
+        End Function
+
+        ''' <summary>
+        ''' Adjusts receiver of a call or a member access.
+        '''  * will turn Unknown property access into Get property access
+        '''  * will turn TypeOrValueExpression into a value expression
+        ''' </summary>
+        Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
+                              node As SyntaxNode,
+                              isShared As Boolean,
+                              clearIfShared As Boolean,
+                              diagnostics As DiagnosticBag,
+                              ByRef qualKind As QualificationKind,
+                              ByRef resolvedTypeOrValueExpression As BoundExpression) As BoundExpression
+            If receiver Is Nothing Then
+                Return receiver
+            End If
+
+            If isShared Then
+                If receiver.Kind = BoundKind.TypeOrValueExpression Then
+                    Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
+                    diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics)
+                    receiver = typeOrValue.Data.TypeExpression
+                    qualKind = QualificationKind.QualifiedViaTypeName
+                    resolvedTypeOrValueExpression = receiver
+                End If
+
+                If clearIfShared Then
+                    receiver = Nothing
+                End If
+            Else
+                If receiver.Kind = BoundKind.TypeOrValueExpression Then
+                    Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
+                    diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics)
+                    receiver = MakeValue(typeOrValue.Data.ValueExpression, diagnostics)
+                    qualKind = QualificationKind.QualifiedViaValue
+                    resolvedTypeOrValueExpression = receiver
+                End If
+
+                receiver = AdjustReceiverValue(receiver, node, diagnostics)
+            End If
+
+            Return receiver
+        End Function
+
+        ''' <summary>
+        ''' Adjusts receiver of a call or a member access if the receiver is an
+        ''' ambiguous BoundTypeOrValueExpression. This can only happen if the
+        ''' receiver is the LHS of a member access expression in which the
+        ''' RHS cannot be resolved (i.e. the RHS is an error or a late-bound
+        ''' invocation/access).
+        ''' </summary>
+        Private Shared Function AdjustReceiverAmbiguousTypeOrValue(receiver As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+            If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
+                Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
+                diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics)
+                receiver = typeOrValue.Data.ValueExpression
+            End If
+
+            Return receiver
+        End Function
+
+        Private Shared Function AdjustReceiverAmbiguousTypeOrValue(ByRef group As BoundMethodOrPropertyGroup, diagnostics As DiagnosticBag) As BoundExpression
+            Debug.Assert(group IsNot Nothing)
+
+            Dim receiver = group.ReceiverOpt
+            If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
+                receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
+
+                Select Case group.Kind
+                    Case BoundKind.MethodGroup
+                        Dim methodGroup = DirectCast(group, BoundMethodGroup)
+                        group = methodGroup.Update(methodGroup.TypeArgumentsOpt,
+                                                   methodGroup.Methods,
+                                                   methodGroup.PendingExtensionMethodsOpt,
+                                                   methodGroup.ResultKind,
+                                                   receiver,
+                                                   methodGroup.QualificationKind)
+
+                    Case BoundKind.PropertyGroup
+                        Dim propertyGroup = DirectCast(group, BoundPropertyGroup)
+                        group = propertyGroup.Update(propertyGroup.Properties,
+                                                     propertyGroup.ResultKind,
+                                                     receiver,
+                                                     propertyGroup.QualificationKind)
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(group.Kind)
+                End Select
+            End If
+
+            Return receiver
+        End Function
+
+        ''' <summary>
+        ''' Adjusts receiver of a call or a member access if it is a value
+        '''  * will turn Unknown property access into Get property access
+        ''' </summary>
+        Private Function AdjustReceiverValue(receiver As BoundExpression,
+                      node As SyntaxNode,
+                      diagnostics As DiagnosticBag) As BoundExpression
+
+            If Not receiver.IsValue() Then
+                receiver = MakeValue(receiver, diagnostics)
+            End If
+
+            If Not receiver.IsLValue AndAlso Not receiver.IsPropertyOrXmlPropertyAccess() Then
+                receiver = MakeRValue(receiver, diagnostics)
+            End If
+
+            Dim type = receiver.Type
+
+            If type Is Nothing OrElse type.IsErrorType() Then
+                Return BadExpression(node, receiver, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
+            End If
+
+            Return receiver
+        End Function
+
+        Friend Function ReclassifyAsValue(
+                                           expr As BoundExpression,
+                                           diagnostics As DiagnosticBag
+                                         ) As BoundExpression
+
             If expr.HasErrors Then
                 Return expr
             End If
@@ -802,8 +952,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not expr.IsNothingLiteral() Then
                         Return MakeRValue(expr, diagnostics)
                     End If
-                Case BoundKind.EnumFlagExpression
-                    expr = BindEnumFlagExpression(expr.Syntax, expr, s_noArguments, diagnostics)
+                'Case BoundKind.EnumFlagExpression
+                '    expr = BindEnumFlagExpression(expr.ExpressionSymbol., expr.Syntax, expr, s_noArguments, diagnostics)
 
                 Case BoundKind.MethodGroup,
                      BoundKind.PropertyGroup
@@ -3617,7 +3767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim name = node.Name
                                 Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
                                 Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
-                                Return BindEnumFlagExpression(node, left, boundArguments, diagnostics)
+                                Return BindEnumFlagExpression(original, node, left, boundArguments, diagnostics)
                             Else
                                 Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_MissingFlagsAttributeOnEnum, original.Name)
                             End If
@@ -3673,16 +3823,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindEnumFlagExpression(
+                                                original As TypeSymbol,
                                                 node As SyntaxNode,
                                                 expr As BoundExpression,
                                                 boundArguments As ImmutableArray(Of BoundExpression),
-                                                Diagnostics As DiagnosticBag
+                                                diagBag As DiagnosticBag
                                               ) As BoundExpression
+            Dim arg = DirectCast(boundArguments(0), BoundLiteral)
+            Dim member = arg.Value.StringValue
+            Dim members = original.GetMembers()
 
-            'ExceptionUtilities.UnexpectedValue("<FLAGS>")
-            'Return BadExpression(
-            '    node, expr, ErrorTypeSymbol.UnknownResultType)
-            Return New BoundEnumFlagExpression(node, expr, expr, ErrorTypeSymbol.UnknownResultType)
+            Dim found = members.Any(Function(m)
+                                        Dim e = TryCast(m, Symbols.SourceEnumConstantSymbol)
+                                        If e Is Nothing Then Return False
+                                        Dim cmp = System.StringComparer.OrdinalIgnoreCase
+                                        Return cmp.Compare(e.Name, member) = 0
+                                    End Function)
+            If found Then
+                Return New BoundEnumFlagExpression(node, expr, expr, ErrorTypeSymbol.UnknownResultType)
+            Else
+                Return ReportDiagnosticAndProduceBadExpression(diagBag:=diagBag, syntax:=DirectCast(arg.Syntax, VisualBasicSyntaxNode), id:=ERRID.ERR_NameNotMember2, member, original.Name)
+            End If
+
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)

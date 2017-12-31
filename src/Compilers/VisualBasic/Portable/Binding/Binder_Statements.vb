@@ -1886,13 +1886,101 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function AdjustAssignmentTarget(node As SyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
             Select Case op1.Kind
                 Case BoundKind.EnumFlagExpression
-                    '    Dim enumFlagAccess = DirectCast(op1, BoundEnumFlagExpression)
-                    '    Dim expr = AdjustAssignmentTarget(node, enumFlagAccess.MemberAccess, diagnostics, isError)
-                    '    Return enumFlagAccess.Update(expr)
-                    Return ReportDiagnosticAndProduceBadExpression(diagnostics, DirectCast(node, VisualBasicSyntaxNode), id:=ERRID.ERR_None)
+                '    Dim enumFlagAccess = DirectCast(op1, BoundEnumFlagExpression)
+                '    Dim expr = AdjustAssignmentTarget(node, enumFlagAccess.MemberAccess, diagnostics, isError)
+                '    Return enumFlagAccess.Update(expr)
+                Return ReportDiagnosticAndProduceBadExpression(diagnostics, DirectCast(node, VisualBasicSyntaxNode), id:=ERRID.ERR_None)
 
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(op1, BoundXmlMemberAccess)
+                    Dim expr = AdjustAssignmentTarget(node, memberAccess.MemberAccess, diagnostics, isError)
+                    Return memberAccess.Update(expr)
+
+                Case BoundKind.PropertyAccess
+                    Dim propertyAccess As BoundPropertyAccess = DirectCast(op1, BoundPropertyAccess)
+                    Dim propertySymbol As PropertySymbol = propertyAccess.PropertySymbol
+
+                    If propertyAccess.IsLValue Then
+                        Debug.Assert(propertySymbol.ReturnsByRef)
+                        WarnOnRecursiveAccess(propertyAccess, PropertyAccessKind.Get, diagnostics)
+                        Return propertyAccess.SetAccessKind(PropertyAccessKind.Get)
+                    End If
+
+                    Debug.Assert(propertyAccess.AccessKind <> PropertyAccessKind.Get)
+
+                    If Not propertyAccess.IsWriteable Then
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_NoSetProperty1, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                        isError = True
+                    Else
+                        Dim setMethod = propertySymbol.GetMostDerivedSetMethod()
+
+                        ' NOTE: the setMethod could not be present, while it would still be
+                        '       possible to write to the property in a case
+                        '       where the property is a getter-only autoproperty 
+                        '       and the writing is happening in the corresponding constructor or initializer
+                        If setMethod IsNot Nothing Then
+                            ReportDiagnosticsIfObsolete(diagnostics, setMethod, node)
+
+                            If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
+                                isError = True
+                            Else
+                                Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
+                                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+
+                                If Not IsAccessible(setMethod, useSiteDiagnostics, accessThroughType) AndAlso
+                                   IsAccessible(propertySymbol, useSiteDiagnostics, accessThroughType) Then
+                                    ReportDiagnostic(diagnostics, node, ERRID.ERR_NoAccessibleSet, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                                    isError = True
+                                End If
+
+                                diagnostics.Add(node, useSiteDiagnostics)
+                            End If
+                        End If
+                    End If
+
+                    WarnOnRecursiveAccess(propertyAccess, PropertyAccessKind.Set, diagnostics)
+                    Return propertyAccess.SetAccessKind(PropertyAccessKind.Set)
+
+                Case BoundKind.LateMemberAccess
+                    Debug.Assert((DirectCast(op1, BoundLateMemberAccess).AccessKind And (LateBoundAccessKind.Get Or LateBoundAccessKind.Call)) = 0)
+                    Return DirectCast(op1, BoundLateMemberAccess).SetAccessKind(LateBoundAccessKind.Set)
+
+                Case BoundKind.LateInvocation
+                    Debug.Assert((DirectCast(op1, BoundLateInvocation).AccessKind And (LateBoundAccessKind.Get Or LateBoundAccessKind.Call)) = 0)
+                    Return DirectCast(op1, BoundLateInvocation).SetAccessKind(LateBoundAccessKind.Set)
+
+                Case Else
+                    Return op1
+
+            End Select
+        End Function
+
+        Private Function BindAssignment(node As SyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As DiagnosticBag) As BoundAssignmentOperator
+
+            Dim isError As Boolean = False
+            op1 = AdjustAssignmentTarget(node, op1, diagnostics, isError)
+
+            Dim targetType As TypeSymbol = op1.Type
+            Debug.Assert(targetType IsNot Nothing OrElse isError)
+
+            If targetType IsNot Nothing Then
+                op2 = ApplyImplicitConversion(op2.Syntax, targetType, op2, diagnostics)
+            Else
+                ' Try to reclassify op2 if we still can.
+                op2 = MakeRValueAndIgnoreDiagnostics(op2)
+            End If
+
+            Return New BoundAssignmentOperator(node, op1, op2, False, hasErrors:=isError)
+        End Function
+
+        Private Function BindCompoundAssignment(
+                                                 node As VisualBasicSyntaxNode,
+                                                 left As BoundExpression,
+                                                 right As BoundExpression,
+                                                 operatorTokenKind As SyntaxKind,
+                                                 operatorKind As BinaryOperatorKind,
+                                                 diagnostics As DiagnosticBag
+                                               ) As BoundAssignmentOperator
 
             Dim isError As Boolean = False
 
