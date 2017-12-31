@@ -1,6 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
 using System.ComponentModel.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Threading;
 
@@ -11,10 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [PartCreationPolicy(CreationPolicy.NonShared)] // JTC is "main thread" affinitized so should not be shared
     internal class TestExportJoinableTaskContext : ForegroundThreadAffinitizedObject
     {
-        private static readonly ConcurrentDictionary<Thread, JoinableTaskContext> s_jtcPerThread = new ConcurrentDictionary<Thread, JoinableTaskContext>();
+        [ThreadStatic]
+        private static JoinableTaskContext s_joinableTaskContext;
 
         [Export]
-        private JoinableTaskContext _joinableTaskContext = s_jtcPerThread.GetOrAdd(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Thread,
-            (thread) => new JoinableTaskContext(mainThread: thread));
+        private JoinableTaskContext _joinableTaskContext = s_joinableTaskContext ?? (s_joinableTaskContext = new JoinableTaskContext());
     }
 }
