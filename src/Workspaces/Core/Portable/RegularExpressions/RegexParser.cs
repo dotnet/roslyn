@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private RegexQuantifierNode TryParseLazyQuantifier(RegexQuantifierNode quantifier)
+        private RegexExpressionNode TryParseLazyQuantifier(RegexQuantifierNode quantifier)
         {
             if (_currentToken.Kind != RegexKind.QuestionToken)
             {
@@ -315,21 +315,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return new RegexLazyQuantifierNode(quantifier, questionToken);
         }
 
-        private RegexQuantifierNode ParseZeroOrMoreQuantifier(RegexPrimaryExpressionNode current, RegexToken asteriskToken)
+        private RegexExpressionNode ParseZeroOrMoreQuantifier(RegexPrimaryExpressionNode current, RegexToken asteriskToken)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
             ScanNextToken(allowTrivia: true);
             return TryParseLazyQuantifier(new RegexZeroOrMoreQuantifierNode(current, asteriskToken));
         }
 
-        private RegexQuantifierNode ParseOneOrMoreQuantifier(RegexPrimaryExpressionNode current, RegexToken plusToken)
+        private RegexExpressionNode ParseOneOrMoreQuantifier(RegexPrimaryExpressionNode current, RegexToken plusToken)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
             ScanNextToken(allowTrivia: true);
             return TryParseLazyQuantifier(new RegexOneOrMoreQuantifierNode(current, plusToken));
         }
 
-        private RegexQuantifierNode ParseZeroOrOneQuantifier(RegexPrimaryExpressionNode current, RegexToken questionToken)
+        private RegexExpressionNode ParseZeroOrOneQuantifier(RegexPrimaryExpressionNode current, RegexToken questionToken)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
             ScanNextToken(allowTrivia: true);
@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
-                backslashToken = backslashToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(new RegexDiagnostic(
+                backslashToken = backslashToken.AddDiagnosticIfNone(new RegexDiagnostic(
                     WorkspacesResources.Illegal_backslash_at_end_of_pattern,
                     GetSpan(backslashToken)));
                 return new RegexSimpleEscapeNode(backslashToken, RegexToken.CreateMissing(RegexKind.TextToken));
@@ -1693,7 +1693,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 token = token.AddDiagnosticIfNone(new RegexDiagnostic(
                     WorkspacesResources.Quantifier_x_y_following_nothing, GetSpan(token)));
             }
-            else if (current is RegexQuantifierNode)
+            else if (current is RegexQuantifierNode ||
+                     current is RegexLazyQuantifierNode)
             {
                 token = token.AddDiagnosticIfNone(new RegexDiagnostic(
                     string.Format(WorkspacesResources.Nested_quantifier_0, token.VirtualChars.First().Char), GetSpan(token)));
