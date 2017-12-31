@@ -3822,6 +3822,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return typeSymbol.GetAttributes().Any(IsFlagsAttribute)
         End Function
 
+        Private Function IsMemberOfThisEnum(thisEnumSymbol As TypeSymbol, member As String) As Boolean
+            Dim members = thisEnumSymbol.GetMembers()
+            For i = 0 To members.Length - 1
+                If String.Compare(member, members(i).Name, ignoreCase:=True) = 0 Then Return True
+            Next
+            Return False
+        End Function
+
         Friend Function BindEnumFlagExpression(
                                                 original As TypeSymbol,
                                                 node As SyntaxNode,
@@ -3829,22 +3837,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 boundArguments As ImmutableArray(Of BoundExpression),
                                                 diagBag As DiagnosticBag
                                               ) As BoundExpression
-            Dim arg = DirectCast(boundArguments(0), BoundLiteral)
-            Dim member = arg.Value.StringValue
-            Dim members = original.GetMembers()
+            Dim member = DirectCast(boundArguments(0), BoundLiteral).Value.StringValue
 
-            Dim found = members.Any(Function(m)
-                                        Dim e = TryCast(m, Symbols.SourceEnumConstantSymbol)
-                                        If e Is Nothing Then Return False
-                                        Dim cmp = System.StringComparer.OrdinalIgnoreCase
-                                        Return cmp.Compare(e.Name, member) = 0
-                                    End Function)
-            If found Then
-                Return New BoundEnumFlagExpression(node, expr, expr, ErrorTypeSymbol.UnknownResultType)
-            Else
-                Return ReportDiagnosticAndProduceBadExpression(diagBag:=diagBag, syntax:=DirectCast(arg.Syntax, VisualBasicSyntaxNode), id:=ERRID.ERR_NameNotMember2, member, original.Name)
+            If Not IsMemberOfThisEnum(original, member) Then
+                Return ReportDiagnosticAndProduceBadExpression(
+                                                      diagBag:=diagBag,
+                                                       syntax:=DirectCast(boundArguments(0).Syntax, VisualBasicSyntaxNode),
+                                                           id:=ERRID.ERR_NameNotMember2,
+                                                                member, original.Name)
             End If
+            ' We have a valid member of the enum referred to.
 
+            Return New BoundEnumFlagExpression(node, expr, expr, ErrorTypeSymbol.UnknownResultType)
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)
