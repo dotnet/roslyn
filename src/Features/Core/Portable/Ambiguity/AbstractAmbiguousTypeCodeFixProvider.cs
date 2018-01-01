@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -42,13 +43,17 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
                 {
                     var aliasDirective = GetAliasDirective(typeName, symbol);
                     var newRoot = addImportService.AddImport(semanticModel.Compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
-                    codeActionsBuilder.Add(new MyCodeAction( symbol.ContainingNamespace.Name,
+                    var codeActionPreviewText = GetTextPreviewOfChange(aliasDirective, document.Project.Solution.Workspace);
+                    codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText,
                                                             c => Task.FromResult(document.WithSyntaxRoot(newRoot))));
                 }
                 var groupedCodeAction = new GroupingCodeAction("Test", codeActionsBuilder.ToImmutable());
                 context.RegisterCodeFix(groupedCodeAction, diagnostic);
             }
         }
+
+        private static string GetTextPreviewOfChange(SyntaxNode newNode, Workspace workspace)
+            => Formatter.Format(newNode, workspace).ToFullString();
 
         private static string GetAliasFromDiagnsoticNode(ISyntaxFactsService syntaxFacts, SyntaxNode diagnosticNode)
         {
