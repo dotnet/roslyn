@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         /// <summary>
-        /// Gets an <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
+        /// Gets a <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
         /// </summary>
         /// <remarks>
         /// Database connections have a large amount of overhead, and should be returned to the pool when they are no

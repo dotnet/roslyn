@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly Dictionary<string, string> _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// Create a new instance of an <see cref="MSBuildProjectLoader"/>.
+        /// Create a new instance of a <see cref="MSBuildProjectLoader"/>.
         /// </summary>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string> properties = null)
         {
