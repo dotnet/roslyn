@@ -24,15 +24,14 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            var span = context.Span;
-            var diagnostic = context.Diagnostics.First();
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var addImportService = document.GetLanguageService<IAddImportsService>();
+            var diagnostic = context.Diagnostics.First();
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var diagnosticNode = root.FindNode(span);
+            var diagnosticNode = root.FindNode(context.Span);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolInfo = semanticModel.GetSymbolInfo(diagnosticNode, cancellationToken);
             if (SymbolInfoContainesSupportedSymbols(symbolInfo))
@@ -47,7 +46,8 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
                     codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText,
                                                             c => Task.FromResult(document.WithSyntaxRoot(newRoot))));
                 }
-                var groupedCodeAction = new GroupingCodeAction("Test", codeActionsBuilder.ToImmutable());
+                var groupedTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, typeName);
+                var groupedCodeAction = new GroupingCodeAction(groupedTitle, codeActionsBuilder.ToImmutable());
                 context.RegisterCodeFix(groupedCodeAction, diagnostic);
             }
         }
