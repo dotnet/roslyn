@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
             if (SymbolInfoContainesSupportedSymbols(symbolInfo))
             {
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
-                var typeName = diagnosticNode.ToString();
+                var typeName = GetAliasFromDiagnsoticNode(syntaxFacts, diagnosticNode);
                 foreach (var symbol in symbolInfo.CandidateSymbols)
                 {
                     var aliasDirective = GetAliasDirective(typeName, symbol);
@@ -49,14 +49,30 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
             }
         }
 
+        private static string GetAliasFromDiagnsoticNode(ISyntaxFactsService syntaxFacts, SyntaxNode diagnosticNode)
+        {
+            // The content of the node is a good candidate for the alias
+            // For attributes VB requires that the alias ends with 'Attribute' while C# is fine with or without the suffix.
+            var nodeText = diagnosticNode.ToString();
+            if (syntaxFacts.IsAttribute(diagnosticNode) || syntaxFacts.IsAttribute(diagnosticNode.Parent))
+            {
+                if (!nodeText.EndsWith("Attribute"))
+                {
+                    nodeText += "Attribute";
+                }
+            }
+
+            return nodeText;
+        }
+
         private bool SymbolInfoContainesSupportedSymbols(SymbolInfo symbolInfo)
             => symbolInfo.CandidateReason == CandidateReason.Ambiguous &&
                // Arity: Aliases can not name unbound generic types. Only closed constructed types can be aliased.
                // Aliasing as a closed constructed type is possible but would require to remove the type arguments from the diagnosed node.
                // It is unlikely that the user wants that and so generic types are not supported.
-               // SymbolKind.Namespace: see test method TestAmbiguousAliasNoDiagnostics
-               symbolInfo.CandidateSymbols.All(symbol => symbol.GetArity() == 0 &&
-                                                         !symbol.IsKind(SymbolKind.Namespace));
+               // SymbolKind.NamedType: only types can be aliased by this fix.
+               symbolInfo.CandidateSymbols.All(symbol => symbol.IsKind(SymbolKind.NamedType) &&
+                                                         symbol.GetArity() == 0);
 
         private static string GetNodeName(ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {

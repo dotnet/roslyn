@@ -133,7 +133,7 @@ namespace Test
 }", @"
 using N1;
 using N2;
-using Ambiguous = N1.AmbiguousAttribute;
+using AmbiguousAttribute = N1.AmbiguousAttribute;
 " + classDef + @"
 namespace Test
 {
@@ -206,7 +206,7 @@ class myClass : [|alias|]::Uri
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasType)]
         public async Task TestAmbiguousNestedClass()
         {
-            await TestInRegularAndScriptAsync(@"
+            var initialMarkup = @"
 using static Static<string>;
 using static Static<int>;
  
@@ -225,10 +225,11 @@ class D
         var c = new [|Nested|]();
         c.M();
     }
-}", @"
+}";
+            var expectedMarkup = @"
 using static Static<string>;
 using static Static<int>;
-using Nested = Static<string>.Nested;
+#
 
 public static class Static<T>
 {
@@ -245,7 +246,9 @@ class D
         var c = new Nested();
         c.M();
     }
-}");
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup.Replace("#", "using Nested = Static<string>.Nested;"), 0);
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup.Replace("#", "using Nested = Static<int>.Nested;"), 1);
         }
     }
 }
