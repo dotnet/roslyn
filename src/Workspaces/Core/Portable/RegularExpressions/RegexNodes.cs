@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -59,6 +62,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override RegexNodeOrToken ChildAt(int index)
             => Children[index];
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -78,6 +84,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public override int ChildCount => 1;
 
         public override RegexNodeOrToken ChildAt(int index) => TextToken;
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -126,6 +135,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -157,6 +169,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -193,6 +208,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -227,6 +245,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -248,6 +269,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public override int ChildCount => 1;
 
         public override RegexNodeOrToken ChildAt(int index) => TextToken;
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -289,6 +313,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public override int ChildCount => 1;
 
         public override RegexNodeOrToken ChildAt(int index) => DotToken;
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -332,6 +359,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -364,6 +394,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -396,6 +429,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -430,6 +466,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -482,6 +521,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -516,6 +558,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -554,6 +599,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -573,6 +621,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public override int ChildCount => 1;
 
         public override RegexNodeOrToken ChildAt(int index) => AnchorToken;
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -609,6 +660,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -656,6 +710,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -712,6 +769,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -749,6 +809,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -785,6 +848,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -821,6 +887,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -857,6 +926,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     internal abstract class RegexLookbehindGroupingNode : RegexQuestionGroupingNode
@@ -908,6 +980,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -945,6 +1020,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -981,6 +1059,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1023,6 +1104,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1072,6 +1156,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     internal abstract class RegexConditionalGroupingNode : RegexQuestionGroupingNode
@@ -1127,6 +1214,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1161,6 +1251,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1213,6 +1306,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1241,6 +1337,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1269,6 +1368,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1297,6 +1399,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1331,7 +1436,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
+
     /// <summary>
     /// ```\k'name'``` or ```\k&lt;name&gt;``` escape.
     /// </summary>
@@ -1366,6 +1475,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1393,6 +1505,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1420,6 +1535,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -1459,5 +1577,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             throw new InvalidOperationException();
         }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
     }
 }

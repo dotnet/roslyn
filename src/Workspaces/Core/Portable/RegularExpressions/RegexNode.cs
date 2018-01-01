@@ -16,5 +16,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public abstract int ChildCount { get; }
         public abstract RegexNodeOrToken ChildAt(int index);
+
+        public abstract void Accept(IRegexNodeVisitor visitor);
     }
 }
