@@ -42,10 +42,11 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
                 {
                     var aliasDirective = GetAliasDirective(typeName, symbol);
                     var newRoot = addImportService.AddImport(semanticModel.Compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
-                    codeActionsBuilder.Add(new MyCodeAction(symbol.ContainingNamespace.Name,
+                    codeActionsBuilder.Add(new MyCodeAction( symbol.ContainingNamespace.Name,
                                                             c => Task.FromResult(document.WithSyntaxRoot(newRoot))));
                 }
-                context.RegisterFixes(codeActionsBuilder.ToImmutable(), diagnostic);
+                var groupedCodeAction = new GroupingCodeAction("Test", codeActionsBuilder.ToImmutable());
+                context.RegisterCodeFix(groupedCodeAction, diagnostic);
             }
         }
 
@@ -73,12 +74,6 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
                // SymbolKind.NamedType: only types can be aliased by this fix.
                symbolInfo.CandidateSymbols.All(symbol => symbol.IsKind(SymbolKind.NamedType) &&
                                                          symbol.GetArity() == 0);
-
-        private static string GetNodeName(ISyntaxFactsService syntaxFacts, SyntaxNode node)
-        {
-            syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
-            return name;
-        }
 
         private class MyCodeAction : DocumentChangeAction
         {

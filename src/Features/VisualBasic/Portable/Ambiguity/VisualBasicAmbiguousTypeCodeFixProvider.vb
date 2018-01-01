@@ -22,10 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Ambiguity
         End Property
 
         Protected Overrides Function GetAliasDirective(ByVal typeName As String, ByVal symbol As ISymbol) As SyntaxNode
-            Return SyntaxFactory.ImportsStatement(SyntaxFactory.SeparatedList(Of ImportsClauseSyntax).Add(
-                                                  SyntaxFactory.SimpleImportsClause(
-                                                  SyntaxFactory.ImportAliasClause(typeName),
-                                                  SyntaxFactory.IdentifierName(symbol.ToNameDisplayString()))))
+            Return SyntaxFactory.ImportsStatement(
+                SyntaxFactory.SeparatedList(Of ImportsClauseSyntax).Add(
+                    SyntaxFactory.SimpleImportsClause(
+                        SyntaxFactory.ImportAliasClause(typeName),
+                        SyntaxFactory.IdentifierName(symbol.ToNameDisplayString())
+                    )
+                )
+            )
         End Function
     End Class
 End Namespace
