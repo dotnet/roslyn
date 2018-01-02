@@ -391,6 +391,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(95, 149, 250);
             }
         }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexAnchor)]
+        [Name(ClassificationTypeNames.RegexAnchor)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexAnchorFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexAnchorFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
+                this.ForegroundColor = Color.FromRgb(255, 255, 0);
+            }
+        }
         #endregion
 
 

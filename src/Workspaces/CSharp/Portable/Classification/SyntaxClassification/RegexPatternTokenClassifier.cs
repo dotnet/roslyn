@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             public void Visit(RegexAnchorNode node)
             {
-                
+                AddClassification(node.AnchorToken, ClassificationTypeNames.RegexAnchor);
             }
 
             public void Visit(RegexAlternationNode node)

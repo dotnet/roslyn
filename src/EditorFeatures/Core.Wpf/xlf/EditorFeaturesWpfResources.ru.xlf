@@ -32,6 +32,11 @@
         <target state="new">Regex - Quantifier</target>
         <note />
       </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="new">Regex - Anchor</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

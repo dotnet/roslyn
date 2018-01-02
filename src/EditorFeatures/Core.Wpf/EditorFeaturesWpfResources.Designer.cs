@@ -88,6 +88,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Regex - Anchor.
+        /// </summary>
+        internal static string Regex_Anchor {
+            get {
+                return ResourceManager.GetString("Regex_Anchor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex - Chraracter class.
         /// </summary>
         internal static string Regex_Character_class {

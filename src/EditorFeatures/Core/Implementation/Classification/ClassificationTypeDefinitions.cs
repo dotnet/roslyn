@@ -149,6 +149,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexQuantifier)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition RegexQuantifierTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.RegexAnchor)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition RegexAnchorTypeDefinition;
         #endregion
 
         #region VB XML Literals - Attribute Name 
