@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static readonly ConditionalWeakTable<SemanticModel, RegexPatternDetector> _modelToDetector =
             new ConditionalWeakTable<SemanticModel, RegexPatternDetector>();
 
-        public override ImmutableArray<int> SyntaxTokenKinds { get; } = ImmutableArray.Create<int>((int)SyntaxKind.StringLiteralToken);
+        public override ImmutableArray<int> SyntaxTokenKinds { get; } = ImmutableArray.Create((int)SyntaxKind.StringLiteralToken);
 
         public override void AddClassifications(SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {

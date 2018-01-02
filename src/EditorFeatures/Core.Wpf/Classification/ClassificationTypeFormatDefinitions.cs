@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private RegexEscapeFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Escape;
                 this.ForegroundColor = Color.FromRgb(255, 128, 9);
             }
         }
@@ -466,7 +466,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private RegexGroupingFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
+
                 this.ForegroundColor = Color.FromRgb(78, 201, 176);
             }
         }

@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regex -Grouping.
+        ///   Looks up a localized string similar to Regex - Grouping.
         /// </summary>
         internal static string Regex_Grouping {
             get {
