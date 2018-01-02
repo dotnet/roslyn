@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     internal class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
     {
         public override void AddClassifications(
+            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result,

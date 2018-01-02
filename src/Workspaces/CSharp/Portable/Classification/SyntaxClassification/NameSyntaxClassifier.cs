@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     internal class NameSyntaxClassifier : AbstractSyntaxClassifier
     {
         public override void AddClassifications(
+            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result,

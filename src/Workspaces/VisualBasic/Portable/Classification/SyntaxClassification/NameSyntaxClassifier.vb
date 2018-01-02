@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(GetType(NameSyntax), GetType(ModifiedIdentifierSyntax))
 
         Public Overrides Sub AddClassifications(
+                workspace As Workspace,
                 syntax As SyntaxNode,
                 semanticModel As SemanticModel,
                 result As ArrayBuilder(Of ClassifiedSpan),

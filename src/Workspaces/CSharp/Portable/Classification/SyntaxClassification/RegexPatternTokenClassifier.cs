@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -19,9 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         public override ImmutableArray<int> SyntaxTokenKinds { get; } = ImmutableArray.Create((int)SyntaxKind.StringLiteralToken);
 
-        public override void AddClassifications(SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public override void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             Debug.Assert(token.Kind() == SyntaxKind.StringLiteralToken);
+            if (!workspace.Options.GetOption(RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.CSharp))
+            {
+                return;
+            }
 
             // Do some quick syntactic checks before doing any complex work.
             if (RegexPatternDetector.IsDefinitelyNotPattern(token, CSharpSyntaxFactsService.Instance))

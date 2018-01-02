@@ -5,22 +5,30 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.ValidateRegexString
+namespace Microsoft.CodeAnalysis.RegularExpressions
 {
-    internal class ValidateRegexStringOption
+    internal class RegularExpressionsOptions
     {
+        public static PerLanguageOption<bool> ColorizeRegexPatterns =
+            new PerLanguageOption<bool>(
+                nameof(RegularExpressionsOptions),
+                nameof(ColorizeRegexPatterns),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
+
         public static PerLanguageOption<bool> ReportInvalidRegexPatterns =
             new PerLanguageOption<bool>(
-                nameof(ValidateRegexStringOption), 
+                nameof(RegularExpressionsOptions), 
                 nameof(ReportInvalidRegexPatterns), 
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
     }
 
     [ExportOptionProvider, Shared]
-    internal class ValidateRegexStringOptionProvider : IOptionProvider
+    internal class RegularExpressionsOptionsProvider : IOptionProvider
     {
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            ValidateRegexStringOption.ReportInvalidRegexPatterns);
+            RegularExpressionsOptions.ColorizeRegexPatterns,
+            RegularExpressionsOptions.ReportInvalidRegexPatterns);
     }
 }

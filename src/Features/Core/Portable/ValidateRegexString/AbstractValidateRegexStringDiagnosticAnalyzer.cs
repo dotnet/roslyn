@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
                 return;
             }
 
-            var option = optionSet.GetOption(ValidateRegexStringOption.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
+            var option = optionSet.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)
             {
                 return;

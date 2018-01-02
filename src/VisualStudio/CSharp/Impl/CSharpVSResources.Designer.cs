@@ -124,6 +124,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Colorize regular expressions.
+        /// </summary>
+        internal static string Colorize_regular_expressions {
+            get {
+                return ResourceManager.GetString("Colorize_regular_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Completion Lists.
         /// </summary>
         internal static string Completion_Lists {
@@ -1033,6 +1042,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Regular Expressions.
+        /// </summary>
+        internal static string Regular_Expressions {
+            get {
+                return ResourceManager.GetString("Regular_Expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove spaces before and after binary operators.
         /// </summary>
         internal static string Remove_spaces_before_and_after_binary_operators {
@@ -1047,6 +1065,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Report_invalid_placeholders_in_string_dot_format_calls {
             get {
                 return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_calls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Report invalid regular expressions.
+        /// </summary>
+        internal static string Report_invalid_regular_expressions {
+            get {
+                return ResourceManager.GetString("Report_invalid_regular_expressions", resourceCulture);
             }
         }
         

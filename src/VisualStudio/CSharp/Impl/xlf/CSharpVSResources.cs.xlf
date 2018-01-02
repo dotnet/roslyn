@@ -692,6 +692,21 @@
         <target state="translated">Zobrazovat návr_hy názvů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="new">Colorize regular expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="new">Regular Expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="new">Report invalid regular expressions</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
