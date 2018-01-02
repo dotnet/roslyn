@@ -7,11 +7,6 @@
     "xUnit.net WPF Runner": {
       "executablePath": "$(XUnitWpfPath)",
       "commandLineArgs": "$(XUnitWpfArguments)"
-    },
-    "RunTestMethod": {
-      "commandName": "Executable",
-      "executablePath": "C:\\Users\\MartinStrecker\\.nuget\\packages\\xunit.runner.console\\2.2.0-beta4-build3444\\tools\\xunit.console.x86.exe",
-      "commandLineArgs": "C:\\IFP\\OS\\roslyn\\Binaries\\Debug\\UnitTests\\CSharpEditorServicesTest\\Roslyn.Services.Editor.CSharp.UnitTests.dll -wait -trait \"Feature=CodeActions.AliasType\""
     }
   }
 }
