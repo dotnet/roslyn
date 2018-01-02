@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private static bool HasRegexLanguageComment(
             SyntaxToken token, ISyntaxFactsService syntaxFacts, out RegexOptions options)
         {
+            if (HasRegexLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out options))
+            {
+                return true;
+            }
+
             for (var node = token.Parent; node != null; node = node.Parent)
             {
                 if (HasRegexLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out options))
