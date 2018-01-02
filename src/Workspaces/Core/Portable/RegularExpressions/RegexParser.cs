@@ -19,20 +19,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private readonly ArrayBuilder<RegexDiagnostic> _diagnostics;
         private RegexOptions _options;
         private RegexToken _currentToken;
-        private readonly List<string> _captureNames;
-        private readonly List<int> _captureNumbers;
+        private readonly ImmutableArray<(string, TextSpan)> _captureNamesToSpan;
+        private readonly ImmutableArray<(int, TextSpan)> _captureNumbersToSpan;
         private int _recursionDepth;
 
         private RegexParser(
             ImmutableArray<VirtualChar> text, RegexOptions options,
-            List<string> captureNames, List<int> captureNumbers) : this()
+            ImmutableArray<(string, TextSpan)> captureNamesToSpan, 
+            ImmutableArray<(int, TextSpan)> captureNumbersToSpan) : this()
         {
             _lexer = new RegexLexer(text);
             _diagnostics = ArrayBuilder<RegexDiagnostic>.GetInstance();
             _options = options;
 
-            _captureNames = captureNames;
-            _captureNumbers = captureNumbers;
+            _captureNamesToSpan = captureNamesToSpan;
+            _captureNumbersToSpan = captureNumbersToSpan;
 
             ScanNextToken(allowTrivia: true);
         }
@@ -54,15 +55,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 // This is necessary as .net regexes allow references to *future* captures.
                 // As such, we don't know when we're seeing a reference if it's to something
                 // that exists or not.
-                var tree1 = new RegexParser(text, options, null, null).ParseTree();
+                var tree1 = new RegexParser(text, options, default, default).ParseTree();
 
-                var captureNames = new List<string>();
-                var captureNumbers = new List<int> { 0 };
+                var captureNames = ArrayBuilder<(string, TextSpan)>.GetInstance();
+                var captureNumbers = ArrayBuilder<(int, TextSpan)>.GetInstance();
+                captureNumbers.Add((0, text.Length == 0 ? default : GetSpan(text[0], text.Last())));
+
                 var autoNumber = 1;
-                CollectCaptures(tree1.Root, captureNames, captureNumbers, ref autoNumber);
+                CollectCaptures(text, tree1.Root, options, captureNames, captureNumbers, ref autoNumber);
                 AssignNumbersToCaptureNames(captureNames, captureNumbers, autoNumber);
 
-                var tree2 = new RegexParser(text, options, captureNames, captureNumbers).ParseTree();
+                var tree2 = new RegexParser(
+                    text, options, captureNames.ToImmutable(), captureNumbers.ToImmutable()).ParseTree();
                 return tree2;
             }
             catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
@@ -71,36 +75,57 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private static void AssignNumbersToCaptureNames(List<string> captureNames, List<int> captureNumbers, int autoNumber)
+        private static void AssignNumbersToCaptureNames(
+            ArrayBuilder<(string, TextSpan)> captureNames,
+            ArrayBuilder<(int, TextSpan)> captureNumbers, 
+            int autoNumber)
         {
-            foreach (var name in captureNames)
+            foreach (var capture in captureNames)
             {
-                while (captureNumbers.Contains(autoNumber))
+                while (alreadyInUse(captureNumbers, autoNumber))
                 {
                     autoNumber++;
                 }
 
-                captureNumbers.Add(autoNumber++);
+                captureNumbers.Add((autoNumber, capture.Item2));
+                autoNumber++;
+            }
+
+            bool alreadyInUse(ArrayBuilder<(int, TextSpan)> values, int val)
+            {
+                foreach (var tuple in values)
+                {
+                    if (val == tuple.Item1)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
         private static void CollectCaptures(
-            RegexNode node, List<string> captureNames, List<int> captureNumbers, ref int autoNumber)
+            ImmutableArray<VirtualChar> text, RegexNode node, RegexOptions options,
+            ArrayBuilder<(string, TextSpan)> captureNames,
+            ArrayBuilder<(int, TextSpan)> captureNumbers, ref int autoNumber)
         {
             switch (node.Kind)
             {
                 case RegexKind.CaptureGrouping:
                     var captureGrouping = (RegexCaptureGroupingNode)node;
-                    CollectCapture(captureNames, captureNumbers, captureGrouping.CaptureToken);
+                    CollectCapture(captureNames, captureNumbers,
+                        captureGrouping.CaptureToken, GetGroupingSpan(text, captureGrouping));
                     break;
 
                 case RegexKind.BalancingGrouping:
                     var balancingGroup = (RegexBalancingGroupingNode)node;
-                    CollectCapture(captureNames, captureNumbers, balancingGroup.FirstCaptureToken);
+                    CollectCapture(captureNames, captureNumbers,
+                        balancingGroup.FirstCaptureToken, GetGroupingSpan(text, balancingGroup));
                     break;
 
                 case RegexKind.SimpleGrouping:
-                    CollectCaptures(captureNumbers, ref autoNumber, (RegexSimpleGroupingNode)node);
+                    CollectCaptures(text, captureNumbers, (RegexSimpleGroupingNode)node, options, ref autoNumber);
                     break;
             }
 
@@ -109,13 +134,32 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 var child = node.ChildAt(i);
                 if (child.IsNode)
                 {
-                    CollectCaptures(child.Node, captureNames, captureNumbers, ref autoNumber);
+                    CollectCaptures(text, child.Node, options, captureNames, captureNumbers, ref autoNumber);
                 }
             }
         }
 
-        private static void CollectCaptures(List<int> captureNumbers, ref int autoNumber, RegexSimpleGroupingNode node)
+        private static TextSpan GetGroupingSpan(ImmutableArray<VirtualChar> text, RegexGroupingNode grouping)
         {
+            Debug.Assert(!grouping.OpenParenToken.IsMissing);
+            var lastChar = grouping.CloseParenToken.IsMissing
+                ? text.Last()
+                : grouping.CloseParenToken.VirtualChars.Last();
+
+            return GetSpan(grouping.OpenParenToken.VirtualChars[0], lastChar);
+        }
+
+        private static void CollectCaptures(
+            ImmutableArray<VirtualChar> text,
+            ArrayBuilder<(int, TextSpan)> captureNumbers, 
+            RegexSimpleGroupingNode node, RegexOptions options, ref int autoNumber)
+        {
+            if (HasOption(options, RegexOptions.ExplicitCapture))
+            {
+                // Don't automatically add simply groups if the explicit capture option is on.
+                return;
+            }
+
             // Don't count a bogus (? node as a capture node.
             var expr = node.Expression;
             while (expr is RegexAlternationNode alternation)
@@ -127,37 +171,46 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 sequence.ChildCount > 0)
             {
                 var leftMost = sequence.ChildAt(0);
-                if (leftMost.Node is RegexTextNode text &&
-                    IsTextChar(text.TextToken, '?'))
+                if (leftMost.Node is RegexTextNode textNode &&
+                    IsTextChar(textNode.TextToken, '?'))
                 {
                     return;
                 }
             }
 
-            AddIfMissing(captureNumbers, autoNumber++);
+            AddIfMissing(captureNumbers, autoNumber++, GetGroupingSpan(text, node));
         }
 
-        private static void CollectCapture(List<string> captureNames, List<int> captureNumbers, RegexToken token)
+        private static void CollectCapture(
+            ArrayBuilder<(string, TextSpan)> captureNames,
+            ArrayBuilder<(int, TextSpan)> captureNumbers, 
+            RegexToken token, TextSpan span)
         {
             if (!token.IsMissing)
             {
                 if (token.Kind == RegexKind.NumberToken)
                 {
-                    AddIfMissing(captureNumbers, (int)token.Value);
+                    AddIfMissing(captureNumbers, (int)token.Value, span);
                 }
                 else
                 {
-                    AddIfMissing(captureNames, (string)token.Value);
+                    AddIfMissing(captureNames, (string)token.Value, span);
                 }
             }
         }
 
-        private static void AddIfMissing<T>(List<T> captures, T val)
+        private static void AddIfMissing<T>(ArrayBuilder<(T, TextSpan)> captures, T val, TextSpan span)
         {
-            if (!captures.Contains(val))
+            foreach (var capture in captures)
             {
-                captures.Add(val);
+                if (val.Equals(capture.Item1))
+                {
+                    return;
+                }
             }
+
+
+            captures.Add((val, span));
         }
 
         private RegexTree ParseTree()
@@ -648,7 +701,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     if (_currentToken.Kind == RegexKind.CloseParenToken)
                     {
                         innerCloseParenToken = _currentToken;
-                        if (_captureNumbers?.Contains((int)capture.Value) == false)
+                        if (!HasCapture((int)capture.Value))
                         {
                             capture = capture.AddDiagnosticIfNone(new RegexDiagnostic(
                                 WorkspacesResources.Reference_to_undefined_group,
@@ -667,7 +720,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 else
                 {
                     // If its a capture name, its ok if it doesn't exist.
-                    if (_captureNames?.Contains((string)capture.Value) != true)
+                    if (!HasCapture((string)capture.Value))
                     {
                         _lexer.Position = afterInnerOpenParen;
                         return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
@@ -692,6 +745,28 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     innerOpenParenToken, capture, innerCloseParenToken,
                     result, ParseGroupingCloseParen());
             }
+        }
+
+        private bool HasCapture(int value)
+            => HasCapture(_captureNumbersToSpan, value);
+
+        private bool HasCapture(string value)
+            => HasCapture(_captureNamesToSpan, value);
+
+        private static bool HasCapture<T>(ImmutableArray<(T, TextSpan)> captures, T val)
+        {
+            if (!captures.IsDefault)
+            {
+                foreach (var capture in captures)
+                {
+                    if (val.Equals(capture.Item1))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void MoveBackBeforePreviousScan()
@@ -934,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private void CheckCapture(ref RegexToken captureToken)
         {
-            if (_captureNames == null)
+            if (_captureNamesToSpan == null)
             {
                 // Doing the first pass.  Can't validate capture references.
                 return;
@@ -949,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             if (captureToken.Kind == RegexKind.NumberToken)
             {
                 var val = (int)captureToken.Value;
-                if (!_captureNumbers.Contains(val))
+                if (!HasCapture(val))
                 {
                     captureToken = captureToken.AddDiagnosticIfNone(new RegexDiagnostic(
                         string.Format(WorkspacesResources.Reference_to_undefined_group_number_0, val),
@@ -959,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             else
             {
                 var val = (string)captureToken.Value;
-                if (!_captureNames.Contains(val))
+                if (!HasCapture(val))
                 {
                     captureToken = captureToken.AddDiagnosticIfNone(new RegexDiagnostic(
                         string.Format(WorkspacesResources.Reference_to_undefined_group_name_0, val),
@@ -1358,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                 _lexer.Position++;
 
-                if (_captureNumbers?.Contains(capVal) == true)
+                if (HasCapture(capVal))
                 {
                     bestPosition = _lexer.Position;
                 }
@@ -1384,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             var numberToken = _lexer.TryScanNumber().Value;
             var capVal = (int)numberToken.Value;
-            if (_captureNumbers?.Contains(capVal) == true ||
+            if (HasCapture(capVal) ||
                 capVal <= 9)
             {
                 CheckCapture(ref numberToken);
