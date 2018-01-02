@@ -9,9 +9,7 @@ using Microsoft.CodeAnalysis.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.ValidateRegexString
 {
-    internal abstract class AbstractValidateRegexStringDiagnosticAnalyzer<TSyntaxKind>
-        : AbstractCodeStyleDiagnosticAnalyzer
-        where TSyntaxKind : struct
+    internal abstract class AbstractValidateRegexStringDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private readonly int _stringLiteralKind;
 

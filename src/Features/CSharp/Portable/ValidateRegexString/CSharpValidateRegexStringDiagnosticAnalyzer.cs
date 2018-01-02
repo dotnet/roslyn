@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.ValidateRegexString;
 namespace Microsoft.CodeAnalysis.CSharp.ValidateRegexString
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpValidateRegexStringDiagnosticAnalyzer : AbstractValidateRegexStringDiagnosticAnalyzer<SyntaxKind>
+    internal class CSharpValidateRegexStringDiagnosticAnalyzer : AbstractValidateRegexStringDiagnosticAnalyzer
     {
         public CSharpValidateRegexStringDiagnosticAnalyzer() 
             : base((int)SyntaxKind.StringLiteralToken)
