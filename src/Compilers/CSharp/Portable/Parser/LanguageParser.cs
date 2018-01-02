@@ -1157,17 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-
-        private bool IsPossibleModifier()
-        {
-            return IsPossibleModifier(this.CurrentToken);
-        }
-
-        private static bool IsPossibleModifier(SyntaxToken token)
-        {
-            return GetModifier(token) != DeclarationModifiers.None;
-        }
-
+        
         private void ParseModifiers(SyntaxListBuilder tokens)
         {
             while (true)
@@ -3182,40 +3172,39 @@ parse_member_name:;
             // 
             // Note: we allow all modifiers here.  That's because we want to parse things like
             // "abstract get" as an accessor.  This way we can provide a good error message
-            // to the user that this is not allowed.
-            if (IsPossibleModifier())
+            // to the user that this is not allowed. However, we don't allow "ref", as it might
+            // be a type modifier. We prefer to parse that as part of a member declaration.
+
+            var firstModifier = GetModifier(this.CurrentToken);
+            if (firstModifier == DeclarationModifiers.None || firstModifier == DeclarationModifiers.Ref)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
-                {
-                    // Although a legal modifier, it is never parsed unless before a struct definition
-                    return false;
-                }
-
-                var peekIndex = 1;
-                while (IsPossibleModifier(this.PeekToken(peekIndex)))
-                {
-                    peekIndex++;
-                }
-
-                var token = this.PeekToken(peekIndex);
-                if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
-                {
-                    // If we see "{ get { } public }
-                    // then we will think that "public" likely starts an accessor.
-                    return true;
-                }
-
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.GetKeyword:
-                    case SyntaxKind.SetKeyword:
-                    case SyntaxKind.AddKeyword:
-                    case SyntaxKind.RemoveKeyword:
-                        return true;
-                }
+                return false;
             }
 
-            return false;
+            var peekIndex = 1;
+            while (GetModifier(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            {
+                peekIndex++;
+            }
+
+            var token = this.PeekToken(peekIndex);
+            if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
+            {
+                // If we see "{ get { } public }
+                // then we will think that "public" likely starts an accessor.
+                return true;
+            }
+
+            switch (token.ContextualKind)
+            {
+                case SyntaxKind.GetKeyword:
+                case SyntaxKind.SetKeyword:
+                case SyntaxKind.AddKeyword:
+                case SyntaxKind.RemoveKeyword:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private enum PostSkipAction
