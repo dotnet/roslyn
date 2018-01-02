@@ -194,32 +194,32 @@
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
         <source>Do not mix attributes from different versions of MEF</source>
-        <target state="new">Do not mix attributes from different versions of MEF</target>
+        <target state="translated">다른 버전의 MEF 특성을 조합하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
         <source>Do not mix attributes from different versions of MEF</source>
-        <target state="new">Do not mix attributes from different versions of MEF</target>
+        <target state="translated">다른 버전의 MEF 특성을 조합하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
         <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
-        <target state="new">Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</target>
+        <target state="translated">'{0}' 특성은 '{1}'의 export 특성이 아닌 다른 버전의 MEF에서 가져온 것입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
         <source>Parts exported with MEFv2 must be marked as Shared</source>
-        <target state="new">Parts exported with MEFv2 must be marked as Shared</target>
+        <target state="translated">MEFv2를 통해 내보낸 파트는 Shared로 표시되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
         <source>Part exported with MEFv2 must be marked with the Shared attribute.</source>
-        <target state="new">Part exported with MEFv2 must be marked with the Shared attribute.</target>
+        <target state="translated">MEFv2를 통해 내보낸 파트는 Shared 특성으로 표시되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
-        <target state="new">'{0}' is exported with MEFv2 and hence must be marked as Shared</target>
+        <target state="translated">'{0}'을(를) MEFv2를 통해 내보냈으므로 Shared로 표시해야 합니다.</target>
         <note />
       </trans-unit>
     </body>

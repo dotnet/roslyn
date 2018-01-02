@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="CategoryDocumentation">
         <source>Documentation</source>
-        <target state="new">Documentation</target>
+        <target state="translated">Dokumentation</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryMaintainability">
         <source>Maintainability</source>
-        <target state="new">Maintainability</target>
+        <target state="translated">Wartbarkeit</target>
         <note />
       </trans-unit>
     </body>

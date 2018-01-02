@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
         <source>Missing diagnostic analyzer attribute.</source>
-        <target state="translated">Tanılama çözümleyici özniteliği eksik.</target>
+        <target state="translated">Tanılama çözümleyicisi özniteliği eksik.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerDescription">
         <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
-        <target state="translated">Tanılama çözümleyicisi yalnızca bir dili destekliyor olarak işaretlenmiş ancak çözümleyici derlemesi herhangi bir dile özgü CodeAnalysis derlemesine başvuruyor gibi görünmediğinden birden çok dil için çalışması olasıdır. DiagnosticAnalyzerAttribute’a bir ek dil bağımsız değişkeni eklemeyi düşünün.</target>
+        <target state="translated">Tanılama çözümleyicisi yalnızca bir dili destekliyor olarak işaretlenmiş ancak çözümleyici bütünleştirilmiş kodu herhangi bir dile özgü CodeAnalysis bütünleştirilmiş koduna başvuruyor gibi görünmediğinden birden çok dil için çalışması olasıdır. DiagnosticAnalyzerAttribute’a bir ek dil bağımsız değişkeni eklemeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
         <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum.</source>
-        <target state="translated">'{2}' yönteminin tür parametresi '{1}' için tür bağımsız değişkeni '{0}' bir SyntaxKind numaralandırması değil.</target>
+        <target state="translated">'{2}' yönteminin tür parametresi '{1}' için tür bağımsız değişkeni '{0}' bir SyntaxKind sabit listesi değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
@@ -229,112 +229,112 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
         <source>Code fix providers should provide FixAll support.</source>
-        <target state="new">Code fix providers should provide FixAll support.</target>
+        <target state="translated">Kod düzeltme sağlayıcıları FixAll desteği sağlamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
         <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
-        <target state="new">'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</target>
+        <target state="translated">'{0}' bir veya daha fazla kod düzeltmesi kaydediyor ancak 'CodeFixProvider.GetFixAllProvider' metodunu geçersiz kılmıyor. Bu metodu geçersiz kılın ve FixAll desteği için 'WellKnownFixAllProviders.BatchFixer' gibi null olmayan bir FixAllProvider sağlayın veya FixAll desteğini açıkça devre dışı bırakmak için 'null' sağlayın.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="new">A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</target>
+        <target state="translated">CodeFixProvider, kullanıcıların tek bir kod düzeltmesiyle temel tanılamanın birden çok örneğini düzeltebilmesi için FixAll desteği sağlamalıdır. Daha fazla ayrıntı için https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md adresindeki belgelere bakın.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
         <source>Override GetFixAllProvider.</source>
-        <target state="new">Override GetFixAllProvider.</target>
+        <target state="translated">GetFixAllProvider’ı geçersiz kılın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorMessage">
         <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
-        <target state="new">Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</target>
+        <target state="translated">Bu tanılama hata listesinde görüntülendiğinde bilgileri sağlamak için tanılama açıklayıcısı oluşturucusuna null olmayan bir 'helpLinkUri' sağlamayı düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorTitle">
         <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
-        <target state="new">Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</target>
+        <target state="translated">Tanılama açıklayıcısı oluşturucusuna null olmayan 'helpLinkUri' değeri sağlayın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorDescription">
         <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
-        <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
+        <target state="translated">'helpLinkUri' değeri, bu tanılama hata listesinde olduğunda bilgi görüntülemek için kullanılır. Her çözümleyici için zaman içinde değişmeyen bir yardım sayfasına işaret eden bir helpLinkUri belirtilmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">Çözümleyiciler için DiagnosticId belirtilen biçimde olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
         <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</source>
-        <target state="new">Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</target>
+        <target state="translated">'{1}' kategorisine ait '{0}' tanılama kimliği, '{3}' dosyasında belirtilen gerekli '{2}' aralığında ve/veya biçiminde değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">Çözümleyiciler için DiagnosticId belirtilen biçimde olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdTitle">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">DiagnosticId çözümleyiciler arasında benzersiz olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdMessage">
         <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
-        <target state="new">Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</target>
+        <target state="translated">'{0}' tanılama kimliği zaten '{1}' çözümleyicisi tarafından kullanılıyor. Lütfen farklı bir tanılama kimliği kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdDescription">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">DiagnosticId çözümleyiciler arasında benzersiz olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">Çözümleyiciler için kategori belirtilen değerlerden biri olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
         <source>Category '{0}' is not from the allowed categories specified in the file '{1}'.</source>
-        <target state="new">Category '{0}' is not from the allowed categories specified in the file '{1}'.</target>
+        <target state="translated">'{0}' kategorisi '{1}' dosyasında belirtilen izin verilen kategoriler arasında değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">Çözümleyiciler için kategori belirtilen değerlerden biri olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">Çözümleyici kategorisi ve tanılama kimliği aralık belirtimi dosyasında geçersiz girdi.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
         <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</source>
-        <target state="new">Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</target>
+        <target state="translated">Çözümleyici kategorisi ve tanılama kimliği aralık belirtimi dosyasında ('{1}') geçersiz '{0}' girdisi.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">Çözümleyici kategorisi ve tanılama kimliği aralık belirtimi dosyasında geçersiz girdi.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantTitle">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">Çözümleyiciler için DiagnosticId null olmayan bir sabit değer olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantMessage">
         <source>Diagnostic Id for rule '{0}' must be a non-null constant.</source>
-        <target state="new">Diagnostic Id for rule '{0}' must be a non-null constant.</target>
+        <target state="translated">'{0}' kuralı için DiagnosticId null olmayan bir sabit değer olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantDescription">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">Çözümleyiciler için DiagnosticId null olmayan bir sabit değer olmalıdır.</target>
         <note />
       </trans-unit>
     </body>
