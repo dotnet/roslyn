@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -24,6 +25,25 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private readonly ISemanticFactsService _semanticFacts;
         private readonly INamedTypeSymbol _regexType;
         private readonly HashSet<string> _methodNamesOfInterest;
+
+        /// <summary>
+        /// Helps match patterns of the form: language=regex,option1,option2,option3
+        /// 
+        /// All matching is case insensitive, with spaces allowed between the punctuation.
+        /// 'regex' or 'regexp' are both allowed.  Option values will be or'ed together
+        /// to produce final options value.  If an unknown option is encountered, processing
+        /// will stop with whatever value has accumulated so far.
+        /// 
+        /// Option names are the values from the <see cref="RegexOptions"/> enum.
+        /// </summary>
+        private static readonly Regex s_languageCommentDetector = 
+            new Regex(@"language\s*=\s*regex(p)?((\s*,\s*)(?<option>[a-zA-Z]+))*",
+                RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly Dictionary<string, RegexOptions> s_nameToOption =
+            typeof(RegexOptions).GetTypeInfo().DeclaredFields
+                .Where(f => f.FieldType == typeof(RegexOptions))
+                .ToDictionary(f => f.Name, f => (RegexOptions)f.GetValue(null), StringComparer.OrdinalIgnoreCase);
 
         public RegexPatternDetector(
             SemanticModel semanticModel, 
@@ -116,14 +136,24 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             if (syntaxFacts.IsRegularComment(trivia))
             {
                 var text = trivia.ToString();
-                if (text.IndexOf("language=regex,ecmascript", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    options = RegexOptions.ECMAScript;
-                    return true;
-                }
-                else if (text.IndexOf("language=regex", StringComparison.OrdinalIgnoreCase) >= 0)
+                var match = s_languageCommentDetector.Match(text);
+                if (match.Success)
                 {
                     options = RegexOptions.None;
+
+                    var optionGroup = match.Groups["option"];
+                    foreach (Capture capture in optionGroup.Captures)
+                    {
+                        if (s_nameToOption.TryGetValue(capture.Value, out var specificOption))
+                        {
+                            options |= specificOption;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
                     return true;
                 }
             }
