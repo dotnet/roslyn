@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var diagnostic = context.Diagnostics.First();
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var diagnosticNode = root.FindNode(context.Span);
@@ -36,6 +31,9 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
             var symbolInfo = semanticModel.GetSymbolInfo(diagnosticNode, cancellationToken);
             if (SymbolInfoContainesSupportedSymbols(symbolInfo))
             {
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var addImportService = document.GetLanguageService<IAddImportsService>();
+                var placeSystemNamespaceFirst = await GetPlaceSystemNamespaceFirstOptionAsync(document, cancellationToken).ConfigureAwait(false);
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
                 var typeName = GetAliasFromDiagnsoticNode(syntaxFacts, diagnosticNode);
                 foreach (var symbol in symbolInfo.CandidateSymbols)
@@ -48,8 +46,16 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
                 }
                 var groupedTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, typeName);
                 var groupedCodeAction = new GroupingCodeAction(groupedTitle, codeActionsBuilder.ToImmutable());
+                var diagnostic = context.Diagnostics.First();
                 context.RegisterCodeFix(groupedCodeAction, diagnostic);
             }
+        }
+
+        private static async Task<bool> GetPlaceSystemNamespaceFirstOptionAsync(Document document, CancellationToken cancellationToken)
+        {
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            return placeSystemNamespaceFirst;
         }
 
         private static string GetTextPreviewOfChange(SyntaxNode newNode, Workspace workspace)
