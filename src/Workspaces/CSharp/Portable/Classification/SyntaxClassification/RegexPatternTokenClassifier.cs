@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             public void Visit(RegexWildcardNode node)
             {
-                
+                AddClassification(node.DotToken, ClassificationTypeNames.RegexCharacterClass);
             }
 
             public void Visit(RegexZeroOrMoreQuantifierNode node)
@@ -289,6 +289,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             public void Visit(RegexSimpleEscapeNode node)
             {
+                if (!node.TypeToken.IsMissing)
+                {
+                    switch (node.TypeToken.VirtualChars[0].Char)
+                    {
+                        case 'w': case 'W': case 's': case 'S': case 'd': case 'D':
+                            ClassifyWholeNode(node, ClassificationTypeNames.RegexCharacterClass);
+                            return;
+                        case 'A': case 'Z': case 'z': case 'G': case 'b': case 'B':
+                            ClassifyWholeNode(node, ClassificationTypeNames.RegexAnchor);
+                            return;
+                    }
+                }
+
                 ClassifyEscape(node);
             }
 
@@ -309,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             public void Visit(RegexCaptureEscapeNode node)
             {
-                ClassifyEscape(node);
+                ClassifyWholeNode(node, ClassificationTypeNames.RegexCharacterClass);
             }
 
             public void Visit(RegexKCaptureEscapeNode node)
@@ -334,16 +347,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             public void ClassifyEscape(RegexNode node)
             {
+                ClassifyWholeNode(node, ClassificationTypeNames.RegexEscape);
+            }
+
+            private void ClassifyWholeNode(RegexNode node, string typeName)
+            {
                 foreach (var child in node)
                 {
                     if (child.IsNode)
                     {
                         ClassifyEscape(child.Node);
                     }
-                    else 
+                    else
                     {
-                        AddClassification(
-                            child.Token, ClassificationTypeNames.RegexEscape);
+                        AddClassification(child.Token, typeName);
                     }
                 }
             }
