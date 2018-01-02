@@ -132,23 +132,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 AddClassification(node.OpenBracketToken, ClassificationTypeNames.RegexCharacterClass);
                 AddClassification(node.CaretToken, ClassificationTypeNames.RegexCharacterClass);
                 AddClassification(node.CloseBracketToken, ClassificationTypeNames.RegexCharacterClass);
-
-                AddClassification(node.CloseBracketToken, ClassificationTypeNames.RegexCharacterClass);
             }
 
             public void Visit(RegexCharacterClassRangeNode node)
             {
-                
+                AddClassification(node.MinusToken, ClassificationTypeNames.RegexCharacterClass);
             }
 
             public void Visit(RegexCharacterClassSubtractionNode node)
             {
-                
+                AddClassification(node.MinusToken, ClassificationTypeNames.RegexCharacterClass);
             }
 
             public void Visit(RegexPosixPropertyNode node)
             {
-                
+                // Because the .net regex parser completely skips these nodes, we'll
+                // classify it as a comment as it has no impact on the actual regex.
+                AddClassification(node.TextToken, ClassificationTypeNames.RegexComment);
             }
 
             public void Visit(RegexWildcardNode node)
