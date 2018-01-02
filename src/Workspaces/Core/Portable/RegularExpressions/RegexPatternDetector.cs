@@ -182,9 +182,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     // Is a string argument to a method that looks like it could be a Regex method.  
                     // Need to do deeper analysis
                     var method = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
-                    if (method.DeclaredAccessibility == Accessibility.Public &&
+                    if (method != null &&
+                        method.DeclaredAccessibility == Accessibility.Public &&
                         method.IsStatic &&
-                        _regexType.Equals(method?.ContainingType))
+                        _regexType.Equals(method.ContainingType))
                     {
                         return AnalyzeStringLiteral(
                             stringLiteral, argumentNode, cancellationToken, out options);
