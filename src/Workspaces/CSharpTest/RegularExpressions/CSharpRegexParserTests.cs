@@ -10319,6 +10319,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 </Tree>", RegexOptions.None);
         }
 
+        [Fact]
+        public void TestNegatedCharacterClass1()
+        {
+            Test(@"@""[a]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
         #endregion
     }
 }

@@ -507,15 +507,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
-        <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
-        </Sequence>
+        <CaretToken>^</CaretToken>
+        <Sequence />
         <CloseBracketToken />
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -561,12 +558,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^cat""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <Text>
             <TextToken>c</TextToken>
           </Text>
@@ -578,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </Text>
         </Sequence>
         <CloseBracketToken />
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>

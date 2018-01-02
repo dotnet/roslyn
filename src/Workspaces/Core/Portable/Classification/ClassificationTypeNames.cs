@@ -49,5 +49,8 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string XmlLiteralName = "xml literal - name";
         public const string XmlLiteralProcessingInstruction = "xml literal - processing instruction";
         public const string XmlLiteralText = "xml literal - text";
+
+        internal const string RegexComment = "regex - comment";
+        internal const string RegexCharacterClass = "regex - character class";
     }
 }

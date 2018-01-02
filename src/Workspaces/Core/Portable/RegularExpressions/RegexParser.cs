@@ -1037,9 +1037,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var closeBracketToken = RegexToken.CreateMissing(RegexKind.CloseBracketToken);
 
             ScanNextToken(allowTrivia: false);
-            if (IsTextChar(_currentToken, '^'))
+            if (_currentToken.Kind == RegexKind.CaretToken)
             {
-                caretToken = _currentToken.With(kind: RegexKind.CaretToken);
+                caretToken = _currentToken;
             }
             else
             {

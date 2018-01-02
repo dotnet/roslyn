@@ -134,6 +134,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal readonly ClassificationTypeDefinition XmlDocCommentTextTypeDefinition;
         #endregion
 
+        #region Regex
+        [Export]
+        [Name(ClassificationTypeNames.RegexComment)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition RegexCommentTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.RegexCharacterClass)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition RegexCharacterClassTypeDefinition;
+        #endregion
+
         #region VB XML Literals - Attribute Name 
         [Export]
         [Name(ClassificationTypeNames.XmlLiteralAttributeName)]

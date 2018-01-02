@@ -86,5 +86,23 @@ namespace Microsoft.CodeAnalysis.Editor {
                 return ResourceManager.GetString("Downloading_IntelliSense_index_for_0", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Chraracter class.
+        /// </summary>
+        internal static string Regex_Character_class {
+            get {
+                return ResourceManager.GetString("Regex_Character_class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Comment.
+        /// </summary>
+        internal static string Regex_Comment {
+            get {
+                return ResourceManager.GetString("Regex_Comment", resourceCulture);
+            }
+        }
     }
 }

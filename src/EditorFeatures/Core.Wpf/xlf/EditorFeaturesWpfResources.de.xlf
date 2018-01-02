@@ -17,6 +17,16 @@
         <target state="new">Downloading IntelliSense index for {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="new">Regex - Comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_class">
+        <source>Regex - Chraracter class</source>
+        <target state="new">Regex - Chraracter class</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

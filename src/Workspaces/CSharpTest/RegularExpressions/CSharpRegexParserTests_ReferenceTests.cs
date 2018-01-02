@@ -1052,12 +1052,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CaretToken>^</CaretToken>
       </StartAnchor>
       <ZeroOrMoreQuantifier>
-        <CharacterClass>
+        <NegatedCharacterClass>
           <OpenBracketToken>[</OpenBracketToken>
+          <CaretToken>^</CaretToken>
           <Sequence>
-            <Text>
-              <TextToken>^</TextToken>
-            </Text>
             <Text>
               <TextToken>&lt;</TextToken>
             </Text>
@@ -1066,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             </Text>
           </Sequence>
           <CloseBracketToken>]</CloseBracketToken>
-        </CharacterClass>
+        </NegatedCharacterClass>
         <AsteriskToken>*</AsteriskToken>
       </ZeroOrMoreQuantifier>
       <ZeroOrMoreQuantifier>
@@ -1091,12 +1089,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <CloseParenToken>)</CloseParenToken>
                   </CaptureGrouping>
                   <ZeroOrMoreQuantifier>
-                    <CharacterClass>
+                    <NegatedCharacterClass>
                       <OpenBracketToken>[</OpenBracketToken>
+                      <CaretToken>^</CaretToken>
                       <Sequence>
-                        <Text>
-                          <TextToken>^</TextToken>
-                        </Text>
                         <Text>
                           <TextToken>&lt;</TextToken>
                         </Text>
@@ -1105,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                         </Text>
                       </Sequence>
                       <CloseBracketToken>]</CloseBracketToken>
-                    </CharacterClass>
+                    </NegatedCharacterClass>
                     <AsteriskToken>*</AsteriskToken>
                   </ZeroOrMoreQuantifier>
                 </Sequence>
@@ -1133,12 +1129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <CloseParenToken>)</CloseParenToken>
                   </BalancingGrouping>
                   <ZeroOrMoreQuantifier>
-                    <CharacterClass>
+                    <NegatedCharacterClass>
                       <OpenBracketToken>[</OpenBracketToken>
+                      <CaretToken>^</CaretToken>
                       <Sequence>
-                        <Text>
-                          <TextToken>^</TextToken>
-                        </Text>
                         <Text>
                           <TextToken>&lt;</TextToken>
                         </Text>
@@ -1147,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                         </Text>
                       </Sequence>
                       <CloseBracketToken>]</CloseBracketToken>
-                    </CharacterClass>
+                    </NegatedCharacterClass>
                     <AsteriskToken>*</AsteriskToken>
                   </ZeroOrMoreQuantifier>
                 </Sequence>
@@ -1212,12 +1206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
               <CloseParenToken>)</CloseParenToken>
             </BalancingGrouping>
             <ZeroOrMoreQuantifier>
-              <CharacterClass>
+              <NegatedCharacterClass>
                 <OpenBracketToken>[</OpenBracketToken>
+                <CaretToken>^</CaretToken>
                 <Sequence>
-                  <Text>
-                    <TextToken>^</TextToken>
-                  </Text>
                   <Text>
                     <TextToken>&lt;</TextToken>
                   </Text>
@@ -1226,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                   </Text>
                 </Sequence>
                 <CloseBracketToken>]</CloseBracketToken>
-              </CharacterClass>
+              </NegatedCharacterClass>
               <AsteriskToken>*</AsteriskToken>
             </ZeroOrMoreQuantifier>
           </Sequence>
@@ -1565,12 +1557,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <CloseParenToken>)</CloseParenToken>
                   </CaptureGrouping>
                   <ZeroOrMoreQuantifier>
-                    <CharacterClass>
+                    <NegatedCharacterClass>
                       <OpenBracketToken>[</OpenBracketToken>
+                      <CaretToken>^</CaretToken>
                       <Sequence>
-                        <Text>
-                          <TextToken>^</TextToken>
-                        </Text>
                         <Text>
                           <TextToken>&lt;</TextToken>
                         </Text>
@@ -1579,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                         </Text>
                       </Sequence>
                       <CloseBracketToken>]</CloseBracketToken>
-                    </CharacterClass>
+                    </NegatedCharacterClass>
                     <AsteriskToken>*</AsteriskToken>
                   </ZeroOrMoreQuantifier>
                 </Sequence>
@@ -1607,12 +1597,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <CloseParenToken>)</CloseParenToken>
                   </BalancingGrouping>
                   <ZeroOrMoreQuantifier>
-                    <CharacterClass>
+                    <NegatedCharacterClass>
                       <OpenBracketToken>[</OpenBracketToken>
+                      <CaretToken>^</CaretToken>
                       <Sequence>
-                        <Text>
-                          <TextToken>^</TextToken>
-                        </Text>
                         <Text>
                           <TextToken>&lt;</TextToken>
                         </Text>
@@ -1621,7 +1609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                         </Text>
                       </Sequence>
                       <CloseBracketToken>]</CloseBracketToken>
-                    </CharacterClass>
+                    </NegatedCharacterClass>
                     <AsteriskToken>*</AsteriskToken>
                   </ZeroOrMoreQuantifier>
                 </Sequence>
@@ -1892,12 +1880,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <CompilationUnit>
     <Sequence>
       <ZeroOrMoreQuantifier>
-        <CharacterClass>
+        <NegatedCharacterClass>
           <OpenBracketToken>[</OpenBracketToken>
+          <CaretToken>^</CaretToken>
           <Sequence>
-            <Text>
-              <TextToken>^</TextToken>
-            </Text>
             <Text>
               <TextToken>&lt;</TextToken>
             </Text>
@@ -1906,7 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             </Text>
           </Sequence>
           <CloseBracketToken>]</CloseBracketToken>
-        </CharacterClass>
+        </NegatedCharacterClass>
         <AsteriskToken>*</AsteriskToken>
       </ZeroOrMoreQuantifier>
     </Sequence>
@@ -2045,12 +2031,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^0-9]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <CharacterClassRange>
             <Text>
               <TextToken>0</TextToken>
@@ -2062,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </CharacterClassRange>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -2293,18 +2277,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^o]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <Text>
             <TextToken>o</TextToken>
           </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -2327,18 +2309,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <Text>
         <TextToken>h</TextToken>
       </Text>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <Text>
             <TextToken>o</TextToken>
           </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
       <OneOrMoreQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
@@ -2390,12 +2370,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^\p{P}\d]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <CategoryEscape>
             <BackslashToken>\</BackslashToken>
             <TextToken>p</TextToken>
@@ -2409,7 +2387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </SimpleEscape>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -2627,12 +2605,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^aeiou]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <Text>
             <TextToken>a</TextToken>
           </Text>
@@ -2650,7 +2626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -2689,12 +2665,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Pc}\p{Lm}] """, @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <CategoryEscape>
             <BackslashToken>\</BackslashToken>
             <TextToken>p</TextToken>
@@ -2746,7 +2720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </CategoryEscape>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
       <Text>
         <TextToken> </TextToken>
       </Text>
@@ -2762,12 +2736,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^a-zA-Z_0-9]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <CharacterClassRange>
             <Text>
               <TextToken>a</TextToken>
@@ -2800,7 +2772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </CharacterClassRange>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -3055,12 +3027,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^ \f\n\r\t\v]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <Text>
             <TextToken> </TextToken>
           </Text>
@@ -3086,7 +3056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </SimpleEscape>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -3099,12 +3069,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""[^\f\n\r\t\v\x85\p{Z}]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <CharacterClass>
+      <NegatedCharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
+        <CaretToken>^</CaretToken>
         <Sequence>
-          <Text>
-            <TextToken>^</TextToken>
-          </Text>
           <SimpleEscape>
             <BackslashToken>\</BackslashToken>
             <TextToken>f</TextToken>
@@ -3139,7 +3107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </CategoryEscape>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
-      </CharacterClass>
+      </NegatedCharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 trivia.VirtualChars.Length > 0)
             {
                 result.Add(new ClassifiedSpan(
-                    ClassificationTypeNames.Comment, RegexHelpers.GetSpan(trivia.VirtualChars)));
+                    ClassificationTypeNames.RegexComment, RegexHelpers.GetSpan(trivia.VirtualChars)));
             }
         }
 
@@ -98,204 +98,217 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 _result = result;
             }
 
+            private void AddClassification(RegexToken token, string typeName)
+            {
+                if (!token.IsMissing)
+                {
+                    _result.Add(new ClassifiedSpan(typeName, RegexHelpers.GetSpan(token)));
+                }
+            }
+
             public void Visit(RegexCompilationUnit node)
             {
-                throw new NotImplementedException();
+                // Nothing to highlight.
             }
 
             public void Visit(RegexSequenceNode node)
             {
-                throw new NotImplementedException();
+                // Nothing to highlight.   
             }
 
             public void Visit(RegexTextNode node)
             {
-                throw new NotImplementedException();
+                // Nothing to highlight.
             }
 
             public void Visit(RegexCharacterClassNode node)
             {
-                throw new NotImplementedException();
+                AddClassification(node.OpenBracketToken, ClassificationTypeNames.RegexCharacterClass);
+                AddClassification(node.CloseBracketToken, ClassificationTypeNames.RegexCharacterClass);
             }
 
             public void Visit(RegexNegatedCharacterClassNode node)
             {
-                throw new NotImplementedException();
+                AddClassification(node.OpenBracketToken, ClassificationTypeNames.RegexCharacterClass);
+                AddClassification(node.CaretToken, ClassificationTypeNames.RegexCharacterClass);
+                AddClassification(node.CloseBracketToken, ClassificationTypeNames.RegexCharacterClass);
+
+                AddClassification(node.CloseBracketToken, ClassificationTypeNames.RegexCharacterClass);
             }
 
             public void Visit(RegexCharacterClassRangeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexCharacterClassSubtractionNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexPosixPropertyNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexWildcardNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexZeroOrMoreQuantifierNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexOneOrMoreQuantifierNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexZeroOrOneQuantifierNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexLazyQuantifierNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexExactNumericQuantifierNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexOpenNumericRangeQuantifierNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexClosedNumericRangeQuantifierNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexAnchorNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexAlternationNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexSimpleGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexSimpleOptionsGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexNestedOptionsGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexNonCapturingGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexPositiveLookaheadGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexNegativeLookaheadGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexPositiveLookbehindGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexNegativeLookbehindGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexNonBacktrackingGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexCaptureGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexBalancingGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexConditionalCaptureGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexConditionalExpressionGroupingNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexSimpleEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexControlEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexHexEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexUnicodeEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexCaptureEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexKCaptureEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexOctalEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexBackreferenceEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
 
             public void Visit(RegexCategoryEscapeNode node)
             {
-                throw new NotImplementedException();
+                
             }
         }
     }

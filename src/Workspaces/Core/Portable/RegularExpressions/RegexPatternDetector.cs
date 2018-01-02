@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 {
                     if (_syntaxFacts.StringComparer.Compare(nameof(Regex), name) == 0)
                     {
-                        var typeSymbol = _semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
-                        if (_regexType.Equals(typeSymbol))
+                        var constructor = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
+                        if (_regexType.Equals(constructor?.ContainingType))
                         {
                             // Argument to "new Regex".  Need to do deeper analysis
                             return AnalyzeStringLiteral(

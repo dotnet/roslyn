@@ -343,6 +343,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region Regex - Comment
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexComment)]
+        [Name(ClassificationTypeNames.RegexComment)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage] 
+        private class RegexCommentFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexCommentFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
+                this.ForegroundColor = Color.FromRgb(87, 166, 74);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexCharacterClass)]
+        [Name(ClassificationTypeNames.RegexCharacterClass)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexCharacterClassFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Character_class;
+                this.ForegroundColor = Color.FromRgb(216, 80, 80);
+            }
+        }
+        #endregion
+
+
         #region VB XML Literals - Attribute Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralAttributeName)]
