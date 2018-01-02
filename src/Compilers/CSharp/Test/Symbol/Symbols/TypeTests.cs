@@ -50,8 +50,8 @@ class A<T> {
 }
 ";
             var compilation = CreateStandardCompilation(code);
-            var aint1 = compilation.GlobalNamespace.GetTypeMembers("A1")[0].BaseType;  // A<int>
-            var aint2 = compilation.GlobalNamespace.GetTypeMembers("A2")[0].BaseType;  // A<int>
+            var aint1 = compilation.GlobalNamespace.GetTypeMembers("A1")[0].BaseType();  // A<int>
+            var aint2 = compilation.GlobalNamespace.GetTypeMembers("A2")[0].BaseType();  // A<int>
             var b1 = aint1.GetTypeMembers("B", 1).Single();                            // A<int>.B<U>
             var b2 = aint2.GetTypeMembers("B", 1).Single();                            // A<int>.B<U>
             Assert.NotSame(b1.TypeParameters[0], b2.TypeParameters[0]);                // they've been alpha renamed independently
@@ -117,9 +117,9 @@ interface B {
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
 
             var type1 = ns.GetTypeMembers("C", 0).SingleOrDefault() as NamedTypeSymbol;
-            Assert.Equal(0, type1.Interfaces.Length);
-            Assert.Equal(3, type1.AllInterfaces.Length);
-            var sorted = (from i in type1.AllInterfaces
+            Assert.Equal(0, type1.Interfaces().Length);
+            Assert.Equal(3, type1.AllInterfaces().Length);
+            var sorted = (from i in type1.AllInterfaces()
                           orderby i.Name
                           select i).ToArray();
             var i1 = sorted[0] as NamedTypeSymbol;
@@ -132,21 +132,21 @@ interface B {
             Assert.Equal("MT.IGoo", i3.ToTestDisplayString());
             Assert.Equal(0, i3.Arity);
 
-            Assert.Equal("B", type1.BaseType.Name);
+            Assert.Equal("B", type1.BaseType().Name);
             // B
-            var type2 = type1.BaseType as NamedTypeSymbol;
-            Assert.Equal(3, type2.AllInterfaces.Length);
-            Assert.NotNull(type2.BaseType);
+            var type2 = type1.BaseType() as NamedTypeSymbol;
+            Assert.Equal(3, type2.AllInterfaces().Length);
+            Assert.NotNull(type2.BaseType());
             // A<int>
-            var type3 = type2.BaseType as NamedTypeSymbol;
+            var type3 = type2.BaseType() as NamedTypeSymbol;
             Assert.Equal("NS.A<System.Int32>", type3.ToTestDisplayString());
-            Assert.Equal(2, type3.Interfaces.Length);
-            Assert.Equal(3, type3.AllInterfaces.Length);
+            Assert.Equal(2, type3.Interfaces().Length);
+            Assert.Equal(3, type3.AllInterfaces().Length);
 
             var type33 = ns.GetTypeMembers("A", 1).SingleOrDefault() as NamedTypeSymbol;
             Assert.Equal("NS.A<T>", type33.ToTestDisplayString());
-            Assert.Equal(2, type33.Interfaces.Length);
-            Assert.Equal(3, type33.AllInterfaces.Length);
+            Assert.Equal(2, type33.Interfaces().Length);
+            Assert.Equal(3, type33.AllInterfaces().Length);
         }
 
         [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
@@ -196,10 +196,10 @@ interface B {
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
 
             var type1 = ns.GetTypeMembers("C", 0).SingleOrDefault() as NamedTypeSymbol;
-            Assert.Equal(0, type1.Interfaces.Length);
+            Assert.Equal(0, type1.Interfaces().Length);
             //
-            Assert.Equal(4, type1.AllInterfaces.Length);
-            var sorted = (from i in type1.AllInterfaces
+            Assert.Equal(4, type1.AllInterfaces().Length);
+            var sorted = (from i in type1.AllInterfaces()
                           orderby i.Name
                           select i).ToArray();
             var i1 = sorted[0] as NamedTypeSymbol;
@@ -215,23 +215,23 @@ interface B {
             Assert.Equal("MT.IGoo", i4.ToTestDisplayString());
             Assert.Equal(0, i4.Arity);
 
-            Assert.Equal("B", type1.BaseType.Name);
+            Assert.Equal("B", type1.BaseType().Name);
             // B
-            var type2 = type1.BaseType as NamedTypeSymbol;
+            var type2 = type1.BaseType() as NamedTypeSymbol;
             //
-            Assert.Equal(4, type2.AllInterfaces.Length);
-            Assert.NotNull(type2.BaseType);
+            Assert.Equal(4, type2.AllInterfaces().Length);
+            Assert.NotNull(type2.BaseType());
             // A<ulong>
-            var type3 = type2.BaseType as NamedTypeSymbol;
+            var type3 = type2.BaseType() as NamedTypeSymbol;
             // T1?
             Assert.Equal("NS.A<System.UInt64>", type3.ToTestDisplayString());
-            Assert.Equal(3, type3.Interfaces.Length);
-            Assert.Equal(4, type3.AllInterfaces.Length);
+            Assert.Equal(3, type3.Interfaces().Length);
+            Assert.Equal(4, type3.AllInterfaces().Length);
 
             var type33 = ns.GetTypeMembers("A", 1).SingleOrDefault() as NamedTypeSymbol;
             Assert.Equal("NS.A<T>", type33.ToTestDisplayString());
-            Assert.Equal(3, type33.Interfaces.Length);
-            Assert.Equal(4, type33.AllInterfaces.Length);
+            Assert.Equal(3, type33.Interfaces().Length);
+            Assert.Equal(4, type33.AllInterfaces().Length);
         }
 
         [WorkItem(537746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537746")]
@@ -341,10 +341,10 @@ namespace NS {
             var type1 = ns.GetTypeMembers("A", 1).SingleOrDefault() as NamedTypeSymbol;
             // 2 Methods + Ctor
             Assert.Equal(3, type1.GetMembers().Length);
-            Assert.Equal(1, type1.Interfaces.Length);
+            Assert.Equal(1, type1.Interfaces().Length);
             Assert.Equal(2, type1.Locations.Length);
 
-            var i1 = type1.Interfaces[0] as NamedTypeSymbol;
+            var i1 = type1.Interfaces()[0] as NamedTypeSymbol;
             Assert.Equal("MT.IGoo<T>", i1.ToTestDisplayString());
             Assert.Equal(2, i1.GetMembers().Length);
             Assert.Equal(2, i1.Locations.Length);
@@ -479,7 +479,7 @@ public partial class A { }
             Assert.Equal(TypeKind.Array, elemType2.TypeKind);
             // bug 2034
             Assert.Equal("System.UInt64[][,]", elemType2.ToTestDisplayString());
-            Assert.Equal("Array", elemType2.BaseType.Name);
+            Assert.Equal("Array", elemType2.BaseType().Name);
 
             var method = classTest.GetMembers("MethodWithArray").Single() as MethodSymbol;
             Assert.Equal(classTest, method.ContainingSymbol);
@@ -534,12 +534,12 @@ public class A {
             var sym1 = (classTest.GetMembers("AryField").First() as FieldSymbol).Type;
             Assert.Equal(SymbolKind.ArrayType, sym1.Kind);
             //
-            Assert.Equal(1, sym1.Interfaces.Length);
-            Assert.Equal("IList", sym1.Interfaces.First().Name);
+            Assert.Equal(1, sym1.Interfaces().Length);
+            Assert.Equal("IList", sym1.Interfaces().First().Name);
 
-            Assert.Equal(9, sym1.AllInterfaces.Length);
+            Assert.Equal(9, sym1.AllInterfaces().Length);
             // ? Don't seem sort right
-            var sorted = sym1.AllInterfaces.OrderBy(i => i.Name).ToArray();
+            var sorted = sym1.AllInterfaces().OrderBy(i => i.Name).ToArray();
 
             var i1 = sorted[0] as NamedTypeSymbol;
             var i2 = sorted[1] as NamedTypeSymbol;
@@ -562,7 +562,7 @@ public class A {
 
             var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type;
             Assert.Equal(SymbolKind.ArrayType, sym2.Kind);
-            Assert.Equal(0, sym2.Interfaces.Length);
+            Assert.Equal(0, sym2.Interfaces().Length);
         }
 
         [Fact]
@@ -848,7 +848,7 @@ Goo();
             Assert.Equal(Accessibility.Public, igoo.DeclaredAccessibility);
             Assert.Equal(1, igoo.TypeParameters.Length);
             Assert.Equal("T", igoo.TypeParameters[0].Name);
-            Assert.Equal(1, igoo.TypeArguments.Length);
+            Assert.Equal(1, igoo.TypeArguments().Length);
 
             // Bug#932083 - Not impl
             // Assert.False(igoo.TypeParameters[0].IsReferenceType);
@@ -864,7 +864,7 @@ Goo();
             Assert.Equal("U", classA.TypeParameters[1].Name);
 
             // same as type parameter
-            Assert.Equal(2, classA.TypeArguments.Length);
+            Assert.Equal(2, classA.TypeArguments().Length);
 
             var structS = namespaceNS.GetTypeMembers("S").First();
             Assert.Equal(namespaceNS, structS.ContainingSymbol);
@@ -875,7 +875,7 @@ Goo();
             Assert.Equal("X", structS.TypeParameters[0].Name);
             Assert.Equal("Y", structS.TypeParameters[1].Name);
             Assert.Equal("Z", structS.TypeParameters[2].Name);
-            Assert.Equal(3, structS.TypeArguments.Length);
+            Assert.Equal(3, structS.TypeArguments().Length);
         }
 
         [WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")]
@@ -970,7 +970,7 @@ public class MyClass : T1
 }";
             var comp = CreateCompilation(code);
             NamedTypeSymbol testTypeSymbol = comp.Assembly.GlobalNamespace.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
-            Assert.Equal("T1", testTypeSymbol.BaseType.ToTestDisplayString());
+            Assert.Equal("T1", testTypeSymbol.BaseType().ToTestDisplayString());
         }
 
         [WorkItem(537447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537447")]
@@ -983,7 +983,7 @@ public class X : GC1<BOGUS> {}
 ";
             var comp = CreateCompilation(code);
             NamedTypeSymbol testTypeSymbol = comp.Assembly.GlobalNamespace.GetTypeMembers("X").Single() as NamedTypeSymbol;
-            Assert.Equal("GC1<BOGUS>", testTypeSymbol.BaseType.ToTestDisplayString());
+            Assert.Equal("GC1<BOGUS>", testTypeSymbol.BaseType().ToTestDisplayString());
         }
 
         [WorkItem(537449, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537449")]
@@ -1025,7 +1025,7 @@ interface I5 : I3, I4 {}
 ";
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
-            var interfaces = global.GetTypeMembers("I5", 0).Single().AllInterfaces;
+            var interfaces = global.GetTypeMembers("I5", 0).Single().AllInterfaces();
             Assert.Equal(4, interfaces.Length);
             Assert.Equal(global.GetTypeMembers("I4", 0).Single(), interfaces[0]);
             Assert.Equal(global.GetTypeMembers("I3", 0).Single(), interfaces[1]);
@@ -1110,7 +1110,7 @@ namespace NS
             var global = comp.GlobalNamespace;
             var ns1 = global.GetMembers("NS").Single() as NamespaceSymbol;
             var syma = ns1.GetMembers("A").Single() as NamedTypeSymbol;
-            var bt = (ns1.GetMembers("B").FirstOrDefault() as NamedTypeSymbol).BaseType;
+            var bt = (ns1.GetMembers("B").FirstOrDefault() as NamedTypeSymbol).BaseType();
             Assert.Equal("Object", bt.Name);
         }
 
@@ -1190,7 +1190,7 @@ namespace System
             var global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
             var mystring = system.GetMembers("MyString").Single() as NamedTypeSymbol;
-            var sourceString = mystring.BaseType;
+            var sourceString = mystring.BaseType();
             Assert.Equal(0,
                 sourceString.GetMembers()
                 .Count(m => !(m is MethodSymbol) || (m as MethodSymbol).MethodKind != MethodKind.Constructor));
@@ -1230,29 +1230,29 @@ namespace N
             var ns = global.GetMember<NamespaceSymbol>("N");
 
             var typeA = ns.GetMember<NamedTypeSymbol>("A");
-            var typeAb = typeA.BaseType;
+            var typeAb = typeA.BaseType();
             Assert.Equal(SymbolKind.ErrorType, typeAb.Kind);
             Assert.Equal(2, typeAb.Arity);
 
             var typeB = typeA.GetMember<NamedTypeSymbol>("B");
-            Assert.Equal("BB", typeB.BaseType.Name);
-            var typeBi = typeB.Interfaces.Single();
+            Assert.Equal("BB", typeB.BaseType().Name);
+            var typeBi = typeB.Interfaces().Single();
             Assert.Equal("IGoo", typeBi.Name);
             Assert.Equal(SymbolKind.ErrorType, typeBi.Kind);
             Assert.Equal(2, typeBi.Arity); //matches arity in source, not arity of desired symbol
 
             var typeC = ns.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(SpecialType.System_Object, typeC.BaseType.SpecialType);
-            var typeCi = typeC.Interfaces.Single();
+            Assert.Equal(SpecialType.System_Object, typeC.BaseType().SpecialType);
+            var typeCi = typeC.Interfaces().Single();
             Assert.Equal("IBar", typeCi.Name);
             Assert.Equal(SymbolKind.ErrorType, typeCi.Kind);
             Assert.Equal(2, typeCi.Arity); //matches arity in source, not arity of desired symbol
 
             var typeD = typeC.GetMember<NamedTypeSymbol>("D");
-            var typeDi = typeD.Interfaces.Single();
+            var typeDi = typeD.Interfaces().Single();
             Assert.Equal("IGoo", typeDi.Name);
             Assert.Equal(3, typeDi.TypeParameters.Length);
-            Assert.Equal(SymbolKind.ErrorType, typeDi.TypeArguments[2].Kind);
+            Assert.Equal(SymbolKind.ErrorType, typeDi.TypeArguments()[2].Kind);
         }
 
         [Fact]
@@ -1317,41 +1317,41 @@ partial class Derived6 : Base<int, int>, Interface1<int, int> { }
 
             foreach (var derived in derivedTypes)
             {
-                if (derived.BaseType.SpecialType != SpecialType.System_Object)
+                if (derived.BaseType().SpecialType != SpecialType.System_Object)
                 {
-                    Assert.Equal(TypeKind.Error, derived.BaseType.TypeKind);
+                    Assert.Equal(TypeKind.Error, derived.BaseType().TypeKind);
                 }
-                foreach (var i in derived.Interfaces)
+                foreach (var i in derived.Interfaces())
                 {
                     Assert.Equal(TypeKind.Error, i.TypeKind);
                 }
             }
 
-            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[0].BaseType));
-            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[0].Interfaces.Single()));
+            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[0].BaseType()));
+            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[0].Interfaces().Single()));
 
             //everything after the first interface is an interface
-            Assert.Equal(SpecialType.System_Object, derivedTypes[1].BaseType.SpecialType);
-            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[1].Interfaces[0]));
-            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[1].Interfaces[1]));
+            Assert.Equal(SpecialType.System_Object, derivedTypes[1].BaseType().SpecialType);
+            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[1].Interfaces()[0]));
+            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[1].Interfaces()[1]));
 
-            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[2].BaseType));
-            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[2].Interfaces.Single()));
+            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[2].BaseType()));
+            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[2].Interfaces().Single()));
 
-            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[3].BaseType));
-            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[3].Interfaces.Single()));
+            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[3].BaseType()));
+            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[3].Interfaces().Single()));
 
-            Assert.Equal(SpecialType.System_Object, derivedTypes[4].BaseType.SpecialType);
-            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[4].Interfaces[0]));
-            Assert.Same(interface2, ExtractErrorGuess(derivedTypes[4].Interfaces[1]));
+            Assert.Equal(SpecialType.System_Object, derivedTypes[4].BaseType().SpecialType);
+            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[4].Interfaces()[0]));
+            Assert.Same(interface2, ExtractErrorGuess(derivedTypes[4].Interfaces()[1]));
 
-            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[5].BaseType));
-            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[5].Interfaces[0]));
-            Assert.Same(interface2, ExtractErrorGuess(derivedTypes[5].Interfaces[1]));
+            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[5].BaseType()));
+            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[5].Interfaces()[0]));
+            Assert.Same(interface2, ExtractErrorGuess(derivedTypes[5].Interfaces()[1]));
 
-            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[6].BaseType));
-            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[6].Interfaces[1]));
-            Assert.Same(interface2, ExtractErrorGuess(derivedTypes[6].Interfaces[0]));
+            Assert.Same(baseType, ExtractErrorGuess(derivedTypes[6].BaseType()));
+            Assert.Same(interface1, ExtractErrorGuess(derivedTypes[6].Interfaces()[1]));
+            Assert.Same(interface2, ExtractErrorGuess(derivedTypes[6].Interfaces()[0]));
         }
 
         private static TypeSymbol ExtractErrorGuess(NamedTypeSymbol typeSymbol)

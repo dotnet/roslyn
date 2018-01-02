@@ -19,7 +19,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend MustInherit Class VisualBasicProject
         Inherits AbstractLegacyProject
         Implements IVbCompilerProject
-        Implements IVisualStudioHostProject
 
         Private ReadOnly _compilerHost As IVbCompilerHost
         Private ReadOnly _imports As New List(Of GlobalImport)

@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 
         protected Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
-            return item => 
+            return item =>
             {
                 AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Usage);
 

@@ -1306,7 +1306,8 @@ class C
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
         }
 
-        [Fact, WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
+        [NoIOperationValidationFact]
+        [WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
         public void LongArithmeticExpressionCSharp()
         {
             Func<int, string> buildSequenceOfBinaryExpressions =

@@ -2011,14 +2011,14 @@ class C<T>
                 var containingType = method.ContainingType;
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 // Return type E<T> with type argument T from <>c<T>.
-                Assert.Equal(returnType.TypeArguments[0].ContainingSymbol, containingType.ContainingType);
+                Assert.Equal(returnType.TypeArguments()[0].ContainingSymbol, containingType.ContainingType);
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
                 Assert.Equal(1, locals.Length);
                 // All locals of type E<T> with type argument T from <>c<T>.
                 foreach (var local in locals)
                 {
                     var localType = (NamedTypeSymbol)local.Type;
-                    var typeArg = localType.TypeArguments[0];
+                    var typeArg = localType.TypeArguments()[0];
                     Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
                 }
 

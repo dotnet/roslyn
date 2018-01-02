@@ -5638,7 +5638,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub HugeTupleCreationParses()
 
             Dim b = New StringBuilder()
@@ -5664,7 +5664,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub HugeTupleDeclarationParses()
 
             Dim b = New StringBuilder()
@@ -8842,6 +8842,28 @@ End Class
             Assert.Equal("Alice", sym.Symbol.Name)
             Assert.Equal(SymbolKind.Field, sym.Symbol.Kind) ' Incorrectly returns Local
             Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations(0)) ' Incorrect location
+        End Sub
+
+        <Fact>
+        <WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")>
+        Public Sub GetSymbolInfo_WithDuplicateInferredNames()
+            Dim source = "
+ Class C
+    Shared Sub M(Bob As String)
+         Dim x1 = (Bob, Bob)
+    End Sub
+End Class
+ "
+
+            Dim tree = Parse(source, options:=TestOptions.Regular)
+            Dim comp = CreateCompilationWithMscorlib(tree)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim tuple = nodes.OfType(Of TupleExpressionSyntax)().Single()
+            Dim type = DirectCast(model.GetTypeInfo(tuple).Type, TypeSymbol)
+            Assert.True(type.TupleElementNames.IsDefault)
         End Sub
 
         <Fact>

@@ -4,102 +4,102 @@
     <body>
       <trans-unit id="Case_Correction">
         <source>Case Correction</source>
-        <target state="new">Case Correction</target>
+        <target state="translated">Fallkorrektur</target>
         <note />
       </trans-unit>
       <trans-unit id="Correcting_word_casing">
         <source>Correcting word casing...</source>
-        <target state="new">Correcting word casing...</target>
+        <target state="translated">Wortschreibweise wird korrigiert...</target>
         <note />
       </trans-unit>
       <trans-unit id="New_">
         <source>New</source>
-        <target state="new">New</target>
+        <target state="translated">Neu</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_Events">
         <source>({0} Events)</source>
-        <target state="new">({0} Events)</target>
+        <target state="translated">({0} Ereignisse)</target>
         <note />
       </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
-        <target state="new">This call is required by the designer.</target>
+        <target state="translated">Dieser Aufruf ist für den Designer erforderlich.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_any_initialization_after_the_InitializeComponent_call">
         <source>Add any initialization after the InitializeComponent() call.</source>
-        <target state="new">Add any initialization after the InitializeComponent() call.</target>
+        <target state="translated">Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.</target>
         <note />
       </trans-unit>
       <trans-unit id="End_Construct">
         <source>End Construct</source>
-        <target state="new">End Construct</target>
+        <target state="translated">Endkonstrukt</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
-        <target state="new">Smart Indenting</target>
+        <target state="translated">Intelligenter Einzug</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Document">
         <source>Format Document</source>
-        <target state="new">Format Document</target>
+        <target state="translated">Dokument formatieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="new">Formatting Document...</target>
+        <target state="translated">Dokument wird formatiert...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
-        <target state="new">Insert new line</target>
+        <target state="translated">Neue Zeile einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Paste">
         <source>Format Paste</source>
-        <target state="new">Format Paste</target>
+        <target state="translated">Format einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_pasted_text">
         <source>Formatting pasted text...</source>
-        <target state="new">Formatting pasted text...</target>
+        <target state="translated">Eingefügter Text wird formatiert...</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">
         <source>Paste</source>
-        <target state="new">Paste</target>
+        <target state="translated">Einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_on_Save">
         <source>Format on Save</source>
-        <target state="new">Format on Save</target>
+        <target state="translated">Format wird gespeichert</target>
         <note />
       </trans-unit>
       <trans-unit id="Committing_line">
         <source>Committing line</source>
-        <target state="new">Committing line</target>
+        <target state="translated">Zeile wird committet</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Pretty_List">
         <source>Visual Basic Pretty List</source>
-        <target state="new">Visual Basic Pretty List</target>
+        <target state="translated">Visual Basic - Automatische Strukturierung</target>
         <note />
       </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
-        <target state="new">not supported</target>
+        <target state="translated">nicht unterstützt</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Member">
         <source>Generate Member</source>
-        <target state="new">Generate Member</target>
+        <target state="translated">Mitglied generieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Line_commit">
         <source>Line commit</source>
-        <target state="new">Line commit</target>
+        <target state="translated">Zeilencommit</target>
         <note />
       </trans-unit>
     </body>

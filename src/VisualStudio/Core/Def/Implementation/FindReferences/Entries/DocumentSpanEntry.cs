@@ -9,7 +9,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation;
+using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -69,6 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
 
                 var inlines = classifiedTexts.ToInlines(
+                    Presenter.ClassificationFormatMap,
                     Presenter.TypeMap,
                     runCallback: (run, classifiedText, position) =>
                     {

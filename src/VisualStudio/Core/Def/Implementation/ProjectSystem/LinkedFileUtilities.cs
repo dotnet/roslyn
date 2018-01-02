@@ -118,23 +118,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 : null;
         }
 
-        public static IVisualStudioHostProject GetContextHostProject(IVsHierarchy sharedHierarchy, IVisualStudioHostProjectContainer hostProjectContainer)
+        public static AbstractProject GetContextHostProject(IVsHierarchy sharedHierarchy, VisualStudioProjectTracker projectTracker)
         {
-            return s_singleton.GetContextHostProjectInternal(sharedHierarchy, hostProjectContainer);
+            return s_singleton.GetContextHostProjectInternal(sharedHierarchy, projectTracker);
         }
 
-        private IVisualStudioHostProject GetContextHostProjectInternal(IVsHierarchy hierarchy, IVisualStudioHostProjectContainer hostProjectContainer)
+        private AbstractProject GetContextHostProjectInternal(IVsHierarchy hierarchy, VisualStudioProjectTracker projectTracker)
         {
             hierarchy = GetSharedItemContextHierarchy(hierarchy) ?? hierarchy;
             var projectName = GetActiveIntellisenseProjectContextInternal(hierarchy);
 
             if (projectName != null)
             {
-                return hostProjectContainer.GetProjects().FirstOrDefault(p => p.ProjectSystemName == projectName);
+                return projectTracker.ImmutableProjects.FirstOrDefault(p => p.ProjectSystemName == projectName);
             }
             else
             {
-                return hostProjectContainer.GetProjects().FirstOrDefault(p => p.Hierarchy == hierarchy);
+                return projectTracker.ImmutableProjects.FirstOrDefault(p => p.Hierarchy == hierarchy);
             }
         }
 

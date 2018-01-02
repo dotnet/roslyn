@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -152,6 +153,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     else if (optionKey.Option.Type == typeof(long))
                     {
                         subKey.SetValue(key, value, RegistryValueKind.QWord);
+                        return true;
+                    }
+                    else if (optionKey.Option.Type.IsEnum)
+                    {
+                        // If the enum is larger than an int, store as a QWord
+                        if (Marshal.SizeOf(Enum.GetUnderlyingType(optionKey.Option.Type)) > Marshal.SizeOf(typeof(int)))
+                        {
+                            subKey.SetValue(key, (long)value, RegistryValueKind.QWord);
+                        }
+                        else
+                        {
+                            subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
+                        }
                         return true;
                     }
                     else

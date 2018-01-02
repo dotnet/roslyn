@@ -587,7 +587,7 @@ public class C
                 {
                     Assert.Equal(Accessibility.Private, container.DeclaredAccessibility);
                     Assert.True(container.IsStatic);
-                    Assert.Equal(SpecialType.System_Object, container.BaseType.SpecialType);
+                    Assert.Equal(SpecialType.System_Object, container.BaseType().SpecialType);
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(container.GetAttributes()));
 
                     var members = container.GetMembers();
@@ -823,8 +823,8 @@ public class C
                 Assert.Equal(4, d.TypeParameters.Length);
                 Assert.True(d.IsSealed);
                 Assert.Equal(CharSet.Ansi, d.MarshallingCharSet);
-                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType.SpecialType);
-                Assert.Equal(0, d.Interfaces.Length);
+                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType().SpecialType);
+                Assert.Equal(0, d.Interfaces().Length);
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(d.GetAttributes()));
 
                 // members:

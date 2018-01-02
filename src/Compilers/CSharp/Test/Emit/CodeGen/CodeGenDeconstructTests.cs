@@ -127,6 +127,41 @@ class C
         }
 
         [Fact]
+        public void ObsoleteDeconstructMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C();
+        foreach (var (z1, z2) in new[] { new C() }) { }
+    }
+
+    [System.Obsolete]
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,18): warning CS0612: 'C.Deconstruct(out int, out string)' is obsolete
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.Deconstruct(out int, out string)").WithLocation(9, 18),
+                // (10,34): warning CS0612: 'C.Deconstruct(out int, out string)' is obsolete
+                //         foreach (var (z1, z2) in new[] { new C() }) { }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new[] { new C() }").WithArguments("C.Deconstruct(out int, out string)").WithLocation(10, 34)
+                );
+        }
+
+        [Fact]
         [WorkItem(13632, "https://github.com/dotnet/roslyn/issues/13632")]
         public void SimpleAssignWithoutConversion()
         {
@@ -1394,7 +1429,9 @@ class C
 
                 Assert.Equal("(System.Int32, System.Int32 x) c", model.GetDeclaredSymbol(declarations.ElementAt(6)).ToTestDisplayString());
 
-                Assert.Equal("(System.Int32, System.Int32) d", model.GetDeclaredSymbol(declarations.ElementAt(7)).ToTestDisplayString());
+                var x = (LocalSymbol)model.GetDeclaredSymbol(declarations.ElementAt(7));
+                Assert.Equal("(System.Int32, System.Int32) d", x.ToTestDisplayString());
+                Assert.True(x.Type.TupleElementNames.IsDefault);
 
                 Assert.Equal("(System.Int32 x, System.Int32, System.Int32 y, (System.Int32, System.Int32, System.Int32), (System.Int32 x, System.Int32 y)) nested",
                     model.GetDeclaredSymbol(declarations.ElementAt(8)).ToTestDisplayString());

@@ -53,6 +53,8 @@
         "Dlls\\Diagnostics\\Roslyn.Hosting.Diagnostics.dll",
         "Dlls\\EditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "Dlls\\EditorFeatures\\*\\Microsoft.CodeAnalysis.EditorFeatures.resources.dll",
+        "Dlls\\EditorFeatures.Wpf\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
+        "Dlls\\EditorFeatures.Wpf\\*\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
         "Dlls\\Features\\Microsoft.CodeAnalysis.Features.dll",
         "Dlls\\Features\\*\\Microsoft.CodeAnalysis.Features.resources.dll",
         "Dlls\\InteractiveEditorFeatures\\Microsoft.CodeAnalysis.InteractiveEditorFeatures.dll",
@@ -69,9 +71,6 @@
         "Dlls\\ServicesVisualStudio\\*\\Microsoft.VisualStudio.LanguageServices.resources.dll",
         "Dlls\\SolutionExplorerShim\\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
         "Dlls\\SolutionExplorerShim\\*\\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.resources.dll",
-        "Dlls\\SyntaxVisualizerControl\\Roslyn.SyntaxVisualizer.Control.dll",
-        "Dlls\\SyntaxVisualizerDgmlHelper\\Roslyn.SyntaxVisualizer.DgmlHelper.dll",
-        "Dlls\\SyntaxVisualizerExtension\\Roslyn.SyntaxVisualizer.Extension.dll",
         "Dlls\\RazorServiceHub\\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll",
         "Dlls\\RazorVisualStudio\\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll",
         "Dlls\\TextEditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
@@ -95,7 +94,6 @@
         "Exes\\vbi\\net46\\vbi.exe",
         "Exes\\vbi\\netcoreapp2.0\\vbi.dll",
         "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
-        "Vsix\\Templates\\Roslyn.Templates.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\*\\Roslyn.VisualStudio.DiagnosticsWindow.resources.dll",
         "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll"
@@ -143,7 +141,6 @@
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
-        "Vsix\\Templates\\Roslyn SDK.vsix"
       ]
     },
     {

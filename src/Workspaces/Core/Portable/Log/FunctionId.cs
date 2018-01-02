@@ -402,5 +402,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Intellisense_Completion,
         MetadataOnlyImage_EmitFailure,
         LiveTableDataSource_OnDiagnosticsUpdated,
+        Experiment_KeybindingsReset,
     }
 }
