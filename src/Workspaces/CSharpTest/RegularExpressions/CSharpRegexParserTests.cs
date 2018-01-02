@@ -2340,10 +2340,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test("@\"\\w\"", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>w</TextToken>
-      </SimpleEscape>
+      </CharacterClassEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -2380,38 +2380,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <BackslashToken>\</BackslashToken>
         <TextToken>z</TextToken>
       </SimpleEscape>
-      <SimpleEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>w</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </CharacterClassEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>W</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </CharacterClassEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>s</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </CharacterClassEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>W</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </CharacterClassEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>s</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </CharacterClassEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>S</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </CharacterClassEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>d</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </CharacterClassEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>D</TextToken>
-      </SimpleEscape>
+      </CharacterClassEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -9477,10 +9477,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
           <CharacterClassRange>
-            <SimpleEscape>
+            <CharacterClassEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>w</TextToken>
-            </SimpleEscape>
+            </CharacterClassEscape>
             <MinusToken>-</MinusToken>
             <Text>
               <TextToken>a</TextToken>
@@ -9512,10 +9512,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
               <TextToken>a</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <SimpleEscape>
+            <CharacterClassEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>w</TextToken>
-            </SimpleEscape>
+            </CharacterClassEscape>
           </CharacterClassRange>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>

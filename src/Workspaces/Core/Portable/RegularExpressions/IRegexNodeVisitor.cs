@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         void Visit(RegexConditionalCaptureGroupingNode node);
         void Visit(RegexConditionalExpressionGroupingNode node);
         void Visit(RegexSimpleEscapeNode node);
+        void Visit(RegexCharacterClassEscapeNode node);
         void Visit(RegexControlEscapeNode node);
         void Visit(RegexHexEscapeNode node);
         void Visit(RegexUnicodeEscapeNode node);

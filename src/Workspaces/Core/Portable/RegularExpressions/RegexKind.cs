@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         ConditionalExpressionGrouping,
 
         SimpleEscape,
+        CharacterClassEscape,
         CategoryEscape,
         ControlEscape,
         HexEscape,

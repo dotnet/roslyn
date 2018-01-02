@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <TextToken>a</TextToken>
                   </Text>
                   <MinusToken>-</MinusToken>
-                  <SimpleEscape>
+                  <CharacterClassEscape>
                     <BackslashToken>\</BackslashToken>
                     <TextToken>d</TextToken>
-                  </SimpleEscape>
+                  </CharacterClassEscape>
                 </CharacterClassRange>
               </Sequence>
               <CloseBracketToken>]</CloseBracketToken>
@@ -2172,7 +2172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>
             <Trivia>
               <WhitespaceTrivia> </WhitespaceTrivia>
@@ -2180,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
               <WhitespaceTrivia>    </WhitespaceTrivia>
             </Trivia>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
     </Sequence>
@@ -2484,10 +2484,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>w</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <BalancingGrouping>
@@ -2563,10 +2563,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>w</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <BalancingGrouping>
@@ -2625,10 +2625,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>w</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <BalancingGrouping>
@@ -2702,10 +2702,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>w</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <BalancingGrouping>
@@ -3183,10 +3183,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <TextToken>5</TextToken>
                   </Text>
                   <MinusToken>-</MinusToken>
-                  <SimpleEscape>
+                  <CharacterClassEscape>
                     <BackslashToken>\</BackslashToken>
                     <TextToken>D</TextToken>
-                  </SimpleEscape>
+                  </CharacterClassEscape>
                 </CharacterClassRange>
               </Sequence>
               <CloseBracketToken>]</CloseBracketToken>
@@ -3241,10 +3241,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <TextToken>6</TextToken>
                   </Text>
                   <MinusToken>-</MinusToken>
-                  <SimpleEscape>
+                  <CharacterClassEscape>
                     <BackslashToken>\</BackslashToken>
                     <TextToken>s</TextToken>
-                  </SimpleEscape>
+                  </CharacterClassEscape>
                 </CharacterClassRange>
               </Sequence>
               <CloseBracketToken>]</CloseBracketToken>
@@ -3299,10 +3299,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <TextToken>c</TextToken>
                   </Text>
                   <MinusToken>-</MinusToken>
-                  <SimpleEscape>
+                  <CharacterClassEscape>
                     <BackslashToken>\</BackslashToken>
                     <TextToken>S</TextToken>
-                  </SimpleEscape>
+                  </CharacterClassEscape>
                 </CharacterClassRange>
               </Sequence>
               <CloseBracketToken>]</CloseBracketToken>
@@ -3348,10 +3348,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <TextToken>7</TextToken>
                   </Text>
                   <MinusToken>-</MinusToken>
-                  <SimpleEscape>
+                  <CharacterClassEscape>
                     <BackslashToken>\</BackslashToken>
                     <TextToken>w</TextToken>
-                  </SimpleEscape>
+                  </CharacterClassEscape>
                 </CharacterClassRange>
               </Sequence>
               <CloseBracketToken>]</CloseBracketToken>
@@ -3397,10 +3397,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                     <TextToken>a</TextToken>
                   </Text>
                   <MinusToken>-</MinusToken>
-                  <SimpleEscape>
+                  <CharacterClassEscape>
                     <BackslashToken>\</BackslashToken>
                     <TextToken>W</TextToken>
-                  </SimpleEscape>
+                  </CharacterClassEscape>
                 </CharacterClassRange>
               </Sequence>
               <CloseBracketToken>]</CloseBracketToken>
@@ -3457,19 +3457,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <CloseBracketToken>]</CloseBracketToken>
           </CharacterClass>
           <ZeroOrMoreQuantifier>
-            <SimpleEscape>
+            <CharacterClassEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>w</TextToken>
-            </SimpleEscape>
+            </CharacterClassEscape>
             <AsteriskToken>*</AsteriskToken>
           </ZeroOrMoreQuantifier>
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>s</TextToken>
-      </SimpleEscape>
+      </CharacterClassEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -3487,10 +3487,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <CloseBracketToken>]</CloseBracketToken>
           </CharacterClass>
           <ZeroOrMoreQuantifier>
-            <SimpleEscape>
+            <CharacterClassEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>w</TextToken>
-            </SimpleEscape>
+            </CharacterClassEscape>
             <AsteriskToken>*</AsteriskToken>
           </ZeroOrMoreQuantifier>
         </Sequence>
@@ -3545,10 +3545,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <TextToken> </TextToken>
       </Text>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <Text>
@@ -3614,10 +3614,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>s</TextToken>
-      </SimpleEscape>
+      </CharacterClassEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -3946,10 +3946,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <CaptureGrouping>
@@ -4019,10 +4019,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <CaptureGrouping>
@@ -4086,10 +4086,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <CaptureGrouping>
@@ -4913,10 +4913,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <CaptureGrouping>
@@ -4989,10 +4989,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <CaptureGrouping>
@@ -5056,10 +5056,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <CaptureGrouping>
@@ -5159,10 +5159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <CaptureGrouping>
@@ -5215,10 +5215,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
       <OneOrMoreQuantifier>
-        <SimpleEscape>
+        <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
           <TextToken>s</TextToken>
-        </SimpleEscape>
+        </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <CaptureGrouping>

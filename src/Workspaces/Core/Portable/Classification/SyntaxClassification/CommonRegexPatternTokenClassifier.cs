@@ -166,6 +166,9 @@ namespace Microsoft.CodeAnalysis.Classification
             public void Visit(RegexCharacterClassSubtractionNode node)
                 => AddClassification(node.MinusToken, ClassificationTypeNames.RegexCharacterClass);
 
+            public void Visit(RegexCharacterClassEscapeNode node)
+                => ClassifyWholeNode(node, ClassificationTypeNames.RegexCharacterClass);
+
             public void Visit(RegexCategoryEscapeNode node)
                 => ClassifyWholeNode(node, ClassificationTypeNames.RegexCharacterClass);
 
@@ -314,10 +317,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     switch (node.TypeToken.VirtualChars[0].Char)
                     {
-                        // These escapes represent character classes.  So classify thusly.
-                        case 'w': case 'W': case 's': case 'S': case 'd': case 'D':
-                            ClassifyWholeNode(node, ClassificationTypeNames.RegexCharacterClass);
-                            return;
                         // These escapes represent character anchors.  So classify thusly.
                         case 'A': case 'Z': case 'z': case 'G': case 'b': case 'B':
                             ClassifyWholeNode(node, ClassificationTypeNames.RegexAnchor);

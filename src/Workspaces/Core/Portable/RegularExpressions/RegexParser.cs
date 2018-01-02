@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             case RegexKind.TextToken:
                 return ParseText();
             case RegexKind.BackslashToken:
-                return ParseEscape();
+                return ParseEscape(_currentToken, allowTriviaAfterEnd: true);
             case RegexKind.OpenBracketToken:
                 return ParseCharacterClass();
             case RegexKind.OpenParenToken:
@@ -1113,6 +1113,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 else
                 {
                     var right = ParseCharacterClassComponentPiece(isFirst: false, afterRangeMinus: true);
+
                     components.Add(new RegexCharacterClassRangeNode(left, minusToken, right));
                 }
             }
@@ -1140,17 +1141,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     case 's':
                     case 'W':
                     case 'w':
-                        if (afterRangeMinus)
-                        {
-                            backslashToken = backslashToken.AddDiagnosticIfNone(new RegexDiagnostic(
-                                string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, nextChar),
-                                GetSpan(backslashToken, _currentToken)));
-                        }
-
-                        var typeToken = _currentToken;
-                        ScanNextToken(allowTrivia: false);
-                        return new RegexSimpleEscapeNode(backslashToken, typeToken);
-
                     case 'p':
                     case 'P':
                         if (afterRangeMinus)
@@ -1160,7 +1150,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                                 GetSpan(backslashToken, _currentToken)));
                         }
 
-                        return ParseCategoryEscape(backslashToken);
+                        // move back before the character we just scanned.
+                        _lexer.Position--;
+                        return ParseEscape(backslashToken, allowTriviaAfterEnd: false);
 
                     case '-':
                         var dashToken = _currentToken;
@@ -1236,9 +1228,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             throw new NotImplementedException();
         }
 
-        private RegexEscapeNode ParseEscape()
+        private RegexEscapeNode ParseEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            var backslashToken = _currentToken;
+            Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
             // No spaces between \ and next char.
             ScanNextToken(allowTrivia: false);
@@ -1255,24 +1247,33 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var ch = _currentToken.VirtualChars[0].Char;
             switch (_currentToken.VirtualChars[0].Char)
             {
-            case 'b':
-            case 'B':
-            case 'A':
-            case 'G':
-            case 'Z':
-            case 'z':
-            case 'w':
-            case 'W':
-            case 's':
-            case 'S':
-            case 'd':
-            case 'D':
-                var typeToken = _currentToken;
-                ScanNextToken(allowTrivia: true);
-                return new RegexSimpleEscapeNode(backslashToken, typeToken);
-            case 'p':
-            case 'P':
-                return ParseCategoryEscape(backslashToken);
+                case 'b':
+                case 'B':
+                case 'A':
+                case 'G':
+                case 'Z':
+                case 'z':
+                {
+                    var typeToken = _currentToken;
+                    ScanNextToken(allowTrivia: allowTriviaAfterEnd);
+                    return new RegexSimpleEscapeNode(backslashToken, typeToken);
+                }
+
+                case 'w':
+                case 'W':
+                case 's':
+                case 'S':
+                case 'd':
+                case 'D':
+                {
+                    var typeToken = _currentToken;
+                    ScanNextToken(allowTrivia: allowTriviaAfterEnd);
+                    return new RegexCharacterClassEscapeNode(backslashToken, typeToken);
+                }
+
+                case 'p':
+                case 'P':
+                    return ParseCategoryEscape(backslashToken, allowTriviaAfterEnd);
             }
 
             // Move back to after the backslash
@@ -1591,7 +1592,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private RegexEscapeNode ParseCategoryEscape(RegexToken backslash)
+        private RegexEscapeNode ParseCategoryEscape(RegexToken backslash, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1] is var ch && (ch == 'P' || ch == 'p'));
             var typeToken = _currentToken;
@@ -1599,12 +1600,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var start = _lexer.Position;
 
             if (!TryGetCategoryEscapeParts(
+                    allowTriviaAfterEnd,
                     out var openBraceToken,
                     out var categoryToken,
                     out var closeBraceToken,
                     out var message))
             {
-                ResetToPositionAndScanNextToken(start, allowTrivia: true);
+                ResetToPositionAndScanNextToken(start, allowTrivia: allowTriviaAfterEnd);
                 typeToken = typeToken.AddDiagnosticIfNone(new RegexDiagnostic(
                     message, GetSpan(backslash, typeToken)));
                 return new RegexSimpleEscapeNode(backslash, typeToken);
@@ -1614,7 +1616,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private bool TryGetCategoryEscapeParts(
-            out RegexToken openBraceToken, out RegexToken categoryToken, out RegexToken closeBraceToken, out string message)
+            bool allowTriviaAfterEnd,
+            out RegexToken openBraceToken,
+            out RegexToken categoryToken,
+            out RegexToken closeBraceToken,
+            out string message)
         {
             openBraceToken = default;
             categoryToken = default;
@@ -1656,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             categoryToken = category.Value;
 
             closeBraceToken = _currentToken.With(kind: RegexKind.CloseBraceToken);
-            ScanNextToken(allowTrivia: true);
+            ScanNextToken(allowTrivia: allowTriviaAfterEnd);
             return true;
         }
 

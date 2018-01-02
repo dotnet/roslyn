@@ -1312,6 +1312,33 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     }
 
     /// <summary>
+    /// One of \s \S \d \D \w \W
+    /// </summary>
+    internal sealed class RegexCharacterClassEscapeNode : RegexTypeEscapeNode
+    {
+        public RegexCharacterClassEscapeNode(RegexToken backslashToken, RegexToken typeToken)
+            : base(RegexKind.CharacterClassEscape, backslashToken, typeToken)
+        {
+        }
+
+        public override int ChildCount => 2;
+
+        public override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return BackslashToken;
+                case 1: return TypeToken;
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        public override void Accept(IRegexNodeVisitor visitor)
+            => visitor.Visit(this);
+    }
+
+    /// <summary>
     /// ```\cX``` escape
     /// </summary>
     internal sealed class RegexControlEscapeNode : RegexTypeEscapeNode
