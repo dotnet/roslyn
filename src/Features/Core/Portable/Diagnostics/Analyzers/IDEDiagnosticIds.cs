@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseDeconstructionDiagnosticId = "IDE0042";
 
-        public const string RegexPatternDiagnosticId = "IDE0042";
+        public const string RegexPatternDiagnosticId = "IDE0043";
 
 
         // Analyzer error Ids

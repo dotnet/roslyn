@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -300,10 +301,15 @@ namespace Microsoft.CodeAnalysis.Classification
             public void Visit(RegexTextNode node)
                 => AddClassification(node.TextToken, ClassificationTypeNames.RegexText);
 
-            // Because the .net regex parser completely skips these nodes, we'll classify a posix 
-            // property node  as a comment as it has no impact on the actual regex.
             public void Visit(RegexPosixPropertyNode node)
-                => AddClassification(node.TextToken, ClassificationTypeNames.RegexComment);
+            {
+                // The .net parser just interprets the [ of the node, and skips the rest. So
+                // classify the end part as a comment.
+                Result.Add(new ClassifiedSpan(node.TextToken.VirtualChars[0].Span, ClassificationTypeNames.RegexText));
+                Result.Add(new ClassifiedSpan(
+                    RegexHelpers.GetSpan(node.TextToken.VirtualChars[1], node.TextToken.VirtualChars.Last()),
+                    ClassificationTypeNames.RegexComment));
+            }
 
             public void Visit(RegexAnchorNode node)
                 => AddClassification(node.AnchorToken, ClassificationTypeNames.RegexAnchor);
