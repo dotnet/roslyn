@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private struct IsPatternExpressionLocalRewriter : IDisposable
+        private struct IsPatternExpressionLocalRewriter
         {
             private readonly LocalRewriter _localRewriter;
             private readonly SyntheticBoundNodeFactory _factory;
@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this._sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             }
 
-            public void Dispose()
+            public void Free()
             {
                 _conjunctBuilder.Free();
                 _sideEffectBuilder.Free();
-                _tempAllocator.Dispose();
+                _tempAllocator.Free();
             }
 
-            public class DagTempAllocator : IDisposable
+            public class DagTempAllocator
             {
                 private readonly SyntheticBoundNodeFactory _factory;
                 private readonly PooledDictionary<BoundDagTemp, BoundExpression> _map = PooledDictionary<BoundDagTemp, BoundExpression>.GetInstance();
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this._factory = factory;
                 }
 
-                public void Dispose()
+                public void Free()
                 {
                     _temps.Free();
                     _map.Free();
@@ -374,10 +374,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression loweredExpression = VisitExpression(node.Expression);
             BoundPattern loweredPattern = LowerPattern(node.Pattern);
-            using (var x = new IsPatternExpressionLocalRewriter(this, loweredExpression))
-            {
-                return x.LowerIsPattern(loweredPattern, this._compilation);
-            }
+            var isPatternRewriter = new IsPatternExpressionLocalRewriter(this, loweredExpression);
+            BoundExpression result = isPatternRewriter.LowerIsPattern(loweredPattern, this._compilation);
+            isPatternRewriter.Free();
+            return result;
         }
 
         BoundPattern LowerPattern(BoundPattern pattern)
