@@ -61,15 +61,75 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             // We only support string literals passed in arguments to something.
             // In the future we could support any string literal, as long as it has
             // some marker (like a comment on it) stating it's a regex.
-            if (!syntaxFacts.IsStringLiteral(token) ||
-                !syntaxFacts.IsLiteralExpression(token.Parent) ||
-                !syntaxFacts.IsArgument(token.Parent.Parent))
+            if (!syntaxFacts.IsStringLiteral(token))
+            {
+                return true;
+            }
+
+            if (!IsMethodOrConstructorArgument(token, syntaxFacts) && 
+                !HasRegexLanguageComment(token, syntaxFacts, out _))
             {
                 return true;
             }
 
             return false;
         }
+
+        private static bool HasRegexLanguageComment(
+            SyntaxToken token, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+        {
+            for (var node = token.Parent; node != null; node = node.Parent)
+            {
+                if (HasRegexLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out options))
+                {
+                    return true;
+                }
+            }
+
+            options = default;
+            return false;
+        }
+
+        private static bool HasRegexLanguageComment(
+            SyntaxTriviaList list, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+        {
+            foreach (var trivia in list)
+            {
+                if (HasRegexLanguageComment(trivia, syntaxFacts, out options))
+                {
+                    return true;
+                }
+            }
+
+            options = default;
+            return false;
+        }
+
+        private static bool HasRegexLanguageComment(
+            SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+        {
+            if (syntaxFacts.IsRegularComment(trivia))
+            {
+                var text = trivia.ToString();
+                if (text.IndexOf("language=regex,ecmascript", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    options = RegexOptions.ECMAScript;
+                    return true;
+                }
+                else if (text.IndexOf("language=regex", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    options = RegexOptions.None;
+                    return true;
+                }
+            }
+
+            options = default;
+            return false;
+        }
+
+        private static bool IsMethodOrConstructorArgument(SyntaxToken token, ISyntaxFactsService syntaxFacts)
+            => syntaxFacts.IsLiteralExpression(token.Parent) &&
+               syntaxFacts.IsArgument(token.Parent.Parent);
 
         private static HashSet<string> GetMethodNamesOfInterest(INamedTypeSymbol regexType, ISyntaxFactsService syntaxFacts)
         {
@@ -94,6 +154,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             if (IsDefinitelyNotPattern(token, _syntaxFacts))
             {
                 return false;
+            }
+
+            if (HasRegexLanguageComment(token, _syntaxFacts, out options))
+            {
+                return true;
             }
 
             var stringLiteral = token;
