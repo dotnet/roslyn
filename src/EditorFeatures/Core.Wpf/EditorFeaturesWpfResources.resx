@@ -132,10 +132,16 @@
   <data name="Regex_Character_class" xml:space="preserve">
     <value>Regex - Chraracter class</value>
   </data>
+  <data name="Regex_Alternation" xml:space="preserve">
+    <value>Regex - Alternation</value>
+  </data>
   <data name="Regex_Anchor" xml:space="preserve">
     <value>Regex - Anchor</value>
   </data>
   <data name="Regex_Quantifier" xml:space="preserve">
     <value>Regex - Quantifier</value>
+  </data>
+  <data name="Regex_Text" xml:space="preserve">
+    <value>Regex - Text</value>
   </data>
 </root>

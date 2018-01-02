@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             public void Visit(RegexTextNode node)
             {
                 // Nothing to highlight.
+                AddClassification(node.TextToken, ClassificationTypeNames.RegexText);
             }
 
             public void Visit(RegexCharacterClassNode node)
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             public void Visit(RegexAlternationNode node)
             {
-                
+                AddClassification(node.BarToken, ClassificationTypeNames.RegexAlternation);
             }
 
             public void Visit(RegexSimpleGroupingNode node)

@@ -88,6 +88,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Regex - Alternation.
+        /// </summary>
+        internal static string Regex_Alternation {
+            get {
+                return ResourceManager.GetString("Regex_Alternation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex - Anchor.
         /// </summary>
         internal static string Regex_Anchor {
@@ -120,6 +129,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Regex_Quantifier {
             get {
                 return ResourceManager.GetString("Regex_Quantifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Text.
+        /// </summary>
+        internal static string Regex_Text {
+            get {
+                return ResourceManager.GetString("Regex_Text", resourceCulture);
             }
         }
     }

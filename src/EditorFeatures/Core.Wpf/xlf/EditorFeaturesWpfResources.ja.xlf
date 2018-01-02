@@ -37,6 +37,16 @@
         <target state="new">Regex - Anchor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="new">Regex - Alternation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="new">Regex - Text</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

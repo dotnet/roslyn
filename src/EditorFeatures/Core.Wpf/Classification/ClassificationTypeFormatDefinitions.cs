@@ -359,6 +359,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(87, 166, 74);
             }
         }
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexText)]
+        [Name(ClassificationTypeNames.RegexText)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexTextFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexTextFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
+                this.ForegroundColor = Color.FromRgb(220, 220, 220);
+            }
+        }
 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexCharacterClass)]
@@ -404,6 +419,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
+                this.ForegroundColor = Color.FromRgb(202, 121, 236);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexAlternation)]
+        [Name(ClassificationTypeNames.RegexAlternation)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexAlternationFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
                 this.ForegroundColor = Color.FromRgb(255, 255, 0);
             }
         }
