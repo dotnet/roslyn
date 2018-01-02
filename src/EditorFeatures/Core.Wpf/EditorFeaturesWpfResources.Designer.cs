@@ -124,6 +124,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Regex - Escape.
+        /// </summary>
+        internal static string Regex_Escape {
+            get {
+                return ResourceManager.GetString("Regex_Escape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex -Grouping.
+        /// </summary>
+        internal static string Regex_Grouping {
+            get {
+                return ResourceManager.GetString("Regex_Grouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex - Quantifier.
         /// </summary>
         internal static string Regex_Quantifier {

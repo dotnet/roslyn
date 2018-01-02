@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexComment)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition RegexCommentTypeDefinition;
+
         [Export]
         [Name(ClassificationTypeNames.RegexText)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
@@ -163,6 +164,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexAlternation)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition RegexAlternationTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.RegexEscape)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition RegexEscapeTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.RegexGrouping)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition RegexGroupingTypeDefinition;
         #endregion
 
         #region VB XML Literals - Attribute Name 

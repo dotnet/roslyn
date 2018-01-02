@@ -213,112 +213,139 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             public void Visit(RegexSimpleGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexSimpleOptionsGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexNestedOptionsGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexNonCapturingGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexPositiveLookaheadGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexNegativeLookaheadGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexPositiveLookbehindGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexNegativeLookbehindGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexNonBacktrackingGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexCaptureGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexBalancingGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexConditionalCaptureGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
             }
 
             public void Visit(RegexConditionalExpressionGroupingNode node)
             {
-                
+                ClassifyGrouping(node);
+            }
+
+            private void ClassifyGrouping(RegexGroupingNode node)
+            {
+                foreach (var child in node)
+                {
+                    if (!child.IsNode)
+                    {
+                        AddClassification(child.Token, ClassificationTypeNames.RegexGrouping);
+                    }
+                }
             }
 
             public void Visit(RegexSimpleEscapeNode node)
             {
-                
+                ClassifyEscape(node);
             }
 
             public void Visit(RegexControlEscapeNode node)
             {
-                
+                ClassifyEscape(node);
             }
 
             public void Visit(RegexHexEscapeNode node)
             {
-                
+                ClassifyEscape(node);
             }
 
             public void Visit(RegexUnicodeEscapeNode node)
             {
-                
+                ClassifyEscape(node);
             }
 
             public void Visit(RegexCaptureEscapeNode node)
             {
-                
+                ClassifyEscape(node);
             }
 
             public void Visit(RegexKCaptureEscapeNode node)
             {
-                
+                ClassifyEscape(node);
             }
 
             public void Visit(RegexOctalEscapeNode node)
             {
-                
+                ClassifyEscape(node);
             }
 
             public void Visit(RegexBackreferenceEscapeNode node)
             {
-                
+                ClassifyEscape(node);
             }
 
             public void Visit(RegexCategoryEscapeNode node)
             {
-                
+                ClassifyEscape(node);
+            }
+
+            public void ClassifyEscape(RegexNode node)
+            {
+                foreach (var child in node)
+                {
+                    if (child.IsNode)
+                    {
+                        ClassifyEscape(child.Node);
+                    }
+                    else 
+                    {
+                        AddClassification(
+                            child.Token, ClassificationTypeNames.RegexEscape);
+                    }
+                }
             }
         }
     }

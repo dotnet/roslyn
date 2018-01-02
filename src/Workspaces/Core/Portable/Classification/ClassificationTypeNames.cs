@@ -56,5 +56,7 @@ namespace Microsoft.CodeAnalysis.Classification
         internal const string RegexQuantifier = "regex - quantifier";
         internal const string RegexAnchor = "regex - anchor";
         internal const string RegexAlternation = "regex - alternation";
+        internal const string RegexEscape = "regex - escape";
+        internal const string RegexGrouping = "regex - grouping";
     }
 }

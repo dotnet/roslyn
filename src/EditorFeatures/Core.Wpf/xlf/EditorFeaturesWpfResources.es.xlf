@@ -47,6 +47,16 @@
         <target state="new">Regex - Text</target>
         <note />
       </trans-unit>
+      <trans-unit id="Regex_Escape">
+        <source>Regex - Escape</source>
+        <target state="new">Regex - Escape</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex -Grouping</source>
+        <target state="new">Regex -Grouping</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

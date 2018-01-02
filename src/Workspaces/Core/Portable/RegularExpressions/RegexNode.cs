@@ -18,5 +18,38 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public abstract RegexNodeOrToken ChildAt(int index);
 
         public abstract void Accept(IRegexNodeVisitor visitor);
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(this);
+        }
+
+        public struct Enumerator
+        {
+            private readonly RegexNode _regexNode;
+            private int _currentIndex;
+
+            public Enumerator(RegexNode regexNode)
+            {
+                _regexNode = regexNode;
+                _currentIndex = -1;
+                Current = default;
+            }
+
+            public RegexNodeOrToken Current { get; private set; }
+
+            public bool MoveNext()
+            {
+                _currentIndex++;
+                if (_currentIndex >= _regexNode.ChildCount)
+                {
+                    Current = default;
+                    return false;
+                }
+
+                Current = _regexNode.ChildAt(_currentIndex);
+                return true;
+            }
+        }
     }
 }

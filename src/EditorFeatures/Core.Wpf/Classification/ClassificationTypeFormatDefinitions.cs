@@ -438,6 +438,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(255, 255, 0);
             }
         }
+         
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexEscape)]
+        [Name(ClassificationTypeNames.RegexEscape)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexEscapeFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexEscapeFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+                this.ForegroundColor = Color.FromRgb(255, 128, 9);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexGrouping)]
+        [Name(ClassificationTypeNames.RegexGrouping)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexGroupingFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexGroupingFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+                this.ForegroundColor = Color.FromRgb(78, 201, 176);
+            }
+        }
         #endregion
 
 
