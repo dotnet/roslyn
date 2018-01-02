@@ -86,6 +86,19 @@ End Class
             CleanupAllGeneratedFiles(src)
         End Sub
 
+        <Fact>
+        <WorkItem(21508, "https://github.com/dotnet/roslyn/issues/21508")>
+        Public Sub ArgumentStartWithDashAndContainingSlash()
+            Dim args As VisualBasicCommandLineArguments
+            Dim folder = Temp.CreateDirectory()
+
+            args = DefaultParse({"-debug+/debug:portable"}, folder.Path)
+            args.Errors.AssertTheseDiagnostics(<errors>
+BC2007: unrecognized option '-debug+/debug:portable'; ignored
+BC2008: no input sources specified
+                                               </errors>)
+        End Sub
+
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CommandLineCompilationWithQuotedMainArgument()

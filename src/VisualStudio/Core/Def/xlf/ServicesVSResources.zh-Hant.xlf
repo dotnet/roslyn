@@ -219,7 +219,7 @@
       </trans-unit>
       <trans-unit id="Project">
         <source>Project </source>
-        <target state="translated">專案</target>
+        <target state="translated">專案 </target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">
@@ -1449,27 +1449,27 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Restore_Visual_Studio_keybindings">
         <source>Restore Visual Studio keybindings</source>
-        <target state="new">Restore Visual Studio keybindings</target>
+        <target state="translated">還原 Visual Studio 按鍵繫結關係</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="new">Use keybindings for ReSharper/IntelliJ/Vim/etc.</target>
+        <target state="translated">使用適用於 Resharper/Intellij/Vim/等的按鍵繫結關係</target>
         <note />
       </trans-unit>
       <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
         <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="new">Your keybindings are no longer mapped to Visual Studio commands.</target>
+        <target state="translated">您的按鍵繫結關係已不再對應 Visual Studio 命令。</target>
         <note />
       </trans-unit>
       <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
         <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="new">We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</target>
+        <target state="translated">我們注意到您已暫停 ‘ReSharper Ultimate’。請還原 Visual Studio 按鍵繫結關係以繼續瀏覽及重構。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="new">Enable navigation to decompiled sources (experimental)</target>
+        <target state="translated">啟用反編譯來源的瀏覽 (實驗性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
@@ -1482,20 +1482,20 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+        <target state="translated">注意事項: Visual Studio 包含能從二進位程式碼重新產生來源碼的反編譯功能 (「解編程式」)。存取及使用此解編程式，即表示貴用戶同意 Visual Studio 授權條款及下方的解編程式條款。若貴用戶不同意這些合併條款，請勿存取或使用解編程式。
  
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
+貴用戶了解二進位程式碼及來源程式碼可能為著作權及商標法所保護。在針對任何二進位程式碼使用解編程式前，貴用戶首先需要:
+(i) 確認管理貴用戶使用二進位程式碼的授權條款不包含禁止貴用戶反編譯軟體的佈建; 或
+(ii) 從軟體擁有者取得反編譯二進位程式碼的權限。
  
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+貴用戶可自行選擇是否要使用解編程式。Microsoft 聲明不為貴用戶在使用編譯程式時觸犯的法律，或任何禁止反編譯軟體的軟體授權條約承擔任何責任。
 
-I agree to all of the foregoing:</target>
+我同意以上條款:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
-        <target state="new">Decompiler Legal Notice</target>
+        <target state="translated">解編程式的法律聲明</target>
         <note />
       </trans-unit>
     </body>

@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">Non è possibile semplificare il nome</target>
+        <target state="translated">Il nome può essere semplificato</target>
         <note />
       </trans-unit>
       <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
@@ -679,7 +679,7 @@ Iterator Function(&lt;elencoParametri&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Specifies_that_a_class_can_be_used_only_as_a_base_class_and_that_you_cannot_create_an_object_directly_from_it">
         <source>Specifies that a class can be used only as a base class, and that you cannot create an object directly from it.</source>
-        <target state="translated">Specifica che una classe può essere usata solo come classe base e che non è possibile creare un oggetto direttamente da tale classe.</target>
+        <target state="translated">Specifica che una classe può essere usata solo come classe di base e che non è possibile creare un oggetto direttamente da tale classe.</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_a_property_or_procedure_is_not_implemented_in_the_class_and_must_be_overridden_in_a_derived_class_before_it_can_be_used">
@@ -704,7 +704,7 @@ Iterator Function(&lt;elencoParametri&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Specifies_that_a_class_cannot_be_used_as_a_base_class">
         <source>Specifies that a class cannot be used as a base class.</source>
-        <target state="translated">Specifica che una classe non può essere usata come classe base.</target>
+        <target state="translated">Specifica che una classe non può essere usata come classe di base.</target>
         <note />
       </trans-unit>
       <trans-unit id="Performs_logical_negation_on_a_Boolean_expression_or_bitwise_negation_on_a_numeric_expression_result_Not_expression">
@@ -765,7 +765,7 @@ Iterator Function(&lt;elencoParametri&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Specifies_that_a_property_or_procedure_overrides_an_identically_named_property_or_procedure_inherited_from_a_base_class">
         <source>Specifies that a property or procedure overrides an identically named property or procedure inherited from a base class.</source>
-        <target state="translated">Specifica che una proprietà o una routine esegue l'override di una proprietà o una routine con nome identico ereditata da una classe base.</target>
+        <target state="translated">Specifica che una proprietà o una routine esegue l'override di una proprietà o una routine con nome identico ereditata da una classe di base.</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_specified_type">
@@ -835,7 +835,7 @@ Iterator Function(&lt;elencoParametri&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Specifies_that_a_declared_programming_element_redeclares_and_hides_an_identically_named_element_in_a_base_class">
         <source>Specifies that a declared programming element redeclares and hides an identically named element in a base class.</source>
-        <target state="translated">Specifica che un elemento di programmazione dichiarato ridichiara e nasconde un elemento con nome identico in una classe base.</target>
+        <target state="translated">Specifica che un elemento di programmazione dichiarato ridichiara e nasconde un elemento con nome identico in una classe di base.</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_associated_with_all_instances_of_a_class_or_structure">
@@ -1211,7 +1211,7 @@ Do...Loop While &lt;condizione&gt;</target>
       </trans-unit>
       <trans-unit id="Provides_a_way_to_refer_to_the_base_class_of_the_current_class_instance_You_cannot_use_MyBase_to_call_MustOverride_base_methods">
         <source>Provides a way to refer to the base class of the current class instance. You cannot use MyBase to call MustOverride base methods.</source>
-        <target state="translated">Consente di fare riferimento alla classe base dell'istanza di classe corrente. Non è possibile usare MyBase per chiamare i metodi base MustOverride.</target>
+        <target state="translated">Consente di fare riferimento alla classe di base dell'istanza di classe corrente. Non è possibile usare MyBase per chiamare i metodi di base MustOverride.</target>
         <note />
       </trans-unit>
       <trans-unit id="Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides">

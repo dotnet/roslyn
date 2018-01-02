@@ -286,6 +286,24 @@ d.cs
             Assert.Equal("решения.Class1", args.CompilationOptions.MainTypeName);
         }
 
+        [Fact]
+        [WorkItem(21508, "https://github.com/dotnet/roslyn/issues/21508")]
+        public void ArgumentStartWithDashAndContainingSlash()
+        {
+            CSharpCommandLineArguments args;
+            var folder = Temp.CreateDirectory();
+
+            args = DefaultParse(new[] { "-debug+/debug:portable" }, folder.Path);
+            args.Errors.Verify(
+                // error CS2007: Unrecognized option: '-debug+/debug:portable'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("-debug+/debug:portable").WithLocation(1, 1),
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1)
+                );
+        }
+
         [WorkItem(546009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")]
         [WorkItem(545991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")]
         [ConditionalFact(typeof(WindowsOnly))]

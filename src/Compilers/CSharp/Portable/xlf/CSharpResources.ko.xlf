@@ -2398,7 +2398,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
         <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0}'은(는) 봉인 클래스 '{1}'의 새 가상 멤버입니다.</target>
+        <target state="translated">'{0}'은(는) 봉인된 클래스 '{1}'의 새 가상 멤버입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -3822,7 +3822,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseCtor">
         <source>The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.</source>
-        <target state="translated">생성자 호출을 동적으로 디스패치해야 하지만 해당 호출이 생성자 이니셜라이저의 일부이므로 동적으로 디스패치할 수 없습니다. 동적 인수를 캐스팅하십시오.</target>
+        <target state="translated">생성자 호출을 동적으로 디스패치해야 하지만 해당 호출이 생성자 이니셜라이저의 일부이므로 동적으로 디스패치할 수 없습니다. 동적 인수를 캐스팅하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueTypeExtDelegate">
@@ -6517,7 +6517,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseIndexer">
         <source>The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">인덱서 액세스를 동적으로 디스패치해야 하지만 해당 액세스가 기본 액세스 식의 일부이므로 동적으로 디스패치할 수 없습니다. 동적 인수를 캐스팅하거나 기본 액세스를 제거하십시오.</target>
+        <target state="translated">인덱서 액세스를 동적으로 디스패치해야 하지만 해당 액세스가 기본 액세스 식의 일부이므로 동적으로 디스패치할 수 없습니다. 동적 인수를 캐스팅하거나 기본 액세스를 제거하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod">
@@ -8582,12 +8582,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
+        <target state="translated">기본 리터럴 'default'가 case 상수로 유효하지 않습니다. 다른 리터럴(예: '0' 또는 'null')을 적절하게 사용하세요. 기본 레이블을 쓰려는 경우 'case' 없이 'default:'를 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
+        <target state="translated">기본 리터럴 'default'가 패턴으로 유효하지 않습니다. 다른 리터럴(예: '0' 또는 'null')을 적절하게 사용하세요. 모두 일치시키려면 무시 패턴 'var _'을 사용하세요.</target>
         <note />
       </trans-unit>
     </body>

@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
-        <target state="translated">Opzione /noconfig ignorata perché specificata in un file di risposta</target>
+        <target state="translated">L'opzione /noconfig è stata ignorata perché è stata specificata in un file di risposta</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidWarningId">
@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantRaiseBaseEvent">
         <source>Derived classes cannot raise base class events.</source>
-        <target state="translated">Le classi derivate non possono generare eventi di classe base.</target>
+        <target state="translated">Le classi derivate non possono generare eventi di classe di base.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TryWithoutCatchOrFinally">
@@ -439,7 +439,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAttributeConstructor1">
         <source>Attribute constructor has a parameter of type '{0}', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.</source>
-        <target state="translated">Il costruttore di attributo ha un parametro di tipo '{0}', che non è di tipo integrale, a virgola mobile o Enum e neppure di tipo Object, Char, String, Boolean, System.Type, né una matrice unidimensionale di tali tipi.</target>
+        <target state="translated">Il costruttore di attributo ha un parametro di tipo '{0}', che non è di tipo integrale, a virgola mobile o enumerazione e neppure di tipo Object, Char, String, Boolean, System.Type, né una matrice unidimensionale di tali tipi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamArrayWithOptArgs">
@@ -669,7 +669,7 @@
       </trans-unit>
       <trans-unit id="ERR_EnumNotExpression1">
         <source>'{0}' is an Enum type and cannot be used as an expression.</source>
-        <target state="translated">'{0}' è un tipo Enum e non può essere usato come espressione.</target>
+        <target state="translated">'{0}' è un tipo enumerazione non può essere usato come espressione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
@@ -749,7 +749,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredNewCall2">
         <source>First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class '{0}' of '{1}' does not have an accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata a 'MyBase.New' o a 'MyClass.New' perché la classe base '{0}' di '{1}' non ha un 'Sub New' accessibile che possa essere chiamato senza argomenti.</target>
+        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata a 'MyBase.New' o a 'MyClass.New' perché la classe di base '{0}' di '{1}' non ha un 'Sub New' accessibile che possa essere chiamato senza argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedMember3">
@@ -1178,7 +1178,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNeeded3">
         <source>{0} '{1}' cannot be declared 'Overrides' because it does not override a {0} in a base class.</source>
-        <target state="translated">{0} '{1}' non può essere dichiarato come 'Overrides' perché non esegue l'override di un elemento {0} in una classe base.</target>
+        <target state="translated">{0} '{1}' non può essere dichiarato come 'Overrides' perché non esegue l'override di un elemento {0} in una classe di base.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedDot">
@@ -1277,7 +1277,7 @@
       </trans-unit>
       <trans-unit id="ERR_FieldOfValueFieldOfMarshalByRef3">
         <source>Cannot refer to '{0}' because it is a member of the value-typed field '{1}' of class '{2}' which has 'System.MarshalByRefObject' as a base class.</source>
-        <target state="translated">Non è possibile fare riferimento a '{0}' perché è un membro del campo di valori '{1}' della classe '{2}' che ha 'System.MarshalByRefObject' come classe base.</target>
+        <target state="translated">Non è possibile fare riferimento a '{0}' perché è un membro del campo di valori '{1}' della classe '{2}' che ha 'System.MarshalByRefObject' come classe di base.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeMismatch2">
@@ -1417,7 +1417,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConstructorOnBase2">
         <source>Class '{0}' must declare a 'Sub New' because its base class '{1}' does not have an accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché la relativa classe base '{1}' non contiene un costruttore accessibile 'Sub New' che possa essere chiamato senza argomenti.</target>
+        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché la relativa classe di base '{1}' non contiene un costruttore accessibile 'Sub New' che possa essere chiamato senza argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InaccessibleSymbol2">
@@ -1447,7 +1447,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'{0}' non è valido in una dichiarazione Enum.</target>
+        <target state="translated">'{0}' non è valido in una dichiarazione di enumerazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
@@ -2004,7 +2004,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustInheritEventNotOverridden">
         <source>'{0}' is a MustOverride event in the base class '{1}'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class '{2}' MustInherit.</source>
-        <target state="translated">'{0}' è un evento MustOverride nella classe base '{1}'. Visual Basic non supporta l'override di eventi. È necessario fornire un'implementazione per l'evento nella classe base oppure impostare la classe '{2}' come MustInherit.</target>
+        <target state="translated">'{0}' è un evento MustOverride nella classe di base '{1}'. Visual Basic non supporta l'override di eventi. È necessario fornire un'implementazione per l'evento nella classe di base oppure impostare la classe '{2}' come MustInherit.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NegativeArraySize">
@@ -2039,12 +2039,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideEnum">
         <source>Statement cannot appear within an Enum body.</source>
-        <target state="translated">L'istruzione non può essere specificata all'interno di un corpo di Enum.</target>
+        <target state="translated">L'istruzione non può essere presente nel corpo di un'enumerazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvInsideEndsEnum">
         <source>Statement cannot appear within an Enum body. End of Enum assumed.</source>
-        <target state="translated">L'istruzione non può essere specificata all'interno di un corpo di enumerazione. Verrà interpretata come fine dell'enumerazione.</target>
+        <target state="translated">L'istruzione non può trovarsi nel corpo di un'enumerazione. Verrà interpretata come fine dell'enumerazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidOptionStrict">
@@ -2189,7 +2189,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidEnumBase">
         <source>Enums must be declared as an integral type.</source>
-        <target state="translated">I valori Enum devono essere dichiarati come tipo integrale.</target>
+        <target state="translated">Le enumerazioni devono essere dichiarate come tipo integrale.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefIllegal1">
@@ -2691,22 +2691,22 @@
       </trans-unit>
       <trans-unit id="ERR_NoNonObsoleteConstructorOnBase3">
         <source>Class '{0}' must declare a 'Sub New' because the '{1}' in its base class '{2}' is marked obsolete.</source>
-        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché '{1}' nella relativa classe base '{2}' è contrassegnato come obsoleto.</target>
+        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché '{1}' nella relativa classe di base '{2}' è contrassegnato come obsoleto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNonObsoleteConstructorOnBase4">
         <source>Class '{0}' must declare a 'Sub New' because the '{1}' in its base class '{2}' is marked obsolete: '{3}'.</source>
-        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché '{1}' nella relativa classe base '{2}' è contrassegnato come obsoleto: '{3}'.</target>
+        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché '{1}' nella relativa classe di base '{2}' è contrassegnato come obsoleto: '{3}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredNonObsoleteNewCall3">
         <source>First statement of this 'Sub New' must be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete.</source>
-        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché '{0}' nella classe base '{1}' di '{2}' è contrassegnato come obsoleto.</target>
+        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché '{0}' nella classe di base '{1}' di '{2}' è contrassegnato come obsoleto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredNonObsoleteNewCall4">
         <source>First statement of this 'Sub New' must be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete: '{3}'.</source>
-        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché '{0}' nella classe base '{1}' di '{2}' è contrassegnato come obsoleto: '{3}'.</target>
+        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché '{0}' nella classe di base '{1}' di '{2}' è contrassegnato come obsoleto: '{3}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatch7">
@@ -2736,7 +2736,7 @@
       </trans-unit>
       <trans-unit id="ERR_BaseMismatchForPartialClass3">
         <source>Base class '{0}' specified for class '{1}' cannot be different from the base class '{2}' of one of its other partial types.</source>
-        <target state="translated">La classe base '{0}' specificata per la classe '{1}' non può essere diversa dalla classe base '{2}' di uno degli altri tipi parziali.</target>
+        <target state="translated">La classe di base '{0}' specificata per la classe '{1}' non può essere diversa dalla classe di base '{2}' di uno degli altri tipi parziali.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeTypeParamNameMismatch3">
@@ -3102,7 +3102,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceEnumSpecifier1">
         <source>Enum in an interface cannot be declared '{0}'.</source>
-        <target state="translated">L'enumeratore in un'interfaccia non può essere dichiarato come '{0}'.</target>
+        <target state="translated">Non è possibile dichiarare come '{0}' l'enumerazione in un'interfaccia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceClassSpecifier1">
@@ -4137,7 +4137,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoUniqueConstructorOnBase2">
         <source>Class '{0}' must declare a 'Sub New' because its base class '{1}' has more than one accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché la relativa classe base '{1}' contiene più di un elemento 'Sub New' accessibile che può essere chiamato senza argomenti.</target>
+        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché la relativa classe di base '{1}' contiene più di un elemento 'Sub New' accessibile che può essere chiamato senza argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtraNextVariable">
@@ -4147,7 +4147,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredNewCallTooMany2">
         <source>First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class '{0}' of '{1}' has more than one accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata a 'MyBase.New' o a 'MyClass.New' perché la classe base '{0}' di '{1}' ha più 'Sub New' accessibili che possono essere chiamati senza argomenti.</target>
+        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata a 'MyBase.New' o a 'MyClass.New' perché la classe di base '{0}' di '{1}' ha più 'Sub New' accessibili che possono essere chiamati senza argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForCtlVarArraySizesSpecified">
@@ -5810,12 +5810,12 @@
       </trans-unit>
       <trans-unit id="WRN_EnumUnderlyingTypeNotCLS1">
         <source>Underlying type '{0}' of Enum is not CLS-compliant.</source>
-        <target state="translated">Il tipo sottostante '{0}' di Enum non è conforme a CLS.</target>
+        <target state="translated">Il tipo sottostante '{0}' dell'enumerazione non è conforme a CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EnumUnderlyingTypeNotCLS1_Title">
         <source>Underlying type of Enum is not CLS-compliant</source>
-        <target state="translated">Il tipo sottostante di Enum non è conforme a CLS</target>
+        <target state="translated">Il tipo sottostante dell'enumerazione non è conforme a CLS</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NonCLSMemberInCLSInterface1">
@@ -6030,42 +6030,42 @@
       </trans-unit>
       <trans-unit id="WRN_NoNonObsoleteConstructorOnBase3">
         <source>Class '{0}' should declare a 'Sub New' because the '{1}' in its base class '{2}' is marked obsolete.</source>
-        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché '{1}' nella classe base '{2}' è contrassegnato come obsoleto.</target>
+        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché '{1}' nella classe di base '{2}' è contrassegnato come obsoleto.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoNonObsoleteConstructorOnBase3_Title">
         <source>Class should declare a 'Sub New' because the constructor in its base class is marked obsolete</source>
-        <target state="translated">La classe deve dichiarare un 'Sub New' perché il costruttore nella relativa classe base è contrassegnato come obsoleto</target>
+        <target state="translated">La classe deve dichiarare un 'Sub New' perché il costruttore nella relativa classe di base è contrassegnato come obsoleto</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoNonObsoleteConstructorOnBase4">
         <source>Class '{0}' should declare a 'Sub New' because the '{1}' in its base class '{2}' is marked obsolete: '{3}'.</source>
-        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché '{1}' nella classe base '{2}' è contrassegnato come obsoleto: '{3}'.</target>
+        <target state="translated">La classe '{0}' deve dichiarare un elemento 'Sub New' perché '{1}' nella classe di base '{2}' è contrassegnato come obsoleto: '{3}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoNonObsoleteConstructorOnBase4_Title">
         <source>Class should declare a 'Sub New' because the constructor in its base class is marked obsolete</source>
-        <target state="translated">La classe deve dichiarare un 'Sub New' perché il costruttore nella relativa classe base è contrassegnato come obsoleto</target>
+        <target state="translated">La classe deve dichiarare un 'Sub New' perché il costruttore nella relativa classe di base è contrassegnato come obsoleto</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall3">
         <source>First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete.</source>
-        <target state="translated">La prima istruzione di questo elemento 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché '{0}' nella classe base '{1}' di '{2}' è contrassegnato come obsoleto.</target>
+        <target state="translated">La prima istruzione di questo elemento 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché '{0}' nella classe di base '{1}' di '{2}' è contrassegnato come obsoleto.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall3_Title">
         <source>First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the constructor in the base class is marked obsolete</source>
-        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché il costruttore nella classe base è contrassegnato come obsoleto</target>
+        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché il costruttore nella classe di base è contrassegnato come obsoleto</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall4">
         <source>First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete: '{3}'</source>
-        <target state="translated">La prima istruzione di questo elemento 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché '{0}' nella classe base '{1}' di '{2}' è contrassegnato come obsoleto: '{3}'</target>
+        <target state="translated">La prima istruzione di questo elemento 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché '{0}' nella classe di base '{1}' di '{2}' è contrassegnato come obsoleto: '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall4_Title">
         <source>First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the constructor in the base class is marked obsolete</source>
-        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché il costruttore nella classe base è contrassegnato come obsoleto</target>
+        <target state="translated">La prima istruzione di questo 'Sub New' deve essere una chiamata esplicita a 'MyBase.New' o a 'MyClass.New' perché il costruttore nella classe di base è contrassegnato come obsoleto</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingAsClauseinOperator">
@@ -6280,22 +6280,22 @@
       </trans-unit>
       <trans-unit id="WRN_UnusedLocal">
         <source>Unused local variable: '{0}'.</source>
-        <target state="translated">Variabile locale non usata: '{0}'.</target>
+        <target state="translated">Variabile locale inutilizzata: '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnusedLocal_Title">
         <source>Unused local variable</source>
-        <target state="translated">Variabile locale non usata</target>
+        <target state="translated">Variabile locale inutilizzata</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SharedMemberThroughInstance">
         <source>Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.</source>
-        <target state="translated">L'accesso di membro condiviso, il membro costante, il membro enum o il tipo è stato annidato tramite un'istanza. L'espressione di qualificazione non verrà valutata.</target>
+        <target state="translated">L'accesso del membro condiviso, del membro costante, del membro di enumerazione o del tipo nidificato verrà effettuato tramite un'istanza. L'espressione di qualificazione non verrà valutata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SharedMemberThroughInstance_Title">
         <source>Access of shared member, constant member, enum member or nested type through an instance</source>
-        <target state="translated">L'accesso del membro condiviso, del membro costante, del membro enum o del tipo annidato verrà effettuato tramite un'istanza</target>
+        <target state="translated">L'accesso del membro condiviso, del membro costante, del membro di enumerazione o del tipo nidificato verrà effettuato tramite un'istanza</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecursivePropertyCall">
@@ -7362,7 +7362,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceInterfaceNesting">
         <source>Enumerations, classes, and structures cannot be declared in an interface that has an 'In' or 'Out' type parameter.</source>
-        <target state="translated">Non è possibile dichiarare enumerazioni, classi e strutture in un'interfaccia con parametro di tipo 'In' o 'Out'.</target>
+        <target state="translated">Non è possibile dichiarare enumerazioni, classi e strutture in un'interfaccia che contiene un parametro di tipo 'In' o 'Out'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariancePreventsSynthesizedEvents2">
@@ -7787,7 +7787,7 @@
       </trans-unit>
       <trans-unit id="WRN_AsyncSubCouldBeFunction">
         <source>Some overloads here take an Async Function rather than an Async Sub. Consider either using an Async Function, or casting this Async Sub explicitly to the desired type.</source>
-        <target state="translated">Sono presenti alcuni overload che accettano una funzione Async invece di sub Async. Provare a usare una funzione Async o a eseguire il casting del sub Async in modo esplicito sul tipo desiderato.</target>
+        <target state="translated">Sono presenti alcuni overload che accettano Async Function anziché Async Sub. Provare a usare Async Function o a eseguire in modo esplicito il cast di Async Sub sul tipo desiderato.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsyncSubCouldBeFunction_Title">
@@ -7842,7 +7842,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadIteratorByRefParam">
         <source>Iterator methods cannot have ByRef parameters.</source>
-        <target state="translated">I I metodi Iterator non possono avere parametri ByRef.</target>
+        <target state="translated">I metodi Iterator non possono avere parametri ByRef.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorExpressionLambda">
@@ -7947,7 +7947,7 @@
       </trans-unit>
       <trans-unit id="WRN_RefCultureMismatch">
         <source>Referenced assembly '{0}' has different culture setting of '{1}'.</source>
-        <target state="translated">Le impostazioni cultura dell'assembly '{0}' al quale si fa riferimento sono diverse da '{1}'</target>
+        <target state="translated">Le impostazioni cultura dell'assembly '{0}' al quale si fa riferimento sono diverse da '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefCultureMismatch_Title">

@@ -14,6 +14,15 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed partial class Checksum : IObjectWritable, IEquatable<Checksum>
     {
+        /// <summary>
+        /// The intended size of the <see cref="Sha1Hash"/> structure. Some runtime environments are known to deviate
+        /// from this size, so the implementation code should remain functionally correct even when the structure size
+        /// is greater than this value.
+        /// </summary>
+        /// <seealso href="https://bugzilla.xamarin.com/show_bug.cgi?id=60298">LayoutKind.Explicit, Size = 12 ignored with 64bit alignment</seealso>
+        /// <seealso href="https://github.com/dotnet/roslyn/issues/23722">Checksum throws on Mono 64-bit</seealso>
+        private const int Sha1HashSize = 20;
+
         public static readonly Checksum Null = new Checksum(Array.Empty<byte>());
 
         private Sha1Hash _checkSum;
@@ -25,14 +34,15 @@ namespace Microsoft.CodeAnalysis
                 _checkSum = default;
                 return;
             }
-            else if (checksum.Length != sizeof(Sha1Hash))
+            else if (checksum.Length != Sha1HashSize)
             {
                 throw new ArgumentException($"{nameof(checksum)} must be a SHA-1 hash", nameof(checksum));
             }
 
             fixed (byte* data = checksum)
             {
-                _checkSum = *(Sha1Hash*)data;
+                // Avoid a direct dereferencing assignment since sizeof(Sha1Hash) may be greater than Sha1HashSize.
+                _checkSum = Sha1Hash.FromPointer((Sha1Hash*)data);
             }
         }
 
@@ -65,7 +75,7 @@ namespace Microsoft.CodeAnalysis
                 *(Sha1Hash*)dataPtr = _checkSum;
             }
 
-            return Convert.ToBase64String(data);
+            return Convert.ToBase64String(data, 0, Sha1HashSize);
         }
 
         public static bool operator ==(Checksum left, Checksum right)
@@ -98,13 +108,7 @@ namespace Microsoft.CodeAnalysis
         /// This structure stores the 20-byte SHA 1 hash as an inline value rather than requiring the use of
         /// <c>byte[]</c>.
         /// </summary>
-        /// <remarks>
-        /// Pack = 4 is specified to work around a Mono runtime behavior where on 64-bit the size of the
-        /// struct would be 24 and not 20 due to alignment (it ignores Size = 20, but Pack = 4 does it).
-        /// Without this fix the ctor would throw because it would use sizeof(Sha1Hash) == 24.
-        /// This bug is tracked by https://bugzilla.xamarin.com/show_bug.cgi?id=60298.
-        /// </remarks>
-        [StructLayout(LayoutKind.Explicit, Size = 20, Pack = 4)]
+        [StructLayout(LayoutKind.Explicit, Size = Sha1HashSize)]
         private struct Sha1Hash : IEquatable<Sha1Hash>
         {
             [FieldOffset(0)]
@@ -127,6 +131,15 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteInt64(Data1);
                 writer.WriteInt64(Data2);
                 writer.WriteInt32(Data3);
+            }
+
+            public static unsafe Sha1Hash FromPointer(Sha1Hash* hash)
+            {
+                Sha1Hash result = default;
+                result.Data1 = hash->Data1;
+                result.Data2 = hash->Data2;
+                result.Data3 = hash->Data3;
+                return result;
             }
 
             public static Sha1Hash ReadFrom(ObjectReader reader)
