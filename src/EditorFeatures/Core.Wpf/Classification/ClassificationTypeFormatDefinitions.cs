@@ -375,6 +375,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(216, 80, 80);
             }
         }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexQuantifier)]
+        [Name(ClassificationTypeNames.RegexQuantifier)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexQuantifierFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
+                this.ForegroundColor = Color.FromRgb(95, 149, 250);
+            }
+        }
         #endregion
 
 

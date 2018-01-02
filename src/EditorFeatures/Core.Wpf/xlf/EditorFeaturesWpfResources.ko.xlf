@@ -27,6 +27,11 @@
         <target state="new">Regex - Chraracter class</target>
         <note />
       </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="new">Regex - Quantifier</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

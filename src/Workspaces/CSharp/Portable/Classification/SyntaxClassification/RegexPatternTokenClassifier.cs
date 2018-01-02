@@ -158,37 +158,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             public void Visit(RegexZeroOrMoreQuantifierNode node)
             {
-                
+                AddClassification(node.AsteriskToken, ClassificationTypeNames.RegexQuantifier);
             }
 
             public void Visit(RegexOneOrMoreQuantifierNode node)
             {
-                
+                AddClassification(node.PlusToken, ClassificationTypeNames.RegexQuantifier);
             }
 
             public void Visit(RegexZeroOrOneQuantifierNode node)
             {
-                
+                AddClassification(node.QuestionToken, ClassificationTypeNames.RegexQuantifier);
             }
 
             public void Visit(RegexLazyQuantifierNode node)
             {
-                
+                AddClassification(node.QuestionToken, ClassificationTypeNames.RegexQuantifier);
             }
 
             public void Visit(RegexExactNumericQuantifierNode node)
             {
-                
+                AddClassification(node.OpenBraceToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.FirstNumberToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.CloseBraceToken, ClassificationTypeNames.RegexQuantifier);
             }
 
             public void Visit(RegexOpenNumericRangeQuantifierNode node)
             {
-                
+                AddClassification(node.OpenBraceToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.FirstNumberToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.CommaToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.CloseBraceToken, ClassificationTypeNames.RegexQuantifier);
             }
 
             public void Visit(RegexClosedNumericRangeQuantifierNode node)
             {
-                
+                AddClassification(node.OpenBraceToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.FirstNumberToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.CommaToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.SecondNumberToken, ClassificationTypeNames.RegexQuantifier);
+                AddClassification(node.CloseBraceToken, ClassificationTypeNames.RegexQuantifier);
             }
 
             public void Visit(RegexAnchorNode node)

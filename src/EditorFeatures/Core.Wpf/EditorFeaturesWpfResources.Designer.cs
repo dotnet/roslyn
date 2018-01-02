@@ -104,5 +104,14 @@ namespace Microsoft.CodeAnalysis.Editor {
                 return ResourceManager.GetString("Regex_Comment", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Quantifier.
+        /// </summary>
+        internal static string Regex_Quantifier {
+            get {
+                return ResourceManager.GetString("Regex_Quantifier", resourceCulture);
+            }
+        }
     }
 }
