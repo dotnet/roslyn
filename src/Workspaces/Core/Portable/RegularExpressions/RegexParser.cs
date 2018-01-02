@@ -1100,6 +1100,15 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private void ParseCharacterClassComponents(ArrayBuilder<RegexExpressionNode> components)
         {
             var left = ParseCharacterClassComponentPiece(isFirst: components.Count == 0, afterRangeMinus: false);
+            if (left.Kind == RegexKind.CharacterClassEscape ||
+                left.Kind == RegexKind.CategoryEscape)
+            {
+                // \s or \p{Lu} on the left of a minus doesn't start a range. If there is a following
+                // minus, it's just treated textually.
+                components.Add(left);
+                return;
+            }
+
             if (IsTextChar(_currentToken, '-') && !_lexer.IsAt("]"))
             {
                 var minusToken = _currentToken.With(kind: RegexKind.MinusToken);

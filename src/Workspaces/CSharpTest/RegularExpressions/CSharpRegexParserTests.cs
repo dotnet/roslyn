@@ -9476,16 +9476,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <CharacterClassRange>
-            <CharacterClassEscape>
-              <BackslashToken>\</BackslashToken>
-              <TextToken>w</TextToken>
-            </CharacterClassEscape>
-            <MinusToken>-</MinusToken>
-            <Text>
-              <TextToken>a</TextToken>
-            </Text>
-          </CharacterClassRange>
+          <CharacterClassEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>w</TextToken>
+          </CharacterClassEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -9541,19 +9541,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <CharacterClassRange>
-            <CategoryEscape>
-              <BackslashToken>\</BackslashToken>
-              <TextToken>p</TextToken>
-              <OpenBraceToken>{</OpenBraceToken>
-              <EscapeCategoryToken>llll</EscapeCategoryToken>
-              <CloseBraceToken>}</CloseBraceToken>
-            </CategoryEscape>
-            <MinusToken>-</MinusToken>
-            <Text>
-              <TextToken>a</TextToken>
-            </Text>
-          </CharacterClassRange>
+          <CategoryEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>p</TextToken>
+            <OpenBraceToken>{</OpenBraceToken>
+            <EscapeCategoryToken>llll</EscapeCategoryToken>
+            <CloseBraceToken>}</CloseBraceToken>
+          </CategoryEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -9578,19 +9578,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <CharacterClassRange>
-            <CategoryEscape>
-              <BackslashToken>\</BackslashToken>
-              <TextToken>p</TextToken>
-              <OpenBraceToken>{</OpenBraceToken>
-              <EscapeCategoryToken>Lu</EscapeCategoryToken>
-              <CloseBraceToken>}</CloseBraceToken>
-            </CategoryEscape>
-            <MinusToken>-</MinusToken>
-            <Text>
-              <TextToken>a</TextToken>
-            </Text>
-          </CharacterClassRange>
+          <CategoryEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>p</TextToken>
+            <OpenBraceToken>{</OpenBraceToken>
+            <EscapeCategoryToken>Lu</EscapeCategoryToken>
+            <CloseBraceToken>}</CloseBraceToken>
+          </CategoryEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -10326,6 +10326,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <Text>
         <TextToken> </TextToken>
       </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClass42()
+        {
+            Test(@"@""[\s-a]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>s</TextToken>
+          </CharacterClassEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClass43()
+        {
+            Test(@"@""[\p{Lu}-a]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CategoryEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>p</TextToken>
+            <OpenBraceToken>{</OpenBraceToken>
+            <EscapeCategoryToken>Lu</EscapeCategoryToken>
+            <CloseBraceToken>}</CloseBraceToken>
+          </CategoryEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
