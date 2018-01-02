@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Regex_Grouping">
-        <source>Regex -Grouping</source>
-        <target state="new">Regex -Grouping</target>
+        <source>Regex - Grouping</source>
+        <target state="new">Regex - Grouping</target>
         <note />
       </trans-unit>
     </body>
