@@ -51,7 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return;
             }
 
-            var tree = RegexParser.Parse(chars, options);
+            var tree = RegexParser.TryParse(chars, options);
+            if (tree == null)
+            {
+                return;
+            }
+
             var visitor = new Visitor(result);
             AddClassifications(tree.Root, visitor, result);
         }

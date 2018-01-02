@@ -61,17 +61,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             }
         }
 
-        private RegexTree TryParseTree(string stringText, RegexOptions options, bool conversionFailureOk)
+        private (SyntaxToken, RegexTree, ImmutableArray<VirtualChar>) JustParseTree(
+            string stringText, RegexOptions options, bool conversionFailureOk)
         {
             var token = GetStringToken(stringText);
             var allChars = _service.TryConvertToVirtualChars(token);
             if (allChars.IsDefault)
             {
                 Assert.True(conversionFailureOk, "Failed to convert text to token.");
+                return (token, null, allChars);
+            }
+
+            var tree = RegexParser.TryParse(allChars, options);
+            return (token, tree, allChars);
+        }
+
+        private RegexTree TryParseTree(string stringText, RegexOptions options, bool conversionFailureOk)
+        {
+            var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
+            if (tree == null)
+            {
+                Assert.True(conversionFailureOk);
                 return null;
             }
-            var tree = RegexParser.Parse(allChars, options);
-            Assert.NotNull(tree);
+
             CheckInvariants(tree, allChars);
 
             try
@@ -10341,5 +10354,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         }
 
         #endregion
+
+        [Fact]
+        public void TestDeepRecursion()
+        {
+            var (token, tree, chars) =
+                JustParseTree(
+@"@""((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((""", RegexOptions.None, conversionFailureOk: false);
+            Assert.False(token.IsMissing);
+            Assert.False(chars.IsDefaultOrEmpty);
+            Assert.Null(tree);
+        }
     }
 }

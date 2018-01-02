@@ -103,7 +103,12 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
                 return;
             }
 
-            var tree = RegexParser.Parse(virtualChars, options);
+            var tree = RegexParser.TryParse(virtualChars, options);
+            if (tree == null)
+            {
+                return;
+            }
+
             foreach (var diag in tree.Diagnostics)
             {
                 context.ReportDiagnostic(Diagnostic.Create(

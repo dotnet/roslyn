@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private RegexToken _currentToken;
         private readonly List<string> _captureNames;
         private readonly List<int> _captureNumbers;
+        private int _recursionDepth;
 
         private RegexParser(
             ImmutableArray<VirtualChar> text, RegexOptions options,
@@ -42,25 +43,32 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return _currentToken;
         }
 
-        public static RegexTree Parse(ImmutableArray<VirtualChar> text, RegexOptions options)
+        public static RegexTree TryParse(ImmutableArray<VirtualChar> text, RegexOptions options)
         {
-            // Parse the tree once, to figure out the capture groups.  These are needed
-            // to then parse the tree again, as the captures will affect how we interpret
-            // certain things (i.e. escape references) and what errors will be reported.
-            //
-            // This is necessary as .net regexes allow references to *future* captures.
-            // As such, we don't know when we're seeing a reference if it's to something
-            // that exists or not.
-            var tree1 = new RegexParser(text, options, null, null).ParseTree();
+            try
+            {
+                // Parse the tree once, to figure out the capture groups.  These are needed
+                // to then parse the tree again, as the captures will affect how we interpret
+                // certain things (i.e. escape references) and what errors will be reported.
+                //
+                // This is necessary as .net regexes allow references to *future* captures.
+                // As such, we don't know when we're seeing a reference if it's to something
+                // that exists or not.
+                var tree1 = new RegexParser(text, options, null, null).ParseTree();
 
-            var captureNames = new List<string>();
-            var captureNumbers = new List<int> { 0 };
-            var autoNumber = 1;
-            CollectCaptures(tree1.Root, captureNames, captureNumbers, ref autoNumber);
-            AssignNumbersToCaptureNames(captureNames, captureNumbers, autoNumber);
+                var captureNames = new List<string>();
+                var captureNumbers = new List<int> { 0 };
+                var autoNumber = 1;
+                CollectCaptures(tree1.Root, captureNames, captureNumbers, ref autoNumber);
+                AssignNumbersToCaptureNames(captureNames, captureNumbers, autoNumber);
 
-            var tree2 = new RegexParser(text, options, captureNames, captureNumbers).ParseTree();
-            return tree2;
+                var tree2 = new RegexParser(text, options, captureNames, captureNumbers).ParseTree();
+                return tree2;
+            }
+            catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
+            {
+                return null;
+            }
         }
 
         private static void AssignNumbersToCaptureNames(List<string> captureNames, List<int> captureNumbers, int autoNumber)
@@ -192,6 +200,20 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexExpressionNode ParseExpression(bool consumeCloseParen)
+        {
+            try
+            {
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                return ParseExpressionWorker(consumeCloseParen);
+            }
+            finally
+            {
+                _recursionDepth--;
+            }
+        }
+
+        private RegexExpressionNode ParseExpressionWorker(bool consumeCloseParen)
         {
             RegexExpressionNode current = ParseSequence(consumeCloseParen);
 
