@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private void ScanNextToken(bool allowTrivia)
             => _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
 
+        /// <summary>
+        /// Given an input text, and set of options, parses out a fully representative syntax tree 
+        /// and list of diagnotics.  Parsing should always succeed, except in the case of the stack 
+        /// overflowing.
+        /// </summary>
         public static RegexTree TryParse(ImmutableArray<VirtualChar> text, RegexOptions options)
         {
             try
@@ -85,9 +90,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private void CollectDiagnostics(RegexNode node)
         {
-            for (int i = 0, n = node.ChildCount; i < n; i++)
+            foreach (var child in node)
             {
-                var child = node.ChildAt(i);
                 if (child.IsNode)
                 {
                     CollectDiagnostics(child.Node);

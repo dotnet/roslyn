@@ -75,9 +75,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         return;
                 }
 
-                for (int i = 0, n = node.ChildCount; i < n; i++)
+                foreach (var child in node)
                 {
-                    var child = node.ChildAt(i);
                     if (child.IsNode)
                     {
                         // When we see a SimpleOptionsGroup ```(?opts)``` then determine what the options will

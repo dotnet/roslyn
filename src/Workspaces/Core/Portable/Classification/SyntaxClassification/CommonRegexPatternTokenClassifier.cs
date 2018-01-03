@@ -66,9 +66,8 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             node.Accept(visitor);
 
-            for (int i = 0, n = node.ChildCount; i < n; i++)
+            foreach (var child in node)
             {
-                var child = node.ChildAt(i);
                 if (child.IsNode)
                 {
                     AddClassifications(child.Node, visitor, result);

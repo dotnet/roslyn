@@ -27,11 +27,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public struct Enumerator
         {
             private readonly RegexNode _regexNode;
+            private readonly int _childCount;
             private int _currentIndex;
 
             public Enumerator(RegexNode regexNode)
             {
                 _regexNode = regexNode;
+                _childCount = regexNode.ChildCount;
                 _currentIndex = -1;
                 Current = default;
             }
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             public bool MoveNext()
             {
                 _currentIndex++;
-                if (_currentIndex >= _regexNode.ChildCount)
+                if (_currentIndex >= _childCount)
                 {
                     Current = default;
                     return false;

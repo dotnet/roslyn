@@ -134,9 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         private XElement NodeToElement(RegexNode node)
         {
             var element = new XElement(node.Kind.ToString());
-            for (int i = 0, n = node.ChildCount; i < n; i++)
+            foreach (var child in node)
             {
-                var child = node.ChildAt(i);
                 element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
             }
 
@@ -180,9 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 
         private void CheckInvariants(RegexNode node, ref int position, ImmutableArray<VirtualChar> allChars)
         {
-            for (int i = 0, n = node.ChildCount; i < n; i++)
+            foreach (var child in node)
             {
-                var child = node.ChildAt(i);
                 if (child.IsNode)
                 {
                     CheckInvariants(child.Node, ref position, allChars);
