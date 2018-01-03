@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         private readonly OperatorClassificationTypes _operator = new OperatorClassificationTypes();
         private readonly PunctuationClassificationTypes _punctuation = new PunctuationClassificationTypes();
         private readonly XmlDocClassificationTypes _xmlDoc = new XmlDocClassificationTypes();
+        private readonly RegexClassificationTypes _regex = new RegexClassificationTypes();
 
         [DebuggerStepThrough]
         public Tuple<string, string> Struct(string value)
@@ -188,19 +189,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             return Tuple.Create(value, ClassificationTypeNames.XmlLiteralEntityReference);
         }
 
-        public PunctuationClassificationTypes Punctuation
-        {
-            get { return _punctuation; }
-        }
+        public PunctuationClassificationTypes Punctuation => _punctuation;
 
-        public OperatorClassificationTypes Operator
-        {
-            get { return _operator; }
-        }
+        public OperatorClassificationTypes Operator => _operator;
 
-        public XmlDocClassificationTypes XmlDoc
-        {
-            get { return _xmlDoc; }
-        }
+        public XmlDocClassificationTypes XmlDoc => _xmlDoc;
+
+        public RegexClassificationTypes Regex => _regex;
     }
 }

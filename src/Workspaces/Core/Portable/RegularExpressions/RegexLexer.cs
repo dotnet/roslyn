@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             case '$':
             case '(':
             case ')':
-                //case '#':
                 return true;
             default:
                 return false;

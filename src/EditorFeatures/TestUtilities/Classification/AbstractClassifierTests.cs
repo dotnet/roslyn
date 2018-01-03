@@ -104,19 +104,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             return ClassificationBuilder.Number(value);
         }
 
-        protected ClassificationBuilder.PunctuationClassificationTypes Punctuation
-        {
-            get { return ClassificationBuilder.Punctuation; }
-        }
+        protected ClassificationBuilder.PunctuationClassificationTypes Punctuation => ClassificationBuilder.Punctuation;
 
-        protected ClassificationBuilder.OperatorClassificationTypes Operators
-        {
-            get { return ClassificationBuilder.Operator; }
-        }
+        protected ClassificationBuilder.OperatorClassificationTypes Operators => ClassificationBuilder.Operator;
 
-        protected ClassificationBuilder.XmlDocClassificationTypes XmlDoc
-        {
-            get { return ClassificationBuilder.XmlDoc; }
-        }
+        protected ClassificationBuilder.XmlDocClassificationTypes XmlDoc => ClassificationBuilder.XmlDoc;
+
+        protected ClassificationBuilder.RegexClassificationTypes Regex => ClassificationBuilder.Regex;
     }
 }
