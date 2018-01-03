@@ -100,5 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         void _VtblGap0_10();
 
         void SetExceptionRanges([In][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]ENCPROG_EXCEPTION_RANGE[] pRanges, int cRanges);
+        void SetRemapActiveStatements([In][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]ENCPROG_ACTIVE_STATEMENT_REMAP[] pRemapActiveStatements, int cRemapActiveStatements);
     }
 }

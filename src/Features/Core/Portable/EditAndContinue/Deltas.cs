@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly PdbDelta Pdb;
         public readonly EmitDifferenceResult EmitResult;
         public readonly ImmutableArray<(ActiveInstructionId, LinePositionSpan)> UpdatedActiveStatementSpans;
-        public readonly ImmutableArray<(int MethodToken, int MethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> ExceptionRegionSpanDeltas;
+        public readonly ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> ExceptionRegionSpanDeltas;
+        public readonly ImmutableArray<(int MethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
 
         public Deltas(
             byte[] il,
@@ -25,7 +26,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             int[] updatedMethods,
             ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineEdits,
             ImmutableArray<(ActiveInstructionId, LinePositionSpan)> updatedActiveStatementSpans,
-            ImmutableArray<(int MethodToken, int MethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> exceptionRegionSpanDeltas,
+            ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> exceptionRegionSpanDeltas,
+            ImmutableArray<(int MethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
             EmitDifferenceResult emitResult)
         {
             IL = new ILDelta(il);
@@ -33,9 +35,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Pdb = new PdbDelta(pdb, updatedMethods);
             UpdatedActiveStatementSpans = updatedActiveStatementSpans;
             ExceptionRegionSpanDeltas = exceptionRegionSpanDeltas;
+            ActiveStatementsInUpdatedMethods = activeStatementsInUpdatedMethods;
             EmitResult = emitResult;
             LineEdits = lineEdits;
         }
-
     }
 }

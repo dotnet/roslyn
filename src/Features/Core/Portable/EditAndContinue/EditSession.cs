@@ -461,7 +461,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var pdbStream = new MemoryStream();
                 var updatedMethods = new List<MethodDefinitionHandle>();
-                var updatedActiveStatementSpans = ArrayBuilder<(ActiveInstructionId, LinePositionSpan)>.GetInstance();
 
                 using (var metadataStream = SerializableBytes.CreateWritableStream())
                 using (var ilStream = SerializableBytes.CreateWritableStream())
@@ -476,65 +475,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         updatedMethods,
                         cancellationToken);
 
+                    int[] updatedMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
+                  
                     // Determine all active statements whose span changed and exception region span deltas.
-                    int exceptionRegionCount = baseActiveExceptionRegions.Sum(regions => regions.Spans.Length);
-                    var exceptionRegionSpanDeltas = ArrayBuilder<(int MethodToken, int MethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)>.GetInstance(exceptionRegionCount);
-                    var changedActiveStatementSet = BitVector.Create(baseActiveExceptionRegions.Length);
-
-                    foreach (var (documentId, newActiveStatements, newExceptionRegions) in projectChanges.ActiveStatements)
-                    {
-                        var oldActiveStatements = baseActiveStatements.DocumentMap[documentId];
-                        Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
-
-                        for (int i = 0; i < newActiveStatements.Length; i++)
-                        {
-                            var oldActiveStatement = oldActiveStatements[i];
-                            var newActiveStatement = newActiveStatements[i];
-                            var instructionId = oldActiveStatement.InstructionId;
-                            var index = oldActiveStatement.Index;
-
-                            if (oldActiveStatement.Span != newActiveStatement.Span)
-                            {
-                                updatedActiveStatementSpans.Add((instructionId, newActiveStatement.Span));
-                            }
-
-                            Debug.Assert(!changedActiveStatementSet[index]);
-
-                            int j = 0;
-                            foreach (var oldSpan in baseActiveExceptionRegions[index].Spans)
-                            {
-                                var newSpan = newExceptionRegions[index][j++];
-                                exceptionRegionSpanDeltas.Add((instructionId.MethodToken, instructionId.MethodVersion, oldSpan, newSpan));
-                            }
-
-                            changedActiveStatementSet[index] = true;
-                        }
-                    }
-
-                    // Fill in unchanged exception regions:
-                    foreach (var (instructionId, oldActiveStatement) in baseActiveStatements.InstructionMap)
-                    {
-                        int index = oldActiveStatement.Index;
-
-                        if (!changedActiveStatementSet[index])
-                        {
-                            foreach (var span in baseActiveExceptionRegions[index].Spans)
-                            {
-                                exceptionRegionSpanDeltas.Add((instructionId.MethodToken, instructionId.MethodVersion, span, span));
-                            }
-                        }
-                    }
-                    
-                    int[] updateMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
+                    GetActiveStatementAndExceptionRegionSpans(
+                        baseActiveStatements, 
+                        baseActiveExceptionRegions,
+                        updatedMethodTokens,
+                        projectChanges.ActiveStatements, 
+                        out var exceptionRegionSpanDeltas,
+                        out var updatedActiveStatementSpans,
+                        out var activeStatementsInUpdatedMethods);
 
                     return new Deltas(
                         ilStream.ToArray(),
                         metadataStream.ToArray(),
                         pdbStream,
-                        updateMethodTokens,
+                        updatedMethodTokens,
                         projectChanges.LineChanges,
-                        updatedActiveStatementSpans.ToImmutableAndFree(),
-                        exceptionRegionSpanDeltas.ToImmutableAndFree(),
+                        updatedActiveStatementSpans,
+                        exceptionRegionSpanDeltas,
+                        activeStatementsInUpdatedMethods,
                         result);
                 }
             }
@@ -543,6 +504,77 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // recover (cancel EnC)
                 return null;
             }
+        }
+
+        private static void GetActiveStatementAndExceptionRegionSpans(
+            ActiveStatementsMap baseActiveStatements, 
+            ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
+            int[] updatedMethodTokens,
+            ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> activeStatementsInChangedDocuments,
+            out ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> exceptionRegionSpanDeltas,
+            out ImmutableArray<(ActiveInstructionId, LinePositionSpan)> updatedActiveStatementSpans,
+            out ImmutableArray<(int MethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods)
+        {
+            int exceptionRegionCount = baseActiveExceptionRegions.Sum(regions => regions.Spans.Length);
+            var exceptionRegionBuilder = ArrayBuilder<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)>.GetInstance(exceptionRegionCount);
+            var changedActiveStatementSet = BitVector.Create(baseActiveExceptionRegions.Length);
+            var updatedActiveStatementsBuilder = ArrayBuilder<(ActiveInstructionId, LinePositionSpan)>.GetInstance();
+            var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<(int MethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)>.GetInstance();
+
+            // Process active statements and their exception regions in changed documents.
+            foreach (var (documentId, newActiveStatements, newExceptionRegions) in activeStatementsInChangedDocuments)
+            {
+                var oldActiveStatements = baseActiveStatements.DocumentMap[documentId];
+                Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
+
+                for (int i = 0; i < newActiveStatements.Length; i++)
+                {
+                    var oldActiveStatement = oldActiveStatements[i];
+                    var newActiveStatement = newActiveStatements[i];
+                    var oldInstructionId = oldActiveStatement.InstructionId;
+                    var index = oldActiveStatement.Index;
+                    var methodToken = oldActiveStatement.InstructionId.MethodToken;
+
+                    if (oldActiveStatement.Span != newActiveStatement.Span)
+                    {
+                        updatedActiveStatementsBuilder.Add((oldInstructionId, newActiveStatement.Span));
+                    }
+
+                    if (updatedMethodTokens.Contains(methodToken))
+                    {
+                        activeStatementsInUpdatedMethodsBuilder.Add((methodToken, oldInstructionId.MethodVersion, oldInstructionId.ILOffset, newActiveStatement.Span));
+                    }
+
+                    Debug.Assert(!changedActiveStatementSet[index]);
+
+                    int j = 0;
+                    foreach (var oldSpan in baseActiveExceptionRegions[index].Spans)
+                    {
+                        var newSpan = newExceptionRegions[index][j++];
+                        exceptionRegionBuilder.Add((oldInstructionId.MethodToken, oldInstructionId.MethodVersion, oldSpan, newSpan));
+                    }
+
+                    changedActiveStatementSet[index] = true;
+                }
+            }
+
+            // Fill in unchanged exception regions.
+            foreach (var (instructionId, oldActiveStatement) in baseActiveStatements.InstructionMap)
+            {
+                int index = oldActiveStatement.Index;
+
+                if (!changedActiveStatementSet[index])
+                {
+                    foreach (var span in baseActiveExceptionRegions[index].Spans)
+                    {
+                        exceptionRegionBuilder.Add((instructionId.MethodToken, instructionId.MethodVersion, span, span));
+                    }
+                }
+            }
+
+            exceptionRegionSpanDeltas = exceptionRegionBuilder.ToImmutableAndFree();
+            updatedActiveStatementSpans = updatedActiveStatementsBuilder.ToImmutableAndFree();
+            activeStatementsInUpdatedMethods = activeStatementsInUpdatedMethodsBuilder.ToImmutableAndFree();
         }
 
         internal void LogRudeEditErrors(ImmutableArray<RudeEditDiagnostic> rudeEditErrors)

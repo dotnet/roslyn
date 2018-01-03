@@ -907,6 +907,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 var ranges = GetExceptionRanges(delta.ExceptionRegionSpanDeltas);
                 updater.SetExceptionRanges(ranges, ranges.Length);
 
+                var remapActiveStatements = GetRemapActiveStatements(delta.ActiveStatementsInUpdatedMethods);
+                updater.SetRemapActiveStatements(remapActiveStatements, remapActiveStatements.Length);
+
                 _pendingBaseline = delta.EmitResult.Baseline;
                 _pendingUpdatedActiveStatementSpans = delta.UpdatedActiveStatementSpans;
 
@@ -932,7 +935,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
         }
 
-        internal static ENCPROG_EXCEPTION_RANGE[] GetExceptionRanges(ImmutableArray<(int MethodToken, int MethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> deltas)
+        internal static ENCPROG_ACTIVE_STATEMENT_REMAP[] GetRemapActiveStatements(ImmutableArray<(int MethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)> remaps)
+        {
+            var result = new ENCPROG_ACTIVE_STATEMENT_REMAP[remaps.Length];
+            for (int i = 0; i < remaps.Length; i++)
+            {
+                result[i] = new ENCPROG_ACTIVE_STATEMENT_REMAP
+                {
+                    MethodToken = remaps[i].MethodToken,
+                    OldMethodVersion = remaps[i].OldMethodVersion,
+                    NewStartLine = remaps[i].NewSpan.Start.Line + 1,
+                    NewStartCol = remaps[i].NewSpan.Start.Character + 1,
+                    NewEndLine = remaps[i].NewSpan.End.Line + 1,
+                    NewEndCol = remaps[i].NewSpan.End.Character + 1,
+                };
+            }
+
+            return result;
+        }
+
+        internal static ENCPROG_EXCEPTION_RANGE[] GetExceptionRanges(ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> deltas)
         {
             var result = new ENCPROG_EXCEPTION_RANGE[deltas.Length];
             for (int i = 0; i < deltas.Length; i++)
@@ -946,7 +968,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 result[i] = new ENCPROG_EXCEPTION_RANGE
                 {
                     MethodToken = deltas[i].MethodToken,
-                    MethodVersion = deltas[i].MethodVersion,
+                    MethodVersion = deltas[i].OldMethodVersion,
                     StartLine = deltas[i].NewSpan.Start.Line + 1,
                     StartCol = deltas[i].NewSpan.Start.Character + 1,
                     EndLine = deltas[i].NewSpan.End.Line + 1,

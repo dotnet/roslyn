@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> LineChanges;
 
         /// <summary>
-        /// All active statements in changed documents.
+        /// All active statements and the corresponding exception regions in changed documents.
         /// </summary>
-        public readonly ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)> ActiveStatements;
+        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> ActiveStatements;
 
         public ProjectChanges(
             ImmutableArray<SemanticEdit> semanticEdits,

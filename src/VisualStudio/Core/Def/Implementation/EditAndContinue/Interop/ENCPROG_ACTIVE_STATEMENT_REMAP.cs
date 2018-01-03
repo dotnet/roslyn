@@ -5,14 +5,14 @@ using System.Runtime.InteropServices;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue.Interop
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ENCPROG_EXCEPTION_RANGE
+    internal struct ENCPROG_ACTIVE_STATEMENT_REMAP
     {
         public int MethodToken;
-        public int MethodVersion;
-        public int StartLine;
-        public int StartCol;
-        public int EndLine;
-        public int EndCol;
-        public int Delta;
+        public int OldMethodVersion;
+        public int OldILOffset;
+        public int NewStartLine;
+        public int NewStartCol;
+        public int NewEndLine;
+        public int NewEndCol;
     }
 }
