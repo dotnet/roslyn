@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
         {
-            return MissingMetadataTypeSymbol.CreateTopLevelOrValueTuple(this, ref emittedName);
+            return new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
         }
 
         internal override ImmutableArray<AssemblyIdentity> GetReferencedAssemblies()

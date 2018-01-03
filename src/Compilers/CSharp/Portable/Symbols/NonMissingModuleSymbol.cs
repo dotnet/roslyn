@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)scope == null)
             {
                 // We failed to locate the namespace
-                result = MissingMetadataTypeSymbol.CreateTopLevelOrValueTuple(this, ref emittedName);
+                result = new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
             }
             else
             {

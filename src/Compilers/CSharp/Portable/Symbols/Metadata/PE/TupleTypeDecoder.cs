@@ -128,11 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             switch (type.Kind)
             {
                 case SymbolKind.ErrorType:
-                    if (type is ConstructedErrorTypeSymbol constructed && constructed.ConstructedFrom is MissingMetadataTypeSymbol.ValueTuple)
-                    {
-                        return DecodeNamedType(constructed);
-                    }
-                    return type;
+                    return DecodeNamedType((NamedTypeSymbol)type);
                 case SymbolKind.DynamicType:
                 case SymbolKind.TypeParameter:
                 case SymbolKind.PointerType:
