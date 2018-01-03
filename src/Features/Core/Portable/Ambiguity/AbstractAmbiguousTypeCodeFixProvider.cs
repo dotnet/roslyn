@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
 
         private static async Task<string> GetTextPreviewOfChangeAsync(SyntaxNode newNode, Workspace workspace, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            var formatedNode = await Formatter.FormatAsync(newNode, workspace, optionSet, cancellationToken).ConfigureAwait(false);
-            var formatedText = formatedNode.ToFullString();
-            return string.Format(FeaturesResources.Alias_ambiguous_type_0, formatedText);
+            var formattedNode = await Formatter.FormatAsync(newNode, workspace, optionSet, cancellationToken).ConfigureAwait(false);
+            var formattedText = formattedNode.ToFullString();
+            return string.Format(FeaturesResources.Alias_ambiguous_type_0, formattedText);
         }
 
         private static string GetAliasFromDiagnosticNode(ISyntaxFactsService syntaxFacts, SyntaxNode diagnosticNode)

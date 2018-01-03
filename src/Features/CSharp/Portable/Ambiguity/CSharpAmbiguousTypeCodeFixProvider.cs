@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Ambiguity
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AliasType), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AliasAmbiguousType), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]
     internal class CSharpAmbiguousTypeCodeFixProvider : AbstractAmbiguousTypeCodeFixProvider
     {

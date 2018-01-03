@@ -22,7 +22,7 @@ Namespace N2
 End Namespace"
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
         Public Async Function TestAmbiguousClassObjectCreationGlobalImports() As Task
             Dim classDef = GetAmbiguousDefinition("
 Public Class Ambiguous
@@ -56,7 +56,7 @@ End Namespace"
             Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkupTemplate.Replace("#", "Imports Ambiguous = N2.Ambiguous"), 1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
         Public Async Function TestAmbiguousAttribute() As Task
             Dim classDef = GetAmbiguousDefinition("
     Class AAttribute
@@ -83,7 +83,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkupTemplate)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
         Public Async Function TestAmbiguousBug4817() As Task
             Dim initialMarkup = "
 Imports A
@@ -106,7 +106,7 @@ End Module
             Await TestMissingAsync(initialMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
         Public Async Function TestAmbiguousClassInModule() As Task
             Dim initialMarkup = "
 Imports N1, N2
@@ -149,7 +149,7 @@ End Class
             Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasType + "1")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")>
         Public Async Function TestAmbiguousInterfaceNameReferencedInSmallCaps() As Task
             Dim initialMarkup = "
 Imports N1, N2

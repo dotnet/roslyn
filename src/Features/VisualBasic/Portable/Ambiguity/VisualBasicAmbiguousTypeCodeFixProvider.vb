@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Ambiguity
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AliasType), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AliasAmbiguousType), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FullyQualify)>
     Friend Class VisualBasicAmbiguousTypeCodeFixProvider
         Inherits AbstractAmbiguousTypeCodeFixProvider
