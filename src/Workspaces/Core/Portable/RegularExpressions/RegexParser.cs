@@ -411,25 +411,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexPrimaryExpressionNode ParseText()
-        {
-            var textToken = _currentToken;
-            ScanNextToken(allowTrivia: true);
-            return new RegexTextNode(textToken);
-        }
+            => new RegexTextNode(ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
 
         private RegexPrimaryExpressionNode ParseEndAnchor()
-        {
-            var dollarToken = _currentToken;
-            ScanNextToken(allowTrivia: true);
-            return new RegexAnchorNode(RegexKind.EndAnchor, dollarToken);
-        }
+            => new RegexAnchorNode(RegexKind.EndAnchor, ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
 
         private RegexPrimaryExpressionNode ParseStartAnchor()
-        {
-            var caretToken = _currentToken;
-            ScanNextToken(allowTrivia: true);
-            return new RegexAnchorNode(RegexKind.StartAnchor, caretToken);
-        }
+            => new RegexAnchorNode(RegexKind.StartAnchor, ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
 
         private RegexPrimaryExpressionNode ParseWildcard()
         {
@@ -1199,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 {
                     var typeToken = _currentToken;
                     ScanNextToken(allowTrivia: allowTriviaAfterEnd);
-                    return new RegexSimpleEscapeNode(backslashToken, typeToken);
+                    return new RegexAnchorEscapeNode(backslashToken, typeToken);
                 }
 
                 case 'w':

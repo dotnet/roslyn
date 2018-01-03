@@ -2354,30 +2354,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\B\A\G\Z\z\w\W\s\W\s\S\d\D""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </AnchorEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>B</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </AnchorEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>A</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </AnchorEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>G</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </AnchorEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>Z</TextToken>
-      </SimpleEscape>
-      <SimpleEscape>
+      </AnchorEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>z</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <CharacterClassEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>w</TextToken>

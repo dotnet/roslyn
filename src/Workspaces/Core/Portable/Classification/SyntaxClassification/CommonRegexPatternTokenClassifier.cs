@@ -284,10 +284,23 @@ namespace Microsoft.CodeAnalysis.Classification
             public void Visit(RegexOctalEscapeNode node)
                 => ClassifyEscape(node);
 
+            public void Visit(RegexSimpleEscapeNode node)
+                => ClassifyEscape(node);
+
             public void ClassifyEscape(RegexNode node)
                 => ClassifyWholeNode(node, ClassificationTypeNames.RegexEscape);
 
             #endregion 
+
+            #region Anchors
+
+            public void Visit(RegexAnchorNode node)
+                => AddClassification(node.AnchorToken, ClassificationTypeNames.RegexAnchor);
+
+            public void Visit(RegexAnchorEscapeNode node)
+                => ClassifyWholeNode(node, ClassificationTypeNames.RegexAnchor);
+
+            #endregion
 
             public void Visit(RegexTextNode node)
                 => AddClassification(node.TextToken, ClassificationTypeNames.RegexText);
@@ -302,28 +315,8 @@ namespace Microsoft.CodeAnalysis.Classification
                     ClassificationTypeNames.RegexComment));
             }
 
-            public void Visit(RegexAnchorNode node)
-                => AddClassification(node.AnchorToken, ClassificationTypeNames.RegexAnchor);
-
             public void Visit(RegexAlternationNode node)
                 => AddClassification(node.BarToken, ClassificationTypeNames.RegexAlternation);
-
-            public void Visit(RegexSimpleEscapeNode node)
-            {
-                if (!node.TypeToken.IsMissing)
-                {
-                    switch (node.TypeToken.VirtualChars[0].Char)
-                    {
-                        // These escapes represent character anchors.  So classify thusly.
-                        case 'A': case 'Z': case 'z': case 'G': case 'b': case 'B':
-                            ClassifyWholeNode(node, ClassificationTypeNames.RegexAnchor);
-                            return;
-                    }
-                }
-
-                // Otherwise classify as a normal escape.
-                ClassifyEscape(node);
-            }
         }
     }
 }

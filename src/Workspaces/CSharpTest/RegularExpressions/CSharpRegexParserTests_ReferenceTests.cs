@@ -224,10 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\Bqu\w+""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>B</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>q</TextToken>
       </Text>
@@ -253,10 +253,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\bare\w*\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>a</TextToken>
       </Text>
@@ -273,10 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </CharacterClassEscape>
         <AsteriskToken>*</AsteriskToken>
       </ZeroOrMoreQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -289,10 +289,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\G(\w+\s?\w*),?""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>G</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -1261,10 +1261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <Wildcard>
         <DotToken>.</DotToken>
       </Wildcard>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -1286,10 +1286,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <NumberToken value=""4"">4</NumberToken>
         <CloseBraceToken>}</CloseBraceToken>
       </ExactNumericQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -1393,10 +1393,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </NegativeLookbehindGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OneOrMoreQuantifier>
         <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
@@ -1433,10 +1433,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <NumberToken value=""4"">4</NumberToken>
         <CloseBraceToken>}</CloseBraceToken>
       </ExactNumericQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -1455,10 +1455,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <LessThanToken>&lt;</LessThanToken>
         <EqualsToken>=</EqualsToken>
         <Sequence>
-          <SimpleEscape>
+          <AnchorEscape>
             <BackslashToken>\</BackslashToken>
             <TextToken>b</TextToken>
-          </SimpleEscape>
+          </AnchorEscape>
           <Text>
             <TextToken>2</TextToken>
           </Text>
@@ -1477,10 +1477,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <NumberToken value=""2"">2</NumberToken>
         <CloseBraceToken>}</CloseBraceToken>
       </ExactNumericQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -1493,10 +1493,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\w+\b(?!\p{P})""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OneOrMoreQuantifier>
         <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
@@ -1504,10 +1504,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <NegativeLookaheadGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
@@ -1634,10 +1634,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(?!un)\w+\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <NegativeLookaheadGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
@@ -1659,10 +1659,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -1675,10 +1675,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(?ix: d \w+)\s""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <NestedOptionsGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
@@ -1753,10 +1753,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           <QuestionToken>?</QuestionToken>
           <ColonToken>:</ColonToken>
           <Sequence>
-            <SimpleEscape>
+            <AnchorEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>b</TextToken>
-            </SimpleEscape>
+            </AnchorEscape>
             <NonCapturingGrouping>
               <OpenParenToken>(</OpenParenToken>
               <QuestionToken>?</QuestionToken>
@@ -1802,10 +1802,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           <QuestionToken>?</QuestionToken>
           <ColonToken>:</ColonToken>
           <Sequence>
-            <SimpleEscape>
+            <AnchorEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>b</TextToken>
-            </SimpleEscape>
+            </AnchorEscape>
             <NonCapturingGrouping>
               <OpenParenToken>(</OpenParenToken>
               <QuestionToken>?</QuestionToken>
@@ -1907,10 +1907,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\w+(?=\sis\b)""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OneOrMoreQuantifier>
         <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
@@ -1933,10 +1933,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           <Text>
             <TextToken>s</TextToken>
           </Text>
-          <SimpleEscape>
+          <AnchorEscape>
             <BackslashToken>\</BackslashToken>
             <TextToken>b</TextToken>
-          </SimpleEscape>
+          </AnchorEscape>
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </PositiveLookaheadGrouping>
@@ -2103,10 +2103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(\p{IsGreek}+(\s)?)+\p{Pd}\s(\p{IsBasicLatin}+(\s)?)+""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OneOrMoreQuantifier>
         <SimpleGrouping>
           <OpenParenToken>(</OpenParenToken>
@@ -2194,10 +2194,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b.*[.?!;:](\s|\z)""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrMoreQuantifier>
         <Wildcard>
           <DotToken>.</DotToken>
@@ -2236,10 +2236,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
           </Sequence>
           <BarToken>|</BarToken>
           <Sequence>
-            <SimpleEscape>
+            <AnchorEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>z</TextToken>
-            </SimpleEscape>
+            </AnchorEscape>
           </Sequence>
         </Alternation>
         <CloseParenToken>)</CloseParenToken>
@@ -2299,10 +2299,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\bth[^o]\w+\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>t</TextToken>
       </Text>
@@ -2326,10 +2326,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </CharacterClassEscape>
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -2400,10 +2400,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b[A-Z]\w*\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <CharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
@@ -2426,10 +2426,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </CharacterClassEscape>
         <AsteriskToken>*</AsteriskToken>
       </ZeroOrMoreQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -2991,10 +2991,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(\S+)\s?""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -3150,10 +3150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\w+(e)?s(\s|$)""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OneOrMoreQuantifier>
         <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
@@ -3301,10 +3301,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -3317,10 +3317,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(\w+)(\W){1,2}""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -3391,10 +3391,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <Wildcard>
         <DotToken>.</DotToken>
       </Wildcard>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -3411,10 +3411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <SimpleGrouping>
           <OpenParenToken>(</OpenParenToken>
           <Sequence>
-            <SimpleEscape>
+            <AnchorEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>b</TextToken>
-            </SimpleEscape>
+            </AnchorEscape>
             <SimpleGrouping>
               <OpenParenToken>(</OpenParenToken>
               <Sequence>
@@ -3472,10 +3472,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <Wildcard>
         <DotToken>.</DotToken>
       </Wildcard>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -3730,10 +3730,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(?ix: d \w+)\s""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <NestedOptionsGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
@@ -3775,10 +3775,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\bthe\w*\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>t</TextToken>
       </Text>
@@ -3795,10 +3795,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </CharacterClassEscape>
         <AsteriskToken>*</AsteriskToken>
       </ZeroOrMoreQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -3811,10 +3811,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(?i:t)he\w*\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <NestedOptionsGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
@@ -3840,10 +3840,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </CharacterClassEscape>
         <AsteriskToken>*</AsteriskToken>
       </ZeroOrMoreQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -4047,10 +4047,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(\d{2}-)*(?(1)\d{7}|\d{3}-\d{2}-\d{4})\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrMoreQuantifier>
         <SimpleGrouping>
           <OpenParenToken>(</OpenParenToken>
@@ -4129,10 +4129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Alternation>
         <CloseParenToken>)</CloseParenToken>
       </ConditionalCaptureGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -4145,10 +4145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\(?((\w+),?\s?)+[\.!?]\)?""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
@@ -4232,10 +4232,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <OptionsToken>n</OptionsToken>
         <CloseParenToken>)</CloseParenToken>
       </SimpleOptionsGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
@@ -4315,10 +4315,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\(?(?n:(?>\w+),?\s?)+[\.!?]\)?""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
@@ -4401,10 +4401,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\(?((?>\w+),?\s?)+[\.!?]\)?""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
@@ -4490,10 +4490,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <OptionsToken>x</OptionsToken>
         <CloseParenToken>)</CloseParenToken>
       </SimpleOptionsGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>
@@ -4599,10 +4599,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\bb\w+\s""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>b</TextToken>
       </Text>
@@ -4691,10 +4691,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(\w+\s*)+""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OneOrMoreQuantifier>
         <SimpleGrouping>
           <OpenParenToken>(</OpenParenToken>
@@ -4779,10 +4779,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(D\w+)\s(d\w+)\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -4819,10 +4819,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -4835,10 +4835,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(D\w+)(?ixn) \s (d\w+) \b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -4887,13 +4887,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>
           <Trivia>
             <WhitespaceTrivia> </WhitespaceTrivia>
           </Trivia>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -4906,10 +4906,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b((?# case-sensitive comparison)D\w+)\s((?#case-insensitive comparison)d\w+)\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -4952,10 +4952,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -4968,10 +4968,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\(?((?>\w+),?\s?)+[\.!?]\)?""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
@@ -5051,10 +5051,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(?<n2>\d{2}-)*(?(n2)\d{7}|\d{3}-\d{2}-\d{4})\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <ZeroOrMoreQuantifier>
         <CaptureGrouping>
           <OpenParenToken>(</OpenParenToken>
@@ -5137,10 +5137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Alternation>
         <CloseParenToken>)</CloseParenToken>
       </ConditionalCaptureGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5153,10 +5153,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(\d{2}-\d{7}|\d{3}-\d{2}-\d{4})\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Alternation>
@@ -5222,10 +5222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Alternation>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5238,10 +5238,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\bgr(a|e)y\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>g</TextToken>
       </Text>
@@ -5268,10 +5268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <Text>
         <TextToken>y</TextToken>
       </Text>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5312,10 +5312,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <Wildcard>
         <DotToken>.</DotToken>
       </Wildcard>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5332,10 +5332,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <SimpleGrouping>
           <OpenParenToken>(</OpenParenToken>
           <Sequence>
-            <SimpleEscape>
+            <AnchorEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>b</TextToken>
-            </SimpleEscape>
+            </AnchorEscape>
             <SimpleGrouping>
               <OpenParenToken>(</OpenParenToken>
               <Sequence>
@@ -5373,10 +5373,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b91*9*\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>9</TextToken>
       </Text>
@@ -5392,10 +5392,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Text>
         <AsteriskToken>*</AsteriskToken>
       </ZeroOrMoreQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5408,10 +5408,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\ban+\w*?\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>a</TextToken>
       </Text>
@@ -5431,10 +5431,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </ZeroOrMoreQuantifier>
         <QuestionToken>?</QuestionToken>
       </LazyQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5447,10 +5447,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\ban?\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>a</TextToken>
       </Text>
@@ -5460,10 +5460,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Text>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5476,10 +5476,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\d+\,\d{3}\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OneOrMoreQuantifier>
         <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
@@ -5500,10 +5500,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <NumberToken value=""3"">3</NumberToken>
         <CloseBraceToken>}</CloseBraceToken>
       </ExactNumericQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5516,10 +5516,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\d{2,}\b\D+""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OpenRangeNumericQuantifier>
         <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
@@ -5530,10 +5530,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CommaToken>,</CommaToken>
         <CloseBraceToken>}</CloseBraceToken>
       </OpenRangeNumericQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <OneOrMoreQuantifier>
         <CharacterClassEscape>
           <BackslashToken>\</BackslashToken>
@@ -5588,10 +5588,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\w*?oo\w*?\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <LazyQuantifier>
         <ZeroOrMoreQuantifier>
           <CharacterClassEscape>
@@ -5618,10 +5618,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </ZeroOrMoreQuantifier>
         <QuestionToken>?</QuestionToken>
       </LazyQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5634,10 +5634,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b\w+?\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <LazyQuantifier>
         <OneOrMoreQuantifier>
           <CharacterClassEscape>
@@ -5648,10 +5648,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </OneOrMoreQuantifier>
         <QuestionToken>?</QuestionToken>
       </LazyQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5837,10 +5837,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(\w{3,}?\.){2}?\w{3,}?\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <LazyQuantifier>
         <ExactNumericQuantifier>
           <SimpleGrouping>
@@ -5885,10 +5885,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </OpenRangeNumericQuantifier>
         <QuestionToken>?</QuestionToken>
       </LazyQuantifier>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -5901,10 +5901,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b[A-Z](\w*?\s*?){1,10}[.!?]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <CharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
@@ -6015,10 +6015,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -6031,10 +6031,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b.*?([0-9]{4})\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <LazyQuantifier>
         <ZeroOrMoreQuantifier>
           <Wildcard>
@@ -6070,10 +6070,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -6350,10 +6350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b(\p{Lu}{2})(\d{2})?(\p{Lu}{2})\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -6408,10 +6408,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -6424,10 +6424,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\bgr[ae]y\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <Text>
         <TextToken>g</TextToken>
       </Text>
@@ -6449,10 +6449,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <Text>
         <TextToken>y</TextToken>
       </Text>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -6465,10 +6465,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             Test(@"@""\b((?# case sensitive comparison)D\w+)\s(?ixn)((?#case insensitive comparison)d\w+)\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
       <SimpleGrouping>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
@@ -6517,10 +6517,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </SimpleGrouping>
-      <SimpleEscape>
+      <AnchorEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>b</TextToken>
-      </SimpleEscape>
+      </AnchorEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
