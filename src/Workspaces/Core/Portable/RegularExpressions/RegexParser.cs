@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private RegexToken ScanNextTokenAndReturnPreviousToken(bool allowTrivia)
         {
             var previous = _currentToken;
-            _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
+            ScanNextToken(allowTrivia);
             return previous;
         }
 
@@ -208,9 +208,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             switch (_currentToken.Kind)
             {
-            case RegexKind.AsteriskToken: return ParseZeroOrMoreQuantifier(current, _currentToken);
-            case RegexKind.PlusToken: return ParseOneOrMoreQuantifier(current, _currentToken);
-            case RegexKind.QuestionToken: return ParseZeroOrOneQuantifier(current, _currentToken);
+            case RegexKind.AsteriskToken: return ParseZeroOrMoreQuantifier(current);
+            case RegexKind.PlusToken: return ParseOneOrMoreQuantifier(current);
+            case RegexKind.QuestionToken: return ParseZeroOrOneQuantifier(current);
             case RegexKind.OpenBraceToken: return TryParseNumericQuantifier(current, _currentToken);
             default: return current;
             }
@@ -223,31 +223,30 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return quantifier;
             }
 
-            var questionToken = _currentToken;
-            ScanNextToken(allowTrivia: true);
-
-            return new RegexLazyQuantifierNode(quantifier, questionToken);
+            // Whitespace allowed after the question and the next sequence element.
+            return new RegexLazyQuantifierNode(quantifier,
+                ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
         }
 
-        private RegexExpressionNode ParseZeroOrMoreQuantifier(RegexPrimaryExpressionNode current, RegexToken asteriskToken)
+        private RegexExpressionNode ParseZeroOrMoreQuantifier(RegexPrimaryExpressionNode current)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
-            ScanNextToken(allowTrivia: true);
-            return TryParseLazyQuantifier(new RegexZeroOrMoreQuantifierNode(current, asteriskToken));
+            return TryParseLazyQuantifier(new RegexZeroOrMoreQuantifierNode(current,
+                ScanNextTokenAndReturnPreviousToken(allowTrivia: true)));
         }
 
-        private RegexExpressionNode ParseOneOrMoreQuantifier(RegexPrimaryExpressionNode current, RegexToken plusToken)
+        private RegexExpressionNode ParseOneOrMoreQuantifier(RegexPrimaryExpressionNode current)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
-            ScanNextToken(allowTrivia: true);
-            return TryParseLazyQuantifier(new RegexOneOrMoreQuantifierNode(current, plusToken));
+            return TryParseLazyQuantifier(new RegexOneOrMoreQuantifierNode(current,
+                ScanNextTokenAndReturnPreviousToken(allowTrivia: true)));
         }
 
-        private RegexExpressionNode ParseZeroOrOneQuantifier(RegexPrimaryExpressionNode current, RegexToken questionToken)
+        private RegexExpressionNode ParseZeroOrOneQuantifier(RegexPrimaryExpressionNode current)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
-            ScanNextToken(allowTrivia: true);
-            return TryParseLazyQuantifier(new RegexZeroOrOneQuantifierNode(current, questionToken));
+            return TryParseLazyQuantifier(new RegexZeroOrOneQuantifierNode(current,
+                ScanNextTokenAndReturnPreviousToken(allowTrivia: true)));
         }
 
         private RegexExpressionNode TryParseNumericQuantifier(
