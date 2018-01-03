@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
             }
 
             var root = syntaxTree.GetRoot(cancellationToken);
-            Analyze(context, detector, root, cancellationToken);
+            Analyze(context, detector, GetVirtualCharService(), root, cancellationToken);
         }
 
         private void Analyze(
             SemanticModelAnalysisContext context, RegexPatternDetector detector,
-            SyntaxNode node, CancellationToken cancellationToken)
+            IVirtualCharService virtualCharService, SyntaxNode node, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -72,47 +72,26 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
             {
                 if (child.IsNode)
                 {
-                    Analyze(context, detector, child.AsNode(), cancellationToken);
+                    Analyze(context, detector, virtualCharService, child.AsNode(), cancellationToken);
                 }
                 else
                 {
                     var token = child.AsToken();
-                    if (token.RawKind == _stringLiteralKind &&
-                        detector.IsRegexPattern(token, cancellationToken, out var options))
+                    if (token.RawKind == _stringLiteralKind)
                     {
-                        AnalyzePattern(context, token, options);
+                        var tree = detector.TryParseRegexPattern(token, virtualCharService, cancellationToken);
+                        if (tree != null)
+                        {
+                            foreach (var diag in tree.Diagnostics)
+                            {
+                                context.ReportDiagnostic(Diagnostic.Create(
+                                    this.GetDescriptorWithSeverity(DiagnosticSeverity.Warning),
+                                    Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
+                                    diag.Message));
+                            }
+                        }
                     }
                 }
-            }
-        }
-
-        private void AnalyzePattern(
-            SemanticModelAnalysisContext context, SyntaxToken stringLiteral, RegexOptions options)
-        {
-            var service = this.GetVirtualCharService();
-            if (service == null)
-            {
-                return;
-            }
-
-            var virtualChars = service.TryConvertToVirtualChars(stringLiteral);
-            if (virtualChars.IsDefaultOrEmpty)
-            {
-                return;
-            }
-
-            var tree = RegexParser.TryParse(virtualChars, options);
-            if (tree == null)
-            {
-                return;
-            }
-
-            foreach (var diag in tree.Diagnostics)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    this.GetDescriptorWithSeverity(DiagnosticSeverity.Warning),
-                    Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
-                    diag.Message));
             }
         }
     }

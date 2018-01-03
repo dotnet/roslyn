@@ -43,18 +43,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     m => RegexPatternDetector.TryCreate(m, syntaxFacts, semanticFacts));
             }
 
-            if (!detector.IsRegexPattern(token, cancellationToken, out var options))
-            {
-                return;
-            }
-
-            var chars = virtualCharService.TryConvertToVirtualChars(token);
-            if (chars.IsDefaultOrEmpty)
-            {
-                return;
-            }
-
-            var tree = RegexParser.TryParse(chars, options);
+            var tree = detector.TryParseRegexPattern(token, virtualCharService, cancellationToken);
             if (tree == null)
             {
                 return;

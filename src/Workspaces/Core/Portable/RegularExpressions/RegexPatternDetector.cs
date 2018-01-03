@@ -244,6 +244,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return false;
         }
 
+        public RegexTree TryParseRegexPattern(SyntaxToken token, IVirtualCharService virtualCharService, CancellationToken cancellationToken)
+        {
+            if (!this.IsRegexPattern(token, cancellationToken, out var options))
+            {
+                return null;
+            }
+
+            var chars = virtualCharService.TryConvertToVirtualChars(token);
+            if (chars.IsDefaultOrEmpty)
+            {
+                return null;
+            }
+
+            return RegexParser.TryParse(chars, options);
+        }
+
         private bool AnalyzeStringLiteral(
             SyntaxToken stringLiteral, SyntaxNode argumentNode, 
             CancellationToken cancellationToken, out RegexOptions options)
