@@ -1046,6 +1046,15 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 {
                     var right = ParseCharacterClassComponentPiece(isFirst: false, afterRangeMinus: true);
 
+                    if (TryGetRangeComponentValue(left, out var leftCh) &&
+                        TryGetRangeComponentValue(right, out var rightCh) &&
+                        leftCh > rightCh)
+                    {
+                        minusToken = minusToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                            WorkspacesResources.x_y_range_in_reverse_order,
+                            GetSpan(minusToken)));
+                    }
+
                     components.Add(new RegexCharacterClassRangeNode(left, minusToken, right));
                 }
             }
@@ -1053,6 +1062,131 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 components.Add(left);
             }
+        }
+
+        private bool TryGetRangeComponentValue(RegexPrimaryExpressionNode component, out char ch)
+        {
+            // Don't bother examining the component if it has any errors already.  This also means
+            // we don't have to worry about running into invalid escape sequences and the like.
+            if (!HasProblem(component))
+            {
+                return TryGetRangeComponentValueWorker(component, out ch);
+            }
+
+            ch = default;
+            return false;
+        }
+
+        private bool TryGetRangeComponentValueWorker(RegexPrimaryExpressionNode component, out char ch)
+        {
+            switch (component.Kind)
+            {
+                case RegexKind.SimpleEscape:
+                    ch = ((RegexSimpleEscapeNode)component).TypeToken.VirtualChars[0];
+                    return true;
+
+                case RegexKind.ControlEscape:
+                    var controlEscape = (RegexControlEscapeNode)component;
+                    var controlCh = controlEscape.TypeToken.VirtualChars[0].Char;
+                    ch = (char)(controlCh - '@');
+                    return true;
+
+                case RegexKind.OctalEscape:
+                    ch = GetCharValue(((RegexOctalEscapeNode)component).OctalText, withBase: 8);
+                    return true;
+
+                case RegexKind.HexEscape:
+                    ch = GetCharValue(((RegexHexEscapeNode)component).HexText, withBase: 16);
+                    return true;
+
+                case RegexKind.UnicodeEscape:
+                    ch = GetCharValue(((RegexUnicodeEscapeNode)component).HexText, withBase: 16);
+                    return true;
+
+                case RegexKind.PosixProperty:
+                    // When the native parser sees [:...:] it treats this as if it just saw '[' and skipped the 
+                    // rest.
+                    ch = '[';
+                    return true;
+
+                case RegexKind.Text:
+                    ch = ((RegexTextNode)component).TextToken.VirtualChars[0];
+                    return true;
+            }
+
+            ch = default;
+            return false;
+        }
+
+        private char GetCharValue(RegexToken hexText, int withBase)
+        {
+            var total = 0;
+            foreach (var vc in hexText.VirtualChars)
+            {
+                total *= withBase;
+                total += HexValue(vc.Char);
+            }
+
+            return (char)total;
+        }
+
+        private int HexValue(char ch)
+        {
+            unchecked
+            {
+                var temp = (uint)(ch - '0');
+                if (temp <= 9)
+                {
+                    return (int)temp;
+                }
+
+                temp = (uint)(ch - 'a');
+                if (temp <= 5)
+                {
+                    return (int)(temp + 10);
+                }
+
+                temp = (uint)(ch - 'A');
+                if (temp <= 5)
+                {
+                    return (int)(temp + 10);
+                }
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        private bool HasProblem(RegexNodeOrToken component)
+        {
+            if (component.IsNode)
+            {
+                foreach (var child in component.Node)
+                {
+                    if (HasProblem(child))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                var token = component.Token;
+                if (token.IsMissing ||
+                    token.Diagnostics.Length > 0)
+                {
+                    return true;
+                }
+
+                foreach (var trivia in token.LeadingTrivia)
+                {
+                    if (trivia.Diagnostics.Length > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private RegexPrimaryExpressionNode ParseCharacterClassComponentPiece(bool isFirst, bool afterRangeMinus)

@@ -1763,5 +1763,14 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Workspace_is_not_empty", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [x-y] range in reverse order.
+        /// </summary>
+        internal static string x_y_range_in_reverse_order {
+            get {
+                return ResourceManager.GetString("x_y_range_in_reverse_order", resourceCulture);
+            }
+        }
     }
 }

@@ -703,4 +703,7 @@
   <data name="Unterminated_regex_comment" xml:space="preserve">
     <value>Unterminated (?#...) comment</value>
   </data>
+  <data name="x_y_range_in_reverse_order" xml:space="preserve">
+    <value>[x-y] range in reverse order</value>
+  </data>
 </root>

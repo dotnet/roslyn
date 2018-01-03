@@ -947,6 +947,11 @@
         <target state="new">Unterminated (?#...) comment</target>
         <note />
       </trans-unit>
+      <trans-unit id="x_y_range_in_reverse_order">
+        <source>[x-y] range in reverse order</source>
+        <target state="new">[x-y] range in reverse order</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
