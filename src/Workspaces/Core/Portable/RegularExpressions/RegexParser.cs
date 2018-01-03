@@ -38,11 +38,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             ScanNextToken(allowTrivia: true);
         }
 
-        private RegexToken ScanNextToken(bool allowTrivia)
-        {
-            _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
-            return _currentToken;
-        }
+        private void ScanNextToken(bool allowTrivia)
+            => _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
 
         public static RegexTree TryParse(ImmutableArray<VirtualChar> text, RegexOptions options)
         {
