@@ -1218,6 +1218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 modTok = this.EatToken();
                                 modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
                             }
+                            else if (this.IsPossibleAccessorModifier())
+                            {
+                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
+                                modTok = this.EatToken();
+                            }
                             else
                             {
                                 return;
@@ -3172,11 +3177,9 @@ parse_member_name:;
             // 
             // Note: we allow all modifiers here.  That's because we want to parse things like
             // "abstract get" as an accessor.  This way we can provide a good error message
-            // to the user that this is not allowed. However, we don't allow "ref", as it might
-            // be a type modifier. We prefer to parse that as part of a member declaration.
+            // to the user that this is not allowed.
 
-            var firstModifier = GetModifier(this.CurrentToken);
-            if (firstModifier == DeclarationModifiers.None || firstModifier == DeclarationModifiers.Ref)
+            if (GetModifier(this.CurrentToken) == DeclarationModifiers.None)
             {
                 return false;
             }

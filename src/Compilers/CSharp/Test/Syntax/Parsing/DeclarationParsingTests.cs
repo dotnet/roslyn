@@ -6348,21 +6348,9 @@ class Program
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
                 //         ref get => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
-                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         ref get => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (4,16): error CS0548: 'Program.P': property or indexer must have at least one accessor
-                //     public int P
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("Program.P").WithLocation(4, 16));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 13));
         }
 
         [Fact]
@@ -6379,24 +6367,12 @@ class Program
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (6,18): error CS1014: A get or set accessor expected
+                // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //         abstract ref get => throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "ref").WithLocation(6, 18),
-                // (6,18): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(6, 22),
+                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
                 //         abstract ref get => throw null;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "ref").WithLocation(6, 18),
-                // (6,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         abstract ref get => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 26),
-                // (6,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         abstract ref get => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 26),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (4,16): error CS0548: 'Program.P': property or indexer must have at least one accessor
-                //     public int P
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("Program.P").WithLocation(4, 16));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 22));
         }
 
         [Fact]
@@ -6413,21 +6389,9 @@ class Program
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
                 //         ref set => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
-                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         ref set => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (4,16): error CS0548: 'Program.P': property or indexer must have at least one accessor
-                //     public int P
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("Program.P").WithLocation(4, 16));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 13));
         }
 
         [Fact]
@@ -6444,29 +6408,17 @@ class Program
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (6,18): error CS1014: A get or set accessor expected
+                // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //         abstract ref set => throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "ref").WithLocation(6, 18),
-                // (6,18): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(6, 22),
+                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
                 //         abstract ref set => throw null;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "ref").WithLocation(6, 18),
-                // (6,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         abstract ref set => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 26),
-                // (6,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         abstract ref set => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 26),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (4,16): error CS0548: 'Program.P': property or indexer must have at least one accessor
-                //     public int P
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("Program.P").WithLocation(4, 16));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 22));
         }
 
         [Fact]
         [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
-        public void ProduceErrorsOnRef_Events_Ref_Add()
+        public void ProduceErrorsOnRef_Events_Ref()
         {
             var code = @"
 public class Program
@@ -6474,30 +6426,22 @@ public class Program
     event System.EventHandler E
     {
         ref add => throw null; 
+        ref remove => throw null; 
     }
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (6,9): error CS1609: Modifiers cannot be placed on event accessor declarations
                 //         ref add => throw null; 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
-                // (6,17): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         ref add => throw null; 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 17),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (4,31): error CS0065: 'Program.E': event property must have both add and remove accessors
-                //     event System.EventHandler E
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("Program.E").WithLocation(4, 31));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "ref").WithLocation(6, 9),
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         ref remove => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "ref").WithLocation(7, 9));
         }
 
         [Fact]
         [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
-        public void ProduceErrorsOnRef_Events_Ref_Add_SecondModifier()
+        public void ProduceErrorsOnRef_Events_Ref_SecondModifier()
         {
             var code = @"
 public class Program
@@ -6505,93 +6449,17 @@ public class Program
     event System.EventHandler E
     {
         abstract ref add => throw null; 
-    }
-}";
-
-            CreateStandardCompilation(code).VerifyDiagnostics(
-                // (6,18): error CS1055: An add or remove accessor expected
-                //         abstract ref add => throw null; 
-                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "ref").WithLocation(6, 18),
-                // (6,18): error CS1513: } expected
-                //         abstract ref add => throw null; 
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "ref").WithLocation(6, 18),
-                // (6,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         abstract ref add => throw null; 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 26),
-                // (6,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         abstract ref add => throw null; 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 26),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (4,31): error CS0065: 'Program.E': event property must have both add and remove accessors
-                //     event System.EventHandler E
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("Program.E").WithLocation(4, 31));
-        }
-
-        [Fact]
-        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
-        public void ProduceErrorsOnRef_Events_Ref_Remove()
-        {
-            var code = @"
-public class Program
-{
-    event System.EventHandler E
-    {
-        ref remove => throw null; 
-    }
-}";
-
-            CreateStandardCompilation(code).VerifyDiagnostics(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,20): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         ref remove => throw null; 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 20),
-                // (6,20): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         ref remove => throw null; 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 20),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (4,31): error CS0065: 'Program.E': event property must have both add and remove accessors
-                //     event System.EventHandler E
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("Program.E").WithLocation(4, 31));
-        }
-
-        [Fact]
-        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
-        public void ProduceErrorsOnRef_Events_Ref_Remove_SecondModifier()
-        {
-            var code = @"
-public class Program
-{
-    event System.EventHandler E
-    {
         abstract ref remove => throw null; 
     }
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (6,18): error CS1055: An add or remove accessor expected
+                // (6,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         abstract ref add => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(6, 9),
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
                 //         abstract ref remove => throw null; 
-                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "ref").WithLocation(6, 18),
-                // (6,18): error CS1513: } expected
-                //         abstract ref remove => throw null; 
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "ref").WithLocation(6, 18),
-                // (6,29): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         abstract ref remove => throw null; 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 29),
-                // (6,29): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-                //         abstract ref remove => throw null; 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 29),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (4,31): error CS0065: 'Program.E': event property must have both add and remove accessors
-                //     event System.EventHandler E
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("Program.E").WithLocation(4, 31));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(7, 9));
         }
     }
 }
