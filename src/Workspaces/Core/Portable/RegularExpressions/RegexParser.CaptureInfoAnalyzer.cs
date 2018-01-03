@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     case RegexKind.SimpleGrouping:
                         RecordSimpleGroupingCapture((RegexSimpleGroupingNode)node, options);
                         break;
+
+                    case RegexKind.NestedOptionsGrouping:
+                        var nestedOptions = (RegexNestedOptionsGroupingNode)node;
+                        CollectCaptures(nestedOptions.Expression, GetNewOptionsFromToken(options, nestedOptions.OptionsToken));
+                        return;
                 }
 
                 for (int i = 0, n = node.ChildCount; i < n; i++)

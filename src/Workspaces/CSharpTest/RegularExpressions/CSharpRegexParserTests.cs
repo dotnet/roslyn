@@ -10415,6 +10415,1112 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         #endregion
 
         [Fact]
+        public void TestCaptures1()
+        {
+            Test(@"@""()\1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures2()
+        {
+            Test(@"@""()\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""13"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures3()
+        {
+            Test(@"@""()()\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures4()
+        {
+            Test(@"@""()\1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""13"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures5()
+        {
+            Test(@"@""()\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""13"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures6()
+        {
+            Test(@"@""()()\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""15"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures7()
+        {
+            Test(@"@""()()(?n)\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures8()
+        {
+            Test(@"@""()(?n)()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""21"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures9()
+        {
+            Test(@"@""(?n)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""21"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures10()
+        {
+            Test(@"@""()()(?n)\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""21"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures11()
+        {
+            Test(@"@""()(?n)()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""21"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures12()
+        {
+            Test(@"@""(?n)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""21"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures13()
+        {
+            Test(@"@""()()(?-n)\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures14()
+        {
+            Test(@"@""()(?-n)()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures15()
+        {
+            Test(@"@""(?-n)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures16()
+        {
+            Test(@"@""()()(?-n)\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""20"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""22"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures17()
+        {
+            Test(@"@""()(?-n)()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""22"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures18()
+        {
+            Test(@"@""(?-n)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures19()
+        {
+            Test(@"@""()()(?n:\1\2)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <NestedOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <ColonToken>:</ColonToken>
+        <Sequence>
+          <BackreferenceEscape>
+            <BackslashToken>\</BackslashToken>
+            <NumberToken value=""1"">1</NumberToken>
+          </BackreferenceEscape>
+          <BackreferenceEscape>
+            <BackslashToken>\</BackslashToken>
+            <NumberToken value=""2"">2</NumberToken>
+          </BackreferenceEscape>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </NestedOptionsGrouping>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures20()
+        {
+            Test(@"@""()()(?n:\1\2)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <NestedOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <ColonToken>:</ColonToken>
+        <Sequence>
+          <BackreferenceEscape>
+            <BackslashToken>\</BackslashToken>
+            <NumberToken value=""1"">1</NumberToken>
+          </BackreferenceEscape>
+          <BackreferenceEscape>
+            <BackslashToken>\</BackslashToken>
+            <NumberToken value=""2"">2</NumberToken>
+          </BackreferenceEscape>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </NestedOptionsGrouping>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""21"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures21()
+        {
+            Test(@"@""()()(?-n:\1\2)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <NestedOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <ColonToken>:</ColonToken>
+        <Sequence>
+          <BackreferenceEscape>
+            <BackslashToken>\</BackslashToken>
+            <NumberToken value=""1"">1</NumberToken>
+          </BackreferenceEscape>
+          <BackreferenceEscape>
+            <BackslashToken>\</BackslashToken>
+            <NumberToken value=""2"">2</NumberToken>
+          </BackreferenceEscape>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </NestedOptionsGrouping>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures22()
+        {
+            Test(@"@""()()(?-n:\1\2)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <NestedOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <ColonToken>:</ColonToken>
+        <Sequence>
+          <BackreferenceEscape>
+            <BackslashToken>\</BackslashToken>
+            <NumberToken value=""1"">1</NumberToken>
+          </BackreferenceEscape>
+          <BackreferenceEscape>
+            <BackslashToken>\</BackslashToken>
+            <NumberToken value=""2"">2</NumberToken>
+          </BackreferenceEscape>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </NestedOptionsGrouping>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""20"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""22"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures23()
+        {
+            Test(@"@""(?n:)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <NestedOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <ColonToken>:</ColonToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </NestedOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures24()
+        {
+            Test(@"@""(?n:)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <NestedOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <ColonToken>:</ColonToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </NestedOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""20"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""22"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures25()
+        {
+            Test(@"@""(?-n:)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <NestedOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <ColonToken>:</ColonToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </NestedOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures26()
+        {
+            Test(@"@""(?-n:)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <NestedOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <ColonToken>:</ColonToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </NestedOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""21"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""23"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures27()
+        {
+            Test(@"@""(?n)(?-n)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures28()
+        {
+            Test(@"@""(?n)(?-n)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
+        public void TestCaptures29()
+        {
+            Test(@"@""(?-n)(?n)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""24"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""26"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCaptures30()
+        {
+            Test(@"@""(?-n)(?n)()()\1\2""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>-n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleOptionsGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OptionsToken>n</OptionsToken>
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleOptionsGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <SimpleGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </SimpleGrouping>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""1"">1</NumberToken>
+      </BackreferenceEscape>
+      <BackreferenceEscape>
+        <BackslashToken>\</BackslashToken>
+        <NumberToken value=""2"">2</NumberToken>
+      </BackreferenceEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Reference to undefined group number 1"" Start=""24"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 2"" Start=""26"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.ExplicitCapture);
+        }
+
+        [Fact]
         public void TestDeepRecursion()
         {
             var (token, tree, chars) =
