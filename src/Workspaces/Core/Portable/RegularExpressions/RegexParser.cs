@@ -1088,6 +1088,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case RegexKind.ControlEscape:
                     var controlEscape = (RegexControlEscapeNode)component;
                     var controlCh = controlEscape.ControlToken.VirtualChars[0].Char;
+                    // \ca interpreted as \cA
+                    if (controlCh >= 'a' && controlCh <= 'z')
+                    {
+                        controlCh -= (char)('a' - 'A');
+                    }
                     ch = (char)(controlCh - '@');
                     return true;
 

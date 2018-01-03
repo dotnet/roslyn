@@ -11792,7 +11792,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         public void TestCharacterClassRange39()
         {
             Test(@"@""[\cc-\3]""", @"<Tree>
-", RegexOptions.None);
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <ControlEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>c</TextToken>
+              <TextToken>c</TextToken>
+            </ControlEscape>
+            <MinusToken>-</MinusToken>
+            <OctalEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>3</TextToken>
+            </OctalEscape>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
         }
 
         [Fact]
@@ -11862,14 +11885,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         public void TestCharacterClassRange42()
         {
             Test(@"@""[\4-\cc]""", @"<Tree>
-", RegexOptions.None);
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <OctalEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>4</TextToken>
+            </OctalEscape>
+            <MinusToken>-</MinusToken>
+            <ControlEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>c</TextToken>
+              <TextToken>c</TextToken>
+            </ControlEscape>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""[x-y] range in reverse order"" Start=""13"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
         }
 
         [Fact]
         public void TestCharacterClassRange43()
         {
             Test(@"@""[\cc-\4]""", @"<Tree>
-", RegexOptions.None);
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <ControlEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>c</TextToken>
+              <TextToken>c</TextToken>
+            </ControlEscape>
+            <MinusToken>-</MinusToken>
+            <OctalEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>4</TextToken>
+            </OctalEscape>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
         }
 
         [Fact]
@@ -12073,25 +12145,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <ControlEscape>
-            <BackslashToken>\</BackslashToken>
-            <TextToken>c</TextToken>
-            <TextToken />
-          </ControlEscape>
           <CharacterClassRange>
-            <Text>
-              <TextToken>&lt;</TextToken>
-            </Text>
+            <ControlEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>c</TextToken>
+              <TextToken>B</TextToken>
+            </ControlEscape>
             <MinusToken>-</MinusToken>
             <ControlEscape>
               <BackslashToken>\</BackslashToken>
               <TextToken>c</TextToken>
-              <TextToken />
+              <TextToken>a</TextToken>
             </ControlEscape>
           </CharacterClassRange>
-          <Text>
-            <TextToken>&gt;</TextToken>
-          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -12099,8 +12165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Start=""13"" Length=""1"" />
-    <Diagnostic Message=""Unrecognized control character"" Start=""17"" Length=""1"" />
+    <Diagnostic Message=""[x-y] range in reverse order"" Start=""14"" Length=""1"" />
   </Diagnostics>
 </Tree>", RegexOptions.None);
         }
