@@ -36,8 +36,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             ScanNextToken(allowTrivia: true);
         }
 
-        private void ScanNextToken(bool allowTrivia)
-            => _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
+        private RegexToken ScanNextToken(bool allowTrivia)
+        {
+            _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
+            return _currentToken;
+        }
+
+        private RegexToken ScanNextTokenAndReturnPreviousToken(bool allowTrivia)
+        {
+            var previous = _currentToken;
+            _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
+            return previous;
+        }
 
         /// <summary>
         /// Given an input text, and set of options, parses out a fully representative syntax tree 
@@ -142,11 +152,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             while (_currentToken.Kind == RegexKind.BarToken)
             {
-                var barToken = _currentToken;
-                ScanNextToken(allowTrivia: true);
-
-                var right = ParseSequence(consumeCloseParen);
-                current = new RegexAlternationNode(current, barToken, right);
+                current = new RegexAlternationNode(
+                    current, ScanNextTokenAndReturnPreviousToken(allowTrivia: true), ParseSequence(consumeCloseParen));
             }
 
             return current;
