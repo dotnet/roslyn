@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
     /// <summary>
     /// Represents a ```[:...:]``` node in a character class.  Note: the .net regex parser
-    /// simply recognizes and skips these.  They have no impact on the actual match engine
-    /// that is produced.
+    /// simply treats this as the character ```[``` and ignores the rest of the ```:...:]```.
+    /// They latter part has no impact on the actual match engine that is produced.
     /// </summary>
     internal sealed class RegexPosixPropertyNode : RegexPrimaryExpressionNode
     {
