@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.AmbiguityCodeFixProvider
+namespace Microsoft.CodeAnalysis.CSharp.Ambiguity
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AliasType), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]

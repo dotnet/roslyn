@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -24,49 +25,53 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var diagnosticNode = root.FindNode(context.Span);
+
+            // Innermost: We are looking for an IdentifierName. IdentifierName is sometimes at the same span as its parent (e.g. SimpleBaseTypeSyntax).
+            var diagnosticNode = root.FindNode(context.Span, getInnermostNodeForTie: true);
+            if (!syntaxFacts.IsIdentifierName(diagnosticNode))
+            {
+                return;
+            }
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolInfo = semanticModel.GetSymbolInfo(diagnosticNode, cancellationToken);
-            if (SymbolInfoContainesSupportedSymbols(symbolInfo))
+            if (SymbolCandidatesContainsSupportedSymbols(symbolInfo))
             {
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var addImportService = document.GetLanguageService<IAddImportsService>();
-                var placeSystemNamespaceFirst = await GetPlaceSystemNamespaceFirstOptionAsync(document, cancellationToken).ConfigureAwait(false);
-                var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
-                var typeName = GetAliasFromDiagnsoticNode(syntaxFacts, diagnosticNode);
+                var diagnostic = context.Diagnostics.First();
+                var compilation = semanticModel.Compilation;
+                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+                var typeName = GetAliasFromDiagnosticNode(syntaxFacts, diagnosticNode);
                 foreach (var symbol in symbolInfo.CandidateSymbols)
                 {
                     var aliasDirective = GetAliasDirective(typeName, symbol);
-                    var newRoot = addImportService.AddImport(semanticModel.Compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
-                    var codeActionPreviewText = GetTextPreviewOfChange(aliasDirective, document.Project.Solution.Workspace);
-                    codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText,
-                                                            c => Task.FromResult(document.WithSyntaxRoot(newRoot))));
+                    var codeActionPreviewText = await GetTextPreviewOfChangeAsync(aliasDirective,
+                                                                                  document.Project.Solution.Workspace,
+                                                                                  optionSet,
+                                                                                  cancellationToken).ConfigureAwait(false);
+                    var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
+                    var codeAction = new MyCodeAction(codeActionPreviewText, c => Task.FromResult(document.WithSyntaxRoot(newRoot)));
+                    context.RegisterCodeFix(codeAction, context.Diagnostics.First());
                 }
-                var groupedTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, typeName);
-                var groupedCodeAction = new GroupingCodeAction(groupedTitle, codeActionsBuilder.ToImmutable());
-                var diagnostic = context.Diagnostics.First();
-                context.RegisterCodeFix(groupedCodeAction, diagnostic);
             }
         }
 
-        private static async Task<bool> GetPlaceSystemNamespaceFirstOptionAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<string> GetTextPreviewOfChangeAsync(SyntaxNode newNode, Workspace workspace, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-            return placeSystemNamespaceFirst;
+            var formatedNode = await Formatter.FormatAsync(newNode, workspace, optionSet, cancellationToken).ConfigureAwait(false);
+            var formatedText = formatedNode.ToFullString();
+            return string.Format(FeaturesResources.Alias_ambiguous_type_0, formatedText);
         }
 
-        private static string GetTextPreviewOfChange(SyntaxNode newNode, Workspace workspace)
-            => Formatter.Format(newNode, workspace).ToFullString();
-
-        private static string GetAliasFromDiagnsoticNode(ISyntaxFactsService syntaxFacts, SyntaxNode diagnosticNode)
+        private static string GetAliasFromDiagnosticNode(ISyntaxFactsService syntaxFacts, SyntaxNode diagnosticNode)
         {
             // The content of the node is a good candidate for the alias
             // For attributes VB requires that the alias ends with 'Attribute' while C# is fine with or without the suffix.
             var nodeText = diagnosticNode.ToString();
-            if (syntaxFacts.IsAttribute(diagnosticNode) || syntaxFacts.IsAttribute(diagnosticNode.Parent))
+            if (syntaxFacts.IsAttribute(diagnosticNode.Parent))
             {
                 if (!nodeText.EndsWith("Attribute"))
                 {
@@ -77,9 +82,9 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
             return nodeText;
         }
 
-        private bool SymbolInfoContainesSupportedSymbols(SymbolInfo symbolInfo)
+        private static bool SymbolCandidatesContainsSupportedSymbols(SymbolInfo symbolInfo)
             => symbolInfo.CandidateReason == CandidateReason.Ambiguous &&
-               // Arity: Aliases can not name unbound generic types. Only closed constructed types can be aliased.
+               // Arity: Aliases can only name closed constructed types.
                // Aliasing as a closed constructed type is possible but would require to remove the type arguments from the diagnosed node.
                // It is unlikely that the user wants that and so generic types are not supported.
                // SymbolKind.NamedType: only types can be aliased by this fix.
@@ -90,14 +95,6 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
                 base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
-        }
-
-        private class GroupingCodeAction : CodeActionWithNestedActions
-        {
-            public GroupingCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions, isInlinable: true)
             {
             }
         }
