@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
                // Arity: Aliases can only name closed constructed types.
                // Aliasing as a closed constructed type is possible but would require to remove the type arguments from the diagnosed node.
                // It is unlikely that the user wants that and so generic types are not supported.
-               // SymbolKind.NamedType: only types can be aliased by this fix.
                symbolInfo.CandidateSymbols.All(symbol => symbol.IsKind(SymbolKind.NamedType) &&
                                                          symbol.GetArity() == 0);
 
