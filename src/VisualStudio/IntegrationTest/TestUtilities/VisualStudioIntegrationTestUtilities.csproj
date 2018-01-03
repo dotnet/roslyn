@@ -56,7 +56,10 @@
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="$(MicrosoftVisualStudioVsInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <!-- Required to workaround double write of System.Threading.Tasks.Dataflow -->
+    <!-- 
+        Required to avoid double write of System.Threading.Tasks.Dataflow.dll caused by both 
+        Microsoft.VisualStudio.ProjectSystem and Microsoft.VisualStudio.Composition depending on it.
+    -->
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>

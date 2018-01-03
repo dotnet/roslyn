@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
                 typeof(TestExportJoinableTaskContext), // Needed by editor components, but not actually exported anywhere else
-                typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by the editor bug #544569.
+                typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
             };
 
             return types//.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))
