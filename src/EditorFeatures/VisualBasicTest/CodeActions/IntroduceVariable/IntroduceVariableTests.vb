@@ -2975,5 +2975,37 @@ End Class
 "
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
+
+        <WorkItem(56, "https://github.com/dotnet/roslyn/issues/56")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestIntroduceLocalForInvocationExpressionInForEachStatement() As Task
+            Dim code = "
+Class C
+
+    Private Sub M()
+        For Each num As Integer In [|GetNumbers()|]
+        Next
+    End Sub
+
+    Private Function GetNumbers() As IEnumerable(Of Integer)
+        Return {1, 2, 3}
+    End Function
+End Class"
+            Dim expected = "
+Class C
+
+    Private Sub M()
+        Dim {|Rename:getNumbers1|} As IEnumerable = GetNumbers()
+        For Each num As Integer In getNumbers1
+        Next
+    End Sub
+
+    Private Function GetNumbers() As IEnumerable(Of Integer)
+        Return {1, 2, 3}
+    End Function
+End Class"
+            Await TestInRegularAndScriptAsync(code, expected)
+        End Function
+
     End Class
 End Namespace

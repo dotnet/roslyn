@@ -229,6 +229,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
+
             var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
                                              .Select(s => s.Name)
                                              .Concat(existingSymbols.Select(s => s.Name));

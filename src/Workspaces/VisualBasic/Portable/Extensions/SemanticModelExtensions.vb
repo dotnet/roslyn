@@ -121,6 +121,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return (DirectCast(current, MemberAccessExpressionSyntax)).Name.Identifier.ValueText.ToCamelCase()
                 ElseIf TypeOf current Is CastExpressionSyntax Then
                     current = (DirectCast(current, CastExpressionSyntax)).Expression
+                ElseIf TypeOf current Is InvocationExpressionSyntax Then
+                    Dim invocationExpression = (DirectCast(current, InvocationExpressionSyntax))
+                    If TypeOf invocationExpression.Parent Is ForEachStatementSyntax Then
+                        current = invocationExpression.Expression
+                    End If
                 Else
                     Exit While
                 End If

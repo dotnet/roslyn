@@ -222,6 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     current = castExpression.Expression;
                 }
+                else if (current is InvocationExpressionSyntax invocationExpression && invocationExpression.Parent is ForEachStatementSyntax) 
+                {
+                    current = invocationExpression.Expression;
+                }
                 else if (current is DeclarationExpressionSyntax decl)
                 {
                     var name = decl.Designation as SingleVariableDesignationSyntax;

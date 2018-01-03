@@ -2983,6 +2983,46 @@ class C
 ", options: ImplicitTypingEverywhere());
         }
 
+        [WorkItem(56, "https://github.com/dotnet/roslyn/issues/56")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalFromInvocationExpressionInForEachStatement()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    void M()
+    {
+        foreach (var num in [|GetNumbers()|])
+        {
+
+        }
+    }
+
+    IEnumerable<int> GetNumbers()
+    {
+        return new[] { 1, 2, 3 };
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        IEnumerable<int> {|Rename:getNumbers|} = GetNumbers();
+        foreach (var num in getNumbers)
+        {
+
+        }
+    }
+
+    IEnumerable<int> GetNumbers()
+    {
+        return new[] { 1, 2, 3 };
+    }
+}
+", options: ImplicitTypingEverywhere());            
+        }
+
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceVariableTextDoesntSpanLines1()
