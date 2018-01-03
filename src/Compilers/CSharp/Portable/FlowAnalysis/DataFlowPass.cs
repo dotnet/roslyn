@@ -430,15 +430,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Walk up the containing symbols until we find the target function, in which
             // case the variable is not captured by the target function, or null, in which 
             // case it is.
-            var currentFunction = variable.ContainingSymbol;
-            while (currentFunction != null)
+            for (var currentFunction = variable.ContainingSymbol;
+                 currentFunction != null;
+                 currentFunction = currentFunction.ContainingSymbol)
             {
                 if (currentFunction == containingMethodOrLambda)
                 {
                     return false;
                 }
-                currentFunction = currentFunction.ContainingSymbol;
             }
+
             return true;
         }
 

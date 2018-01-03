@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldPending = SavePending(); // we do not support branches into a lambda
 
             // SPEC: The entry point to a local function is always reachable.
-            // Captured variables are assigned if they are assigned on all
-            // branches into the local function.
+            // Captured variables are definitely assigned if they are definitely assigned on
+            // all branches into the local function.
 
             var savedState = this.State;
             this.State = this.ReachableState();
@@ -138,10 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // possibly unassigned captured variables and later report definite
             // assignment errors if any of the captured variables is not assigned
             // on a particular branch.
-            // Assignments to captured variables are also recorded, as a local function
-            // definitely assigns captured variables on a call to a local function
-            // if that variable is definitely assigned at all branches out of the
-            // local function
+            //
+            // Assignments to captured variables are also recorded, as calls to local functions
+            // definitely assign captured variables if the variables are definitely assigned at
+            // all branches out of the local function.
 
             var usages = GetOrCreateLocalFuncUsages(localFuncSymbol);
             var oldReads = usages.ReadVars.Clone();
