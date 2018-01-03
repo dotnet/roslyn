@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // PROTOTYPE(patterns2): we parse it as a declaration pattern when we have simple designation, for compatibility.
                         // PROTOTYPE(patterns2): can we change it to use a var pattern in all cases?
-                        //return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
+                        // PROTOTYPE(patterns2): For example: return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
                         return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(typeIdentifierToken), varDesignation);
                     }
                 }
