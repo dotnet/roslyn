@@ -36,9 +36,12 @@ namespace Microsoft.CodeAnalysis.Classification
             // Looks like it could be a regex pattern.  Do more complex check.
             // Cache the detector we create, so we don't have to continually do
             // the same semantic work for every string literal token we visit.
-            var detector = _modelToDetector.GetValue(
-                semanticModel, m => RegexPatternDetector.TryCreate(
-                    m, syntaxFacts, semanticFacts));
+            if (!_modelToDetector.TryGetValue(semanticModel, out var detector))
+            {
+                detector = _modelToDetector.GetValue(
+                    semanticModel,
+                    m => RegexPatternDetector.TryCreate(m, syntaxFacts, semanticFacts));
+            }
 
             if (!detector.IsRegexPattern(token, cancellationToken, out var options))
             {
