@@ -24376,11 +24376,8 @@ using System.Collections.Generic;
 
 public class ClassA : IEnumerable<(int alice, int bob)>
 {
-    private readonly List<(int alice, int bob)> _values = new List<(int, int)>();
-
-    public void Add(int alice, int bob) => _values.Add((alice, bob));
-
-    public IEnumerator<(int alice, int bob)> GetEnumerator() => _values.GetEnumerator();
+    public void Add(int alice, int bob) => throw null;
+    public IEnumerator<(int alice, int bob)> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
             var lib = CreateCompilation(lib_cs, references: new[] { MscorlibRef, vtLib.EmitToImageReference() });
@@ -24466,11 +24463,8 @@ using System.Collections.Generic;
 
 public class ClassA : IEnumerable<(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)>
 {
-    private readonly List<(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)> _values = new List<(int, int, int, int, int, int, int, int)>();
-
-    public void Add(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8) => _values.Add((i1, i2, i3, i4, i5, i6, i7, i8));
-
-    public IEnumerator<(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)> GetEnumerator() => _values.GetEnumerator();
+    public void Add(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8) => throw null;
+    public IEnumerator<(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
             var lib = CreateCompilation(lib_cs, references: new[] { MscorlibRef, vtLib.EmitToImageReference() });
@@ -24518,6 +24512,130 @@ public class ClassB
                 Assert.Equal("(System.Int32 i1, System.Int32 i2, System.Int32 i3, System.Int32 i4, System.Int32 i5, System.Int32 i6, System.Int32 i7, System.Int32 i8)", tuple.ToTestDisplayString());
                 Assert.True(tuple.IsTupleType);
                 Assert.True(tuple.TupleUnderlyingType.IsErrorType());
+            }
+        }
+
+        [Fact]
+        [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
+        public void FailedDecodingOfTupleNamesWhenMissingNonTupleType()
+        {
+            var containerLib = CreateCompilation("public class Container<T> { }", references: new[] { MscorlibRef }, assemblyName: "container");
+
+            var lib_cs = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class ClassA : IEnumerable<Container<(int alice, int bob)>>
+{
+    public void Add(int alice, int bob) => throw null;
+    public IEnumerator<Container<(int alice, int bob)>> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var lib = CreateCompilation(lib_cs + tuplelib_cs + tupleattributes_cs, references: new[] { MscorlibRef, containerLib.EmitToImageReference() });
+            lib.VerifyDiagnostics();
+
+            var client_cs = @"
+public class ClassB
+{
+    public ClassB()
+    {
+        new ClassA { { 42, 10 } };
+    }
+}";
+            var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to container
+            comp.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(comp);
+
+            var compWithMetadataReference = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to container
+            compWithMetadataReference.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference);
+
+            var fakeContainerLib = CreateCompilation("", references: new[] { MscorlibRef }, assemblyName: "container");
+            var compWithFakeContainer = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeContainerLib.EmitToImageReference() }); // reference to fake container
+            compWithFakeContainer.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(compWithFakeContainer);
+
+            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation)
+            {
+                var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
+                var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
+                Assert.Equal("System.Collections.Generic.IEnumerable<Container<(System.Int32 alice, System.Int32 bob)>[missing]>",
+                    iEnumerable.ToTestDisplayString());
+
+                var container = (NamedTypeSymbol)iEnumerable.TypeArguments()[0];
+                Assert.True(container.IsErrorType());
+
+                var tuple = container.TypeArguments()[0];
+                Assert.Equal("(System.Int32 alice, System.Int32 bob)", tuple.ToTestDisplayString());
+                Assert.True(tuple.IsTupleType);
+                Assert.False(tuple.TupleUnderlyingType.IsErrorType());
+            }
+        }
+
+        [Fact]
+        [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
+        public void FailedDecodingOfTupleNamesWhenMissingContainerType()
+        {
+            var containerLib = CreateCompilation("public class Container<T> { public class Contained<U> { } }", references: new[] { MscorlibRef }, assemblyName: "container");
+
+            var lib_cs = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class ClassA : IEnumerable<Container<(int alice, int bob)>.Contained<(int charlie, int dylan)>>
+{
+    public void Add(int alice, int bob) => throw null;
+    public IEnumerator<Container<(int alice, int bob)>.Contained<(int charlie, int dylan)>> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var lib = CreateCompilation(lib_cs + tuplelib_cs + tupleattributes_cs, references: new[] { MscorlibRef, containerLib.EmitToImageReference() });
+            lib.VerifyDiagnostics();
+
+            var client_cs = @"
+public class ClassB
+{
+    public ClassB()
+    {
+        new ClassA { { 42, 10 } };
+    }
+}";
+            var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to container
+            comp.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(comp);
+
+            var compWithMetadataReference = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to container
+            compWithMetadataReference.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference);
+
+            var fakeContainerLib = CreateCompilation("", references: new[] { MscorlibRef }, assemblyName: "container");
+            var compWithFakeContainer = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeContainerLib.EmitToImageReference() }); // reference to fake container
+            compWithFakeContainer.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(compWithFakeContainer);
+
+            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation)
+            {
+                var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
+                var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
+                Assert.Equal("System.Collections.Generic.IEnumerable<Container<(System.Int32 alice, System.Int32 bob)>[missing].Contained<(System.Int32 charlie, System.Int32 dylan)>[missing]>",
+                    iEnumerable.ToTestDisplayString());
+
+                var contained = (NamedTypeSymbol)iEnumerable.TypeArguments()[0];
+                Assert.Equal("Container<(System.Int32 alice, System.Int32 bob)>[missing].Contained<(System.Int32 charlie, System.Int32 dylan)>[missing]", contained.ToTestDisplayString());
+                Assert.True(contained.IsErrorType());
+
+                var tuple1 = contained.TypeArguments()[0];
+                Assert.Equal("(System.Int32 charlie, System.Int32 dylan)", tuple1.ToTestDisplayString());
+                Assert.True(tuple1.IsTupleType);
+                Assert.False(tuple1.TupleUnderlyingType.IsErrorType());
+
+                var container = contained.ContainingType;
+                Assert.Equal("Container<(System.Int32 alice, System.Int32 bob)>[missing]", container.ToTestDisplayString());
+                Assert.True(container.IsErrorType());
+
+                var tuple2 = container.TypeArguments()[0];
+                Assert.Equal("(System.Int32 alice, System.Int32 bob)", tuple2.ToTestDisplayString());
+                Assert.True(tuple2.IsTupleType);
+                Assert.False(tuple2.TupleUnderlyingType.IsErrorType());
             }
         }
     }

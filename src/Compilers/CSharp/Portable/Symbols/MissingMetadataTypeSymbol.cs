@@ -165,22 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, bool mangleName)
                 : this(module, fullName.NamespaceName,
-                       name: mangleName || IsValueTupleErrorType(ref fullName) ? fullName.UnmangledTypeName : fullName.TypeName,
-                       arity: mangleName || IsValueTupleErrorType(ref fullName) ? fullName.InferredArity : fullName.ForcedArity,
+                       mangleName ? fullName.UnmangledTypeName : fullName.TypeName,
+                       mangleName ? fullName.InferredArity : fullName.ForcedArity,
                        mangleName)
             {
-            }
-
-            private static bool IsValueTupleErrorType(ref MetadataTypeName fullName)
-            {
-                int arity = fullName.InferredArity;
-                if (fullName.NamespaceName == MetadataHelpers.SystemString && fullName.UnmangledTypeName == TupleTypeSymbol.TupleTypeName &&
-                    arity > 0 && arity <= TupleTypeSymbol.RestPosition)
-                {
-                    return true;
-                }
-
-                return false;
             }
 
             /// <summary>
