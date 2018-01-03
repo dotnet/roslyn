@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
-                async void shutdownHandler(object _, EventArgs __)
+                void shutdownHandler(object _, EventArgs __)
                 {
                     try
                     {
-                        AppDomain.CurrentDomain.ProcessExit = -shutdownHandler;
+                        AppDomain.CurrentDomain.ProcessExit -= shutdownHandler;
                         if (Interlocked.Exchange(ref processExitHandling, ProcessExitHandled) == ProcessExitHooked)
                         {
                             Process.Exited -= localHandler;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)
                 {
                     Process.Exited += localHandler;
-                    AppDomain.CurrentDomain.ProcessExit = +shutdownHandler;
+                    AppDomain.CurrentDomain.ProcessExit += shutdownHandler;
                 }
             }
 
