@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Storage;
@@ -28,13 +29,14 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// basically, this is used to manage lifetime of the service hub.
     /// </summary>
-    internal class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
+    internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
         private string _host;
         private int _primaryInstance;
+        private PerformanceReporter _performanceReporter;
 
         static RemoteHostService()
         {
@@ -204,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Remote
             m["InstanceId"] = _primaryInstance;
         }
 
-        private static void SetGlobalContext(string serializedSession)
+        private void SetGlobalContext(string serializedSession)
         {
             // set global telemetry session
             var session = GetTelemetrySession(serializedSession);
@@ -221,6 +223,13 @@ namespace Microsoft.CodeAnalysis.Remote
             // set both handler as NFW
             FatalError.Handler = WatsonReporter.Report;
             FatalError.NonFatalHandler = WatsonReporter.Report;
+
+            // start performance reporter
+            var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
+            if (diagnosticAnalyzerPerformanceTracker != null)
+            {
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, TimeSpan.FromMinutes(2), ShutdownCancellationToken);
+            }
         }
 
         private static TelemetrySession GetTelemetrySession(string serializedSession)
@@ -235,10 +244,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static AbstractPersistentStorageService GetPersistentStorageService()
         {
-            // A bit slimy.  We just create an adhoc workspace so it will create the singleton
-            // PersistentStorageService.  This service will be shared among all Workspaces we 
-            // create in this process.  So updating it will be seen by all.
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices);
+            var workspace = SolutionService.PrimaryWorkspace;
             var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
         }

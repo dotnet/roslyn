@@ -403,5 +403,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         MetadataOnlyImage_EmitFailure,
         LiveTableDataSource_OnDiagnosticsUpdated,
         Experiment_KeybindingsReset,
+        Diagnostics_GeneratePerformaceReport,
+        Diagnostics_BadAnalyzer,
     }
 }

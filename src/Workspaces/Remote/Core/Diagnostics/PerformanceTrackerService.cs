@@ -1,0 +1,384 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Host.Mef;
+
+namespace Microsoft.CodeAnalysis.Remote.Diagnostics
+{
+    /// <summary>
+    /// Track diagnostic performance 
+    /// </summary>
+    [ExportWorkspaceService(typeof(IPerformanceTrackerService), WorkspaceKind.Host), Shared]
+    internal class PerformanceTrackerService : IPerformanceTrackerService
+    {
+        private const double MinLOFValue = 20;
+        private const double MeanThreshold = 1000;
+        private const double StddevThreshold = 1000;
+
+        private const int SampleSize = 300;
+        private const double K_Value_Ratio = 2D / 3D;
+
+        private readonly object _gate;
+        private readonly PerformanceQueue _queue;
+        private readonly ConcurrentDictionary<string, bool> _builtInMap = new ConcurrentDictionary<string, bool>(concurrencyLevel: 2, capacity: 10);
+
+        public event EventHandler SnapshotAdded;
+
+        public PerformanceTrackerService()
+        {
+            _gate = new object();
+
+            _queue = new PerformanceQueue(SampleSize);
+        }
+
+        public void AddSnapshot(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> snapshot)
+        {
+            AddSnapshot(Convert(snapshot.Select(kv => (kv.Key, kv.Value.ExecutionTime))));
+        }
+
+        public void AddSnapshot(IEnumerable<(string analyzerId, bool builtIn, TimeSpan timeSpan)> snapshot)
+        {
+            RecordBuiltInAnalyzers(snapshot);
+
+            lock (_gate)
+            {
+                _queue.Add(snapshot.Select(kv => (kv.analyzerId, kv.timeSpan)));
+            }
+
+            OnSnapshotAdded();
+        }
+
+        public void GenerateReport(List<BadAnalyzerInfo> badAnalyzers)
+        {
+            using (var pooledRaw = SharedPools.Default<Dictionary<string, (double mean, double stddev)>>().GetPooledObject())
+            {
+                var rawPerformanceData = pooledRaw.Object;
+
+                lock (_gate)
+                {
+                    // first get raw aggregated peformance data from the queue
+                    _queue.GetPerformanceData(rawPerformanceData);
+                }
+
+                // make sure there are some data
+                if (rawPerformanceData.Count == 0)
+                {
+                    return;
+                }
+
+                using (var generator = new ReportGenerator(this, MinLOFValue, MeanThreshold, StddevThreshold, badAnalyzers))
+                {
+                    generator.Report(rawPerformanceData);
+                }
+            }
+        }
+
+        private void RecordBuiltInAnalyzers(IEnumerable<(string analyzerId, bool builtIn, TimeSpan timeSpan)> snapshot)
+        {
+            foreach (var kv in snapshot)
+            {
+                _builtInMap[kv.analyzerId] = kv.builtIn;
+            }
+        }
+
+        private bool AllowTelemetry(string analyzerId)
+        {
+            if (_builtInMap.TryGetValue(analyzerId, out var builtIn))
+            {
+                return builtIn;
+            }
+
+            return false;
+        }
+
+        private void OnSnapshotAdded()
+        {
+            SnapshotAdded?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static IEnumerable<(string, bool, TimeSpan)> Convert(IEnumerable<(DiagnosticAnalyzer analyzer, TimeSpan timeSpan)> rawData)
+        {
+            return rawData.Select(kv => (kv.analyzer.GetAnalyzerId(), DiagnosticAnalyzerLogger.AllowsTelemetry(kv.analyzer), kv.timeSpan));
+        }
+
+        private sealed class ReportGenerator : IDisposable
+        {
+            private readonly double _minLOFValue;
+            private readonly double _meanThreshold;
+            private readonly double _stddevThreshold;
+
+            private readonly PerformanceTrackerService _owner;
+            private readonly List<BadAnalyzerInfo> _badAnalyzers;
+            private readonly PooledObject<List<IDisposable>> _pooledObjects;
+
+            public ReportGenerator(
+                PerformanceTrackerService owner,
+                double minLOFValue,
+                double meanThreshold,
+                double stddevThreshold,
+                List<BadAnalyzerInfo> badAnalyzers)
+            {
+                _pooledObjects = SharedPools.Default<List<IDisposable>>().GetPooledObject();
+
+                _owner = owner;
+
+                _minLOFValue = minLOFValue;
+                _meanThreshold = meanThreshold;
+                _stddevThreshold = stddevThreshold;
+
+                _badAnalyzers = badAnalyzers;
+            }
+
+            public void Report(Dictionary<string, (double mean, double stddev)> rawPerformanceData)
+            {
+                // convert string (analyzerId) to index
+                var analyzerIdIndex = GetAnalyzerIdIndex(rawPerformanceData.Keys);
+
+                // now calculate normalized value per analyzer
+                var normalizedMap = GetNormalizedPerformanceMap(analyzerIdIndex, rawPerformanceData);
+
+                // get k value
+                var k_value = (int)(rawPerformanceData.Count * K_Value_Ratio);
+
+                // calculate distances
+
+                // calculate all distance first
+                var allDistances = GetAllDistances(normalizedMap);
+
+                // find k distance from all distances
+                var kDistances = GetKDistances(allDistances, k_value);
+
+                // find k nearest neighbors
+                var kNeighborIndices = GetKNeighborIndices(allDistances, kDistances);
+
+                var analyzerCount = kNeighborIndices.Count;
+                for (var index = 0; index < analyzerCount; index++)
+                {
+                    var analyzerId = analyzerIdIndex[index];
+
+                    // if result performance is lower than our threshold, don't need to calcuate
+                    // LOF value for the analyzer
+                    var rawData = rawPerformanceData[analyzerId];
+                    if (rawData.mean <= _meanThreshold && rawData.stddev <= _stddevThreshold)
+                    {
+                        continue;
+                    }
+
+                    // possible bad analyzer, calcuate LOF
+                    var lof_value = TryGetLocalOutlierFactor(allDistances, kNeighborIndices, kDistances, index);
+                    if (!lof_value.HasValue)
+                    {
+                        // this analyzer doesn't have lof value
+                        continue;
+                    }
+
+                    if (lof_value <= _minLOFValue)
+                    {
+                        // this doesn't stand out from other analyzers
+                        continue;
+                    }
+
+                    // report found possible bad analyzers
+                    _badAnalyzers.Add(new BadAnalyzerInfo(_owner.AllowTelemetry(analyzerId), analyzerId, lof_value.Value, rawData.mean, rawData.stddev));
+                }
+            }
+
+            private double? TryGetLocalOutlierFactor(
+                List<List<double>> allDistances, List<List<int>> kNeighborIndices, List<double> kDistances, int analyzerIndex)
+            {
+                var rowKNeighborsIndices = kNeighborIndices[analyzerIndex];
+                if (rowKNeighborsIndices.Count == 0)
+                {
+                    // nothing to calculate if there is no neighbor to compare
+                    return null;
+                }
+
+                var lrda = TryGetLocalReachabilityDensity(allDistances, kNeighborIndices, kDistances, analyzerIndex);
+                if (!lrda.HasValue)
+                {
+                    // can't calculate reachability for the analyzer. can't calculate lof for this analyzer
+                    return null;
+                }
+
+                var lrdb = 0D;
+                foreach (var neighborIndex in rowKNeighborsIndices)
+                {
+                    var reachability = TryGetLocalReachabilityDensity(allDistances, kNeighborIndices, kDistances, neighborIndex);
+                    if (!reachability.HasValue)
+                    {
+                        // this neighbor analyzer doesn't have its own neighbor. skip it
+                        continue;
+                    }
+
+                    lrdb += reachability.Value;
+                }
+
+                return lrdb / rowKNeighborsIndices.Count / lrda;
+            }
+
+            private double GetReachabilityDistance(
+                List<List<double>> allDistances, List<double> kDistances, int analyzerIndex1, int analyzerIndex2)
+            {
+                return Math.Max(allDistances[analyzerIndex1][analyzerIndex2], kDistances[analyzerIndex2]);
+            }
+
+            private double? TryGetLocalReachabilityDensity(
+                List<List<double>> allDistances, List<List<int>> kNeighborIndices, List<double> kDistances, int analyzerIndex)
+            {
+                var rowKNeighborsIndices = kNeighborIndices[analyzerIndex];
+                if (rowKNeighborsIndices.Count == 0)
+                {
+                    // no neighbor to get reachability
+                    return null;
+                }
+
+                var distanceSum = 0D;
+                foreach (var neighborIndex in rowKNeighborsIndices)
+                {
+                    distanceSum += GetReachabilityDistance(allDistances, kDistances, analyzerIndex, neighborIndex);
+                }
+
+                return 1 / distanceSum / rowKNeighborsIndices.Count;
+            }
+
+            private List<List<int>> GetKNeighborIndices(List<List<double>> allDistances, List<double> kDistances)
+            {
+                var analyzerCount = kDistances.Count;
+                var kNeighborIndices = GetPooledObject<List<List<int>>>();
+                kNeighborIndices.Capacity = analyzerCount;
+
+                for (var rowIndex = 0; rowIndex < analyzerCount; rowIndex++)
+                {
+                    var rowKNeighborIndices = GetPooledObject<List<int>>();
+
+                    var rowDistances = allDistances[rowIndex];
+                    var kDistance = kDistances[rowIndex];
+
+                    for (var colIndex = 0; colIndex < analyzerCount; colIndex++)
+                    {
+                        var value = rowDistances[colIndex];
+
+                        // get neighbors closer than k distance
+                        if (value > 0 && value <= kDistance)
+                        {
+                            rowKNeighborIndices.Add(colIndex);
+                        }
+                    }
+
+                    kNeighborIndices[rowIndex] = rowKNeighborIndices;
+                }
+
+                return kNeighborIndices;
+            }
+
+            private List<double> GetKDistances(List<List<double>> allDistances, int k_value)
+            {
+                var analyzerCount = allDistances.Count;
+                var kDistances = GetPooledObject<List<double>>();
+                kDistances.Capacity = analyzerCount;
+
+                for (var index = 0; index < analyzerCount; index++)
+                {
+                    var rowDistances = allDistances[index];
+                    rowDistances.Sort();
+
+                    kDistances[index] = rowDistances[k_value];
+                }
+
+                return kDistances;
+            }
+
+            private List<List<double>> GetAllDistances(List<(double normaliedMean, double normalizedStddev)> normalizedMap)
+            {
+                var analyzerCount = normalizedMap.Count;
+                var allDistances = GetPooledObject<List<List<double>>>();
+                allDistances.Capacity = analyzerCount;
+
+                for (var rowIndex = 0; rowIndex < analyzerCount; rowIndex++)
+                {
+                    var rowDistances = GetPooledObject<List<double>>();
+                    rowDistances.Capacity = analyzerCount;
+
+                    var rowAnalyzer = normalizedMap[rowIndex];
+
+                    for (var colIndex = 0; colIndex < analyzerCount; colIndex++)
+                    {
+                        var colAnalyzer = normalizedMap[colIndex];
+                        var distance = Math.Sqrt(Math.Pow(colAnalyzer.normaliedMean - rowAnalyzer.normaliedMean, 2) +
+                                                 Math.Pow(colAnalyzer.normalizedStddev - rowAnalyzer.normalizedStddev, 2));
+
+                        rowDistances[colIndex] = distance;
+                    }
+
+                    allDistances[rowIndex] = rowDistances;
+                }
+
+                return allDistances;
+            }
+
+            private List<(double normaliedMean, double normalizedStddev)> GetNormalizedPerformanceMap(
+                List<string> analyzerIdIndex, Dictionary<string, (double mean, double stddev)> rawPerformanceData)
+            {
+                var (meanMin, meanMax) = (rawPerformanceData.Values.Select(kv => kv.mean).Min(), rawPerformanceData.Values.Select(kv => kv.mean).Max());
+                var meanDelta = meanMax - meanMin;
+
+                var (stddevMin, stddevMax) = (rawPerformanceData.Values.Select(kv => kv.stddev).Min(), rawPerformanceData.Values.Select(kv => kv.stddev).Max());
+                var stddevDelta = stddevMax - stddevMin;
+
+                // make sure delta is not 0
+                meanDelta = meanDelta == 0 ? 1 : meanDelta;
+                stddevDelta = stddevDelta == 0 ? 1 : stddevDelta;
+
+                // calculate normalized mean and stddev and convert analyzerId string to index
+                var analyzerCount = analyzerIdIndex.Count;
+                var normalizedMap = GetPooledObject<List<(double normaliedMean, double normalizedStddev)>>();
+                normalizedMap.Capacity = analyzerCount;
+
+                for (var index = 0; index < analyzerCount; index++)
+                {
+                    var value = rawPerformanceData[analyzerIdIndex[index]];
+                    var normalizedMean = (value.mean - meanMin) / meanDelta;
+                    var normalizedStddev = (value.stddev - stddevMin) / stddevDelta;
+
+                    normalizedMap[index] = (normalizedMean, normalizedStddev);
+                }
+
+                return normalizedMap;
+            }
+
+            private List<string> GetAnalyzerIdIndex(IEnumerable<string> analyzerIds)
+            {
+                var analyzerIdIndex = GetPooledObject<List<string>>();
+                analyzerIdIndex.AddRange(analyzerIds);
+
+                return analyzerIdIndex;
+            }
+
+            public void Dispose()
+            {
+                foreach (var disposable in _pooledObjects.Object)
+                {
+                    disposable.Dispose();
+                }
+
+                _pooledObjects.Dispose();
+            }
+
+            private T GetPooledObject<T>() where T : class, new()
+            {
+                var pooledObject = SharedPools.Default<T>().GetPooledObject();
+                _pooledObjects.Object.Add(pooledObject);
+
+                return pooledObject.Object;
+            }
+        }
+    }
+}

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
 
             // TODO: once we create description manager, pass that into here.
-            bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(null, analyzer, projectId);
+            bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, null);
             var tuple = ValueTuple.Create(telemetry, analyzer.GetType(), ex.GetType());
             logAggregator.IncreaseCount(tuple);
         }
@@ -137,14 +137,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
         }
 
-        public static bool AllowsTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, ProjectId projectIdOpt)
+        public static bool AllowsTelemetry(DiagnosticAnalyzer analyzer, DiagnosticAnalyzerService serviceOpt = null)
         {
             if (s_telemetryCache.TryGetValue(analyzer, out var value))
             {
                 return value.Value;
             }
 
-            return s_telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(service, a))).Value;
+            return s_telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(serviceOpt, a))).Value;
         }
 
         private static bool CheckTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer)
