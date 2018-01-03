@@ -164,6 +164,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
             }
 
+            /// <summary>
+            /// Give numbers to all named cpatures.  They will get successive <see cref="_autoNumber"/> values
+            /// that have not already been handed out to existing numbered capture groups.
+            /// </summary>
             private  void AssignNumbersToCaptureNames()
             {
                 foreach (var name in _captureNames)
