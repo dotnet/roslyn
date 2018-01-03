@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,6 +11,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 {
     using static RegexHelpers;
 
+    /// <summary>
+    /// Produces tokens from the sequence of <see cref="VirtualChar"/> characters.  Unlike the native C# and VB
+    /// lexer, this lexer is much more tightly controlled by the parser.  For example, while C# can have trivia
+    /// on virtual every token, the same is not true for RegexTokens.  As such, instead of automatically lexing
+    /// out tokens to make them available for the parser, the parser asks for each token as necessary passing
+    /// the right information to indicate which types and shapes of tokens are allowed.
+    /// 
+    /// The tight coupling means that the parser is allowed direct control of the position of the lexer.
+    /// 
+    /// Note: most of the time, tokens returned are just a single character long, including for long sequences
+    /// of text characters (like ```"goo"```).  This is just three <see cref="RegexTextNode"/>s in a row (each
+    /// containing a <see cref="RegexKind.TextToken"/> a single character long).
+    /// </summary>
     internal struct RegexLexer
     {
         public readonly ImmutableArray<VirtualChar> Text;
@@ -55,7 +66,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private bool IsSpecial(char ch)
-            =>IsPrimarySpecialChar(ch) ||
+            => IsPrimarySpecialChar(ch) ||
               IsQuantifierChar(ch) ||
               IsAlternationChar(ch);
 
@@ -66,13 +77,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             switch (ch)
             {
-            case '*':
-            case '+':
-            case '?':
-            case '{':
-                return true;
-            default:
-                return false;
+                case '*':
+                case '+':
+                case '?':
+                case '{':
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -80,16 +91,16 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             switch (ch)
             {
-            case '\\':
-            case '[':
-            case '.':
-            case '^':
-            case '$':
-            case '(':
-            case ')':
-                return true;
-            default:
-                return false;
+                case '\\':
+                case '[':
+                case '.':
+                case '^':
+                case '$':
+                case '(':
+                case ')':
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -97,19 +108,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             switch (ch)
             {
-            case '|': return RegexKind.BarToken;
-            case '*': return RegexKind.AsteriskToken;
-            case '+': return RegexKind.PlusToken;
-            case '?': return RegexKind.QuestionToken;
-            case '{': return RegexKind.OpenBraceToken;
-            case '\\': return RegexKind.BackslashToken;
-            case '[': return RegexKind.OpenBracketToken;
-            case '.': return RegexKind.DotToken;
-            case '^': return RegexKind.CaretToken;
-            case '$': return RegexKind.DollarToken;
-            case '(': return RegexKind.OpenParenToken;
-            case ')': return RegexKind.CloseParenToken;
-            default: return RegexKind.None;
+                case '|': return RegexKind.BarToken;
+                case '*': return RegexKind.AsteriskToken;
+                case '+': return RegexKind.PlusToken;
+                case '?': return RegexKind.QuestionToken;
+                case '{': return RegexKind.OpenBraceToken;
+                case '\\': return RegexKind.BackslashToken;
+                case '[': return RegexKind.OpenBracketToken;
+                case '.': return RegexKind.DotToken;
+                case '^': return RegexKind.CaretToken;
+                case '$': return RegexKind.DollarToken;
+                case '(': return RegexKind.OpenParenToken;
+                case ')': return RegexKind.CloseParenToken;
+                default: return RegexKind.None;
             }
         }
 
@@ -238,16 +249,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private bool IsBlank(char ch)
         {
+            // List taken from the native regex parser.
             switch (ch)
             {
-            case '\u0009':
-            case '\u000A':
-            case '\u000C':
-            case '\u000D':
-            case ' ':
-                return true;
-            default:
-                return false;
+                case '\u0009':
+                case '\u000A':
+                case '\u000C':
+                case '\u000D':
+                case ' ':
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -255,8 +267,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             var start = Position;
             while (Position < Text.Length &&
-                   this.CurrentChar is var ch &&
-                   IsEscapeCategoryChar(ch))
+                   IsEscapeCategoryChar(this.CurrentChar))
             {
                 Position++;
             }
@@ -291,7 +302,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return null;
             }
 
-            if (this.CurrentChar < '0' || this.CurrentChar > '9')
+            if (!IsDecimalDigit(this.CurrentChar))
             {
                 return null;
             }
@@ -302,7 +313,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var value = 0;
             var start = Position;
             var error = false;
-            while (Position < Text.Length && this.CurrentChar is var ch && ch >= '0' && ch <= '9')
+            while (Position < Text.Length && this.CurrentChar is var ch && IsDecimalDigit(ch))
             {
                 Position++;
 
@@ -373,14 +384,20 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private bool IsOptionChar(char ch)
         {
-            switch(ch)
+            switch (ch)
             {
-                case '+': case '-':
-                case 'i': case 'I':
-                case 'm': case 'M':
-                case 'n': case 'N':
-                case 's': case 'S':
-                case 'x': case 'X':
+                case '+':
+                case '-':
+                case 'i':
+                case 'I':
+                case 'm':
+                case 'M':
+                case 'n':
+                case 'N':
+                case 's':
+                case 'S':
+                case 'x':
+                case 'X':
                     return true;
                 default:
                     return false;
@@ -419,11 +436,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private static bool IsHexChar(char ch)
-            => (ch >= '0' && ch <= '9') ||
+            => IsDecimalDigit(ch) ||
                (ch >= 'a' && ch <= 'f') ||
                (ch >= 'A' && ch <= 'F');
 
-        private static bool IsOctalChar(char ch)
+        private static bool IsDecimalDigit(char ch)
+            => ch >= '0' && ch <= '9';
+
+        private static bool IsOctalDigit(char ch)
             => ch >= '0' && ch <= '7';
 
         public RegexToken ScanOctalCharacters(RegexOptions options)
@@ -439,7 +459,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             for (int i = 0; i < maxChars; i++)
             {
-                if (Position < Text.Length && IsOctalChar(this.CurrentChar))
+                if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {
                     var octalVal = this.CurrentChar - '0';
                     Debug.Assert(octalVal >= 0 && octalVal <= 7);
