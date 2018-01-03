@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
     internal partial struct RegexParser
     {
+        /// <summary>
+        /// Analyzes the first parsed tree to determine the set of capture numbers and names.  These are
+        /// then used to do the second parsing pass as they can change how the regex engine interprets
+        /// some parts of the pattern (though not the groups themselves).
+        /// </summary>
         private struct CaptureInfoAnalyzer
         {
             private readonly ImmutableArray<VirtualChar> _text;
@@ -62,6 +67,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         break;
 
                     case RegexKind.NestedOptionsGrouping:
+                        // When we see (?opts:...)
+                        // Recurse explicitly, setting the new options as we process the inner expression.
+                        // When this pops out we'll be back to these options we're currently at now.
                         var nestedOptions = (RegexNestedOptionsGroupingNode)node;
                         CollectCaptures(nestedOptions.Expression, GetNewOptionsFromToken(options, nestedOptions.OptionsToken));
                         return;
@@ -72,6 +80,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     var child = node.ChildAt(i);
                     if (child.IsNode)
                     {
+                        // When we see a SimpleOptionsGroup ```(?opts)``` then determine what the options will
+                        // be for successive nodes in the sequence.
                         var childNode = child.Node;
                         if (childNode is RegexSimpleOptionsGroupingNode simpleOptions)
                         {
@@ -97,11 +107,16 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 if (HasOption(options, RegexOptions.ExplicitCapture))
                 {
-                    // Don't automatically add simply groups if the explicit capture option is on.
+                    // Don't automatically add simple groups if the explicit capture option is on.
+                    // Only add captures for 'CaptureGrouping' and 'BalancingGrouping' nodes.
                     return;
                 }
 
-                // Don't count a bogus (? node as a capture node.
+                // Don't count a bogus (? node as a capture node.  We only have this to keep our error
+                // messages in line with the native parser.  i.e. even though the bogus (? code would 
+                // cause an exception, we might get an earlier exception if there's a reference to
+                // this grouping.  So if we note this grouping we'll end up not causing that error
+                // to happen, bringing out behavior out of sync with the native system.
                 var expr = node.Expression;
                 while (expr is RegexAlternationNode alternation)
                 {
