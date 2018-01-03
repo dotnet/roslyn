@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -75,12 +74,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexTree ParseTree()
         {
-            var expression = this.ParseExpression(consumeCloseParen: true);
+            var expression = this.ParseAlternatingSequences(consumeCloseParen: true);
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(_currentToken.Kind == RegexKind.EndOfFile);
 
             var root = new RegexCompilationUnit(expression, _currentToken);
-
 
             var diagnostics = ArrayBuilder<RegexDiagnostic>.GetInstance();
             CollectDiagnostics(root, diagnostics);
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return new RegexTree(root, diagnostics.ToImmutableAndFree());
         }
 
-        private void CollectDiagnostics(RegexNode node, ArrayBuilder<RegexDiagnostic> diagnostics)
+        private static void CollectDiagnostics(RegexNode node, ArrayBuilder<RegexDiagnostic> diagnostics)
         {
             foreach (var child in node)
             {
@@ -103,7 +101,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private void CollectDiagnostics(RegexToken token, ArrayBuilder<RegexDiagnostic> diagnostics)
+        private static void CollectDiagnostics(RegexToken token, ArrayBuilder<RegexDiagnostic> diagnostics)
         {
             foreach (var trivia in token.LeadingTrivia)
             {
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             AddRange(token.Diagnostics, diagnostics);
         }
 
-        private void AddRange(ImmutableArray<RegexDiagnostic> from, ArrayBuilder<RegexDiagnostic> to)
+        private static void AddRange(ImmutableArray<RegexDiagnostic> from, ArrayBuilder<RegexDiagnostic> to)
         {
             foreach (var diagnostic in from)
             {
@@ -124,13 +122,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private RegexExpressionNode ParseExpression(bool consumeCloseParen)
+        private RegexExpressionNode ParseAlternatingSequences(bool consumeCloseParen)
         {
             try
             {
                 _recursionDepth++;
                 StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                return ParseExpressionWorker(consumeCloseParen);
+                return ParseAlternatingSequencesWorker(consumeCloseParen);
             }
             finally
             {
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private RegexExpressionNode ParseExpressionWorker(bool consumeCloseParen)
+        private RegexExpressionNode ParseAlternatingSequencesWorker(bool consumeCloseParen)
         {
             RegexExpressionNode current = ParseSequence(consumeCloseParen);
 
@@ -158,20 +156,20 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             var list = ArrayBuilder<RegexExpressionNode>.GetInstance();
 
-            if (ShouldConsumeSequenceToken(consumeCloseParen))
+            if (ShouldConsumeSequenceElement(consumeCloseParen))
             {
                 do
                 {
                     var last = list.Count == 0 ? null : list.Last();
                     list.Add(ParsePrimaryExpressionAndQuantifiers(consumeCloseParen, last));
                 }
-                while (ShouldConsumeSequenceToken(consumeCloseParen));
+                while (ShouldConsumeSequenceElement(consumeCloseParen));
             }
 
             return new RegexSequenceNode(list.ToImmutableAndFree());
         }
 
-        private bool ShouldConsumeSequenceToken(bool consumeCloseParen)
+        private bool ShouldConsumeSequenceElement(bool consumeCloseParen)
         {
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
@@ -476,7 +474,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             _options = embeddedOptions;
 
             ScanNextToken(allowTrivia: true);
-            var expression = this.ParseExpression(consumeCloseParen: false);
+            var expression = this.ParseAlternatingSequences(consumeCloseParen: false);
             _options = currentOptions;
             return expression;
         }
@@ -687,7 +685,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private RegexExpressionNode ParseConditionalGroupingResult()
         {
             var currentOptions = _options;
-            var result = this.ParseExpression(consumeCloseParen: false);
+            var result = this.ParseAlternatingSequences(consumeCloseParen: false);
             _options = currentOptions;
 
             result = CheckConditionalAlternation(result);
