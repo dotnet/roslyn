@@ -9382,7 +9382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""A subtraction must be the last element in a character class"" Start=""16"" Length=""0"" />
+    <Diagnostic Message=""A subtraction must be the last element in a character class"" Start=""12"" Length=""0"" />
   </Diagnostics>
 </Tree>", RegexOptions.None);
         }
@@ -10174,7 +10174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""A subtraction must be the last element in a character class"" Start=""16"" Length=""0"" />
+    <Diagnostic Message=""A subtraction must be the last element in a character class"" Start=""12"" Length=""0"" />
     <Diagnostic Message=""Unterminated [] set"" Start=""17"" Length=""0"" />
   </Diagnostics>
 </Tree>", RegexOptions.None);

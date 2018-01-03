@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
     internal partial struct RegexParser
     {
-        private RegexLexer _lexer;
-        private readonly ArrayBuilder<RegexDiagnostic> _diagnostics;
-        private RegexOptions _options;
-        private RegexToken _currentToken;
         private readonly ImmutableDictionary<string, TextSpan> _captureNamesToSpan;
         private readonly ImmutableDictionary<int, TextSpan> _captureNumbersToSpan;
+
+        private RegexLexer _lexer;
+        private RegexOptions _options;
+        private RegexToken _currentToken;
         private int _recursionDepth;
 
         private RegexParser(
@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             ImmutableDictionary<int, TextSpan> captureNumbersToSpan) : this()
         {
             _lexer = new RegexLexer(text);
-            _diagnostics = ArrayBuilder<RegexDiagnostic>.GetInstance();
             _options = options;
 
             _captureNamesToSpan = captureNamesToSpan;
@@ -81,35 +80,47 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             Debug.Assert(_currentToken.Kind == RegexKind.EndOfFile);
 
             var root = new RegexCompilationUnit(expression, _currentToken);
-            CollectDiagnostics(root);
-            var diagnostics = _diagnostics.Distinct().OrderBy(rd => rd.Span.Start).ToImmutableArray();
-            _diagnostics.Free();
 
-            return new RegexTree(root, diagnostics);
+
+            var diagnostics = ArrayBuilder<RegexDiagnostic>.GetInstance();
+            CollectDiagnostics(root, diagnostics);
+
+            return new RegexTree(root, diagnostics.ToImmutableAndFree());
         }
 
-        private void CollectDiagnostics(RegexNode node)
+        private void CollectDiagnostics(RegexNode node, ArrayBuilder<RegexDiagnostic> diagnostics)
         {
             foreach (var child in node)
             {
                 if (child.IsNode)
                 {
-                    CollectDiagnostics(child.Node);
+                    CollectDiagnostics(child.Node, diagnostics);
                 }
                 else
                 {
-                    CollectDiagnostics(child.Token);
+                    CollectDiagnostics(child.Token, diagnostics);
                 }
             }
         }
 
-        private void CollectDiagnostics(RegexToken token)
+        private void CollectDiagnostics(RegexToken token, ArrayBuilder<RegexDiagnostic> diagnostics)
         {
-            _diagnostics.AddRange(token.Diagnostics);
-
             foreach (var trivia in token.LeadingTrivia)
             {
-                _diagnostics.AddRange(trivia.Diagnostics);
+                AddRange(trivia.Diagnostics, diagnostics);
+            }
+
+            AddRange(token.Diagnostics, diagnostics);
+        }
+
+        private void AddRange(ImmutableArray<RegexDiagnostic> from, ArrayBuilder<RegexDiagnostic> to)
+        {
+            foreach (var diagnostic in from)
+            {
+                if (!to.Contains(diagnostic))
+                {
+                    to.Add(diagnostic);
+                }
             }
         }
 
@@ -1007,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (closeBracketToken.IsMissing)
             {
-                openBracketToken = openBracketToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                closeBracketToken = closeBracketToken.AddDiagnosticIfNone(new RegexDiagnostic(
                     WorkspacesResources.Unterminated_character_class_set,
                     GetTokenStartPositionSpan(_currentToken)));
             }
@@ -1143,10 +1154,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (!IsTextChar(_currentToken, ']') && _currentToken.Kind != RegexKind.EndOfFile)
             {
-                var closeBracketToken = charClass.CloseBracketToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                minusToken = minusToken.AddDiagnosticIfNone(new RegexDiagnostic(
                     WorkspacesResources.A_subtraction_must_be_the_last_element_in_a_character_class,
-                    GetTokenStartPositionSpan(_currentToken)));
-                charClass = new RegexCharacterClassNode(charClass.OpenBracketToken, charClass.Components, closeBracketToken);
+                    GetTokenStartPositionSpan(minusToken)));
             }
 
             return new RegexCharacterClassSubtractionNode(minusToken, charClass);
