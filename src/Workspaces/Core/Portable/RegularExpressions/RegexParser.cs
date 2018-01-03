@@ -1087,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                 case RegexKind.ControlEscape:
                     var controlEscape = (RegexControlEscapeNode)component;
-                    var controlCh = controlEscape.TypeToken.VirtualChars[0].Char;
+                    var controlCh = controlEscape.ControlToken.VirtualChars[0].Char;
                     ch = (char)(controlCh - '@');
                     return true;
 
@@ -1634,26 +1634,31 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             var ch = _currentToken.VirtualChars[0].Char;
 
-            // \ca interpreted as \cA
-            if (ch >= 'a' && ch <= 'z')
+            unchecked
             {
-                ch = (char)(ch - ('a' - 'A'));
-            }
+                // \ca interpreted as \cA
+                if (ch >= 'a' && ch <= 'z')
+                {
+                    ch -= (char)('a' - 'A');
+                }
 
-            if (unchecked(ch = (char)(ch - '@')) < ' ')
-            {
-                var controlToken = _currentToken.With(kind: RegexKind.TextToken);
-                ScanNextToken(allowTrivia: true);
-                return new RegexControlEscapeNode(backslashToken, typeToken, controlToken);
-            }
-            else
-            {
-                typeToken = typeToken.AddDiagnosticIfNone(new RegexDiagnostic(
-                    WorkspacesResources.Unrecognized_control_character,
-                    GetSpan(_currentToken)));
+                ch -= '@';
 
-                // Don't consume the bogus control character.
-                return new RegexControlEscapeNode(backslashToken, typeToken, RegexToken.CreateMissing(RegexKind.TextToken));
+                if (ch < ' ')
+                {
+                    var controlToken = _currentToken.With(kind: RegexKind.TextToken);
+                    ScanNextToken(allowTrivia: true);
+                    return new RegexControlEscapeNode(backslashToken, typeToken, controlToken);
+                }
+                else
+                {
+                    typeToken = typeToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                        WorkspacesResources.Unrecognized_control_character,
+                        GetSpan(_currentToken)));
+
+                    // Don't consume the bogus control character.
+                    return new RegexControlEscapeNode(backslashToken, typeToken, RegexToken.CreateMissing(RegexKind.TextToken));
+                }
             }
         }
 
