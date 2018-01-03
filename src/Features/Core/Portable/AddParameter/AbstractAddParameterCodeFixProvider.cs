@@ -442,10 +442,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     // Now check the type of the argument versus the type of the parameter.  If they
                     // don't match, then this is the argument we should make the parameter for.
-                    var expressionOfArgumment = syntaxFacts.GetExpressionOfArgument(argument);
-                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgumment);
-                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgumment);
-                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgumment);
+                    var expressionOfArgument = syntaxFacts.GetExpressionOfArgument(argument);
+                    if (expressionOfArgument is null)
+                    {
+                        return null;
+                    }
+                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgument);
+                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgument);
+                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgument);
 
                     if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
                     {
