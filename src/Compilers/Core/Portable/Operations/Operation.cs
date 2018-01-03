@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis
             var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null);
 
             // tree must belong to same semantic model if parent is given
-            Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel);
+            Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel || 
+                ((Operation)parent).SemanticModel == null || SemanticModel == null);
 
             // make sure given parent and one we already have is same if we have one already
             Debug.Assert(result == null || result == parent);

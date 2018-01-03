@@ -182,6 +182,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IDeclarationPatternOperation"/>.</summary>
         DeclarationPattern = 0x56,
 
+        FlowCapture = 0x57,
+
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281
         //Fixed = <TBD>,

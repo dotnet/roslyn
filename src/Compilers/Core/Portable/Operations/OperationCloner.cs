@@ -485,5 +485,10 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
+
+        public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object argument)
+        {
+            return new FlowCapture(operation.Id, operation.Syntax, operation.IsInitialization, operation.Type, operation.ConstantValue);
+        }
     }
 }

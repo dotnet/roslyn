@@ -324,7 +324,7 @@ class P
             string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m >= n  ... }')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n && m >= p')
+    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n && m >= p')
       Left: 
         IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n')
           Left: 
@@ -1122,7 +1122,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (d.Ge
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd.GetType() ... ).Equals(x)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'd.GetType() ... ).Equals(x)')
+        IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'd.GetType() ... ).Equals(x)')
           Left: 
             IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'd.GetType() == t')
               Left: 
@@ -1338,17 +1338,21 @@ Block[1] - Block
     Predecessors (1)
         [0]
     Statements (0)
-    Jump if False to Block[3]
-        IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'a && b')
-          Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
-          Right: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+    Jump if False to Block[4]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
+    Statements (0)
+    Jump if False to Block[4]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next Block[3]
+Block[3] - Block
+    Predecessors (1)
+        [2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = false;')
           Expression: 
@@ -1358,10 +1362,11 @@ Block[2] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next Block[4]
-Block[3] - Block
-    Predecessors (1)
+    Next Block[5]
+Block[4] - Block
+    Predecessors (2)
         [1]
+        [2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
           Expression: 
@@ -1371,11 +1376,11 @@ Block[3] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-    Next Block[4]
-Block[4] - Exit
+    Next Block[5]
+Block[5] - Exit
     Predecessors (2)
-        [2]
         [3]
+        [4]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

@@ -92,6 +92,7 @@ Microsoft.CodeAnalysis.OperationKind.EventReference = 30 -> Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.OperationKind.ExpressionStatement = 15 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FieldInitializer = 72 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FieldReference = 26 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.FlowCapture = 87 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Increment = 66 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InstanceReference = 39 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InterpolatedString = 48 -> Microsoft.CodeAnalysis.OperationKind
@@ -318,6 +319,9 @@ Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation.InitializedFields.g
 Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation
 Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation.Field.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation.IsDeclaration.get -> bool
+Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation
+Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.Id.get -> int
+Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.IsInitialization.get -> bool
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.Collection.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.LoopControlVariable.get -> Microsoft.CodeAnalysis.IOperation
@@ -578,6 +582,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitEventReference(M
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitExpressionStatement(Microsoft.CodeAnalysis.Operations.IExpressionStatementOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFieldInitializer(Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFieldReference(Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCapture(Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitForEachLoop(Microsoft.CodeAnalysis.Operations.IForEachLoopOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitForLoop(Microsoft.CodeAnalysis.Operations.IForLoopOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitForToLoop(Microsoft.CodeAnalysis.Operations.IForToLoopOperation operation) -> void
@@ -669,6 +674,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitExpressionStatement(Microsoft.CodeAnalysis.Operations.IExpressionStatementOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFieldInitializer(Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFieldReference(Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCapture(Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitForEachLoop(Microsoft.CodeAnalysis.Operations.IForEachLoopOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitForLoop(Microsoft.CodeAnalysis.Operations.IForLoopOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitForToLoop(Microsoft.CodeAnalysis.Operations.IForToLoopOperation operation, TArgument argument) -> TResult
