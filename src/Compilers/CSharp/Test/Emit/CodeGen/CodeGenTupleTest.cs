@@ -24368,6 +24368,8 @@ namespace System
         [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingValueTupleType()
         {
+            var vtLib = CreateCompilation(trivial2uple + tupleattributes_cs, references: new[] { MscorlibRef }, assemblyName: "vt");
+
             var lib_cs = @"
 using System.Collections;
 using System.Collections.Generic;
@@ -24381,7 +24383,7 @@ public class ClassA : IEnumerable<(int alice, int bob)>
     public IEnumerator<(int alice, int bob)> GetEnumerator() => _values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
-            var lib = CreateCompilation(lib_cs, references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            var lib = CreateCompilation(lib_cs, references: new[] { MscorlibRef, vtLib.EmitToImageReference() });
             lib.VerifyDiagnostics();
 
             var client_cs = @"
@@ -24392,8 +24394,18 @@ public class ClassB
         new ClassA { { 42, 10 } };
     }
 }";
-            var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() });
+            var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
             comp.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(comp);
+
+            var compWithMetadataReference = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to vt
+            compWithMetadataReference.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference);
+
+            var fakeVtLib = CreateCompilation("", references: new[] { MscorlibRef }, assemblyName: "vt");
+            var compWithFakeVt = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
+            compWithFakeVt.VerifyDiagnostics();
+            verifyTupleTypeWithErrorUnderlyingType(compWithFakeVt);
 
             var client2_cs = @"
 public class ClassB
@@ -24406,15 +24418,107 @@ public class ClassB
         }
     }
 }";
-            var comp2 = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() });
+            var comp2 = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
             comp2.VerifyDiagnostics(
-                // (7,27): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                // (7,27): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         foreach (var i in collectionA)
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(7, 27),
-                // (7,27): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,>", "vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 27),
+                // (7,27): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         foreach (var i in collectionA)
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(7, 27)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,>", "vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 27)
                 );
+            verifyTupleTypeWithErrorUnderlyingType(comp2);
+
+            var comp2WithFakeVt = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
+            comp2WithFakeVt .VerifyDiagnostics(
+                // (7,27): error CS7069: Reference to type 'ValueTuple<,>' claims it is defined in 'vt', but it could not be found
+                //         foreach (var i in collectionA)
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "collectionA").WithArguments("System.ValueTuple<,>", "vt").WithLocation(7, 27),
+                // (7,27): error CS7069: Reference to type 'ValueTuple<,>' claims it is defined in 'vt', but it could not be found
+                //         foreach (var i in collectionA)
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "collectionA").WithArguments("System.ValueTuple<,>", "vt").WithLocation(7, 27)
+                );
+            verifyTupleTypeWithErrorUnderlyingType(comp2WithFakeVt);
+
+            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation)
+            {
+                var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
+                var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
+                Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 alice, System.Int32 bob)>",
+                    iEnumerable.ToTestDisplayString());
+
+                var tuple = iEnumerable.TypeArguments()[0];
+                Assert.Equal("(System.Int32 alice, System.Int32 bob)", tuple.ToTestDisplayString());
+                Assert.True(tuple.IsTupleType);
+                Assert.True(tuple.TupleUnderlyingType.IsErrorType());
+            }
+        }
+
+        [Fact]
+        [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
+        public void FailedDecodingOfLongTupleNamesWhenMissingValueTupleType()
+        {
+            var vtLib = CreateCompilation(tuplelib_cs + tupleattributes_cs, references: new[] { MscorlibRef }, assemblyName: "vt");
+
+            var lib_cs = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class ClassA : IEnumerable<(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)>
+{
+    private readonly List<(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)> _values = new List<(int, int, int, int, int, int, int, int)>();
+
+    public void Add(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8) => _values.Add((i1, i2, i3, i4, i5, i6, i7, i8));
+
+    public IEnumerator<(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)> GetEnumerator() => _values.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var lib = CreateCompilation(lib_cs, references: new[] { MscorlibRef, vtLib.EmitToImageReference() });
+            lib.VerifyDiagnostics();
+
+            var client2_cs = @"
+public class ClassB
+{
+    public ClassB()
+    {
+        var collectionA = new ClassA { { 1, 2, 3, 4, 5, 6, 7, 8 } };
+        foreach (var i in collectionA)
+        {
+        }
+    }
+}";
+            var fakeVtLib = CreateCompilation("", references: new[] { MscorlibRef }, assemblyName: "vt");
+            var comp = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
+            comp.VerifyDiagnostics(
+                // (7,27): error CS0012: The type 'ValueTuple<,,,,,,,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         foreach (var i in collectionA)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,,,,,,,>", "vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 27),
+                // (7,27): error CS0012: The type 'ValueTuple<,,,,,,,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         foreach (var i in collectionA)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,,,,,,,>", "vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 27)
+                );
+            verifyTupleTypeWithErrorUnderlyingType(comp);
+
+            var compWithFakeVt = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
+            compWithFakeVt .VerifyDiagnostics(
+                // (7,27): error CS7069: Reference to type 'ValueTuple<,,,,,,,>' claims it is defined in 'vt', but it could not be found
+                //         foreach (var i in collectionA)
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "collectionA").WithArguments("System.ValueTuple<,,,,,,,>", "vt").WithLocation(7, 27),
+                // (7,27): error CS7069: Reference to type 'ValueTuple<,,,,,,,>' claims it is defined in 'vt', but it could not be found
+                //         foreach (var i in collectionA)
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "collectionA").WithArguments("System.ValueTuple<,,,,,,,>", "vt").WithLocation(7, 27)
+                );
+            verifyTupleTypeWithErrorUnderlyingType(compWithFakeVt);
+
+            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation)
+            {
+                var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
+                var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
+                var tuple = iEnumerable.TypeArguments()[0];
+                Assert.Equal("(System.Int32 i1, System.Int32 i2, System.Int32 i3, System.Int32 i4, System.Int32 i5, System.Int32 i6, System.Int32 i7, System.Int32 i8)", tuple.ToTestDisplayString());
+                Assert.True(tuple.IsTupleType);
+                Assert.True(tuple.TupleUnderlyingType.IsErrorType());
+            }
         }
     }
 }

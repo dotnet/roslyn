@@ -34,6 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.mangleName = (mangleName && arity > 0);
         }
 
+        public static TopLevel CreateTopLevelOrValueTuple(ModuleSymbol module, ref MetadataTypeName emittedName)
+        {
+            int arity = emittedName.InferredArity;
+            if (emittedName.NamespaceName == MetadataHelpers.SystemString && emittedName.UnmangledTypeName == TupleTypeSymbol.TupleTypeName &&
+                arity > 0 && arity <= TupleTypeSymbol.RestPosition)
+            {
+                return new ValueTuple(module, MetadataHelpers.SystemString, TupleTypeSymbol.TupleTypeName,
+                    emittedName.InferredArity, mangleName: false);
+            }
+
+            return new TopLevel(module, ref emittedName);
+        }
+
         public override string Name
         {
             get { return name; }
@@ -358,6 +371,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return _errorInfo;
                 }
+            }
+        }
+
+        internal class ValueTuple : TopLevel
+        {
+            public ValueTuple(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName)
+                : base(module, @namespace, name, arity, mangleName)
+            {
             }
         }
 
