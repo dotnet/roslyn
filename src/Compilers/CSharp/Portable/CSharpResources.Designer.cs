@@ -8981,11 +8981,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add &apos;{}&apos; after the close paren to disambiguate..
+        ///   Looks up a localized string similar to A single-element deconstruct pattern requires a type before the open parenthesis..
         /// </summary>
-        internal static string ERR_SingleElementPositionalPattern {
+        internal static string ERR_SingleElementPositionalPatternRequiresType {
             get {
-                return ResourceManager.GetString("ERR_SingleElementPositionalPattern", resourceCulture);
+                return ResourceManager.GetString("ERR_SingleElementPositionalPatternRequiresType", resourceCulture);
             }
         }
         

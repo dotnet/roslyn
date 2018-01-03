@@ -454,21 +454,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // There is an ambiguity between a deconstruction pattern `(` pattern `)`
                         // and a constant expression pattern that happens to be parenthesized.
-                        // We treat such syntax as a parenthseized expression always.
+                        // Per 2017-11-20 LDM we treat such syntax as a parenthseized expression always.
                         return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
                     }
-
-                    // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
-                    // single subpattern but for which the type is omitted. We'll look at other ways of disambiguating later,
-                    // such as perhaps permitting `var` to infer the type, or a trailing comma. This also keeps the design
-                    // space open for using parens for grouping patterns in the future, e.g. if we introduce `or` and
-                    // `and` patterns.
-
-                    var result = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
-                    return this.AddError(result, ErrorCode.ERR_SingleElementPositionalPattern);
                 }
 
-                return _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
+                var result = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
+
+                // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
+                // single subpattern but for which the type is omitted.
+                // This keeps the design space open for using parentheses for grouping patterns in the future, e.g. if we introduce `or` and
+                // `and` patterns. We may add other ways to disambiguate later (e.g. a property subpattern or a trailing comma inside the parens).
+                return (type == null && subPatterns.Count == 1) ? this.AddError(result, ErrorCode.ERR_SingleElementPositionalPatternRequiresType) : result;
             }
 
             if (parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern))

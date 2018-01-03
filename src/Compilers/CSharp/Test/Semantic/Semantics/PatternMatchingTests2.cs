@@ -699,10 +699,10 @@ class Program
         if (t is (int x)) { }                           // error 1
         switch (t) { case (_): break; }                 // error 2
         var u = t switch { (int y) => y, _ => 2 };      // error 3
-        if (t is (int z1) _) { }                     // ok
-        if (t is (Item1: int z2)) { }                // ok
-        if (t is (int z3) { }) { }                   // ok
-        if (t is ValueTuple<int>(int z4)) { }        // ok
+        if (t is (int z1) _) { }                        // error 4
+        if (t is (Item1: int z2)) { }                   // error 5
+        if (t is (int z3) { }) { }                      // error 6
+        if (t is ValueTuple<int>(int z4)) { }           // ok
     }
     private static bool Check<T>(T expected, T actual)
     {
@@ -724,15 +724,24 @@ namespace System
 }";;
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                // (8,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int x)").WithLocation(8, 18),
-                // (9,27): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int x)").WithLocation(8, 18),
+                // (9,27): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(_)").WithLocation(9, 27),
-                // (10,28): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(_)").WithLocation(9, 27),
+                // (10,28): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(int y)").WithLocation(10, 28)
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int y)").WithLocation(10, 28),
+                // (11,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                //         if (t is (int z1) _) { }                        // error 4
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z1) _").WithLocation(11, 18),
+                // (12,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                //         if (t is (Item1: int z2)) { }                   // error 5
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(Item1: int z2)").WithLocation(12, 18),
+                // (13,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                //         if (t is (int z3) { }) { }                      // error 6
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18)
                 );
         }
 

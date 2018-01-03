@@ -1832,6 +1832,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_03()
         {
             UsingStatement(@"switch (e) { case (x: ((3))): ; }",
+                // (1,19): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // switch (e) { case (x: ((3))): ; }
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(x: ((3)))").WithLocation(1, 19),
                 // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 // switch (e) { case (x: ((3))): ; }
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(x: ((3)))").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19)
@@ -1900,15 +1903,18 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_04()
         {
             UsingStatement(@"switch (e) { case (((x: 3))): ; }",
-                // (1,19): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                // (1,19): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "(((x: 3)))").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(((x: 3)))").WithLocation(1, 19),
                 // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(((x: 3)))").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19),
-                // (1,20): error CS8407: A single-element deconstruct pattern is ambiguous with a parenthesized pattern; add '{}' after the close paren to disambiguate.
+                // (1,20): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPattern, "((x: 3))").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "((x: 3))").WithLocation(1, 20),
+                // (1,21): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // switch (e) { case (((x: 3))): ; }
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(x: 3)").WithLocation(1, 21)
                 );
             N(SyntaxKind.SwitchStatement);
             {
@@ -2208,6 +2214,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_05()
         {
             UsingStatement(@"switch (e) { case (x: ): ; }",
+                // (1,19): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // switch (e) { case (x: ): ; }
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(x: )").WithLocation(1, 19),
                 // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 // switch (e) { case (x: ): ; }
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(x: )").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19),
