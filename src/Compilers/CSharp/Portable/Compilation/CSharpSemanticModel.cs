@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         if (((TypeSyntax)expression).IsVar)
                         {
-                            return GetTypeInfoWorker(parent.Designation, cancellationToken);
+                            return CSharpTypeInfo.None;
                         }
                         break;
                 }

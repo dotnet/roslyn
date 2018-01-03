@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                     diagnostics: diagnostics,
                                                                                     rightPlaceholder: valuePlaceholder,
                                                                                     declaration: ref declaration,
-                                                                                    expression: ref expression).MakeCompilerGenerated();
+                                                                                    expression: ref expression);
 
                             if (expression != null)
                             {

@@ -76,10 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
             }
 
-            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
-
             if (parensDesignation is null)
             {
+                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
                 var typeName = typeSymbol.GenerateTypeSyntax()
                     .WithLeadingTrivia(node.GetLeadingTrivia())
                     .WithTrailingTrivia(node.GetTrailingTrivia());
@@ -89,7 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
-                var tupleDeclaration = GenerateTupleDeclaration(typeSymbol, parensDesignation)
+                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent).ConvertedType;
+
+                var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation)
                     .WithLeadingTrivia(node.GetLeadingTrivia());
 
                 editor.ReplaceNode(declarationContext, tupleDeclaration);
