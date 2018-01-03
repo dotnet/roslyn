@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
     {
         protected abstract SyntaxNode GetAliasDirective(string typeName, ISymbol symbol);
 
+        public override FixAllProvider GetFixAllProvider() => null;
+
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
