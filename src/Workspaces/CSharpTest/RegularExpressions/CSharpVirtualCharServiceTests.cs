@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RegularExpressions;
 using Microsoft.CodeAnalysis.RegularExpressions;
 using Xunit;
@@ -14,7 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 {
     public class CSharpVirtualCharServiceTests
     {
-        private readonly IVirtualCharService _service = new CSharpVirtualCharService();
         private const string _statmentPrefix = "var v = ";
 
         private SyntaxToken GetStringToken(string text)
@@ -30,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         private void Test(string stringText, string expected)
         {
             var token = GetStringToken(stringText);
-            var virtualChars = _service.TryConvertToVirtualChars(token);
+            var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             var actual = ConvertToString(virtualChars);
             Assert.Equal(expected, actual);
         }
@@ -38,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         private void TestFailure(string stringText)
         {
             var token = GetStringToken(stringText);
-            var virtualChars = _service.TryConvertToVirtualChars(token);
+            var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Assert.True(virtualChars.IsDefault);
         }
 
