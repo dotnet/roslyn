@@ -6711,6 +6711,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
+  public sealed partial class DiscardPatternSyntax : PatternSyntax
+  {
+    internal DiscardPatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken UnderscoreToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DiscardPatternSyntax)this.Green).underscoreToken, this.Position, 0); }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitDiscardPattern(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitDiscardPattern(this);
+    }
+
+    public DiscardPatternSyntax Update(SyntaxToken underscoreToken)
+    {
+        if (underscoreToken != this.UnderscoreToken)
+        {
+            var newNode = SyntaxFactory.DiscardPattern(underscoreToken);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public DiscardPatternSyntax WithUnderscoreToken(SyntaxToken underscoreToken)
+    {
+        return this.Update(underscoreToken);
+    }
+  }
+
   public sealed partial class DeclarationPatternSyntax : PatternSyntax
   {
     private TypeSyntax type;
@@ -9914,7 +9971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// The variable(s) of the loop. In correct code this is a tuple
     /// literal, declaration expression with a tuple designator, or
-    /// a wildcard syntax in the form of a simple identifier. In broken
+    /// a discard syntax in the form of a simple identifier. In broken
     /// code it could be something else.
     /// </summary>
     public ExpressionSyntax Variable 

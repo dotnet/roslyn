@@ -799,14 +799,75 @@
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
     <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
-    
-    <!-- We store the pattern switch binder so we can perform some binding-like
-         operations during control flow analysis. -->
-    <Field Name="Binder" Type="PatternSwitchBinder"/>
+
+    <!-- A directed acyclic decision graph for the switch statement. It can be traversed
+    to determine if all labels are reachable, and if every input is handled. -->
+    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="allow"/>
     <!-- A switch is considered complete if every value of the switch expression's
          type is handled by some switch label that is either not guarded by a when
          clause, or for which the when clause expression has the constant value true. -->
     <Field Name="IsComplete" Type="bool"/>
+  </Node>
+
+  <AbstractNode Name="BoundDecisionDag" Base="BoundNode">
+    <Field Name="Label" Type="LabelSymbol"/>
+  </AbstractNode>
+  <!-- This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct. -->
+  <Node Name="BoundEvaluationPoint" Base="BoundDecisionDag">
+    <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow"/>
+    <Field Name="Next" Type="BoundDecisionDag" Null="disallow"/>
+  </Node>
+  <!-- This node is used to indicate a point in the decision dag where a test may change the path of the decision dag. -->
+  <Node Name="BoundDecisionPoint" Base="BoundDecisionDag">
+    <Field Name="Decision" Type="BoundDagDecision" Null="disallow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDag" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDag" Null="disallow"/>
+  </Node>
+  <Node Name="BoundWhereClause" Base="BoundDecisionDag">
+    <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression,BoundDagTemp)&gt;" Null="disallow"/>
+    <Field Name="Where" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDag" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDag" Null="allow"/>
+  </Node>
+  <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
+  <Node Name="BoundDecision" Base="BoundDecisionDag">
+  </Node>
+
+  <AbstractNode Name="BoundDagDecision" Base="BoundNode">
+     Input is the input to the decision point. 
+    <Field Name="Input" Type="BoundDagTemp"/>
+  </AbstractNode>
+  <Node Name="BoundDagTemp" Base="BoundNode">
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Source" Type="BoundDagEvaluation" Null="allow"/>
+    <Field Name="Index" Type="int"/>
+  </Node>
+  <Node Name="BoundNonNullDecision" Base="BoundDagDecision">
+     <!--Check that the input is not null.--> 
+  </Node>
+  <Node Name="BoundTypeDecision" Base="BoundDagDecision">
+     <!--Check that the input is of the given type. Null check is separate.--> 
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+  </Node>
+  <Node Name="BoundValueDecision" Base="BoundDagDecision">
+     <!--Check that the input is the same as the given constant value.--> 
+    <Field Name="Value" Type="ConstantValue" Null="disallow"/>
+  </Node>
+  <!-- As a decision, an evaluation is considered to always succeed. -->
+  <AbstractNode Name="BoundDagEvaluation" Base="BoundDagDecision">
+  </AbstractNode>
+  <Node Name="BoundDagDeconstructEvaluation" Base="BoundDagEvaluation">
+    <Field Name="DeconstructMethod" Type="MethodSymbol" Null="disallow"/>
+  </Node>
+  <Node Name="BoundDagTypeEvaluation" Base="BoundDagEvaluation">
+   <!--Cast to the given type, assumed to be used after a successful type check.--> 
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+  </Node>
+  <Node Name="BoundDagFieldEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Field" Type="FieldSymbol" Null="disallow"/>
+  </Node>
+  <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
   </Node>
 
   <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
@@ -1588,6 +1649,14 @@
     <!-- CONSIDER: we might benefit from recording the input (matched value) type in the bound pattern. -->
   </AbstractNode>
 
+  <Node Name="BoundConstantPattern" Base="BoundPattern">
+    <Field Name="Value" Type="BoundExpression"/>
+    <Field Name="ConstantValue" Type="ConstantValue" Null="allow"/>
+  </Node>
+
+  <Node Name="BoundDiscardPattern" Base="BoundPattern">
+  </Node>
+
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used. -->
@@ -1599,17 +1668,28 @@
          free. The necessity of this member is a consequence of a design issue documented in
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
-    <Field Name="VariableAccess" Type="BoundExpression" Null="disallow"/>
+    <Field Name="VariableAccess" Type="BoundExpression" Null="allow"/>
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
-  <Node Name="BoundConstantPattern" Base="BoundPattern">
-    <Field Name="Value" Type="BoundExpression"/>
-    <Field Name="ConstantValue" Type="ConstantValue" Null="allow"/>
-  </Node>
-
-  <Node Name="BoundWildcardPattern" Base="BoundPattern">
+  <Node Name="BoundRecursivePattern" Base="BoundPattern">
+    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
+    <Field Name="InputType" Type="TypeSymbol"/>
+    <Field Name="DeconstructMethodOpt" Type="MethodSymbol" Null="allow"/>
+    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPattern&gt;" Null="allow"/>
+    <Field Name="PropertiesOpt" Type="ImmutableArray&lt;(Symbol symbol, BoundPattern pattern)&gt;" Null="allow"/>
+    <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
+         a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
+    <Field Name="Variable" Type="Symbol" Null="allow"/>
+    <!-- VariableAccess is an access to the declared variable, suitable for use
+         in the lowered form in either an lvalue or rvalue position. We maintain it separately
+         from the Symbol to facilitate lowerings in which the variable is no longer a simple
+         variable access (e.g. in the expression evaluator). It is expected to be logically side-effect
+         free. The necessity of this member is a consequence of a design issue documented in
+         https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
+         removed. -->
+    <Field Name="VariableAccess" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">

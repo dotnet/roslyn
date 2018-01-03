@@ -5152,25 +5152,6 @@ tryAgain:
 
             switch (this.CurrentToken.Kind)
             {
-                case SyntaxKind.IdentifierToken:
-                    // C#7: In certain contexts, we treat *identifier* as a disambiguating token. Those
-                    // contexts are where the sequence of tokens being disambiguated is immediately preceded by one
-                    // of the keywords is, case, or out, or arises while parsing the first element of a tuple literal
-                    // (in which case the tokens are preceded by `(` and the identifier is followed by a `,`) or a
-                    // subsequent element of a tuple literal (in which case the tokens are preceded by `,` and the
-                    // identifier is followed by a `,` or `)`).
-                    // Note that we treat query contextual keywords (which appear here as identifiers) as disambiguating tokens as well.
-                    if ((options & (NameOptions.AfterIs | NameOptions.DefinitePattern | NameOptions.AfterOut)) != 0 ||
-                        (options & NameOptions.AfterTupleComma) != 0 && (this.PeekToken(1).Kind == SyntaxKind.CommaToken || this.PeekToken(1).Kind == SyntaxKind.CloseParenToken) ||
-                        (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken
-                        )
-                    {
-                        // we allow 'G<T,U> x' as a pattern-matching operation and a declaration expression in a tuple.
-                        return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
-                    }
-
-                    return ScanTypeArgumentListKind.PossibleTypeArgumentList;
-
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
@@ -5208,6 +5189,27 @@ tryAgain:
                     // `(x is A<B>>C)` is parsed as `(x is A<B>) > C`
                     // `A<B>>C` elsewhere is parsed as `A < (B >> C)`
                     return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
+                case SyntaxKind.IdentifierToken:
+                    // C#7: In certain contexts, we treat *identifier* as a disambiguating token. Those
+                    // contexts are where the sequence of tokens being disambiguated is immediately preceded by one
+                    // of the keywords is, case, or out, or arises while parsing the first element of a tuple literal
+                    // (in which case the tokens are preceded by `(` and the identifier is followed by a `,`) or a
+                    // subsequent element of a tuple literal (in which case the tokens are preceded by `,` and the
+                    // identifier is followed by a `,` or `)`).
+                    // In C#8 (or whenever recursive patterns are introduced) we also treat an identifier as a
+                    // disambiguating token if we're parsing the type of a pattern.
+                    // Note that we treat query contextual keywords (which appear here as identifiers) as disambiguating tokens as well.
+                    if ((options & (NameOptions.AfterIs | NameOptions.DefinitePattern | NameOptions.AfterOut)) != 0 ||
+                        (options & NameOptions.AfterTupleComma) != 0 && (this.PeekToken(1).Kind == SyntaxKind.CommaToken || this.PeekToken(1).Kind == SyntaxKind.CloseParenToken) ||
+                        (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken
+                        )
+                    {
+                        // we allow 'G<T,U> x' as a pattern-matching operation and a declaration expression in a tuple.
+                        return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+                    }
+
+                    return ScanTypeArgumentListKind.PossibleTypeArgumentList;
 
                 case SyntaxKind.EndOfFileToken:          // e.g. `e is A<B>`
                     // This is useful for parsing expressions in isolation

@@ -277,6 +277,7 @@ Microsoft.CodeAnalysis.Operations.IDefaultCaseClauseOperation
 Microsoft.CodeAnalysis.Operations.IDefaultValueOperation
 Microsoft.CodeAnalysis.Operations.IDelegateCreationOperation
 Microsoft.CodeAnalysis.Operations.IDelegateCreationOperation.Target.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IDiscardPatternOperation
 Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation
 Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation
@@ -406,6 +407,8 @@ Microsoft.CodeAnalysis.Operations.IRaiseEventOperation.EventReference.get -> Mic
 Microsoft.CodeAnalysis.Operations.IRangeCaseClauseOperation
 Microsoft.CodeAnalysis.Operations.IRangeCaseClauseOperation.MaximumValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IRangeCaseClauseOperation.MinimumValue.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation
+Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Operations.IRelationalCaseClauseOperation
 Microsoft.CodeAnalysis.Operations.IRelationalCaseClauseOperation.Relation.get -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.IRelationalCaseClauseOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
@@ -503,6 +506,7 @@ abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.R
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
 abstract Microsoft.CodeAnalysis.SemanticModel.RootCore.get -> Microsoft.CodeAnalysis.SyntaxNode
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string
 override Microsoft.CodeAnalysis.Operations.OperationWalker.DefaultVisit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Operations.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Optional<T>.ToString() -> string
@@ -551,6 +555,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDeconstructionAs
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Operations.IDefaultCaseClauseOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDefaultValue(Microsoft.CodeAnalysis.Operations.IDefaultValueOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDelegateCreation(Microsoft.CodeAnalysis.Operations.IDelegateCreationOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDiscardPattern(Microsoft.CodeAnalysis.Operations.IDiscardPatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDynamicIndexerAccess(Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDynamicInvocation(Microsoft.CodeAnalysis.Operations.IDynamicInvocationOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDynamicMemberReference(Microsoft.CodeAnalysis.Operations.IDynamicMemberReferenceOperation operation) -> void
@@ -593,6 +598,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitPropertyInitiali
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitPropertyReference(Microsoft.CodeAnalysis.Operations.IPropertyReferenceOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRaiseEvent(Microsoft.CodeAnalysis.Operations.IRaiseEventOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRangeCaseClause(Microsoft.CodeAnalysis.Operations.IRangeCaseClauseOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRecursivePattern(Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRelationalCaseClause(Microsoft.CodeAnalysis.Operations.IRelationalCaseClauseOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReturn(Microsoft.CodeAnalysis.Operations.IReturnOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSimpleAssignment(Microsoft.CodeAnalysis.Operations.ISimpleAssignmentOperation operation) -> void
@@ -642,6 +648,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Operations.IDefaultCaseClauseOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDefaultValue(Microsoft.CodeAnalysis.Operations.IDefaultValueOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDelegateCreation(Microsoft.CodeAnalysis.Operations.IDelegateCreationOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDiscardPattern(Microsoft.CodeAnalysis.Operations.IDiscardPatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDynamicIndexerAccess(Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDynamicInvocation(Microsoft.CodeAnalysis.Operations.IDynamicInvocationOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDynamicMemberReference(Microsoft.CodeAnalysis.Operations.IDynamicMemberReferenceOperation operation, TArgument argument) -> TResult
@@ -684,6 +691,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitPropertyReference(Microsoft.CodeAnalysis.Operations.IPropertyReferenceOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRaiseEvent(Microsoft.CodeAnalysis.Operations.IRaiseEventOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRangeCaseClause(Microsoft.CodeAnalysis.Operations.IRangeCaseClauseOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRecursivePattern(Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRelationalCaseClause(Microsoft.CodeAnalysis.Operations.IRelationalCaseClauseOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitReturn(Microsoft.CodeAnalysis.Operations.IReturnOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSimpleAssignment(Microsoft.CodeAnalysis.Operations.ISimpleAssignmentOperation operation, TArgument argument) -> TResult
@@ -705,4 +713,3 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitVariableDeclarator(Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitVariableInitializer(Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitWhileLoop(Microsoft.CodeAnalysis.Operations.IWhileLoopOperation operation, TArgument argument) -> TResult
-const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string

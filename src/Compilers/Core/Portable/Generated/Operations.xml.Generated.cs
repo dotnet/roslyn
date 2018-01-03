@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// Despite its name, this file IS NOT (yet) automatically generated.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -5997,6 +5999,64 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitDeclarationPattern(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# discard pattern.
+    /// </summary>
+    internal sealed partial class DiscardPattern : Operation, IDiscardPatternOperation
+    {
+        public DiscardPattern(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDiscardPattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDiscardPattern(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# declaration pattern.
+    /// </summary>
+    internal sealed partial class RecursivePattern : Operation, IRecursivePatternOperation
+    {
+        public RecursivePattern(ISymbol declaredSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            DeclaredSymbol = declaredSymbol;
+        }
+        /// <summary>
+        /// Symbol declared by the pattern.
+        /// </summary>
+        public ISymbol DeclaredSymbol { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            // PROTOTYPE(patterns2): Need to define what else is needed to support the IOperation framework
+            get
+            {
+                yield break;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitRecursivePattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitRecursivePattern(this, argument);
         }
     }
 

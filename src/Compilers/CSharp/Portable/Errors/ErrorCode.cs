@@ -1560,6 +1560,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for recursive patterns
         // PROTOTYPE(patterns2): renumber these before committing
         ERR_MissingPattern = 8500,
+        ERR_InferredRecursivePatternType = 8501,
+        ERR_WrongNumberOfSubpatterns = 8502,
+        ERR_PropertyPatternNameMissing = 8503,
+        //ERR_FeatureIsUnimplemented = 8504,
         #endregion diagnostics introduced for recursive patterns
 
     }

@@ -14938,27 +14938,24 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
+                // (6,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //         if (o is (int, int) t) { }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) t").WithArguments("recursive patterns", "patterns2").WithLocation(6, 18),
                 // (6,19): error CS1525: Invalid expression term 'int'
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 19),
                 // (6,24): error CS1525: Invalid expression term 'int'
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
-                // (6,29): error CS1026: ) expected
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "t").WithLocation(6, 29),
-                // (6,30): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int) t").WithArguments("object", "2").WithLocation(6, 18),
+                // (6,19): error CS0150: A constant value is expected
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 30),
-                // (6,30): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 19),
+                // (6,24): error CS0150: A constant value is expected
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 30),
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(6, 18),
-                // (6,29): error CS0103: The name 't' does not exist in the current context
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 24)
                 );
         }
 
@@ -14999,21 +14996,12 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,19): error CS8185: A declaration is not allowed in this context.
+                // (6,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 19),
-                // (6,26): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int a, int b)").WithArguments("recursive patterns", "patterns2").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(6, 26),
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(6, 18),
-                // (6,19): error CS0165: Use of unassigned local variable 'a'
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 19),
-                // (6,26): error CS0165: Use of unassigned local variable 'b'
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int b").WithArguments("b").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b)").WithArguments("object", "2").WithLocation(6, 18)
                 );
         }
 
@@ -15032,9 +15020,12 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (1, 2))
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 2)").WithLocation(6, 18)
+                // (6,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //         if (o is (1, 2)) { }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 2)").WithArguments("recursive patterns", "patterns2").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         if (o is (1, 2)) { }
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(6, 18)
                 );
         }
 
@@ -15064,12 +15055,15 @@ class C
                 // (7,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
-                // (7,18): error CS0570: 'recursive pattern' is not supported by the language
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(int, int) tuple").WithArguments("recursive pattern").WithLocation(7, 18),
-                // (7,36): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int) tuple").WithArguments("object", "2").WithLocation(7, 18),
+                // (7,19): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 36)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 19),
+                // (7,24): error CS0150: A constant value is expected
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 24)
                );
         }
 
@@ -15093,12 +15087,9 @@ class C
                 // (7,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case (1, 1): return;
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 1)").WithArguments("recursive patterns", "patterns2").WithLocation(7, 18),
-                // (7,18): error CS0570: 'recursive pattern' is not supported by the language
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(1, 1)").WithArguments("recursive pattern").WithLocation(7, 18),
-                // (7,26): warning CS0162: Unreachable code detected
-                //             case (1, 1): return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 26)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
                 );
         }
 
@@ -15122,12 +15113,9 @@ class C
                 // (7,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 1) t").WithArguments("recursive patterns", "patterns2").WithLocation(7, 18),
-                // (7,18): error CS0570: 'recursive pattern' is not supported by the language
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(1, 1) t").WithArguments("recursive pattern").WithLocation(7, 18),
-                // (7,28): warning CS0162: Unreachable code detected
-                //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 28)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1) t").WithArguments("object", "2").WithLocation(7, 18)
                );
         }
 
@@ -23515,6 +23503,9 @@ class P
 }";
             var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,28): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int a)").WithArguments("recursive patterns", "patterns2").WithLocation(6, 28),
                 // (6,29): error CS1525: Invalid expression term 'int'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 29),
@@ -23527,15 +23518,9 @@ class P
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
-                // (6,34): error CS8185: A declaration is not allowed in this context.
+                // (6,29): error CS0150: A constant value is expected
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 34),
-                // (6,28): error CS0150: A constant value is expected
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int a)").WithLocation(6, 28),
-                // (6,34): error CS0165: Use of unassigned local variable 'a'
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 34)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 29)
                 );
         }
 

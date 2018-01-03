@@ -225,8 +225,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundConstantPatternOperation((BoundConstantPattern)boundNode);
                 case BoundKind.DeclarationPattern:
                     return CreateBoundDeclarationPatternOperation((BoundDeclarationPattern)boundNode);
-                case BoundKind.WildcardPattern:
-                    throw ExceptionUtilities.Unreachable;
+                case BoundKind.RecursivePattern:
+                    return CreateBoundRecursivePatternOperation((BoundRecursivePattern)boundNode);
+                case BoundKind.DiscardPattern:
+                    return CreateBoundDiscardPatternOperation((BoundDiscardPattern)boundNode);
                 case BoundKind.PatternSwitchStatement:
                     return CreateBoundPatternSwitchStatementOperation((BoundPatternSwitchStatement)boundNode);
                 case BoundKind.PatternSwitchLabel:
@@ -1764,12 +1766,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IConstantPatternOperation CreateBoundConstantPatternOperation(BoundConstantPattern boundConstantPattern)
         {
-            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundConstantPattern.Value));
-            SyntaxNode syntax = boundConstantPattern.Syntax;
-            ITypeSymbol type = null;
-            Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundConstantPattern.WasCompilerGenerated;
-            return new LazyConstantPattern(value, _semanticModel, syntax, type, constantValue, isImplicit);
+                Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundConstantPattern.Value));
+                SyntaxNode syntax = boundConstantPattern.Syntax;
+                ITypeSymbol type = null;
+                Optional<object> constantValue = default(Optional<object>);
+                bool isImplicit = boundConstantPattern.WasCompilerGenerated;
+                return new LazyConstantPattern(value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
@@ -1780,6 +1782,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundDeclarationPattern.WasCompilerGenerated;
             return new DeclarationPattern(variable, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IDiscardPatternOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundDiscardPattern)
+        {
+            SyntaxNode syntax = boundDiscardPattern.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundDiscardPattern.WasCompilerGenerated;
+            return new DiscardPattern(_semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundRecursivePattern boundRecursivePattern)
+        {
+            ISymbol variable = boundRecursivePattern.Variable;
+            SyntaxNode syntax = boundRecursivePattern.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundRecursivePattern.WasCompilerGenerated;
+            return new RecursivePattern(variable, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISwitchOperation CreateBoundPatternSwitchStatementOperation(BoundPatternSwitchStatement boundPatternSwitchStatement)
@@ -1800,7 +1821,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundPatternSwitchLabel.WasCompilerGenerated;
 
-            if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern)
+            if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern)
             {
                 // Default switch label in pattern switch statement is represented as a default case clause.
                 return new DefaultCaseClause(_semanticModel, syntax, type, constantValue, isImplicit);

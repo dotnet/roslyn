@@ -1718,6 +1718,12 @@
     <Field Name="Condition" Type="ExpressionSyntax"/>
   </Node>
   <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <Node Name="DiscardPatternSyntax" Base="PatternSyntax">
+    <Kind Name="DiscardPattern" />
+    <Field Name="UnderscoreToken" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
     <Kind Name="DeclarationPattern" />
     <Field Name="Type" Type="TypeSyntax"/>
@@ -2169,7 +2175,7 @@
         <summary>
            The variable(s) of the loop. In correct code this is a tuple
            literal, declaration expression with a tuple designator, or
-           a wildcard syntax in the form of a simple identifier. In broken
+           a discard syntax in the form of a simple identifier. In broken
            code it could be something else.
         </summary>
       </PropertyComment>

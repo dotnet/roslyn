@@ -200,7 +200,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitDeclarationPattern(node);
         }
 
+        public override void VisitDeconstructionPattern(DeconstructionPatternSyntax node)
+        {
+            var variable = MakePatternVariable(node, _nodeToBind);
+            if ((object)variable != null)
+            {
+                _variablesBuilder.Add(variable);
+            }
+
+            base.VisitDeconstructionPattern(node);
+        }
+
+        public override void VisitPropertyPattern(PropertyPatternSyntax node)
+        {
+            var variable = MakePatternVariable(node, _nodeToBind);
+            if ((object)variable != null)
+            {
+                _variablesBuilder.Add(variable);
+            }
+
+            base.VisitPropertyPattern(node);
+        }
+
         protected abstract TFieldOrLocalSymbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind);
+        protected abstract TFieldOrLocalSymbol MakePatternVariable(DeconstructionPatternSyntax node, SyntaxNode nodeToBind);
+        protected abstract TFieldOrLocalSymbol MakePatternVariable(PropertyPatternSyntax node, SyntaxNode nodeToBind);
 
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) { }
@@ -434,10 +458,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalSymbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
-            var designation = node.Designation as SingleVariableDesignationSyntax;
+            return MakePatternVariable(node.Type, node.Designation, nodeToBind);
+        }
+
+        protected override LocalSymbol MakePatternVariable(DeconstructionPatternSyntax node, SyntaxNode nodeToBind)
+        {
+            return MakePatternVariable(node.Type, node.Designation, nodeToBind);
+        }
+
+        protected override LocalSymbol MakePatternVariable(PropertyPatternSyntax node, SyntaxNode nodeToBind)
+        {
+            return MakePatternVariable(node.Type, node.Designation, nodeToBind);
+        }
+
+        private LocalSymbol MakePatternVariable(TypeSyntax type, VariableDesignationSyntax variableDesignation, SyntaxNode nodeToBind)
+        {
+            var designation = variableDesignation as SingleVariableDesignationSyntax;
             if (designation == null)
             {
-                Debug.Assert(node.Designation.Kind() == SyntaxKind.DiscardDesignation);
+                Debug.Assert(variableDesignation == null || variableDesignation.Kind() == SyntaxKind.DiscardDesignation);
                 return null;
             }
 
@@ -453,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _scopeBinder.ContainingMemberOrLambda,
                             scopeBinder: _scopeBinder,
                             nodeBinder: _enclosingBinder,
-                            typeSyntax: node.Type,
+                            typeSyntax: type,
                             identifierToken: designation.Identifier,
                             kind: LocalDeclarationKind.PatternVariable,
                             nodeToBind: nodeToBind,
@@ -548,6 +587,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override Symbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
+        {
+            var designation = node.Designation as SingleVariableDesignationSyntax;
+            if (designation == null)
+            {
+                return null;
+            }
+
+            return GlobalExpressionVariable.Create(
+                _containingType, _modifiers, node.Type,
+                designation.Identifier.ValueText, designation, designation.GetLocation(),
+                _containingFieldOpt, nodeToBind);
+        }
+
+        protected override Symbol MakePatternVariable(DeconstructionPatternSyntax node, SyntaxNode nodeToBind)
+        {
+            var designation = node.Designation as SingleVariableDesignationSyntax;
+            if (designation == null)
+            {
+                return null;
+            }
+
+            return GlobalExpressionVariable.Create(
+                _containingType, _modifiers, node.Type,
+                designation.Identifier.ValueText, designation, designation.GetLocation(),
+                _containingFieldOpt, nodeToBind);
+        }
+
+        protected override Symbol MakePatternVariable(PropertyPatternSyntax node, SyntaxNode nodeToBind)
         {
             var designation = node.Designation as SingleVariableDesignationSyntax;
             if (designation == null)

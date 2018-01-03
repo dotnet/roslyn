@@ -3617,10 +3617,10 @@ unsafe struct S
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (7,29): error CS1525: Invalid expression term ')'
                 //             if (o.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 29),
-                // (8,34): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 28),
+                // (8,33): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             if (object.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 34),
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 33),
                 // (7,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "o.Equals is()").WithLocation(7, 17),
@@ -3634,21 +3634,18 @@ unsafe struct S
 
             Assert.Equal("o.Equals is()", node.ToString());
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
-@"
-IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
-  Expression: 
-    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
-      Children(1):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
-            Children(1):
-                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-  Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '()')
-      Value: 
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-          Children(0)
-");
+            // PROTOTYPE(patterns2): This broken syntax corresponds to a deconstruction pattern with zero elements, which is not yet supported in IOperation.
+//            compilation.VerifyOperationTree(node, expectedOperationTree:
+//@"
+//IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
+//  Expression: 
+//    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
+//      Children(1):
+//          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
+//            Children(1):
+//                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+//  Pattern: 
+//");
         }
 
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
@@ -3667,16 +3664,16 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,25): error CS1525: Invalid expression term ')'
+                // (7,24): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             if (null is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 25),
-                // (8,39): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 24),
+                // (8,38): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 39),
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 38),
                 // (7,17): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //             if (null is()) {}
                 Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
-                // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
                 //             if ((1, object.Equals) is()) {}
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
                 // (8,17): error CS0023: Operator 'is' cannot be applied to operand of type '(int, method group)'
@@ -4401,15 +4398,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                // (8,29): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
-                // (11,18): error CS0103: The name '_' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(8, 29),
+                // (11,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 Write("case _");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18)
                 );
         }
 
@@ -4437,15 +4431,15 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (9,29): error CS0150: A constant value is expected
+                // (9,29): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
-                // (12,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(9, 29),
+                // (12,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Write("case _");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(12, 18),
+                // (8,13): warning CS0219: The variable '_' is assigned but its value is never used
+                //         int _ = 4;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "_").WithArguments("_").WithLocation(8, 13)
                 );
         }
 
@@ -6141,7 +6135,7 @@ unsafe public class C {
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.TypedReference", "object").WithLocation(9, 23),
                 // (10,23): error CS0244: Neither 'is' nor 'as' is valid on pointer types
                 //         var b2 = p is object o2;         // not allowed 2
-                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "object o2").WithLocation(10, 23),
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "object").WithLocation(10, 23),
                 // (7,31): warning CS0168: The variable 'z0' is declared but never used
                 //         var r1 = z is ref int z0;        // syntax error 2
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z0").WithArguments("z0").WithLocation(7, 31)

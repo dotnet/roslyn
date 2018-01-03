@@ -8874,20 +8874,43 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
+            CreateStandardCompilation(sourceCode).VerifyDiagnostics(
+                // (12,28): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(12, 28),
+                // (12,30): error CS1003: Syntax error, ':' expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(12, 30),
+                // (12,30): error CS1513: } expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(12, 30),
+                // (12,44): error CS1002: ; expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(12, 44),
+                // (12,44): error CS1513: } expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(12, 44),
+                // (12,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(12, 28)
+                );
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            // Due to language changes to support recursive patterns, the parser will no longer treat this syntax as a lambda.
 
-            Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            //var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
 
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+            //Assert.Null(semanticInfo.Type);
+            //Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
+            //Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            //Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+            //Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
+            //Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            //Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            //Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            //Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]
@@ -8915,20 +8938,36 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
+            CreateStandardCompilation(sourceCode).VerifyDiagnostics(
+                // (13,28): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(13, 28),
+                // (13,30): error CS1003: Syntax error, ':' expected
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(13, 30),
+                // (13,30): error CS1513: } expected
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30),
+                // (13,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(13, 28)
+                );
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            // Due to language changes to support recursive patterns, the parser will no longer treat this syntax as a lambda.
+            //var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
 
-            Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            //Assert.Null(semanticInfo.Type);
+            //Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
+            //Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            //Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+            //Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
+            //Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            //Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+            //Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            //Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]

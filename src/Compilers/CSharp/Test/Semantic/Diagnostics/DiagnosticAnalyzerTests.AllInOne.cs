@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var syntaxKinds = new HashSet<SyntaxKind>();
             syntaxKinds.Add(SyntaxKind.SubpatternElement);
             syntaxKinds.Add(SyntaxKind.DeconstructionPattern);
+            syntaxKinds.Add(SyntaxKind.DiscardPattern);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });

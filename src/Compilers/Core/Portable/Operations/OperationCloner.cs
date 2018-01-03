@@ -466,6 +466,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DeclarationPattern(operation.DeclaredSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitDiscardPattern(IDiscardPatternOperation operation, object argument)
+        {
+            return new DiscardPattern(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
+        {
+            return new RecursivePattern(operation.DeclaredSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
         {
             return new PatternCaseClause(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);

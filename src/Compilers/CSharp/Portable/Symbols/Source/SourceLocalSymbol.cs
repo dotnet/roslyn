@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this._scopeBinder = scopeBinder;
             this._containingSymbol = containingSymbol;
             this._identifierToken = identifierToken;
-            this._typeSyntax = allowRefKind ? typeSyntax.SkipRef(out this._refKind) : typeSyntax;
+            this._typeSyntax = allowRefKind ? typeSyntax?.SkipRef(out this._refKind) : typeSyntax;
             this._declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
-            return typeSyntax.IsVar && kind != LocalDeclarationKind.DeclarationExpressionVariable
+            return typeSyntax?.IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);
         }
@@ -303,14 +303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_typeSyntax == null)
                 {
-                    // in "let x = 1;" there is no syntax corresponding to the type.
+                    // in "e is {} x" there is no syntax corresponding to the type.
                     return true;
                 }
 
                 if (_typeSyntax.IsVar)
                 {
-                    bool isVar;
-                    TypeSymbol declType = this.TypeSyntaxBinder.BindType(_typeSyntax, new DiagnosticBag(), out isVar);
+                    TypeSymbol declType = this.TypeSyntaxBinder.BindType(_typeSyntax, new DiagnosticBag(), out var isVar);
                     return isVar;
                 }
 
@@ -325,8 +324,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder typeBinder = this.TypeSyntaxBinder;
 
             bool isVar;
-            RefKind refKind;
-            TypeSymbol declType = typeBinder.BindType(_typeSyntax.SkipRef(out refKind), diagnostics, out isVar);
+            TypeSymbol declType;
+            if (_typeSyntax == null) // In recursive patterns the type may be omitted.
+            {
+                isVar = true;
+                declType = null;
+            }
+            else
+            {
+                declType = typeBinder.BindType(_typeSyntax.SkipRef(out var refKind), diagnostics, out isVar);
+            }
 
             if (isVar)
             {

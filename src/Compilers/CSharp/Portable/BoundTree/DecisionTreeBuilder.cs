@@ -116,7 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var declarationPattern = (BoundDeclarationPattern)pattern;
                         DecisionMaker maker =
-                            (e, t) => new DecisionTree.Guarded(e, t, ImmutableArray.Create(new KeyValuePair<BoundExpression, BoundExpression>(e, declarationPattern.VariableAccess)), sectionSyntax, guard, label);
+                            (e, t) => new DecisionTree.Guarded(
+                                        e, t,
+                                        (declarationPattern.VariableAccess == null)
+                                            ? ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>.Empty
+                                            : ImmutableArray.Create(new KeyValuePair<BoundExpression, BoundExpression>(e, declarationPattern.VariableAccess)),
+                                        sectionSyntax, guard, label);
                         if (declarationPattern.IsVar)
                         {
                             return Add(decisionTree, maker);
@@ -126,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return AddByType(decisionTree, declarationPattern.DeclaredType.Type, maker);
                         }
                     }
-                case BoundKind.WildcardPattern:
+                case BoundKind.DiscardPattern:
                 // We do not yet support a wildcard pattern syntax. It is used exclusively
                 // to model the "default:" case, which is handled specially in the caller.
                 default:

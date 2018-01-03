@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, modifiers, name, syntax, location)
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
-            _typeSyntax = typeSyntax.GetReference();
+            _typeSyntax = typeSyntax?.GetReference();
         }
 
         internal static GlobalExpressionVariable Create(
@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 
             var syntaxReference = syntax.GetReference();
-            return typeSyntax.IsVar
+            return (typeSyntax == null || typeSyntax.IsVar)
                 ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
                 : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
         }
 
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
-        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax.GetSyntax();
+        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax?.GetSyntax();
         protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
         public override bool HasInitializer => false;
         protected override ConstantValue MakeConstantValue(
@@ -73,12 +73,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = DiagnosticBag.GetInstance();
             TypeSymbol type;
+            bool isVar;
 
             var binderFactory = compilation.GetBinderFactory(SyntaxTree);
-            var binder = binderFactory.GetBinder(typeSyntax);
+            var binder = binderFactory.GetBinder(typeSyntax ?? SyntaxNode);
 
-            bool isVar;
-            type = binder.BindType(typeSyntax, diagnostics, out isVar);
+            if (typeSyntax != null)
+            {
+                type = binder.BindType(typeSyntax, diagnostics, out isVar);
+            }
+            else
+            {
+                // Recursive patterns may omit the type syntax
+                isVar = true;
+                type = null;
+            }
 
             Debug.Assert((object)type != null || isVar);
 
@@ -124,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
+
             return _lazyType;
         }
 

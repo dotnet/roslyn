@@ -64,15 +64,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void NoteDeclaredPatternVariables(BoundPattern pattern)
         {
-            if (IsInside && pattern.Kind == BoundKind.DeclarationPattern)
+            if (IsInside)
             {
-                var decl = (BoundDeclarationPattern)pattern;
-                // The variable may be null if it is a discard designation `_`.
-                if (decl.Variable?.Kind == SymbolKind.Local)
+                switch (pattern)
                 {
-                    // Because this API only returns local symbols and parameters,
-                    // we exclude pattern variables that have become fields in scripts.
-                    _variablesDeclared.Add(decl.Variable);
+                    case BoundDeclarationPattern decl:
+                        {
+                            // The variable may be null if it is a discard designation `_`.
+                            if (decl.Variable?.Kind == SymbolKind.Local)
+                            {
+                                // Because this API only returns local symbols and parameters,
+                                // we exclude pattern variables that have become fields in scripts.
+                                _variablesDeclared.Add(decl.Variable);
+                            }
+                        }
+                        break;
+                    case BoundRecursivePattern recur:
+                        {
+                            if (recur.Variable?.Kind == SymbolKind.Local)
+                            {
+                                _variablesDeclared.Add(recur.Variable);
+                            }
+                        }
+                        break;
                 }
             }
         }

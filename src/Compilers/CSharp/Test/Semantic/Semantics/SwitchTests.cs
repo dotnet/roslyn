@@ -1208,18 +1208,18 @@ class C
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS0570: 'recursive pattern' is not supported by the language
+                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 1 out parameters and a void return type.
                 //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_BindToBogus, "((o.GetType().Name.Length))").WithArguments("recursive pattern").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((o.GetType().Name.Length))").WithArguments("object", "1").WithLocation(8, 18),
+                // (8,20): error CS0118: 'o' is a variable but is used like a type
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_BadSKknown, "o").WithArguments("o", "variable", "type").WithLocation(8, 20),
+                // (8,32): error CS0103: The name 'Name' does not exist in the current context
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Name").WithArguments("Name").WithLocation(8, 32),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case 0:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 M();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
                 );
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
@@ -1243,18 +1243,18 @@ class C
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS0570: 'recursive pattern' is not supported by the language
+                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 1 out parameters and a void return type.
                 //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_BindToBogus, "((o.GetType().Name.Length))").WithArguments("recursive pattern").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((o.GetType().Name.Length))").WithArguments("object", "1").WithLocation(8, 18),
+                // (8,20): error CS0118: 'o' is a variable but is used like a type
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_BadSKknown, "o").WithArguments("o", "variable", "type").WithLocation(8, 20),
+                // (8,32): error CS0103: The name 'Name' does not exist in the current context
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Name").WithArguments("Name").WithLocation(8, 32),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case 0:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 M();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
@@ -1272,18 +1272,18 @@ class C
                 // (8,32): error CS1003: Syntax error, ',' expected
                 //             case ((o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_SyntaxError, "Name").WithArguments(",", "").WithLocation(8, 32),
-                // (8,18): error CS0570: 'recursive pattern' is not supported by the language
+                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 1 out parameters and a void return type.
                 //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_BindToBogus, "((o.GetType().Name.Length))").WithArguments("recursive pattern").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((o.GetType().Name.Length))").WithArguments("object", "1").WithLocation(8, 18),
+                // (8,20): error CS0118: 'o' is a variable but is used like a type
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_BadSKknown, "o").WithArguments("o", "variable", "type").WithLocation(8, 20),
+                // (8,32): error CS0103: The name 'Name' does not exist in the current context
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Name").WithArguments("Name").WithLocation(8, 32),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case 0:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 M();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
                 );
         }
 

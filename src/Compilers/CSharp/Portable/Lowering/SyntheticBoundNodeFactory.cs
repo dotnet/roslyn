@@ -381,6 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, isRef: isRef) { WasCompilerGenerated = true };
         }
 
+        public BoundAssignmentOperator AssignmentExpression(LocalSymbol left, BoundExpression right, bool isRef = false)
+        {
+            return new BoundAssignmentOperator(Syntax, this.Local(left), right, left.Type, isRef: isRef) { WasCompilerGenerated = true };
+        }
+
         public BoundBlock Block()
         {
             return Block(ImmutableArray<BoundStatement>.Empty);
@@ -551,6 +556,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundLiteral Literal(uint value)
         {
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt32)) { WasCompilerGenerated = true };
+        }
+
+        public BoundLiteral Literal(ConstantValue value, TypeSymbol type)
+        {
+            return new BoundLiteral(Syntax, value, type) { WasCompilerGenerated = true };
         }
 
         public BoundObjectCreationExpression New(NamedTypeSymbol type, params BoundExpression[] args)

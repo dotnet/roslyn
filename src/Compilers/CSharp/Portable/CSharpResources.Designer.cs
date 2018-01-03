@@ -5453,6 +5453,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;var&apos; is not permitted in recursive patterns. If you want the type inferred, just omit it..
+        /// </summary>
+        internal static string ERR_InferredRecursivePatternType {
+            get {
+                return ResourceManager.GetString("ERR_InferredRecursivePatternType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot initialize a by-reference variable with a value.
         /// </summary>
         internal static string ERR_InitializeByReferenceVariableWithValue {
@@ -8045,6 +8054,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A property subpattern requires a reference to the property or field to be matched, e.g. &apos;{{ Name: {0}}}&apos;.
+        /// </summary>
+        internal static string ERR_PropertyPatternNameMissing {
+            get {
+                return ResourceManager.GetString("ERR_PropertyPatternNameMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: property or indexer must have at least one accessor.
         /// </summary>
         internal static string ERR_PropertyWithNoAccessors {
@@ -10021,6 +10039,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_WinRtEventPassedByRef {
             get {
                 return ResourceManager.GetString("ERR_WinRtEventPassedByRef", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matching the tuple type &apos;{0}&apos; requires &apos;{1}&apos; subpatterns, but &apos;{2}&apos; subpatterns are present..
+        /// </summary>
+        internal static string ERR_WrongNumberOfSubpatterns {
+            get {
+                return ResourceManager.GetString("ERR_WrongNumberOfSubpatterns", resourceCulture);
             }
         }
         

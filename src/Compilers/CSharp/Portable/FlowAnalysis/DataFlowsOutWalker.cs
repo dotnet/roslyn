@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
                         }
 
+                    case BoundKind.RecursivePattern:
+                        {
+                            return ((BoundRecursivePattern)node).Variable as LocalSymbol;
+                        }
+
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)node;

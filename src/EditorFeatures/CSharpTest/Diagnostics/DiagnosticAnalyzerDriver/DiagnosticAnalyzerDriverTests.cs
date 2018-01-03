@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var syntaxKinds = new HashSet<SyntaxKind>();
             syntaxKinds.Add(SyntaxKind.SubpatternElement);
             syntaxKinds.Add(SyntaxKind.DeconstructionPattern);
+            syntaxKinds.Add(SyntaxKind.DiscardPattern);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular))
