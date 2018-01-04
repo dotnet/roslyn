@@ -256,4 +256,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
     var x = [|(|]new Dictionary<int, string>(), new List<int>()[|)$$|];
 }", TestOptions.Regular);
         }
+    }
 }
