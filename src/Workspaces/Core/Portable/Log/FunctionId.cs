@@ -405,5 +405,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Experiment_KeybindingsReset,
         Diagnostics_GeneratePerformaceReport,
         Diagnostics_BadAnalyzer,
+        CodeAnalysisService_ReportAnalyzerPerformance,
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -49,6 +50,26 @@ namespace Microsoft.CodeAnalysis.Remote
                         // direct stream to send over result has closed before we
                         // had chance to check cancellation
                     }
+                }
+            }, cancellationToken);
+        }
+
+        public void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, CancellationToken cancellationToken)
+        {
+            RunService(token =>
+            {
+                // if this analysis is explicitly asked by user, boost priority of this request
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, token))
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    var service = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
+                    if (service == null)
+                    {
+                        return;
+                    }
+
+                    service.AddSnapshot(snapshot);
                 }
             }, cancellationToken);
         }

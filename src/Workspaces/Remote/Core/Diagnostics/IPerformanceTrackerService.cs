@@ -2,17 +2,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal interface IPerformanceTrackerService : IWorkspaceService
     {
-        void AddSnapshot(IEnumerable<(string analyzerId, bool builtIn, TimeSpan timeSpan)> snapshot);
-        void AddSnapshot(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> snapshot);
+        void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot);
         void GenerateReport(List<BadAnalyzerInfo> badAnalyzers);
 
         event EventHandler SnapshotAdded;

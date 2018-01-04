@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // due to OpenFileOnly analyzer, we need to run inproc as well for such analyzers
-                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, cancellationToken);
+                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, remoteHostClient, cancellationToken);
                 var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken);
 
                 // run them concurrently in vs and remote host
@@ -78,8 +78,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
             }
 
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
+            private Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
                 CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+            {
+                return AnalyzeInProcAsync(analyzerDriver, project, client: null, cancellationToken);
+            }
+
+            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
+                CompilationWithAnalyzers analyzerDriver, Project project, RemoteHostClient client, CancellationToken cancellationToken)
             {
                 if (analyzerDriver == null ||
                     analyzerDriver.Analyzers.Length == 0)
@@ -92,6 +98,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
                 var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+
+                // if remote host is there, report performance data
+                if (client != null)
+                {
+                    await client.TryRunCodeAnalysisRemoteAsync(
+                        nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                        analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(),
+                        cancellationToken).ConfigureAwait(false);
+                }
 
                 // get compiler result builder map
                 var builderMap = analysisResult.ToResultBuilderMap(project, version, analyzerDriver.Compilation, analyzerDriver.Analyzers, cancellationToken);

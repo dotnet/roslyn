@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Xunit;
 
@@ -79,7 +80,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             return $"[{info.PIISafeAnalyzerId}] {info.LOF} {info.Mean} {info.Stddev}";
         }
 
-        private IEnumerable<(string, bool, TimeSpan)> CreateSnapshots(Dictionary<string, double[]> matrix, int index)
+        private IEnumerable<AnalyzerPerformanceInfo> CreateSnapshots(Dictionary<string, double[]> matrix, int index)
         {
             foreach (var kv in matrix)
             {
@@ -89,7 +90,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     continue;
                 }
 
-                yield return (kv.Key, true, TimeSpan.FromMilliseconds(timeSpan));
+                yield return new AnalyzerPerformanceInfo(kv.Key, true, TimeSpan.FromMilliseconds(timeSpan));
             }
         }
 

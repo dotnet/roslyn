@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // record performance if tracker is available
             if (_performanceTracker != null)
             {
-                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo);
+                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo());
             }
 
             var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);

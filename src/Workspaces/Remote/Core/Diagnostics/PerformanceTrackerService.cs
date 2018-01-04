@@ -39,18 +39,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _queue = new PerformanceQueue(SampleSize);
         }
 
-        public void AddSnapshot(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> snapshot)
-        {
-            AddSnapshot(Convert(snapshot.Select(kv => (kv.Key, kv.Value.ExecutionTime))));
-        }
-
-        public void AddSnapshot(IEnumerable<(string analyzerId, bool builtIn, TimeSpan timeSpan)> snapshot)
+        public void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot)
         {
             RecordBuiltInAnalyzers(snapshot);
 
             lock (_gate)
             {
-                _queue.Add(snapshot.Select(kv => (kv.analyzerId, kv.timeSpan)));
+                _queue.Add(snapshot.Select(entry => (entry.AnalyzerId, entry.TimeSpan)));
             }
 
             OnSnapshotAdded();
@@ -81,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
-        private void RecordBuiltInAnalyzers(IEnumerable<(string analyzerId, bool builtIn, TimeSpan timeSpan)> snapshot)
+        private void RecordBuiltInAnalyzers(IEnumerable<AnalyzerPerformanceInfo> snapshot)
         {
-            foreach (var kv in snapshot)
+            foreach (var entry in snapshot)
             {
-                _builtInMap[kv.analyzerId] = kv.builtIn;
+                _builtInMap[entry.AnalyzerId] = entry.BuiltIn;
             }
         }
 
@@ -102,11 +97,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private void OnSnapshotAdded()
         {
             SnapshotAdded?.Invoke(this, EventArgs.Empty);
-        }
-
-        private static IEnumerable<(string, bool, TimeSpan)> Convert(IEnumerable<(DiagnosticAnalyzer analyzer, TimeSpan timeSpan)> rawData)
-        {
-            return rawData.Select(kv => (kv.analyzer.GetAnalyzerId(), DiagnosticAnalyzerLogger.AllowsTelemetry(kv.analyzer), kv.timeSpan));
         }
 
         private sealed class ReportGenerator : IDisposable, IComparer<BadAnalyzerInfo>
