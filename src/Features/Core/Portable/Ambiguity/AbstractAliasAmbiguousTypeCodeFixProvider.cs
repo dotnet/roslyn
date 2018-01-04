@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Ambiguity
                 var compilation = semanticModel.Compilation;
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+                var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
                 foreach (var symbol in symbolInfo.CandidateSymbols)
                 {
                     var typeName = symbol.Name;
@@ -52,17 +55,15 @@ namespace Microsoft.CodeAnalysis.Ambiguity
                         var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
                         return Task.FromResult(document.WithSyntaxRoot(newRoot));
                     };
-                    var codeAction = new MyCodeAction(codeActionPreviewText, CreateChangedDocument);
-                    context.RegisterCodeFix(codeAction, context.Diagnostics.First());
+                    codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, CreateChangedDocument));
                 }
+                var groupedTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
+                var groupedCodeAction = new GroupingCodeAction(groupedTitle, codeActionsBuilder.ToImmutable());
+                context.RegisterCodeFix(groupedCodeAction, context.Diagnostics.First());
             }
         }
 
-        private static string GetTextPreviewOfChange(SyntaxNode newNode)
-        {
-            var normalizedNodeText = newNode.NormalizeWhitespace().ToFullString();
-            return string.Format(FeaturesResources.Alias_ambiguous_type_0, normalizedNodeText);
-        }
+        private static string GetTextPreviewOfChange(SyntaxNode newNode) => newNode.NormalizeWhitespace().ToFullString();
 
         private static bool SymbolCandidatesContainsSupportedSymbols(SymbolInfo symbolInfo)
             => symbolInfo.CandidateReason == CandidateReason.Ambiguous &&
@@ -76,6 +77,13 @@ namespace Microsoft.CodeAnalysis.Ambiguity
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
                 base(title, createChangedDocument, equivalenceKey: title)
+            {
+            }
+        }
+        private class GroupingCodeAction : CodeActionWithNestedActions
+        {
+            public GroupingCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+                : base(title, nestedActions, isInlinable: true)
             {
             }
         }

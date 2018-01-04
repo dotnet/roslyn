@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Ambiguity;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Ambiguity
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAliasAmbiguousTypeCodeFixProvider());
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => FlattenActions(actions);
 
         private string GetAmbiguousDefinition(string typeDefinion)
             => $@"
@@ -43,12 +48,12 @@ namespace Test
         }
     }
 }";
-            var expectedMarkupTemplate = classDef + @"
+            var expectedMarkup0 = classDef + @"
 namespace Test
 {
     using N1;
     using N2;
-    {0}
+    using Ambiguous = N1.Ambiguous;
 
     class C
     {
@@ -58,8 +63,23 @@ namespace Test
         }
     }
 }";
-            await TestInRegularAndScriptAsync(initialMarkup, string.Format(expectedMarkupTemplate, "using Ambiguous = N1.Ambiguous;"), index: 0);
-            await TestInRegularAndScriptAsync(initialMarkup, string.Format(expectedMarkupTemplate, "using Ambiguous = N2.Ambiguous;"), index: 1);
+            var expectedMarkup1 = classDef + @"
+namespace Test
+{
+    using N1;
+    using N2;
+    using Ambiguous = N2.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -227,10 +247,10 @@ class D
         c.M();
     }
 }";
-            var expectedMarkup = @"
+            var expectedMarkup0 = @"
 using static Static<string>;
 using static Static<int>;
-{0}
+using Nested = Static<string>.Nested;
 
 public static class Static<T>
 {
@@ -248,8 +268,29 @@ class D
         c.M();
     }
 }";
-            await TestInRegularAndScriptAsync(initialMarkup, string.Format(expectedMarkup, "using Nested = Static<string>.Nested;"), index: 0);
-            await TestInRegularAndScriptAsync(initialMarkup, string.Format(expectedMarkup, "using Nested = Static<int>.Nested;"), index: 1);
+            var expectedMarkup1 = @"
+using static Static<string>;
+using static Static<int>;
+using Nested = Static<int>.Nested;
+
+public static class Static<T>
+{
+    public class Nested
+    {
+        public void M() { }
+    }
+}
+ 
+class D
+{
+    static void Main(string[] args)
+    {
+        var c = new Nested();
+        c.M();
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
