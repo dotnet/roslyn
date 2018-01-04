@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 // This is necessary as .net regexes allow references to *future* captures.
                 // As such, we don't know when we're seeing a reference if it's to something
                 // that exists or not.
-                var tree1 = new RegexParser(text, options, 
-                    ImmutableDictionary<string, TextSpan>.Empty, 
+                var tree1 = new RegexParser(text, options,
+                    ImmutableDictionary<string, TextSpan>.Empty,
                     ImmutableDictionary<int, TextSpan>.Empty).ParseTree();
 
                 var analyzer = new CaptureInfoAnalyzer(text);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             CollectDiagnostics(root, diagnostics);
 
             return new RegexTree(
-                _lexer.Text, root, diagnostics.ToImmutableAndFree(), 
+                _lexer.Text, root, diagnostics.ToImmutableAndFree(),
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
@@ -204,11 +204,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             switch (_currentToken.Kind)
             {
-            case RegexKind.AsteriskToken: return ParseZeroOrMoreQuantifier(current);
-            case RegexKind.PlusToken: return ParseOneOrMoreQuantifier(current);
-            case RegexKind.QuestionToken: return ParseZeroOrOneQuantifier(current);
-            case RegexKind.OpenBraceToken: return TryParseNumericQuantifier(current, _currentToken);
-            default: return current;
+                case RegexKind.AsteriskToken: return ParseZeroOrMoreQuantifier(current);
+                case RegexKind.PlusToken: return ParseOneOrMoreQuantifier(current);
+                case RegexKind.QuestionToken: return ParseZeroOrOneQuantifier(current);
+                case RegexKind.OpenBraceToken: return TryParseNumericQuantifier(current, _currentToken);
+                default: return current;
             }
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexQuantifierNode CreateQuantifier(
             RegexPrimaryExpressionNode expression,
-            RegexToken openBraceToken, RegexToken firstNumberToken, RegexToken? commaToken, 
+            RegexToken openBraceToken, RegexToken firstNumberToken, RegexToken? commaToken,
             RegexToken? secondNumberToken, RegexToken closeBraceToken)
         {
             if (commaToken != null)
@@ -422,12 +422,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             switch (_currentToken.Kind)
             {
-            case RegexKind.QuestionToken:
-                return ParseGroupQuestion(openParenToken, _currentToken);
+                case RegexKind.QuestionToken:
+                    return ParseGroupQuestion(openParenToken, _currentToken);
 
-            default:
-                _lexer.Position = start;
-                return ParseSimpleGroup(openParenToken);
+                default:
+                    _lexer.Position = start;
+                    return ParseSimpleGroup(openParenToken);
             }
         }
 
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             return RegexToken.CreateMissing(
-                openToken.Kind == RegexKind.LessThanToken 
+                openToken.Kind == RegexKind.LessThanToken
                     ? RegexKind.GreaterThanToken : RegexKind.SingleQuoteToken);
         }
 
@@ -930,19 +930,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 switch (ch.Char)
                 {
-                case '-': on = false; break;
-                case '+': on = true; break;
-                default:
-                    var newOption = OptionFromCode(ch);
-                    if (on)
-                    {
-                        copy |= newOption;
-                    }
-                    else
-                    {
-                        copy &= ~newOption;
-                    }
-                    break;
+                    case '-': on = false; break;
+                    case '+': on = true; break;
+                    default:
+                        var newOption = OptionFromCode(ch);
+                        if (on)
+                        {
+                            copy |= newOption;
+                        }
+                        else
+                        {
+                            copy &= ~newOption;
+                        }
+                        break;
                 }
             }
 
@@ -953,16 +953,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             switch (ch)
             {
-                case 'i': case 'I':
-                    return RegexOptions.IgnoreCase;
-                case 'm': case 'M':
-                    return RegexOptions.Multiline;
-                case 'n': case 'N':
-                    return RegexOptions.ExplicitCapture;
-                case 's': case 'S':
-                    return RegexOptions.Singleline;
-                case 'x': case 'X':
-                    return RegexOptions.IgnorePatternWhitespace;
+                case 'i': case 'I': return RegexOptions.IgnoreCase;
+                case 'm': case 'M': return RegexOptions.Multiline;
+                case 'n': case 'N': return RegexOptions.ExplicitCapture;
+                case 's': case 'S': return RegexOptions.Singleline;
+                case 'x': case 'X': return RegexOptions.IgnorePatternWhitespace;
                 default:
                     throw new InvalidOperationException();
             }
@@ -1249,14 +1244,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 var nextChar = _currentToken.VirtualChars[0].Char;
                 switch (nextChar)
                 {
-                    case 'D':
-                    case 'd':
-                    case 'S':
-                    case 's':
-                    case 'W':
-                    case 'w':
-                    case 'p':
-                    case 'P':
+                    case 'D': case 'd':
+                    case 'S': case 's':
+                    case 'W': case 'w':
+                    case 'p': case 'P':
                         if (afterRangeMinus)
                         {
                             backslashToken = backslashToken.AddDiagnosticIfNone(new RegexDiagnostic(
@@ -1364,7 +1355,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     return new RegexCharacterClassEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
 
-                case 'p': case 'P':
+                case 'p':
+                case 'P':
                     return ParseCategoryEscape(backslashToken, allowTriviaAfterEnd);
             }
 
@@ -1589,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case 'a': case 'b': case 'e': case 'f':
                 case 'n': case 'r': case 't': case 'v':
                     return new RegexSimpleEscapeNode(
-                        backslashToken, ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
+                        backslashToken, ConsumeCurrentToken(allowTrivia: true));
                 case 'x':
                     return ScanHexEscape(backslashToken);
                 case 'u':
@@ -1687,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 typeToken = typeToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(new RegexDiagnostic(
                     message, GetSpan(backslash, typeToken)));
                 return new RegexSimpleEscapeNode(backslash, typeToken);
-            } 
+            }
 
             return new RegexCategoryEscapeNode(backslash, typeToken, openBraceToken, categoryToken, closeBraceToken);
         }
