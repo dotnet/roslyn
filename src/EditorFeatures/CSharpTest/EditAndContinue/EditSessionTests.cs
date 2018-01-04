@@ -138,24 +138,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.Equal(new[] { "(9,14)-(9,35)[LeafFrame]", "(4,14)-(4,19)" }, baseActiveStatements.DocumentMap[docs[0].Id].Select(InspectAS));
                 AssertEx.Equal(new[] { "(21,14)-(21,35)[LeafFrame]", "(8,20)-(8,25)" }, baseActiveStatements.DocumentMap[docs[1].Id].Select(InspectAS));
 
-                Assert.Equal(4, baseActiveStatements.Ids.Count);
+                Assert.Equal(4, baseActiveStatements.InstructionMap.Count);
 
-                var s = baseActiveStatements.Ids[0];
+                var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.InstructionId.MethodToken).ToArray();
+                var s = statements[0];
                 Assert.Equal(0x06000001, s.InstructionId.MethodToken);
                 Assert.Equal(0, s.Ordinal);
                 Assert.Equal(docs[0].Id, s.DocumentId);
 
-                s = baseActiveStatements.Ids[1];
+                s = statements[1];
                 Assert.Equal(0x06000002, s.InstructionId.MethodToken);
                 Assert.Equal(1, s.Ordinal);
                 Assert.Equal(docs[0].Id, s.DocumentId);
 
-                s = baseActiveStatements.Ids[2];
+                s = statements[2];
                 Assert.Equal(0x06000003, s.InstructionId.MethodToken);
                 Assert.Equal(0, s.Ordinal);
                 Assert.Equal(docs[1].Id, s.DocumentId);
 
-                s = baseActiveStatements.Ids[3];
+                s = statements[3];
                 Assert.Equal(0x06000004, s.InstructionId.MethodToken);
                 Assert.Equal(1, s.Ordinal);
                 Assert.Equal(docs[1].Id, s.DocumentId);
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
                 var baseExceptionRegions = await editSession.BaseActiveExceptionRegions.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
 
-                AssertEx.Equal(new[] { "3.0: (14,8)-(16,9)", "3.1: (10,10)-(12,11)" }, baseExceptionRegions.Select(r => $"{r.ActiveStatementDebuggerId}.{r.Ordinal}: {r.Span}"));
+                AssertEx.Equal(new[] { "[(14,8)-(16,9)]", "[(10,10)-(12,11)]" }, baseExceptionRegions.Select(r => "[" + string.Join(",", r.Spans) + "]"));
             }
         }
     }

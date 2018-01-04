@@ -180,6 +180,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
+                // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so. 
+                // We return null since there the concept of active statement only makes sense during break mode.
                 if (_editSession == null)
                 {
                     return null;

@@ -447,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         /// <param name="encBreakReason">Reason for transition to Break state.</param>
         /// <param name="pActiveStatements">Statements active when the debuggee is stopped.</param>
         /// <param name="cActiveStatements">Length of <paramref name="pActiveStatements"/>.</param>
-        public int EnterBreakStateOnPE(Interop.ENC_BREAKSTATE_REASON encBreakReason, ShellInterop.ENC_ACTIVE_STATEMENT[] pActiveStatements, uint cActiveStatements)
+        public int EnterBreakStateOnPE(ENC_BREAKSTATE_REASON encBreakReason, ENC_ACTIVE_STATEMENT[] pActiveStatements, uint cActiveStatements)
         {
             try
             {
@@ -547,124 +547,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             //}
         }
 
-        /// <summary>
-        /// Returns the number of exception regions around current active statements.
-        /// This is called when the project is entering a break right after 
-        /// <see cref="EnterBreakStateOnPE"/> and prior to <see cref="GetExceptionSpans"/>.
-        /// </summary>
-        /// <remarks>
-        /// Called by EnC manager.
-        /// </remarks>
+        // obsolete
         public int GetExceptionSpanCount(out uint pcExceptionSpan)
-        {
-            var baseRegions = _encService.EditSession.BaseActiveExceptionRegions.GetValue(default);
-            pcExceptionSpan = (uint)baseRegions.Length;
-            return VSConstants.S_OK;
-        }
+            => throw ExceptionUtilities.Unreachable;
 
-        /// <summary>
-        /// Returns information about exception handlers in the source.
-        /// </summary>
-        /// <remarks>
-        /// Called by EnC manager.
-        /// </remarks>
+        // obsolete
         public int GetExceptionSpans(uint celt, ENC_EXCEPTION_SPAN[] rgelt, ref uint pceltFetched)
-        {
-            var baseStatements = _encService.EditSession.BaseActiveStatements.GetValue(default);
-            var baseRegions = _encService.EditSession.BaseActiveExceptionRegions.GetValue(default);
+            => throw ExceptionUtilities.Unreachable;
 
-            Debug.Assert(celt == rgelt.Length);
-            Debug.Assert(celt == baseRegions.Length);
-
-            for (int i = 0; i < baseRegions.Length; i++)
-            {
-                rgelt[i] = new ENC_EXCEPTION_SPAN()
-                {
-                    id = (uint)i,
-                    methodToken = (uint)baseStatements.Ids[baseRegions[i].ActiveStatementDebuggerId].InstructionId.MethodToken,
-                    tsPosition = baseRegions[i].Span.ToVsTextSpan()
-                };
-            }
-
-            pceltFetched = celt;
-            return VSConstants.S_OK;
-        }
-
-        /// <summary>
-        /// Called by the debugger whenever it needs to determine a position of an active statement.
-        /// E.g. the user clicks on a frame in a call stack.
-        /// </summary>
-        /// <remarks>
-        /// Called when applying change, when setting current IP, a notification is received from 
-        /// <see cref="IDebugEncNotify.NotifyEncUpdateCurrentStatement"/>, etc.
-        /// In addition this API is exposed on IDebugENC2 COM interface so it can be used anytime by other components.
-        /// </remarks>
+        // obsolete
         public int GetCurrentActiveStatementPosition(uint vsId, VsTextSpan[] ptsNewPosition)
-        {
-            try
-            {
-                using (NonReentrantContext)
-                {
-                    Debug.Assert(IsDebuggable);
+            => throw ExceptionUtilities.Unreachable;
 
-                    var session = _encService.EditSession;
-
-                    var baseActiveStatements = session.BaseActiveStatements.GetValue(default);
-
-                    // Can be called anytime, even outside of an edit/debug session.
-                    // We might not have an active statement available if PDB got out of sync with the source.
-                    if (session == null || !baseActiveStatements.Ids.TryGetValue(unchecked((int)vsId), out var baseActiveStatement))
-                    {
-                        log.Write("GetCurrentActiveStatementPosition failed for AS {0}.", unchecked((int)vsId));
-                        return VSConstants.E_FAIL;
-                    }
-
-                    Document document = _vsProject.Workspace.CurrentSolution.GetDocument(baseActiveStatement.DocumentId);
-                    SourceText text = document.GetTextAsync(default).Result;
-                    LinePositionSpan lineSpan;
-
-                    // Try to get spans from the tracking service first.
-                    // We might get an imprecise result if the document analysis hasn't been finished yet and 
-                    // the active statement has structurally changed, but that's ok. The user won't see an updated tag
-                    // for the statement until the analysis finishes anyways.
-                    if (_trackingService.TryGetSpan(baseActiveStatement.Id, text, out var trackedSpan) && trackedSpan.Length > 0)
-                    {
-                        lineSpan = text.Lines.GetLinePositionSpan(trackedSpan);
-                    }
-                    else
-                    {
-                        var currentActiveStatements = session.GetDocumentAnalysis(document).GetValue(default).ActiveStatements;
-                        if (currentActiveStatements.IsDefault)
-                        {
-                            // The document has syntax errors and the tracking span is gone.
-                            log.Write("Position not available for AS {0} due to syntax errors", unchecked((int)vsId));
-                            return VSConstants.E_FAIL;
-                        }
-
-                        lineSpan = currentActiveStatements[baseActiveStatement.Ordinal].Span;
-                    }
-
-                    ptsNewPosition[0] = lineSpan.ToVsTextSpan();
-                    log.DebugWrite("AS position: {0} ({1},{2})-({3},{4}) {5}", 
-                        unchecked((int)vsId), 
-                        lineSpan.Start.Line, lineSpan.Start.Character, lineSpan.End.Line, lineSpan.End.Character,
-                        (int)baseActiveStatement.Flags);
-
-                    return VSConstants.S_OK;
-                }
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-            {
-                return VSConstants.E_FAIL;
-            }
-        }
+        // obsolete
+        public int GetCurrentExceptionSpanPosition(uint exceptionRegionId, VsTextSpan[] ptsNewPosition)
+            => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Returns the state of the changes made to the source. 
         /// The EnC manager calls this to determine whether there are any changes to the source 
         /// and if so whether there are any rude edits.
         /// </summary>
-        public int GetENCBuildState(ShellInterop.ENC_BUILD_STATE[] pENCBuildState)
+        public int GetENCBuildState(ENC_BUILD_STATE[] pENCBuildState)
         {
             try
             {
@@ -1213,51 +1117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 _committedBaseline = _pendingBaseline;
                 _pendingBaseline = null;
-
-                return VSConstants.S_OK;
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-            {
-                return VSConstants.E_FAIL;
-            }
-        }
-
-        /// <summary>
-        /// Called when changes are being applied.
-        /// </summary>
-        /// <param name="exceptionRegionId">
-        /// The value of <see cref="ShellInterop.ENC_EXCEPTION_SPAN.id"/>. 
-        /// </param>
-        /// <param name="ptsNewPosition">Output value holder.</param>
-        public int GetCurrentExceptionSpanPosition(uint exceptionRegionId, VsTextSpan[] ptsNewPosition)
-        {
-            try
-            {
-                using (NonReentrantContext)
-                {
-                    Debug.Assert(IsDebuggable);
-                    Debug.Assert(_encService.EditSession != null);
-                    Debug.Assert(!_encService.EditSession.StoppedAtException);
-                    Debug.Assert(ptsNewPosition.Length == 1);
-
-                    var session = _encService.EditSession;
-                    var baseActiveStatements = session.BaseActiveStatements.GetValue(default);
-                    var baseRegions = session.BaseActiveExceptionRegions.GetValue(default);
-                    var exceptionRegion = baseRegions[(int)exceptionRegionId];
-                    var baseActiveStatement = baseActiveStatements.Ids[exceptionRegion.ActiveStatementDebuggerId];
-
-                    var document = _projectBeingEmitted.GetDocument(baseActiveStatement.DocumentId);
-                    var analysis = session.GetDocumentAnalysis(document).GetValue(default);
-                    var regions = analysis.ExceptionRegions;
-
-                    // the method shouldn't be called in presence of errors:
-                    Debug.Assert(!analysis.HasChangesAndErrors);
-                    Debug.Assert(!regions.IsDefault);
-
-                    // Absence of rude edits guarantees that the exception regions around AS haven't semantically changed.
-                    // Only their spans might have changed.
-                    ptsNewPosition[0] = regions[baseActiveStatement.Ordinal][exceptionRegion.Ordinal].ToVsTextSpan();
-                }
 
                 return VSConstants.S_OK;
             }

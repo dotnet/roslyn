@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 return new ActiveStatementsMap(
                     SpecializedCollections.EmptyReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>>(), 
-                    SpecializedCollections.EmptyReadOnlyDictionary<ActiveInstructionId, ActiveStatement>(), 
-                    SpecializedCollections.EmptyReadOnlyDictionary<int, ActiveStatement>());
+                    SpecializedCollections.EmptyReadOnlyDictionary<ActiveInstructionId, ActiveStatement>());
             }
         }
 
@@ -125,7 +124,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var byDocument = PooledDictionary<DocumentId, ArrayBuilder<ActiveStatement>>.GetInstance();
             var byInstruction = new Dictionary<ActiveInstructionId, ActiveStatement>();
-            var idMap = new Dictionary<int, ActiveStatement>();
 
             int index = 0;
             foreach (var debugInfo in debugInfos)
@@ -170,13 +168,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         linePositionSpan,
                         debugInfo.InstructionId);
 
-                    idMap.Add(debugInfo.Id, activeStatement);
                     byInstruction.Add(debugInfo.InstructionId, activeStatement);
                     documentActiveStatements.Add(activeStatement);
                 }
             }
 
-            return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), byInstruction, idMap);
+            return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), byInstruction);
         }
 
         private async Task<ImmutableArray<ActiveStatementExceptionRegions>> GetBaseActiveExceptionRegionsAsync(CancellationToken cancellationToken)
@@ -184,32 +181,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var builder = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(baseActiveStatements.Ids.Count);
-                builder.Count = baseActiveStatements.Ids.Count;
+                var builder = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(baseActiveStatements.InstructionMap.Count);
+                builder.Count = baseActiveStatements.InstructionMap.Count;
 
-                foreach (var documentActiveStatements in baseActiveStatements.DocumentMap.Values)
+                foreach (var activeStatement in baseActiveStatements.InstructionMap.Values)
                 {
-                    foreach (var activeStatement in documentActiveStatements)
+                    var document = _baseSolution.GetDocument(activeStatement.DocumentId);
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    var lineSpan = activeStatement.Span;
+
+                    // If the PDB is out of sync with the source we might get bad spans.
+                    var sourceLines = sourceText.Lines;
+                    if (lineSpan.End.Line >= sourceLines.Count ||
+                        sourceLines.GetPosition(lineSpan.End) > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
                     {
-                        var document = _baseSolution.GetDocument(activeStatement.DocumentId);
-                        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                        var lineSpan = activeStatement.Span;
-
-                        // If the PDB is out of sync with the source we might get bad spans.
-                        var sourceLines = sourceText.Lines;
-                        if (lineSpan.End.Line >= sourceLines.Count ||
-                            sourceLines.GetPosition(lineSpan.End) > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
-                        {
-                            // TODO: log.Write("AS out of bounds (line count is {0})", source.Lines.Count);
-                            continue;
-                        }
-
-                        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                        var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-                        builder[activeStatement.Index] = new ActiveStatementExceptionRegions(analyzer.GetExceptionRegions(sourceText, syntaxRoot, lineSpan, activeStatement.IsLeaf, out bool isCovered), isCovered);
+                        // TODO: log.Write("AS out of bounds (line count is {0})", source.Lines.Count);
+                        continue;
                     }
+
+                    var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+                    builder[activeStatement.Index] = new ActiveStatementExceptionRegions(analyzer.GetExceptionRegions(sourceText, syntaxRoot, lineSpan, activeStatement.IsLeaf, out bool isCovered), isCovered);
                 }
 
                 return builder.ToImmutableAndFree();
