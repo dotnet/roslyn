@@ -21479,6 +21479,195 @@ End Module
             Assert.Equal("(X As System.Int32, P As Module1.MyDelegate)", tupleSymbol.ConvertedType.ToTestDisplayString())
         End Sub
 
+        <Fact>
+        <WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")>
+        Public Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType()
+            Dim vtLib = CreateCompilation(s_trivial2uple, references:={MscorlibRef}, assemblyName:="vt")
+
+            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
+                <compilation>
+                    <file name="a.vb">
+Imports System.Collections.Generic
+Imports System.Collections
+
+Public Class ClassA
+    Implements IEnumerable(Of (alice As Integer, bob As Integer))
+
+    Function GetGenericEnumerator() As IEnumerator(Of (alice As Integer, bob As Integer)) Implements IEnumerable(Of (alice As Integer, bob As Integer)).GetEnumerator
+        Return Nothing
+    End Function
+
+    Function GetEnumerator() As IEnumerator Implements IEnumerable(Of (alice As Integer, bob As Integer)).GetEnumerator
+        Return Nothing
+    End Function
+End Class
+                    </file>
+                </compilation>, additionalRefs:={vtLib.EmitToImageReference()})
+            libComp.VerifyDiagnostics()
+
+            Dim source As Xml.Linq.XElement =
+                 <compilation>
+                     <file name="a.vb">
+Class ClassB
+    Sub M()
+        Dim x = New ClassA()
+        x.ToString()
+    End Sub
+End Class
+                    </file>
+                 </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
+            comp.AssertNoDiagnostics()
+            'FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp)
+
+            Dim compWithMetadataReference = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference()}) ' missing reference to vt
+
+            compWithMetadataReference.AssertNoDiagnostics()
+            'FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithMetadataReference)
+
+            Dim fakeVtLib = CreateCompilation("", references:={MscorlibRef}, assemblyName:="vt")
+            Dim compWithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
+            compWithFakeVt.AssertNoDiagnostics()
+            'FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithFakeVt)
+
+            Dim source2 As Xml.Linq.XElement =
+                 <compilation>
+                     <file name="a.vb">
+Class ClassB
+    Sub M()
+        Dim x = New ClassA().GetGenericEnumerator()
+        For Each i In New ClassA()
+             System.Console.Write(i.alice)
+        Next
+    End Sub
+End Class
+                    </file>
+                 </compilation>
+
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
+            comp2.AssertTheseDiagnostics(<errors>
+BC30652: Reference required to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ValueTuple(Of ,)'. Add one to your project.
+        Dim x = New ClassA().GetGenericEnumerator()
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                         </errors>)
+            'FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2)
+
+            Dim comp2WithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
+            comp2WithFakeVt.AssertTheseDiagnostics(<errors>
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' failed.
+        Dim x = New ClassA().GetGenericEnumerator()
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                   </errors>)
+            'FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2WithFakeVt)
+        End Sub
+
+        Private Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compilation As Compilation)
+            Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
+            Dim iEnumerable = DirectCast(classA.Interfaces()(0), SubstitutedNamedType.ConstructedInstanceType)
+            Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
+                    iEnumerable.ToTestDisplayString())
+
+            Dim tuple = iEnumerable.TypeArguments()(0)
+            Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
+            Assert.True(tuple.IsTupleType)
+            Assert.True(tuple.TupleUnderlyingType.IsErrorType())
+        End Sub
+
+        <Fact>
+        <WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")>
+        Public Sub FailedDecodingOfTupleNamesWhenMissingContainerType()
+            Dim containerLib = CreateCompilation(s_trivial2uple, references:={MscorlibRef}, assemblyName:="vt")
+
+            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
+                <compilation>
+                    <file name="a.vb">
+Imports System.Collections.Generic
+Imports System.Collections
+
+Public Class ClassA
+    Implements IEnumerable(Of (alice As Integer, bob As Integer))
+
+    Function GetGenericEnumerator() As IEnumerator(Of (alice As Integer, bob As Integer)) Implements IEnumerable(Of (alice As Integer, bob As Integer)).GetEnumerator
+        Return Nothing
+    End Function
+
+    Function GetEnumerator() As IEnumerator Implements IEnumerable(Of (alice As Integer, bob As Integer)).GetEnumerator
+        Return Nothing
+    End Function
+End Class
+                    </file>
+                </compilation>, additionalRefs:={containerLib.EmitToImageReference()})
+            libComp.VerifyDiagnostics()
+
+            Dim source As Xml.Linq.XElement =
+                 <compilation>
+                     <file name="a.vb">
+Class ClassB
+    Sub M()
+        Dim x = New ClassA()
+        x.ToString()
+    End Sub
+End Class
+                    </file>
+                 </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
+            comp.AssertNoDiagnostics()
+            'FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(comp)
+
+            Dim compWithMetadataReference = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference()}) ' missing reference to vt
+
+            compWithMetadataReference.AssertNoDiagnostics()
+            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithMetadataReference)
+
+            Dim fakeVtLib = CreateCompilation("", references:={MscorlibRef}, assemblyName:="vt")
+            Dim compWithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
+            compWithFakeVt.AssertNoDiagnostics()
+            'FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithFakeVt)
+
+            Dim source2 As Xml.Linq.XElement =
+                 <compilation>
+                     <file name="a.vb">
+Class ClassB
+    Sub M()
+        Dim x = New ClassA().GetGenericEnumerator()
+        For Each i In New ClassA()
+             System.Console.Write(i.alice)
+        Next
+    End Sub
+End Class
+                    </file>
+                 </compilation>
+
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
+            comp2.AssertTheseDiagnostics(<errors>
+BC30652: Reference required to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ValueTuple(Of ,)'. Add one to your project.
+        Dim x = New ClassA().GetGenericEnumerator()
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                         </errors>)
+            'FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(comp2)
+
+            Dim comp2WithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
+            comp2WithFakeVt.AssertTheseDiagnostics(<errors>
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' failed.
+        Dim x = New ClassA().GetGenericEnumerator()
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                   </errors>)
+            'FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(comp2WithFakeVt)
+        End Sub
+
+        Private Sub FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compilation As Compilation)
+            Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
+            Dim iEnumerable = DirectCast(classA.Interfaces()(0), SubstitutedNamedType.ConstructedInstanceType)
+            Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
+                    iEnumerable.ToTestDisplayString())
+
+            Dim tuple = iEnumerable.TypeArguments()(0)
+            Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
+            Assert.True(tuple.IsTupleType)
+            Assert.True(tuple.TupleUnderlyingType.IsErrorType())
+        End Sub
     End Class
 
 End Namespace
