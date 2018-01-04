@@ -780,36 +780,31 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexToken ParseCaptureGroupingCloseToken(ref RegexToken openParenToken, RegexToken openToken)
         {
-            if (openToken.Kind == RegexKind.LessThanToken && _currentToken.Kind == RegexKind.GreaterThanToken)
+            if ((openToken.Kind == RegexKind.LessThanToken && _currentToken.Kind == RegexKind.GreaterThanToken) ||
+                (openToken.Kind == RegexKind.SingleQuoteToken && _currentToken.Kind == RegexKind.SingleQuoteToken))
             {
                 return _currentToken;
             }
-            else if (openToken.Kind == RegexKind.SingleQuoteToken && _currentToken.Kind == RegexKind.SingleQuoteToken)
+
+            if (_currentToken.Kind == RegexKind.EndOfFile)
             {
-                return _currentToken;
+                openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    WorkspacesResources.Unrecognized_grouping_construct,
+                    GetSpan(openParenToken, openToken)));
             }
             else
             {
-                if (_currentToken.Kind == RegexKind.EndOfFile)
-                {
-                    openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
-                        WorkspacesResources.Unrecognized_grouping_construct,
-                        GetSpan(openParenToken, openToken)));
-                }
-                else
-                {
-                    openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
-                        WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
-                        GetSpan(_currentToken)));
+                openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
+                    GetSpan(_currentToken)));
 
-                    // Rewind to where we were before seeing this bogus character.
-                    _lexer.Position--;
-                }
-
-                return RegexToken.CreateMissing(
-                    openToken.Kind == RegexKind.LessThanToken 
-                        ? RegexKind.GreaterThanToken : RegexKind.SingleQuoteToken);
+                // Rewind to where we were before seeing this bogus character.
+                _lexer.Position--;
             }
+
+            return RegexToken.CreateMissing(
+                openToken.Kind == RegexKind.LessThanToken 
+                    ? RegexKind.GreaterThanToken : RegexKind.SingleQuoteToken);
         }
 
         private RegexGroupingNode ParseBalancingGrouping(
