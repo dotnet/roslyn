@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,12 +11,22 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
     internal abstract class AbstractValidateRegexStringDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private readonly int _stringLiteralKind;
+        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISemanticFactsService _semanticFacts;
+        private readonly IVirtualCharService _virtualCharService;
 
-        protected AbstractValidateRegexStringDiagnosticAnalyzer(int stringLiteralKind)
+        protected AbstractValidateRegexStringDiagnosticAnalyzer(
+            int stringLiteralKind,
+            ISyntaxFactsService syntaxFacts,
+            ISemanticFactsService semanticFacts,
+            IVirtualCharService virtualCharService)
             : base(IDEDiagnosticIds.RegexPatternDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Regex_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _stringLiteralKind = stringLiteralKind;
+            _syntaxFacts = syntaxFacts;
+            _semanticFacts = semanticFacts;
+            _virtualCharService = virtualCharService;
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -25,10 +34,6 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;
-
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract ISemanticFactsService GetSemanticFactsService();
-        protected abstract IVirtualCharService GetVirtualCharService();
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
@@ -51,15 +56,14 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
                 return;
             }
 
-            var detector = RegexPatternDetector.TryCreate(
-                semanticModel, GetSyntaxFactsService(), GetSemanticFactsService());
+            var detector = RegexPatternDetector.TryCreate(semanticModel, _syntaxFacts, _semanticFacts);
             if (detector == null)
             {
                 return;
             }
 
             var root = syntaxTree.GetRoot(cancellationToken);
-            Analyze(context, detector, GetVirtualCharService(), root, cancellationToken);
+            Analyze(context, detector, _virtualCharService, root, cancellationToken);
         }
 
         private void Analyze(

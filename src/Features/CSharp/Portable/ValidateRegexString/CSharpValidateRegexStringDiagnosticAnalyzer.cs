@@ -2,8 +2,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.RegularExpressions;
 using Microsoft.CodeAnalysis.ValidateRegexString;
 
 namespace Microsoft.CodeAnalysis.CSharp.ValidateRegexString
@@ -12,17 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ValidateRegexString
     internal class CSharpValidateRegexStringDiagnosticAnalyzer : AbstractValidateRegexStringDiagnosticAnalyzer
     {
         public CSharpValidateRegexStringDiagnosticAnalyzer() 
-            : base((int)SyntaxKind.StringLiteralToken)
+            : base((int)SyntaxKind.StringLiteralToken, 
+                  CSharpSyntaxFactsService.Instance, CSharpSemanticFactsService.Instance, CSharpVirtualCharService.Instance)
         {
         }
-
-        protected override ISyntaxFactsService GetSyntaxFactsService()
-            => CSharpSyntaxFactsService.Instance;
-
-        protected override ISemanticFactsService GetSemanticFactsService()
-            => CSharpSemanticFactsService.Instance;
-
-        protected override IVirtualCharService GetVirtualCharService()
-            => CSharpVirtualCharService.Instance;
     }
 }
