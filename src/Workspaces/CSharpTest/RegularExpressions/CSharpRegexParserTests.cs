@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.RegularExpressions;
@@ -11,10 +15,54 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 {
+    internal class LogicalStringComparer : IComparer<string>
+    {
+        [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+        private static extern int StrCmpLogicalW(string psz1, string psz2);
+
+        public static readonly IComparer<string> Instance = new LogicalStringComparer();
+
+        private LogicalStringComparer()
+        {
+        }
+
+        public int Compare(string x, string y)
+        {
+            return StrCmpLogicalW(x, y);
+        }
+    }
+
+    public class Fixture : IDisposable
+    {
+        public void Dispose()
+        {
+            var tests = CSharpRegexParserTests.nameToTest;
+            var other = new Dictionary<string, string>();
+
+            var referenceTests =
+                tests.Where(kvp => kvp.Key.StartsWith("ReferenceTest"))
+                     .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
+                     .Select(kvp => kvp.Value);
+
+            var val = string.Join("\r\n", referenceTests);
+        }
+    }
+
+    [CollectionDefinition(nameof(MyCollection))]
+    public class MyCollection : ICollectionFixture<Fixture>
+    {
+    }
+
+    [Collection(nameof(MyCollection))]
     public partial class CSharpRegexParserTests
     {
         private readonly IVirtualCharService _service = new CSharpVirtualCharService();
         private const string _statmentPrefix = "var v = ";
+
+        public CSharpRegexParserTests(Fixture fixture)
+        {
+            _fixture = fixture;
+        }
 
         private SyntaxToken GetStringToken(string text)
         {
@@ -26,15 +74,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             return token;
         }
 
-        private void Test(string stringText, string expected, RegexOptions options)
+        private readonly Fixture _fixture;
+
+        public static Dictionary<string, string> nameToTest = new Dictionary<string, string>();
+
+        private void Test(string stringText, string expected, RegexOptions options, [CallerMemberName]string name = "")
         {
+            var test = GenerateTests(stringText, options, name);
+            nameToTest.Add(name, test);
+
+#if false
             var tree = TryParseTree(stringText, options, conversionFailureOk: false);
 
-            TryParseSubTrees(stringText, options);
+            // TryParseSubTrees(stringText, options);
 
             var actual = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actual);
+#endif
         }
+
+        public string GenerateTests(string val, RegexOptions options, string testName)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("[Fact]");
+            builder.AppendLine("public void " + testName + "()");
+            builder.AppendLine("{");
+            builder.Append(@"    Test(");
+
+            var escaped = val.Replace("\"", "\"\"");
+            var quoted = "" + '@' + '"' + escaped + '"';
+            builder.Append(quoted);
+
+            var token = GetStringToken(val);
+            var allChars = _service.TryConvertToVirtualChars(token);
+            var tree = RegexParser.TryParse(allChars, options);
+
+            var actual = TreeToText(tree).Replace("\"", "\"\"");
+            builder.Append(", " + '@' + '"');
+            builder.Append(actual);
+
+            builder.AppendLine("" + '"' + ", RegexOptions." + options.ToString() + ");");
+            builder.AppendLine("}");
+
+            return builder.ToString();
+        }
+
 
         private void TryParseSubTrees(string stringText, RegexOptions options)
         {
@@ -127,6 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                             new XAttribute("Start", d.Span.Start),
                             new XAttribute("Length", d.Span.Length)))));
             }
+
+            element.Add(new XElement("Captures",
+                tree.CaptureNumbersToSpan.OrderBy(kvp => kvp.Key).Select(kvp =>
+                    new XElement("Capture", new XAttribute("Name", kvp.Key), new XAttribute("Span", kvp.Value))),
+                tree.CaptureNamesToSpan.OrderBy(kvp => kvp.Key).Select(kvp =>
+                    new XElement("Capture", new XAttribute("Name", kvp.Key), new XAttribute("Span", kvp.Value)))));
 
             return element.ToString();
         }
@@ -3524,7 +3614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 </Tree>", RegexOptions.ECMAScript);
         }
 
-        #region KCapture
+#region KCapture
 
         [Fact]
         public void TestKCaptureEscape1()
@@ -4240,9 +4330,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 </Tree>", RegexOptions.None);
         }
 
-        #endregion
+#endregion
 
-        #region CaptureEscape
+#region CaptureEscape
 
         [Fact]
         public void TestCaptureEscape1()
@@ -4859,7 +4949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 </Tree>", RegexOptions.None);
         }
 
-        #endregion
+#endregion
 
         [Fact]
         public void TestDefinedCategoryEscape()
@@ -9165,7 +9255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 </Tree>", RegexOptions.ECMAScript);
         }
 
-        #region Character Classes
+#region Character Classes
 
         [Fact]
         public void TestCharacterClass1()
@@ -12537,7 +12627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 </Tree>", RegexOptions.None);
         }
 
-        #endregion
+#endregion
 
         [Fact]
         public void TestCaptures1()

@@ -93,7 +93,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var diagnostics = ArrayBuilder<RegexDiagnostic>.GetInstance();
             CollectDiagnostics(root, diagnostics);
 
-            return new RegexTree(root, diagnostics.ToImmutableAndFree());
+            return new RegexTree(
+                root, diagnostics.ToImmutableAndFree(), 
+                _captureNamesToSpan, _captureNumbersToSpan);
         }
 
         private static void CollectDiagnostics(RegexNode node, ArrayBuilder<RegexDiagnostic> diagnostics)

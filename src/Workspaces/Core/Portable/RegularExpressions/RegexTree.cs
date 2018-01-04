@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.RegularExpressions
 {
@@ -9,10 +10,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public readonly RegexCompilationUnit Root;
         public readonly ImmutableArray<RegexDiagnostic> Diagnostics;
 
-        public RegexTree(RegexCompilationUnit root, ImmutableArray<RegexDiagnostic> diagnostics)
+        public readonly ImmutableDictionary<string, TextSpan> CaptureNamesToSpan;
+        public readonly ImmutableDictionary<int, TextSpan> CaptureNumbersToSpan;
+
+        public RegexTree(
+            RegexCompilationUnit root,
+            ImmutableArray<RegexDiagnostic> diagnostics,
+            ImmutableDictionary<string, TextSpan> captureNamesToSpan,
+            ImmutableDictionary<int, TextSpan> captureNumbersToSpan)
         {
             Root = root;
             Diagnostics = diagnostics;
+            CaptureNamesToSpan = captureNamesToSpan;
+            CaptureNumbersToSpan = captureNumbersToSpan;
         }
     }
 }
