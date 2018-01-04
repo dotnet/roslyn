@@ -7480,7 +7480,19 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
  /errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
                                göster
  /preferreduilang              Tercih edilen çıkış dilini belirtin.
- /nostdlib[+|-]           </target>
+ /nostdlib[+|-]                Standard kitaplığa (mscorlib.dll) başvurma
+ /subsystemversion:&lt;string&gt;    Bu bütünleştirilmiş kodun alt sistem sürümünü belirtin
+ /lib:&lt;file list&gt;              İçinde başvuruların aranacağı ek dizinleri
+                               belirtin
+ /errorreport:&lt;string&gt;         İç derleyici hatalarının nasıl işleneceğini belirtin:
+                               prompt, send, queue veya none. Varsayılan:
+                               queue.
+ /appconfig:&lt;file&gt;             Bütünleştirilmiş kod bağlama ayarlarını içeren bir uygulama
+                               yapılandırma dosyası belirtin
+ /moduleassemblyname:&lt;string&gt;  Bu modülün parçası olacağı bütünleştirilmiş kodun
+                               adı
+ /modulename:&lt;string&gt;          Kaynak modülün adını belirtin
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
