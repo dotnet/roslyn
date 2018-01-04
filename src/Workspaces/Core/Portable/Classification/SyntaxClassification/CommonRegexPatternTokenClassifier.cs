@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     if (child.IsNode)
                     {
-                        ClassifyEscape(child.Node);
+                        ClassifyWholeNode(child.Node, typeName);
                     }
                     else
                     {

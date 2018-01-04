@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
-                this.ForegroundColor = Color.FromRgb(220, 220, 220);
+                this.ForegroundColor = Color.FromRgb(192, 192, 192);
             }
         }
 
