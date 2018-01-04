@@ -21619,7 +21619,7 @@ End Class
             Dim compWithMetadataReference = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference()}) ' missing reference to vt
 
             compWithMetadataReference.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithMetadataReference)
+            'FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithMetadataReference)
 
             Dim fakeVtLib = CreateCompilation("", references:={MscorlibRef}, assemblyName:="vt")
             Dim compWithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
@@ -21657,17 +21657,17 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' fail
             'FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(comp2WithFakeVt)
         End Sub
 
-        Private Sub FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compilation As Compilation)
-            Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
-            Dim iEnumerable = DirectCast(classA.Interfaces()(0), SubstitutedNamedType.ConstructedInstanceType)
-            Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
-                    iEnumerable.ToTestDisplayString())
+        'Private Sub FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compilation As Compilation)
+        '    Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
+        '    Dim iEnumerable = DirectCast(classA.Interfaces()(0), SubstitutedNamedType.ConstructedInstanceType)
+        '    Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
+        '            iEnumerable.ToTestDisplayString())
 
-            Dim tuple = iEnumerable.TypeArguments()(0)
-            Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
-            Assert.True(tuple.IsTupleType)
-            Assert.True(tuple.TupleUnderlyingType.IsErrorType())
-        End Sub
+        '    Dim tuple = iEnumerable.TypeArguments()(0)
+        '    Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
+        '    Assert.True(tuple.IsTupleType)
+        '    Assert.True(tuple.TupleUnderlyingType.IsErrorType())
+        'End Sub
     End Class
 
 End Namespace
