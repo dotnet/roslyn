@@ -420,22 +420,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             => new RegexAnchorNode(RegexKind.StartAnchor, ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
 
         private RegexPrimaryExpressionNode ParseWildcard()
-        {
-            var dotToken = _currentToken;
-            ScanNextToken(allowTrivia: true);
-            return new RegexWildcardNode(dotToken);
-        }
+            => new RegexWildcardNode(ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
 
         private RegexGroupingNode ParseGrouping()
         {
-            var openParenToken = _currentToken;
             var start = _lexer.Position;
-            ScanNextToken(allowTrivia: false);
+            var openParenToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: false);
 
             switch (_currentToken.Kind)
             {
             case RegexKind.QuestionToken:
                 return ParseGroupQuestion(openParenToken, _currentToken);
+
             default:
                 _lexer.Position = start;
                 return ParseSimpleGroup(openParenToken);
@@ -446,14 +442,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             switch (_currentToken.Kind)
             {
-            case RegexKind.CloseParenToken:
-                var closeParenToken = _currentToken;
-                ScanNextToken(allowTrivia: true);
-                return closeParenToken;
-            default:
-                var missingToken = RegexToken.CreateMissing(RegexKind.CloseParenToken).AddDiagnosticIfNone(
-                    new RegexDiagnostic(WorkspacesResources.Not_enough_close_parens, GetTokenStartPositionSpan(_currentToken)));
-                return missingToken;
+                case RegexKind.CloseParenToken:
+                    return ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
+
+                default:
+                    return RegexToken.CreateMissing(RegexKind.CloseParenToken).AddDiagnosticIfNone(
+                        new RegexDiagnostic(WorkspacesResources.Not_enough_close_parens, GetTokenStartPositionSpan(_currentToken)));
             }
         }
 
