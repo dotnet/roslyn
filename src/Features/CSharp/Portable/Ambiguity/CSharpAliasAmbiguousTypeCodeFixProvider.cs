@@ -6,7 +6,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AmbiguityCodeFixProvider;
+using Microsoft.CodeAnalysis.Ambiguity;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Ambiguity
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AliasAmbiguousType), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]
-    internal class CSharpAmbiguousTypeCodeFixProvider : AbstractAmbiguousTypeCodeFixProvider
+    internal class CSharpAliasAmbiguousTypeCodeFixProvider : AbstractAliasAmbiguousTypeCodeFixProvider
     {
         /// <summary>
         /// 'reference' is an ambiguous reference between 'identifier' and 'identifier'

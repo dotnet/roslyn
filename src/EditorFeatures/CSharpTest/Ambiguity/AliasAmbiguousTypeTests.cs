@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Ambiguity
 {
-    public class AmbiguousTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AliasAmbiguousTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpAmbiguousTypeCodeFixProvider());
+            => (null, new CSharpAliasAmbiguousTypeCodeFixProvider());
 
         private string GetAmbiguousDefinition(string typeDefinion)
             => $@"
@@ -252,7 +252,7 @@ class D
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup.Replace("#", "using Nested = Static<int>.Nested;"), 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
         public async Task TestAmbiguousClassDiagnosedAtBaseList()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -278,7 +278,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
         public async Task TestAmbiguousClassDiagnosedAtTypeConstraint()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -304,7 +304,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
         public async Task TestAmbiguousEnumDiagnosedAtFieldDeclaration()
         {
             var enumDef = GetAmbiguousDefinition(@"public enum AmbiguousEnum { }");
@@ -336,7 +336,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
         public async Task TestAmbiguousStructDiagnosedAtPropertyDeclaration()
         {
             var strcutDef = GetAmbiguousDefinition(@"public struct AmbiguousStruct { }");
@@ -368,7 +368,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
         public async Task TestAmbiguousClassDiagnosedAtTypeArgument()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -406,7 +406,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
         public async Task TestAmbiguousClassDiagnosedAtIdentifierOfIncompleteExpression()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -444,7 +444,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
         public async Task TestAmbiguousClassDiagnosedAtMethodParameter()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -480,7 +480,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
         public async Task TestAmbiguousClassDiagnosedAtFromClauseTypeIdentifier()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");

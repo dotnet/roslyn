@@ -5,11 +5,11 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Ambiguity
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Ambiguity
-    Public Class AmbiguousTypeTests
+    Public Class AliasAmbiguousTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (Nothing, New VisualBasicAmbiguousTypeCodeFixProvider())
+            Return (Nothing, New VisualBasicAliasAmbiguousTypeCodeFixProvider())
         End Function
 
         Private Function GetAmbiguousDefinition(ByVal typeDefinion As String) As String
@@ -149,7 +149,7 @@ End Class
             Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType + "1")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
         Public Async Function TestAmbiguousInterfaceNameReferencedInSmallCaps() As Task
             Dim initialMarkup = "
 Imports N1, N2
@@ -167,7 +167,7 @@ End Class
 "
             Dim expectedMarkup = "
 Imports N1, N2
-Imports i1 = N1.I1
+Imports I1 = N1.I1
 
 Namespace N1
     Interface I1

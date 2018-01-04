@@ -2,15 +2,16 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.AmbiguityCodeFixProvider
+Imports Microsoft.CodeAnalysis.Ambiguity
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Ambiguity
+
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AliasAmbiguousType), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FullyQualify)>
-    Friend Class VisualBasicAmbiguousTypeCodeFixProvider
-        Inherits AbstractAmbiguousTypeCodeFixProvider
+    Friend Class VisualBasicAliasAmbiguousTypeCodeFixProvider
+        Inherits AbstractAliasAmbiguousTypeCodeFixProvider
 
         'BC30561: '<name1>' is ambiguous, imported from the namespaces or types '<name2>'
         Private Const BC30561 As String = NameOf(BC30561)
