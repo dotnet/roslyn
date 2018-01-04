@@ -1674,6 +1674,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // byref assignment is also a potential write
             if (node.IsRef)
             {
+                // Assume that BadExpression is a ref location to avoid
+                // cascading diagnostics
                 var refKind = node.Left.Kind == BoundKind.BadExpression
                     ? RefKind.Ref
                     : node.Left.GetRefKind();

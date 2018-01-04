@@ -2359,7 +2359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 int exprTempsBefore = _expressionTemps?.Count ?? 0;
-                var lhs = assignmentOperator.Left;
+                BoundExpression lhs = assignmentOperator.Left;
 
                 // NOTE: passing "ReadOnlyStrict" here. 
                 //       we should not get an address of a copy if at all possible
