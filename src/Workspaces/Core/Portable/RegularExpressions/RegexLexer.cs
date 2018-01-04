@@ -64,45 +64,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 : new RegexToken(trivia, RegexKind.TextToken, chars);
         }
 
-        private bool IsSpecial(char ch)
-            => IsPrimarySpecialChar(ch) ||
-              IsQuantifierChar(ch) ||
-              IsAlternationChar(ch);
-
-        public static bool IsAlternationChar(char ch)
-            => ch == '|';
-
-        private static bool IsQuantifierChar(char ch)
-        {
-            switch (ch)
-            {
-                case '*':
-                case '+':
-                case '?':
-                case '{':
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        private static bool IsPrimarySpecialChar(char ch)
-        {
-            switch (ch)
-            {
-                case '\\':
-                case '[':
-                case '.':
-                case '^':
-                case '$':
-                case '(':
-                case ')':
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         private static RegexKind GetKind(char ch)
         {
             switch (ch)
@@ -128,7 +89,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             kind = GetKind(ch);
             return kind != RegexKind.None;
         }
-
 
         private ImmutableArray<RegexTrivia> ScanLeadingTrivia(bool allowTrivia, RegexOptions options)
         {
