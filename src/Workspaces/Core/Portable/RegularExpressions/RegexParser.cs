@@ -1455,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 var numberToken = new RegexToken(
                     ImmutableArray<RegexTrivia>.Empty, RegexKind.NumberToken,
-                    _lexer.GetSubPattern(start, bestPosition));
+                    _lexer.GetSubPattern(start, bestPosition)).With(value: capVal);
                 ResetToPositionAndScanNextToken(bestPosition, allowTrivia: true);
                 return new RegexBackreferenceEscapeNode(backslashToken, numberToken);
             }

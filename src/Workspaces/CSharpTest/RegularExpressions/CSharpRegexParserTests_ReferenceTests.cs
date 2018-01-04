@@ -5118,7 +5118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
               <Sequence>
                 <BackreferenceEscape>
                   <BackslashToken>\</BackslashToken>
-                  <NumberToken>1</NumberToken>
+                  <NumberToken value=""1"">1</NumberToken>
                 </BackreferenceEscape>
               </Sequence>
               <CloseParenToken>)</CloseParenToken>

@@ -10052,7 +10052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       </SimpleGrouping>
       <BackreferenceEscape>
         <BackslashToken>\</BackslashToken>
-        <NumberToken>1</NumberToken>
+        <NumberToken value=""1"">1</NumberToken>
       </BackreferenceEscape>
     </Sequence>
     <EndOfFile />
@@ -10077,7 +10077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       </SimpleGrouping>
       <BackreferenceEscape>
         <BackslashToken>\</BackslashToken>
-        <NumberToken>1</NumberToken>
+        <NumberToken value=""1"">1</NumberToken>
       </BackreferenceEscape>
       <Text>
         <TextToken> </TextToken>
@@ -10105,7 +10105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       </SimpleGrouping>
       <BackreferenceEscape>
         <BackslashToken>\</BackslashToken>
-        <NumberToken>1</NumberToken>
+        <NumberToken value=""10"">1</NumberToken>
       </BackreferenceEscape>
       <Text>
         <TextToken>0</TextToken>
@@ -10181,7 +10181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       </SimpleGrouping>
       <BackreferenceEscape>
         <BackslashToken>\</BackslashToken>
-        <NumberToken>10</NumberToken>
+        <NumberToken value=""10"">10</NumberToken>
       </BackreferenceEscape>
       <Text>
         <TextToken> </TextToken>

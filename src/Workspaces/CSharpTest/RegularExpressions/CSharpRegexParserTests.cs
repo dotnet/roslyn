@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         {
             var tree = TryParseTree(stringText, options, conversionFailureOk: false);
 
-            // TryParseSubTrees(stringText, options);
+            TryParseSubTrees(stringText, options);
 
             var actual = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actual);

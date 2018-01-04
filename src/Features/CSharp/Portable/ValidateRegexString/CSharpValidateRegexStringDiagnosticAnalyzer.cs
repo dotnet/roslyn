@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ValidateRegexString
     {
         public CSharpValidateRegexStringDiagnosticAnalyzer() 
             : base((int)SyntaxKind.StringLiteralToken, 
-                  CSharpSyntaxFactsService.Instance, CSharpSemanticFactsService.Instance, CSharpVirtualCharService.Instance)
+                   CSharpSyntaxFactsService.Instance,
+                   CSharpSemanticFactsService.Instance,
+                   CSharpVirtualCharService.Instance)
         {
         }
     }
