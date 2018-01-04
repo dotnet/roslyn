@@ -431,11 +431,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
             }
 
+            Debug.Assert(Position - start > 0);
+
             var result = new RegexToken(
                 ImmutableArray<RegexTrivia>.Empty, RegexKind.TextToken, GetSubPattern(start, Position));
-
-            var length = Position - start;
-            Debug.Assert(length > 0);
 
             return result;
         }
