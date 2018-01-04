@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             _captureNamesToSpan = captureNamesToSpan;
             _captureNumbersToSpan = captureNumbersToSpan;
 
+            // Get the first token.  It is allowed to have trivia on it.
             ConsumeCurrentToken(allowTrivia: true);
         }
 
@@ -40,6 +41,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         /// Returns the latest token the lexer has produced, and then asks the lexer to 
         /// produce the next token after that.
         /// </summary>
+        /// <param name="allowTrivia">Whether or not trivia is allowed on the next token
+        /// produced.  In the .net parser trivia is only allowed on a few constructs,
+        /// and our parser mimics that behavior.  Note that even if trivia is allowed,
+        /// the type of trivia that can be scanned depends on the current RegexOptions.
+        /// For example, if <see cref="RegexOptions.IgnorePatternWhitespace"/> is currently
+        /// enabled, then '#...' comments are allowed.  Otherwise, only '(?#...)' comemnts
+        /// are allowed.</param>
         private RegexToken ConsumeCurrentToken(bool allowTrivia)
         {
             var previous = _currentToken;
@@ -240,25 +248,16 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexExpressionNode ParseZeroOrMoreQuantifier(RegexPrimaryExpressionNode current)
-        {
-            // Whitespace allowed between the quantifier and the possible following ?.
-            return TryParseLazyQuantifier(new RegexZeroOrMoreQuantifierNode(current,
-                ConsumeCurrentToken(allowTrivia: true)));
-        }
+            // Whitespace allowed between the quantifier and the possible following ? or next sequence item.
+            => TryParseLazyQuantifier(new RegexZeroOrMoreQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
 
         private RegexExpressionNode ParseOneOrMoreQuantifier(RegexPrimaryExpressionNode current)
-        {
-            // Whitespace allowed between the quantifier and the possible following ?.
-            return TryParseLazyQuantifier(new RegexOneOrMoreQuantifierNode(current,
-                ConsumeCurrentToken(allowTrivia: true)));
-        }
+            // Whitespace allowed between the quantifier and the possible following ? or next sequence item.
+            => TryParseLazyQuantifier(new RegexOneOrMoreQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
 
         private RegexExpressionNode ParseZeroOrOneQuantifier(RegexPrimaryExpressionNode current)
-        {
-            // Whitespace allowed between the quantifier and the possible following ?.
-            return TryParseLazyQuantifier(new RegexZeroOrOneQuantifierNode(current,
-                ConsumeCurrentToken(allowTrivia: true)));
-        }
+            // Whitespace allowed between the quantifier and the possible following ? or next sequence item.
+            => TryParseLazyQuantifier(new RegexZeroOrOneQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
 
         private RegexExpressionNode TryParseNumericQuantifier(
             RegexPrimaryExpressionNode expression, RegexToken openBraceToken)
@@ -355,6 +354,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return false;
             }
 
+            // Whitespace allowed between the quantifier and the possible following ? or next sequence item.
             closeBraceToken = ConsumeCurrentToken(allowTrivia: true);
             return true;
         }
@@ -396,6 +396,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexPrimaryExpressionNode ParsePossibleUnexpectedNumericQuantifier(RegexExpressionNode lastExpression)
         {
+            // Native parser looks for something like {0,1} in a top level sequence and reports
+            // an explicit error that that's not allowed.  However, something like {0, 1} is fine
+            // and is treated as six textual tokens.
             var openBraceToken = _currentToken.With(kind: RegexKind.TextToken);
             var start = _lexer.Position;
 
@@ -406,6 +409,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 CheckQuantifierExpression(lastExpression, ref openBraceToken);
             }
 
+            // Started with { but wasn't a numeric quantifier.  This is totally legal and is just
+            // a textual sequence.  Restart, scanning this token as a normal sequence element.
             ResetToPositionAndConsumeCurrentToken(start, allowTrivia: true);
             return new RegexTextNode(openBraceToken);
         }
@@ -414,25 +419,36 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             var token = _currentToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(
                 new RegexDiagnostic(WorkspacesResources.Too_many_close_parens, GetSpan(_currentToken)));
+
+            // Technically, since an error occurred, we can do whatever we want here.  However,
+            // the spirit of the native parser is that top level sequence elements are allowed
+            // to have trivia.  So that's the behavior we mimic.
             ConsumeCurrentToken(allowTrivia: true);
             return new RegexTextNode(token);
         }
 
         private RegexPrimaryExpressionNode ParseText()
+            // Allow trivia between this piece of text and the next sequence element
             => new RegexTextNode(ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
 
         private RegexPrimaryExpressionNode ParseEndAnchor()
+            // Allow trivia between this anchor and the next sequence element
             => new RegexAnchorNode(RegexKind.EndAnchor, ConsumeCurrentToken(allowTrivia: true));
 
         private RegexPrimaryExpressionNode ParseStartAnchor()
+            // Allow trivia between this anchor and the next sequence element
             => new RegexAnchorNode(RegexKind.StartAnchor, ConsumeCurrentToken(allowTrivia: true));
 
         private RegexPrimaryExpressionNode ParseWildcard()
+            // Allow trivia between the . and the next sequence element
             => new RegexWildcardNode(ConsumeCurrentToken(allowTrivia: true));
 
         private RegexGroupingNode ParseGrouping()
         {
             var start = _lexer.Position;
+
+            // Check what immediately follows the (.  If we have (? it is processed specially.
+            // However, we do not treat (? the same as ( ?
             var openParenToken = ConsumeCurrentToken(allowTrivia: false);
 
             switch (_currentToken.Kind)
@@ -441,6 +457,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     return ParseGroupQuestion(openParenToken, _currentToken);
 
                 default:
+                    // Wasn't (? just parse this as a normal group.
                     _lexer.Position = start;
                     return ParseSimpleGroup(openParenToken);
             }
@@ -451,6 +468,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             switch (_currentToken.Kind)
             {
                 case RegexKind.CloseParenToken:
+                    // Grouping completed normally.  Allow trivia between it and the next sequence element.
                     return ConsumeCurrentToken(allowTrivia: true);
 
                 default:
@@ -469,7 +487,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var currentOptions = _options;
             _options = embeddedOptions;
 
+            // We're parsing the embedded sequence inside the current group.  As this is a sequence
+            // we want to allow trivia between the current token we're on, and the first token
+            // of the embedded sequence.
             ConsumeCurrentToken(allowTrivia: true);
+
+            // When parsing out the sequence don't grab the close paren, that will be for our caller
+            // to get.
             var expression = this.ParseAlternatingSequences(consumeCloseParen: false);
             _options = currentOptions;
             return expression;
@@ -496,6 +520,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             var afterQuestionPos = _lexer.Position;
+
+            // Lots of possible options when we see (?.  Look at the immediately following character
+            // (without any allowed spaces) to decide what to parse out next.
             ConsumeCurrentToken(allowTrivia: false);
             switch (_currentToken.Kind)
             {
@@ -560,7 +587,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 RegexToken innerCloseParenToken;
                 if (capture.Kind == RegexKind.NumberToken)
                 {
-                    // If it's a numeric group, it always has to be a real reference.
+                    // If it's a numeric group, it has to be immediately followed by a )
+                    // and the numeric reference has to exist.
+                    //
+                    // That means that (?(4 ) is not treated as an embedded expression but as
+                    // an error.  This is different from (?(a ) which will be treated as an 
+                    // embedded expression, and different from (?(a) will will be treated as
+                    // an embedded expression or capture group depending on if 'a' is a existing
+                    // capture name.
 
                     ConsumeCurrentToken(allowTrivia: false);
                     if (_currentToken.Kind == RegexKind.CloseParenToken)
