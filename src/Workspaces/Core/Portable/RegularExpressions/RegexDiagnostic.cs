@@ -36,11 +36,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int GetHashCode()
         {
-            var hashCode = -954867195;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Message);
-            hashCode = hashCode * -1521134295 + EqualityComparer<TextSpan>.Default.GetHashCode(Span);
-            return hashCode;
+            unchecked
+            {
+                var hashCode = -954867195;
+                hashCode = hashCode * -1521134295 + base.GetHashCode();
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Message);
+                hashCode = hashCode * -1521134295 + EqualityComparer<TextSpan>.Default.GetHashCode(Span);
+                return hashCode;
+            }
         }
 
         public static bool operator ==(RegexDiagnostic diagnostic1, RegexDiagnostic diagnostic2)
