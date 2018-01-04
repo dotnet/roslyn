@@ -1139,14 +1139,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private char GetCharValue(RegexToken hexText, int withBase)
         {
-            var total = 0;
-            foreach (var vc in hexText.VirtualChars)
+            unchecked
             {
-                total *= withBase;
-                total += HexValue(vc.Char);
-            }
+                var total = 0;
+                foreach (var vc in hexText.VirtualChars)
+                {
+                    total *= withBase;
+                    total += HexValue(vc.Char);
+                }
 
-            return (char)total;
+                return (char)total;
+            }
         }
 
         private int HexValue(char ch)
@@ -1353,30 +1356,15 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var ch = _currentToken.VirtualChars[0].Char;
             switch (_currentToken.VirtualChars[0].Char)
             {
-                case 'b':
-                case 'B':
-                case 'A':
-                case 'G':
-                case 'Z':
-                case 'z':
-                {
+                case 'b': case 'B': case 'A': case 'G': case 'Z': case 'z':
                     return new RegexAnchorEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
-                }
 
-                case 'w':
-                case 'W':
-                case 's':
-                case 'S':
-                case 'd':
-                case 'D':
-                {
+                case 'w': case 'W': case 's': case 'S': case 'd': case 'D':
                     return new RegexCharacterClassEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
-                }
 
-                case 'p':
-                case 'P':
+                case 'p': case 'P':
                     return ParseCategoryEscape(backslashToken, allowTriviaAfterEnd);
             }
 
@@ -1448,8 +1436,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                    _lexer.Text[_lexer.Position] is var ch &&
                    (ch >= '0' && ch <= '9'))
             {
-                capVal *= 10;
-                capVal += (ch - '0');
+                unchecked
+                {
+                    capVal *= 10;
+                    capVal += (ch - '0');
+                }
 
                 _lexer.Position++;
 
@@ -1595,18 +1586,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             switch (ch)
             {
-                case 'a':
-                case 'b':
-                case 'e':
-                case 'f':
-                case 'n':
-                case 'r':
-                case 't':
-                case 'v':
-                {
+                case 'a': case 'b': case 'e': case 'f':
+                case 'n': case 'r': case 't': case 'v':
                     return new RegexSimpleEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
-                }
                 case 'x':
                     return ScanHexEscape(backslashToken);
                 case 'u':
