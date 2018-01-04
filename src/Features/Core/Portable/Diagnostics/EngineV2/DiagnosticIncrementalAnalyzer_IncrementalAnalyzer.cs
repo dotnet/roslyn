@@ -6,8 +6,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -59,10 +61,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
                 }
+
+                // disabled for now. enable it once connection pool is implemented
+                // await ReportAnalyzerPerformanceAsync(document, analyzerDriverOpt, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private async Task ReportAnalyzerPerformanceAsync(Document document, CompilationWithAnalyzers analyzerDriverOpt, CancellationToken cancellationToken)
+        {
+            if (analyzerDriverOpt == null)
+            {
+                return;
+            }
+
+            var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                // no remote support
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject())
+            {
+                foreach (var analyzer in analyzerDriverOpt.Analyzers)
+                {
+                    var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    pooledObject.Object.Add(analyzer, telemetryInfo);
+                }
+
+                await client.TryRunCodeAnalysisRemoteAsync(
+                    nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                    pooledObject.Object.ToAnalyzerPerformanceInfo(Owner),
+                    cancellationToken).ConfigureAwait(false);
             }
         }
 

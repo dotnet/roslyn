@@ -154,6 +154,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                 return true;
             }
 
+            if (analyzer is IBuiltInAnalyzer)
+            {
+                // if it is builtin analyzer, telemetry is always allowed
+                return true;
+            }
+
             ImmutableArray<DiagnosticDescriptor> diagDescriptors;
             try
             {
