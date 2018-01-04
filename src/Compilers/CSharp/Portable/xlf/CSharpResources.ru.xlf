@@ -7469,7 +7469,25 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                файлов.
  /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                Задать сопоставление для выходных данных имен исходного пути по
-       </target>
+                               компилятору.
+ /pdb:&lt;файл&gt;                   Задать имя файла для отладочной информации (по умолчанию
+                               используется имя выходного файла с расширением PDB)
+ /errorendlocation             Выводить строку и столбец конечного расположения
+                               каждой ошибки.
+ /preferreduilang              Указать имя предпочтительного языка вывода.
+ /nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll).
+ /subsystemversion:&lt;строка&gt;    Задать версию подсистемы этой сборки.
+ /lib:&lt;список файлов&gt;              Задать дополнительные каталоги для поиска
+                               ссылок.
+ /errorreport:&lt;строка&gt;         Указать способ обработки внутренних ошибок компилятора:
+                               prompt, send, queue или none. По умолчанию используется
+                               queue.
+ /appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
+                               содержащий параметры привязки сборки.
+ /moduleassemblyname:&lt;строка&gt;  Имя сборки, частью которой будет являться
+                               этот модуль.
+ /modulename:&lt;строка&gt;          Задать имя исходного модуля.
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">

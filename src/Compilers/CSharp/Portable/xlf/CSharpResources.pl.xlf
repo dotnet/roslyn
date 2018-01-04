@@ -7466,7 +7466,28 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
                                wersja: /m)
  /fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
  /filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji 
-                               p</target>
+                               plików wyjściowych
+ /pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,... 
+                               Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
+                               kompilator.
+ /pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie: 
+                               nazwa pliku wyjściowego z rozszerzeniem pdb)
+ /errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla 
+                               każdego błędu
+ /preferreduilang              Określ nazwę preferowanego języka wyjściowego.
+ /nostdlib[+|-]                Nie odwołuj się do biblioteki standardowej (mscorlib.dll)
+ /subsystemversion:&lt;ciąg&gt;      Określ wersję podsystemu tego zestawu
+ /lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem 
+                               odwołań
+ /errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora: 
+                               prompt, send, queue lub none. Wartość domyślna to 
+                               queue.
+ /appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji 
+                               zawierający ustawienia powiązania zestawu
+ /moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią 
+                               ma być ten moduł
+ /modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
