@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     }
                 }
 
-                if (TextAt(Position, "(?#"))
+                if (IsAt("(?#"))
                 {
                     var start = Position;
                     while (Position < Text.Length &&
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public bool IsAt(string val)
             => TextAt(this.Position, val);
 
-        public bool TextAt(int position, string val)
+        private bool TextAt(int position, string val)
         {
             for (var i = 0; i < val.Length; i++)
             {
