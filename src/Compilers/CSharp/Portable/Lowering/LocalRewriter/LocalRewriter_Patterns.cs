@@ -289,15 +289,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = (result == null) ? conjunct : _factory.LogicalAnd(result, conjunct);
                 }
 
-                var bindingsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                var bindingsBuilder = ArrayBuilder<BoundExpression>.GetInstance(bindings.Length);
                 foreach ((BoundExpression left, BoundDagTemp right) in bindings)
                 {
                     bindingsBuilder.Add(_factory.AssignmentExpression(left, _tempAllocator.GetTemp(right)));
                 }
 
-                if (bindingsBuilder.Count > 0)
+                var bindingAssignments = bindingsBuilder.ToImmutableAndFree();
+                if (bindingAssignments.Length > 0)
                 {
-                    BoundSequence c = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, bindingsBuilder.ToImmutableAndFree(), _factory.Literal(true));
+                    BoundSequence c = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, bindingAssignments, _factory.Literal(true));
                     result = (result == null) ? c : (BoundExpression)_factory.LogicalAnd(result, c);
                 }
                 else if (result == null)
