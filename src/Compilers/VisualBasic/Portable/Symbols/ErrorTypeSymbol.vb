@@ -413,7 +413,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
 #End Region
-
     End Class
 End Namespace
 

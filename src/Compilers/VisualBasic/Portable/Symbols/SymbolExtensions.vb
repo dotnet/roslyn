@@ -419,8 +419,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return origMember
             End If
 
-            Dim substituted = DirectCast(type, SubstitutedNamedType)
-            Return DirectCast(substituted.GetMemberForDefinition(origMember), T)
+            Dim substituted = TryCast(type, SubstitutedNamedType)
+            If substituted IsNot Nothing Then
+                Return DirectCast(substituted.GetMemberForDefinition(origMember), T)
+            End If
+
+            'Dim errorType = DirectCast(type, SubstitutedErrorType)
+            'Dim namedOrigMember = TryCast(origMember, NamedTypeSymbol)
+            'If errorType IsNot Nothing And namedOrigMember IsNot Nothing Then
+            '    Return New SubstitutedErrorType()
+            'End If
+
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         <Extension>
