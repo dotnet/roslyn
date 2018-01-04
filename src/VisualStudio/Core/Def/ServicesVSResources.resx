@@ -1015,4 +1015,16 @@ I agree to all of the foregoing:</value>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
   </data>
+  <data name="Colorize_regular_expressions" xml:space="preserve">
+    <value>Colorize regular expressions</value>
+  </data>
+  <data name="Highlight_related_components_under_cursor" xml:space="preserve">
+    <value>Highlight related components under cursor</value>
+  </data>
+  <data name="Regular_Expressions" xml:space="preserve">
+    <value>Regular Expressions</value>
+  </data>
+  <data name="Report_invalid_regular_expressions" xml:space="preserve">
+    <value>Report invalid regular expressions</value>
+  </data>
 </root>

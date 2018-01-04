@@ -262,29 +262,14 @@
         <target state="translated">首选 "Is Nothing" 而非 "Object.ReferenceEquals(..., Nothing)"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
-        <source>Report invalid placeholders in 'String.Format' calls</source>
-        <target state="translated">报告 "String.Format" 调用中无效的占位符</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Separate_import_directive_groups">
         <source>Separate import directive groups</source>
         <target state="translated">单独的导入指令组</target>
         <note />
       </trans-unit>
-      <trans-unit id="Colorize_regular_expressions">
-        <source>Colorize regular expressions</source>
-        <target state="new">Colorize regular expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular_Expressions">
-        <source>Regular Expressions</source>
-        <target state="new">Regular Expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Report_invalid_regular_expressions">
-        <source>Report invalid regular expressions</source>
-        <target state="new">Report invalid regular expressions</target>
+      <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
+        <source>Report invalid placeholders in 'String.Format' calls</source>
+        <target state="new">Report invalid placeholders in 'String.Format' calls</target>
         <note />
       </trans-unit>
     </body>

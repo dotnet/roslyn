@@ -1498,6 +1498,26 @@ I agree to all of the foregoing:</source>
         <target state="translated">デコンパイラの法的通知</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="new">Colorize regular expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_components_under_cursor">
+        <source>Highlight related components under cursor</source>
+        <target state="new">Highlight related components under cursor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="new">Regular Expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="new">Report invalid regular expressions</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

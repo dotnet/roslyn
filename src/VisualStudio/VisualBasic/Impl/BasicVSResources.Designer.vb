@@ -101,15 +101,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Colorize regular expressions.
-        '''</summary>
-        Friend Shared ReadOnly Property Colorize_regular_expressions() As String
-            Get
-                Return ResourceManager.GetString("Colorize_regular_expressions", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Completion Lists.
         '''</summary>
         Friend Shared ReadOnly Property Completion_Lists() As String
@@ -461,29 +452,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Regular Expressions.
-        '''</summary>
-        Friend Shared ReadOnly Property Regular_Expressions() As String
-            Get
-                Return ResourceManager.GetString("Regular_Expressions", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Report invalid placeholders in &apos;String.Format&apos; calls.
         '''</summary>
         Friend Shared ReadOnly Property Report_invalid_placeholders_in_string_dot_format_calls() As String
             Get
                 Return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_calls", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Report invalid regular expressions.
-        '''</summary>
-        Friend Shared ReadOnly Property Report_invalid_regular_expressions() As String
-            Get
-                Return ResourceManager.GetString("Report_invalid_regular_expressions", resourceCulture)
             End Get
         End Property
         

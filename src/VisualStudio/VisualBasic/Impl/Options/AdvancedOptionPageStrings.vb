@@ -207,12 +207,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
 
         Public ReadOnly Property Option_Regular_Expressions As String =
-            BasicVSResources.Regular_Expressions
+            ServicesVSResources.Regular_Expressions
 
         Public ReadOnly Property Option_Colorize_regular_expressions As String =
-            BasicVSResources.Colorize_regular_expressions
+            ServicesVSResources.Colorize_regular_expressions
 
         Public ReadOnly Property Option_Report_invalid_regular_expressions As String =
-            BasicVSResources.Report_invalid_regular_expressions
+            ServicesVSResources.Report_invalid_regular_expressions
     End Module
 End Namespace
