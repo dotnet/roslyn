@@ -1,17 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -19,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Ambiguity
 {
     internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvider
     {
-        protected abstract SyntaxNode GetAliasDirective(string typeName, ISymbol symbol);
 
         public override FixAllProvider GetFixAllProvider() => null;
 
@@ -42,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Ambiguity
             if (SymbolCandidatesContainsSupportedSymbols(symbolInfo))
             {
                 var addImportService = document.GetLanguageService<IAddImportsService>();
+                var syntaxGenerator = document.GetLanguageService<SyntaxGenerator>();
                 var diagnostic = context.Diagnostics.First();
                 var compilation = semanticModel.Compilation;
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -49,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Ambiguity
                 foreach (var symbol in symbolInfo.CandidateSymbols)
                 {
                     var typeName = symbol.Name;
-                    var aliasDirective = GetAliasDirective(typeName, symbol);
+                    var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, (ITypeSymbol)symbol);
                     var codeActionPreviewText = GetTextPreviewOfChange(aliasDirective);
                     var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
                     var codeAction = new MyCodeAction(codeActionPreviewText, c => Task.FromResult(document.WithSyntaxRoot(newRoot)));

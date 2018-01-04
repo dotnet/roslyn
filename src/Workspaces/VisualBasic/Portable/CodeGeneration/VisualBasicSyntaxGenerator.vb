@@ -1500,6 +1500,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.SimpleImportsClause(DirectCast(name, NameSyntax))))
         End Function
 
+        Public Overrides Function AliasImportDeclaration(aliasIdentifierName As String, symbol As INamespaceOrTypeSymbol) As SyntaxNode
+            Dim typeSyntax = symbol.GenerateTypeSyntax()
+            If TypeOf typeSyntax Is NameSyntax Then
+                Return SyntaxFactory.ImportsStatement(SyntaxFactory.SeparatedList(Of ImportsClauseSyntax).Add(
+                                                      SyntaxFactory.SimpleImportsClause(
+                                                      SyntaxFactory.ImportAliasClause(aliasIdentifierName),
+                                                      CType(typeSyntax, NameSyntax))))
+
+            End If
+            Throw New ArgumentException("Symbol can not be named.", NameOf(symbol))
+        End Function
+
         Public Overrides Function NamespaceDeclaration(name As SyntaxNode, nestedDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim imps As IEnumerable(Of StatementSyntax) = AsImports(nestedDeclarations)
             Dim members As IEnumerable(Of StatementSyntax) = AsNamespaceMembers(nestedDeclarations)
@@ -2886,7 +2898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.ProtectedKeyword
                         If accessibility = Accessibility.Friend Then
                             accessibility = Accessibility.ProtectedOrFriend
-                        ElseIf accessibility = Accessibility.Private
+                        ElseIf accessibility = Accessibility.Private Then
                             accessibility = Accessibility.ProtectedAndFriend
                         Else
                             accessibility = Accessibility.Protected

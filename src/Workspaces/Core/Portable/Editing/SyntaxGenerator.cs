@@ -788,6 +788,13 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates a alias import declaration.
+        /// </summary>
+        /// <param name="aliasIdentifierName">The name of the alias.</param>
+        /// <param name="symbol">The namespace or type to be aliased.</param>
+        public abstract SyntaxNode AliasImportDeclaration(string aliasIdentifierName, INamespaceOrTypeSymbol symbol);
+
+        /// <summary>
         /// Creates an attribute.
         /// </summary>
         public abstract SyntaxNode Attribute(SyntaxNode name, IEnumerable<SyntaxNode> attributeArguments = null);
