@@ -74,10 +74,28 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
+                void shutdownHandler(object _, EventArgs __)
+                {
+                    try
+                    {
+                        AppDomain.CurrentDomain.ProcessExit -= shutdownHandler;
+                        if (Interlocked.Exchange(ref processExitHandling, ProcessExitHandled) == ProcessExitHooked)
+                        {
+                            Process.Exited -= localHandler;
+                            Dispose(joinThreads: true);
+                        }
+                    }
+                    catch (Exception e) when (FatalError.Report(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+                }
+
                 // hook the event only once per process:
                 if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)
                 {
                     Process.Exited += localHandler;
+                    AppDomain.CurrentDomain.ProcessExit += shutdownHandler;
                 }
             }
 
