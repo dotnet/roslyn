@@ -9360,6 +9360,100 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         }
 
         [Fact]
+        public void TestNestedGroupsInConditionalGrouping1()
+        {
+            Test(@"""(?(()a()))""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <ConditionalExpressionGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <SimpleGrouping>
+          <OpenParenToken>(</OpenParenToken>
+          <Sequence>
+            <SimpleGrouping>
+              <OpenParenToken>(</OpenParenToken>
+              <Sequence />
+              <CloseParenToken>)</CloseParenToken>
+            </SimpleGrouping>
+            <Text>
+              <TextToken>a</TextToken>
+            </Text>
+            <SimpleGrouping>
+              <OpenParenToken>(</OpenParenToken>
+              <Sequence />
+              <CloseParenToken>)</CloseParenToken>
+            </SimpleGrouping>
+          </Sequence>
+          <CloseParenToken>)</CloseParenToken>
+        </SimpleGrouping>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </ConditionalExpressionGrouping>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[9..19)"" />
+    <Capture Name=""1"" Span=""[12..14)"" />
+    <Capture Name=""2"" Span=""[15..17)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestNestedGroupsInConditionalGrouping2()
+        {
+            Test(@"""(?((?<x>)a(?<y>)))""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <ConditionalExpressionGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <SimpleGrouping>
+          <OpenParenToken>(</OpenParenToken>
+          <Sequence>
+            <CaptureGrouping>
+              <OpenParenToken>(</OpenParenToken>
+              <QuestionToken>?</QuestionToken>
+              <LessThanToken>&lt;</LessThanToken>
+              <CaptureNameToken value=""x"">x</CaptureNameToken>
+              <GreaterThanToken>&gt;</GreaterThanToken>
+              <Sequence />
+              <CloseParenToken>)</CloseParenToken>
+            </CaptureGrouping>
+            <Text>
+              <TextToken>a</TextToken>
+            </Text>
+            <CaptureGrouping>
+              <OpenParenToken>(</OpenParenToken>
+              <QuestionToken>?</QuestionToken>
+              <LessThanToken>&lt;</LessThanToken>
+              <CaptureNameToken value=""y"">y</CaptureNameToken>
+              <GreaterThanToken>&gt;</GreaterThanToken>
+              <Sequence />
+              <CloseParenToken>)</CloseParenToken>
+            </CaptureGrouping>
+          </Sequence>
+          <CloseParenToken>)</CloseParenToken>
+        </SimpleGrouping>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </ConditionalExpressionGrouping>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[9..27)"" />
+    <Capture Name=""1"" Span=""[12..18)"" />
+    <Capture Name=""2"" Span=""[19..25)"" />
+    <Capture Name=""x"" Span=""[12..18)"" />
+    <Capture Name=""y"" Span=""[19..25)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
         public void TestCaptureInConditionalGrouping1()
         {
             Test(@"""(?(?'""", @"<Tree>

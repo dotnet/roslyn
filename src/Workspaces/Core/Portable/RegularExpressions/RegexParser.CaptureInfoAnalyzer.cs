@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.RegularExpressions
 {
+    using System;
     using static RegexHelpers;
 
     internal partial struct RegexParser
@@ -63,9 +64,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         break;
 
                     case RegexKind.ConditionalExpressionGrouping:
-                        // Explicitly skip over conditionalGrouping.Grouping.  That grouping
-                        // does not create a capture group.
+                        // Explicitly dripp into conditionalGrouping.Grouping.  That grouping itself 
+                        // does not create a capture group, but nested groupings inside of it will.
                         var conditionalGrouping = (RegexConditionalExpressionGroupingNode)node;
+                        RecurseIntoChildren(conditionalGrouping.Grouping, options);
                         CollectCaptures(conditionalGrouping.Result, options);
                         return;
 
@@ -82,6 +84,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         return;
                 }
 
+                RecurseIntoChildren(node, options);
+            }
+
+            private void RecurseIntoChildren(RegexNode node, RegexOptions options)
+            {
                 foreach (var child in node)
                 {
                     if (child.IsNode)
