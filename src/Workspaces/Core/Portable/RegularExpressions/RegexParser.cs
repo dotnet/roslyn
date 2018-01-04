@@ -836,12 +836,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private void CheckCapture(ref RegexToken captureToken)
         {
-            if (_captureNamesToSpan == null)
-            {
-                // Doing the first pass.  Can't validate capture references.
-                return;
-            }
-
             if (captureToken.IsMissing)
             {
                 // Don't need to check for a synthesized error capture token.
