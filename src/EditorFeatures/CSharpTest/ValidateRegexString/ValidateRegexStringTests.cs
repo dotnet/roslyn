@@ -71,5 +71,20 @@ class Program
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
+        public async Task TestWarningMissing1()
+        {
+            await TestDiagnosticMissingAsync(@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Main()
+    {
+        var r = new Regex(@""[|\u0029|]"");
+    }     
+}");
+        }
     }
 }
