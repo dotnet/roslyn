@@ -618,13 +618,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
                 else
                 {
-                    // If its a capture name, its ok if it doesn't exist.
+                    // If its a capture name, its ok if it that capture doesn't exist.  In that
+                    // case we will just treat this as an conditional expression.
                     if (!HasCapture((string)capture.Value))
                     {
                         _lexer.Position = afterInnerOpenParen;
                         return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
                     }
 
+                    // Capture name existed.  For this to be a capture grouping it exactly has to
+                    // match (?(a)   anything other than a close paren after the ) will make this
+                    // into a conditional expression.
                     ConsumeCurrentToken(allowTrivia: false);
                     if (_currentToken.Kind != RegexKind.CloseParenToken)
                     {
@@ -635,7 +639,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     innerCloseParenToken = _currentToken;
                 }
 
-
+                // Was (?(name) or (?(num)  and name/num was a legal capture name.  Parse
+                // this out as a conditional grouping.  Because we're going to be parsing out
+                // an embedded sequence, allow trivia before the first element.
                 ConsumeCurrentToken(allowTrivia: true);
                 var result = ParseConditionalGroupingResult();
 
@@ -664,7 +670,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private RegexConditionalGroupingNode ParseConditionalExpressionGrouping(
             RegexToken openParenToken, RegexToken questionToken, RegexToken innerOpenParenToken)
         {
-            // Reproduce very specific errors the .net regex parser looks for.
+            // Reproduce very specific errors the .net regex parser looks for.  Technically,
+            // we would error out in these cases no matter what.  However, it means we can
+            // stringently enforce that our parser produces the same errors as the native one.
+            //
+            // Move back before the (
             _lexer.Position--;
             if (_lexer.IsAt("(?#"))
             {
@@ -700,12 +710,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
             }
 
+            // Consume the ( once more.
             ConsumeCurrentToken(allowTrivia: false);
             Debug.Assert(_currentToken.Kind == RegexKind.OpenParenToken);
+
+            // Parse out the grouping that starts with teh second open paren in (?(
+            // this will get us to (?(...)
             var grouping = ParseGrouping();
 
+            // Now parse out the embedded expression that follows that.  this will get us to
+            // (?(...)...
             var result = ParseConditionalGroupingResult();
 
+            // Finallyy, grab the close paren and produce (?(...)...)
             return new RegexConditionalExpressionGroupingNode(
                 openParenToken, questionToken,
                 grouping, result, ParseGroupingCloseParen());
@@ -741,6 +758,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             RegexToken openParenToken, RegexToken questionToken)
         {
             var start = _lexer.Position;
+
+            // We have  (?<  Look for  (?<=  or  (?<!
             var lessThanToken = ConsumeCurrentToken(allowTrivia: false);
 
             switch (_currentToken.Kind)
@@ -756,6 +775,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         ParseGroupingEmbeddedExpression(_options | RegexOptions.RightToLeft), ParseGroupingCloseParen());
 
                 default:
+                    // Didn't have a lookbehind group.  Parse out as  (?<...>  or  (?<...-...>
                     _lexer.Position = start;
                     return ParseNamedCaptureOrBalancingGrouping(openParenToken, questionToken, lessThanToken);
             }
@@ -776,6 +796,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var captureToken = _lexer.TryScanNumberOrCaptureName();
             if (captureToken == null)
             {
+                // Can't have any trivia between the elements in this grouping header.
                 ConsumeCurrentToken(allowTrivia: false);
                 captureToken = RegexToken.CreateMissing(RegexKind.CaptureNameToken);
 
@@ -804,10 +825,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     GetSpan(capture)));
             }
 
+            // Can't have any trivia between the elements in this grouping header.
             ConsumeCurrentToken(allowTrivia: false);
 
             if (_currentToken.Kind == RegexKind.MinusToken)
             {
+                // Have  (?<...-  parse out the balancing group form.
                 return ParseBalancingGrouping(
                     openParenToken, questionToken,
                     openToken, capture);
