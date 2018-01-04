@@ -256,5 +256,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
     var x = [|(|]new Dictionary<int, string>(), new List<int>()[|)$$|];
 }", TestOptions.Regular);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexBraces1()
+        {
+            await TestBraceHighlightingAsync(
+@"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|(|]a[|)|]$$"");
+    }
+}", TestOptions.Regular);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexReference1()
+        {
+            await TestBraceHighlightingAsync(
+@"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|(a)|]\0[|\$$1|]"");
+    }
+}", TestOptions.Regular);
+        }
     }
 }
