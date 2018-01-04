@@ -1835,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       </OneOrMoreQuantifier>
       <SimpleEscape>
         <BackslashToken>\</BackslashToken>
-        <DotToken>.</DotToken>
+        <TextToken>.</TextToken>
       </SimpleEscape>
     </Sequence>
     <EndOfFile />
@@ -2811,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <ZeroOrOneQuantifier>
               <SimpleEscape>
                 <BackslashToken>\</BackslashToken>
-                <OpenParenToken>(</OpenParenToken>
+                <TextToken>(</TextToken>
               </SimpleEscape>
               <QuestionToken>?</QuestionToken>
             </ZeroOrOneQuantifier>
@@ -2827,7 +2827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <ZeroOrOneQuantifier>
               <SimpleEscape>
                 <BackslashToken>\</BackslashToken>
-                <CloseParenToken>)</CloseParenToken>
+                <TextToken>)</TextToken>
               </SimpleEscape>
               <QuestionToken>?</QuestionToken>
             </ZeroOrOneQuantifier>
@@ -2871,7 +2871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <ZeroOrOneQuantifier>
               <SimpleEscape>
                 <BackslashToken>\</BackslashToken>
-                <OpenParenToken>(</OpenParenToken>
+                <TextToken>(</TextToken>
               </SimpleEscape>
               <QuestionToken>?</QuestionToken>
             </ZeroOrOneQuantifier>
@@ -2887,7 +2887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <ZeroOrOneQuantifier>
               <SimpleEscape>
                 <BackslashToken>\</BackslashToken>
-                <CloseParenToken>)</CloseParenToken>
+                <TextToken>)</TextToken>
               </SimpleEscape>
               <QuestionToken>?</QuestionToken>
             </ZeroOrOneQuantifier>
@@ -4152,7 +4152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <OpenParenToken>(</OpenParenToken>
+          <TextToken>(</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4196,7 +4196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <Sequence>
           <SimpleEscape>
             <BackslashToken>\</BackslashToken>
-            <DotToken>.</DotToken>
+            <TextToken>.</TextToken>
           </SimpleEscape>
           <Text>
             <TextToken>!</TextToken>
@@ -4210,7 +4210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <CloseParenToken>)</CloseParenToken>
+          <TextToken>)</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4239,7 +4239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <OpenParenToken>(</OpenParenToken>
+          <TextToken>(</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4285,7 +4285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <Sequence>
           <SimpleEscape>
             <BackslashToken>\</BackslashToken>
-            <DotToken>.</DotToken>
+            <TextToken>.</TextToken>
           </SimpleEscape>
           <Text>
             <TextToken>!</TextToken>
@@ -4299,7 +4299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <CloseParenToken>)</CloseParenToken>
+          <TextToken>)</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4322,7 +4322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <OpenParenToken>(</OpenParenToken>
+          <TextToken>(</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4371,7 +4371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <Sequence>
           <SimpleEscape>
             <BackslashToken>\</BackslashToken>
-            <DotToken>.</DotToken>
+            <TextToken>.</TextToken>
           </SimpleEscape>
           <Text>
             <TextToken>!</TextToken>
@@ -4385,7 +4385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <CloseParenToken>)</CloseParenToken>
+          <TextToken>)</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4408,7 +4408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <OpenParenToken>(</OpenParenToken>
+          <TextToken>(</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4454,7 +4454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <Sequence>
           <SimpleEscape>
             <BackslashToken>\</BackslashToken>
-            <DotToken>.</DotToken>
+            <TextToken>.</TextToken>
           </SimpleEscape>
           <Text>
             <TextToken>!</TextToken>
@@ -4468,7 +4468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <CloseParenToken>)</CloseParenToken>
+          <TextToken>)</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4500,7 +4500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <Trivia>
               <WhitespaceTrivia> </WhitespaceTrivia>
             </Trivia>\</BackslashToken>
-          <OpenParenToken>(</OpenParenToken>
+          <TextToken>(</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4561,7 +4561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <Sequence>
           <SimpleEscape>
             <BackslashToken>\</BackslashToken>
-            <DotToken>.</DotToken>
+            <TextToken>.</TextToken>
           </SimpleEscape>
           <Text>
             <TextToken>!</TextToken>
@@ -4578,7 +4578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <Trivia>
               <WhitespaceTrivia> </WhitespaceTrivia>
             </Trivia>\</BackslashToken>
-          <CloseParenToken>)</CloseParenToken>
+          <TextToken>)</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -4975,7 +4975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <OpenParenToken>(</OpenParenToken>
+          <TextToken>(</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -5021,7 +5021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <Sequence>
           <SimpleEscape>
             <BackslashToken>\</BackslashToken>
-            <DotToken>.</DotToken>
+            <TextToken>.</TextToken>
           </SimpleEscape>
           <Text>
             <TextToken>!</TextToken>
@@ -5035,7 +5035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <ZeroOrOneQuantifier>
         <SimpleEscape>
           <BackslashToken>\</BackslashToken>
-          <CloseParenToken>)</CloseParenToken>
+          <TextToken>)</TextToken>
         </SimpleEscape>
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
@@ -5774,7 +5774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <ZeroOrOneQuantifier>
           <SimpleEscape>
             <BackslashToken>\</BackslashToken>
-            <OpenParenToken>(</OpenParenToken>
+            <TextToken>(</TextToken>
           </SimpleEscape>
           <QuestionToken>?</QuestionToken>
         </ZeroOrOneQuantifier>
@@ -5861,7 +5861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
               </LazyQuantifier>
               <SimpleEscape>
                 <BackslashToken>\</BackslashToken>
-                <DotToken>.</DotToken>
+                <TextToken>.</TextToken>
               </SimpleEscape>
             </Sequence>
             <CloseParenToken>)</CloseParenToken>
@@ -6535,7 +6535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <Sequence>
       <SimpleEscape>
         <BackslashToken>\</BackslashToken>
-        <OpenBraceToken>{</OpenBraceToken>
+        <TextToken>{</TextToken>
       </SimpleEscape>
       <OneOrMoreQuantifier>
         <CharacterClassEscape>

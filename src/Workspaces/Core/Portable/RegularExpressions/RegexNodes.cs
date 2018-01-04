@@ -1292,6 +1292,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public RegexSimpleEscapeNode(RegexToken backslashToken, RegexToken typeToken)
             : base(RegexKind.SimpleEscape, backslashToken, typeToken)
         {
+            Debug.Assert(typeToken.Kind == RegexKind.TextToken);
         }
 
         public override int ChildCount => 2;

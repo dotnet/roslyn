@@ -73,13 +73,23 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case '+': return RegexKind.PlusToken;
                 case '?': return RegexKind.QuestionToken;
                 case '{': return RegexKind.OpenBraceToken;
+                case '}': return RegexKind.CloseBraceToken;
                 case '\\': return RegexKind.BackslashToken;
                 case '[': return RegexKind.OpenBracketToken;
+                case ']': return RegexKind.CloseBracketToken;
                 case '.': return RegexKind.DotToken;
                 case '^': return RegexKind.CaretToken;
                 case '$': return RegexKind.DollarToken;
                 case '(': return RegexKind.OpenParenToken;
                 case ')': return RegexKind.CloseParenToken;
+                case ',': return RegexKind.CommaToken;
+                case ':': return RegexKind.ColonToken;
+                case '=': return RegexKind.EqualsToken;
+                case '!': return RegexKind.ExclamationToken;
+                case '<': return RegexKind.LessThanToken;
+                case '>': return RegexKind.GreaterThanToken;
+                case '-': return RegexKind.MinusToken;
+                case '\'': return RegexKind.QuoteToken;
                 default: return RegexKind.None;
             }
         }
