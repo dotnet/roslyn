@@ -136,6 +136,89 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         }
 
         [Fact]
+        public void TestMultipleComments1()
+        {
+            Test(@"""(?#)(?#)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence />
+    <EndOfFile>
+      <Trivia>
+        <CommentTrivia>(?#)</CommentTrivia>
+        <CommentTrivia>(?#)</CommentTrivia>
+      </Trivia>
+    </EndOfFile>
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[9..17)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestMultipleComments2()
+        {
+            Test(@"""(?#)(?#)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence />
+    <EndOfFile>
+      <Trivia>
+        <CommentTrivia>(?#)</CommentTrivia>
+        <CommentTrivia>(?#)</CommentTrivia>
+      </Trivia>
+    </EndOfFile>
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[9..17)"" />
+  </Captures>
+</Tree>", RegexOptions.IgnorePatternWhitespace);
+        }
+
+        [Fact]
+        public void TestMultipleComments3()
+        {
+            Test(@"""(?#) (?#)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>
+          <Trivia>
+            <CommentTrivia>(?#)</CommentTrivia>
+          </Trivia> </TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile>
+      <Trivia>
+        <CommentTrivia>(?#)</CommentTrivia>
+      </Trivia>
+    </EndOfFile>
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[9..18)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestMultipleComments4()
+        {
+            Test(@"""(?#) (?#)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence />
+    <EndOfFile>
+      <Trivia>
+        <CommentTrivia>(?#)</CommentTrivia>
+        <WhitespaceTrivia> </WhitespaceTrivia>
+        <CommentTrivia>(?#)</CommentTrivia>
+      </Trivia>
+    </EndOfFile>
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[9..18)"" />
+  </Captures>
+</Tree>", RegexOptions.IgnorePatternWhitespace);
+        }
+
+        [Fact]
         public void TestOpenQuestion1()
         {
             Test(@"""(?""", @"<Tree>
