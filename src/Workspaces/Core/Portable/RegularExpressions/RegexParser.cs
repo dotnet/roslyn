@@ -917,20 +917,20 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             ScanNextToken(allowTrivia: false);
             switch (_currentToken.Kind)
             {
-            case RegexKind.CloseParenToken:
-                var closeParenToken = _currentToken;
-                _options = GetNewOptionsFromToken(_options, optionsToken);
-                ScanNextToken(allowTrivia: true);
-                return new RegexSimpleOptionsGroupingNode(
-                    openParenToken, questionToken, optionsToken, closeParenToken);
-            case RegexKind.TextToken when IsTextChar(_currentToken, ':'):
-                return ParseNestedOptionsGroupingNode(
-                    openParenToken, questionToken, optionsToken);
-            default:
-                var missingToken = RegexToken.CreateMissing(RegexKind.CloseParenToken).AddDiagnosticIfNone(
-                new RegexDiagnostic(WorkspacesResources.Unrecognized_grouping_construct, GetSpan(openParenToken)));
-                return new RegexSimpleOptionsGroupingNode(
-                    openParenToken, questionToken, optionsToken, missingToken);
+                case RegexKind.CloseParenToken:
+                    _options = GetNewOptionsFromToken(_options, optionsToken);
+                    return new RegexSimpleOptionsGroupingNode(
+                        openParenToken, questionToken, optionsToken,
+                        ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
+
+                case RegexKind.TextToken when IsTextChar(_currentToken, ':'):
+                    return ParseNestedOptionsGroupingNode(openParenToken, questionToken, optionsToken);
+
+                default:
+                    return new RegexSimpleOptionsGroupingNode(
+                        openParenToken, questionToken, optionsToken,
+                        RegexToken.CreateMissing(RegexKind.CloseParenToken).AddDiagnosticIfNone(
+                            new RegexDiagnostic(WorkspacesResources.Unrecognized_grouping_construct, GetSpan(openParenToken))));
             }
         }
 
@@ -1000,8 +1000,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                 if (IsTextChar(_currentToken, ']') && contents.Count > 0)
                 {
-                    closeBracketToken = _currentToken.With(kind: RegexKind.CloseBracketToken);
-                    ScanNextToken(allowTrivia: true);
+                    closeBracketToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true).With(kind: RegexKind.CloseBracketToken);
                     break;
                 }
 
@@ -1035,8 +1034,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (IsTextChar(_currentToken, '-') && !_lexer.IsAt("]"))
             {
-                var minusToken = _currentToken.With(kind: RegexKind.MinusToken);
-                ScanNextToken(allowTrivia: false);
+                var minusToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: false).With(kind: RegexKind.MinusToken);
 
                 if (_currentToken.Kind == RegexKind.OpenBracketToken)
                 {
