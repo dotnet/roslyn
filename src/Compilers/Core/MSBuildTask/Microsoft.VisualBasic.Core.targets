@@ -84,6 +84,7 @@
          DelaySign="$(DelaySign)"
          DisabledWarnings="$(NoWarn)"
          DocumentationFile="@(DocFileItem)"
+         EmbedAllSources="$(EmbedAllSources)"
          EmbeddedFiles="@(EmbeddedFiles)"
          EmitDebugInformation="$(DebugSymbols)"
          EnvironmentVariables="$(VbcEnvironment)"
