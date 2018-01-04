@@ -8856,7 +8856,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[9..12)"" />
-    <Capture Name=""1"" Span=""[11..12)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
@@ -9233,7 +9232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </CompilationUnit>
   <Captures>
     <Capture Name=""0"" Span=""[9..15)"" />
-    <Capture Name=""1"" Span=""[11..14)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
@@ -9267,8 +9265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </CompilationUnit>
   <Captures>
     <Capture Name=""0"" Span=""[9..21)"" />
-    <Capture Name=""1"" Span=""[17..20)"" />
-    <Capture Name=""2"" Span=""[9..15)"" />
+    <Capture Name=""1"" Span=""[9..15)"" />
     <Capture Name=""a"" Span=""[9..15)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
@@ -9312,8 +9309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </CompilationUnit>
   <Captures>
     <Capture Name=""0"" Span=""[9..22)"" />
-    <Capture Name=""1"" Span=""[17..21)"" />
-    <Capture Name=""2"" Span=""[9..15)"" />
+    <Capture Name=""1"" Span=""[9..15)"" />
     <Capture Name=""a"" Span=""[9..15)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
@@ -9357,8 +9353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </CompilationUnit>
   <Captures>
     <Capture Name=""0"" Span=""[9..22)"" />
-    <Capture Name=""1"" Span=""[17..21)"" />
-    <Capture Name=""2"" Span=""[9..15)"" />
+    <Capture Name=""1"" Span=""[9..15)"" />
     <Capture Name=""a"" Span=""[9..15)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
@@ -9428,8 +9423,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[9..18)"" />
-    <Capture Name=""1"" Span=""[11..17)"" />
-    <Capture Name=""x"" Span=""[11..17)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
@@ -9620,8 +9613,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[9..15)"" />
-    <Capture Name=""1"" Span=""[11..15)"" />
-    <Capture Name=""a"" Span=""[11..15)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
@@ -9656,8 +9647,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[9..16)"" />
-    <Capture Name=""1"" Span=""[11..16)"" />
-    <Capture Name=""a"" Span=""[11..16)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
@@ -9692,8 +9681,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[9..17)"" />
-    <Capture Name=""1"" Span=""[11..17)"" />
-    <Capture Name=""a"" Span=""[11..17)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
@@ -9727,8 +9714,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[9..18)"" />
-    <Capture Name=""1"" Span=""[11..17)"" />
-    <Capture Name=""a"" Span=""[11..17)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         {
             var tree = TryParseTree(stringText, options, conversionFailureOk: false);
 
-            TryParseSubTrees(stringText, options);
+            // TryParseSubTrees(stringText, options);
 
             var actual = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actual);
@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             {
                 var regex = new Regex(token.ValueText, options);
                 Assert.Empty(tree.Diagnostics);
+
+                Assert.True(regex.GetGroupNumbers().OrderBy(v => v).SequenceEqual(
+                    tree.CaptureNumbersToSpan.Keys.OrderBy(v => v)));
+
+                Assert.True(regex.GetGroupNames().Where(v => !int.TryParse(v, out _)).OrderBy(v => v).SequenceEqual(
+                    tree.CaptureNamesToSpan.Keys.OrderBy(v => v)));
             }
             catch (IndexOutOfRangeException)
             {

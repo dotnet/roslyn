@@ -1047,7 +1047,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" />
-    <Capture Name=""1"" Span=""[12..13)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1081,7 +1080,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..15)"" />
-    <Capture Name=""1"" Span=""[12..14)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1710,7 +1708,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" />
-    <Capture Name=""1"" Span=""[12..16)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1754,7 +1751,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..18)"" />
-    <Capture Name=""1"" Span=""[12..17)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1970,7 +1966,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" />
-    <Capture Name=""1"" Span=""[12..13)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2571,8 +2566,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..30)"" />
-    <Capture Name=""1"" Span=""[15..26)"" />
-    <Capture Name=""cat"" Span=""[15..26)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2635,8 +2628,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..30)"" />
-    <Capture Name=""1"" Span=""[15..26)"" />
-    <Capture Name=""cat"" Span=""[15..26)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }

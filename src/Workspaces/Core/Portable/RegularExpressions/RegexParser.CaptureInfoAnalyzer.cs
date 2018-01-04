@@ -62,6 +62,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         RecordCapture(balancingGroup.FirstCaptureToken, GetGroupingSpan(balancingGroup));
                         break;
 
+                    case RegexKind.ConditionalExpressionGrouping:
+                        // Explicitly skip over conditionalGrouping.Grouping.  That grouping
+                        // does not create a capture group.
+                        var conditionalGrouping = (RegexConditionalExpressionGroupingNode)node;
+                        CollectCaptures(conditionalGrouping.Result, options);
+                        return;
+
                     case RegexKind.SimpleGrouping:
                         RecordSimpleGroupingCapture((RegexSimpleGroupingNode)node, options);
                         break;

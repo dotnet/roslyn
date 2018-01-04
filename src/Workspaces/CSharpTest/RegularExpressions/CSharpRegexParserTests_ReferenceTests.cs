@@ -1261,9 +1261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <Capture Name=""1"" Span=""[17..63)"" />
     <Capture Name=""2"" Span=""[18..36)"" />
     <Capture Name=""3"" Span=""[37..61)"" />
-    <Capture Name=""4"" Span=""[66..72)"" />
-    <Capture Name=""5"" Span=""[19..29)"" />
-    <Capture Name=""6"" Span=""[38..54)"" />
+    <Capture Name=""4"" Span=""[19..29)"" />
+    <Capture Name=""5"" Span=""[38..54)"" />
     <Capture Name=""Close"" Span=""[38..54)"" />
     <Capture Name=""Open"" Span=""[19..29)"" />
   </Captures>
@@ -5538,8 +5537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </CompilationUnit>
   <Captures>
     <Capture Name=""0"" Span=""[10..58)"" />
-    <Capture Name=""1"" Span=""[28..32)"" />
-    <Capture Name=""2"" Span=""[12..25)"" />
+    <Capture Name=""1"" Span=""[12..25)"" />
     <Capture Name=""n2"" Span=""[12..25)"" />
   </Captures>
 </Tree>", RegexOptions.None);
