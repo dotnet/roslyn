@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
@@ -66,23 +67,29 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     foreach (var badAnalyzerInfo in pooledObject.Object)
                     {
-                        // we only report same analyzer once
-                        if (!_reported.Add(badAnalyzerInfo.AnalyzerId))
+                        var newAnalyzer = _reported.Add(badAnalyzerInfo.AnalyzerId);
+
+                        // we only report same analyzer once unless it is internal user
+                        if (WatsonReporter.IsUserMicrosoftInternal || newAnalyzer)
                         {
-                            continue;
+                            // this will report telemetry under VS. this will let us see how accurate our performance tracking is
+                            RoslynLogger.Log(FunctionId.Diagnostics_BadAnalyzer, KeyValueLogMessage.Create(m =>
+                            {
+                                // since it is telemetry, we hash analyzer name if it is not builtin analyzer
+                                m[nameof(badAnalyzerInfo.AnalyzerId)] = badAnalyzerInfo.PIISafeAnalyzerId;
+                                m[nameof(badAnalyzerInfo.LOF)] = badAnalyzerInfo.LOF;
+                                m[nameof(badAnalyzerInfo.Mean)] = badAnalyzerInfo.Mean;
+                                m[nameof(badAnalyzerInfo.Stddev)] = badAnalyzerInfo.Stddev;
+                            }));
                         }
 
-                        // this will report performance to AI under VS
-                        RoslynLogger.Log(FunctionId.Diagnostics_BadAnalyzer, KeyValueLogMessage.Create(m =>
+                        // for logging, we only log once. we log here so that we can ask users to provide this log to us
+                        // when we want to find out VS performance issue that could be caused by analyzer
+                        if (newAnalyzer)
                         {
-                            m[nameof(badAnalyzerInfo.AnalyzerId)] = badAnalyzerInfo.PIISafeAnalyzerId;
-                            m[nameof(badAnalyzerInfo.LOF)] = badAnalyzerInfo.LOF;
-                            m[nameof(badAnalyzerInfo.Mean)] = badAnalyzerInfo.Mean;
-                            m[nameof(badAnalyzerInfo.Stddev)] = badAnalyzerInfo.Stddev;
-                        }));
-
-                        // also save this info to log file so that we can get this info in feedback submitted by users
-                        _logger.TraceEvent(TraceEventType.Error, 0, $"[{badAnalyzerInfo.PIISafeAnalyzerId}] LOF: {badAnalyzerInfo.LOF}, Mean: {badAnalyzerInfo.Mean}, Stddev: {badAnalyzerInfo.Stddev}");
+                            // also save this info to log file so that we can get this info in feedback submitted by users
+                            _logger.TraceEvent(TraceEventType.Error, 0, $"[{badAnalyzerInfo.AnalyzerId} ({badAnalyzerInfo.Hash})] LOF: {badAnalyzerInfo.LOF}, Mean: {badAnalyzerInfo.Mean}, Stddev: {badAnalyzerInfo.Stddev}");
+                        }
                     }
                 }
             }

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return rawData.Select(kv => (kv.analyzer.GetAnalyzerId(), DiagnosticAnalyzerLogger.AllowsTelemetry(kv.analyzer), kv.timeSpan));
         }
 
-        private sealed class ReportGenerator : IDisposable
+        private sealed class ReportGenerator : IDisposable, IComparer<BadAnalyzerInfo>
         {
             private readonly double _minLOFValue;
             private readonly double _meanThreshold;
@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     // report found possible bad analyzers
                     _badAnalyzers.Add(new BadAnalyzerInfo(_owner.AllowTelemetry(analyzerId), analyzerId, lof_value.Value, rawData.mean, rawData.stddev));
                 }
+
+                _badAnalyzers.Sort(this);
             }
 
             private double? TryGetLocalOutlierFactor(
@@ -252,12 +254,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             private List<List<int>> GetKNeighborIndices(List<List<double>> allDistances, List<double> kDistances)
             {
                 var analyzerCount = kDistances.Count;
-                var kNeighborIndices = GetPooledObject<List<List<int>>>();
-                kNeighborIndices.Capacity = analyzerCount;
+                var kNeighborIndices = GetPooledListAndSetCapacity<List<int>>(analyzerCount);
 
                 for (var rowIndex = 0; rowIndex < analyzerCount; rowIndex++)
                 {
-                    var rowKNeighborIndices = GetPooledObject<List<int>>();
+                    var rowKNeighborIndices = GetPooledList<int>();
 
                     var rowDistances = allDistances[rowIndex];
                     var kDistance = kDistances[rowIndex];
@@ -282,15 +283,17 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             private List<double> GetKDistances(List<List<double>> allDistances, int k_value)
             {
                 var analyzerCount = allDistances.Count;
-                var kDistances = GetPooledObject<List<double>>();
-                kDistances.Capacity = analyzerCount;
+                var kDistances = GetPooledListAndSetCapacity<double>(analyzerCount);
+                var sortedRowDistance = GetPooledList<double>();
 
                 for (var index = 0; index < analyzerCount; index++)
                 {
-                    var rowDistances = allDistances[index];
-                    rowDistances.Sort();
+                    sortedRowDistance.Clear();
+                    sortedRowDistance.AddRange(allDistances[index]);
 
-                    kDistances[index] = rowDistances[k_value];
+                    sortedRowDistance.Sort();
+
+                    kDistances[index] = sortedRowDistance[k_value];
                 }
 
                 return kDistances;
@@ -299,14 +302,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             private List<List<double>> GetAllDistances(List<(double normaliedMean, double normalizedStddev)> normalizedMap)
             {
                 var analyzerCount = normalizedMap.Count;
-                var allDistances = GetPooledObject<List<List<double>>>();
-                allDistances.Capacity = analyzerCount;
+                var allDistances = GetPooledListAndSetCapacity<List<double>>(analyzerCount);
 
                 for (var rowIndex = 0; rowIndex < analyzerCount; rowIndex++)
                 {
-                    var rowDistances = GetPooledObject<List<double>>();
-                    rowDistances.Capacity = analyzerCount;
-
+                    var rowDistances = GetPooledListAndSetCapacity<double>(analyzerCount);
                     var rowAnalyzer = normalizedMap[rowIndex];
 
                     for (var colIndex = 0; colIndex < analyzerCount; colIndex++)
@@ -339,8 +339,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 // calculate normalized mean and stddev and convert analyzerId string to index
                 var analyzerCount = analyzerIdIndex.Count;
-                var normalizedMap = GetPooledObject<List<(double normaliedMean, double normalizedStddev)>>();
-                normalizedMap.Capacity = analyzerCount;
+                var normalizedMap = GetPooledListAndSetCapacity<(double normaliedMean, double normalizedStddev)>(analyzerCount);
 
                 for (var index = 0; index < analyzerCount; index++)
                 {
@@ -356,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             private List<string> GetAnalyzerIdIndex(IEnumerable<string> analyzerIds)
             {
-                var analyzerIdIndex = GetPooledObject<List<string>>();
+                var analyzerIdIndex = GetPooledList<string>();
                 analyzerIdIndex.AddRange(analyzerIds);
 
                 return analyzerIdIndex;
@@ -372,12 +371,41 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _pooledObjects.Dispose();
             }
 
-            private T GetPooledObject<T>() where T : class, new()
+            private List<T> GetPooledList<T>()
             {
-                var pooledObject = SharedPools.Default<T>().GetPooledObject();
+                var pooledObject = SharedPools.Default<List<T>>().GetPooledObject();
                 _pooledObjects.Object.Add(pooledObject);
 
                 return pooledObject.Object;
+            }
+
+            private List<T> GetPooledListAndSetCapacity<T>(int capacity)
+            {
+                var pooledObject = SharedPools.Default<List<T>>().GetPooledObject();
+                _pooledObjects.Object.Add(pooledObject);
+
+                for (var i = 0; i < capacity; i++)
+                {
+                    pooledObject.Object.Add(default(T));
+                }
+
+                return pooledObject.Object;
+            }
+
+            public int Compare(BadAnalyzerInfo x, BadAnalyzerInfo y)
+            {
+                if (x.LOF == y.LOF)
+                {
+                    return 0;
+                }
+
+                // want reversed order
+                if (x.LOF - y.LOF > 0)
+                {
+                    return -1;
+                }
+
+                return 1;
             }
         }
     }
