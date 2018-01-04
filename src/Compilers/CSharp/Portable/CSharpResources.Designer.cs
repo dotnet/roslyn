@@ -1799,15 +1799,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameter modifier &apos;{0}&apos; cannot be used after the modifier &apos;{1}&apos;.
-        /// </summary>
-        internal static string ERR_BadParameterModifiersOrder {
-            get {
-                return ResourceManager.GetString("ERR_BadParameterModifiersOrder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Parameter {0} should not be declared with the &apos;{1}&apos; keyword.
         /// </summary>
         internal static string ERR_BadParamExtraRef {

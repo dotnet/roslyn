@@ -8500,11 +8500,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Pierwszy parametr metody „{0}” rozszerzenia „in” musi być typem wartości.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Modyfikator parametru „{0}” nie może być używany po modyfikatorze „{1}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Wystąpienia pól struktur tylko do odczytu muszą być tylko do odczytu.</target>

@@ -8500,11 +8500,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Первый параметр метода расширения "in" "{0}" должен иметь тип значения.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Модификатор параметра "{0}" не может использоваться после модификатора "{1}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Поля экземпляров в структурах только для чтения должны быть доступны только для чтения.</target>
