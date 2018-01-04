@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
-        private VirtualChar PreviousChar => Text[Position - 1];
 
         public ImmutableArray<VirtualChar> GetSubPattern(int start, int end)
         {
