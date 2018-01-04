@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -10,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RegularExpressions;
 using Xunit;
 
@@ -39,9 +41,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             var tests = CSharpRegexParserTests.nameToTest;
             var other = new Dictionary<string, string>();
 
+            var tree = SyntaxFactory.ParseSyntaxTree(
+                File.ReadAllText(@"C:\GitHub\roslyn-internal\Open\src\Workspaces\CSharpTest\RegularExpressions\CSharpRegexParserTests.cs"));
+
+            var methodNames = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Select(m => m.Identifier.ValueText);
+            var nameToIndex = new Dictionary<string, int>();
+
+            var index = 0;
+            foreach (var name in methodNames)
+            {
+                nameToIndex[name] = index;
+                index++;
+            }
+
             var referenceTests =
-                tests.Where(kvp => kvp.Key.StartsWith("NegativeTest"))
-                     .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
+                tests.Where(kvp => !kvp.Key.StartsWith("NegativeTest") && !kvp.Key.StartsWith("Reference"))
+                     .OrderBy(kvp => nameToIndex[kvp.Key])
                      .Select(kvp => kvp.Value);
 
             var val = string.Join("\r\n", referenceTests);
