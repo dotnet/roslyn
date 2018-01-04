@@ -1274,16 +1274,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         return ParseEscape(backslashToken, allowTriviaAfterEnd: false);
 
                     case '-':
-                        // Parsing the right hand side of a - is extremely strange (and most likely 
-                        // buggy) in the .net parser. Specifically, the .net parser will still consider
-                        // itself on the right side no matter how many escaped dashes it sees.  So,
-                        // for example, the following is legal [a-\-] (even though \- is less than 'a').
-                        // Similarly, the following are *illegal* [b-\-a] and [b-\-\-a].  That's because
-                        // the range that is checked is actually "b-a", even though all the \- escapes
-                        // are in the middle.
-                        var dashToken = _currentToken;
-                        ScanNextToken(allowTrivia: false);
-                        return new RegexSimpleEscapeNode(backslashToken, dashToken);
+                        return new RegexSimpleEscapeNode(
+                            backslashToken, ScanNextTokenAndReturnPreviousToken(allowTrivia: false));
 
                     default:
                         _lexer.Position--;
@@ -1297,10 +1289,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 _lexer.IsAt("["))
             {
                 // have a trailing subtraction.
-                var minusToken = _currentToken.With(kind: RegexKind.MinusToken);
-                ScanNextToken(allowTrivia: false);
-
-                return ParseCharacterClassSubtractionNode(minusToken);
+                return ParseCharacterClassSubtractionNode(
+                    ScanNextTokenAndReturnPreviousToken(allowTrivia: false).With(kind: RegexKind.MinusToken));
             }
 
             // From the .net regex code:
@@ -1329,9 +1319,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
             }
 
-            var textToken = _currentToken.With(kind: RegexKind.TextToken);
-            ScanNextToken(allowTrivia: false);
-            return new RegexTextNode(textToken);
+            return new RegexTextNode(
+                ScanNextTokenAndReturnPreviousToken(allowTrivia: false).With(kind: RegexKind.TextToken));
         }
 
         private RegexPrimaryExpressionNode ParseCharacterClassSubtractionNode(RegexToken minusToken)
@@ -1379,9 +1368,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case 'Z':
                 case 'z':
                 {
-                    var typeToken = _currentToken;
-                    ScanNextToken(allowTrivia: allowTriviaAfterEnd);
-                    return new RegexAnchorEscapeNode(backslashToken, typeToken);
+                    return new RegexAnchorEscapeNode(
+                        backslashToken, ScanNextTokenAndReturnPreviousToken(allowTrivia: allowTriviaAfterEnd));
                 }
 
                 case 'w':
@@ -1391,9 +1379,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case 'd':
                 case 'D':
                 {
-                    var typeToken = _currentToken;
-                    ScanNextToken(allowTrivia: allowTriviaAfterEnd);
-                    return new RegexCharacterClassEscapeNode(backslashToken, typeToken);
+                    return new RegexCharacterClassEscapeNode(
+                        backslashToken, ScanNextTokenAndReturnPreviousToken(allowTrivia: allowTriviaAfterEnd));
                 }
 
                 case 'p':
@@ -1634,9 +1621,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case 't':
                 case 'v':
                 {
-                    var typeToken = _currentToken;
-                    ScanNextToken(allowTrivia: true);
-                    return new RegexSimpleEscapeNode(backslashToken, typeToken);
+                    return new RegexSimpleEscapeNode(
+                        backslashToken, ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
                 }
                 case 'x':
                     return ScanHexEscape(backslashToken);
@@ -1646,8 +1632,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     return ScanControlEscape(backslashToken);
                 default:
                 {
-                    var typeToken = _currentToken;
-                    ScanNextToken(allowTrivia: true);
+                    var typeToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
 
                     if (!HasOption(_options, RegexOptions.ECMAScript) && RegexCharClass.IsWordChar(ch))
                     {
@@ -1679,8 +1664,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexControlEscapeNode ScanControlEscape(RegexToken backslashToken)
         {
-            var typeToken = _currentToken;
-            ScanNextToken(allowTrivia: false);
+            var typeToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: false);
 
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
