@@ -1022,11 +1022,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private void ParseCharacterClassComponents(ArrayBuilder<RegexExpressionNode> components)
         {
-            var left = ParseCharacterClassComponentPiece(isFirst: components.Count == 0, afterRangeMinus: false);
+            var left = ParseSingleCharacterClassComponent(isFirst: components.Count == 0, afterRangeMinus: false);
             if (left.Kind == RegexKind.CharacterClassEscape ||
-                left.Kind == RegexKind.CategoryEscape)
+                left.Kind == RegexKind.CategoryEscape ||
+                IsEscapedMinus(left))
             {
-                // \s or \p{Lu} on the left of a minus doesn't start a range. If there is a following
+                // \s or \p{Lu} or \- on the left of a minus doesn't start a range. If there is a following
                 // minus, it's just treated textually.
                 components.Add(left);
                 return;
@@ -1044,10 +1045,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
                 else
                 {
-                    var right = ParseCharacterClassComponentPiece(isFirst: false, afterRangeMinus: true);
+                    var right = ParseRightSideOfCharacterClassRange();
 
-                    if (TryGetRangeComponentValue(left, out var leftCh) &&
-                        TryGetRangeComponentValue(right, out var rightCh) &&
+                    if (TryGetRangeComponentValue(left, isRight: false, out var leftCh) &&
+                        TryGetRangeComponentValue(right, isRight: true, out var rightCh) &&
                         leftCh > rightCh)
                     {
                         minusToken = minusToken.AddDiagnosticIfNone(new RegexDiagnostic(
@@ -1064,7 +1065,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private bool TryGetRangeComponentValue(RegexPrimaryExpressionNode component, out char ch)
+        private bool IsEscapedMinus(RegexNode node)
+            => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
+
+        private bool TryGetRangeComponentValue(RegexExpressionNode component, bool isRight, out char ch)
         {
             // Don't bother examining the component if it has any errors already.  This also means
             // we don't have to worry about running into invalid escape sequences and the like.
@@ -1077,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return false;
         }
 
-        private bool TryGetRangeComponentValueWorker(RegexPrimaryExpressionNode component, out char ch)
+        private bool TryGetRangeComponentValueWorker(RegexNode component, out char ch)
         {
             switch (component.Kind)
             {
@@ -1117,6 +1121,24 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case RegexKind.Text:
                     ch = ((RegexTextNode)component).TextToken.VirtualChars[0];
                     return true;
+
+                case RegexKind.Sequence:
+                    var sequence = (RegexSequenceNode)component;
+#if DEBUG
+                    Debug.Assert(sequence.ChildCount > 0);
+                    for (int i = 0, n = sequence.ChildCount - 1; i < n; i++)
+                    {
+                        Debug.Assert(IsEscapedMinus(sequence.ChildAt(i).Node));
+                    }
+#endif
+
+                    var last = sequence.ChildAt(sequence.ChildCount - 1).Node;
+                    if (IsEscapedMinus(last))
+                    {
+                        break;
+                    }
+
+                    return TryGetRangeComponentValueWorker(last, out ch);
             }
 
             ch = default;
@@ -1194,7 +1216,33 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return false;
         }
 
-        private RegexPrimaryExpressionNode ParseCharacterClassComponentPiece(bool isFirst, bool afterRangeMinus)
+        private RegexExpressionNode ParseRightSideOfCharacterClassRange()
+        {
+            // Parsing the right hand side of a - is extremely strange (and most likely  buggy) in 
+            // the .net parser. Specifically, the .net parser will still consider itself on the right
+            // side no matter how many escaped dashes it sees.  So, for example, the following is legal
+            // [a-\-] (even though \- is less than 'a'). Similarly, the following are *illegal* 
+            // [b-\-a] and [b-\-\-a].  That's because the range that is checked is actually "b-a", even
+            // though it has all the \- escapes in the middle.
+
+            var first = ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true);
+            if (!IsEscapedMinus(first))
+            {
+                return first;
+            }
+
+            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            builder.Add(first);
+
+            while (IsEscapedMinus(builder.Last()) && !IsTextChar(_currentToken, ']'))
+            {
+                builder.Add(ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true));
+            }
+
+            return new RegexSequenceNode(builder.ToImmutable());
+        }
+
+        private RegexPrimaryExpressionNode ParseSingleCharacterClassComponent(bool isFirst, bool afterRangeMinus)
         {
             if (_currentToken.Kind == RegexKind.BackslashToken && _lexer.Position < _lexer.Text.Length)
             {
@@ -1226,6 +1274,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         return ParseEscape(backslashToken, allowTriviaAfterEnd: false);
 
                     case '-':
+                        // Parsing the right hand side of a - is extremely strange (and most likely 
+                        // buggy) in the .net parser. Specifically, the .net parser will still consider
+                        // itself on the right side no matter how many escaped dashes it sees.  So,
+                        // for example, the following is legal [a-\-] (even though \- is less than 'a').
+                        // Similarly, the following are *illegal* [b-\-a] and [b-\-\-a].  That's because
+                        // the range that is checked is actually "b-a", even though all the \- escapes
+                        // are in the middle.
                         var dashToken = _currentToken;
                         ScanNextToken(allowTrivia: false);
                         return new RegexSimpleEscapeNode(backslashToken, dashToken);

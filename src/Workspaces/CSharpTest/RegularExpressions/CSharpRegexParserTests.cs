@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
             if (tree == null)
             {
-                Assert.True(conversionFailureOk);
+                Assert.True(allChars.IsDefault);
                 return null;
             }
 
@@ -10836,7 +10836,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         public void TestCharacterClassRange7()
         {
             Test(@"@""[a-\-]""", @"<Tree>
-", RegexOptions.None);
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>a</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
         }
 
         [Fact]
@@ -10848,16 +10871,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CharacterClass>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <CharacterClassRange>
-            <SimpleEscape>
-              <BackslashToken>\</BackslashToken>
-              <TextToken>-</TextToken>
-            </SimpleEscape>
-            <MinusToken>-</MinusToken>
-            <Text>
-              <TextToken>a</TextToken>
-            </Text>
-          </CharacterClassRange>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>-</TextToken>
+          </SimpleEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -12200,6 +12223,316 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </CompilationUnit>
   <Diagnostics>
     <Diagnostic Message=""[x-y] range in reverse order"" Start=""14"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange52()
+        {
+            Test(@"@""[\--a]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>-</TextToken>
+          </SimpleEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange53()
+        {
+            Test(@"@""[\--#]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>-</TextToken>
+          </SimpleEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>#</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange54()
+        {
+            Test(@"@""[a-\-]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>a</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange55()
+        {
+            Test(@"@""[a-\-b]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>a</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <Text>
+                <TextToken>b</TextToken>
+              </Text>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange56()
+        {
+            Test(@"@""[a-\-\-b]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>a</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <Text>
+                <TextToken>b</TextToken>
+              </Text>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange57()
+        {
+            Test(@"@""[b-\-a]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>b</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <Text>
+                <TextToken>a</TextToken>
+              </Text>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""[x-y] range in reverse order"" Start=""12"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange58()
+        {
+            Test(@"@""[b-\-\-a]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>b</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <Text>
+                <TextToken>a</TextToken>
+              </Text>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""[x-y] range in reverse order"" Start=""12"" Length=""1"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange59()
+        {
+            Test(@"@""[a-\-\D]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>a</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <CharacterClassEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>D</TextToken>
+              </CharacterClassEscape>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Cannot include class \D in character range"" Start=""15"" Length=""2"" />
+  </Diagnostics>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCharacterClassRange60()
+        {
+            Test(@"@""[a-\-\-\D]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>a</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <CharacterClassEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>D</TextToken>
+              </CharacterClassEscape>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Cannot include class \D in character range"" Start=""17"" Length=""2"" />
   </Diagnostics>
 </Tree>", RegexOptions.None);
         }
