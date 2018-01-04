@@ -15,12 +15,6 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    /// <summary>
-    /// Service that client will connect to to make service hub alive even when there is
-    /// no other people calling service hub.
-    /// 
-    /// basically, this is used to manage lifetime of the service hub.
-    /// </summary>
     internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
         /// <summary>
@@ -87,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Remote
                         // when we want to find out VS performance issue that could be caused by analyzer
                         if (newAnalyzer)
                         {
-                            // also save this info to log file so that we can get this info in feedback submitted by users
                             _logger.TraceEvent(TraceEventType.Error, 0, $"[{badAnalyzerInfo.AnalyzerId} ({badAnalyzerInfo.Hash})] LOF: {badAnalyzerInfo.LOF}, Mean: {badAnalyzerInfo.Mean}, Stddev: {badAnalyzerInfo.Stddev}");
                         }
                     }

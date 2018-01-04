@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             RunService(token =>
             {
-                // if this analysis is explicitly asked by user, boost priority of this request
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, token))
                 {
                     token.ThrowIfCancellationRequested();

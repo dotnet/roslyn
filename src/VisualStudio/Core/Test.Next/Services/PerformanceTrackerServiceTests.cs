@@ -53,6 +53,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.CSharp.InlineDeclaration.CSharpInlineDeclarationDiagnosticAnalyzer,Microsoft.CodeAnalysis.CSharp.Features,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 36.4336594793033 2397.64782608696 743.956680199015"));
         }
 
+        [Fact]
+        public void TestBadAnalyzerInfoPII()
+        {
+            var badAnalyzer1 = new BadAnalyzerInfo(true, "test", 0.1, 0.1, 0.1);
+            Assert.True(badAnalyzer1.PIISafeAnalyzerId == badAnalyzer1.AnalyzerId);
+            Assert.True(badAnalyzer1.PIISafeAnalyzerId == "test");
+
+            var badAnalyzer2 = new BadAnalyzerInfo(false, "test", 0.1, 0.1, 0.1);
+            Assert.True(badAnalyzer2.PIISafeAnalyzerId == badAnalyzer2.Hash);
+            Assert.True(badAnalyzer2.PIISafeAnalyzerId == "test".GetHashCode().ToString());
+        }
+
         private string[] GetBadAnalyzers(string testFileName, int to)
         {
             var testFile = GetTestFile(testFileName);
