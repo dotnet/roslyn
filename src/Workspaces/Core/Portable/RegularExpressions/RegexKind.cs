@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         GreaterThanToken,
         LessThanToken,
         MinusToken,
-        QuoteToken,
+        SingleQuoteToken,
 
         // Special multi-character tokens that have to be explicitly requested.
         OptionsToken,

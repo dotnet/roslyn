@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     // (?<=...) or (?<!...) or (?<...>...) or (?<...-...>...)
                     return ParseLookbehindOrNamedCaptureOrBalancingGrouping(openParenToken, questionToken);
 
-                case RegexKind.QuoteToken:
+                case RegexKind.SingleQuoteToken:
                     //  (?'...'...) or (?'...-...'...)
                     return ParseNamedCaptureOrBalancingGrouping(
                         openParenToken, questionToken, _currentToken);
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 return _currentToken;
             }
-            else if (openToken.Kind == RegexKind.QuoteToken && _currentToken.Kind == RegexKind.QuoteToken)
+            else if (openToken.Kind == RegexKind.SingleQuoteToken && _currentToken.Kind == RegexKind.SingleQuoteToken)
             {
                 return _currentToken;
             }
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                 return RegexToken.CreateMissing(
                     openToken.Kind == RegexKind.LessThanToken 
-                        ? RegexKind.GreaterThanToken : RegexKind.QuoteToken);
+                        ? RegexKind.GreaterThanToken : RegexKind.SingleQuoteToken);
             }
         }
 
@@ -1560,7 +1560,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             ScanNextToken(allowTrivia: false);
 
             if (_lexer.Position < _lexer.Text.Length &&
-                (_currentToken.Kind == RegexKind.LessThanToken || _currentToken.Kind == RegexKind.QuoteToken))
+                (_currentToken.Kind == RegexKind.LessThanToken || _currentToken.Kind == RegexKind.SingleQuoteToken))
             {
                 openToken = _currentToken;
             }
@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (!capture.IsMissing &&
                 ((openToken.Kind == RegexKind.LessThanToken && _currentToken.Kind == RegexKind.GreaterThanToken) ||
-                 (openToken.Kind == RegexKind.QuoteToken && _currentToken.Kind == RegexKind.QuoteToken)))
+                 (openToken.Kind == RegexKind.SingleQuoteToken && _currentToken.Kind == RegexKind.SingleQuoteToken)))
             {
                 CheckCapture(ref capture);
                 closeToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
