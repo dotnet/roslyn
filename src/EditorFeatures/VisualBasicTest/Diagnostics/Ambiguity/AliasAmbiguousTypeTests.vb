@@ -42,7 +42,7 @@ End Namespace"
             Dim expectedMarkupTemplate = "
 Imports N1
 Imports N2
-#
+{0}
 " & classDef & "
 
 Namespace N3
@@ -52,8 +52,8 @@ Namespace N3
         End Sub
     End Class
 End Namespace"
-            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkupTemplate.Replace("#", "Imports Ambiguous = N1.Ambiguous"), 0)
-            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkupTemplate.Replace("#", "Imports Ambiguous = N2.Ambiguous"), 1)
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expectedMarkupTemplate, "Imports Ambiguous = N1.Ambiguous"), index:=0)
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expectedMarkupTemplate, "Imports Ambiguous = N2.Ambiguous"), index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>

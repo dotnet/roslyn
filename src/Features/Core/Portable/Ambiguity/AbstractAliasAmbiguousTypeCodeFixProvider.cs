@@ -47,8 +47,12 @@ namespace Microsoft.CodeAnalysis.Ambiguity
                     var typeName = symbol.Name;
                     var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, (ITypeSymbol)symbol);
                     var codeActionPreviewText = GetTextPreviewOfChange(aliasDirective);
-                    var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
-                    var codeAction = new MyCodeAction(codeActionPreviewText, c => Task.FromResult(document.WithSyntaxRoot(newRoot)));
+                    Task<Document> CreateChangedDocument(CancellationToken c)
+                    {
+                        var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
+                        return Task.FromResult(document.WithSyntaxRoot(newRoot));
+                    };
+                    var codeAction = new MyCodeAction(codeActionPreviewText, CreateChangedDocument);
                     context.RegisterCodeFix(codeAction, context.Diagnostics.First());
                 }
             }

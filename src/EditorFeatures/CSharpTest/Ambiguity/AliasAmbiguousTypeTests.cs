@@ -48,7 +48,7 @@ namespace Test
 {
     using N1;
     using N2;
-    #
+    {0}
 
     class C
     {
@@ -58,8 +58,8 @@ namespace Test
         }
     }
 }";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkupTemplate.Replace("#", "using Ambiguous = N1.Ambiguous;"), 0);
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkupTemplate.Replace("#", "using Ambiguous = N2.Ambiguous;"), 1);
+            await TestInRegularAndScriptAsync(initialMarkup, string.Format(expectedMarkupTemplate, "using Ambiguous = N1.Ambiguous;"), index: 0);
+            await TestInRegularAndScriptAsync(initialMarkup, string.Format(expectedMarkupTemplate, "using Ambiguous = N2.Ambiguous;"), index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -230,7 +230,7 @@ class D
             var expectedMarkup = @"
 using static Static<string>;
 using static Static<int>;
-#
+{0}
 
 public static class Static<T>
 {
@@ -248,8 +248,8 @@ class D
         c.M();
     }
 }";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup.Replace("#", "using Nested = Static<string>.Nested;"), 0);
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup.Replace("#", "using Nested = Static<int>.Nested;"), 1);
+            await TestInRegularAndScriptAsync(initialMarkup, string.Format(expectedMarkup, "using Nested = Static<string>.Nested;"), index: 0);
+            await TestInRegularAndScriptAsync(initialMarkup, string.Format(expectedMarkup, "using Nested = Static<int>.Nested;"), index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
