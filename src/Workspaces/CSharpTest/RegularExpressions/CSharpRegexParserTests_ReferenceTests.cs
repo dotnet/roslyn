@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -98,6 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..68)"" />
+    <Capture Name=""1"" Span=""[10..31)"" />
+    <Capture Name=""2"" Span=""[52..68)"" />
+    <Capture Name=""duplicateWord"" Span=""[10..31)"" />
+    <Capture Name=""nextWord"" Span=""[52..68)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -176,6 +186,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..42)"" />
+    <Capture Name=""1"" Span=""[10..26)"" />
+    <Capture Name=""2"" Span=""[38..42)"" />
+    <Capture Name=""3"" Span=""[11..22)"" />
+    <Capture Name=""4"" Span=""[27..38)"" />
+    <Capture Name=""One"" Span=""[11..22)"" />
+    <Capture Name=""Two"" Span=""[27..38)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -215,6 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""1"" Span=""[10..15)"" />
+    <Capture Name=""2"" Span=""[17..21)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -244,6 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -280,6 +307,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -329,6 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..25)"" />
+    <Capture Name=""1"" Span=""[12..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -392,6 +426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..43)"" />
+    <Capture Name=""1"" Span=""[13..26)"" />
+    <Capture Name=""digit"" Span=""[13..26)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -498,6 +537,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..46)"" />
+    <Capture Name=""1"" Span=""[10..45)"" />
+    <Capture Name=""2"" Span=""[18..41)"" />
+    <Capture Name=""3"" Span=""[20..40)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -666,6 +711,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..72)"" />
+    <Capture Name=""1"" Span=""[11..27)"" />
+    <Capture Name=""2"" Span=""[12..22)"" />
+    <Capture Name=""3"" Span=""[16..21)"" />
+    <Capture Name=""4"" Span=""[30..40)"" />
+    <Capture Name=""5"" Span=""[41..71)"" />
+    <Capture Name=""6"" Span=""[49..67)"" />
+    <Capture Name=""7"" Span=""[51..66)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -723,6 +778,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..25)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -768,6 +826,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -815,6 +876,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..40)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -878,6 +942,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..50)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -941,6 +1008,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..27)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -994,6 +1064,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Diagnostics>
     <Diagnostic Message=""Not enough )'s"" Start=""25"" Length=""0"" />
   </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..25)"" />
+    <Capture Name=""1"" Span=""[10..25)"" />
+    <Capture Name=""2"" Span=""[11..21)"" />
+    <Capture Name=""3"" Span=""[15..20)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1039,6 +1115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1177,6 +1256,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..78)"" />
+    <Capture Name=""1"" Span=""[17..63)"" />
+    <Capture Name=""2"" Span=""[18..36)"" />
+    <Capture Name=""3"" Span=""[37..61)"" />
+    <Capture Name=""4"" Span=""[66..72)"" />
+    <Capture Name=""5"" Span=""[19..29)"" />
+    <Capture Name=""6"" Span=""[38..54)"" />
+    <Capture Name=""Close"" Span=""[38..54)"" />
+    <Capture Name=""Open"" Span=""[19..29)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1232,6 +1322,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Diagnostics>
     <Diagnostic Message=""Reference to undefined group name Open"" Start=""20"" Length=""4"" />
   </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..35)"" />
+    <Capture Name=""1"" Span=""[10..34)"" />
+    <Capture Name=""2"" Span=""[11..27)"" />
+    <Capture Name=""Close"" Span=""[11..27)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1268,6 +1364,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""1"" Span=""[10..14)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1293,6 +1393,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1319,6 +1422,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..18)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1440,6 +1546,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..55)"" />
+    <Capture Name=""1"" Span=""[14..31)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1484,6 +1594,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..26)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1526,6 +1639,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..26)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1625,6 +1741,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..57)"" />
+    <Capture Name=""1"" Span=""[10..56)"" />
+    <Capture Name=""2"" Span=""[11..29)"" />
+    <Capture Name=""3"" Span=""[30..54)"" />
+    <Capture Name=""4"" Span=""[12..22)"" />
+    <Capture Name=""5"" Span=""[31..47)"" />
+    <Capture Name=""Close"" Span=""[31..47)"" />
+    <Capture Name=""Open"" Span=""[12..22)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1666,6 +1792,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1711,6 +1840,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..26)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1738,6 +1870,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1787,6 +1922,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..27)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1840,6 +1978,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..29)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1870,6 +2011,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Diagnostics>
     <Diagnostic Message=""Reference to undefined group name Open"" Start=""19"" Length=""4"" />
   </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..26)"" />
+    <Capture Name=""1"" Span=""[10..26)"" />
+    <Capture Name=""Close"" Span=""[10..26)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1898,6 +2044,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1943,6 +2092,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..25)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -1982,6 +2134,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..19)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2022,6 +2177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2050,6 +2208,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2094,6 +2255,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..30)"" />
+    <Capture Name=""1"" Span=""[10..29)"" />
+    <Capture Name=""2"" Span=""[23..27)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2185,6 +2351,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..65)"" />
+    <Capture Name=""1"" Span=""[12..31)"" />
+    <Capture Name=""2"" Span=""[25..29)"" />
+    <Capture Name=""3"" Span=""[40..64)"" />
+    <Capture Name=""4"" Span=""[58..62)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2247,6 +2420,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..28)"" />
+    <Capture Name=""1"" Span=""[21..28)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2268,6 +2445,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..13)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2290,6 +2470,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..14)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2333,6 +2516,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2361,6 +2547,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..19)"" />
+    <Capture Name=""1"" Span=""[10..18)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2391,6 +2581,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2433,6 +2626,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..22)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2455,6 +2651,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..14)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2474,6 +2673,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..13)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2538,6 +2740,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..32)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2567,6 +2772,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..19)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2596,6 +2804,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..19)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2630,6 +2841,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..18)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2656,6 +2870,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""1"" Span=""[10..14)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2727,6 +2945,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..56)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2776,6 +2997,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2795,6 +3019,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2852,6 +3079,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..29)"" />
+    <Capture Name=""1"" Span=""[10..28)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2936,6 +3167,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..42)"" />
+    <Capture Name=""1"" Span=""[11..29)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2963,6 +3198,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..15)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -2982,6 +3220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3018,6 +3259,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""1"" Span=""[12..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3060,6 +3305,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3111,6 +3359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..32)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3141,6 +3392,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""1"" Span=""[10..16)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3197,6 +3452,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..26)"" />
+    <Capture Name=""1"" Span=""[15..18)"" />
+    <Capture Name=""2"" Span=""[20..26)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3238,6 +3498,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3267,6 +3530,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..19)"" />
+    <Capture Name=""1"" Span=""[10..14)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3292,6 +3559,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..15)"" />
+    <Capture Name=""1"" Span=""[10..15)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3308,6 +3579,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..12)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3354,6 +3628,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..26)"" />
+    <Capture Name=""1"" Span=""[12..17)"" />
+    <Capture Name=""2"" Span=""[17..21)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3398,6 +3677,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""1"" Span=""[13..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3443,6 +3726,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""1"" Span=""[10..22)"" />
+    <Capture Name=""2"" Span=""[13..18)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3479,6 +3767,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""1"" Span=""[10..14)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3553,6 +3845,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..40)"" />
+    <Capture Name=""1"" Span=""[17..33)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3639,6 +3935,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..48)"" />
+    <Capture Name=""1"" Span=""[16..41)"" />
+    <Capture Name=""amount"" Span=""[16..41)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3680,6 +3981,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""1"" Span=""[11..19)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3721,6 +4026,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3766,6 +4074,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..26)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3802,6 +4113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3847,6 +4161,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..25)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3895,6 +4212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""1"" Span=""[11..16)"" />
+    <Capture Name=""2"" Span=""[18..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -3950,6 +4272,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..27)"" />
+    <Capture Name=""1"" Span=""[11..16)"" />
+    <Capture Name=""2"" Span=""[18..23)"" />
+  </Captures>
 </Tree>", RegexOptions.Multiline);
         }
 
@@ -4011,6 +4338,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..31)"" />
+    <Capture Name=""1"" Span=""[15..20)"" />
+    <Capture Name=""2"" Span=""[22..27)"" />
+  </Captures>
 </Tree>", RegexOptions.Multiline);
         }
 
@@ -4038,6 +4370,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -4136,6 +4471,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..52)"" />
+    <Capture Name=""1"" Span=""[12..20)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -4217,6 +4556,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..37)"" />
+    <Capture Name=""1"" Span=""[15..27)"" />
+    <Capture Name=""2"" Span=""[16..21)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -4306,6 +4650,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..43)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -4392,6 +4739,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..42)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -4475,6 +4825,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..39)"" />
+    <Capture Name=""1"" Span=""[15..29)"" />
+  </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
 
@@ -4590,6 +4944,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..81)"" />
+    <Capture Name=""1"" Span=""[21..38)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -4620,6 +4978,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..18)"" />
+  </Captures>
 </Tree>", RegexOptions.RightToLeft);
         }
 
@@ -4682,6 +5043,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..36)"" />
+  </Captures>
 </Tree>", RegexOptions.RightToLeft);
         }
 
@@ -4721,6 +5085,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""1"" Span=""[12..20)"" />
+  </Captures>
 </Tree>", RegexOptions.ECMAScript);
         }
 
@@ -4770,6 +5138,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""1"" Span=""[10..22)"" />
+    <Capture Name=""2"" Span=""[11..15)"" />
+    <Capture Name=""3"" Span=""[15..19)"" />
+  </Captures>
 </Tree>", RegexOptions.ECMAScript);
         }
 
@@ -4826,6 +5200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..28)"" />
+    <Capture Name=""1"" Span=""[12..18)"" />
+    <Capture Name=""2"" Span=""[20..26)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -4897,6 +5276,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..37)"" />
+    <Capture Name=""1"" Span=""[12..18)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -4959,6 +5342,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..89)"" />
+    <Capture Name=""1"" Span=""[12..48)"" />
+    <Capture Name=""2"" Span=""[50..87)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5042,6 +5430,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..39)"" />
+    <Capture Name=""1"" Span=""[15..29)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5144,6 +5536,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..58)"" />
+    <Capture Name=""1"" Span=""[28..32)"" />
+    <Capture Name=""2"" Span=""[12..25)"" />
+    <Capture Name=""n2"" Span=""[12..25)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5229,6 +5627,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..45)"" />
+    <Capture Name=""1"" Span=""[12..43)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5275,6 +5677,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..22)"" />
+    <Capture Name=""1"" Span=""[14..19)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5319,6 +5725,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""1"" Span=""[13..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5364,6 +5774,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""1"" Span=""[10..22)"" />
+    <Capture Name=""2"" Span=""[13..18)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5399,6 +5814,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..19)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5438,6 +5856,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5467,6 +5888,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5507,6 +5931,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5544,6 +5971,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5579,6 +6009,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""1"" Span=""[10..16)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5625,6 +6059,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5655,6 +6092,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..18)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5783,6 +6223,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..50)"" />
+    <Capture Name=""1"" Span=""[14..23)"" />
+    <Capture Name=""2"" Span=""[38..44)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5828,6 +6273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""1"" Span=""[10..19)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5892,6 +6341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..36)"" />
+    <Capture Name=""1"" Span=""[12..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -5971,6 +6424,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..38)"" />
+    <Capture Name=""1"" Span=""[17..27)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6022,6 +6479,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..25)"" />
+    <Capture Name=""1"" Span=""[13..23)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6077,6 +6538,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..27)"" />
+    <Capture Name=""1"" Span=""[15..25)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6104,6 +6569,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..15)"" />
+    <Capture Name=""1"" Span=""[10..14)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6155,6 +6624,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..29)"" />
+    <Capture Name=""1"" Span=""[10..24)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6204,6 +6677,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..27)"" />
+    <Capture Name=""1"" Span=""[10..24)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6230,6 +6707,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""1"" Span=""[10..14)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6263,6 +6744,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..29)"" />
+    <Capture Name=""1"" Span=""[10..21)"" />
+    <Capture Name=""char"" Span=""[10..21)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6296,6 +6782,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""2"" Span=""[10..18)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6341,6 +6831,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..27)"" />
+    <Capture Name=""1"" Span=""[10..17)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6415,6 +6909,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..44)"" />
+    <Capture Name=""1"" Span=""[12..23)"" />
+    <Capture Name=""2"" Span=""[23..30)"" />
+    <Capture Name=""3"" Span=""[31..42)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6456,6 +6956,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..21)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6524,6 +7027,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..95)"" />
+    <Capture Name=""1"" Span=""[12..48)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
 
@@ -6614,6 +7121,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..80)"" />
+    <Capture Name=""1"" Span=""[15..23)"" />
+    <Capture Name=""2"" Span=""[24..36)"" />
+  </Captures>
 </Tree>", RegexOptions.None);
         }
     }

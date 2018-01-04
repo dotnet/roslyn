@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             var other = new Dictionary<string, string>();
 
             var referenceTests =
-                tests.Where(kvp => kvp.Key.StartsWith("ReferenceTest"))
+                tests.Where(kvp => kvp.Key.StartsWith("NegativeTest"))
                      .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
                      .Select(kvp => kvp.Value);
 
