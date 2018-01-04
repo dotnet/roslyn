@@ -1706,8 +1706,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                 if (ch < ' ')
                 {
-                    var controlToken = _currentToken.With(kind: RegexKind.TextToken);
-                    ScanNextToken(allowTrivia: true);
+                    var controlToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true).With(kind: RegexKind.TextToken);
                     return new RegexControlEscapeNode(backslashToken, typeToken, controlToken);
                 }
                 else
@@ -1790,19 +1789,15 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             categoryToken = category.Value;
-
-            closeBraceToken = _currentToken.With(kind: RegexKind.CloseBraceToken);
-            ScanNextToken(allowTrivia: allowTriviaAfterEnd);
+            closeBraceToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: allowTriviaAfterEnd).With(kind: RegexKind.CloseBraceToken);
             return true;
         }
 
         private RegexTextNode ParseUnexpectedQuantifier(RegexExpressionNode lastExpression)
         {
-            var token = _currentToken;
+            var token = ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
             CheckQuantifierExpression(lastExpression, ref token);
-            ScanNextToken(allowTrivia: true);
-            token = token.With(kind: RegexKind.TextToken);
-            return new RegexTextNode(token);
+            return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
 
         private void CheckQuantifierExpression(RegexExpressionNode current, ref RegexToken token)
