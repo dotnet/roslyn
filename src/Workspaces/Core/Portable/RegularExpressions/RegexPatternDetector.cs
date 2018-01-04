@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -19,6 +20,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal class RegexPatternDetector
     {
         private const string _patternName = "pattern";
+
+        private static readonly ConditionalWeakTable<SemanticModel, RegexPatternDetector> _modelToDetector =
+            new ConditionalWeakTable<SemanticModel, RegexPatternDetector>();
 
         private readonly SemanticModel _semanticModel;
         private readonly ISyntaxFactsService _syntaxFacts;
@@ -59,7 +63,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             _methodNamesOfInterest = methodNamesOfInterest;
         }
 
-        public static RegexPatternDetector TryCreate(
+        public static RegexPatternDetector TryGetOrCreate(
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            ISemanticFactsService semanticFacts)
+        {
+            // Do a quick non-allocating check first.
+            if (_modelToDetector.TryGetValue(semanticModel, out var detector))
+            {
+                return detector;
+            }
+
+            return _modelToDetector.GetValue(
+                semanticModel, _ => TryCreate(semanticModel, syntaxFacts, semanticFacts));
+        }
+
+        private static RegexPatternDetector TryCreate(
             SemanticModel semanticModel, 
             ISyntaxFactsService syntaxFacts, 
             ISemanticFactsService semanticFacts)

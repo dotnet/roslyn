@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             CollectDiagnostics(root, diagnostics);
 
             return new RegexTree(
-                root, diagnostics.ToImmutableAndFree(), 
+                _lexer.Text, root, diagnostics.ToImmutableAndFree(), 
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 

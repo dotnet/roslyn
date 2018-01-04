@@ -14,9 +14,6 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
-        private static readonly ConditionalWeakTable<SemanticModel, RegexPatternDetector> _modelToDetector =
-            new ConditionalWeakTable<SemanticModel, RegexPatternDetector>();
-
         public static void AddClassifications(
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result,  
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService,
@@ -33,17 +30,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
-            // Looks like it could be a regex pattern.  Do more complex check.
-            // Cache the detector we create, so we don't have to continually do
-            // the same semantic work for every string literal token we visit.
-            if (!_modelToDetector.TryGetValue(semanticModel, out var detector))
-            {
-                detector = _modelToDetector.GetValue(
-                    semanticModel,
-                    m => RegexPatternDetector.TryCreate(m, syntaxFacts, semanticFacts));
-            }
-
-            var tree = detector.TryParseRegexPattern(token, virtualCharService, cancellationToken);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, syntaxFacts, semanticFacts);
+            var tree = detector?.TryParseRegexPattern(token, virtualCharService, cancellationToken);
             if (tree == null)
             {
                 return;

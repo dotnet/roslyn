@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
                 return;
             }
 
-            var detector = RegexPatternDetector.TryCreate(semanticModel, _syntaxFacts, _semanticFacts);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _syntaxFacts, _semanticFacts);
             if (detector == null)
             {
                 return;

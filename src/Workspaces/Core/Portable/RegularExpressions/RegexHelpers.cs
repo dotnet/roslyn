@@ -43,5 +43,58 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     throw new InvalidOperationException();
             }
         }
+
+        public static TextSpan GetSpan(RegexEscapeNode node)
+        {
+            var start = int.MaxValue;
+            var end = 0;
+
+            GetSpan(node, ref start, ref end);
+
+            return TextSpan.FromBounds(start, end);
+        }
+
+        private static void GetSpan(RegexNode node, ref int start, ref int end)
+        {
+            foreach (var child in node)
+            {
+                if (child.IsNode)
+                {
+                    GetSpan(child.Node, ref start, ref end);
+                }
+                else
+                {
+                    var token = child.Token;
+                    if (!token.IsMissing)
+                    {
+                        start = Math.Min(token.VirtualChars[0].Span.Start, start);
+                        end = Math.Max(token.VirtualChars.Last().Span.End, end);
+                    }
+                }
+            }
+        }
+
+        public static bool Contains(RegexNode node, VirtualChar virtualChar)
+        {
+            foreach (var child in node)
+            {
+                if (child.IsNode)
+                {
+                    if (Contains(child.Node, virtualChar))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (child.Token.VirtualChars.Contains(virtualChar))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }

@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 {
     internal sealed class RegexTree
     {
+        public readonly ImmutableArray<VirtualChar> Text;
         public readonly RegexCompilationUnit Root;
         public readonly ImmutableArray<RegexDiagnostic> Diagnostics;
 
@@ -14,11 +15,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public readonly ImmutableDictionary<int, TextSpan> CaptureNumbersToSpan;
 
         public RegexTree(
+            ImmutableArray<VirtualChar> text,
             RegexCompilationUnit root,
             ImmutableArray<RegexDiagnostic> diagnostics,
             ImmutableDictionary<string, TextSpan> captureNamesToSpan,
             ImmutableDictionary<int, TextSpan> captureNumbersToSpan)
         {
+            Text = text;
             Root = root;
             Diagnostics = diagnostics;
             CaptureNamesToSpan = captureNamesToSpan;
