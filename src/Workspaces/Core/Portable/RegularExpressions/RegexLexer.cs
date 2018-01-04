@@ -132,6 +132,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     if (Text[Position] == '#')
                     {
                         var start = Position;
+
+                        // Note: \n is the only newline the native regex parser looks for.
                         while (Position < Text.Length &&
                                Text[Position] != '\n')
                         {
