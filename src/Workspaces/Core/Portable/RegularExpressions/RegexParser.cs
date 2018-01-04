@@ -1342,6 +1342,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                             backslashToken, ConsumeCurrentToken(allowTrivia: false).With(kind: RegexKind.TextToken));
 
                     default:
+                        // trivia is not allowed anywhere in a character class
                         _lexer.Position--;
                         return ScanCharEscape(backslashToken, allowTriviaAfterEnd: false);
                 }
@@ -1620,6 +1621,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             capture = RegexToken.CreateMissing(RegexKind.CaptureNameToken);
             closeToken = RegexToken.CreateMissing(RegexKind.GreaterThanToken);
 
+            // No trivia allowed in <cap> or 'cap'
             ConsumeCurrentToken(allowTrivia: false);
 
             if (_lexer.Position < _lexer.Text.Length &&
@@ -1637,6 +1639,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 ? RegexToken.CreateMissing(RegexKind.CaptureNameToken)
                 : captureToken.Value;
 
+            // No trivia allowed in <cap> or 'cap'
             ConsumeCurrentToken(allowTrivia: false);
             closeToken = RegexToken.CreateMissing(RegexKind.GreaterThanToken);
 
@@ -1828,6 +1831,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexTextNode ParseUnexpectedQuantifier(RegexExpressionNode lastExpression)
         {
+            // This is just a bogus element in the higher level sequence.  Allow trivia 
+            // after this to abide by the spirit of the native parser.
             var token = ConsumeCurrentToken(allowTrivia: true);
             CheckQuantifierExpression(lastExpression, ref token);
             return new RegexTextNode(token.With(kind: RegexKind.TextToken));
