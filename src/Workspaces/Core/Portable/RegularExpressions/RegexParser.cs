@@ -36,6 +36,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             ConsumeCurrentToken(allowTrivia: true);
         }
 
+        /// <summary>
+        /// Returns the latest token the lexer has produced, and then asks the lexer to 
+        /// produce the next token after that.
+        /// </summary>
         private RegexToken ConsumeCurrentToken(bool allowTrivia)
         {
             var previous = _currentToken;
@@ -102,22 +106,23 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
                 else
                 {
-                    CollectDiagnostics(child.Token, diagnostics);
+                    var token = child.Token;
+                    foreach (var trivia in token.LeadingTrivia)
+                    {
+                        AddUniqueDiagnostics(trivia.Diagnostics, diagnostics);
+                    }
+
+                    AddUniqueDiagnostics(token.Diagnostics, diagnostics);
                 }
             }
         }
 
-        private static void CollectDiagnostics(RegexToken token, ArrayBuilder<RegexDiagnostic> diagnostics)
-        {
-            foreach (var trivia in token.LeadingTrivia)
-            {
-                AddRange(trivia.Diagnostics, diagnostics);
-            }
-
-            AddRange(token.Diagnostics, diagnostics);
-        }
-
-        private static void AddRange(ImmutableArray<RegexDiagnostic> from, ArrayBuilder<RegexDiagnostic> to)
+        /// <summary>
+        /// It's very common to have duplicated diagnostics.  For example, consider "((". This will
+        /// have two 'missing )' diagnostics, both at the end.  Reporting both isn't helpful, so we
+        /// filter duplicates out here.
+        /// </summary>
+        private static void AddUniqueDiagnostics(ImmutableArray<RegexDiagnostic> from, ArrayBuilder<RegexDiagnostic> to)
         {
             foreach (var diagnostic in from)
             {
@@ -142,12 +147,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
+        /// <summary>
+        /// Parses out code of the form: ...|...|...
+        /// This is the type of code you have at the top level of a regex, or inside any grouping
+        /// contruct.  Note that sequences can be empty in .net regex.  i.e. the following is legal:
+        /// 
+        ///     ...||...
+        /// 
+        /// An empty sequence just means "match at every position in the test string".
+        /// </summary>
         private RegexExpressionNode ParseAlternatingSequencesWorker(bool consumeCloseParen)
         {
             RegexExpressionNode current = ParseSequence(consumeCloseParen);
 
             while (_currentToken.Kind == RegexKind.BarToken)
             {
+                // Trivia allowed between the | and the next token.
                 current = new RegexAlternationNode(
                     current, ConsumeCurrentToken(allowTrivia: true), ParseSequence(consumeCloseParen));
             }
