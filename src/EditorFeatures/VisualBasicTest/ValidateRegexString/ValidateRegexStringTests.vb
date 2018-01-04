@@ -48,5 +48,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateRegexStrin
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
+        Public Async Function TestWarning2() As Task
+            Await TestDiagnosticInfoAsync("
+        imports System.Text.RegularExpressions
+
+        class Program
+            sub Main()
+                var r = new Regex(""""""[|)|]"")
+            end sub
+        end class",
+                        options:=OptionOn(),
+                        diagnosticId:=IDEDiagnosticIds.RegexPatternDiagnosticId,
+                        diagnosticSeverity:=DiagnosticSeverity.Warning,
+                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+        End Function
     End Class
 End Namespace
