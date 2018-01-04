@@ -4377,9 +4377,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <KCaptureEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>k</TextToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <NumberToken value=""0"">0</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </KCaptureEscape>
     </Sequence>
     <EndOfFile />
@@ -4399,9 +4399,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <KCaptureEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>k</TextToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <NumberToken value=""0"">0</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </KCaptureEscape>
       <Text>
         <TextToken> </TextToken>
@@ -4424,9 +4424,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <KCaptureEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>k</TextToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <NumberToken value=""0"">00</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </KCaptureEscape>
       <Text>
         <TextToken> </TextToken>
@@ -4449,9 +4449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <KCaptureEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>k</TextToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""a"">a</CaptureNameToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </KCaptureEscape>
       <Text>
         <TextToken> </TextToken>
@@ -4486,9 +4486,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <KCaptureEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>k</TextToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""a"">a</CaptureNameToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </KCaptureEscape>
       <Text>
         <TextToken> </TextToken>
@@ -5102,9 +5102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <Sequence>
       <CaptureEscape>
         <BackslashToken>\</BackslashToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <NumberToken value=""0"">0</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </CaptureEscape>
     </Sequence>
     <EndOfFile />
@@ -5123,9 +5123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <Sequence>
       <CaptureEscape>
         <BackslashToken>\</BackslashToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <NumberToken value=""0"">0</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </CaptureEscape>
       <Text>
         <TextToken> </TextToken>
@@ -5147,9 +5147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <Sequence>
       <CaptureEscape>
         <BackslashToken>\</BackslashToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <NumberToken value=""0"">00</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </CaptureEscape>
       <Text>
         <TextToken> </TextToken>
@@ -5171,9 +5171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <Sequence>
       <CaptureEscape>
         <BackslashToken>\</BackslashToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""a"">a</CaptureNameToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </CaptureEscape>
       <Text>
         <TextToken> </TextToken>
@@ -5207,9 +5207,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       </CaptureGrouping>
       <CaptureEscape>
         <BackslashToken>\</BackslashToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""a"">a</CaptureNameToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
       </CaptureEscape>
       <Text>
         <TextToken> </TextToken>
@@ -8690,9 +8690,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CaptureGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""a"">a</CaptureNameToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <Sequence />
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
@@ -8716,11 +8716,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <BalancingGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken />
         <MinusToken>-</MinusToken>
         <NumberToken value=""0"">0</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <Sequence />
         <CloseParenToken>)</CloseParenToken>
       </BalancingGrouping>
@@ -8742,11 +8742,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <BalancingGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""a"">a</CaptureNameToken>
         <MinusToken>-</MinusToken>
         <NumberToken value=""0"">0</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <Sequence />
         <CloseParenToken>)</CloseParenToken>
       </BalancingGrouping>
@@ -8805,11 +8805,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <BalancingGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""a"">a</CaptureNameToken>
         <MinusToken>-</MinusToken>
         <NumberToken value=""0"">0</NumberToken>
-        <QuoteToken />
+        <SingleQuoteToken />
         <Sequence>
           <Text>
             <TextToken>&gt;</TextToken>
@@ -9465,9 +9465,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CaptureGrouping>
           <OpenParenToken>(</OpenParenToken>
           <QuestionToken>?</QuestionToken>
-          <QuoteToken>'</QuoteToken>
+          <SingleQuoteToken>'</SingleQuoteToken>
           <CaptureNameToken />
-          <QuoteToken />
+          <SingleQuoteToken />
           <Sequence />
           <CloseParenToken />
         </CaptureGrouping>
@@ -9500,9 +9500,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CaptureGrouping>
           <OpenParenToken>(</OpenParenToken>
           <QuestionToken>?</QuestionToken>
-          <QuoteToken>'</QuoteToken>
+          <SingleQuoteToken>'</SingleQuoteToken>
           <CaptureNameToken value=""x"">x</CaptureNameToken>
-          <QuoteToken>'</QuoteToken>
+          <SingleQuoteToken>'</SingleQuoteToken>
           <Sequence />
           <CloseParenToken>)</CloseParenToken>
         </CaptureGrouping>

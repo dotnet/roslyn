@@ -58,10 +58,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var ch = this.CurrentChar;
             Position++;
 
-            var chars = ImmutableArray.Create(ch);
-            return TryGetKind(ch, out var kind)
-                ? new RegexToken(trivia, kind, chars)
-                : new RegexToken(trivia, RegexKind.TextToken, chars);
+            return new RegexToken(trivia, GetKind(ch), ImmutableArray.Create(ch));
         }
 
         private static RegexKind GetKind(char ch)
@@ -89,15 +86,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case '<': return RegexKind.LessThanToken;
                 case '>': return RegexKind.GreaterThanToken;
                 case '-': return RegexKind.MinusToken;
-                case '\'': return RegexKind.QuoteToken;
-                default: return RegexKind.None;
+                case '\'': return RegexKind.SingleQuoteToken;
+                default: return RegexKind.TextToken;
             }
-        }
-
-        private static bool TryGetKind(char ch, out RegexKind kind)
-        {
-            kind = GetKind(ch);
-            return kind != RegexKind.None;
         }
 
         private ImmutableArray<RegexTrivia> ScanLeadingTrivia(bool allowTrivia, RegexOptions options)

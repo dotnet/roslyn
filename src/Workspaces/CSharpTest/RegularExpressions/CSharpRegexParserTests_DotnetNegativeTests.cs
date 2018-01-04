@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CaptureGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken />
-        <QuoteToken />
+        <SingleQuoteToken />
         <Sequence />
         <CloseParenToken>)</CloseParenToken>
       </CaptureGrouping>
@@ -510,9 +510,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CaptureGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""cat"">cat</CaptureNameToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <Sequence />
         <CloseParenToken />
       </CaptureGrouping>
@@ -539,9 +539,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CaptureGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken />
-        <QuoteToken />
+        <SingleQuoteToken />
         <Sequence />
         <CloseParenToken />
       </CaptureGrouping>
@@ -1819,9 +1819,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CaptureGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <NumberToken value=""0"">0</NumberToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <Sequence>
           <Text>
             <TextToken>b</TextToken>
@@ -1912,9 +1912,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <CaptureGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <NumberToken value=""1"">1</NumberToken>
-        <QuoteToken />
+        <SingleQuoteToken />
         <Sequence>
           <Text>
             <TextToken>b</TextToken>
@@ -2591,9 +2591,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         <CaptureGrouping>
           <OpenParenToken>(</OpenParenToken>
           <QuestionToken>?</QuestionToken>
-          <QuoteToken>'</QuoteToken>
+          <SingleQuoteToken>'</SingleQuoteToken>
           <CaptureNameToken value=""cat"">cat</CaptureNameToken>
-          <QuoteToken>'</QuoteToken>
+          <SingleQuoteToken>'</SingleQuoteToken>
           <Sequence>
             <Text>
               <TextToken>c</TextToken>

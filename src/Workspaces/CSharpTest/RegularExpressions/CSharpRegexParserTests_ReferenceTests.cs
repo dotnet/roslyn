@@ -1157,9 +1157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                   <CaptureGrouping>
                     <OpenParenToken>(</OpenParenToken>
                     <QuestionToken>?</QuestionToken>
-                    <QuoteToken>'</QuoteToken>
+                    <SingleQuoteToken>'</SingleQuoteToken>
                     <CaptureNameToken value=""Open"">Open</CaptureNameToken>
-                    <QuoteToken>'</QuoteToken>
+                    <SingleQuoteToken>'</SingleQuoteToken>
                     <Sequence>
                       <Text>
                         <TextToken>&lt;</TextToken>
@@ -1195,11 +1195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                   <BalancingGrouping>
                     <OpenParenToken>(</OpenParenToken>
                     <QuestionToken>?</QuestionToken>
-                    <QuoteToken>'</QuoteToken>
+                    <SingleQuoteToken>'</SingleQuoteToken>
                     <CaptureNameToken value=""Close"">Close</CaptureNameToken>
                     <MinusToken>-</MinusToken>
                     <CaptureNameToken value=""Open"">Open</CaptureNameToken>
-                    <QuoteToken>'</QuoteToken>
+                    <SingleQuoteToken>'</SingleQuoteToken>
                     <Sequence>
                       <Text>
                         <TextToken>&gt;</TextToken>
@@ -1282,11 +1282,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             <BalancingGrouping>
               <OpenParenToken>(</OpenParenToken>
               <QuestionToken>?</QuestionToken>
-              <QuoteToken>'</QuoteToken>
+              <SingleQuoteToken>'</SingleQuoteToken>
               <CaptureNameToken value=""Close"">Close</CaptureNameToken>
               <MinusToken>-</MinusToken>
               <CaptureNameToken value=""Open"">Open</CaptureNameToken>
-              <QuoteToken>'</QuoteToken>
+              <SingleQuoteToken>'</SingleQuoteToken>
               <Sequence>
                 <Text>
                   <TextToken>&gt;</TextToken>
@@ -1661,9 +1661,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                   <CaptureGrouping>
                     <OpenParenToken>(</OpenParenToken>
                     <QuestionToken>?</QuestionToken>
-                    <QuoteToken>'</QuoteToken>
+                    <SingleQuoteToken>'</SingleQuoteToken>
                     <CaptureNameToken value=""Open"">Open</CaptureNameToken>
-                    <QuoteToken>'</QuoteToken>
+                    <SingleQuoteToken>'</SingleQuoteToken>
                     <Sequence>
                       <Text>
                         <TextToken>&lt;</TextToken>
@@ -1699,11 +1699,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                   <BalancingGrouping>
                     <OpenParenToken>(</OpenParenToken>
                     <QuestionToken>?</QuestionToken>
-                    <QuoteToken>'</QuoteToken>
+                    <SingleQuoteToken>'</SingleQuoteToken>
                     <CaptureNameToken value=""Close"">Close</CaptureNameToken>
                     <MinusToken>-</MinusToken>
                     <CaptureNameToken value=""Open"">Open</CaptureNameToken>
-                    <QuoteToken>'</QuoteToken>
+                    <SingleQuoteToken>'</SingleQuoteToken>
                     <Sequence>
                       <Text>
                         <TextToken>&gt;</TextToken>
@@ -1992,11 +1992,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
       <BalancingGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <CaptureNameToken value=""Close"">Close</CaptureNameToken>
         <MinusToken>-</MinusToken>
         <CaptureNameToken value=""Open"">Open</CaptureNameToken>
-        <QuoteToken>'</QuoteToken>
+        <SingleQuoteToken>'</SingleQuoteToken>
         <Sequence>
           <Text>
             <TextToken>&gt;</TextToken>
