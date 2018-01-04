@@ -23,13 +23,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         // internal for testing
         internal class InProcOrRemoteHostAnalyzerRunner
         {
+            private readonly IDiagnosticAnalyzerService _owner;
             private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
 
             // TODO: this should be removed once we move options down to compiler layer
             private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
-            public InProcOrRemoteHostAnalyzerRunner(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public InProcOrRemoteHostAnalyzerRunner(IDiagnosticAnalyzerService owner, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             {
+                _owner = owner;
                 _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
 
                 // currently option is a bit wierd since it is not part of snapshot and 
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     await client.TryRunCodeAnalysisRemoteAsync(
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                        analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(),
+                        analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_owner),
                         cancellationToken).ConfigureAwait(false);
                 }
 

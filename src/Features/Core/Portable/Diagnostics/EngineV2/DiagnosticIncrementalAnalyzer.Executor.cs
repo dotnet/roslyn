@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public Executor(DiagnosticIncrementalAnalyzer owner)
             {
                 _owner = owner;
-                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_owner.HostDiagnosticUpdateSource);
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_owner.Owner, _owner.HostDiagnosticUpdateSource);
             }
 
             public IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
