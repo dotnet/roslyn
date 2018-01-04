@@ -33,19 +33,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             _captureNamesToSpan = captureNamesToSpan;
             _captureNumbersToSpan = captureNumbersToSpan;
 
-            ScanNextToken(allowTrivia: true);
+            ConsumeCurrentToken(allowTrivia: true);
         }
 
-        private RegexToken ScanNextToken(bool allowTrivia)
-        {
-            _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
-            return _currentToken;
-        }
-
-        private RegexToken ScanNextTokenAndReturnPreviousToken(bool allowTrivia)
+        private RegexToken ConsumeCurrentToken(bool allowTrivia)
         {
             var previous = _currentToken;
-            ScanNextToken(allowTrivia);
+            _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
             return previous;
         }
 
@@ -155,7 +149,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             while (_currentToken.Kind == RegexKind.BarToken)
             {
                 current = new RegexAlternationNode(
-                    current, ScanNextTokenAndReturnPreviousToken(allowTrivia: true), ParseSequence(consumeCloseParen));
+                    current, ConsumeCurrentToken(allowTrivia: true), ParseSequence(consumeCloseParen));
             }
 
             return current;
@@ -227,28 +221,28 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             // Whitespace allowed after the question and the next sequence element.
             return new RegexLazyQuantifierNode(quantifier,
-                ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
+                ConsumeCurrentToken(allowTrivia: true));
         }
 
         private RegexExpressionNode ParseZeroOrMoreQuantifier(RegexPrimaryExpressionNode current)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
             return TryParseLazyQuantifier(new RegexZeroOrMoreQuantifierNode(current,
-                ScanNextTokenAndReturnPreviousToken(allowTrivia: true)));
+                ConsumeCurrentToken(allowTrivia: true)));
         }
 
         private RegexExpressionNode ParseOneOrMoreQuantifier(RegexPrimaryExpressionNode current)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
             return TryParseLazyQuantifier(new RegexOneOrMoreQuantifierNode(current,
-                ScanNextTokenAndReturnPreviousToken(allowTrivia: true)));
+                ConsumeCurrentToken(allowTrivia: true)));
         }
 
         private RegexExpressionNode ParseZeroOrOneQuantifier(RegexPrimaryExpressionNode current)
         {
             // Whitespace allowed between the quantifier and the possible following ?.
             return TryParseLazyQuantifier(new RegexZeroOrOneQuantifierNode(current,
-                ScanNextTokenAndReturnPreviousToken(allowTrivia: true)));
+                ConsumeCurrentToken(allowTrivia: true)));
         }
 
         private RegexExpressionNode TryParseNumericQuantifier(
@@ -307,7 +301,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             firstNumberToken = firstNumber.Value;
 
             // Nothing allowed between {x,n}
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
 
             if (_currentToken.Kind == RegexKind.CommaToken)
             {
@@ -319,14 +313,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 if (secondNumberToken == null)
                 {
                     // Nothing allowed between {x,n}
-                    ResetToPositionAndScanNextToken(start, allowTrivia: false);
+                    ResetToPositionAndConsumeCurrentToken(start, allowTrivia: false);
                 }
                 else
                 {
                     var secondNumberTokenLocal = secondNumberToken.Value;
 
                     // Nothing allowed between {x,n}
-                    ScanNextToken(allowTrivia: false);
+                    ConsumeCurrentToken(allowTrivia: false);
 
                     var val1 = (int)firstNumberToken.Value;
                     var val2 = (int)secondNumberTokenLocal.Value;
@@ -346,14 +340,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return false;
             }
 
-            closeBraceToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
+            closeBraceToken = ConsumeCurrentToken(allowTrivia: true);
             return true;
         }
 
-        private void ResetToPositionAndScanNextToken(int position, bool allowTrivia)
+        private void ResetToPositionAndConsumeCurrentToken(int position, bool allowTrivia)
         {
             _lexer.Position = position;
-            ScanNextToken(allowTrivia);
+            ConsumeCurrentToken(allowTrivia);
         }
 
         private RegexPrimaryExpressionNode ParsePrimaryExpression(RegexExpressionNode lastExpression)
@@ -397,7 +391,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 CheckQuantifierExpression(lastExpression, ref openBraceToken);
             }
 
-            ResetToPositionAndScanNextToken(start, allowTrivia: true);
+            ResetToPositionAndConsumeCurrentToken(start, allowTrivia: true);
             return new RegexTextNode(openBraceToken);
         }
 
@@ -405,26 +399,26 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             var token = _currentToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(
                 new RegexDiagnostic(WorkspacesResources.Too_many_close_parens, GetSpan(_currentToken)));
-            ScanNextToken(allowTrivia: true);
+            ConsumeCurrentToken(allowTrivia: true);
             return new RegexTextNode(token);
         }
 
         private RegexPrimaryExpressionNode ParseText()
-            => new RegexTextNode(ScanNextTokenAndReturnPreviousToken(allowTrivia: true).With(kind: RegexKind.TextToken));
+            => new RegexTextNode(ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
 
         private RegexPrimaryExpressionNode ParseEndAnchor()
-            => new RegexAnchorNode(RegexKind.EndAnchor, ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
+            => new RegexAnchorNode(RegexKind.EndAnchor, ConsumeCurrentToken(allowTrivia: true));
 
         private RegexPrimaryExpressionNode ParseStartAnchor()
-            => new RegexAnchorNode(RegexKind.StartAnchor, ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
+            => new RegexAnchorNode(RegexKind.StartAnchor, ConsumeCurrentToken(allowTrivia: true));
 
         private RegexPrimaryExpressionNode ParseWildcard()
-            => new RegexWildcardNode(ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
+            => new RegexWildcardNode(ConsumeCurrentToken(allowTrivia: true));
 
         private RegexGroupingNode ParseGrouping()
         {
             var start = _lexer.Position;
-            var openParenToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: false);
+            var openParenToken = ConsumeCurrentToken(allowTrivia: false);
 
             switch (_currentToken.Kind)
             {
@@ -442,7 +436,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             switch (_currentToken.Kind)
             {
                 case RegexKind.CloseParenToken:
-                    return ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
+                    return ConsumeCurrentToken(allowTrivia: true);
 
                 default:
                     return RegexToken.CreateMissing(RegexKind.CloseParenToken).AddDiagnosticIfNone(
@@ -460,7 +454,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var currentOptions = _options;
             _options = embeddedOptions;
 
-            ScanNextToken(allowTrivia: true);
+            ConsumeCurrentToken(allowTrivia: true);
             var expression = this.ParseAlternatingSequences(consumeCloseParen: false);
             _options = currentOptions;
             return expression;
@@ -487,7 +481,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             var afterQuestionPos = _lexer.Position;
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
             switch (_currentToken.Kind)
             {
                 case RegexKind.LessThanToken:
@@ -553,7 +547,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 {
                     // If it's a numeric group, it always has to be a real reference.
 
-                    ScanNextToken(allowTrivia: false);
+                    ConsumeCurrentToken(allowTrivia: false);
                     if (_currentToken.Kind == RegexKind.CloseParenToken)
                     {
                         innerCloseParenToken = _currentToken;
@@ -582,7 +576,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
                     }
 
-                    ScanNextToken(allowTrivia: false);
+                    ConsumeCurrentToken(allowTrivia: false);
                     if (_currentToken.Kind != RegexKind.CloseParenToken)
                     {
                         _lexer.Position = afterInnerOpenParen;
@@ -593,7 +587,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
 
 
-                ScanNextToken(allowTrivia: true);
+                ConsumeCurrentToken(allowTrivia: true);
                 var result = ParseConditionalGroupingResult();
 
                 return new RegexConditionalCaptureGroupingNode(
@@ -657,7 +651,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
             }
 
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
             Debug.Assert(_currentToken.Kind == RegexKind.OpenParenToken);
             var grouping = ParseGrouping();
 
@@ -698,7 +692,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             RegexToken openParenToken, RegexToken questionToken)
         {
             var start = _lexer.Position;
-            var lessThanToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: false);
+            var lessThanToken = ConsumeCurrentToken(allowTrivia: false);
 
             switch (_currentToken.Kind)
             {
@@ -733,7 +727,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var captureToken = _lexer.TryScanNumberOrCaptureName();
             if (captureToken == null)
             {
-                ScanNextToken(allowTrivia: false);
+                ConsumeCurrentToken(allowTrivia: false);
                 captureToken = RegexToken.CreateMissing(RegexKind.CaptureNameToken);
 
                 if (_currentToken.Kind == RegexKind.MinusToken)
@@ -761,7 +755,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     GetSpan(capture)));
             }
 
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
 
             if (_currentToken.Kind == RegexKind.MinusToken)
             {
@@ -816,7 +810,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             if (secondCapture == null)
             {
                 // Invalid group name: Group names must begin with a word character
-                ScanNextToken(allowTrivia: false);
+                ConsumeCurrentToken(allowTrivia: false);
 
                 openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
                     WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
@@ -831,7 +825,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var second = secondCapture.Value;
             CheckCapture(ref second);
 
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
             var closeToken = ParseCaptureGroupingCloseToken(ref openParenToken, openToken);
 
             return new RegexBalancingGroupingNode(
@@ -899,14 +893,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private RegexGroupingNode ParseOptionsGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken)
         {
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
             switch (_currentToken.Kind)
             {
                 case RegexKind.CloseParenToken:
                     _options = GetNewOptionsFromToken(_options, optionsToken);
                     return new RegexSimpleOptionsGroupingNode(
                         openParenToken, questionToken, optionsToken,
-                        ScanNextTokenAndReturnPreviousToken(allowTrivia: true));
+                        ConsumeCurrentToken(allowTrivia: true));
 
                 case RegexKind.ColonToken:
                     return ParseNestedOptionsGroupingNode(openParenToken, questionToken, optionsToken);
@@ -981,7 +975,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var caretToken = RegexToken.CreateMissing(RegexKind.CaretToken);
             var closeBracketToken = RegexToken.CreateMissing(RegexKind.CloseBracketToken);
 
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
             if (_currentToken.Kind == RegexKind.CaretToken)
             {
                 caretToken = _currentToken;
@@ -991,7 +985,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 MoveBackBeforePreviousScan();
             }
 
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
 
             var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
             while (_currentToken.Kind != RegexKind.EndOfFile)
@@ -1000,7 +994,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                 if (_currentToken.Kind == RegexKind.CloseBracketToken && contents.Count > 0)
                 {
-                    closeBracketToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
+                    closeBracketToken = ConsumeCurrentToken(allowTrivia: true);
                     break;
                 }
 
@@ -1034,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (_currentToken.Kind == RegexKind.MinusToken && !_lexer.IsAt("]"))
             {
-                var minusToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: false);
+                var minusToken = ConsumeCurrentToken(allowTrivia: false);
 
                 if (_currentToken.Kind == RegexKind.OpenBracketToken)
                 {
@@ -1246,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 var backslashToken = _currentToken;
                 var afterSlash = _lexer.Position;
-                ScanNextToken(allowTrivia: false);
+                ConsumeCurrentToken(allowTrivia: false);
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
                 var nextChar = _currentToken.VirtualChars[0].Char;
@@ -1273,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                     case '-':
                         return new RegexSimpleEscapeNode(
-                            backslashToken, ScanNextTokenAndReturnPreviousToken(allowTrivia: false).With(kind: RegexKind.TextToken));
+                            backslashToken, ConsumeCurrentToken(allowTrivia: false).With(kind: RegexKind.TextToken));
 
                     default:
                         _lexer.Position--;
@@ -1288,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 // have a trailing subtraction.
                 return ParseCharacterClassSubtractionNode(
-                    ScanNextTokenAndReturnPreviousToken(allowTrivia: false));
+                    ConsumeCurrentToken(allowTrivia: false));
             }
 
             // From the .net regex code:
@@ -1297,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             if (!afterRangeMinus && _currentToken.Kind == RegexKind.OpenBracketToken && _lexer.IsAt(":"))
             {
                 var beforeBracketPos = _lexer.Position - 1;
-                ScanNextToken(allowTrivia: false);
+                ConsumeCurrentToken(allowTrivia: false);
                 var captureName = _lexer.TryScanCaptureName();
                 if (captureName.HasValue && _lexer.IsAt(":]"))
                 {
@@ -1305,20 +1299,20 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     var textChars = _lexer.GetSubPattern(beforeBracketPos, _lexer.Position);
                     var token = new RegexToken(ImmutableArray<RegexTrivia>.Empty, RegexKind.TextToken, textChars);
 
-                    ScanNextToken(allowTrivia: false);
+                    ConsumeCurrentToken(allowTrivia: false);
                     return new RegexPosixPropertyNode(token);
                 }
                 else
                 {
                     // Reset to back where we were.
                     _lexer.Position = beforeBracketPos;
-                    ScanNextToken(allowTrivia: false);
+                    ConsumeCurrentToken(allowTrivia: false);
                     Debug.Assert(_currentToken.Kind == RegexKind.OpenBracketToken);
                 }
             }
 
             return new RegexTextNode(
-                ScanNextTokenAndReturnPreviousToken(allowTrivia: false).With(kind: RegexKind.TextToken));
+                ConsumeCurrentToken(allowTrivia: false).With(kind: RegexKind.TextToken));
         }
 
         private RegexPrimaryExpressionNode ParseCharacterClassSubtractionNode(RegexToken minusToken)
@@ -1345,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
             // No spaces between \ and next char.
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
 
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
@@ -1367,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case 'z':
                 {
                     return new RegexAnchorEscapeNode(
-                        backslashToken, ScanNextTokenAndReturnPreviousToken(allowTrivia: allowTriviaAfterEnd));
+                        backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
                 }
 
                 case 'w':
@@ -1378,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case 'D':
                 {
                     return new RegexCharacterClassEscapeNode(
-                        backslashToken, ScanNextTokenAndReturnPreviousToken(allowTrivia: allowTriviaAfterEnd));
+                        backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
                 }
 
                 case 'p':
@@ -1396,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
             // No spaces between \ and next char.
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
 
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
@@ -1470,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 var numberToken = new RegexToken(
                     ImmutableArray<RegexTrivia>.Empty, RegexKind.NumberToken,
                     _lexer.GetSubPattern(start, bestPosition)).With(value: capVal);
-                ResetToPositionAndScanNextToken(bestPosition, allowTrivia: true);
+                ResetToPositionAndConsumeCurrentToken(bestPosition, allowTrivia: true);
                 return new RegexBackreferenceEscapeNode(backslashToken, numberToken);
             }
 
@@ -1490,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 CheckCapture(ref numberToken);
 
-                ScanNextToken(allowTrivia: true);
+                ConsumeCurrentToken(allowTrivia: true);
                 return new RegexBackreferenceEscapeNode(backslashToken, numberToken);
             }
 
@@ -1552,7 +1546,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             capture = RegexToken.CreateMissing(RegexKind.CaptureNameToken);
             closeToken = RegexToken.CreateMissing(RegexKind.GreaterThanToken);
 
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
 
             if (_lexer.Position < _lexer.Text.Length &&
                 (_currentToken.Kind == RegexKind.LessThanToken || _currentToken.Kind == RegexKind.SingleQuoteToken))
@@ -1569,7 +1563,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 ? RegexToken.CreateMissing(RegexKind.CaptureNameToken)
                 : captureToken.Value;
 
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
             closeToken = RegexToken.CreateMissing(RegexKind.GreaterThanToken);
 
             if (!capture.IsMissing &&
@@ -1577,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                  (openToken.Kind == RegexKind.SingleQuoteToken && _currentToken.Kind == RegexKind.SingleQuoteToken)))
             {
                 CheckCapture(ref capture);
-                closeToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
+                closeToken = ConsumeCurrentToken(allowTrivia: true);
             }
         }
 
@@ -1585,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
             var ch = _currentToken.VirtualChars[0];
@@ -1595,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 var octalDigits = _lexer.ScanOctalCharacters(_options);
                 Debug.Assert(octalDigits.VirtualChars.Length > 0);
 
-                ScanNextToken(allowTrivia: true);
+                ConsumeCurrentToken(allowTrivia: true);
                 return new RegexOctalEscapeNode(backslashToken, octalDigits);
             }
 
@@ -1611,7 +1605,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case 'v':
                 {
                     return new RegexSimpleEscapeNode(
-                        backslashToken, ScanNextTokenAndReturnPreviousToken(allowTrivia: true).With(kind: RegexKind.TextToken));
+                        backslashToken, ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
                 }
                 case 'x':
                     return ScanHexEscape(backslashToken);
@@ -1620,7 +1614,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 case 'c':
                     return ScanControlEscape(backslashToken);
                 default:
-                    var typeToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true).With(kind: RegexKind.TextToken);
+                    var typeToken = ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken);
 
                     if (!HasOption(_options, RegexOptions.ECMAScript) && RegexCharClass.IsWordChar(ch))
                     {
@@ -1637,7 +1631,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             var typeToken = _currentToken;
             var hexChars = _lexer.ScanHexCharacters(4);
-            ScanNextToken(allowTrivia: true);
+            ConsumeCurrentToken(allowTrivia: true);
             return new RegexUnicodeEscapeNode(backslashToken, typeToken, hexChars);
         }
 
@@ -1645,13 +1639,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             var typeToken = _currentToken;
             var hexChars = _lexer.ScanHexCharacters(2);
-            ScanNextToken(allowTrivia: true);
+            ConsumeCurrentToken(allowTrivia: true);
             return new RegexHexEscapeNode(backslashToken, typeToken, hexChars);
         }
 
         private RegexControlEscapeNode ScanControlEscape(RegexToken backslashToken)
         {
-            var typeToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: false);
+            var typeToken = ConsumeCurrentToken(allowTrivia: false);
 
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
@@ -1677,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                 if (ch < ' ')
                 {
-                    var controlToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: true).With(kind: RegexKind.TextToken);
+                    var controlToken = ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken);
                     return new RegexControlEscapeNode(backslashToken, typeToken, controlToken);
                 }
                 else
@@ -1706,7 +1700,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     out var closeBraceToken,
                     out var message))
             {
-                ResetToPositionAndScanNextToken(start, allowTrivia: allowTriviaAfterEnd);
+                ResetToPositionAndConsumeCurrentToken(start, allowTrivia: allowTriviaAfterEnd);
                 typeToken = typeToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(new RegexDiagnostic(
                     message, GetSpan(backslash, typeToken)));
                 return new RegexSimpleEscapeNode(backslash, typeToken);
@@ -1734,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             // no whitespace in \p{x}
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
 
             if (_currentToken.Kind != RegexKind.OpenBraceToken)
             {
@@ -1746,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var category = _lexer.TryScanEscapeCategory();
 
             // no whitespace in \p{x}
-            ScanNextToken(allowTrivia: false);
+            ConsumeCurrentToken(allowTrivia: false);
             if (_currentToken.Kind != RegexKind.CloseBraceToken)
             {
                 message = WorkspacesResources.Incomplete_character_escape;
@@ -1760,13 +1754,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             categoryToken = category.Value;
-            closeBraceToken = ScanNextTokenAndReturnPreviousToken(allowTrivia: allowTriviaAfterEnd);
+            closeBraceToken = ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd);
             return true;
         }
 
         private RegexTextNode ParseUnexpectedQuantifier(RegexExpressionNode lastExpression)
         {
-            var token = ScanNextTokenAndReturnPreviousToken(allowTrivia: true);
+            var token = ConsumeCurrentToken(allowTrivia: true);
             CheckQuantifierExpression(lastExpression, ref token);
             return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
