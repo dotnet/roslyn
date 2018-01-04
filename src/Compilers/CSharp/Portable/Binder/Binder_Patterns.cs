@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = node.Type;
-            BoundTypeExpression boundDeclType = BindPatternType(typeSyntax, operandType, ref hasErrors, out bool isVar, diagnostics);
+            BoundTypeExpression boundDeclType = BindPatternType(typeSyntax, operandType, diagnostics, ref hasErrors, out bool isVar);
             if (typeSyntax.IsVar && !isVar)
             {
                 // PROTOTYPE(patterns2): For compatibility, we temporarily parse the var pattern with a simple designator as a declaration pattern.
@@ -290,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundTypeExpression BindPatternType(
             TypeSyntax typeSyntax,
             TypeSymbol operandType,
+            DiagnosticBag diagnostics,
             ref bool hasErrors,
-            out bool isVar,
-            DiagnosticBag diagnostics)
+            out bool isVar)
         {
             Debug.Assert(operandType != (object)null);
 
@@ -385,11 +385,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        TypeSymbol BindRecursivePatternType(TypeSyntax typeSyntax, TypeSymbol operandType, ref bool hasErrors, out BoundTypeExpression boundDeclType, DiagnosticBag diagnostics)
+        TypeSymbol BindRecursivePatternType(TypeSyntax typeSyntax, TypeSymbol operandType, DiagnosticBag diagnostics, ref bool hasErrors, out BoundTypeExpression boundDeclType)
         {
             if (typeSyntax != null)
             {
-                boundDeclType = BindPatternType(typeSyntax, operandType, ref hasErrors, out bool isVar, diagnostics);
+                boundDeclType = BindPatternType(typeSyntax, operandType, diagnostics, ref hasErrors, out bool isVar);
                 if (isVar)
                 {
                     // The type `var` is not permitted in recursive patterns. If you want the type inferred, just omit it.
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindDeconstructionPattern(DeconstructionPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = node.Type;
-            TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, ref hasErrors, out BoundTypeExpression boundDeclType, diagnostics);
+            TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
 
             var patterns = ArrayBuilder<BoundPattern>.GetInstance(node.SubPatterns.Count);
             MethodSymbol deconstructMethod = null;
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindPropertyPattern(PropertyPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = node.Type;
-            TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, ref hasErrors, out BoundTypeExpression boundDeclType, diagnostics);
+            TypeSymbol declType = BindRecursivePatternType(typeSyntax, operandType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
             ImmutableArray<(Symbol property, BoundPattern pattern)> propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
             BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundRecursivePattern(
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    member = LookupMemberForPropertyPattern(inputType, name, out memberType, ref hasErrors, diagnostics);
+                    member = LookupMemberForPropertyPattern(inputType, name, diagnostics, ref hasErrors, out memberType);
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, hasErrors, diagnostics);
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private Symbol LookupMemberForPropertyPattern(TypeSymbol inputType, IdentifierNameSyntax name, out TypeSymbol memberType, ref bool hasErrors, DiagnosticBag diagnostics)
+        private Symbol LookupMemberForPropertyPattern(TypeSymbol inputType, IdentifierNameSyntax name, DiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
         {
             Symbol symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
