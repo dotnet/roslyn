@@ -960,6 +960,25 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return copy;
         }
 
+        private static RegexOptions OptionFromCode(VirtualChar ch)
+        {
+            switch (ch)
+            {
+                case 'i': case 'I':
+                    return RegexOptions.IgnoreCase;
+                case 'm': case 'M':
+                    return RegexOptions.Multiline;
+                case 'n': case 'N':
+                    return RegexOptions.ExplicitCapture;
+                case 's': case 'S':
+                    return RegexOptions.Singleline;
+                case 'x': case 'X':
+                    return RegexOptions.IgnorePatternWhitespace;
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
         private RegexBaseCharacterClassNode ParseCharacterClass()
         {
             var openBracketToken = _currentToken;

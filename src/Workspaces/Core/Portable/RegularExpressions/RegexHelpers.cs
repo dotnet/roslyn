@@ -25,25 +25,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public static bool HasOption(RegexOptions options, RegexOptions val)
             => (options & val) != 0;
 
-        public static RegexOptions OptionFromCode(VirtualChar ch)
-        {
-            switch (ch)
-            {
-                case 'i': case 'I':
-                    return RegexOptions.IgnoreCase;
-                case 'm': case 'M':
-                    return RegexOptions.Multiline;
-                case 'n': case 'N':
-                    return RegexOptions.ExplicitCapture;
-                case 's': case 'S':
-                    return RegexOptions.Singleline;
-                case 'x': case 'X':
-                    return RegexOptions.IgnorePatternWhitespace;
-                default:
-                    throw new InvalidOperationException();
-            }
-        }
-
         public static TextSpan GetSpan(RegexEscapeNode node)
         {
             var start = int.MaxValue;
