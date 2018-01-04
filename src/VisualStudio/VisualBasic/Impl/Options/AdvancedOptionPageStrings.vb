@@ -214,5 +214,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Report_invalid_regular_expressions As String =
             ServicesVSResources.Report_invalid_regular_expressions
+
+        Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
+            ServicesVSResources.Highlight_related_components_under_cursor
     End Module
 End Namespace

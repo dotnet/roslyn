@@ -177,5 +177,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Report_invalid_regular_expressions =>
             ServicesVSResources.Report_invalid_regular_expressions;
+
+        public static string Option_Highlight_related_components_under_cursor =>
+            ServicesVSResources.Highlight_related_components_under_cursor;
     }
 }

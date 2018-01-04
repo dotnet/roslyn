@@ -22,6 +22,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 nameof(ReportInvalidRegexPatterns), 
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
+
+        public static PerLanguageOption<bool> HighlightRelatedComponentsUnderCursor =
+            new PerLanguageOption<bool>(
+                nameof(RegularExpressionsOptions),
+                nameof(HighlightRelatedComponentsUnderCursor),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedComponentsUnderCursor"));
     }
 
     [ExportOptionProvider, Shared]

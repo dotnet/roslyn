@@ -66,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Colorize_regular_expressions, RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.CSharp);
             BindToOption(Report_invalid_regular_expressions, RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp);
+            BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedComponentsUnderCursor, LanguageNames.CSharp);
         }
     }
 }
