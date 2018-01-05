@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent).ConvertedType;
 
                 var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation)
-                    .WithLeadingTrivia(node.GetLeadingTrivia());
+                    .WithLeadingTrivia(node.GetLeadingTrivia().Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken()));
 
                 editor.ReplaceNode(declarationContext, tupleDeclaration);
             }
@@ -123,7 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                         throw ExceptionUtilities.UnexpectedValue(designation.Kind());
                 }
 
-                newDeclaration = newDeclaration.WithLeadingTrivia(designation.GetAllPrecedingTriviaToPreviousToken()).WithTrailingTrivia(designation.GetTrailingTrivia());
+                newDeclaration = newDeclaration
+                    .WithLeadingTrivia(designation.GetAllPrecedingTriviaToPreviousToken())
+                    .WithTrailingTrivia(designation.GetTrailingTrivia());
+
                 builder.Add(SyntaxFactory.Argument(newDeclaration));
             }
 

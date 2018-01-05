@@ -337,7 +337,7 @@ class Program
 {
     void M()
     {
-        /*before*/[|var|]/*lost*/ (/*x1*/x/*x2*/, /*yz1*/(/*y1*/y/*y2*/, /*z1*/z/*z2*/)/*yz2*/) /*after*/ = new Program();
+        /*before*/[|var|]/*after*/ (/*x1*/x/*x2*/, /*yz1*/(/*y1*/y/*y2*/, /*z1*/z/*z2*/)/*yz2*/) /*end*/ = new Program();
     }
     void Deconstruct(out int i, out Program s) { i = 1; s = null; }
 }", @"using System;
@@ -345,11 +345,11 @@ class Program
 {
     void M()
     {
-        /*before*/(
+        /*before*//*after*/ (
 /*x1*/int x/*x2*/,
 /*yz1*/(
 /*y1*/int y/*y2*/,
-/*z1*/Program z/*z2*/)/*yz2*/) /*after*/ = new Program();
+/*z1*/Program z/*z2*/)/*yz2*/) /*end*/ = new Program();
     }
     void Deconstruct(out int i, out Program s) { i = 1; s = null; }
 }", options: ExplicitTypeEverywhere());
