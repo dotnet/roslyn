@@ -8495,11 +8495,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">O primeiro parâmetro de um método de extensão "in" "{0}" deve ser um tipo de valor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">O modificador de parâmetro '{0}' não pode ser usado após o modificador '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Campos de instância de structs somente leitura devem ser somente leitura.</target>

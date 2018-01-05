@@ -8495,11 +8495,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">Il primo parametro di un metodo di estensione 'in' '{0}' deve essere un tipo valore.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Non è possibile usare il modificatore di parametro '{0}' dopo il modificatore '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">I campi di istanza di struct di sola lettura devono essere di sola lettura.</target>

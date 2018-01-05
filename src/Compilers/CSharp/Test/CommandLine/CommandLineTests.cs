@@ -9763,6 +9763,24 @@ class C
             }
         }
 
+        [Fact]
+        public void StrongNameProviderWithCustomTempPath()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var workingDir = Temp.CreateDirectory();
+            workingDir.CreateFile("a.cs");
+
+            var csc = new Csc(null, new BuildPaths("", workingDir.Path, null, tempDir.Path),
+                new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" },
+                analyzerLoader: null);
+            var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
+            var desktopProvider = Assert.IsType<DesktopStrongNameProvider>(comp.Options.StrongNameProvider);
+            using (var inputStream = Assert.IsType<DesktopStrongNameProvider.TempFileStream>(desktopProvider.CreateInputStream()))
+            {
+                Assert.Equal(tempDir.Path, Path.GetDirectoryName(inputStream.Path));
+            }
+        }
+
         public class QuotedArgumentTests
         {
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)

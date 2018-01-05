@@ -8495,11 +8495,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">in' genişletme metodu '{0}' için ilk parametre, değer türünde olmalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">{0}' parametre değiştiricisi, '{1}' değiştiricisinden sonra kullanılamaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Salt okunur yapı birimlerinin örnek alanları salt okunur olmalıdır.</target>

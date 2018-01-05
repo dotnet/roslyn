@@ -8495,11 +8495,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">El primer parámetro de un método de extensión "in" "{0}" debe ser un tipo de valor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">El modificador de parámetro "{0}" no se puede usar después del modificador "{1}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Los campos de instancia de las estructuras readonly deben ser readonly.</target>
