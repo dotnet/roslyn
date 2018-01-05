@@ -13850,10 +13850,13 @@ Module M
         F(New String() {"b"})
     End Sub
     Sub F(a() As Object)
-        G(a(0))
+        G(a)
         System.Console.Write(a(0))
     End Sub
-    Sub G(ByRef s As String)
+    Sub G(a() As Object)
+        H(a(0))
+    End Sub
+    Sub H(ByRef s As String)
         s = s.ToUpper()
     End Sub
 End Module
@@ -13863,14 +13866,21 @@ End Module
             VerifyIL("M.G",
             <![CDATA[
 {
-  // Code size       10 (0xa)
-  .maxstack  2
+  // Code size       21 (0x15)
+  .maxstack  3
+  .locals init (String V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.0
-  IL_0002:  ldind.ref
-  IL_0003:  callvirt   "Function String.ToUpper() As String"
-  IL_0008:  stind.ref
-  IL_0009:  ret
+  IL_0001:  dup
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelem.ref
+  IL_0004:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       "Sub M.H(ByRef String)"
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.0
+  IL_0013:  stelem.ref
+  IL_0014:  ret
 }
 ]]>)
 
