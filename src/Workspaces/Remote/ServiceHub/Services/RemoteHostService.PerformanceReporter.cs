@@ -62,15 +62,16 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var badAnalyzerInfo in pooledObject.Object)
                     {
                         var newAnalyzer = _reported.Add(badAnalyzerInfo.AnalyzerId);
+                        var internalUser = WatsonReporter.IsUserMicrosoftInternal;
 
                         // we only report same analyzer once unless it is internal user
-                        if (WatsonReporter.IsUserMicrosoftInternal || newAnalyzer)
+                        if (internalUser || newAnalyzer)
                         {
                             // this will report telemetry under VS. this will let us see how accurate our performance tracking is
                             RoslynLogger.Log(FunctionId.Diagnostics_BadAnalyzer, KeyValueLogMessage.Create(m =>
                             {
                                 // since it is telemetry, we hash analyzer name if it is not builtin analyzer
-                                m[nameof(badAnalyzerInfo.AnalyzerId)] = badAnalyzerInfo.PIISafeAnalyzerId;
+                                m[nameof(badAnalyzerInfo.AnalyzerId)] = internalUser ? badAnalyzerInfo.AnalyzerId : badAnalyzerInfo.PIISafeAnalyzerId;
                                 m[nameof(badAnalyzerInfo.LOF)] = badAnalyzerInfo.LOF;
                                 m[nameof(badAnalyzerInfo.Mean)] = badAnalyzerInfo.Mean;
                                 m[nameof(badAnalyzerInfo.Stddev)] = badAnalyzerInfo.Stddev;
