@@ -219,6 +219,269 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         }
 
         [Fact]
+        public void TestCommentAfterEscapeInCharacterClass1()
+        {
+            Test(@"@""[a\p{Lu}(?#)b]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+          <CategoryEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>p</TextToken>
+            <OpenBraceToken>{</OpenBraceToken>
+            <EscapeCategoryToken>Lu</EscapeCategoryToken>
+            <CloseBraceToken>}</CloseBraceToken>
+          </CategoryEscape>
+          <Text>
+            <TextToken>(</TextToken>
+          </Text>
+          <Text>
+            <TextToken>?</TextToken>
+          </Text>
+          <Text>
+            <TextToken>#</TextToken>
+          </Text>
+          <Text>
+            <TextToken>)</TextToken>
+          </Text>
+          <Text>
+            <TextToken>b</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCommentAfterEscapeInCharacterClass2()
+        {
+            Test(@"@""[a\0(?#)b]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+          <OctalEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>0</TextToken>
+          </OctalEscape>
+          <Text>
+            <TextToken>(</TextToken>
+          </Text>
+          <Text>
+            <TextToken>?</TextToken>
+          </Text>
+          <Text>
+            <TextToken>#</TextToken>
+          </Text>
+          <Text>
+            <TextToken>)</TextToken>
+          </Text>
+          <Text>
+            <TextToken>b</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCommentAfterEscapeInCharacterClass3()
+        {
+            Test(@"@""[a\a(?#)b]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>a</TextToken>
+          </SimpleEscape>
+          <Text>
+            <TextToken>(</TextToken>
+          </Text>
+          <Text>
+            <TextToken>?</TextToken>
+          </Text>
+          <Text>
+            <TextToken>#</TextToken>
+          </Text>
+          <Text>
+            <TextToken>)</TextToken>
+          </Text>
+          <Text>
+            <TextToken>b</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCommentAfterEscapeInCharacterClass4()
+        {
+            Test(@"@""[a\x00(?#)b]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+          <HexEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>x</TextToken>
+            <TextToken>00</TextToken>
+          </HexEscape>
+          <Text>
+            <TextToken>(</TextToken>
+          </Text>
+          <Text>
+            <TextToken>?</TextToken>
+          </Text>
+          <Text>
+            <TextToken>#</TextToken>
+          </Text>
+          <Text>
+            <TextToken>)</TextToken>
+          </Text>
+          <Text>
+            <TextToken>b</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..22)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCommentAfterEscapeInCharacterClass5()
+        {
+            Test(@"@""[a\u0000(?#)b]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+          <UnicodeEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>u</TextToken>
+            <TextToken>0000</TextToken>
+          </UnicodeEscape>
+          <Text>
+            <TextToken>(</TextToken>
+          </Text>
+          <Text>
+            <TextToken>?</TextToken>
+          </Text>
+          <Text>
+            <TextToken>#</TextToken>
+          </Text>
+          <Text>
+            <TextToken>)</TextToken>
+          </Text>
+          <Text>
+            <TextToken>b</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..24)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestCommentAfterEscapeInCharacterClass6()
+        {
+            Test(@"@""[a\](?#)b]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>]</TextToken>
+          </SimpleEscape>
+          <Text>
+            <TextToken>(</TextToken>
+          </Text>
+          <Text>
+            <TextToken>?</TextToken>
+          </Text>
+          <Text>
+            <TextToken>#</TextToken>
+          </Text>
+          <Text>
+            <TextToken>)</TextToken>
+          </Text>
+          <Text>
+            <TextToken>b</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
         public void TestOpenQuestion1()
         {
             Test(@"""(?""", @"<Tree>
