@@ -181,6 +181,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected void AddCaptures(SyntaxNode syntax)
             {
                 var semanticModel = GetSemanticModel(syntax.SyntaxTree);
+                if (semanticModel.IsSpeculativeSemanticModel)
+                {
+                    // Speculative semantic models cannot do region analysis
+                    return;
+                }
+
                 var analysis = semanticModel.AnalyzeDataFlow(syntax);
                 var captures = analysis.CapturedInside;
                 if (!captures.IsEmpty)
@@ -194,10 +200,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         {
                             parts.AddRange(Punctuation(","));
                         }
+
                         parts.AddRange(Space(count: 1));
                         parts.AddRange(ToMinimalDisplayParts(captured, s_formatForCaptures));
                         first = false;
                     }
+
                     AddToGroup(SymbolDescriptionGroups.Captures, parts);
                 }
             }

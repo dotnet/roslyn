@@ -2652,23 +2652,6 @@ class C
                 MainDescription($"({FeaturesResources.local_variable}) int cc"));
         }
 
-        [WorkItem(540438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540438")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestNoQuickInfoOnAnonymousDelegate()
-        {
-            await TestAsync(
-@"using System;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action a = $$delegate {
-        };
-    }
-}");
-        }
-
         [WorkItem(541678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541678")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnEvent()
@@ -4776,7 +4759,7 @@ class C
         void local() { i++; this.M(); }
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} @this, i"));
+                Captures($"\r\n{WorkspacesResources.Captures_colon} this, i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4794,7 +4777,7 @@ class C
         void local(int j) { j++; M(); }
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} @this"));
+                Captures($"\r\n{WorkspacesResources.Captures_colon} this"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4810,7 +4793,7 @@ class C
         System.Action a = () =$$> { i++; M(); };
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} @this, i"));
+                Captures($"\r\n{WorkspacesResources.Captures_colon} this, i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4826,7 +4809,7 @@ class C
         System.Action<int> a = j =$$> { i++; j++; M(); };
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} @this, i"));
+                Captures($"\r\n{WorkspacesResources.Captures_colon} this, i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4842,7 +4825,7 @@ class C
         System.Action a = () =$$> { M(); i++; j++; };
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} @this, j, i"));
+                Captures($"\r\n{WorkspacesResources.Captures_colon} this, j, i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4859,7 +4842,7 @@ class C
     }
     void N(System.Action x, System.Action y) { }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} @this"));
+                Captures($"\r\n{WorkspacesResources.Captures_colon} this"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4875,6 +4858,22 @@ class C
         N(() => { M(); }, () =$$> { i++; });
     }
     void N(System.Action x, System.Action y) { }
+}",
+                Captures($"\r\n{WorkspacesResources.Captures_colon} i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnDelegate()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        int i;
+        System.Func<bool, int> f = dele$$gate(bool b) { i++; return 1; };
+    }
 }",
                 Captures($"\r\n{WorkspacesResources.Captures_colon} i"));
         }

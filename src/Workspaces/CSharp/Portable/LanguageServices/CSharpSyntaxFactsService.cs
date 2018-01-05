@@ -579,7 +579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch ((SyntaxKind)token.RawKind)
                 {
-                    case SyntaxKind.DelegateKeyword:
                     case SyntaxKind.VoidKeyword:
                         return false;
                 }
@@ -1806,8 +1805,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IdentifiesLambda(SyntaxToken token)
-        {
-            return token.IsKind(SyntaxKind.EqualsGreaterThanToken);
-        }
+            => token.IsKind(SyntaxKind.EqualsGreaterThanToken, SyntaxKind.DelegateKeyword);
     }
 }

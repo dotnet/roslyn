@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static string EscapeIdentifier(string identifier)
         {
             var kind = SyntaxFacts.GetKeywordKind(identifier);
-            return kind == SyntaxKind.None
+            return kind == SyntaxKind.None || kind == SyntaxKind.ThisKeyword
                 ? identifier
                 : $"@{identifier}";
         }
