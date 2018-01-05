@@ -31,7 +31,11 @@ This document provides guidance for thinking about language interactions and tes
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-    - If adding a new modifier, check modifiers for accessors as well.
+    - types
+    - methods
+    - fields
+    - properties (including get/set accessors)
+    - events (including add/remove accessors)
 - Parameter modifiers (ref, out, params)
 - Attributes (including security attribute)
 - Generics (type arguments, constraints, variance)
