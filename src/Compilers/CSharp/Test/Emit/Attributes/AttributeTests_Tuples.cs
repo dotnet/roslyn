@@ -113,7 +113,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
                 options: TestOptions.UnsafeReleaseDll,
                 references: s_attributeRefs);
 
-            CompileAndVerify(comp, symbolValidator: module =>
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
             {
                 TupleAttributeValidator.ValidateTupleAttributes(module);
             });
@@ -229,7 +229,8 @@ class C
             ModuleSymbol peModule = null;
             CompileAndVerify(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                additionalRefs: s_attributeRefs,
+                additionalRefs: s_attributeRefs, 
+                verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
 
