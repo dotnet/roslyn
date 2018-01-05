@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var iLastSection = (switchSections.Length - 1);
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
-                VisitPatternSwitchSection(switchSections[iSection], node.Expression, iSection == iLastSection);
+                VisitPatternSwitchSection2(switchSections[iSection], node.Expression, iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
                 IntersectWith(ref afterSwitchState, ref this.State);

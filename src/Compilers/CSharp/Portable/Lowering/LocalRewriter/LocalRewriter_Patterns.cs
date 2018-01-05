@@ -169,6 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundDagFieldEvaluation f:
                         {
+                            // PROTOTYPE(patterns2): I believe simply using TupleUnderlyingField is not sufficient for correct handling of long tuples.
+                            // Instead, we should probably use MakeFieldAccess helper rather than _factory.Field below. Please add a test that uses Item9 field, for example.
                             FieldSymbol field = f.Field;
                             field = field.TupleUnderlyingField ?? field;
                             var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f, 0);
@@ -179,7 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagPropertyEvaluation p:
                         {
                             PropertySymbol property = p.Property;
-                            property = property.TupleUnderlyingProperty ?? property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p, 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Property(input, property)));

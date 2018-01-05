@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Bind the switch statement, reporting in the process any switch labels that are subsumed by previous cases.
+        /// </summary>
         internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
@@ -56,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: node,
                 switchExpression: boundSwitchGoverningExpression,
                 switchSections: switchSections,
+                // If there is no explicit default label, the default action is to break out of the switch
                 defaultLabel: defaultLabel?.Label ?? BreakLabel);
             bool hasErrors = CheckSwitchErrors(node, boundSwitchGoverningExpression, switchSections, decisionDag, diagnostics);
             return new BoundPatternSwitchStatement2(
@@ -115,11 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Bind the pattern switch labels, reporting in the process which cases are subsumed. The strategy
-        /// implemented with the help of <see cref="SubsumptionDiagnosticBuilder"/>, is to start with an empty
-        /// decision tree, and for each case we visit the decision tree to see if the case is subsumed. If it
-        /// is, we report an error. If it is not subsumed and there is no guard expression, we then add it to
-        /// the decision tree.
+        /// Bind the pattern switch labels.
         /// </summary>
         private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(
             Binder originalBinder,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Bind the pattern switch section, producing subsumption diagnostics.
+        /// Bind the pattern switch section.
         /// </summary>
         private BoundPatternSwitchSection BindPatternSwitchSection(
             SwitchSectionSyntax node,
@@ -239,57 +239,4 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
-
-    partial class BoundPatternSwitchStatement2
-    {
-        public HashSet<LabelSymbol> ReachableLabels => this.DecisionDag.ReachableLabels;
-    }
-
-    partial class BoundDecisionDag
-    {
-        HashSet<LabelSymbol> _reachableLabels;
-        public HashSet<LabelSymbol> ReachableLabels
-        {
-            get
-            {
-                if (_reachableLabels == null)
-                {
-                    // compute the set of reachable labels
-                    var result = new HashSet<LabelSymbol>();
-                    processDag(this);
-                    _reachableLabels = result;
-
-                    // simulate the dispatch (setting pattern variables and jumping to labels) to
-                    // all reachable switch labels
-                    void processDag(BoundDecisionDag dag)
-                    {
-                        switch (dag)
-                        {
-                            case BoundEvaluationPoint x:
-                                processDag(x.Next);
-                                return;
-                            case BoundDecisionPoint x:
-                                processDag(x.WhenTrue);
-                                processDag(x.WhenFalse);
-                                return;
-                            case BoundWhereClause x:
-                                processDag(x.WhenTrue);
-                                processDag(x.WhenFalse);
-                                return;
-                            case BoundDecision x:
-                                result.Add(x.Label);
-                                return;
-                            case null:
-                                return;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(dag.Kind);
-                        }
-                    }
-                }
-
-                return _reachableLabels;
-            }
-        }
-    }
-
 }

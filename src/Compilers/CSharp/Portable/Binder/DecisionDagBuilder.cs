@@ -436,7 +436,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     killsDecisionOnFalseBranch: out bool killsDecisionOnFalseBranch);
                 if (permitsTrue)
                 {
-                    if (d != dd && !killsDecisionOnTrueBranch) trueBuilder?.Add(dd);
+                    if (d != dd && !killsDecisionOnTrueBranch)
+                    {
+                        trueBuilder?.Add(dd);
+                    }
                 }
                 else
                 {
@@ -446,7 +449,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (permitsFalse)
                 {
                     Debug.Assert(d != dd);
-                    if (!killsDecisionOnFalseBranch) falseBuilder?.Add(dd);
+                    if (!killsDecisionOnFalseBranch)
+                    {
+                        falseBuilder?.Add(dd);
+                    }
                 }
                 else
                 {
@@ -468,11 +474,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        ///// <summary>
+        ///// </summary>
+        ////
+
         /// <summary>
-        /// Given that the decision d has occurred and produced a true/false result,
-        /// set permitsTrue if a true decision on d would permit other to succeed.
-        /// set permitsFalse if a false decision on d would permit other to succeed.
-        /// sets killsFalseDecision when d being false means other has been proven true
+        ///// Given that the decision d has occurred and produced a true/false result,
+        ///// set permitsTrue if a true decision on d would permit other to succeed.
+        ///// set permitsFalse if a false decision on d would permit other to succeed.
+        ///// sets killsDecisionOnFalseBranch when d being false means other has been proven true
+        ///// sets killsDecisionOnTrueBranch when d being true means other has been proven true
         /// </summary>
         private void CheckConsistentDecision(
             BoundDagDecision d,
@@ -482,6 +493,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool killsDecisionOnTrueBranch,
             out bool killsDecisionOnFalseBranch)
         {
+            // PROTOTYPE(patterns2): the names and API shape are confusing. Perhaps
+            // could be renamed to couldBeTrueIfTrue, couldBeFalseIfFalse, isDefinitelyTrueIfTrue, and isDefinitelyFalseIfFalse.
+            // Possibly also use a tuple for returning the result.
+
             // innocent until proven guilty
             permitsTrue = true;
             permitsFalse = true;
@@ -510,9 +525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundValueDecision v2:
                             if (v2.Value == ConstantValue.Null)
                             {
-                                // once v!=null is false, we know v==null is true and do not need to test it
-                                permitsTrue = false;
-                                killsDecisionOnFalseBranch = true;
+                                permitsTrue = false; // if v!=null is true, then v==null cannot succeed
+                                killsDecisionOnFalseBranch = true; // if v!=null is false, then v==null has been proven true
                             }
                             else
                             {
@@ -537,7 +551,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundTypeDecision t2:
                             // If T1 could never be T2, then success of T1 implies failure of T2.
                             bool? matchPossible = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t1.Type, t2.Type, ref discardedUseSiteDiagnostics, out _);
-                            if (matchPossible == false) permitsTrue = false;
+                            if (matchPossible == false)
+                            {
+                                permitsTrue = false;
+                            }
+
                             // If every T2 is a T1, then failure of T1 implies failure of T2.
                             matchPossible = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t2.Type, t1.Type, ref discardedUseSiteDiagnostics, out _);
                             if (matchPossible == true)
@@ -569,7 +587,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
                         case BoundTypeDecision t2:
-                            if (v1.Value == ConstantValue.Null) permitsTrue = false;
+                            if (v1.Value == ConstantValue.Null)
+                            {
+                                permitsTrue = false;
+                            }
+
                             break;
                         case BoundValueDecision v2:
                             Debug.Assert(v1.Value != v2.Value);
