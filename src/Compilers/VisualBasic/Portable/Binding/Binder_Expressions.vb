@@ -3764,10 +3764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Make sure the enum has the <Flags> attribute.
                             Dim original = type.OriginalDefinition
                             If IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
-                                Dim name = node.Name
-                                Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
-                                Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
-                                Return BindEnumFlagExpression(original, node, left, boundArguments, diagnostics)
+                                Return BindEnumFlagExpression(original, node, left, node, diagnostics)
                             Else
                                 Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_MissingFlagsAttributeOnEnum, original.Name)
                             End If
@@ -3818,8 +3815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
         Private Function IsFlagsEnum(typeSymbol As INamedTypeSymbol) As Boolean
-            If (typeSymbol.TypeKind <> TypeKind.Enum) Then Return False
-            Return typeSymbol.GetAttributes().Any(IsFlagsAttribute)
+            Return (typeSymbol.TypeKind = TypeKind.Enum) AndAlso typeSymbol.GetAttributes().Any(IsFlagsAttribute)
         End Function
 
         Private Function IsMemberOfThisEnum(thisEnumSymbol As TypeSymbol, member As String) As Boolean
@@ -3834,21 +3830,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 original As TypeSymbol,
                                                 node As SyntaxNode,
                                                 expr As BoundExpression,
-                                                boundArguments As ImmutableArray(Of BoundExpression),
+                                                member As MemberAccessExpressionSyntax,
                                                 diagBag As DiagnosticBag
                                               ) As BoundExpression
-            Dim member = DirectCast(boundArguments(0), BoundLiteral).Value.StringValue
-
-            If Not IsMemberOfThisEnum(original, member) Then
+            If Not IsMemberOfThisEnum(original, member.Name.Identifier.ValueText) Then
                 Return ReportDiagnosticAndProduceBadExpression(
                                                       diagBag:=diagBag,
-                                                       syntax:=DirectCast(boundArguments(0).Syntax, VisualBasicSyntaxNode),
+                                                       syntax:=member,
                                                            id:=ERRID.ERR_NameNotMember2,
                                                                 member, original.Name)
             End If
             ' We have a valid member of the enum referred to.
-
-            Return New BoundEnumFlagExpression(node, expr, expr, ErrorTypeSymbol.UnknownResultType)
+            Return New BoundEnumFlagExpression(node, expr, New BoundLValuePlaceholder(member, expr.Type), expr.Type)
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)
