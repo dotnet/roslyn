@@ -249,17 +249,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return i is T && (o = (T)i; true);
                 // }
 
+                var i = _factory.SynthesizedLocal(loweredInput.Type, syntax); // we copy the input to avoid double evaluation
+
                 // Because a cast involving a type parameter is not necessarily a valid conversion (or, if it is, it might not
                 // be of a kind appropriate for pattern-matching), we use `object` as an intermediate type for the input expression.
-                var objectType = _factory.SpecialType(SpecialType.System_Object);
-                var i = _factory.SynthesizedLocal(objectType, syntax); // we copy the input to avoid double evaluation
+                var convertedInput = _factory.Convert(type, _factory.Convert(_factory.SpecialType(SpecialType.System_Object), _factory.Local(i)));
+
                 return _factory.MakeSequence(i,
-                    _factory.AssignmentExpression(_factory.Local(i), _factory.Convert(objectType, loweredInput)),
                     _factory.LogicalAnd(
-                        _factory.Is(_factory.Local(i), type),
-                        _factory.MakeSequence(
-                            _factory.AssignmentExpression(loweredTarget, _factory.Convert(type, _factory.Local(i))),
-                            _factory.Literal(true))));
+                        _factory.Is(_factory.AssignmentExpression(_factory.Local(i), loweredInput), type),
+                        _factory.MakeSequence(_factory.AssignmentExpression(loweredTarget, convertedInput), _factory.Literal(true))));
             }
         }
     }
