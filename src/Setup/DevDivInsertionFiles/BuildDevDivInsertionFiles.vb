@@ -754,6 +754,10 @@ Public Class BuildDevDivInsertionFiles
                           Throw New Exception($"Mapped VSIX path does not exist: {filePath}")
                       End If
                       Dim name = Path.GetFileName(filePath)
+                      If map.ContainsKey(name) Then
+                          Throw New Exception($"{name} already exist!")
+                      End If
+
                       map.Add(name, filePath)
                   End Sub
 
@@ -837,7 +841,6 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
-        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
         add("Exes\Toolset\System.AppContext.dll")
         add("Exes\Toolset\System.Console.dll")
         add("Exes\Toolset\System.Collections.Immutable.dll")
