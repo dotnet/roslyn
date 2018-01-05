@@ -10,10 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// Pre C# 7.2 back-compat overload, which simply calls the replacement property <see cref="RefKindKeyword"/>.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public SyntaxToken RefOrOutKeyword
-        {
-            get => this.RefKindKeyword;
-        }
+        public SyntaxToken RefOrOutKeyword => this.RefKindKeyword;
 
         /// <summary>
         /// Pre C# 7.2 back-compat overload, which simply calls the replacement method <see cref="Update"/>.

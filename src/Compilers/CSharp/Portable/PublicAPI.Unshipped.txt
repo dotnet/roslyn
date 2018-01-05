@@ -1,8 +1,6 @@
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.WithRefKindKeyword(Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.RefOrOutKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithRefOrOutKeyword(Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Argument(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Conversion.IsStackAlloc.get -> bool
