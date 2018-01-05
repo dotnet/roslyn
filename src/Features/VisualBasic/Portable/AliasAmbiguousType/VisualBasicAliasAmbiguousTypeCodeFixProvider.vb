@@ -2,10 +2,10 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Ambiguity
+Imports Microsoft.CodeAnalysis.AliasAmbiguousType
 Imports Microsoft.CodeAnalysis.CodeFixes
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Ambiguity
+Namespace Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AliasAmbiguousType), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FullyQualify)>

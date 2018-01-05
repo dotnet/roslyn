@@ -2,10 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.Ambiguity;
+using Microsoft.CodeAnalysis.AliasAmbiguousType;
 using Microsoft.CodeAnalysis.CodeFixes;
 
-namespace Microsoft.CodeAnalysis.CSharp.Ambiguity
+namespace Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AliasAmbiguousType), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]

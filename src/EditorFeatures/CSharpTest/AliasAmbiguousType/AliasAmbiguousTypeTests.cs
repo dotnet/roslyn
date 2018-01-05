@@ -4,13 +4,13 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Ambiguity;
+using Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Ambiguity
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
 {
     public class AliasAmbiguousTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {

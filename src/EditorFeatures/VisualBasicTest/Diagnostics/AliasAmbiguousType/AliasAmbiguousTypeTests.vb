@@ -4,9 +4,9 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.Ambiguity
+Imports Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Ambiguity
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AliasAmbiguousType
     Public Class AliasAmbiguousTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

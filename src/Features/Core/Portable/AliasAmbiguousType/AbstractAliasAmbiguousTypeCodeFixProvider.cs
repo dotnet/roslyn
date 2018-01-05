@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
-namespace Microsoft.CodeAnalysis.Ambiguity
+namespace Microsoft.CodeAnalysis.AliasAmbiguousType
 {
     internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvider
     {
