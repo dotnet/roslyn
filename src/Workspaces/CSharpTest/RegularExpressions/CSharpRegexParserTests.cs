@@ -27,11 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             return token;
         }
 
-        private void Test(string stringText, string expected, RegexOptions options, [CallerMemberName]string name = "")
+        private void Test(string stringText, string expected, RegexOptions options, 
+            bool runSubTreeTests = true, [CallerMemberName]string name = "")
         {
             var tree = TryParseTree(stringText, options, conversionFailureOk: false);
 
-            // TryParseSubTrees(stringText, options);
+            // Tests are allowed to not run the subtree tests.  This is because some
+            // subtrees can cause the native regex parser to exhibit very bad behavior
+            // (like not ever actually finishing compiling).
+            if (runSubTreeTests)
+            {
+                TryParseSubTrees(stringText, options);
+            }
 
             var actual = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actual);

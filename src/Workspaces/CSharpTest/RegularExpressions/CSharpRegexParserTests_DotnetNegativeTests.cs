@@ -6129,6 +6129,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         [Fact]
         public void NegativeTest137()
         {
+            // Note: we do not run subtree tests here.  That's because it ends up causing
+            // us to try to parse  \c[  and this pattern is very weird.  According to the 
+            // regex docs, and the *main* .net regex parser this should be fine to parse
+            // (it's just the a control character with the value 33).  HOWEVER, what is 
+            // unfortunate is that the .net parser has a prepass it does, which flags this
+            // [ as part of a missing character class range.
+            //
+            // So this technically means we deviate from the .net parser, supporting this
+            // contruct while it fails.  However, trying to implement that entire pass
+            // just to get this errror would be really unpleasant.  So we just accept that
+            // we allow this one additional case that the native parser does not.
             Test(@"@""(cat)(\c\[*)(dog)""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -6197,7 +6208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     <Capture Name=""1"" Span=""[10..15)"" />
     <Capture Name=""2"" Span=""[15..27)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]

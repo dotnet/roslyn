@@ -1697,7 +1697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Captures>
     <Capture Name=""0"" Span=""[9..22)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]
@@ -1723,7 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Captures>
     <Capture Name=""0"" Span=""[9..22)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]
@@ -1747,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Captures>
     <Capture Name=""0"" Span=""[9..23)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]
@@ -1774,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Captures>
     <Capture Name=""0"" Span=""[9..23)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]
@@ -1799,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Captures>
     <Capture Name=""0"" Span=""[9..24)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]
@@ -1827,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   <Captures>
     <Capture Name=""0"" Span=""[9..24)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]
@@ -12114,6 +12114,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
   </Captures>
 </Tree>", RegexOptions.None);
         }
+
+        [Fact]
+        public void TestCharacterClass44()
+        {
+            Test(@"@""[\p{Lu}-a]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <CategoryEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>p</TextToken>
+            <OpenBraceToken>{</OpenBraceToken>
+            <EscapeCategoryToken>Lu</EscapeCategoryToken>
+            <CloseBraceToken>}</CloseBraceToken>
+          </CategoryEscape>
+          <Text>
+            <TextToken>-</TextToken>
+          </Text>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..20)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+
+
+        // @"(cat)(\c[*)(dog)"
 
         [Fact]
         public void TestNegatedCharacterClass1()
