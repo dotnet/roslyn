@@ -28,7 +28,7 @@ class Foo : IFoo { }
 ";
 
             // Verify no diagnostic since interface is in the same assembly.
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -86,7 +86,7 @@ class Bar : Microsoft.CodeAnalysis.IAssemblySymbol { }
             DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(3, 7, "Foo", "ISymbol"), GetCSharpExpectedDiagnostic(4, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
         [Fact]
@@ -100,7 +100,7 @@ class Bar : Microsoft.CodeAnalysis.Operations.IInvocationOperation { }
             DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(3, 7, "Foo", "IOperation"), GetCSharpExpectedDiagnostic(4, 7, "Bar", "IOperation") };
 
             // Verify that IOperation is not implementable.
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
         private const string AttributeStringBasic = @"
@@ -126,7 +126,7 @@ End Class
 ";
 
             // Verify no diagnostic since interface is in the same assembly.
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -203,7 +203,7 @@ End Class
             DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(3, 7, "Foo", "ISymbol"), GetBasicExpectedDiagnostic(6, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
         [Fact]
@@ -221,15 +221,15 @@ End Class
             DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(3, 7, "Foo", "IOperation"), GetBasicExpectedDiagnostic(6, 7, "Bar", "IOperation") };
 
             // Verify that IOperation is not implementable.
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
         private void VerifyAcrossTwoAssemblies(string source1, string source2, string language, params DiagnosticResult[] expected)
         {
             Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
 
-            Project project1 = CreateProject(new[] { source1 }, language: language, addLanguageSpecificCodeAnalysisReference: false);
-            Project project2 = CreateProject(new[] { source2 }, language: language, addLanguageSpecificCodeAnalysisReference: false, addToSolution: project1.Solution)
+            Project project1 = CreateProject(new[] { source1 }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
+            Project project2 = CreateProject(new[] { source2 }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, addToSolution: project1.Solution)
                            .AddProjectReference(new ProjectReference(project1.Id));
 
             DiagnosticAnalyzer analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
