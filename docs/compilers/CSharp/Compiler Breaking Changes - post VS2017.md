@@ -92,4 +92,4 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
         }
     }
     ```
-    This is changed to now produce an error that the variable is not definitely assigned.
+    This is changed in 15.6 to now produce an error that the variable is not definitely assigned.
