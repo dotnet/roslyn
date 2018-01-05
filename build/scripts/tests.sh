@@ -24,7 +24,7 @@ if [[ "${runtime}" == "dotnet" ]]; then
     xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
     source ${root_path}/build/scripts/obtain_mono.sh
-    unittest_dll_list=(
+    file_list=(
         "${unittest_dir}/CSharpCompilerSymbolTest/net461/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll"
         "${unittest_dir}/CSharpCompilerSyntaxTest/net461/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll"
         )
