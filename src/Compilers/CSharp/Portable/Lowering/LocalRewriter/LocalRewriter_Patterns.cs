@@ -313,21 +313,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeEqual(BoundExpression loweredLiteral, BoundExpression input)
         {
-            if (loweredLiteral.Type.SpecialType == SpecialType.System_Double && Double.IsNaN(loweredLiteral.ConstantValue.DoubleValue) ||
-                loweredLiteral.Type.SpecialType == SpecialType.System_Single && Single.IsNaN(loweredLiteral.ConstantValue.SingleValue))
-            {
-                // NaN must be treated specially, as operator== and .Equals() disagree.
-                Debug.Assert(loweredLiteral.Type == input.Type);
-                BoundExpression condition = _factory.InstanceCall(loweredLiteral, "Equals", input);
-                if (!condition.HasErrors && condition.Type.SpecialType != SpecialType.System_Boolean)
-                {
-                    // Diagnose some kinds of broken core APIs
-                    var call = (BoundCall)condition;
-                    // '{1} {0}' has the wrong return type
-                    _factory.Diagnostics.Add(ErrorCode.ERR_BadRetType, loweredLiteral.Syntax.GetLocation(), call.Method, call.Type);
-                }
+            Debug.Assert(loweredLiteral.Type == input.Type);
 
-                return condition;
+            if (loweredLiteral.Type.SpecialType == SpecialType.System_Double && double.IsNaN(loweredLiteral.ConstantValue.DoubleValue))
+            {
+                // produce double.IsNaN(input)
+                return _factory.StaticCall(SpecialMember.System_Double__IsNaN, input);
+            }
+            else if (loweredLiteral.Type.SpecialType == SpecialType.System_Single && float.IsNaN(loweredLiteral.ConstantValue.SingleValue))
+            {
+                // produce float.IsNaN(input)
+                return _factory.StaticCall(SpecialMember.System_Single__IsNaN, input);
             }
 
             NamedTypeSymbol booleanType = _factory.SpecialType(SpecialType.System_Boolean);

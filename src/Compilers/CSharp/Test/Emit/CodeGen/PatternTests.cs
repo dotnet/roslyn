@@ -282,5 +282,172 @@ class IdentityAccessor<T>
   IL_0042:  ret
 }");
         }
+
+        [Fact]
+        public void DoublePattern01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool P1(double d) => d is double.NaN;
+    static bool P2(float f) => f is float.NaN;
+    static bool P3(double d) => d is 3.14d;
+    static bool P4(float f) => f is 3.14f;
+    static bool P5(object o)
+    {
+        switch (o)
+        {
+            case double.NaN: return true;
+            case float.NaN: return true;
+            case 3.14d: return true;
+            case 3.14f: return true;
+            default: return false;
+        }
+    }
+    public static void Main(string[] args)
+    {
+        Console.Write(P1(double.NaN));
+        Console.Write(P1(1.0));
+        Console.Write(P2(float.NaN));
+        Console.Write(P2(1.0f));
+        Console.Write(P3(3.14));
+        Console.Write(P3(double.NaN));
+        Console.Write(P4(3.14f));
+        Console.Write(P4(float.NaN));
+        Console.Write(P5(double.NaN));
+        Console.Write(P5(0.0d));
+        Console.Write(P5(float.NaN));
+        Console.Write(P5(0.0f));
+        Console.Write(P5(3.14d));
+        Console.Write(P5(125));
+        Console.Write(P5(3.14f));
+        Console.Write(P5(1.0f));
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"TrueFalseTrueFalseTrueFalseTrueFalseTrueFalseTrueFalseTrueFalseTrueFalse";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Program.P1",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""bool double.IsNaN(double)""
+  IL_0006:  ret
+}");
+            compVerifier.VerifyIL("Program.P2",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""bool float.IsNaN(float)""
+  IL_0006:  ret
+}");
+            compVerifier.VerifyIL("Program.P3",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldc.r8     3.14
+  IL_0009:  ldarg.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}");
+            compVerifier.VerifyIL("Program.P4",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldc.r4     3.14
+  IL_0005:  ldarg.0
+  IL_0006:  ceq
+  IL_0008:  ret
+}");
+            compVerifier.VerifyIL("Program.P5",
+@"{
+  // Code size      162 (0xa2)
+  .maxstack  2
+  .locals init (object V_0,
+                double V_1,
+                float V_2,
+                object V_3,
+                object V_4,
+                bool V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  br.s       IL_0084
+  IL_000a:  ldloc.0
+  IL_000b:  stloc.s    V_4
+  IL_000d:  ldloc.s    V_4
+  IL_000f:  isinst     ""double""
+  IL_0014:  ldnull
+  IL_0015:  cgt.un
+  IL_0017:  dup
+  IL_0018:  brtrue.s   IL_0025
+  IL_001a:  ldc.r8     0
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.s    V_4
+  IL_0027:  unbox.any  ""double""
+  IL_002c:  stloc.1
+  IL_002d:  brfalse.s  IL_004b
+  IL_002f:  ldloc.1
+  IL_0030:  call       ""bool double.IsNaN(double)""
+  IL_0035:  brtrue.s   IL_0039
+  IL_0037:  br.s       IL_003b
+  IL_0039:  br.s       IL_0086
+  IL_003b:  ldc.r8     3.14
+  IL_0044:  ldloc.1
+  IL_0045:  beq.s      IL_0049
+  IL_0047:  br.s       IL_004b
+  IL_0049:  br.s       IL_0090
+  IL_004b:  ldloc.0
+  IL_004c:  stloc.s    V_4
+  IL_004e:  ldloc.s    V_4
+  IL_0050:  isinst     ""float""
+  IL_0055:  ldnull
+  IL_0056:  cgt.un
+  IL_0058:  dup
+  IL_0059:  brtrue.s   IL_0062
+  IL_005b:  ldc.r4     0
+  IL_0060:  br.s       IL_0069
+  IL_0062:  ldloc.s    V_4
+  IL_0064:  unbox.any  ""float""
+  IL_0069:  stloc.2
+  IL_006a:  brfalse.s  IL_0084
+  IL_006c:  ldloc.2
+  IL_006d:  call       ""bool float.IsNaN(float)""
+  IL_0072:  brtrue.s   IL_0076
+  IL_0074:  br.s       IL_0078
+  IL_0076:  br.s       IL_008b
+  IL_0078:  ldc.r4     3.14
+  IL_007d:  ldloc.2
+  IL_007e:  beq.s      IL_0082
+  IL_0080:  br.s       IL_0084
+  IL_0082:  br.s       IL_0095
+  IL_0084:  br.s       IL_009a
+  IL_0086:  ldc.i4.1
+  IL_0087:  stloc.s    V_5
+  IL_0089:  br.s       IL_009f
+  IL_008b:  ldc.i4.1
+  IL_008c:  stloc.s    V_5
+  IL_008e:  br.s       IL_009f
+  IL_0090:  ldc.i4.1
+  IL_0091:  stloc.s    V_5
+  IL_0093:  br.s       IL_009f
+  IL_0095:  ldc.i4.1
+  IL_0096:  stloc.s    V_5
+  IL_0098:  br.s       IL_009f
+  IL_009a:  ldc.i4.0
+  IL_009b:  stloc.s    V_5
+  IL_009d:  br.s       IL_009f
+  IL_009f:  ldloc.s    V_5
+  IL_00a1:  ret
+}");
+        }
     }
 }

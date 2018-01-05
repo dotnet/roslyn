@@ -474,16 +474,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ///// <summary>
-        ///// </summary>
-        ////
-
         /// <summary>
-        ///// Given that the decision d has occurred and produced a true/false result,
-        ///// set permitsTrue if a true decision on d would permit other to succeed.
-        ///// set permitsFalse if a false decision on d would permit other to succeed.
-        ///// sets killsDecisionOnFalseBranch when d being false means other has been proven true
-        ///// sets killsDecisionOnTrueBranch when d being true means other has been proven true
+        /// Given that the decision d has occurred and produced a true/false result,
+        /// set permitsTrue if a true decision on d would permit other to succeed.
+        /// set permitsFalse if a false decision on d would permit other to succeed.
+        /// sets killsDecisionOnFalseBranch when d being false means other has been proven true
+        /// sets killsDecisionOnTrueBranch when d being true means other has been proven true
         /// </summary>
         private void CheckConsistentDecision(
             BoundDagDecision d,

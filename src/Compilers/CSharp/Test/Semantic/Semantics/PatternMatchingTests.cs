@@ -5577,6 +5577,7 @@ namespace System
     {
         private Single m_value;
         public /*note bad return type*/ void Equals(Single other) { m_value = m_value + 1; }
+        public /*note bad return type*/ void IsNaN(Single other) { }
     }
 }
 ";
@@ -5584,12 +5585,12 @@ namespace System
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
-                // (5,9): error CS0407: 'void float.Equals(float)' has the wrong return type
+                // (5,9): error CS0656: Missing compiler required member 'System.Single.IsNaN'
                 //         switch (o)
-                Diagnostic(ErrorCode.ERR_BadRetType, @"switch (o)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
         {
             case 0f/0f: break;
-        }").WithArguments("float.Equals(float)", "void").WithLocation(5, 9)
+        }").WithArguments("System.Single", "IsNaN").WithLocation(5, 9)
                 );
         }
 
