@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // in case the where clause fails, we prepare for the remaining cases.
-                    ImmutableArray<PartialCaseDecision> remainingCases = cases.WhereAsArray(d => d != first);
+                    ImmutableArray<PartialCaseDecision> remainingCases = cases.RemoveAt(0);
                     BoundDecisionDag whereFails = MakeDecisionDag(syntax, remainingCases, defaultLabel);
                     return new BoundWhereClause(first.Syntax, first.Bindings, first.WhereClause, new BoundDecision(first.Syntax, first.CaseLabel), whereFails);
                 }
