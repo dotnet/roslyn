@@ -64,7 +64,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(38, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
             };
 
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None, expected: expected);
         }
 
         [Fact]
@@ -114,7 +114,7 @@ End Class
                 GetBasicExpectedDiagnostic(34, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
             };
 
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None, expected: expected);
         }
 
         [Fact]
@@ -157,7 +157,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -203,7 +203,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -256,7 +256,7 @@ class MyAnalyzer2 : DiagnosticAnalyzer
     {
     }
 }";
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -314,7 +314,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -354,7 +354,7 @@ Class MyAnalyzer(Of T As Structure)
 End Class
 ";
 
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -398,7 +398,7 @@ Class MyAnalyzer(Of T As Structure)
 End Class
 ";
 
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -444,7 +444,7 @@ Class MyAnalyzer2
 	End Sub
 End Class
 ";
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -493,7 +493,7 @@ MustInherit Class MyAnalyzer
 End Class
 ";
 
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
