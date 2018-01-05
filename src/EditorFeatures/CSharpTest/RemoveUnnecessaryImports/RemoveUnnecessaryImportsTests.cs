@@ -1354,26 +1354,8 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
-        public async Task TestWarningLevel0()
-        {
-            // Ideally we would also want features to work with /warn:0, but this causes a compatibility conflict since
-            // /warn:0 can be used to suppress warnings with /warnaserror enabled.
-            await TestMissingInRegularAndScriptAsync(
-@"[|using System;
-using System.Collections.Generic;
-using System.Linq;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}|]", new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: 0)));
-        }
-
         [Theory]
+        [InlineData(0)]
         [InlineData(1)]
         [InlineData(2)]
         [InlineData(3)]
