@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#Const DONT_USE_BYREF_LOCALS_FOR_USE_TWICE = True
+
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
@@ -274,8 +276,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' easier to implement.
 
                 Dim receiver As Result = UseTwiceReceiver(containingMember, node.ReceiverOpt, arg)
-                Dim first = node.Update(receiver.First, fieldSymbol, node.IsLValue, node.ConstantsInProgressOpt, node.Type)
-                Dim second = node.Update(receiver.Second, fieldSymbol, node.IsLValue, node.ConstantsInProgressOpt, node.Type)
+                Dim first = node.Update(receiver.First, fieldSymbol, node.IsLValue, suppressVirtualCalls:=False, node.ConstantsInProgressOpt, node.Type)
+                Dim second = node.Update(receiver.Second, fieldSymbol, node.IsLValue, suppressVirtualCalls:=False, node.ConstantsInProgressOpt, node.Type)
 
                 Debug.Assert(first.IsLValue AndAlso second.IsLValue)
                 Return New Result(first, second)
@@ -496,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 #If DONT_USE_BYREF_LOCALS_FOR_USE_TWICE Then
-        Private Shared Function UseTwiceReceiver(containingMember As Symbol, receiverOpt As BoundExpression, arg As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwiceReceiver(containingMember As Symbol, receiverOpt As BoundExpression, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
             If receiverOpt Is Nothing Then
                 Return New Result(Nothing, Nothing)
             ElseIf receiverOpt.IsLValue AndAlso receiverOpt.Type.IsReferenceType Then

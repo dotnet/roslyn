@@ -13837,5 +13837,87 @@ End Module
 ]]>)
 
         End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub CovariantArrayElementByReference()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {"a"})
+        F(New String() {"b"})
+    End Sub
+    Sub F(a() As Object)
+        G(a(0))
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(ByRef s As String)
+        s = s.ToUpper()
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AB").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldind.ref
+  IL_0003:  callvirt   "Function String.ToUpper() As String"
+  IL_0008:  stind.ref
+  IL_0009:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub CovariantArrayElementCompoundAssignment()
+            Dim comp =
+<compilation>
+    <file>
+Module M
+    Sub Main()
+        F(New Object() {""}, "A")
+        F(New String() {""}, "B")
+    End Sub
+    Sub F(a() As Object, s As String)
+        G(a, s)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Object, s As String)
+        a(0) += s
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="AB").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  4
+  .locals init (Object() V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelem.ref
+  IL_0007:  ldarg.1
+  IL_0008:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_000d:  stelem.ref
+  IL_000e:  ret
+}
+]]>)
+
+        End Sub
+
     End Class
 End Namespace

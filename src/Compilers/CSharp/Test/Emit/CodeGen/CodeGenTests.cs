@@ -16073,5 +16073,47 @@ unsafe class Test
 
             CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
         }
+
+        [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
+        [Fact]
+        public void CovariantArrayElementCompoundAssignment()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new object[] { """" }, ""A"");
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(object[] o, string s)
+    {
+        G(o, s);
+        System.Console.Write(o[0]);
+    }
+    static void G(object[] o, string s)
+    {
+        o[0] += s;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "AB");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  4
+  .locals init (object[] V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelem.ref
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""string string.Concat(object, object)""
+  IL_000d:  stelem.ref
+  IL_000e:  ret
+}");
+        }
     }
 }

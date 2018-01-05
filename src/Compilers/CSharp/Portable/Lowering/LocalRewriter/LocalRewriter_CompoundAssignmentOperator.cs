@@ -507,17 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ArrayAccess:
-                    if (isDynamicAssignment)
                     {
-                        // In non-dynamic array[index] op= R we emit:
-                        //   T& tmp = &array[index];
-                        //   *tmp = *L op R;
-                        // where T is the type of L.
-                        // 
-                        // If L is an array access, the assignment is dynamic, the compile-time of the array is dynamic[] 
-                        // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
-                        // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
-                        //
                         // In this case we rewrite the assignment as follows:
                         //
                         //   E t_array = array;
@@ -531,7 +521,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
                     }
-                    break;
 
                 case BoundKind.DynamicMemberAccess:
                     return TransformDynamicMemberAccess((BoundDynamicMemberAccess)originalLHS, stores, temps);
