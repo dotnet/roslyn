@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     internal partial class QuickInfoCommandHandlerAndSourceProvider
@@ -50,3 +51,4 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete
