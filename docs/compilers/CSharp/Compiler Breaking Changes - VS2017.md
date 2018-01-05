@@ -4,19 +4,3 @@
 Each entry should include a short description of the break, followed by either a link to the issue describing the full details of the break or the full details of the break inline.*
 
 1. Previously, we would not find a best type among multiple types (for ternary expressions and method type inference) when the types differed only in dynamic-ness and would involve some nesting. For example, we could not find a best type between `KeyValuePair<dynamic, object>` and `KeyValuePair<object, dynamic>`. Starting with VS 2017, we can find a best type (we merge dynamic-ness). In this example, `KeyValuePair<dynamic, dynamic>` is the best type. This can affect overload resolution. For instance, allowing a better overload to be picked, which was previously discarded.   See issues [#12585](https://github.com/dotnet/roslyn/issues/12585), [#14247](https://github.com/dotnet/roslyn/issues/14247), [#14213](https://github.com/dotnet/roslyn/issues/14213), and their corresponding PRs for more details.
-
-2. VS 2017 15.0-15.5 shipped with a bug around definite assignment of local functions that did not produce definite assignment errors when an uncalled local function contains a nested lambda which captures a variable. For example:
-    ```csharp
-    void Method()
-    {
-        void Local()
-        {
-            Action a = () =>
-            {
-                int x;
-                x++; // No error in 15.0 - 15.5
-            };
-        }
-    }
-    ```
-    This is changed to now produce an error that the variable is not definitely assigned.
