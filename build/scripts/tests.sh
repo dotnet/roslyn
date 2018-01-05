@@ -20,7 +20,7 @@ xunit_console_version="$(get_package_version dotnet-xunit)"
 
 if [[ "${runtime}" == "dotnet" ]]; then
     target_framework=netcoreapp2.0
-    dir_list="${unittest_dir}"/*/netcoreapp2.0/*.UnitTests.dll
+    file_list=( "${unittest_dir}"/*/netcoreapp2.0/*.UnitTests.dll )
     xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
     source ${root_path}/build/scripts/obtain_mono.sh
@@ -28,7 +28,6 @@ elif [[ "${runtime}" == "mono" ]]; then
         "${unittest_dir}/CSharpCompilerSymbolTest/net461/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll"
         "${unittest_dir}/CSharpCompilerSyntaxTest/net461/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll"
         )
-    dir_list="${unittest_dll_list[@]}"
     xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
     echo "Unknown runtime: ${runtime}"
@@ -54,7 +53,7 @@ echo "Using ${xunit_console}"
 mkdir -p "${log_dir}"
 
 exit_code=0
-for file_name in $dir_list
+for file_name in "${file_list[@]}"
 do
     log_file="${log_dir}"/"$(basename "${file_name%.*}.xml")"
     deps_json="${file_name%.*}".deps.json
