@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         public void Dispose()
         {
-            Dispose(joinThreads: false, disposing: true);
+            Dispose(joinThreads: true, disposing: true);
         }
 
         private void Dispose(bool joinThreads, bool disposing)

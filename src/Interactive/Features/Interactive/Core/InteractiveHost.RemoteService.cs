@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
+            private EventHandler _currentLocalHandler;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         if (Interlocked.Exchange(ref processExitHandling, ProcessExitHandled) == ProcessExitHooked)
                         {
                             Process.Exited -= localHandler;
+                            _currentLocalHandler = null;
 
                             if (!_disposing)
                             {
@@ -78,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)
                 {
                     Process.Exited += localHandler;
+                    _currentLocalHandler = localHandler;
                 }
             }
 
@@ -115,6 +118,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 // set _disposing so that we don't attempt restart the host anymore:
                 _disposing = true;
+                if (_currentLocalHandler != null)
+                {
+                    Process.Exited -=  _currentLocalHandler;
+                    _currentLocalHandler = null;
+                }
 
                 InitiateTermination(Process, _processId);
 
