@@ -7949,7 +7949,7 @@ public class Program
             compVerifier.VerifyIL("Program.M",
 @"{
   // Code size       29 (0x1d)
-  .maxstack  1
+  .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 object V_2)
@@ -7958,8 +7958,8 @@ public class Program
   IL_0002:  ldloc.0
   IL_0003:  brfalse.s  IL_001c
   IL_0005:  ldloc.0
-  IL_0006:  stloc.2
-  IL_0007:  ldloc.2
+  IL_0006:  dup
+  IL_0007:  stloc.2
   IL_0008:  isinst     ""int""
   IL_000d:  brfalse.s  IL_001c
   IL_000f:  ldloc.2
@@ -7975,8 +7975,8 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       48 (0x30)
-  .maxstack  1
+  // Code size       47 (0x2f)
+  .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 int V_2, //i
@@ -7989,25 +7989,25 @@ public class Program
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
   IL_0006:  brtrue.s   IL_000a
-  IL_0008:  br.s       IL_0020
+  IL_0008:  br.s       IL_001f
   IL_000a:  ldloc.0
-  IL_000b:  stloc.s    V_4
-  IL_000d:  ldloc.s    V_4
-  IL_000f:  isinst     ""int""
-  IL_0014:  brfalse.s  IL_0020
-  IL_0016:  ldloc.s    V_4
-  IL_0018:  unbox.any  ""int""
-  IL_001d:  stloc.1
-  IL_001e:  br.s       IL_0022
-  IL_0020:  br.s       IL_002f
-  IL_0022:  ldloc.1
-  IL_0023:  stloc.2
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.2
-  IL_0027:  call       ""void System.Console.Write(int)""
-  IL_002c:  nop
-  IL_002d:  br.s       IL_002f
-  IL_002f:  ret
+  IL_000b:  dup
+  IL_000c:  stloc.s    V_4
+  IL_000e:  isinst     ""int""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_002e
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  call       ""void System.Console.Write(int)""
+  IL_002b:  nop
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ret
 }"
             );
         }
@@ -8043,7 +8043,7 @@ public class Program
             compVerifier.VerifyIL("Program.M<T>",
 @"{
   // Code size       34 (0x22)
-  .maxstack  1
+  .maxstack  2
   .locals init (object V_0,
                 T V_1,
                 object V_2)
@@ -8052,8 +8052,8 @@ public class Program
   IL_0002:  ldloc.0
   IL_0003:  brfalse.s  IL_0021
   IL_0005:  ldloc.0
-  IL_0006:  stloc.2
-  IL_0007:  ldloc.2
+  IL_0006:  dup
+  IL_0007:  stloc.2
   IL_0008:  isinst     ""T""
   IL_000d:  brfalse.s  IL_0021
   IL_000f:  ldloc.2
@@ -8070,8 +8070,8 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T>",
 @"{
-  // Code size       53 (0x35)
-  .maxstack  1
+  // Code size       52 (0x34)
+  .maxstack  2
   .locals init (object V_0,
                 T V_1,
                 T V_2, //i
@@ -8084,26 +8084,26 @@ public class Program
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
   IL_0006:  brtrue.s   IL_000a
-  IL_0008:  br.s       IL_0020
+  IL_0008:  br.s       IL_001f
   IL_000a:  ldloc.0
-  IL_000b:  stloc.s    V_4
-  IL_000d:  ldloc.s    V_4
-  IL_000f:  isinst     ""T""
-  IL_0014:  brfalse.s  IL_0020
-  IL_0016:  ldloc.s    V_4
-  IL_0018:  unbox.any  ""T""
-  IL_001d:  stloc.1
-  IL_001e:  br.s       IL_0022
-  IL_0020:  br.s       IL_0034
-  IL_0022:  ldloc.1
-  IL_0023:  stloc.2
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.2
-  IL_0027:  box        ""T""
-  IL_002c:  call       ""void System.Console.Write(object)""
-  IL_0031:  nop
-  IL_0032:  br.s       IL_0034
-  IL_0034:  ret
+  IL_000b:  dup
+  IL_000c:  stloc.s    V_4
+  IL_000e:  isinst     ""T""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  unbox.any  ""T""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_0033
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  box        ""T""
+  IL_002b:  call       ""void System.Console.Write(object)""
+  IL_0030:  nop
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ret
 }"
             );
         }
@@ -8139,17 +8139,17 @@ public class Program
             compVerifier.VerifyIL("Program.M<T>",
 @"{
   // Code size       34 (0x22)
-  .maxstack  1
+  .maxstack  2
   .locals init (System.IComparable V_0,
                 T V_1,
-                object V_2)
+                System.IComparable V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  brfalse.s  IL_0021
   IL_0005:  ldloc.0
-  IL_0006:  stloc.2
-  IL_0007:  ldloc.2
+  IL_0006:  dup
+  IL_0007:  stloc.2
   IL_0008:  isinst     ""T""
   IL_000d:  brfalse.s  IL_0021
   IL_000f:  ldloc.2
@@ -8166,13 +8166,13 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T>",
 @"{
-  // Code size       53 (0x35)
-  .maxstack  1
+  // Code size       52 (0x34)
+  .maxstack  2
   .locals init (System.IComparable V_0,
                 T V_1,
                 T V_2, //i
                 System.IComparable V_3,
-                object V_4)
+                System.IComparable V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
@@ -8180,26 +8180,26 @@ public class Program
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
   IL_0006:  brtrue.s   IL_000a
-  IL_0008:  br.s       IL_0020
+  IL_0008:  br.s       IL_001f
   IL_000a:  ldloc.0
-  IL_000b:  stloc.s    V_4
-  IL_000d:  ldloc.s    V_4
-  IL_000f:  isinst     ""T""
-  IL_0014:  brfalse.s  IL_0020
-  IL_0016:  ldloc.s    V_4
-  IL_0018:  unbox.any  ""T""
-  IL_001d:  stloc.1
-  IL_001e:  br.s       IL_0022
-  IL_0020:  br.s       IL_0034
-  IL_0022:  ldloc.1
-  IL_0023:  stloc.2
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.2
-  IL_0027:  box        ""T""
-  IL_002c:  call       ""void System.Console.Write(object)""
-  IL_0031:  nop
-  IL_0032:  br.s       IL_0034
-  IL_0034:  ret
+  IL_000b:  dup
+  IL_000c:  stloc.s    V_4
+  IL_000e:  isinst     ""T""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  unbox.any  ""T""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_0033
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  box        ""T""
+  IL_002b:  call       ""void System.Console.Write(object)""
+  IL_0030:  nop
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ret
 }"
             );
         }
@@ -8234,29 +8234,30 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T, U>",
 @"{
-  // Code size       44 (0x2c)
-  .maxstack  1
+  // Code size       49 (0x31)
+  .maxstack  2
   .locals init (U V_0,
                 T V_1,
-                object V_2)
+                U V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  box        ""U""
-  IL_0008:  brfalse.s  IL_002b
+  IL_0008:  brfalse.s  IL_0030
   IL_000a:  ldloc.0
-  IL_000b:  box        ""U""
-  IL_0010:  stloc.2
-  IL_0011:  ldloc.2
+  IL_000b:  dup
+  IL_000c:  stloc.2
+  IL_000d:  box        ""U""
   IL_0012:  isinst     ""T""
-  IL_0017:  brfalse.s  IL_002b
+  IL_0017:  brfalse.s  IL_0030
   IL_0019:  ldloc.2
-  IL_001a:  unbox.any  ""T""
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  box        ""T""
-  IL_0026:  call       ""void System.Console.Write(object)""
-  IL_002b:  ret
+  IL_001a:  box        ""U""
+  IL_001f:  unbox.any  ""T""
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  box        ""T""
+  IL_002b:  call       ""void System.Console.Write(object)""
+  IL_0030:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -8264,13 +8265,13 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T, U>",
 @"{
-  // Code size       63 (0x3f)
-  .maxstack  1
+  // Code size       67 (0x43)
+  .maxstack  2
   .locals init (U V_0,
                 T V_1,
                 T V_2, //i
                 U V_3,
-                object V_4)
+                U V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
@@ -8279,27 +8280,28 @@ public class Program
   IL_0005:  ldloc.0
   IL_0006:  box        ""U""
   IL_000b:  brtrue.s   IL_000f
-  IL_000d:  br.s       IL_002a
+  IL_000d:  br.s       IL_002e
   IL_000f:  ldloc.0
-  IL_0010:  box        ""U""
-  IL_0015:  stloc.s    V_4
-  IL_0017:  ldloc.s    V_4
-  IL_0019:  isinst     ""T""
-  IL_001e:  brfalse.s  IL_002a
-  IL_0020:  ldloc.s    V_4
-  IL_0022:  unbox.any  ""T""
-  IL_0027:  stloc.1
-  IL_0028:  br.s       IL_002c
-  IL_002a:  br.s       IL_003e
-  IL_002c:  ldloc.1
-  IL_002d:  stloc.2
-  IL_002e:  br.s       IL_0030
-  IL_0030:  ldloc.2
-  IL_0031:  box        ""T""
-  IL_0036:  call       ""void System.Console.Write(object)""
-  IL_003b:  nop
-  IL_003c:  br.s       IL_003e
-  IL_003e:  ret
+  IL_0010:  dup
+  IL_0011:  stloc.s    V_4
+  IL_0013:  box        ""U""
+  IL_0018:  isinst     ""T""
+  IL_001d:  brfalse.s  IL_002e
+  IL_001f:  ldloc.s    V_4
+  IL_0021:  box        ""U""
+  IL_0026:  unbox.any  ""T""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_0030
+  IL_002e:  br.s       IL_0042
+  IL_0030:  ldloc.1
+  IL_0031:  stloc.2
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.2
+  IL_0035:  box        ""T""
+  IL_003a:  call       ""void System.Console.Write(object)""
+  IL_003f:  nop
+  IL_0040:  br.s       IL_0042
+  IL_0042:  ret
 }"
             );
         }
@@ -8407,13 +8409,13 @@ class Program
             compVerifier.VerifyIL("Program.M1<T>",
 @"{
   // Code size       31 (0x1f)
-  .maxstack  1
+  .maxstack  2
   .locals init (T V_0, //t
-                object V_1,
+                System.ValueType V_1,
                 T V_2)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloc.1
+  IL_0001:  dup
+  IL_0002:  stloc.1
   IL_0003:  isinst     ""T""
   IL_0008:  brfalse.s  IL_0013
   IL_000a:  ldloc.1
@@ -8431,18 +8433,18 @@ class Program
             compVerifier.VerifyIL("Program.M2<T>",
 @"{
   // Code size       34 (0x22)
-  .maxstack  1
+  .maxstack  2
   .locals init (System.ValueType V_0,
                 T V_1,
-                object V_2,
+                System.ValueType V_2,
                 T V_3)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  brfalse.s  IL_0018
   IL_0005:  ldloc.0
-  IL_0006:  stloc.2
-  IL_0007:  ldloc.2
+  IL_0006:  dup
+  IL_0007:  stloc.2
   IL_0008:  isinst     ""T""
   IL_000d:  brfalse.s  IL_0018
   IL_000f:  ldloc.2
@@ -8463,15 +8465,15 @@ class Program
             compVerifier.VerifyIL("Program.M1<T>",
 @"{
   // Code size       37 (0x25)
-  .maxstack  1
+  .maxstack  2
   .locals init (T V_0, //t
-                object V_1,
+                System.ValueType V_1,
                 T V_2,
                 T V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
+  IL_0002:  dup
+  IL_0003:  stloc.1
   IL_0004:  isinst     ""T""
   IL_0009:  brfalse.s  IL_0014
   IL_000b:  ldloc.1
@@ -8491,13 +8493,13 @@ class Program
             );
             compVerifier.VerifyIL("Program.M2<T>",
 @"{
-  // Code size       60 (0x3c)
-  .maxstack  1
+  // Code size       59 (0x3b)
+  .maxstack  2
   .locals init (System.ValueType V_0,
                 T V_1,
                 T V_2, //t
                 System.ValueType V_3,
-                object V_4,
+                System.ValueType V_4,
                 T V_5,
                 T V_6)
   IL_0000:  nop
@@ -8507,30 +8509,30 @@ class Program
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
   IL_0006:  brtrue.s   IL_000a
-  IL_0008:  br.s       IL_0020
+  IL_0008:  br.s       IL_001f
   IL_000a:  ldloc.0
-  IL_000b:  stloc.s    V_4
-  IL_000d:  ldloc.s    V_4
-  IL_000f:  isinst     ""T""
-  IL_0014:  brfalse.s  IL_0020
-  IL_0016:  ldloc.s    V_4
-  IL_0018:  unbox.any  ""T""
-  IL_001d:  stloc.1
-  IL_001e:  br.s       IL_0022
-  IL_0020:  br.s       IL_002b
-  IL_0022:  ldloc.1
-  IL_0023:  stloc.2
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.2
-  IL_0027:  stloc.s    V_5
-  IL_0029:  br.s       IL_0039
-  IL_002b:  ldloca.s   V_6
-  IL_002d:  initobj    ""T""
-  IL_0033:  ldloc.s    V_6
-  IL_0035:  stloc.s    V_5
-  IL_0037:  br.s       IL_0039
-  IL_0039:  ldloc.s    V_5
-  IL_003b:  ret
+  IL_000b:  dup
+  IL_000c:  stloc.s    V_4
+  IL_000e:  isinst     ""T""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  unbox.any  ""T""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_002a
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  stloc.s    V_5
+  IL_0028:  br.s       IL_0038
+  IL_002a:  ldloca.s   V_6
+  IL_002c:  initobj    ""T""
+  IL_0032:  ldloc.s    V_6
+  IL_0034:  stloc.s    V_5
+  IL_0036:  br.s       IL_0038
+  IL_0038:  ldloc.s    V_5
+  IL_003a:  ret
 }"
             );
         }
@@ -8578,51 +8580,53 @@ class Program
                 expectedOutput: "2300");
             compVerifier.VerifyIL("Program.M1<T>",
 @"{
-  // Code size       28 (0x1c)
-  .maxstack  1
+  // Code size       33 (0x21)
+  .maxstack  2
   .locals init (int V_0, //t
-                object V_1)
+                T V_1)
   IL_0000:  ldarg.0
-  IL_0001:  box        ""T""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
+  IL_0001:  dup
+  IL_0002:  stloc.1
+  IL_0003:  box        ""T""
   IL_0008:  isinst     ""int""
-  IL_000d:  brfalse.s  IL_0018
+  IL_000d:  brfalse.s  IL_001d
   IL_000f:  ldloc.1
-  IL_0010:  unbox.any  ""int""
-  IL_0015:  stloc.0
-  IL_0016:  br.s       IL_001a
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldloc.0
-  IL_001b:  ret
+  IL_0010:  box        ""T""
+  IL_0015:  unbox.any  ""int""
+  IL_001a:  stloc.0
+  IL_001b:  br.s       IL_001f
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+  IL_001f:  ldloc.0
+  IL_0020:  ret
 }"
             );
             compVerifier.VerifyIL("Program.M2<T>",
 @"{
-  // Code size       36 (0x24)
-  .maxstack  1
+  // Code size       41 (0x29)
+  .maxstack  2
   .locals init (T V_0,
                 int V_1,
-                object V_2)
+                T V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  box        ""T""
-  IL_0008:  brfalse.s  IL_0022
+  IL_0008:  brfalse.s  IL_0027
   IL_000a:  ldloc.0
-  IL_000b:  box        ""T""
-  IL_0010:  stloc.2
-  IL_0011:  ldloc.2
+  IL_000b:  dup
+  IL_000c:  stloc.2
+  IL_000d:  box        ""T""
   IL_0012:  isinst     ""int""
-  IL_0017:  brfalse.s  IL_0022
+  IL_0017:  brfalse.s  IL_0027
   IL_0019:  ldloc.2
-  IL_001a:  unbox.any  ""int""
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  ret
-  IL_0022:  ldc.i4.0
-  IL_0023:  ret
+  IL_001a:  box        ""T""
+  IL_001f:  unbox.any  ""int""
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  ret
+  IL_0027:  ldc.i4.0
+  IL_0028:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -8631,40 +8635,41 @@ class Program
                 expectedOutput: "2300");
             compVerifier.VerifyIL("Program.M1<T>",
 @"{
-  // Code size       34 (0x22)
-  .maxstack  1
+  // Code size       39 (0x27)
+  .maxstack  2
   .locals init (int V_0, //t
-                object V_1,
+                T V_1,
                 int V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  box        ""T""
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
+  IL_0002:  dup
+  IL_0003:  stloc.1
+  IL_0004:  box        ""T""
   IL_0009:  isinst     ""int""
-  IL_000e:  brfalse.s  IL_0019
+  IL_000e:  brfalse.s  IL_001e
   IL_0010:  ldloc.1
-  IL_0011:  unbox.any  ""int""
-  IL_0016:  stloc.0
-  IL_0017:  br.s       IL_001c
-  IL_0019:  ldc.i4.0
-  IL_001a:  br.s       IL_001d
-  IL_001c:  ldloc.0
-  IL_001d:  stloc.2
-  IL_001e:  br.s       IL_0020
-  IL_0020:  ldloc.2
-  IL_0021:  ret
+  IL_0011:  box        ""T""
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  stloc.0
+  IL_001c:  br.s       IL_0021
+  IL_001e:  ldc.i4.0
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldloc.0
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  ret
 }"
             );
             compVerifier.VerifyIL("Program.M2<T>",
 @"{
-  // Code size       61 (0x3d)
-  .maxstack  1
+  // Code size       65 (0x41)
+  .maxstack  2
   .locals init (T V_0,
                 int V_1,
                 int V_2, //t
                 T V_3,
-                object V_4,
+                T V_4,
                 int V_5)
   IL_0000:  nop
   IL_0001:  ldarg.0
@@ -8674,29 +8679,30 @@ class Program
   IL_0005:  ldloc.0
   IL_0006:  box        ""T""
   IL_000b:  brtrue.s   IL_000f
-  IL_000d:  br.s       IL_002a
+  IL_000d:  br.s       IL_002e
   IL_000f:  ldloc.0
-  IL_0010:  box        ""T""
-  IL_0015:  stloc.s    V_4
-  IL_0017:  ldloc.s    V_4
-  IL_0019:  isinst     ""int""
-  IL_001e:  brfalse.s  IL_002a
-  IL_0020:  ldloc.s    V_4
-  IL_0022:  unbox.any  ""int""
-  IL_0027:  stloc.1
-  IL_0028:  br.s       IL_002c
-  IL_002a:  br.s       IL_0035
-  IL_002c:  ldloc.1
-  IL_002d:  stloc.2
-  IL_002e:  br.s       IL_0030
-  IL_0030:  ldloc.2
-  IL_0031:  stloc.s    V_5
-  IL_0033:  br.s       IL_003a
-  IL_0035:  ldc.i4.0
-  IL_0036:  stloc.s    V_5
-  IL_0038:  br.s       IL_003a
-  IL_003a:  ldloc.s    V_5
-  IL_003c:  ret
+  IL_0010:  dup
+  IL_0011:  stloc.s    V_4
+  IL_0013:  box        ""T""
+  IL_0018:  isinst     ""int""
+  IL_001d:  brfalse.s  IL_002e
+  IL_001f:  ldloc.s    V_4
+  IL_0021:  box        ""T""
+  IL_0026:  unbox.any  ""int""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_0030
+  IL_002e:  br.s       IL_0039
+  IL_0030:  ldloc.1
+  IL_0031:  stloc.2
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.2
+  IL_0035:  stloc.s    V_5
+  IL_0037:  br.s       IL_003e
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.s    V_5
+  IL_003c:  br.s       IL_003e
+  IL_003e:  ldloc.s    V_5
+  IL_0040:  ret
 }"
             );
         }
@@ -9049,7 +9055,7 @@ None
 Generic<object>.Color.Red");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size      130 (0x82)
+  // Code size      128 (0x80)
   .maxstack  2
   .locals init (object V_0,
                 Generic<long>.Color V_1,
@@ -9066,56 +9072,56 @@ Generic<object>.Color.Red");
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brtrue.s   IL_000c
-  IL_000a:  br.s       IL_004a
+  IL_000a:  br.s       IL_0048
   IL_000c:  ldloc.0
-  IL_000d:  stloc.s    V_5
-  IL_000f:  ldloc.s    V_5
-  IL_0011:  isinst     ""Generic<long>.Color""
-  IL_0016:  brfalse.s  IL_0022
-  IL_0018:  ldloc.s    V_5
-  IL_001a:  unbox.any  ""Generic<long>.Color""
-  IL_001f:  stloc.1
-  IL_0020:  br.s       IL_004c
-  IL_0022:  ldloc.0
+  IL_000d:  dup
+  IL_000e:  stloc.s    V_5
+  IL_0010:  isinst     ""Generic<long>.Color""
+  IL_0015:  brfalse.s  IL_0021
+  IL_0017:  ldloc.s    V_5
+  IL_0019:  unbox.any  ""Generic<long>.Color""
+  IL_001e:  stloc.1
+  IL_001f:  br.s       IL_004a
+  IL_0021:  ldloc.0
+  IL_0022:  dup
   IL_0023:  stloc.s    V_5
-  IL_0025:  ldloc.s    V_5
-  IL_0027:  isinst     ""Generic<object>.Color""
-  IL_002c:  brfalse.s  IL_004a
-  IL_002e:  ldloc.s    V_5
-  IL_0030:  unbox.any  ""Generic<object>.Color""
-  IL_0035:  stloc.2
-  IL_0036:  ldloc.2
-  IL_0037:  stloc.s    V_6
-  IL_0039:  ldloc.s    V_6
-  IL_003b:  brfalse.s  IL_0046
-  IL_003d:  br.s       IL_003f
-  IL_003f:  ldloc.s    V_6
-  IL_0041:  ldc.i4.1
-  IL_0042:  beq.s      IL_0048
-  IL_0044:  br.s       IL_004a
-  IL_0046:  br.s       IL_0064
-  IL_0048:  br.s       IL_006d
-  IL_004a:  br.s       IL_0076
-  IL_004c:  ldloc.1
-  IL_004d:  stloc.3
-  IL_004e:  br.s       IL_0050
-  IL_0050:  ldstr      ""Generic<long>.Color.""
-  IL_0055:  ldloc.3
-  IL_0056:  box        ""Generic<long>.Color""
-  IL_005b:  call       ""string string.Concat(object, object)""
-  IL_0060:  stloc.s    V_7
-  IL_0062:  br.s       IL_007f
-  IL_0064:  ldstr      ""Generic<object>.Color.Red""
-  IL_0069:  stloc.s    V_7
-  IL_006b:  br.s       IL_007f
-  IL_006d:  ldstr      ""Generic<dynamic>.Color.Blue""
-  IL_0072:  stloc.s    V_7
-  IL_0074:  br.s       IL_007f
-  IL_0076:  ldstr      ""None""
-  IL_007b:  stloc.s    V_7
-  IL_007d:  br.s       IL_007f
-  IL_007f:  ldloc.s    V_7
-  IL_0081:  ret
+  IL_0025:  isinst     ""Generic<object>.Color""
+  IL_002a:  brfalse.s  IL_0048
+  IL_002c:  ldloc.s    V_5
+  IL_002e:  unbox.any  ""Generic<object>.Color""
+  IL_0033:  stloc.2
+  IL_0034:  ldloc.2
+  IL_0035:  stloc.s    V_6
+  IL_0037:  ldloc.s    V_6
+  IL_0039:  brfalse.s  IL_0044
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.s    V_6
+  IL_003f:  ldc.i4.1
+  IL_0040:  beq.s      IL_0046
+  IL_0042:  br.s       IL_0048
+  IL_0044:  br.s       IL_0062
+  IL_0046:  br.s       IL_006b
+  IL_0048:  br.s       IL_0074
+  IL_004a:  ldloc.1
+  IL_004b:  stloc.3
+  IL_004c:  br.s       IL_004e
+  IL_004e:  ldstr      ""Generic<long>.Color.""
+  IL_0053:  ldloc.3
+  IL_0054:  box        ""Generic<long>.Color""
+  IL_0059:  call       ""string string.Concat(object, object)""
+  IL_005e:  stloc.s    V_7
+  IL_0060:  br.s       IL_007d
+  IL_0062:  ldstr      ""Generic<object>.Color.Red""
+  IL_0067:  stloc.s    V_7
+  IL_0069:  br.s       IL_007d
+  IL_006b:  ldstr      ""Generic<dynamic>.Color.Blue""
+  IL_0070:  stloc.s    V_7
+  IL_0072:  br.s       IL_007d
+  IL_0074:  ldstr      ""None""
+  IL_0079:  stloc.s    V_7
+  IL_007b:  br.s       IL_007d
+  IL_007d:  ldloc.s    V_7
+  IL_007f:  ret
 }"
             );
         }
@@ -9198,7 +9204,7 @@ public class Program
             compVerifier.VerifyIL("Program.M",
 @"{
   // Code size      152 (0x98)
-  .maxstack  1
+  .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 object V_2)
@@ -9207,8 +9213,8 @@ public class Program
   IL_0002:  ldloc.0
   IL_0003:  brfalse.s  IL_0061
   IL_0005:  ldloc.0
-  IL_0006:  stloc.2
-  IL_0007:  ldloc.2
+  IL_0006:  dup
+  IL_0007:  stloc.2
   IL_0008:  isinst     ""int""
   IL_000d:  brfalse.s  IL_0061
   IL_000f:  ldloc.2
@@ -9218,8 +9224,8 @@ public class Program
   IL_0018:  ldloc.0
   IL_0019:  brfalse.s  IL_0071
   IL_001b:  ldloc.0
-  IL_001c:  stloc.2
-  IL_001d:  ldloc.2
+  IL_001c:  dup
+  IL_001d:  stloc.2
   IL_001e:  isinst     ""int""
   IL_0023:  brfalse.s  IL_0071
   IL_0025:  ldloc.2
@@ -9229,8 +9235,8 @@ public class Program
   IL_002e:  ldloc.0
   IL_002f:  brfalse.s  IL_0081
   IL_0031:  ldloc.0
-  IL_0032:  stloc.2
-  IL_0033:  ldloc.2
+  IL_0032:  dup
+  IL_0033:  stloc.2
   IL_0034:  isinst     ""int""
   IL_0039:  brfalse.s  IL_0081
   IL_003b:  ldloc.2
@@ -9240,8 +9246,8 @@ public class Program
   IL_0044:  ldloc.0
   IL_0045:  brfalse.s  IL_0091
   IL_0047:  ldloc.0
-  IL_0048:  stloc.2
-  IL_0049:  ldloc.2
+  IL_0048:  dup
+  IL_0049:  stloc.2
   IL_004a:  isinst     ""int""
   IL_004f:  brfalse.s  IL_0091
   IL_0051:  ldloc.2
@@ -9275,8 +9281,8 @@ public class Program
                 expectedOutput: "");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size      224 (0xe0)
-  .maxstack  1
+  // Code size      220 (0xdc)
+  .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 int V_2, //i
@@ -9292,98 +9298,98 @@ public class Program
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brtrue.s   IL_000c
-  IL_000a:  br.s       IL_0022
+  IL_000a:  br.s       IL_0021
   IL_000c:  ldloc.0
-  IL_000d:  stloc.s    V_7
-  IL_000f:  ldloc.s    V_7
-  IL_0011:  isinst     ""int""
-  IL_0016:  brfalse.s  IL_0022
-  IL_0018:  ldloc.s    V_7
-  IL_001a:  unbox.any  ""int""
-  IL_001f:  stloc.1
-  IL_0020:  br.s       IL_007d
-  IL_0022:  br.s       IL_008a
-  IL_0024:  ldloc.0
-  IL_0025:  brtrue.s   IL_0029
-  IL_0027:  br.s       IL_003f
-  IL_0029:  ldloc.0
+  IL_000d:  dup
+  IL_000e:  stloc.s    V_7
+  IL_0010:  isinst     ""int""
+  IL_0015:  brfalse.s  IL_0021
+  IL_0017:  ldloc.s    V_7
+  IL_0019:  unbox.any  ""int""
+  IL_001e:  stloc.1
+  IL_001f:  br.s       IL_0079
+  IL_0021:  br.s       IL_0086
+  IL_0023:  ldloc.0
+  IL_0024:  brtrue.s   IL_0028
+  IL_0026:  br.s       IL_003d
+  IL_0028:  ldloc.0
+  IL_0029:  dup
   IL_002a:  stloc.s    V_7
-  IL_002c:  ldloc.s    V_7
-  IL_002e:  isinst     ""int""
-  IL_0033:  brfalse.s  IL_003f
-  IL_0035:  ldloc.s    V_7
-  IL_0037:  unbox.any  ""int""
-  IL_003c:  stloc.1
-  IL_003d:  br.s       IL_0095
-  IL_003f:  br.s       IL_00a2
-  IL_0041:  ldloc.0
-  IL_0042:  brtrue.s   IL_0046
-  IL_0044:  br.s       IL_005c
-  IL_0046:  ldloc.0
-  IL_0047:  stloc.s    V_7
-  IL_0049:  ldloc.s    V_7
-  IL_004b:  isinst     ""int""
-  IL_0050:  brfalse.s  IL_005c
-  IL_0052:  ldloc.s    V_7
-  IL_0054:  unbox.any  ""int""
-  IL_0059:  stloc.1
-  IL_005a:  br.s       IL_00ad
-  IL_005c:  br.s       IL_00bb
-  IL_005e:  ldloc.0
-  IL_005f:  brtrue.s   IL_0063
-  IL_0061:  br.s       IL_0079
-  IL_0063:  ldloc.0
-  IL_0064:  stloc.s    V_7
-  IL_0066:  ldloc.s    V_7
-  IL_0068:  isinst     ""int""
-  IL_006d:  brfalse.s  IL_0079
-  IL_006f:  ldloc.s    V_7
-  IL_0071:  unbox.any  ""int""
-  IL_0076:  stloc.1
-  IL_0077:  br.s       IL_00c6
-  IL_0079:  br.s       IL_00d4
-  IL_007b:  br.s       IL_00df
-  IL_007d:  ldloc.1
-  IL_007e:  stloc.2
-  IL_007f:  ldsfld     ""bool Program.b""
-  IL_0084:  brtrue.s   IL_0088
-  IL_0086:  br.s       IL_0022
-  IL_0088:  br.s       IL_00df
-  IL_008a:  ldsfld     ""bool Program.b""
-  IL_008f:  brtrue.s   IL_0093
-  IL_0091:  br.s       IL_0024
-  IL_0093:  br.s       IL_00df
-  IL_0095:  ldloc.1
-  IL_0096:  stloc.3
-  IL_0097:  ldsfld     ""bool Program.b""
-  IL_009c:  brtrue.s   IL_00a0
-  IL_009e:  br.s       IL_003f
-  IL_00a0:  br.s       IL_00df
-  IL_00a2:  ldsfld     ""bool Program.b""
-  IL_00a7:  brtrue.s   IL_00ab
-  IL_00a9:  br.s       IL_0041
-  IL_00ab:  br.s       IL_00df
-  IL_00ad:  ldloc.1
-  IL_00ae:  stloc.s    V_4
-  IL_00b0:  ldsfld     ""bool Program.b""
-  IL_00b5:  brtrue.s   IL_00b9
-  IL_00b7:  br.s       IL_005c
-  IL_00b9:  br.s       IL_00df
-  IL_00bb:  ldsfld     ""bool Program.b""
-  IL_00c0:  brtrue.s   IL_00c4
-  IL_00c2:  br.s       IL_005e
-  IL_00c4:  br.s       IL_00df
-  IL_00c6:  ldloc.1
-  IL_00c7:  stloc.s    V_5
-  IL_00c9:  ldsfld     ""bool Program.b""
-  IL_00ce:  brtrue.s   IL_00d2
-  IL_00d0:  br.s       IL_0079
-  IL_00d2:  br.s       IL_00df
-  IL_00d4:  ldsfld     ""bool Program.b""
-  IL_00d9:  brtrue.s   IL_00dd
-  IL_00db:  br.s       IL_007b
-  IL_00dd:  br.s       IL_00df
-  IL_00df:  ret
+  IL_002c:  isinst     ""int""
+  IL_0031:  brfalse.s  IL_003d
+  IL_0033:  ldloc.s    V_7
+  IL_0035:  unbox.any  ""int""
+  IL_003a:  stloc.1
+  IL_003b:  br.s       IL_0091
+  IL_003d:  br.s       IL_009e
+  IL_003f:  ldloc.0
+  IL_0040:  brtrue.s   IL_0044
+  IL_0042:  br.s       IL_0059
+  IL_0044:  ldloc.0
+  IL_0045:  dup
+  IL_0046:  stloc.s    V_7
+  IL_0048:  isinst     ""int""
+  IL_004d:  brfalse.s  IL_0059
+  IL_004f:  ldloc.s    V_7
+  IL_0051:  unbox.any  ""int""
+  IL_0056:  stloc.1
+  IL_0057:  br.s       IL_00a9
+  IL_0059:  br.s       IL_00b7
+  IL_005b:  ldloc.0
+  IL_005c:  brtrue.s   IL_0060
+  IL_005e:  br.s       IL_0075
+  IL_0060:  ldloc.0
+  IL_0061:  dup
+  IL_0062:  stloc.s    V_7
+  IL_0064:  isinst     ""int""
+  IL_0069:  brfalse.s  IL_0075
+  IL_006b:  ldloc.s    V_7
+  IL_006d:  unbox.any  ""int""
+  IL_0072:  stloc.1
+  IL_0073:  br.s       IL_00c2
+  IL_0075:  br.s       IL_00d0
+  IL_0077:  br.s       IL_00db
+  IL_0079:  ldloc.1
+  IL_007a:  stloc.2
+  IL_007b:  ldsfld     ""bool Program.b""
+  IL_0080:  brtrue.s   IL_0084
+  IL_0082:  br.s       IL_0021
+  IL_0084:  br.s       IL_00db
+  IL_0086:  ldsfld     ""bool Program.b""
+  IL_008b:  brtrue.s   IL_008f
+  IL_008d:  br.s       IL_0023
+  IL_008f:  br.s       IL_00db
+  IL_0091:  ldloc.1
+  IL_0092:  stloc.3
+  IL_0093:  ldsfld     ""bool Program.b""
+  IL_0098:  brtrue.s   IL_009c
+  IL_009a:  br.s       IL_003d
+  IL_009c:  br.s       IL_00db
+  IL_009e:  ldsfld     ""bool Program.b""
+  IL_00a3:  brtrue.s   IL_00a7
+  IL_00a5:  br.s       IL_003f
+  IL_00a7:  br.s       IL_00db
+  IL_00a9:  ldloc.1
+  IL_00aa:  stloc.s    V_4
+  IL_00ac:  ldsfld     ""bool Program.b""
+  IL_00b1:  brtrue.s   IL_00b5
+  IL_00b3:  br.s       IL_0059
+  IL_00b5:  br.s       IL_00db
+  IL_00b7:  ldsfld     ""bool Program.b""
+  IL_00bc:  brtrue.s   IL_00c0
+  IL_00be:  br.s       IL_005b
+  IL_00c0:  br.s       IL_00db
+  IL_00c2:  ldloc.1
+  IL_00c3:  stloc.s    V_5
+  IL_00c5:  ldsfld     ""bool Program.b""
+  IL_00ca:  brtrue.s   IL_00ce
+  IL_00cc:  br.s       IL_0075
+  IL_00ce:  br.s       IL_00db
+  IL_00d0:  ldsfld     ""bool Program.b""
+  IL_00d5:  brtrue.s   IL_00d9
+  IL_00d7:  br.s       IL_0077
+  IL_00d9:  br.s       IL_00db
+  IL_00db:  ret
 }"
             );
             compVerifier.VerifyPdb(
@@ -9425,40 +9431,40 @@ public class Program
         <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""1"" />
         <entry offset=""0x4"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7d"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7f"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x88"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""38"" document=""1"" />
-        <entry offset=""0x8a"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x93"" startLine=""13"" startColumn=""32"" endLine=""13"" endColumn=""38"" document=""1"" />
-        <entry offset=""0x95"" hidden=""true"" document=""1"" />
-        <entry offset=""0x97"" startLine=""14"" startColumn=""24"" endLine=""14"" endColumn=""30"" document=""1"" />
-        <entry offset=""0xa0"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""38"" document=""1"" />
-        <entry offset=""0xa2"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" document=""1"" />
-        <entry offset=""0xab"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""38"" document=""1"" />
-        <entry offset=""0xad"" hidden=""true"" document=""1"" />
-        <entry offset=""0xb0"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""30"" document=""1"" />
-        <entry offset=""0xb9"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""38"" document=""1"" />
-        <entry offset=""0xbb"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" document=""1"" />
-        <entry offset=""0xc4"" startLine=""17"" startColumn=""32"" endLine=""17"" endColumn=""38"" document=""1"" />
-        <entry offset=""0xc6"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc9"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""30"" document=""1"" />
-        <entry offset=""0xd2"" startLine=""18"" startColumn=""32"" endLine=""18"" endColumn=""38"" document=""1"" />
-        <entry offset=""0xd4"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""30"" document=""1"" />
-        <entry offset=""0xdd"" startLine=""19"" startColumn=""32"" endLine=""19"" endColumn=""38"" document=""1"" />
-        <entry offset=""0xdf"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x79"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7b"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x84"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x86"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x8f"" startLine=""13"" startColumn=""32"" endLine=""13"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x91"" hidden=""true"" document=""1"" />
+        <entry offset=""0x93"" startLine=""14"" startColumn=""24"" endLine=""14"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x9c"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x9e"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xa9"" hidden=""true"" document=""1"" />
+        <entry offset=""0xac"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xb5"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xb7"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xc0"" startLine=""17"" startColumn=""32"" endLine=""17"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xc2"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc5"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xce"" startLine=""18"" startColumn=""32"" endLine=""18"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xd0"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xd9"" startLine=""19"" startColumn=""32"" endLine=""19"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xdb"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xe0"">
-        <scope startOffset=""0x7d"" endOffset=""0x8a"">
-          <local name=""i"" il_index=""2"" il_start=""0x7d"" il_end=""0x8a"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xdc"">
+        <scope startOffset=""0x79"" endOffset=""0x86"">
+          <local name=""i"" il_index=""2"" il_start=""0x79"" il_end=""0x86"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x95"" endOffset=""0xa2"">
-          <local name=""i"" il_index=""3"" il_start=""0x95"" il_end=""0xa2"" attributes=""0"" />
+        <scope startOffset=""0x91"" endOffset=""0x9e"">
+          <local name=""i"" il_index=""3"" il_start=""0x91"" il_end=""0x9e"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0xad"" endOffset=""0xbb"">
-          <local name=""i"" il_index=""4"" il_start=""0xad"" il_end=""0xbb"" attributes=""0"" />
+        <scope startOffset=""0xa9"" endOffset=""0xb7"">
+          <local name=""i"" il_index=""4"" il_start=""0xa9"" il_end=""0xb7"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0xc6"" endOffset=""0xd4"">
-          <local name=""i"" il_index=""5"" il_start=""0xc6"" il_end=""0xd4"" attributes=""0"" />
+        <scope startOffset=""0xc2"" endOffset=""0xd0"">
+          <local name=""i"" il_index=""5"" il_start=""0xc2"" il_end=""0xd0"" attributes=""0"" />
         </scope>
       </scope>
     </method>

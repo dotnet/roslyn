@@ -309,7 +309,7 @@ class C
                 Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       70 (0x46)
+  // Code size       69 (0x45)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
@@ -325,20 +325,20 @@ class C
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldarg.0
-  IL_001f:  stloc.s    V_4
-  IL_0021:  ldloc.s    V_4
-  IL_0023:  isinst     ""int""
-  IL_0028:  brfalse.s  IL_003f
-  IL_002a:  ldstr      ""z""
-  IL_002f:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0034:  ldloc.s    V_4
-  IL_0036:  unbox.any  ""int""
-  IL_003b:  stind.i4
-  IL_003c:  ldc.i4.1
-  IL_003d:  br.s       IL_0040
-  IL_003f:  ldc.i4.0
-  IL_0040:  call       ""void C.Test(bool)""
-  IL_0045:  ret
+  IL_001f:  dup
+  IL_0020:  stloc.s    V_4
+  IL_0022:  isinst     ""int""
+  IL_0027:  brfalse.s  IL_003e
+  IL_0029:  ldstr      ""z""
+  IL_002e:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0033:  ldloc.s    V_4
+  IL_0035:  unbox.any  ""int""
+  IL_003a:  stind.i4
+  IL_003b:  ldc.i4.1
+  IL_003c:  br.s       IL_003f
+  IL_003e:  ldc.i4.0
+  IL_003f:  call       ""void C.Test(bool)""
+  IL_0044:  ret
 }");
             });
         }
@@ -1772,8 +1772,8 @@ class C
                 testData = new CompilationTestData();
                 context.CompileAssignment("x", "Test(x is int i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-    @"{
-  // Code size       72 (0x48)
+@"{
+  // Code size       71 (0x47)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
@@ -1789,21 +1789,21 @@ class C
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldarg.0
-  IL_001f:  stloc.s    V_4
-  IL_0021:  ldloc.s    V_4
-  IL_0023:  isinst     ""int""
-  IL_0028:  brfalse.s  IL_003f
-  IL_002a:  ldstr      ""i""
-  IL_002f:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0034:  ldloc.s    V_4
-  IL_0036:  unbox.any  ""int""
-  IL_003b:  stind.i4
-  IL_003c:  ldc.i4.1
-  IL_003d:  br.s       IL_0040
-  IL_003f:  ldc.i4.0
-  IL_0040:  call       ""object C.Test(bool)""
-  IL_0045:  starg.s    V_0
-  IL_0047:  ret
+  IL_001f:  dup
+  IL_0020:  stloc.s    V_4
+  IL_0022:  isinst     ""int""
+  IL_0027:  brfalse.s  IL_003e
+  IL_0029:  ldstr      ""i""
+  IL_002e:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0033:  ldloc.s    V_4
+  IL_0035:  unbox.any  ""int""
+  IL_003a:  stind.i4
+  IL_003b:  ldc.i4.1
+  IL_003c:  br.s       IL_003f
+  IL_003e:  ldc.i4.0
+  IL_003f:  call       ""object C.Test(bool)""
+  IL_0044:  starg.s    V_0
+  IL_0046:  ret
 }");
             });
         }
@@ -2095,7 +2095,7 @@ class C
                 Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size      111 (0x6f)
+  // Code size      110 (0x6e)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
@@ -2121,21 +2121,21 @@ class C
   IL_003c:  ldstr      ""z""
   IL_0041:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_0046:  ldarg.0
-  IL_0047:  stloc.s    V_4
-  IL_0049:  ldloc.s    V_4
-  IL_004b:  isinst     ""int""
-  IL_0050:  brfalse.s  IL_0067
-  IL_0052:  ldstr      ""i""
-  IL_0057:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_005c:  ldloc.s    V_4
-  IL_005e:  unbox.any  ""int""
-  IL_0063:  stind.i4
-  IL_0064:  ldc.i4.1
-  IL_0065:  br.s       IL_0068
-  IL_0067:  ldc.i4.0
-  IL_0068:  call       ""int C.Test(bool)""
-  IL_006d:  stind.i4
-  IL_006e:  ret
+  IL_0047:  dup
+  IL_0048:  stloc.s    V_4
+  IL_004a:  isinst     ""int""
+  IL_004f:  brfalse.s  IL_0066
+  IL_0051:  ldstr      ""i""
+  IL_0056:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  unbox.any  ""int""
+  IL_0062:  stind.i4
+  IL_0063:  ldc.i4.1
+  IL_0064:  br.s       IL_0067
+  IL_0066:  ldc.i4.0
+  IL_0067:  call       ""int C.Test(bool)""
+  IL_006c:  stind.i4
+  IL_006d:  ret
 }");
             });
         }

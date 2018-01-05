@@ -3405,104 +3405,105 @@ class Program
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
 expectedIL: @"{
-  // Code size       62 (0x3e)
-  .maxstack  1
+  // Code size       66 (0x42)
+  .maxstack  2
   .locals init (T V_0,
                 int V_1,
                 T V_2, //t
                 int V_3, //i
                 int V_4,
-                object V_5)
+                int V_5)
   // sequence point: {
   IL_0000:  nop
   // sequence point: switch (1)
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.s    V_4
   IL_0004:  ldc.i4.1
-  IL_0005:  box        ""int""
-  IL_000a:  stloc.s    V_5
-  IL_000c:  ldloc.s    V_5
-  IL_000e:  isinst     ""T""
-  IL_0013:  brfalse.s  IL_001f
-  IL_0015:  ldloc.s    V_5
-  IL_0017:  unbox.any  ""T""
-  IL_001c:  stloc.0
-  IL_001d:  br.s       IL_0023
-  IL_001f:  ldc.i4.1
-  IL_0020:  stloc.1
-  IL_0021:  br.s       IL_0030
+  IL_0005:  dup
+  IL_0006:  stloc.s    V_5
+  IL_0008:  box        ""int""
+  IL_000d:  isinst     ""T""
+  IL_0012:  brfalse.s  IL_0023
+  IL_0014:  ldloc.s    V_5
+  IL_0016:  box        ""int""
+  IL_001b:  unbox.any  ""T""
+  IL_0020:  stloc.0
+  IL_0021:  br.s       IL_0027
+  IL_0023:  ldc.i4.1
+  IL_0024:  stloc.1
+  IL_0025:  br.s       IL_0034
   // sequence point: <hidden>
-  IL_0023:  ldloc.0
-  IL_0024:  stloc.2
-  IL_0025:  br.s       IL_0027
+  IL_0027:  ldloc.0
+  IL_0028:  stloc.2
+  IL_0029:  br.s       IL_002b
   // sequence point: Console.Write(1);
-  IL_0027:  ldc.i4.1
-  IL_0028:  call       ""void System.Console.Write(int)""
-  IL_002d:  nop
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""void System.Console.Write(int)""
+  IL_0031:  nop
   // sequence point: break;
-  IL_002e:  br.s       IL_003d
+  IL_0032:  br.s       IL_0041
   // sequence point: <hidden>
-  IL_0030:  ldloc.1
-  IL_0031:  stloc.3
-  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.1
+  IL_0035:  stloc.3
+  IL_0036:  br.s       IL_0038
   // sequence point: Console.Write(2);
-  IL_0034:  ldc.i4.2
-  IL_0035:  call       ""void System.Console.Write(int)""
-  IL_003a:  nop
+  IL_0038:  ldc.i4.2
+  IL_0039:  call       ""void System.Console.Write(int)""
+  IL_003e:  nop
   // sequence point: break;
-  IL_003b:  br.s       IL_003d
+  IL_003f:  br.s       IL_0041
   // sequence point: }
-  IL_003d:  ret
+  IL_0041:  ret
 }");
             verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
-  // Code size       69 (0x45)
-  .maxstack  1
+  // Code size       68 (0x44)
+  .maxstack  2
   .locals init (T V_0,
                 string V_1,
                 T V_2, //t
                 string V_3, //s
                 string V_4,
-                object V_5)
+                string V_5)
   // sequence point: {
   IL_0000:  nop
   // sequence point: switch (nameof(M2))
   IL_0001:  ldstr      ""M2""
   IL_0006:  stloc.s    V_4
   IL_0008:  ldstr      ""M2""
-  IL_000d:  stloc.s    V_5
-  IL_000f:  ldloc.s    V_5
-  IL_0011:  isinst     ""T""
-  IL_0016:  brfalse.s  IL_0022
-  IL_0018:  ldloc.s    V_5
-  IL_001a:  unbox.any  ""T""
-  IL_001f:  stloc.0
-  IL_0020:  br.s       IL_002a
-  IL_0022:  ldstr      ""M2""
-  IL_0027:  stloc.1
-  IL_0028:  br.s       IL_0037
+  IL_000d:  dup
+  IL_000e:  stloc.s    V_5
+  IL_0010:  isinst     ""T""
+  IL_0015:  brfalse.s  IL_0021
+  IL_0017:  ldloc.s    V_5
+  IL_0019:  unbox.any  ""T""
+  IL_001e:  stloc.0
+  IL_001f:  br.s       IL_0029
+  IL_0021:  ldstr      ""M2""
+  IL_0026:  stloc.1
+  IL_0027:  br.s       IL_0036
   // sequence point: <hidden>
-  IL_002a:  ldloc.0
-  IL_002b:  stloc.2
-  IL_002c:  br.s       IL_002e
+  IL_0029:  ldloc.0
+  IL_002a:  stloc.2
+  IL_002b:  br.s       IL_002d
   // sequence point: Console.Write(3);
-  IL_002e:  ldc.i4.3
-  IL_002f:  call       ""void System.Console.Write(int)""
-  IL_0034:  nop
+  IL_002d:  ldc.i4.3
+  IL_002e:  call       ""void System.Console.Write(int)""
+  IL_0033:  nop
   // sequence point: break;
-  IL_0035:  br.s       IL_0044
+  IL_0034:  br.s       IL_0043
   // sequence point: <hidden>
-  IL_0037:  ldloc.1
-  IL_0038:  stloc.3
-  IL_0039:  br.s       IL_003b
+  IL_0036:  ldloc.1
+  IL_0037:  stloc.3
+  IL_0038:  br.s       IL_003a
   // sequence point: Console.Write(4);
-  IL_003b:  ldc.i4.4
-  IL_003c:  call       ""void System.Console.Write(int)""
-  IL_0041:  nop
+  IL_003a:  ldc.i4.4
+  IL_003b:  call       ""void System.Console.Write(int)""
+  IL_0040:  nop
   // sequence point: break;
-  IL_0042:  br.s       IL_0044
+  IL_0041:  br.s       IL_0043
   // sequence point: }
-  IL_0044:  ret
+  IL_0043:  ret
 }");
 
             // Check the release code generation too.
@@ -3512,41 +3513,43 @@ expectedIL: @"{
 
             verifier.VerifyIL("Program.M1<T>",
 @"{
-  // Code size       42 (0x2a)
-  .maxstack  1
+  // Code size       47 (0x2f)
+  .maxstack  2
   .locals init (T V_0,
                 int V_1,
-                object V_2)
+                int V_2)
   IL_0000:  ldc.i4.1
-  IL_0001:  box        ""int""
-  IL_0006:  stloc.2
-  IL_0007:  ldloc.2
+  IL_0001:  dup
+  IL_0002:  stloc.2
+  IL_0003:  box        ""int""
   IL_0008:  isinst     ""T""
-  IL_000d:  brfalse.s  IL_0018
+  IL_000d:  brfalse.s  IL_001d
   IL_000f:  ldloc.2
-  IL_0010:  unbox.any  ""T""
-  IL_0015:  stloc.0
-  IL_0016:  br.s       IL_001c
-  IL_0018:  ldc.i4.1
-  IL_0019:  stloc.1
-  IL_001a:  br.s       IL_0023
-  IL_001c:  ldc.i4.1
-  IL_001d:  call       ""void System.Console.Write(int)""
-  IL_0022:  ret
-  IL_0023:  ldc.i4.2
-  IL_0024:  call       ""void System.Console.Write(int)""
-  IL_0029:  ret
+  IL_0010:  box        ""int""
+  IL_0015:  unbox.any  ""T""
+  IL_001a:  stloc.0
+  IL_001b:  br.s       IL_0021
+  IL_001d:  ldc.i4.1
+  IL_001e:  stloc.1
+  IL_001f:  br.s       IL_0028
+  IL_0021:  ldc.i4.1
+  IL_0022:  call       ""void System.Console.Write(int)""
+  IL_0027:  ret
+  IL_0028:  ldc.i4.2
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  ret
+
 }");
             verifier.VerifyIL("Program.M2<T>",
 @"{
   // Code size       45 (0x2d)
-  .maxstack  1
+  .maxstack  2
   .locals init (T V_0,
                 string V_1,
-                object V_2)
+                string V_2)
   IL_0000:  ldstr      ""M2""
-  IL_0005:  stloc.2
-  IL_0006:  ldloc.2
+  IL_0005:  dup
+  IL_0006:  stloc.2
   IL_0007:  isinst     ""T""
   IL_000c:  brfalse.s  IL_0017
   IL_000e:  ldloc.2
@@ -7644,8 +7647,8 @@ partial class C
   IL_0006:  brtrue.s   IL_000a
   IL_0008:  br.s       IL_004b
   IL_000a:  ldloc.0
-  IL_000b:  stloc.3
-  IL_000c:  ldloc.3
+  IL_000b:  dup
+  IL_000c:  stloc.3
   IL_000d:  isinst     ""int""
   IL_0012:  brfalse.s  IL_004b
   IL_0014:  ldloc.3
@@ -7695,8 +7698,8 @@ partial class C
   IL_0072:  brtrue.s   IL_0076
   IL_0074:  br.s       IL_0092
   IL_0076:  ldloc.s    V_4
-  IL_0078:  stloc.3
-  IL_0079:  ldloc.3
+  IL_0078:  dup
+  IL_0079:  stloc.3
   IL_007a:  isinst     ""int""
   IL_007f:  brfalse.s  IL_0092
   IL_0081:  ldloc.3
