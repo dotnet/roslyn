@@ -1147,6 +1147,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 case RegexKind.SimpleEscape:
                     ch = ((RegexSimpleEscapeNode)component).TypeToken.VirtualChars[0];
+                    switch (ch)
+                    {
+                        case 'a': ch = '\u0007'; break;
+                        case 'b': ch =  '\b'; break;
+                        case 'e': ch = '\u001B'; break;
+                        case 'f': ch = '\f'; break;
+                        case 'n': ch = '\n'; break;
+                        case 'r': ch = '\r'; break;
+                        case 't': ch = '\t'; break;
+                        case 'v': ch = '\u000B'; break;
+                    }
                     return true;
 
                 case RegexKind.ControlEscape:

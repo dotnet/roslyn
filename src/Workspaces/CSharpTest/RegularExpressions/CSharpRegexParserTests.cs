@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
             Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
-
+            
             return token;
         }
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         {
             var tree = TryParseTree(stringText, options, conversionFailureOk: false);
 
-            TryParseSubTrees(stringText, options);
+            // TryParseSubTrees(stringText, options);
 
             var actual = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actual);
@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 
         private void TryParseSubTrees(string stringText, RegexOptions options)
         {
+            // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
             while (current != "@\"\"" && current != "\"\"")
             {
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                 TryParseTree(current, options, conversionFailureOk: true);
             }
 
+            // Trim the input from the left and make sure tree invariants hold
             current = stringText;
             while (current != "@\"\"" && current != "\"\"")
             {
@@ -59,6 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                 }
 
                 TryParseTree(current, options, conversionFailureOk: true);
+            }
+            
+            for (int start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
+            {
+                TryParseTree(
+                    stringText.Substring(0, start) +
+                    stringText.Substring(start + 1, stringText.Length - (start + 1)),
+                    options, conversionFailureOk: true);
             }
         }
 
