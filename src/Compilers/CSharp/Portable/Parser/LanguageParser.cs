@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
         
-        private void ParseModifiers(SyntaxListBuilder tokens)
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
             {
@@ -1218,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 modTok = this.EatToken();
                                 modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
                             }
-                            else if (this.IsPossibleAccessorModifier())
+                            else if (forAccessors && this.IsPossibleAccessorModifier())
                             {
                                 // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
                                 modTok = this.EatToken();
@@ -2097,7 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // All modifiers that might start an expression are processed above.
-                this.ParseModifiers(modifiers);
+                this.ParseModifiers(modifiers, forAccessors: false);
                 if (modifiers.Count > 0)
                 {
                     acceptStatement = false;
@@ -3384,7 +3384,7 @@ parse_member_name:;
             try
             {
                 this.ParseAttributeDeclarations(accAttrs);
-                this.ParseModifiers(accMods);
+                this.ParseModifiers(accMods, forAccessors: true);
 
                 if (!isEvent)
                 {
