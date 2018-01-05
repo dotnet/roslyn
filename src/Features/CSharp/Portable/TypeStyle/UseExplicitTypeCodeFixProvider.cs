@@ -90,8 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             {
                 var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent).ConvertedType;
 
-                var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation)
-                    .WithLeadingTrivia(node.GetLeadingTrivia().Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken()));
+                var leadingTrivia = node.GetLeadingTrivia()
+                    .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
+
+                var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation).WithLeadingTrivia(leadingTrivia);
 
                 editor.ReplaceNode(declarationContext, tupleDeclaration);
             }
@@ -130,7 +132,17 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 builder.Add(SyntaxFactory.Argument(newDeclaration));
             }
 
-            return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(builder.ToImmutableAndFree())).WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
+            var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
+            for (int i = 1; i < builder.Count; i++)
+            {
+                separatorBuilder.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithoutTrivia());
+            }
+
+            return SyntaxFactory.TupleExpression(
+                SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
+                SyntaxFactory.SeparatedList(builder.ToImmutableAndFree(), separatorBuilder.ToImmutableAndFree()),
+                SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+                .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

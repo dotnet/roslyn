@@ -305,6 +305,30 @@ class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        public async Task OnBadlyFormattedNestedDeconstructionVar()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        [|var|](x,(y,z)) = new Program();
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        (int x, (int y, Program z)) = new Program();
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
         public async Task OnForeachNestedDeconstructionVar()
         {
             await TestInRegularAndScriptAsync(
@@ -345,11 +369,7 @@ class Program
 {
     void M()
     {
-        /*before*//*after*/ (
-/*x1*/int x/*x2*/,
-/*yz1*/(
-/*y1*/int y/*y2*/,
-/*z1*/Program z/*z2*/)/*yz2*/) /*end*/ = new Program();
+        /*before*//*after*/(/*x1*/int x/*x2*/, /*yz1*/(/*y1*/int y/*y2*/, /*z1*/Program z/*z2*/)/*yz2*/) /*end*/ = new Program();
     }
     void Deconstruct(out int i, out Program s) { i = 1; s = null; }
 }", options: ExplicitTypeEverywhere());
