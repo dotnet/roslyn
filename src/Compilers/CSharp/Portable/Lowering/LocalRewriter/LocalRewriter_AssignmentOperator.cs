@@ -224,14 +224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Parameter:
                     {
-                        Debug.Assert(refKind == RefKind.None ||
-                            ((BoundParameter)rewrittenLeft).ParameterSymbol.RefKind != RefKind.None);
+                        Debug.Assert(!isRef || rewrittenLeft.GetRefKind() != RefKind.None);
                         return new BoundAssignmentOperator(
                             syntax,
                             rewrittenLeft,
                             rewrittenRight,
-                            type,
-                            refKind);
+                            isRef,
+                            type);
                     }
 
                 case BoundKind.DiscardExpression:

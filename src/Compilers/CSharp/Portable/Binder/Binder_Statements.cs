@@ -1178,9 +1178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind lhsKind;
             BindValueKind rhsKind;
             ExpressionSyntax rhsExpr;
+            bool isRef = false;
 
             if (node.Right.Kind() == SyntaxKind.RefExpression)
             {
+                isRef = true;
                 lhsKind = BindValueKind.RefAssignable;
                 rhsKind = BindValueKind.RefersToLocation;
                 rhsExpr = ((RefExpressionSyntax)node.Right).Expression;
@@ -1200,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lhsKind == BindValueKind.RefAssignable && !op1.HasErrors)
             {
                 // We should now know that op1 is a valid lvalue
-                lhsRefKind = op1.GetLValueRefKind();
+                lhsRefKind = op1.GetRefKind();
                 if (lhsRefKind == RefKind.Ref || lhsRefKind == RefKind.Out)
                 {
                     rhsKind |= BindValueKind.Assignable;
@@ -1214,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            return BindAssignment(node, op1, op2, lhsRefKind, diagnostics);
+            return BindAssignment(node, op1, op2, isRef, diagnostics);
         }
 
         private BoundExpression InferTypeForDiscardAssignment(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
@@ -1237,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             BoundExpression op1,
             BoundExpression op2,
-            RefKind refKind,
+            bool isRef,
             DiagnosticBag diagnostics)
         {                      
             Debug.Assert(op1 != null);
@@ -1261,10 +1263,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     op2 = conversion;
                 }
 
-                if (refKind != RefKind.None)
+                if (isRef)
                 {
-                    var leftEscape = GetRefEscape(op1, this.LocalScopeDepth);
-                    var rightEscape = GetRefEscape(op2, this.LocalScopeDepth);
+                    var leftEscape = GetRefEscape(op1, LocalScopeDepth);
+                    var rightEscape = GetRefEscape(op2, LocalScopeDepth);
                     if (leftEscape < rightEscape)
                     {
                         Error(diagnostics, ErrorCode.ERR_RefAssignNarrower, node, op1.ExpressionSymbol.Name, op2.Syntax);
@@ -1274,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (op1.Type.IsByRefLikeType)
                 {
-                    var leftEscape = GetValEscape(op1, this.LocalScopeDepth);
+                    var leftEscape = GetValEscape(op1, LocalScopeDepth);
                     op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics: diagnostics);
                 }
             }
@@ -1291,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = op1.Type;
             }
 
-            return new BoundAssignmentOperator(node, op1, op2, refKind, type, hasErrors: hasErrors);
+            return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
         }
 
         private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
