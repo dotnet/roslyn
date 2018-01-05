@@ -358,8 +358,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsImplementationOfInterfaceMember(this ISymbol symbol, ISymbol interfaceMember)
         {
-            return symbol != null &&
-                   interfaceMember != null &&
+            return interfaceMember != null &&
                    symbol.Equals(symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
         }
 
