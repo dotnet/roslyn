@@ -8500,11 +8500,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">in' 拡張メソッド '{0}' の最初のパラメーターは値型でなければなりません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">パラメーター修飾子 '{0}' は、修飾子 '{1}' の後に使用することはできません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">読み取り専用の構造体のインスタンス フィールドは、読み取り専用である必要があります。</target>

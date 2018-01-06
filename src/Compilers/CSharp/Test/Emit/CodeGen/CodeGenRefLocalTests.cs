@@ -1469,7 +1469,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
   // Code size       54 (0x36)
   .maxstack  3
@@ -1542,7 +1542,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, verify: Verification.Passes).VerifyIL("Program.Main()", @"
 {
   // Code size       41 (0x29)
   .maxstack  2

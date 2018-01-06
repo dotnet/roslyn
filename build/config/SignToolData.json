@@ -105,7 +105,8 @@
       "values": [
         "Dlls\\ServicesTestUtilities\\Roslyn.Services.Test.Utilities.dll",
         "Dlls\\TestUtilities\\net461\\Roslyn.Test.Utilities.dll",
-        "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll"
+        "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
+        "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.dll"
       ]
     },
     {
@@ -141,6 +142,7 @@
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
+        "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.vsix"
       ]
     },
     {
@@ -173,6 +175,7 @@
     "Microsoft.CodeAnalysis.VisualBasic.1.0.1.nupkg",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.1.nupkg",
     "Microsoft.CodeAnalysis.Workspaces.Common.1.0.1.nupkg",
+    "Microsoft.Diagnostics.Runtime.dll",
     "Microsoft.DiaSymReader.Native.amd64.dll",
     "Microsoft.DiaSymReader.Native.arm.dll",
     "Microsoft.DiaSymReader.Native.x86.dll",

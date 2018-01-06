@@ -2622,7 +2622,7 @@ unsafe class Test
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"2
 True
 3
 3
