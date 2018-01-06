@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                     };
                     codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, CreateChangedDocument));
                 }
-                var groupedTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
-                var groupedCodeAction = new GroupingCodeAction(groupedTitle, codeActionsBuilder.ToImmutable());
-                context.RegisterCodeFix(groupedCodeAction, context.Diagnostics.First());
+                var groupingTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
+                var groupingCodeAction = new GroupingCodeAction(groupingTitle, codeActionsBuilder.ToImmutable());
+                context.RegisterCodeFix(groupingCodeAction, context.Diagnostics.First());
             }
         }
 
@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
             {
             }
         }
+
         private class GroupingCodeAction : CodeActionWithNestedActions
         {
             public GroupingCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
