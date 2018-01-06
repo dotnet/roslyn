@@ -4,15 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RegularExpressions;
 using Xunit;
@@ -40,11 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
     {
         public void Dispose()
         {
-            var tests = CSharpRegexParserTests.nameToTest;
             var other = new Dictionary<string, string>();
 
             var tree = SyntaxFactory.ParseSyntaxTree(
-                File.ReadAllText(@"C:\GitHub\roslyn-internal\Open\src\Workspaces\CSharpTest\RegularExpressions\CSharpRegexParserTests.cs"));
+                File.ReadAllText(@"C:\GitHub\roslyn-internal\Open\src\Workspaces\CSharpTest\RegularExpressions\CSharpRegexParserTests_BasicTests.cs"));
 
             var methodNames = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Select(m => m.Identifier.ValueText);
             var nameToIndex = new Dictionary<string, int>();
@@ -56,12 +52,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                 index++;
             }
 
-            var referenceTests =
-                tests.Where(kvp => !kvp.Key.StartsWith("NegativeTest") && !kvp.Key.StartsWith("Reference"))
+#if true
+            var tests =
+                CSharpRegexParserTests.nameToTest.Where(kvp => !kvp.Key.StartsWith("NegativeTest") && !kvp.Key.StartsWith("Reference"))
                      .OrderBy(kvp => nameToIndex[kvp.Key])
                      .Select(kvp => kvp.Value);
+#elif false
+            var tests =
+                CSharpRegexParserTests.nameToTest.Where(kvp => kvp.Key.StartsWith("NegativeTest"))
+                     .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
+                     .Select(kvp => kvp.Value);
+#else
+            var tests =
+                CSharpRegexParserTests.nameToTest.Where(kvp => kvp.Key.StartsWith("Reference"))
+                     .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
+                     .Select(kvp => kvp.Value);
+#endif
 
-            var val = string.Join("\r\n", referenceTests);
+
+            var val = string.Join("\r\n", tests);
         }
     }
 
@@ -83,22 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 
         public static Dictionary<string, string> nameToTest = new Dictionary<string, string>();
 
-        private void Test(string stringText, string expected, RegexOptions options, [CallerMemberName]string name = "")
+        private void Test1(string stringText, string expected, RegexOptions options, bool runSubTreeTests = true, [CallerMemberName]string name = "")
         {
-            var test = GenerateTests(stringText, options, name);
+            var test = GenerateTests(stringText, options, runSubTreeTests, name);
             nameToTest.Add(name, test);
-
-#if false
-            var tree = TryParseTree(stringText, options, conversionFailureOk: false);
-
-            // TryParseSubTrees(stringText, options);
-
-            var actual = TreeToText(tree).Replace("\"", "\"\"");
-            Assert.Equal(expected.Replace("\"", "\"\""), actual);
-#endif
         }
 
-        public string GenerateTests(string val, RegexOptions options, string testName)
+        public string GenerateTests(string val, RegexOptions options, bool runSubTreeTests, string testName)
         {
             var builder = new StringBuilder();
             builder.AppendLine("[Fact]");
@@ -118,7 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             builder.Append(", " + '@' + '"');
             builder.Append(actual);
 
-            builder.AppendLine("" + '"' + ", RegexOptions." + options.ToString() + ");");
+            builder.AppendLine("" + '"' + (runSubTreeTests 
+                ? (", RegexOptions." + options.ToString()) 
+                : (", runSubTreeTests: false, options: RegexOptions." + options.ToString())) + ");");
             builder.AppendLine("}");
 
             return builder.ToString();

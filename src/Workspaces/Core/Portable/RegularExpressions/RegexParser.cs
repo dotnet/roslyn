@@ -188,11 +188,44 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 {
                     var last = list.Count == 0 ? null : list.Last();
                     list.Add(ParsePrimaryExpressionAndQuantifiers(consumeCloseParen, last));
+
+                    TryMergeLastTwoNodes(list);
                 }
                 while (ShouldConsumeSequenceElement(consumeCloseParen));
             }
 
             return new RegexSequenceNode(list.ToImmutableAndFree());
+        }
+
+        private void TryMergeLastTwoNodes(ArrayBuilder<RegexExpressionNode> list)
+        {
+            if (list.Count >= 2)
+            {
+                var last = list[list.Count - 2];
+                var next = list[list.Count - 1];
+
+                if (last?.Kind == RegexKind.Text && next?.Kind == RegexKind.Text)
+                {
+                    var lastTextToken = ((RegexTextNode)last).TextToken;
+                    var nextTextToken = ((RegexTextNode)next).TextToken;
+
+                    if (lastTextToken.Diagnostics.Length == 0 &&
+                        nextTextToken.Diagnostics.Length == 0 &&
+                        lastTextToken.Value == null &&
+                        nextTextToken.Value == null &&
+                        nextTextToken.LeadingTrivia.Length == 0)
+                    {
+                        // Merge two text tokens token if there is no intermediary trivia.
+                        var merged = new RegexTextNode(new RegexToken(
+                            lastTextToken.LeadingTrivia, RegexKind.TextToken,
+                            lastTextToken.VirtualChars.Concat(nextTextToken.VirtualChars)));
+
+                        list.RemoveLast();
+                        list.RemoveLast();
+                        list.Add(merged);
+                    }
+                }
+            }
         }
 
         private bool ShouldConsumeSequenceElement(bool consumeCloseParen)
@@ -1080,6 +1113,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
 
                 ParseCharacterClassComponents(contents);
+                TryMergeLastTwoNodes(contents);
             }
 
             if (closeBracketToken.IsMissing)
