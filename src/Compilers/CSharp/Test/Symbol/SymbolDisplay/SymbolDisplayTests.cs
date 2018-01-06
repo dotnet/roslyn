@@ -5344,6 +5344,59 @@ class C
                 SymbolDisplayPartKind.Keyword, // string
                 SymbolDisplayPartKind.Punctuation);
         }
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void ThisDisplayParts()
+        {
+            var text =
+@"
+class A
+{
+    void M(int @this)
+    {
+        this.M(@this);
+    }
+}";
+            var format = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("this.M(@this)", invocation.ToString());
+
+            var actualThis = ((MemberAccessExpressionSyntax)invocation.Expression).Expression;
+            Assert.Equal("this", actualThis.ToString());
+            var escapedThis = invocation.ArgumentList.Arguments[0];
+            Assert.Equal("@this", escapedThis.ToString());
+
+            // PROTOTYPE
+            //var symbol = comp.GetMember("C.f");
+
+            //// Fully qualified format.
+            //Verify(
+            //    SymbolDisplay.ToDisplayParts(symbol, format),
+            //    "(int One, global::N.C<(object[], global::N.A.B Two)>, int, object Four, int, object, int, object, global::N.A Nine) f");
+
+            //// Minimally qualified format.
+            //Verify(
+            //    SymbolDisplay.ToDisplayParts(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+            //    "(int One, C<(object[], B Two)>, int, object Four, int, object, int, object, A Nine) C.f");
+
+            //// ToMinimalDisplayParts.
+            //var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+            //Verify(
+            //    SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 1"), format),
+            //    "(int One, C<(object[], NAB Two)>, int, object Four, int, object, int, object, A Nine) f");
+            //Verify(
+            //    SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 2"), format),
+            //    "(int One, N.C<(object[], NAB Two)>, int, object Four, int, object, int, object, N.A Nine) f");
+        }
 
         [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]
         [Fact]
