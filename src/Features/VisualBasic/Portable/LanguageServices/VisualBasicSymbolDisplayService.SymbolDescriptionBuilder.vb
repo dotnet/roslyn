@@ -152,7 +152,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             End Sub
 
             Protected Overrides Sub AddCaptures(symbol As ISymbol)
-                ' PROTOTYPE
+                Dim method = TryCast(symbol, IMethodSymbol)
+                If method IsNot Nothing AndAlso method.ContainingSymbol.IsKind(SymbolKind.Method) Then
+                    Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
+                    AddCaptures(syntax)
+                End If
             End Sub
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat

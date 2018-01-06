@@ -16,10 +16,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Inherits AbstractSemanticQuickInfoSourceTests
 
         Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
-            Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
+            Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), skipSpeculative:=False, expectedResults)
         End Function
 
-        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object)) As Task
+        Protected Function TestAsyncWithoutSpeculative(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+            Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), skipSpeculative:=True, expectedResults)
+        End Function
+
+        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, skipSpeculative As Boolean, ParamArray expectedResults() As Action(Of Object)) As Task
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
             Dim provider = New SemanticQuickInfoProvider()
@@ -28,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
 
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-            If Await CanUseSpeculativeSemanticModelAsync(document, position) Then
+            If Await CanUseSpeculativeSemanticModelAsync(document, position) AndAlso Not skipSpeculative Then
                 Dim buffer = workspace.Documents.Single().TextBuffer
                 Using edit = buffer.CreateEdit()
                     edit.Replace(0, buffer.CurrentSnapshot.Length, buffer.CurrentSnapshot.GetText())
@@ -60,17 +64,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
 
         Protected Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of Object)()) As Task
             Using workspace = TestWorkspace.Create(markup)
-                Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
+                Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, skipSpeculative:=False, expectedResults)
             End Using
         End Function
 
-        Protected Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of Object)) As Task
+        Protected Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), skipSpeculative As Boolean, ParamArray expectedResults() As Action(Of Object)) As Task
             Dim code As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
 
             Using workspace = TestWorkspace.CreateVisualBasic(code, Nothing, metadataReferences:=metadataReferences)
-                Await TestSharedAsync(workspace, position, expectedResults)
+                Await TestSharedAsync(workspace, position, skipSpeculative, expectedResults)
             End Using
         End Function
 
@@ -1113,6 +1117,7 @@ class C
 end class
                 </text>.NormalizedValue,
                 {GetType(System.Xml.XmlAttribute).Assembly.Location, GetType(System.Xml.Linq.XAttribute).Assembly.Location},
+                skipSpeculative:=False,
                 MainDescription($"GetXmlNamespace([{VBWorkspaceResources.xmlNamespacePrefix}]) As Xml.Linq.XNamespace"),
                 Documentation(VBWorkspaceResources.Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix))
         End Function
@@ -2064,6 +2069,63 @@ Namespace MyNs
 End Namespace
 ",
                 Exceptions($"{vbCrLf}{WorkspacesResources.Exceptions_colon}{vbCrLf}  MyException1{vbCrLf}  MyException2{vbCrLf}  Integer{vbCrLf}  Double{vbCrLf}  Not_A_Class_But_Still_Displayed"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures() As Task
+            Await TestAsyncWithoutSpeculative("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action = Sub$$()
+            x = x + 1
+        End Sub
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures2() As Task
+            ' PROTOTYPE there is a bug getting token from position (finds = instead of Sub)
+            Await TestAsyncWithoutSpeculative("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action = S$$ub() x = x + 1
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures3() As Task
+            Await TestAsyncWithoutSpeculative("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action(Of Integer) = Functio$$n(a) x = x + 1
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures4() As Task
+            Await TestAsyncWithoutSpeculative("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action(Of Integer) = Functio$$n(a)
+            x = x + 1
+        End Function
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 
             protected override void AddCaptures(ISymbol symbol)
             {
-                if (symbol is IMethodSymbol method)
+                if (symbol is IMethodSymbol method && method.ContainingSymbol.IsKind(SymbolKind.Method))
                 {
                     var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
                     if (syntax.IsKind(SyntaxKind.LocalFunctionStatement) || syntax is AnonymousFunctionExpressionSyntax)
