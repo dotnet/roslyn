@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
 
-        public static PerLanguageOption<bool> HighlightRelatedComponentsUnderCursor =
+        public static PerLanguageOption<bool> HighlightRelatedRegexComponentsUnderCursor =
             new PerLanguageOption<bool>(
                 nameof(RegularExpressionsOptions),
-                nameof(HighlightRelatedComponentsUnderCursor),
+                nameof(HighlightRelatedRegexComponentsUnderCursor),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedComponentsUnderCursor"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
     }
 
     [ExportOptionProvider, Shared]
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     {
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RegularExpressionsOptions.ColorizeRegexPatterns,
-            RegularExpressionsOptions.ReportInvalidRegexPatterns);
+            RegularExpressionsOptions.ReportInvalidRegexPatterns,
+            RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor);
     }
 }
