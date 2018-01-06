@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var trivia = ScanLeadingTrivia(allowTrivia, options);
             if (Position == Text.Length)
             {
-                return new RegexToken(trivia, RegexKind.EndOfFile, ImmutableArray<VirtualChar>.Empty);
+                return new RegexToken(RegexKind.EndOfFile, trivia, ImmutableArray<VirtualChar>.Empty);
             }
 
             var ch = this.CurrentChar;
             Position++;
 
-            return new RegexToken(trivia, GetKind(ch), ImmutableArray.Create(ch));
+            return new RegexToken(GetKind(ch), trivia, ImmutableArray.Create(ch));
         }
 
         private static RegexKind GetKind(char ch)
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return null;
             }
 
-            var token = new RegexToken(ImmutableArray<RegexTrivia>.Empty, RegexKind.EscapeCategoryToken, GetSubPattern(start, Position));
+            var token = new RegexToken(RegexKind.EscapeCategoryToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
             var category = new string(token.VirtualChars.Select(vc => vc.Char).ToArray());
 
             if (!RegexCharClass.IsEscapeCategory(category))
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
             }
 
-            var token = new RegexToken(ImmutableArray<RegexTrivia>.Empty, RegexKind.NumberToken, GetSubPattern(start, Position));
+            var token = new RegexToken(RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
             token = token.With(value: value);
 
             if (error)
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return null;
             }
 
-            var token = new RegexToken(ImmutableArray<RegexTrivia>.Empty, RegexKind.CaptureNameToken, GetSubPattern(start, Position));
+            var token = new RegexToken(RegexKind.CaptureNameToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
             token = token.With(value: new string(token.VirtualChars.Select(vc => vc.Char).ToArray()));
             return token;
         }
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             return start == Position
                 ? default(RegexToken?)
-                : new RegexToken(ImmutableArray<RegexTrivia>.Empty, RegexKind.OptionsToken, GetSubPattern(start, Position));
+                : new RegexToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
         }
 
         private bool IsOptionChar(char ch)
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             var result = new RegexToken(
-                ImmutableArray<RegexTrivia>.Empty, RegexKind.TextToken, GetSubPattern(start, Position));
+                RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
 
             var length = Position - start;
             if (length != count)
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             Debug.Assert(Position - start > 0);
 
             var result = new RegexToken(
-                ImmutableArray<RegexTrivia>.Empty, RegexKind.TextToken, GetSubPattern(start, Position));
+                RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
 
             return result;
         }

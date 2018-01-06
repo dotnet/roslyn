@@ -7,38 +7,38 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 {
     internal struct RegexToken
     {
-        public readonly ImmutableArray<RegexTrivia> LeadingTrivia;
         public readonly RegexKind Kind;
+        public readonly ImmutableArray<RegexTrivia> LeadingTrivia;
         public readonly ImmutableArray<VirtualChar> VirtualChars;
         internal readonly ImmutableArray<RegexDiagnostic> Diagnostics;
         public readonly object Value;
 
-        public RegexToken(ImmutableArray<RegexTrivia> leadingTrivia, RegexKind kind, ImmutableArray<VirtualChar> virtualChars)
-            : this(leadingTrivia, kind, virtualChars, ImmutableArray<RegexDiagnostic>.Empty)
+        public RegexToken(RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars)
+            : this(kind, leadingTrivia, virtualChars, ImmutableArray<RegexDiagnostic>.Empty)
         {
         }
 
         public RegexToken(
-            ImmutableArray<RegexTrivia> leadingTrivia, RegexKind kind,
+            RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, 
             ImmutableArray<VirtualChar> virtualChars, ImmutableArray<RegexDiagnostic> diagnostics)
-            : this(leadingTrivia, kind, virtualChars, diagnostics, value: null)
+            : this(kind, leadingTrivia, virtualChars, diagnostics, value: null)
         {
 
         }
 
         public RegexToken(
-            ImmutableArray<RegexTrivia> leadingTrivia, RegexKind kind, ImmutableArray<VirtualChar> virtualChars,
+            RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars,
             ImmutableArray<RegexDiagnostic> diagnostics, object value)
         {
-            LeadingTrivia = leadingTrivia;
             Kind = kind;
+            LeadingTrivia = leadingTrivia;
             VirtualChars = virtualChars;
             Diagnostics = diagnostics;
             Value = value;
         }
 
         public static RegexToken CreateMissing(RegexKind kind)
-            => new RegexToken(ImmutableArray<RegexTrivia>.Empty, kind, ImmutableArray<VirtualChar>.Empty);
+            => new RegexToken(kind, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<VirtualChar>.Empty);
 
         public bool IsMissing => VirtualChars.IsEmpty;
 
@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             => With(diagnostics: diagnostics);
 
         public RegexToken With(
+            Optional<RegexKind> kind = default,
             Optional<ImmutableArray<RegexTrivia>> leadingTrivia = default,
-            Optional<RegexKind> kind = default, 
             Optional<ImmutableArray<VirtualChar>> virtualChars = default,
             Optional<ImmutableArray<RegexDiagnostic>> diagnostics = default,
             Optional<object> value = default)
         {
             return new RegexToken(
-                leadingTrivia.HasValue ? leadingTrivia.Value : LeadingTrivia,
                 kind.HasValue ? kind.Value : Kind,
+                leadingTrivia.HasValue ? leadingTrivia.Value : LeadingTrivia,
                 virtualChars.HasValue ? virtualChars.Value : VirtualChars,
                 diagnostics.HasValue ? diagnostics.Value : Diagnostics,
                 value.HasValue ? value.Value : Value);
