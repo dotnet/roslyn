@@ -305,5 +305,69 @@ class Class1
 	}
 }");
         }
+
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
+        [Fact]
+        public void RefExtensionMethods_OutParam()
+        {
+            var code = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+
+        var inst = new S1();
+
+        int orig;
+
+        var result = inst.Mutate(out orig);
+
+        System.Console.Write(orig);
+        System.Console.Write(inst.x);
+    }
+}
+
+public static class S1_Ex
+{
+    public static bool Mutate(ref this S1 instance, out int orig)
+    {
+        orig = instance.x;
+        instance.x = 42;
+
+        return true;
+    }
+}
+
+public struct S1
+{
+    public int x;
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "042");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (S1 V_0, //inst
+                int V_1) //orig
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""bool S1_Ex.Mutate(ref S1, out int)""
+  IL_0011:  pop
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""void System.Console.Write(int)""
+  IL_0018:  ldloc.0
+  IL_0019:  ldfld      ""int S1.x""
+  IL_001e:  call       ""void System.Console.Write(int)""
+  IL_0023:  ret
+}");
+
+        }
     }
 }
