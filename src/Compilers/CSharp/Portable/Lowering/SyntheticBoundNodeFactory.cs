@@ -632,9 +632,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<BoundExpression> args)
         {
             Debug.Assert(method.ParameterCount == args.Length);
+
             return new BoundCall(
                 Syntax, receiver, method, args,
-                default(ImmutableArray<String>), default(ImmutableArray<RefKind>), false, false, false,
+                default(ImmutableArray<String>), method.ParameterRefKinds, false, false, false,
                 default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType,
                 hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
