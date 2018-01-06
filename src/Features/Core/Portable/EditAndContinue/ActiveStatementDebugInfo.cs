@@ -7,20 +7,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal readonly struct ActiveStatementDebugInfo
     {
-        public readonly int Id;
         public readonly string DocumentName;
         public readonly LinePositionSpan LinePositionSpan;
         public readonly ActiveStatementFlags Flags;
         public readonly ActiveInstructionId InstructionId;
 
         public ActiveStatementDebugInfo(
-            int id,
             ActiveInstructionId instructionId,
             string documentName, 
             LinePositionSpan linePositionSpan,
             ActiveStatementFlags flags)
         {
-            Id = id;
             InstructionId = instructionId;
             Flags = flags;
             DocumentName = documentName;

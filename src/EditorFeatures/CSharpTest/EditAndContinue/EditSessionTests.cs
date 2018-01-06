@@ -33,14 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             IEnumerable<ActiveStatementDebugInfo> Enumerate()
             {
-                int id = 0;
                 int sourceIndex = 0;
+                int id = 0;
                 foreach (var markedSource in markedSources)
                 {
                     foreach (var activeStatement in ActiveStatementsDescription.GetActiveStatements(markedSource))
                     {
                         yield return new ActiveStatementDebugInfo(
-                            id, 
                             new ActiveInstructionId(default, methodToken: 0x06000000 | methodRowIds[id], 1, 0), 
                             documentName: TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension), 
                             activeStatement.Span, 
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             };
 
             var activeStatements = GetActiveStatementDebugInfos(markedSource, methodRowIds: new[] { 1, 2, 3, 4 }, ".cs").Concat(
-                new ActiveStatementDebugInfo(5, new ActiveInstructionId(default, 0x06000001, 1, 0), TestWorkspace.GetDefaultTestSourceDocumentName(0, ".cs"), default, ActiveStatementFlags.NonUserCode));
+                new ActiveStatementDebugInfo(new ActiveInstructionId(default, 0x06000001, 1, 0), TestWorkspace.GetDefaultTestSourceDocumentName(0, ".cs"), default, ActiveStatementFlags.NonUserCode));
 
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)));

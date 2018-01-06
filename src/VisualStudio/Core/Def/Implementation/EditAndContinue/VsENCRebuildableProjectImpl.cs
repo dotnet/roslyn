@@ -848,6 +848,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 {
                     MethodToken = remaps[i].MethodToken,
                     OldMethodVersion = remaps[i].OldMethodVersion,
+                    OldILOffset = remaps[i].OldILOffset,
                     NewStartLine = remaps[i].NewSpan.Start.Line + 1,
                     NewStartCol = remaps[i].NewSpan.Start.Character + 1,
                     NewEndLine = remaps[i].NewSpan.End.Line + 1,

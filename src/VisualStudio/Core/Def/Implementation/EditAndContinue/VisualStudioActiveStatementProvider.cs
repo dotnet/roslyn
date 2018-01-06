@@ -66,7 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                     if (sourcePositionResult.ErrorCode == 0)
                                     {
                                         builders[runtimeIndex][activeStatementIndex] = new ActiveStatementDebugInfo(
-                                            dkmStatement.Id,
                                             new ActiveInstructionId(
                                                 dkmStatement.InstructionSymbol.Module.Id.Mvid,
                                                 dkmStatement.InstructionAddress.MethodId.Token,
