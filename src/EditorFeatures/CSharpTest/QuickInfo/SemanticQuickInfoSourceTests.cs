@@ -4759,7 +4759,7 @@ class C
         void local() { i++; this.M(); }
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} this, i"));
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4777,7 +4777,7 @@ class C
         void local(int j) { j++; M(); }
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} this"));
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4793,7 +4793,7 @@ class C
         System.Action a = () =$$> { i++; M(); };
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} this, i"));
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4809,7 +4809,7 @@ class C
         System.Action<int> a = j =$$> { i++; j++; M(); };
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} this, i"));
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4825,7 +4825,7 @@ class C
         System.Action a = () =$$> { M(); i++; j++; };
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} this, j, i"));
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, j, i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4838,11 +4838,12 @@ class C
     void M()
     {
         int i;
-        N(() =$$> { M(); }, () => { i++; });
+        int @this;
+        N(() =$$> { M(); @this++; }, () => { i++; });
     }
     void N(System.Action x, System.Action y) { }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} this"));
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, @this"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4859,7 +4860,7 @@ class C
     }
     void N(System.Action x, System.Action y) { }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} i"));
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -4875,7 +4876,7 @@ class C
         System.Func<bool, int> f = dele$$gate(bool b) { i++; return 1; };
     }
 }",
-                Captures($"\r\n{WorkspacesResources.Captures_colon} i"));
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} i"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

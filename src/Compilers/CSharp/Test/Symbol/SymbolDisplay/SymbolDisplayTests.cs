@@ -5398,6 +5398,40 @@ class A
             //    "(int One, N.C<(object[], NAB Two)>, int, object Four, int, object, int, object, N.A Nine) f");
         }
 
+        [Fact]
+        [WorkItem(23970, "https://github.com/dotnet/roslyn/pull/23970")]
+        public void DisplayThisAndEscapedThis()
+        {
+            var comp = CreateCompilation(source: @"
+class C
+{
+    void M(int @this)
+    {
+        this.M(@this);
+    }
+}", references: new[] { MscorlibRef });
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var actualThis = ((MemberAccessExpressionSyntax)invocation.Expression).Expression;
+            Assert.Equal("this", actualThis.ToString());
+
+            var actualThisSymbol = model.GetSymbolInfo(actualThis).Symbol;
+            Verify(actualThisSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeName)),
+                "this",
+                SymbolDisplayPartKind.ParameterName);
+
+            var escapedThis = invocation.ArgumentList.Arguments[0].Expression;
+            Assert.Equal("@this", escapedThis.ToString());
+
+            var escapedThisSymbol = model.GetSymbolInfo(escapedThis).Symbol;
+            Verify(escapedThisSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeName)),
+                "@this",
+                SymbolDisplayPartKind.ParameterName);
+        }
+
         [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]
         [Fact]
         public void RefReturn()

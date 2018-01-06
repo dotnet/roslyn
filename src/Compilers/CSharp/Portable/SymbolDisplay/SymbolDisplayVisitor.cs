@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
         {
             text = (text == null) ? "?" :
-                   (_escapeKeywordIdentifiers && IsEscapable(kind)) ? EscapeIdentifier(text) : text;
+                   (_escapeKeywordIdentifiers && IsEscapable(kind)) ? EscapeIdentifier(text, symbol) : text;
 
             return new SymbolDisplayPart(kind, symbol, text);
         }
@@ -82,12 +82,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string EscapeIdentifier(string identifier)
+        private static string EscapeIdentifier(string identifier, ISymbol symbol)
         {
-            var kind = SyntaxFacts.GetKeywordKind(identifier);
-            return kind == SyntaxKind.None || kind == SyntaxKind.ThisKeyword
-                ? identifier
-                : $"@{identifier}";
+            SyntaxKind kind = SyntaxFacts.GetKeywordKind(identifier);
+            bool escape;
+            switch (kind)
+            {
+                case SyntaxKind.None:
+                    escape = false;
+                    break;
+
+                case SyntaxKind.ThisKeyword:
+                    var parameter = symbol as IParameterSymbol;
+                    if (parameter is null)
+                    {
+                        escape = true;
+                    }
+                    else
+                    {
+                        escape = !parameter.IsThis;
+                    }
+                    break;
+
+                default:
+                    escape = true;
+                    break;
+            }
+
+            return escape ? $"@{identifier}" : identifier;
         }
 
         public override void VisitAssembly(IAssemblySymbol symbol)

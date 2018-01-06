@@ -423,15 +423,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Captures:.
-        /// </summary>
-        internal static string Captures_colon {
-            get {
-                return ResourceManager.GetString("Captures_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cast is redundant..
         /// </summary>
         internal static string Cast_is_redundant {
@@ -1482,6 +1473,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer {
             get {
                 return ResourceManager.GetString("Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variables captured:.
+        /// </summary>
+        internal static string Variables_captured_colon {
+            get {
+                return ResourceManager.GetString("Variables_captured_colon", resourceCulture);
             }
         }
         

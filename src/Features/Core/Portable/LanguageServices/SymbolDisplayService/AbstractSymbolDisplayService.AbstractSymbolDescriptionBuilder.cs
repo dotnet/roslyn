@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (!captures.IsEmpty)
                 {
                     var parts = new List<SymbolDisplayPart>();
-                    parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Captures_colon}"));
+                    parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Variables_captured_colon}"));
                     bool first = true;
                     foreach (var captured in captures)
                     {
