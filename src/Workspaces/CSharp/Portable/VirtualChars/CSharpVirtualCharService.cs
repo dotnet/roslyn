@@ -3,13 +3,12 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.RegularExpressions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.CSharp.RegularExpressions
+namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
 {
     [ExportLanguageService(typeof(IVirtualCharService), LanguageNames.CSharp), Shared]
     internal class CSharpVirtualCharService : AbstractVirtualCharService

@@ -6,10 +6,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.RegularExpressions
 {
-    using System;
     using static RegexHelpers;
 
     internal partial struct RegexParser

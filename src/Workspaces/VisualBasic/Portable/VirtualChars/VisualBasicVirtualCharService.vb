@@ -2,8 +2,8 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.RegularExpressions
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VirtualChars
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RegularExpressions
     <ExportLanguageService(GetType(IVirtualCharService), LanguageNames.VisualBasic), [Shared]>

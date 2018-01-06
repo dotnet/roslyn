@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RegularExpressions;
+using Microsoft.CodeAnalysis.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.Classification
 {

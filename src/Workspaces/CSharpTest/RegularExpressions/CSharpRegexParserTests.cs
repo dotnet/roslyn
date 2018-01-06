@@ -6,15 +6,16 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp.VirtualChars;
 using Microsoft.CodeAnalysis.RegularExpressions;
+using Microsoft.CodeAnalysis.VirtualChars;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 {
     public partial class CSharpRegexParserTests
     {
-        private readonly IVirtualCharService _service = new CSharpVirtualCharService();
+        private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
         private const string _statmentPrefix = "var v = ";
 
         private SyntaxToken GetStringToken(string text)

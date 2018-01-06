@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.RegularExpressions
 {

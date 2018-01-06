@@ -2,11 +2,11 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.RegularExpressions;
-using Microsoft.CodeAnalysis.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp.VirtualChars;
+using Microsoft.CodeAnalysis.VirtualChars;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.VirtualChars
 {
     public class CSharpVirtualCharServiceTests
     {

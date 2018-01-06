@@ -5,10 +5,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RegularExpressions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VirtualChars;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting

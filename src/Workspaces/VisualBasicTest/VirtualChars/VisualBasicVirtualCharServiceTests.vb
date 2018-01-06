@@ -1,13 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Linq
-Imports Microsoft.CodeAnalysis.CSharp.RegularExpressions
-Imports Microsoft.CodeAnalysis.RegularExpressions
+Imports Microsoft.CodeAnalysis.VirtualChars
 Imports Microsoft.CodeAnalysis.VisualBasic.RegularExpressions
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.RegularExpressions
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.VirtualChars
     Public Class VisualBasicVirtualCharServiceTests
         Private Const _statmentPrefix As String = "dim v = "
 
