@@ -248,16 +248,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexExpressionNode ParseZeroOrMoreQuantifier(RegexPrimaryExpressionNode current)
+        {
             // Whitespace allowed between the quantifier and the possible following ? or next sequence item.
-            => TryParseLazyQuantifier(new RegexZeroOrMoreQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
+            return TryParseLazyQuantifier(new RegexZeroOrMoreQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
+        }
 
         private RegexExpressionNode ParseOneOrMoreQuantifier(RegexPrimaryExpressionNode current)
+        {
             // Whitespace allowed between the quantifier and the possible following ? or next sequence item.
-            => TryParseLazyQuantifier(new RegexOneOrMoreQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
+            return TryParseLazyQuantifier(new RegexOneOrMoreQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
+        }
 
         private RegexExpressionNode ParseZeroOrOneQuantifier(RegexPrimaryExpressionNode current)
+        {
             // Whitespace allowed between the quantifier and the possible following ? or next sequence item.
-            => TryParseLazyQuantifier(new RegexZeroOrOneQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
+            return TryParseLazyQuantifier(new RegexZeroOrOneQuantifierNode(current, ConsumeCurrentToken(allowTrivia: true)));
+        }
 
         private RegexExpressionNode TryParseNumericQuantifier(
             RegexPrimaryExpressionNode expression, RegexToken openBraceToken)
@@ -428,20 +434,28 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexPrimaryExpressionNode ParseText()
+        {
             // Allow trivia between this piece of text and the next sequence element
-            => new RegexTextNode(ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
+            return new RegexTextNode(ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
+        }
 
         private RegexPrimaryExpressionNode ParseEndAnchor()
+        {
             // Allow trivia between this anchor and the next sequence element
-            => new RegexAnchorNode(RegexKind.EndAnchor, ConsumeCurrentToken(allowTrivia: true));
+            return new RegexAnchorNode(RegexKind.EndAnchor, ConsumeCurrentToken(allowTrivia: true));
+        }
 
         private RegexPrimaryExpressionNode ParseStartAnchor()
+        {
             // Allow trivia between this anchor and the next sequence element
-            => new RegexAnchorNode(RegexKind.StartAnchor, ConsumeCurrentToken(allowTrivia: true));
+            return new RegexAnchorNode(RegexKind.StartAnchor, ConsumeCurrentToken(allowTrivia: true));
+        }
 
         private RegexPrimaryExpressionNode ParseWildcard()
+        {
             // Allow trivia between the . and the next sequence element
-            => new RegexWildcardNode(ConsumeCurrentToken(allowTrivia: true));
+            return new RegexWildcardNode(ConsumeCurrentToken(allowTrivia: true));
+        }
 
         private RegexGroupingNode ParseGrouping()
         {
