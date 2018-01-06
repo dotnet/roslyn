@@ -2606,5 +2606,21 @@ Class C
         Dim s As Action = Sub()
                               Dim a = New Test()")
         End Function
+
+        <WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function TestMissingDiagnosticForNameOf() As Task
+            Await TestDiagnosticMissingAsync(
+"Imports System
+
+Class Class1
+    Sub M()
+        Dim a As Action = Sub()
+                            Dim x = [|NameOf|](System)
+                            Dim x2
+                          End Function
+    End Sub
+    Extension")
+        End Function
     End Class
 End Namespace

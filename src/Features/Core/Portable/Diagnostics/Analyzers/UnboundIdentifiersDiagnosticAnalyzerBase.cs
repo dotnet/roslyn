@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract DiagnosticDescriptor DiagnosticDescriptor2 { get; }
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
         protected abstract bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel semanticModel);
+        protected abstract bool IsNameOf(SyntaxNode node);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
         public bool OpenFileOnly(Workspace workspace) => false;
@@ -73,6 +74,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
                 var info = context.SemanticModel.GetSymbolInfo(typeName);
                 if (info.Symbol == null && info.CandidateSymbols.Length == 0)
                 {
+                    // GetSymbolInfo returns no symbols for "nameof" expression, so handle it specially.
+                    if (IsNameOf(typeName))
+                    {
+                        continue;
+                    }
+
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptor, typeName.GetLocation(), typeName.ToString()));
                 }
                 else if (ConstructorDoesNotExist(typeName, info, context.SemanticModel))

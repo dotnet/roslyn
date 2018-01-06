@@ -42,13 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
         {
-            var diagnosticsAndCodeFixes = await GetDiagnosticAndFixAsync(workspace, parameters);
-            if (diagnosticsAndCodeFixes == null)
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
-            return ImmutableArray.Create(diagnosticsAndCodeFixes.Item1);
+            return (await GetDiagnosticsAsync(workspace, parameters)).AsImmutable();
         }
 
         internal async Task<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixAsync(
