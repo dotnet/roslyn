@@ -331,6 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     _currentFrame,
                                     sourceAssembly,
                                     alias);
+                                // Skip pseudo-variables with errors.
+                                if (local.GetUseSiteDiagnostic()?.Severity == DiagnosticSeverity.Error)
+                                {
+                                    continue;
+                                }
                                 var methodName = GetNextMethodName(methodBuilder);
                                 var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
                                 var aliasMethod = this.CreateMethod(
