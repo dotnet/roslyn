@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
     internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvider
     {
 
+        protected abstract string GetTextPreviewOfChange(SyntaxNode aliasNode);
+
         public override FixAllProvider GetFixAllProvider() => null;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -62,8 +64,6 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 context.RegisterCodeFix(groupingCodeAction, context.Diagnostics.First());
             }
         }
-
-        private static string GetTextPreviewOfChange(SyntaxNode newNode) => newNode.NormalizeWhitespace().ToFullString();
 
         private static bool SymbolCandidatesContainsSupportedSymbols(SymbolInfo symbolInfo)
             => symbolInfo.CandidateReason == CandidateReason.Ambiguous &&
