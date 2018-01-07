@@ -51,13 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchLabel defaultLabel;
             bool isComplete;
             ImmutableArray<BoundPatternSwitchSection> switchSections =
-                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, out var someCaseMatches, diagnostics);
+                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, out bool someCaseMatches, diagnostics);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
-            BoundDecisionDag decisionDag = null; // not relevant to the C# 7 pattern binder
             return new BoundPatternSwitchStatement(
                 node, boundSwitchExpression, someCaseMatches,
-                locals, functions, switchSections, defaultLabel, this.BreakLabel, decisionDag, isComplete);
+                locals, functions, switchSections, defaultLabel, this.BreakLabel, isComplete);
         }
 
         /// <summary>
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LabelSymbol label = labelsByNode[labelSyntax];
                 BoundPatternSwitchLabel boundLabel = BindPatternSwitchSectionLabel(sectionBinder, labelSyntax, label, ref defaultLabel, diagnostics);
-                bool isNotSubsumed = subsumption.AddLabel(boundLabel, diagnostics);
+                bool isNotSubsumed = subsumption.AddLabel(boundLabel, diagnostics) || boundLabel.HasErrors;
                 bool guardAlwaysSatisfied = boundLabel.Guard == null || boundLabel.Guard.ConstantValue == ConstantValue.True;
 
                 // patternMatches is true if the input expression is unconditionally matched by the pattern, false if it never matches, null otherwise.

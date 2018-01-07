@@ -32157,12 +32157,12 @@ class C
                 // (11,18): error CS0019: Operator '+' cannot be applied to operands of type 'int' and 'bool'
                 //             case 1+M(nameof(M(out var z2)), z2):
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1+M(nameof(M(out var z2)), z2)").WithArguments("+", "int", "bool").WithLocation(11, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(z1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(z2);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 17)
+                // (8,45): error CS0165: Use of unassigned local variable 'z1'
+                //             case 1+M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 45),
+                // (11,45): error CS0165: Use of unassigned local variable 'z2'
+                //             case 1+M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(11, 45)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

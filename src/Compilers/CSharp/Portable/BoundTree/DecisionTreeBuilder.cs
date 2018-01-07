@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Their ordinals are zero.
             // EnC local slot variable matching logic find the right slot based on the type of the local.
 
-            if (!localByType.TryGetValue(type, out var localSymbol))
+            if (!localByType.TryGetValue(type, out LocalSymbol localSymbol))
             {
                 localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.SwitchCasePatternMatching, _switchSyntax);
                 localByType.Add(type, localSymbol);

@@ -104,15 +104,12 @@ ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
               IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0119: 'Program' is a type, which is not valid in the given context
+                // file.cs(8,27): error CS0119: 'Program' is a type, which is not valid in the given context
                 //         /*<bind>*/switch (Program)
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(8, 27),
-                // CS0029: Cannot implicitly convert type 'int' to 'Program'
+                // file.cs(10,18): error CS0029: Cannot implicitly convert type 'int' to 'Program'
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "Program").WithLocation(10, 18),
-                // CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "Program").WithLocation(10, 18)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

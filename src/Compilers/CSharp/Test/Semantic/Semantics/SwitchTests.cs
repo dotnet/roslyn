@@ -80,10 +80,7 @@ public class Test
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (23,18): error CS0037: Cannot convert null to 'Test.eTypes' because it is a non-nullable value type
                 //             case null:
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("Test.eTypes").WithLocation(23, 18),
-                // (24,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("Test.eTypes").WithLocation(23, 18)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (23,18): error CS0037: Cannot convert null to 'Test.eTypes' because it is a non-nullable value type
@@ -164,13 +161,7 @@ public class Test
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,18): error CS0150: A constant value is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 ret = 1;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "ret").WithLocation(12, 17),
-                // (8,13): warning CS0219: The variable 'test' is assigned but its value is never used
-                //         int test = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "test").WithArguments("test").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,18): error CS0150: A constant value is expected
@@ -221,15 +212,9 @@ public class A
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
                 //             case 1: break;   // CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
-                // (11,21): warning CS0162: Unreachable code detected
-                //             case 1: break;   // CS0152
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 21),
                 // (23,13): error CS0152: The switch statement contains multiple cases with the label value 'f'
                 //             case 'f':       // CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'f':").WithArguments("f").WithLocation(23, 13),
-                // (24,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'f':").WithArguments("f").WithLocation(23, 13)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
@@ -316,15 +301,9 @@ public class A
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
                 //             case 1: break;   // CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
-                // (11,21): warning CS0162: Unreachable code detected
-                //             case 1: break;   // CS0152
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 21),
                 // (23,13): error CS0152: The switch statement contains multiple cases with the label value '97'
                 //             case 97:       // CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("97").WithLocation(23, 13),
-                // (24,17): warning CS0162: Unreachable code detected
-                //                 break;            
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(24, 17),
                 // (32,18): error CS0266: Cannot implicitly convert type 'float' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97.0f:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97.0f").WithArguments("float", "char").WithLocation(32, 18),
@@ -342,16 +321,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char").WithLocation(38, 18),
                 // (38,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
                 //             case 97:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("a").WithLocation(38, 13),
-                // (35,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(35, 17),
-                // (37,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(37, 17),
-                // (39,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(39, 17)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("a").WithLocation(38, 13)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
@@ -1170,7 +1140,7 @@ class C
     {
         switch (o)
         {
-            case ((o.GetType().Name.Length)):
+            case (1+(o.GetType().Name.Length)):
                 M();
                 break;
             case 0:
@@ -1187,103 +1157,43 @@ class C
 ";
 
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case ((o.GetType().Name.Length)):").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
-                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
-                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
-                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
-                // (8,31): error CS1003: Syntax error, ',' expected
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
-                // (8,32): error CS1003: Syntax error, ',' expected
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Name").WithArguments(",", "").WithLocation(8, 32),
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 1 out parameters and a void return type.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((o.GetType().Name.Length))").WithArguments("object", "1").WithLocation(8, 18),
-                // (8,20): error CS0118: 'o' is a variable but is used like a type
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_BadSKknown, "o").WithArguments("o", "variable", "type").WithLocation(8, 20),
-                // (8,32): error CS0103: The name 'Name' does not exist in the current context
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Name").WithArguments("Name").WithLocation(8, 32),
+                // (8,18): error CS0150: A constant value is expected
+                //             case (1+(o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1+(o.GetType().Name.Length))").WithLocation(8, 18),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
+                // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
+                //             case 0:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
                 );
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case ((o.GetType().Name.Length)):").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
-                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
-                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
-                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
-                // (8,31): error CS1003: Syntax error, ',' expected
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
-                // (8,32): error CS1003: Syntax error, ',' expected
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Name").WithArguments(",", "").WithLocation(8, 32),
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 1 out parameters and a void return type.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((o.GetType().Name.Length))").WithArguments("object", "1").WithLocation(8, 18),
-                // (8,20): error CS0118: 'o' is a variable but is used like a type
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_BadSKknown, "o").WithArguments("o", "variable", "type").WithLocation(8, 20),
-                // (8,32): error CS0103: The name 'Name' does not exist in the current context
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Name").WithArguments("Name").WithLocation(8, 32),
+                // (8,18): error CS0150: A constant value is expected
+                //             case (1+(o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1+(o.GetType().Name.Length))").WithLocation(8, 18),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 0:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
-                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
-                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
-                // (8,31): error CS1003: Syntax error, ',' expected
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
-                // (8,32): error CS1003: Syntax error, ',' expected
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Name").WithArguments(",", "").WithLocation(8, 32),
-                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 1 out parameters and a void return type.
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((o.GetType().Name.Length))").WithArguments("object", "1").WithLocation(8, 18),
-                // (8,20): error CS0118: 'o' is a variable but is used like a type
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_BadSKknown, "o").WithArguments("o", "variable", "type").WithLocation(8, 20),
-                // (8,32): error CS0103: The name 'Name' does not exist in the current context
-                //             case ((o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Name").WithArguments("Name").WithLocation(8, 32),
+                // (8,18): error CS0150: A constant value is expected
+                //             case (1+(o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1+(o.GetType().Name.Length))").WithLocation(8, 18),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 0:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
                 );
         }
 
@@ -3104,9 +3014,6 @@ class SwitchTest
                 // (11,22): error CS0159: No such label 'System' within the scope of the goto statement
                 //                 goto System;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System").WithLocation(11, 22),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17),
                 // (10,13): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
                 //             case 5:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(10, 13)

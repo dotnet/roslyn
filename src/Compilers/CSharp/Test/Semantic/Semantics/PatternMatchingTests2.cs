@@ -124,6 +124,52 @@ public static class PointExtensions
         }
 
         [Fact]
+        public void Patterns2_03()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var p = (x: 3, y: 4);
+        Check(true, p is (3, 4) q1 && Check(p, q1));
+        Check(false, p is (1, 4) { x: 3 });
+        Check(false, p is (3, 1) { y: 4 });
+        Check(false, p is (3, 4) { x: 1 });
+        Check(true, p is (3, 4) { x: 3 } q2 && Check(p, q2));
+        Check(false, p is (1, 4) { x: 3 });
+        Check(false, p is (3, 1) { x: 3 });
+        Check(false, p is (3, 4) { x: 1 });
+    }
+    private static bool Check<T>(T expected, T actual)
+    {
+        if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
+        return true;
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: "");
+        }
+
+        [Fact]
         public void Patterns2_DiscardPattern_01()
         {
             var source =
@@ -165,8 +211,76 @@ public class Point
             var comp = CompileAndVerify(compilation, expectedOutput: "");
         }
 
-        [Fact(Skip = "Pattern-based switch with recursive patterns is not yet implemented")]
-        public void Patterns2_Switch_Later()
+        [Fact]
+        public void Patterns2_Switch01()
+        {
+            var sourceTemplate =
+@"
+class Program
+{{
+    public static void Main()
+    {{
+        var p = (true, false);
+        switch (p)
+        {{
+            {0}
+            {1}
+            {2}
+            case (_, _): // error - subsumed
+                break;
+        }}
+    }}
+}}
+namespace System
+{{
+    public struct ValueTuple<T1, T2>
+    {{
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {{
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }}
+    }}
+}}";
+            void testErrorCase(string s1, string s2, string s3)
+            {
+                var source = string.Format(sourceTemplate, s1, s2, s3);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+                compilation.VerifyDiagnostics(
+                    // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                    //             case (_, _): // error - subsumed
+                    Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case (_, _):").WithLocation(12, 13)
+                    );
+            }
+            void testGoodCase(string s1, string s2)
+            {
+                var source = string.Format(sourceTemplate, s1, s2, string.Empty);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+                compilation.VerifyDiagnostics(
+                    );
+            }
+            var c1 = "case (true, _):";
+            var c2 = "case (false, false):";
+            var c3 = "case (_, true):";
+            testErrorCase(c1, c2, c3);
+            testErrorCase(c2, c3, c1);
+            testErrorCase(c3, c1, c2);
+            testErrorCase(c1, c3, c2);
+            testErrorCase(c3, c2, c1);
+            testErrorCase(c2, c1, c3);
+            testGoodCase(c1, c2);
+            testGoodCase(c1, c3);
+            testGoodCase(c2, c3);
+            testGoodCase(c2, c1);
+            testGoodCase(c3, c1);
+            testGoodCase(c3, c2);
+        }
+
+        [Fact(Skip = "PROTOTYPE(patterns2): lowering not yet implemented for recursive pattern switch")]
+        public void Patterns2_Switch02()
         {
             var source =
 @"

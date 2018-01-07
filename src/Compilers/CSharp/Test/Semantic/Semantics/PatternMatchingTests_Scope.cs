@@ -5202,9 +5202,6 @@ public class X
                 // (89,18): error CS0150: A constant value is expected
                 //             case y10:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y10").WithLocation(89, 18),
-                // (90,17): warning CS0162: Unreachable code detected
-                //                 var y10 = 12;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(90, 17),
                 // (112,28): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                   2 is var x14, 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
@@ -5213,10 +5210,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
                 // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
                 //             case y15: 
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
-                // (128,17): warning CS0162: Unreachable code detected
-                //                 var y15 = 15;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(128, 17)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

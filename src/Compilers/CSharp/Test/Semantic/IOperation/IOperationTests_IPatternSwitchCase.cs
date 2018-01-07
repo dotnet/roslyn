@@ -497,10 +497,7 @@ IPatternCaseClauseOperation (Label Symbol: case typeof(X):) (CaseKind.Pattern) (
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0150: A constant value is expected
                 //             /*<bind>*/case typeof(X):/*</bind>*/
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(X)").WithLocation(9, 28),
-                // CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(X)").WithLocation(9, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CaseSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);

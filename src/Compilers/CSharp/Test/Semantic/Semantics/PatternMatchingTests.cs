@@ -3269,13 +3269,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine("string");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(10, 17),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine("string[]");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
                 );
             // If we support switching on System.Type as proposed, the expectation would be
             // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
@@ -4398,12 +4392,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(8, 29),
                 // (11,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18),
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29)
                 );
         }
 
@@ -4431,15 +4425,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (9,29): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(9, 29),
                 // (12,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(12, 18),
-                // (8,13): warning CS0219: The variable '_' is assigned but its value is never used
-                //         int _ = 4;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "_").WithArguments("_").WithLocation(8, 13)
+                // (9,29): error CS0150: A constant value is expected
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29)
                 );
         }
 
@@ -4558,16 +4549,7 @@ unsafe public class Typ
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(15, 31),
                 // (15,36): error CS0103: The name 'f' does not exist in the current context
                 //             switch (e) { case Typ* f: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36),
-                // (13,39): warning CS0162: Unreachable code detected
-                //             switch (a) { case int* b: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 39),
-                // (14,39): warning CS0162: Unreachable code detected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 39),
-                // (15,39): warning CS0162: Unreachable code detected
-                //             switch (e) { case Typ* f: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 39)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36)
                 );
         }
 
@@ -4699,10 +4681,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
                 // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //             case Missing y:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
                 );
         }
 
@@ -4736,10 +4715,7 @@ public class Program46
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
                 // (11,18): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
                 );
         }
 
@@ -4761,15 +4737,12 @@ public class Program46
     private static object M() => null;
 }";
             CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+                // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (8,18): error CS0150: A constant value is expected
                 //             case M:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(8, 18)
                 );
         }
 
@@ -5208,10 +5181,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "U").WithArguments("string", "U", "7.0", "7.1").WithLocation(8, 18),
                 // (10,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18)
                 );
             CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
@@ -5572,7 +5542,7 @@ M15a
     {
         switch (o)
         {
-            case 1.1F: break;
+            case 0f/0f: break;
         }
     }
 }
@@ -5603,7 +5573,7 @@ namespace System
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_BadRetType, @"switch (o)
         {
-            case 1.1F: break;
+            case 0f/0f: break;
         }").WithArguments("float.Equals(float)", "void").WithLocation(5, 9)
                 );
         }
