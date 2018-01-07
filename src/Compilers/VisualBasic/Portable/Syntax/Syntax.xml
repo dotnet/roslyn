@@ -5344,10 +5344,6 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Qualified" />
         <native-equiv name="Expression.Opcodes.BangQualified" />
       </node-kind>
-      <node-kind name="EnumFlagExpression">
-        <lm-equiv name="Qualified" />
-        <native-equiv name="Expression.Opcodes.BangQualified" />
-      </node-kind>
       
       <child name="Expression" optional="true" kind="@ExpressionSyntax">
         <description>The expression on the left-hand-side of the "." or "!" token.</description>
@@ -5369,7 +5365,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Name"></native-equiv>
       </child>
     </node-structure>
-
+    
     <node-structure name="XmlMemberAccessExpressionSyntax" parent="ExpressionSyntax">
       <description>
         Represents an XML member element access (node.&lt;Element&gt;), attribute access (node.@Attribute) or descendants access (node...&lt;Descendant&gt;).
@@ -9561,5 +9557,30 @@ Unify Enum declarations with other block type declarations.
       </description>
       <node-kind name="BadDirectiveTrivia"></node-kind>
     </node-structure>
+  
+   <node-structure name="FlagsEnumOperationExpressionSyntax" parent="ExpressionSyntax"  partial="true">
+      <node-kind name="FlagsEnumOperationExpression">
+        <lm-equiv name="Qualified" />
+        <native-equiv name="Expression.Opcodes.BangQualified" />
+      </node-kind>
+      <child name="EnumFlags" optional="true" kind="@ExpressionSyntax">
+        <description>The expression on the left-hand-side of the "." or "!" token.</description>
+        <lm-equiv name="Base"></lm-equiv>
+        <native-equiv name="Base"></native-equiv>
+      </child>
+      <!--<Field name="OperatorToken" kind="PunctuationSyntax">
+      --><!--<kind name="FlagsEnumIsSetToken" token-text="!"/>
+      <kind name="FlagsEnumSetToken" token-text="!+"/>
+      <kind name="FlagsEnumClrToken" token-text="!-"/>--><!--
+      </Field>--><!--
+          <child name="OperatorToken" kind="PunctuationSyntax"></child>-->
+  <child name="EnumFlag" kind="@SimpleNameSyntax">
+        <description>The identifier after the "!" or "!+" or "!-" token.</description>
+        <lm-equiv name="Value"></lm-equiv>
+        <native-equiv name="Name"></native-equiv>
+      </child>
+    </node-structure>
+
+
   </definitions>
 </define-parse-tree>

@@ -3841,7 +3841,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 member, original.Name)
             End If
             ' We have a valid member of the enum referred to.
-            Return New BoundEnumFlagExpression(node, expr, New BoundLValuePlaceholder(member, expr.Type), expr.Type)
+            Return New BoundFlagsEnumOperationExpressionSyntax(node, expr,
+                                               BindSimpleName(member.Name, False, diagBag), GetSpecialType(SpecialType.System_Boolean, member.Name, diagBag))
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)

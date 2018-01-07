@@ -1885,11 +1885,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function AdjustAssignmentTarget(node As SyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
             Select Case op1.Kind
-                Case BoundKind.EnumFlagExpression
-                '    Dim enumFlagAccess = DirectCast(op1, BoundEnumFlagExpression)
-                '    Dim expr = AdjustAssignmentTarget(node, enumFlagAccess.MemberAccess, diagnostics, isError)
-                '    Return enumFlagAccess.Update(expr)
-                Return ReportDiagnosticAndProduceBadExpression(diagnostics, DirectCast(node, VisualBasicSyntaxNode), id:=ERRID.ERR_None)
+                Case BoundKind.FlagsEnumOperationExpressionSyntax
+                    '    Dim enumFlagAccess = DirectCast(op1, BoundEnumFlagExpression)
+                    '    Dim expr = AdjustAssignmentTarget(node, enumFlagAccess.MemberAccess, diagnostics, isError)
+                    '    Return enumFlagAccess.Update(expr)
+                    Return ReportDiagnosticAndProduceBadExpression(diagnostics, DirectCast(node, VisualBasicSyntaxNode), id:=ERRID.ERR_None)
 
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(op1, BoundXmlMemberAccess)

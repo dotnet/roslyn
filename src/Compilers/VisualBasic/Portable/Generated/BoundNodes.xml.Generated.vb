@@ -78,7 +78,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         [Call]
         Attribute
         LateMemberAccess
-        EnumFlagExpression
         LateInvocation
         LateAddressOfOperator
         TupleLiteral
@@ -194,6 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         TypeAsValueExpression
         InterpolatedStringExpression
         Interpolation
+        FlagsEnumOperationExpressionSyntax
     End Enum
 
 
@@ -3392,58 +3392,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(nameOpt As String, containerTypeOpt As TypeSymbol, receiverOpt As BoundExpression, typeArgumentsOpt As BoundTypeArguments, accessKind As LateBoundAccessKind, type As TypeSymbol) As BoundLateMemberAccess
             If nameOpt IsNot Me.NameOpt OrElse containerTypeOpt IsNot Me.ContainerTypeOpt OrElse receiverOpt IsNot Me.ReceiverOpt OrElse typeArgumentsOpt IsNot Me.TypeArgumentsOpt OrElse accessKind <> Me.AccessKind OrElse type IsNot Me.Type Then
                 Dim result = New BoundLateMemberAccess(Me.Syntax, nameOpt, containerTypeOpt, receiverOpt, typeArgumentsOpt, accessKind, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
-                Return result
-            End If
-            Return Me
-        End Function
-    End Class
-
-    Friend NotInheritable Partial Class BoundEnumFlagExpression
-        Inherits BoundExpression
-
-        Public Sub New(syntax As SyntaxNode, member As BoundExpression, flag As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.EnumFlagExpression, syntax, type, hasErrors OrElse member.NonNullAndHasErrors() OrElse flag.NonNullAndHasErrors())
-
-            Debug.Assert(member IsNot Nothing, "Field 'member' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(flag IsNot Nothing, "Field 'flag' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
-            Me._Member = member
-            Me._Flag = flag
-
-            Validate()
-        End Sub
-
-        Private Partial Sub Validate()
-        End Sub
-
-
-        Private ReadOnly _Member As BoundExpression
-        Public ReadOnly Property Member As BoundExpression
-            Get
-                Return _Member
-            End Get
-        End Property
-
-        Private ReadOnly _Flag As BoundExpression
-        Public ReadOnly Property Flag As BoundExpression
-            Get
-                Return _Flag
-            End Get
-        End Property
-
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
-            Return visitor.VisitEnumFlagExpression(Me)
-        End Function
-
-        Public Function Update(member As BoundExpression, flag As BoundExpression, type As TypeSymbol) As BoundEnumFlagExpression
-            If member IsNot Me.Member OrElse flag IsNot Me.Flag OrElse type IsNot Me.Type Then
-                Dim result = New BoundEnumFlagExpression(Me.Syntax, member, flag, type, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -9796,6 +9744,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Friend NotInheritable Partial Class BoundFlagsEnumOperationExpressionSyntax
+        Inherits BoundExpression
+
+        Public Sub New(syntax As SyntaxNode, enumFlags As BoundExpression, enumFlag As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.FlagsEnumOperationExpressionSyntax, syntax, type, hasErrors OrElse enumFlags.NonNullAndHasErrors() OrElse enumFlag.NonNullAndHasErrors())
+
+            Debug.Assert(enumFlags IsNot Nothing, "Field 'enumFlags' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(enumFlag IsNot Nothing, "Field 'enumFlag' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+
+            Me._EnumFlags = enumFlags
+            Me._EnumFlag = enumFlag
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
+        End Sub
+
+
+        Private ReadOnly _EnumFlags As BoundExpression
+        Public ReadOnly Property EnumFlags As BoundExpression
+            Get
+                Return _EnumFlags
+            End Get
+        End Property
+
+        Private ReadOnly _EnumFlag As BoundExpression
+        Public ReadOnly Property EnumFlag As BoundExpression
+            Get
+                Return _EnumFlag
+            End Get
+        End Property
+
+        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+            Return visitor.VisitFlagsEnumOperationExpressionSyntax(Me)
+        End Function
+
+        Public Function Update(enumFlags As BoundExpression, enumFlag As BoundExpression, type As TypeSymbol) As BoundFlagsEnumOperationExpressionSyntax
+            If enumFlags IsNot Me.EnumFlags OrElse enumFlag IsNot Me.EnumFlag OrElse type IsNot Me.Type Then
+                Dim result = New BoundFlagsEnumOperationExpressionSyntax(Me.Syntax, enumFlags, enumFlag, type, Me.HasErrors)
+                
+                If Me.WasCompilerGenerated Then
+                    result.SetWasCompilerGenerated()
+                End If
+                
+                Return result
+            End If
+            Return Me
+        End Function
+    End Class
+
     Friend MustInherit Partial Class BoundTreeVisitor(Of A,R)
 
         <MethodImpl(MethodImplOptions.NoInlining)>
@@ -9921,8 +9921,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return VisitAttribute(CType(node, BoundAttribute), arg)
                 Case BoundKind.LateMemberAccess: 
                     Return VisitLateMemberAccess(CType(node, BoundLateMemberAccess), arg)
-                Case BoundKind.EnumFlagExpression: 
-                    Return VisitEnumFlagExpression(CType(node, BoundEnumFlagExpression), arg)
                 Case BoundKind.LateInvocation: 
                     Return VisitLateInvocation(CType(node, BoundLateInvocation), arg)
                 Case BoundKind.LateAddressOfOperator: 
@@ -10153,6 +10151,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return VisitInterpolatedStringExpression(CType(node, BoundInterpolatedStringExpression), arg)
                 Case BoundKind.Interpolation: 
                     Return VisitInterpolation(CType(node, BoundInterpolation), arg)
+                Case BoundKind.FlagsEnumOperationExpressionSyntax: 
+                    Return VisitFlagsEnumOperationExpressionSyntax(CType(node, BoundFlagsEnumOperationExpressionSyntax), arg)
             End Select
             Return DefaultVisit(node, arg)
         End Function
@@ -10397,10 +10397,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitLateMemberAccess(node As BoundLateMemberAccess, arg As A) As R
-            Return Me.DefaultVisit(node, arg)
-        End Function
-
-        Public Overridable Function VisitEnumFlagExpression(node As BoundEnumFlagExpression, arg As A) As R
             Return Me.DefaultVisit(node, arg)
         End Function
 
@@ -10864,6 +10860,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.DefaultVisit(node, arg)
         End Function
 
+        Public Overridable Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax, arg As A) As R
+            Return Me.DefaultVisit(node, arg)
+        End Function
+
     End Class
 
     Friend MustInherit Partial Class BoundTreeVisitor
@@ -11104,10 +11104,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitLateMemberAccess(node As BoundLateMemberAccess) As BoundNode
-            Return Me.DefaultVisit(node)
-        End Function
-
-        Public Overridable Function VisitEnumFlagExpression(node As BoundEnumFlagExpression) As BoundNode
             Return Me.DefaultVisit(node)
         End Function
 
@@ -11571,6 +11567,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.DefaultVisit(node)
         End Function
 
+        Public Overridable Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax) As BoundNode
+            Return Me.DefaultVisit(node)
+        End Function
+
     End Class
 
     Friend MustInherit Partial Class BoundTreeWalker
@@ -11875,12 +11875,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitLateMemberAccess(node as BoundLateMemberAccess) As BoundNode
             Me.Visit(node.ReceiverOpt)
             Me.Visit(node.TypeArgumentsOpt)
-            Return Nothing
-        End Function
-
-        Public Overrides Function VisitEnumFlagExpression(node as BoundEnumFlagExpression) As BoundNode
-            Me.Visit(node.Member)
-            Me.Visit(node.Flag)
             Return Nothing
         End Function
 
@@ -12525,6 +12519,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        Public Overrides Function VisitFlagsEnumOperationExpressionSyntax(node as BoundFlagsEnumOperationExpressionSyntax) As BoundNode
+            Me.Visit(node.EnumFlags)
+            Me.Visit(node.EnumFlag)
+            Return Nothing
+        End Function
+
     End Class
 
     Friend MustInherit Partial Class BoundTreeRewriter
@@ -12884,13 +12884,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim containerTypeOpt as TypeSymbol = Me.VisitType(node.ContainerTypeOpt)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
             Return node.Update(node.NameOpt, containerTypeOpt, receiverOpt, typeArgumentsOpt, node.AccessKind, type)
-        End Function
-
-        Public Overrides Function VisitEnumFlagExpression(node As BoundEnumFlagExpression) As BoundNode
-            Dim member As BoundExpression = DirectCast(Me.Visit(node.Member), BoundExpression)
-            Dim flag As BoundExpression = DirectCast(Me.Visit(node.Flag), BoundExpression)
-            Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(member, flag, type)
         End Function
 
         Public Overrides Function VisitLateInvocation(node As BoundLateInvocation) As BoundNode
@@ -13621,6 +13614,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Update(expression, alignmentOpt, formatStringOpt)
         End Function
 
+        Public Overrides Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax) As BoundNode
+            Dim enumFlags As BoundExpression = DirectCast(Me.Visit(node.EnumFlags), BoundExpression)
+            Dim enumFlag As BoundExpression = DirectCast(Me.Visit(node.EnumFlag), BoundExpression)
+            Dim type as TypeSymbol = Me.VisitType(node.Type)
+            Return node.Update(enumFlags, enumFlag, type)
+        End Function
+
     End Class
 
     Friend NotInheritable Class BoundTreeDumperNodeProducer
@@ -14108,14 +14108,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
                 New TreeDumperNode("typeArgumentsOpt", Nothing, new TreeDumperNode() { Visit(node.TypeArgumentsOpt, Nothing) }),
                 New TreeDumperNode("accessKind", node.AccessKind, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
-            })
-        End Function
-
-        Public Overrides Function VisitEnumFlagExpression(node As BoundEnumFlagExpression, arg As Object) As TreeDumperNode
-            Return New TreeDumperNode("enumFlagExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("member", Nothing, new TreeDumperNode() { Visit(node.Member, Nothing) }),
-                New TreeDumperNode("flag", Nothing, new TreeDumperNode() { Visit(node.Flag, Nothing) }),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
@@ -15080,6 +15072,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
                 New TreeDumperNode("alignmentOpt", Nothing, new TreeDumperNode() { Visit(node.AlignmentOpt, Nothing) }),
                 New TreeDumperNode("formatStringOpt", Nothing, new TreeDumperNode() { Visit(node.FormatStringOpt, Nothing) })
+            })
+        End Function
+
+        Public Overrides Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax, arg As Object) As TreeDumperNode
+            Return New TreeDumperNode("flagsEnumOperationExpressionSyntax", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("enumFlags", Nothing, new TreeDumperNode() { Visit(node.EnumFlags, Nothing) }),
+                New TreeDumperNode("enumFlag", Nothing, new TreeDumperNode() { Visit(node.EnumFlag, Nothing) }),
+                New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
 
