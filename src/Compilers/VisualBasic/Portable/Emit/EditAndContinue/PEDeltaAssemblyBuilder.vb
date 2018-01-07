@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
@@ -31,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        edits As IEnumerable(Of SemanticEdit),
                        isAddedSymbol As Func(Of ISymbol, Boolean))
 
-            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
