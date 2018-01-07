@@ -369,5 +369,65 @@ public struct S1
 }");
 
         }
+
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
+        [Fact]
+        public void OutParamAdOptional()
+        {
+            var code = @"
+using System;
+public class C
+{
+    public static C cc => new C();
+    readonly int x;
+    readonly int y;
+
+    public static void Main()
+    {
+        var v = new C(1);
+        System.Console.WriteLine('Q');
+    }
+
+    private C()
+    {
+    }
+
+    private C(int x)
+    {
+        var c = C.cc.Test(1, this, out x, out y);
+    }
+
+    public C Test(object arg1, C arg2, out int i1, out int i2, object opt = null)
+    {
+        i1 = 1;
+        i2 = 2;
+
+        return arg2;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "Q");
+
+            verifier.VerifyIL("C..ctor(int)", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  6
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  call       ""C C.cc.get""
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""int""
+  IL_0011:  ldarg.0
+  IL_0012:  ldarga.s   V_1
+  IL_0014:  ldarg.0
+  IL_0015:  ldflda     ""int C.y""
+  IL_001a:  ldnull
+  IL_001b:  callvirt   ""C C.Test(object, C, out int, out int, object)""
+  IL_0020:  pop
+  IL_0021:  ret
+}");
+        }
     }
 }
