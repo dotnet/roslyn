@@ -2,7 +2,7 @@
     "branches": {
         "master-vs-deps": {
             "nugetKind": "PerBuildPreRelease",
-            "version": "2.7.*",
+            "version": "2.8.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.6", "dev15.6p3" ]
