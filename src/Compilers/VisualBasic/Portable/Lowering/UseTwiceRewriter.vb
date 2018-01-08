@@ -1,6 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#Const DONT_USE_BYREF_LOCALS_FOR_USE_TWICE = True
+#Const DONT_USE_BYREF_LOCALS_FOR_ARRAY_ACCESS = True
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(node.IsLValue)
 
-#If DONT_USE_BYREF_LOCALS_FOR_USE_TWICE Then
+#If DONT_USE_BYREF_LOCALS_FOR_ARRAY_ACCESS Then
             ' Note, as an alternative we could capture reference to the array element in a ByRef temp.
             ' However, without an introduction of an indirect assignment node, IL-gen is unable to distinguish 
             ' when it should assign indirect or should assign a reference. For now, decided to not introduce 
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New Result(node, node)
 
             Else
-#If DONT_USE_BYREF_LOCALS_FOR_USE_TWICE Then
+#If DONT_USE_BYREF_LOCALS_FOR_FIELD_ACCESS Then
                 ' Note, as an alternative we could capture reference to the field in a ByRef temp.
                 ' However, without an introduction of an indirect assignment node, IL-gen is unable to distinguish 
                 ' when it should assign indirect or should assign a reference. For now, decided to not introduce 
@@ -497,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        initializer.Update(secondArgsArray.AsImmutableOrNull(), initializer.Type), Nothing, Nothing, boundArray.Type)
         End Sub
 
-#If DONT_USE_BYREF_LOCALS_FOR_USE_TWICE Then
+#If DONT_USE_BYREF_LOCALS_FOR_FIELD_ACCESS Then
         Private Shared Function UseTwiceReceiver(containingMember As Symbol, receiverOpt As BoundExpression, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
             If receiverOpt Is Nothing Then
                 Return New Result(Nothing, Nothing)

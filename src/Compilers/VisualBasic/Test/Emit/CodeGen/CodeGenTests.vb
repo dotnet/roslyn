@@ -12487,7 +12487,7 @@ End Class
 
         <WorkItem(745103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745103")>
         <Fact()>
-        Public Sub TestCompoundOnAfieldOfGeneric()
+        Public Sub TestCompoundOnAFieldOfGeneric()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -13883,7 +13883,6 @@ End Module
   IL_0014:  ret
 }
 ]]>)
-
         End Sub
 
         <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
@@ -13926,7 +13925,6 @@ End Module
   IL_000e:  ret
 }
 ]]>)
-
         End Sub
 
     End Class
