@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                     {
                         var arrayAccess = (BoundArrayAccess)originalLHS;
-                        if (isDynamicAssignment || !IsInvariantArrayAccess(arrayAccess))
+                        if (isDynamicAssignment || !IsInvariantArray(arrayAccess.Expression.Type))
                         {
                             // In non-dynamic, invariant array[index] op= R we emit:
                             //   T& tmp = &array[index];
@@ -604,10 +604,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return variableTemp;
         }
 
-        private static bool IsInvariantArrayAccess(BoundArrayAccess arrayAccess)
+        private static bool IsInvariantArray(TypeSymbol type)
         {
-            var elementType = (arrayAccess.Expression.Type as ArrayTypeSymbol)?.ElementType;
-            return elementType?.IsSealed == true;
+            return (type as ArrayTypeSymbol)?.ElementType?.IsSealed == true;
         }
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)
