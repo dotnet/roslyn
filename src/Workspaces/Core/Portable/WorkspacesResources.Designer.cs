@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; expected.
+        /// </summary>
+        internal static string _0_expected {
+            get {
+                return ResourceManager.GetString("_0_expected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is already part of the workspace..
         /// </summary>
         internal static string _0_is_already_part_of_the_workspace {
@@ -166,6 +175,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string _0_still_contains_open_documents {
             get {
                 return ResourceManager.GetString("_0_still_contains_open_documents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; unexpected.
+        /// </summary>
+        internal static string _0_unexpected {
+            get {
+                return ResourceManager.GetString("_0_unexpected", resourceCulture);
             }
         }
         
@@ -693,6 +711,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error parsing comment.
+        /// </summary>
+        internal static string Error_parsing_comment {
+            get {
+                return ResourceManager.GetString("Error_parsing_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Event.
         /// </summary>
         internal static string Event {
@@ -855,11 +882,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid escape sequence.
+        /// </summary>
+        internal static string Invalid_escape_sequence {
+            get {
+                return ResourceManager.GetString("Invalid_escape_sequence", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid group name: Group names must begin with a word character.
         /// </summary>
         internal static string Invalid_group_name_Group_names_must_begin_with_a_word_character {
             get {
                 return ResourceManager.GetString("Invalid_group_name_Group_names_must_begin_with_a_word_character", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid number.
+        /// </summary>
+        internal static string Invalid_number {
+            get {
+                return ResourceManager.GetString("Invalid_number", resourceCulture);
             }
         }
         
@@ -914,6 +959,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Invalid_project_file_path_colon_0 {
             get {
                 return ResourceManager.GetString("Invalid_project_file_path_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid property name.
+        /// </summary>
+        internal static string Invalid_property_name {
+            get {
+                return ResourceManager.GetString("Invalid_property_name", resourceCulture);
             }
         }
         
@@ -1035,6 +1089,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Missing property value.
+        /// </summary>
+        internal static string Missing_property_value {
+            get {
+                return ResourceManager.GetString("Missing_property_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing suffix: &apos;{0}&apos;.
         /// </summary>
         internal static string Missing_suffix_colon_0 {
@@ -1049,6 +1112,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Name_can_be_simplified {
             get {
                 return ResourceManager.GetString("Name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nested properties not allowed.
+        /// </summary>
+        internal static string Nested_properties_not_allowed {
+            get {
+                return ResourceManager.GetString("Nested_properties_not_allowed", resourceCulture);
             }
         }
         
@@ -1125,6 +1197,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Only properties allowed in a json object.
+        /// </summary>
+        internal static string Only_properties_allowed_in_a_json_object {
+            get {
+                return ResourceManager.GetString("Only_properties_allowed_in_a_json_object", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Options did not come from Workspace.
         /// </summary>
         internal static string Options_did_not_come_from_Workspace {
@@ -1193,6 +1274,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Property {
             get {
                 return ResourceManager.GetString("Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property not allowed in a json array.
+        /// </summary>
+        internal static string Property_not_allowed_in_a_json_array {
+            get {
+                return ResourceManager.GetString("Property_not_allowed_in_a_json_array", resourceCulture);
             }
         }
         
@@ -1401,6 +1491,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Symbol_0_is_not_from_source {
             get {
                 return ResourceManager.GetString("Symbol_0_is_not_from_source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syntax error.
+        /// </summary>
+        internal static string Syntax_error {
+            get {
+                return ResourceManager.GetString("Syntax_error", resourceCulture);
             }
         }
         
@@ -1720,11 +1819,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unterminated comment.
+        /// </summary>
+        internal static string Unterminated_comment {
+            get {
+                return ResourceManager.GetString("Unterminated_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unterminated (?#...) comment.
         /// </summary>
         internal static string Unterminated_regex_comment {
             get {
                 return ResourceManager.GetString("Unterminated_regex_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unterminated string.
+        /// </summary>
+        internal static string Unterminated_string {
+            get {
+                return ResourceManager.GetString("Unterminated_string", resourceCulture);
             }
         }
         

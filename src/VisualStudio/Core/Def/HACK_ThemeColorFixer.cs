@@ -84,6 +84,16 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.RegexEscape, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.RegexGrouping, sourceFormatMap, targetFormatMap);
 
+            UpdateForegroundColor(ClassificationTypeNames.JsonComment, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonNumber, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonString, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonKeyword, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonText, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonOperator, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonArray, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonObject, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonPropertyName, sourceFormatMap, targetFormatMap);
+
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorText, sourceFormatMap, targetFormatMap);
 

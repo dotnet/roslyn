@@ -952,6 +952,71 @@
         <target state="new">[x-y] range in reverse order</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_number">
+        <source>Invalid number</source>
+        <target state="new">Invalid number</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_properties_allowed_in_a_json_object">
+        <source>Only properties allowed in a json object</source>
+        <target state="new">Only properties allowed in a json object</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_not_allowed_in_a_json_array">
+        <source>Property not allowed in a json array</source>
+        <target state="new">Property not allowed in a json array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unterminated_comment">
+        <source>Unterminated comment</source>
+        <target state="new">Unterminated comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unterminated_string">
+        <source>Unterminated string</source>
+        <target state="new">Unterminated string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_expected">
+        <source>'{0}' expected</source>
+        <target state="new">'{0}' expected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_unexpected">
+        <source>'{0}' unexpected</source>
+        <target state="new">'{0}' unexpected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_escape_sequence">
+        <source>Invalid escape sequence</source>
+        <target state="new">Invalid escape sequence</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_parsing_comment">
+        <source>Error parsing comment</source>
+        <target state="new">Error parsing comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Syntax_error">
+        <source>Syntax error</source>
+        <target state="new">Syntax error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_property_name">
+        <source>Invalid property name</source>
+        <target state="new">Invalid property name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Missing_property_value">
+        <source>Missing property value</source>
+        <target state="new">Missing property value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nested_properties_not_allowed">
+        <source>Nested properties not allowed</source>
+        <target state="new">Nested properties not allowed</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

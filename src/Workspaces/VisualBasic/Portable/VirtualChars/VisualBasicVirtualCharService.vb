@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VirtualChars
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.RegularExpressions
+Namespace Microsoft.CodeAnalysis.VisualBasic.VirtualChars
     <ExportLanguageService(GetType(IVirtualCharService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicVirtualCharService
         Inherits AbstractVirtualCharService

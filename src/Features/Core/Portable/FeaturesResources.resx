@@ -1337,4 +1337,13 @@ This version used in: {2}</value>
   <data name="Regex_issue_0" xml:space="preserve">
     <value>Regex issue: {0}</value>
   </data>
+  <data name="Enable_IDE_JSON_features" xml:space="preserve">
+    <value>Enable IDE JSON features</value>
+  </data>
+  <data name="Probable_JSON_string_detected" xml:space="preserve">
+    <value>Probable JSON string detected</value>
+  </data>
+  <data name="JSON_issue_0" xml:space="preserve">
+    <value>JSON issue: {0}</value>
+  </data>
 </root>

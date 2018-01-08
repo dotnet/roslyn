@@ -58,5 +58,16 @@ namespace Microsoft.CodeAnalysis.Classification
         internal const string RegexAlternation = "regex - alternation";
         internal const string RegexEscape = "regex - escape";
         internal const string RegexGrouping = "regex - grouping";
+
+        internal const string JsonComment = "json - comment";
+        internal const string JsonNumber = "json - number";
+        internal const string JsonString = "json - string";
+        internal const string JsonKeyword = "json - keyword";
+        internal const string JsonText = "json - text";
+        internal const string JsonOperator = "json - operator";
+        internal const string JsonPunctuation = "json - punctuation";
+        internal const string JsonArray = "json - array";
+        internal const string JsonObject = "json - object";
+        internal const string JsonPropertyName = "json - property name";
     }
 }

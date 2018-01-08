@@ -467,8 +467,170 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
-
                 this.ForegroundColor = Color.FromRgb(78, 201, 176);
+            }
+        }
+        #endregion
+
+        #region JSON
+        
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonComment)]
+        [Name(ClassificationTypeNames.JsonComment)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonCommentFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonCommentFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Comment;
+                this.ForegroundColor = Color.FromRgb(87, 166, 74);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonNumber)]
+        [Name(ClassificationTypeNames.JsonNumber)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonNumberFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonNumberFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Number;
+                this.ForegroundColor = Color.FromRgb(181, 206, 168);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonString)]
+        [Name(ClassificationTypeNames.JsonString)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonStringFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonStringFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_String;
+                this.ForegroundColor = Color.FromRgb(214, 157, 133);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonKeyword)]
+        [Name(ClassificationTypeNames.JsonKeyword)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonKeywordFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonKeywordFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Keyword;
+                this.ForegroundColor = Color.FromRgb(86, 156, 214);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonText)]
+        [Name(ClassificationTypeNames.JsonText)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonTextFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonTextFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Text;
+                this.ForegroundColor = Color.FromRgb(220, 220, 220);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonOperator)]
+        [Name(ClassificationTypeNames.JsonOperator)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonOperatorFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonOperatorFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Operator;
+                this.ForegroundColor = Color.FromRgb(180, 180, 180);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonPunctuation)]
+        [Name(ClassificationTypeNames.JsonPunctuation)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonPunctuationFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonPunctuationFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Punctuation;
+                this.ForegroundColor = Color.FromRgb(220, 220, 220);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonObject)]
+        [Name(ClassificationTypeNames.JsonObject)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonObjectFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonObjectFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Object;
+                this.ForegroundColor = Color.FromRgb(216, 80, 80);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonArray)]
+        [Name(ClassificationTypeNames.JsonArray)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonArrayFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonArrayFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Array;
+                this.ForegroundColor = Color.FromRgb(216, 80, 80);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonPropertyName)]
+        [Name(ClassificationTypeNames.JsonPropertyName)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonPropertyNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonPropertyNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Property_Name;
+                this.ForegroundColor = Color.FromRgb(202, 121, 236);
             }
         }
         #endregion

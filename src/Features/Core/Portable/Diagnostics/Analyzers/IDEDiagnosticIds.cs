@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RegexPatternDiagnosticId = "IDE0043";
 
+        // diagnostic for when we detect a string that should have /*language=json*/ added to it.
+        public const string JsonDetectionDiagnosticId = "IDE0044";
+        // diagnostic for when we have a known json string and we detect something wrong with it.
+        public const string JsonPatternDiagnosticId = "IDE0045";
+
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

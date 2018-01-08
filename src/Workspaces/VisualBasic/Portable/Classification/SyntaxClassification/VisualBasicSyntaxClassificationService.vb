@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 New NameSyntaxClassifier(),
                 New ImportAliasClauseSyntaxClassifier(),
                 New IdentifierNameSyntaxClassifier(),
+                New JsonPatternTokenClassifier(),
                 New RegexPatternTokenClassifier())
 
         Public Overrides Function GetDefaultSyntaxClassifiers() As ImmutableArray(Of ISyntaxClassifier)

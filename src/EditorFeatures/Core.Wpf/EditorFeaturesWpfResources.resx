@@ -150,4 +150,34 @@
   <data name="Regex_Text" xml:space="preserve">
     <value>Regex - Text</value>
   </data>
+  <data name="JSON_Property_Name" xml:space="preserve">
+    <value>JSON Property Name</value>
+  </data>
+  <data name="JSON_Array" xml:space="preserve">
+    <value>JSON Array</value>
+  </data>
+  <data name="JSON_Comment" xml:space="preserve">
+    <value>JSON Comment</value>
+  </data>
+  <data name="JSON_Keyword" xml:space="preserve">
+    <value>JSON Keyword</value>
+  </data>
+  <data name="JSON_Number" xml:space="preserve">
+    <value>JSON Number</value>
+  </data>
+  <data name="JSON_Object" xml:space="preserve">
+    <value>JSON Object</value>
+  </data>
+  <data name="JSON_Operator" xml:space="preserve">
+    <value>JSON Operator</value>
+  </data>
+  <data name="JSON_Punctuation" xml:space="preserve">
+    <value>JSON Punctuation</value>
+  </data>
+  <data name="JSON_String" xml:space="preserve">
+    <value>JSON String</value>
+  </data>
+  <data name="JSON_Text" xml:space="preserve">
+    <value>JSON Text</value>
+  </data>
 </root>

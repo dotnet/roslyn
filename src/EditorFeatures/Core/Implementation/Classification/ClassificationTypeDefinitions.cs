@@ -176,6 +176,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal readonly ClassificationTypeDefinition RegexGroupingTypeDefinition;
         #endregion
 
+        #region JSON
+        [Export]
+        [Name(ClassificationTypeNames.JsonComment)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonCommentTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonNumber)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonNumberTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonString)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonStringTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonKeyword)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonKeywordTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonText)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonTextTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonOperator)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonOperatorTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonPunctuation)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonPunctuationTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonArray)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonArrayTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonObject)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonObjectTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonPropertyName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonPropertyNameTypeDefinition;
+        #endregion
+
         #region VB XML Literals - Attribute Name 
         [Export]
         [Name(ClassificationTypeNames.XmlLiteralAttributeName)]

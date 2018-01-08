@@ -88,6 +88,96 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to JSON Array.
+        /// </summary>
+        internal static string JSON_Array {
+            get {
+                return ResourceManager.GetString("JSON_Array", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Comment.
+        /// </summary>
+        internal static string JSON_Comment {
+            get {
+                return ResourceManager.GetString("JSON_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Keyword.
+        /// </summary>
+        internal static string JSON_Keyword {
+            get {
+                return ResourceManager.GetString("JSON_Keyword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Number.
+        /// </summary>
+        internal static string JSON_Number {
+            get {
+                return ResourceManager.GetString("JSON_Number", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Object.
+        /// </summary>
+        internal static string JSON_Object {
+            get {
+                return ResourceManager.GetString("JSON_Object", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Operator.
+        /// </summary>
+        internal static string JSON_Operator {
+            get {
+                return ResourceManager.GetString("JSON_Operator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Property Name.
+        /// </summary>
+        internal static string JSON_Property_Name {
+            get {
+                return ResourceManager.GetString("JSON_Property_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Punctuation.
+        /// </summary>
+        internal static string JSON_Punctuation {
+            get {
+                return ResourceManager.GetString("JSON_Punctuation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON String.
+        /// </summary>
+        internal static string JSON_String {
+            get {
+                return ResourceManager.GetString("JSON_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON Text.
+        /// </summary>
+        internal static string JSON_Text {
+            get {
+                return ResourceManager.GetString("JSON_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex - Alternation.
         /// </summary>
         internal static string Regex_Alternation {

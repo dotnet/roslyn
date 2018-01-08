@@ -1990,6 +1990,21 @@ This version used in: {2}</source>
         <target state="new">Regex issue: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_IDE_JSON_features">
+        <source>Enable IDE JSON features</source>
+        <target state="new">Enable IDE JSON features</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Probable_JSON_string_detected">
+        <source>Probable JSON string detected</source>
+        <target state="new">Probable JSON string detected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_issue_0">
+        <source>JSON issue: {0}</source>
+        <target state="new">JSON issue: {0}</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

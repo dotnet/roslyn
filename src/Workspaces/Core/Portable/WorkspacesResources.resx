@@ -706,4 +706,43 @@
   <data name="x_y_range_in_reverse_order" xml:space="preserve">
     <value>[x-y] range in reverse order</value>
   </data>
+  <data name="Invalid_number" xml:space="preserve">
+    <value>Invalid number</value>
+  </data>
+  <data name="Only_properties_allowed_in_a_json_object" xml:space="preserve">
+    <value>Only properties allowed in a json object</value>
+  </data>
+  <data name="Property_not_allowed_in_a_json_array" xml:space="preserve">
+    <value>Property not allowed in a json array</value>
+  </data>
+  <data name="Unterminated_comment" xml:space="preserve">
+    <value>Unterminated comment</value>
+  </data>
+  <data name="Unterminated_string" xml:space="preserve">
+    <value>Unterminated string</value>
+  </data>
+  <data name="_0_expected" xml:space="preserve">
+    <value>'{0}' expected</value>
+  </data>
+  <data name="_0_unexpected" xml:space="preserve">
+    <value>'{0}' unexpected</value>
+  </data>
+  <data name="Invalid_escape_sequence" xml:space="preserve">
+    <value>Invalid escape sequence</value>
+  </data>
+  <data name="Error_parsing_comment" xml:space="preserve">
+    <value>Error parsing comment</value>
+  </data>
+  <data name="Syntax_error" xml:space="preserve">
+    <value>Syntax error</value>
+  </data>
+  <data name="Invalid_property_name" xml:space="preserve">
+    <value>Invalid property name</value>
+  </data>
+  <data name="Missing_property_value" xml:space="preserve">
+    <value>Missing property value</value>
+  </data>
+  <data name="Nested_properties_not_allowed" xml:space="preserve">
+    <value>Nested properties not allowed</value>
+  </data>
 </root>
