@@ -508,19 +508,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                     {
-                        // In this case we rewrite the assignment as follows:
-                        //
-                        //   E t_array = array;
-                        //   I t_index = index; (possibly more indices)
-                        //   T value = t_array[t_index];
-                        //   t_array[t_index] = value op R;
-
                         var arrayAccess = (BoundArrayAccess)originalLHS;
-                        var loweredArray = VisitExpression(arrayAccess.Expression);
-                        var loweredIndices = VisitList(arrayAccess.Indices);
+                        if (isDynamicAssignment || !IsInvariantArrayAccess(arrayAccess))
+                        {
+                            // In non-dynamic, invariant array[index] op= R we emit:
+                            //   T& tmp = &array[index];
+                            //   *tmp = *L op R;
+                            // where T is the type of L.
+                            // 
+                            // If L is an array access, the assignment is dynamic, the compile-time of the array is dynamic[] 
+                            // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
+                            // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
+                            //
+                            // In this case we rewrite the assignment as follows:
+                            //
+                            //   E t_array = array;
+                            //   I t_index = index; (possibly more indices)
+                            //   T value = t_array[t_index];
+                            //   t_array[t_index] = value op R;
+                            var loweredArray = VisitExpression(arrayAccess.Expression);
+                            var loweredIndices = VisitList(arrayAccess.Indices);
 
-                        return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                            return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                        }
                     }
+                    break;
 
                 case BoundKind.DynamicMemberAccess:
                     return TransformDynamicMemberAccess((BoundDynamicMemberAccess)originalLHS, stores, temps);
@@ -590,6 +602,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             stores.Add(assignmentToTemp2);
             temps.Add(variableTemp.LocalSymbol);
             return variableTemp;
+        }
+
+        private static bool IsInvariantArrayAccess(BoundArrayAccess arrayAccess)
+        {
+            var elementType = (arrayAccess.Expression.Type as ArrayTypeSymbol)?.ElementType;
+            return elementType?.IsSealed == true;
         }
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)

@@ -16074,9 +16074,46 @@ unsafe class Test
             CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
         }
 
+        [Fact]
+        public void ArrayElementCompoundAssignment_Invariant()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(string[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(string[] a, string s)
+    {
+        a[0] += s;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "B");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""string""
+  IL_0007:  dup
+  IL_0008:  ldind.ref
+  IL_0009:  ldarg.1
+  IL_000a:  call       ""string string.Concat(string, string)""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+        }
+
         [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
         [Fact]
-        public void CovariantArrayElementCompoundAssignment()
+        public void ArrayElementCompoundAssignment_Covariant()
         {
             string source =
 @"class C
@@ -16086,14 +16123,14 @@ unsafe class Test
         F(new object[] { """" }, ""A"");
         F(new string[] { """" }, ""B"");
     }
-    static void F(object[] o, string s)
+    static void F(object[] a, string s)
     {
-        G(o, s);
-        System.Console.Write(o[0]);
+        G(a, s);
+        System.Console.Write(a[0]);
     }
-    static void G(object[] o, string s)
+    static void G(object[] a, string s)
     {
-        o[0] += s;
+        a[0] += s;
     }
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "AB");
@@ -16113,6 +16150,43 @@ unsafe class Test
   IL_0008:  call       ""string string.Concat(object, object)""
   IL_000d:  stelem.ref
   IL_000e:  ret
+}");
+        }
+
+        [Fact]
+        public void ArrayElementCompoundAssignment_ValueType()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new int[] { 1 }, 2);
+    }
+    static void F(int[] a, int i)
+    {
+        G(a, i);
+        System.Console.Write(a[0]);
+    }
+    static void G(int[] a, int i)
+    {
+        a[0] += i;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "3");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  dup
+  IL_0008:  ldind.i4
+  IL_0009:  ldarg.1
+  IL_000a:  add
+  IL_000b:  stind.i4
+  IL_000c:  ret
 }");
         }
     }
