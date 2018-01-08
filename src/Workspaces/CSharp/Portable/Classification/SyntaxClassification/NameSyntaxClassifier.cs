@@ -147,15 +147,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
 
             // Use .Equals since we can't rely on object identity for constructed types.
-            if (symbol is ITypeSymbol typeSymbol)
+            SyntaxToken token;
+            switch (symbol)
             {
-                var classification = GetClassificationForType(typeSymbol);
-                if (classification != null)
-                {
-                    var token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, classification);
+                case ITypeSymbol typeSymbol:
+                    var classification = GetClassificationForType(typeSymbol);
+                    if (classification != null)
+                    {
+                        token = name.GetNameToken();
+                        classifiedSpan = new ClassifiedSpan(token.Span, classification);
+                        return true;
+                    }
+                    break;
+                case IFieldSymbol fieldSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.FieldName);
                     return true;
-                }
+                case IMethodSymbol methodSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.MethodName);
+                    return true;
+                case IPropertySymbol propertySymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.PropertyName);
+                    return true;
+                case IEventSymbol eventSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.EventName);
+                    return true;
             }
 
             classifiedSpan = default;

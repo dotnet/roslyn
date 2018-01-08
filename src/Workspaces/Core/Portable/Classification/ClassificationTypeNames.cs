@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string StructName = "struct name";
         public const string TypeParameterName = "type parameter name";
 
+        public const string FieldName = "field name";
+        public const string MethodName = "method name";
+        public const string PropertyName = "property name";
+        public const string EventName = "event name";
+
         public const string XmlDocCommentAttributeName = "xml doc comment - attribute name";
         public const string XmlDocCommentAttributeQuotes = "xml doc comment - attribute quotes";
         public const string XmlDocCommentAttributeValue = "xml doc comment - attribute value";
