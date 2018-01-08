@@ -27,10 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 
         Protected Overrides Function GetNodeToRemoveOrReplace(node As SyntaxNode) As SyntaxNode
             node = node.Parent
-            If (node.Kind() = SyntaxKind.SimpleAssignmentStatement) Then
-                Return node
-            End If
-            Return Nothing
+            Return If(node.Kind() = SyntaxKind.SimpleAssignmentStatement, node, Nothing)
         End Function
 
         Protected Overrides Sub RemoveOrReplaceNode(editor As SyntaxEditor, node As SyntaxNode, syntaxFacts As ISyntaxFactsService)

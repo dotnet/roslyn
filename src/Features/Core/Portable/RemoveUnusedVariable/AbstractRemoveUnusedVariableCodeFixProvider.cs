@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             Diagnostic diagnostic = context.Diagnostics.Single();
-            context.RegisterCodeFix(new MyCodeAction(async c => await FixAsync(context.Document, diagnostic, c).ConfigureAwait(false)), diagnostic);
+            context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
             return Task.CompletedTask;
         }
 
@@ -43,29 +43,30 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
             // Create actions and keep their SpanStart. 
             // Execute actions ordered descending by SpanStart to avoid conflicts.
-            var actionsToPerform = new List<KeyValuePair<int, Action>>();
-            SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var DocumentsToBeSearched = ImmutableHashSet.Create(document);
+            var actionsToPerform = new List<(int, Action)>();
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var documentsToBeSearched = ImmutableHashSet.Create(document);
 
             foreach (var diagnostic in diagnostics)
             {
                 var token = diagnostic.Location.FindToken(cancellationToken);
-                SyntaxNode node = root.FindNode(diagnostic.Location.SourceSpan);
+                var node = root.FindNode(diagnostic.Location.SourceSpan);
                 if (IsCatchDeclarationIdentifier(token))
                 {
-                    actionsToPerform.Add(new KeyValuePair<int, Action>(token.Parent.SpanStart,
-                    () => syntaxEditor.ReplaceNode(
-                        token.Parent,
-                        token.Parent.ReplaceToken(token, default(SyntaxToken)).WithAdditionalAnnotations(Formatter.Annotation))));
+                    (int, Action) pair = (token.Parent.SpanStart,
+                        () => syntaxEditor.ReplaceNode(
+                            token.Parent,
+                            token.Parent.ReplaceToken(token, default(SyntaxToken)).WithAdditionalAnnotations(Formatter.Annotation)));
+                    actionsToPerform.Add(pair);
                 }
                 else
                 {
                     nodesToRemove.Add(node);
                 }
 
-                ISymbol symbol = documentEditor.SemanticModel.GetDeclaredSymbol(node);
-                var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, DocumentsToBeSearched, cancellationToken).ConfigureAwait(false);
+                var symbol = documentEditor.SemanticModel.GetDeclaredSymbol(node);
+                var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, documentsToBeSearched, cancellationToken).ConfigureAwait(false);
 
                 foreach (var referencedSymbol in referencedSymbols)
                 {
@@ -89,15 +90,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
             MergeNodesToRemove(nodesToRemove);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            foreach (var node in nodesToRemove.Where(n => n != null))
+            foreach (var node in nodesToRemove.WhereNotNull())
             {
-                actionsToPerform.Add(new KeyValuePair<int, Action>(node.SpanStart, () => RemoveOrReplaceNode(syntaxEditor, node, syntaxFacts)));
+                actionsToPerform.Add((node.SpanStart, () => RemoveOrReplaceNode(syntaxEditor, node, syntaxFacts)));
             }
 
-            // Start removing from bottom to top to keep spans of nodes that are removed later.
-            foreach (var node in actionsToPerform.OrderByDescending(n => n.Key))
+            // Process nodes in reverse order 
+            // to complete with nested declarations before processing the outer ones.
+            foreach (var node in actionsToPerform.OrderByDescending(n => n.Item1))
             {
-                node.Value();
+                node.Item2();
             }
         }
 
