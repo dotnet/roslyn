@@ -13,16 +13,19 @@ namespace Microsoft.CodeAnalysis.Interactive
     {
         internal sealed class RemoteService
         {
+            private const int ProcessExitHooked = 1;
+            private const int ProcessExitHandled = 2;
+
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
-            private EventHandler _currentLocalHandler;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;              // nulled on dispose
             private bool _disposing;                    // set to true on dispose
+            private int _processExitHandling;           // set to ProcessExitHandled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
             {
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 this.Process = process;
                 _processId = processId;
                 this.Service = service;
+                _processExitHandling = 0;
 
                 // TODO (tomat): consider using single-thread async readers
                 _readOutputThread = new Thread(() => ReadOutput(error: false));
@@ -50,37 +54,30 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal void HookAutoRestartEvent()
             {
-                const int ProcessExitHooked = 1;
-                const int ProcessExitHandled = 2;
-
-                int processExitHandling = 0;
-
-                async void localHandler(object _, EventArgs __)
+                // hook the event only once per process:
+                if (Interlocked.Exchange(ref _processExitHandling, ProcessExitHooked) == 0)
                 {
-                    try
-                    {
-                        if (Interlocked.Exchange(ref processExitHandling, ProcessExitHandled) == ProcessExitHooked)
-                        {
-                            Process.Exited -= localHandler;
-                            _currentLocalHandler = null;
+                    Process.Exited += ProcessExitedHandler;
+                }
+            }
 
-                            if (!_disposing)
-                            {
-                                await _host.OnProcessExited(Process).ConfigureAwait(false);
-                            }
+            private async void ProcessExitedHandler(object _, EventArgs __)
+            {
+                try
+                {
+                    if (Interlocked.Exchange(ref _processExitHandling, ProcessExitHandled) == ProcessExitHooked)
+                    {
+                        Process.Exited -= ProcessExitedHandler;
+
+                        if (!_disposing)
+                        {
+                            await _host.OnProcessExited(Process).ConfigureAwait(false);
                         }
                     }
-                    catch (Exception e) when (FatalError.Report(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
                 }
-
-                // hook the event only once per process:
-                if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)
+                catch (Exception e) when (FatalError.Report(e))
                 {
-                    Process.Exited += localHandler;
-                    _currentLocalHandler = localHandler;
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
