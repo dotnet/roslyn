@@ -2,7 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VirtualChars
-Imports Microsoft.CodeAnalysis.VisualBasic.RegularExpressions
+Imports Microsoft.CodeAnalysis.VisualBasic.VirtualChars
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.VirtualChars
