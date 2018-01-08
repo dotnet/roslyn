@@ -2,10 +2,9 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.AliasAmbiguousType;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType
 {
@@ -21,42 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS0104);
 
-        protected override string GetTextPreviewOfChange(SyntaxNode aliasNode)
-        {
-            Debug.Assert(aliasNode is UsingDirectiveSyntax);
-            // A poor man's name simplifier. For the preview of the context menu text the likely change is predicted by 
-            // removing the global:: namespace alias if present. For the majority of cases this should be the same result
-            // as what the real Simplifier produces in the preview pane and when the fix is applied.
-            aliasNode = RemoveGlobalNamespaceAliasIfPresent(aliasNode);
-            return aliasNode.NormalizeWhitespace().ToFullString();
-        }
-
-        NameSyntax GetLeftmostQualifiedName(NameSyntax nameSyntax)
-        {
-            while (nameSyntax is QualifiedNameSyntax qualifiedNameSyntax)
-            {
-                nameSyntax = qualifiedNameSyntax.Left;
-            }
-
-            return nameSyntax;
-        }
-
-        private SyntaxNode RemoveGlobalNamespaceAliasIfPresent(SyntaxNode aliasNode)
-        {
-            var usingDirective = (UsingDirectiveSyntax)aliasNode;
-            var nameSyntax = usingDirective.Name;
-            var leftmostName = GetLeftmostQualifiedName(nameSyntax);
-            if (leftmostName is AliasQualifiedNameSyntax aliasQualifiedName &&
-                aliasQualifiedName.Alias.Identifier.IsKind(SyntaxKind.GlobalKeyword))
-            {
-                if (aliasQualifiedName.Parent is QualifiedNameSyntax parentOfGlobalAlias)
-                {
-                    var replacement = parentOfGlobalAlias.WithLeft(SyntaxFactory.IdentifierName(aliasQualifiedName.Name.Identifier));
-                    usingDirective = usingDirective.ReplaceNode(parentOfGlobalAlias, replacement);
-                }
-            }
-
-            return usingDirective;
-        }
+        protected override string GetTextPreviewOfChange(string alias, ITypeSymbol typeSymbol) 
+            => $"using { alias } = { typeSymbol.ToNameDisplayString() };";
     }
 }

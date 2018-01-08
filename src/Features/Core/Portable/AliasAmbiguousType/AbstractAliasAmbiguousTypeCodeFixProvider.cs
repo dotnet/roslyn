@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
     internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvider
     {
 
-        protected abstract string GetTextPreviewOfChange(SyntaxNode aliasNode);
+        protected abstract string GetTextPreviewOfChange(string aliasName, ITypeSymbol typeSymbol);
 
         public override FixAllProvider GetFixAllProvider() => null;
 
@@ -42,18 +42,17 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
             {
                 var addImportService = document.GetLanguageService<IAddImportsService>();
                 var syntaxGenerator = document.GetLanguageService<SyntaxGenerator>();
-                var diagnostic = context.Diagnostics.First();
                 var compilation = semanticModel.Compilation;
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
-                foreach (var symbol in symbolInfo.CandidateSymbols)
+                foreach (var symbol in symbolInfo.CandidateSymbols.Cast<ITypeSymbol>())
                 {
                     var typeName = symbol.Name;
-                    var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, (ITypeSymbol)symbol);
-                    var codeActionPreviewText = GetTextPreviewOfChange(aliasDirective);
+                    var codeActionPreviewText = GetTextPreviewOfChange(typeName, symbol);
                     Task<Document> CreateChangedDocument(CancellationToken c)
                     {
+                        var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
                         var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
                         return Task.FromResult(document.WithSyntaxRoot(newRoot));
                     };
