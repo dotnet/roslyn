@@ -115,10 +115,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 // set _disposing so that we don't attempt restart the host anymore:
                 _disposing = true;
-                if (_currentLocalHandler != null)
+                if (Interlocked.Exchange(ref _processExitHandling, ProcessExitHandled) == ProcessExitHooked)
                 {
-                    Process.Exited -=  _currentLocalHandler;
-                    _currentLocalHandler = null;
+                    Process.Exited -= ProcessExitedHandler;
                 }
 
                 InitiateTermination(Process, _processId);
