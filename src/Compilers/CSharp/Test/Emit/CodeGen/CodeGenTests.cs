@@ -16189,5 +16189,42 @@ unsafe class Test
   IL_000c:  ret
 }");
         }
+
+        [Fact]
+        public void ArrayElementIncrement_ValueType()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new int[] { 1 });
+    }
+    static void F(int[] a)
+    {
+        G(a);
+        System.Console.Write(a[0]);
+    }
+    static void G(int[] a)
+    {
+        a[0]++;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  dup
+  IL_0008:  ldind.i4
+  IL_0009:  ldc.i4.1
+  IL_000a:  add
+  IL_000b:  stind.i4
+  IL_000c:  ret
+}");
+        }
     }
 }
