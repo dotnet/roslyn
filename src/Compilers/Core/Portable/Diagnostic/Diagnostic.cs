@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            var warningLevel = GetDefaultWarningLevel(descriptor.DefaultSeverity);
+            var warningLevel = GetDefaultWarningLevel(effectiveSeverity);
             return SimpleDiagnostic.Create(
                 descriptor,
                 severity: effectiveSeverity,

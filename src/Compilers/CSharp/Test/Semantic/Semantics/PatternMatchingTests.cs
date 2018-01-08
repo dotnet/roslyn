@@ -2630,7 +2630,7 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
-            CompileAndVerify(compilation, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -6476,7 +6476,7 @@ False
 False";
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]

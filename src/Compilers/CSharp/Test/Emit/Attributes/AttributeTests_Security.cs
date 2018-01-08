@@ -1214,7 +1214,7 @@ namespace N
 }
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            CompileAndVerify(compilation, symbolValidator: module =>
+            CompileAndVerify(compilation, verify: Verification.Passes,symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
@@ -1294,7 +1294,7 @@ namespace N
 ";
 
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            CompileAndVerify(compilation, symbolValidator: module =>
+            CompileAndVerify(compilation, verify: Verification.Passes, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
                 {

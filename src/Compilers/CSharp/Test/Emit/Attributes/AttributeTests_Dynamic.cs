@@ -98,7 +98,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         {
             var comp = CreateCompilationWithMscorlibAndSystemCore(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
 
-            CompileAndVerify(comp, symbolValidator: module =>
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
             {
                 DynamicAttributeValidator.ValidateDynamicAttributes(module);
             });
