@@ -60,6 +60,7 @@ Namespace N3
 End Namespace"
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expectedMarkupTemplate, "Imports Ambiguous = N1.Ambiguous"), index:=0)
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expectedMarkupTemplate, "Imports Ambiguous = N2.Ambiguous"), index:=1)
+            Await TestSmartTagTextAsync(initialMarkup, "Imports Ambiguous = N1.Ambiguous", index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
