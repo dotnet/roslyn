@@ -132,11 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 builder.Add(SyntaxFactory.Argument(newDeclaration));
             }
 
-            var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
-            for (int i = 1; i < builder.Count; i++)
-            {
-                separatorBuilder.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithoutTrivia());
-            }
+            var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance(builder.Count - 1, SyntaxFactory.Token(leading: default, SyntaxKind.CommaToken, trailing: default));
 
             return SyntaxFactory.TupleExpression(
                 SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
