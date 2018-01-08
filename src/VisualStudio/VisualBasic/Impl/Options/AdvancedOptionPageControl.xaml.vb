@@ -62,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(Colorize_regular_expressions, RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_regular_expressions, RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
-            BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedComponentsUnderCursor, LanguageNames.VisualBasic)
+            BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

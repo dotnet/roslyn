@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> TryGetRegexPatternHighlightsAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Workspace.Options.GetOption(RegularExpressionsOptions.HighlightRelatedComponentsUnderCursor, document.Project.Language);
+            var option = document.Project.Solution.Workspace.Options.GetOption(RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
             if (!option)
             {
                 return default;
