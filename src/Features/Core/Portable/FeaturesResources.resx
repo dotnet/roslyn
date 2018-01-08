@@ -1337,8 +1337,8 @@ This version used in: {2}</value>
   <data name="Regex_issue_0" xml:space="preserve">
     <value>Regex issue: {0}</value>
   </data>
-  <data name="Enable_IDE_JSON_features" xml:space="preserve">
-    <value>Enable IDE JSON features</value>
+  <data name="Enable_JSON_editor_features" xml:space="preserve">
+    <value>Enable JSON editor features</value>
   </data>
   <data name="Probable_JSON_string_detected" xml:space="preserve">
     <value>Probable JSON string detected</value>

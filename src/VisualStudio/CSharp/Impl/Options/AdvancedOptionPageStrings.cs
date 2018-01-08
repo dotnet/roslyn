@@ -180,5 +180,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Highlight_related_components_under_cursor =>
             ServicesVSResources.Highlight_related_components_under_cursor;
+
+        public static string Option_JSON_strings =>
+            ServicesVSResources.JSON_strings;
+
+        public static string Option_Detect_and_offer_editor_features_for_likely_JSON_strings =>
+            ServicesVSResources.Detect_and_offer_editor_features_for_likely_JSON_strings;
+
+        public static string Option_Colorize_JSON_strings =>
+            ServicesVSResources.Colorize_JSON_strings;
+
+        public static string Option_Report_invalid_JSON_strings =>
+            ServicesVSResources.Report_invalid_JSON_strings;
     }
 }

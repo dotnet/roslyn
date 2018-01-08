@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Json
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedJsonComponentsUnderCursor"));
 
-        public static PerLanguageOption<bool> DetectAndOfferLanguageServicesForProbableJsonStrings =
+        public static PerLanguageOption<bool> DetectAndOfferEditorFeaturesForProbableJsonStrings =
             new PerLanguageOption<bool>(
                 nameof(JsonOptions),
-                nameof(DetectAndOfferLanguageServicesForProbableJsonStrings),
+                nameof(DetectAndOfferEditorFeaturesForProbableJsonStrings),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.DetectAndOfferLanguageServicesForProbableJsonStrings"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.DetectAndOfferEditorFeaturesForProbableJsonStrings"));
     }
 
     [ExportOptionProvider, Shared]
@@ -45,6 +45,6 @@ namespace Microsoft.CodeAnalysis.Json
             JsonOptions.ColorizeJsonPatterns,
             JsonOptions.ReportInvalidJsonPatterns,
             JsonOptions.HighlightRelatedJsonComponentsUnderCursor,
-            JsonOptions.DetectAndOfferLanguageServicesForProbableJsonStrings);
+            JsonOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings);
     }
 }

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
                 return;
             }
 
-            var option = optionSet.GetOption(JsonOptions.DetectAndOfferLanguageServicesForProbableJsonStrings, syntaxTree.Options.Language);
+            var option = optionSet.GetOption(JsonOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, syntaxTree.Options.Language);
             if (!option)
             {
                 return;

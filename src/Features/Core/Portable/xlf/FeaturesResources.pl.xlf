@@ -1990,11 +1990,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="new">Regex issue: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_IDE_JSON_features">
-        <source>Enable IDE JSON features</source>
-        <target state="new">Enable IDE JSON features</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="new">Probable JSON string detected</target>
@@ -2003,6 +1998,11 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="JSON_issue_0">
         <source>JSON issue: {0}</source>
         <target state="new">JSON issue: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_JSON_editor_features">
+        <source>Enable JSON editor features</source>
+        <target state="new">Enable JSON editor features</target>
         <note />
       </trans-unit>
     </body>

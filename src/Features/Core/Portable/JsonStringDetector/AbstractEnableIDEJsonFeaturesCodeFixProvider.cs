@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.JsonStringDetector
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Enable_IDE_JSON_features, createChangedDocument)
+                : base(FeaturesResources.Enable_JSON_editor_features, createChangedDocument)
             {
             }
         }

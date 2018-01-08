@@ -1018,11 +1018,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable IDE JSON features.
+        ///   Looks up a localized string similar to Enable JSON editor features.
         /// </summary>
-        internal static string Enable_IDE_JSON_features {
+        internal static string Enable_JSON_editor_features {
             get {
-                return ResourceManager.GetString("Enable_IDE_JSON_features", resourceCulture);
+                return ResourceManager.GetString("Enable_JSON_editor_features", resourceCulture);
             }
         }
         
