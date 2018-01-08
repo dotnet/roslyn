@@ -10,16 +10,25 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
+using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    public enum Verification
+    {
+        Passes = 0,
+        Fails,
+        Skipped
+    }
+
     /// <summary>
     /// Base class for all language specific tests.
     /// </summary>
@@ -47,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return CompileAndVerify(
                 sources: new string[] { source },
@@ -78,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             if (options == null)
             {
@@ -114,20 +123,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             Assert.NotNull(compilation);
 
             Assert.True(expectedOutput == null ||
                 (compilation.Options.OutputKind == OutputKind.ConsoleApplication || compilation.Options.OutputKind == OutputKind.WindowsApplication),
                 "Compilation must be executable if output is expected.");
-
-            if (verify)
-            {
-                // Unsafe code might not verify, so don't try.
-                var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
-                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe);
-            }
 
             if (sourceSymbolValidator != null)
             {
@@ -185,19 +187,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
+            Assert.True(assemblyValidator != null || symbolValidator != null);
+
+            var emittedMetadata = verifier.GetMetadata();
+
             if (assemblyValidator != null)
             {
-                using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
-                {
-                    assemblyValidator(emittedMetadata.GetAssembly());
-                }
+                Assert.Equal(MetadataImageKind.Assembly, emittedMetadata.Kind);
+
+                var assembly = ((AssemblyMetadata)emittedMetadata).GetAssembly();
+                assemblyValidator(assembly);
             }
 
             if (symbolValidator != null)
             {
-                var peModuleSymbol = verifier.GetModuleSymbolForEmittedImage();
-                Debug.Assert(peModuleSymbol != null);
-                symbolValidator(peModuleSymbol);
+                var reference = emittedMetadata.Kind == MetadataImageKind.Assembly
+                    ? ((AssemblyMetadata)emittedMetadata).GetReference()
+                    : ((ModuleMetadata)emittedMetadata).GetReference();
+
+                var moduleSymbol = verifier.GetSymbolFromMetadata(reference, verifier.Compilation.Options.MetadataImportOptions);
+                symbolValidator(moduleSymbol);
             }
         }
 
@@ -212,15 +221,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<PEAssembly> assemblyValidator,
             Action<IModuleSymbol> symbolValidator,
             EmitOptions emitOptions,
-            bool verify)
+            Verification verify)
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
             verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
-            // We're dual-purposing emitters here.  In this context, it
-            // tells the validator the version of Emit that is calling it. 
-            RunValidators(verifier, assemblyValidator, symbolValidator);
+            if (assemblyValidator != null || symbolValidator != null)
+            {
+                // We're dual-purposing emitters here.  In this context, it
+                // tells the validator the version of Emit that is calling it. 
+                RunValidators(verifier, assemblyValidator, symbolValidator);
+            }
 
             return verifier;
         }
@@ -526,8 +538,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         #region Operation Test Helpers
         internal static void VerifyParentOperations(SemanticModel model)
         {
-            HashSet<string> output = new HashSet<string>();
-
             var parentMap = GetParentOperationsMap(model);
 
             // check parent for each child
@@ -539,10 +549,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // check SearchparentOperation return same parent
                 Assert.Equal(((Operation)child).SearchParentOperation(), parent);
 
-                if (parent == null && child.Kind != OperationKind.None)
+                if (parent == null)
                 {
                     // this is root of operation tree
-                    VerifyOperationTreeContracts(child, output);
+                    VerifyOperationTreeContracts(child);
                 }
             }
         }
@@ -583,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var child in node.ChildNodes())
             {
-                var operation = model.GetOperationInternal(child);
+                var operation = model.GetOperation(child);
                 if (operation != null)
                 {
                     // found top operation
@@ -602,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes())
             {
-                var operation = model.GetOperationInternal(node);
+                var operation = model.GetOperation(node);
                 if (operation == null)
                 {
                     continue;
@@ -625,15 +635,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static void VerifyOperationTreeContracts(IOperation root, HashSet<string> output)
+        private static void VerifyOperationTreeContracts(IOperation root)
         {
             var semanticModel = ((Operation)root).SemanticModel;
             var set = new HashSet<IOperation>(root.DescendantsAndSelf());
 
-            foreach (var child in GetOperationsUptoInvalidOperation(root))
+            foreach (var child in root.DescendantsAndSelf())
             {
-                // all spine of child.Syntax node must have IOperation up to the root
-                VerifyOperationTreeSpine(semanticModel, set, child.Syntax, output);
+                // all operations from spine should belong to the operation tree set
+                VerifyOperationTreeSpine(semanticModel, set, child.Syntax);
 
                 // operation tree's node must be part of root of semantic model which is 
                 // owner of operation's lifetime
@@ -641,134 +651,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static IEnumerable<IOperation> GetOperationsUptoInvalidOperation(IOperation root)
-        {
-            foreach (var child in root.Children)
-            {
-                // don't go down invalid expression/statement until
-                // we decide what to do with such case.
-                // https://github.com/dotnet/roslyn/issues/21187
-                // in current implementation, below invalid expression/statements are all messed up
-                // and we can't gurantee it will return same operation tree
-                if (child == null ||
-                    child.Kind == OperationKind.InvalidExpression ||
-                    child.Kind == OperationKind.InvalidStatement)
-                {
-                    continue;
-                }
-
-                yield return child;
-
-                foreach (var nested in GetOperationsUptoInvalidOperation(child))
-                {
-                    yield return nested;
-                }
-            }
-        }
-
         private static void VerifyOperationTreeSpine(
-            SemanticModel semanticModel, HashSet<IOperation> set, SyntaxNode node, HashSet<string> output)
+            SemanticModel semanticModel, HashSet<IOperation> set, SyntaxNode node)
         {
             while (node != semanticModel.Root)
             {
-                if (!IsIgnoredNode(node))
+                var operation = semanticModel.GetOperation(node);
+                if (operation != null)
                 {
-                    var operation = semanticModel.GetOperationInternal(node);
-                    Assert.NotNull(operation);
-
-                    // all operation from same sub tree must belong to same operation tree
-                    // except OperationKind.None and OperationKind.InvalidExpression and InvalidStatement
-                    // for those kinds, we can't guarantee it will share same tree
-                    if (operation != null &&
-                        operation.Kind != OperationKind.None &&
-                        operation.Kind != OperationKind.InvalidExpression &&
-                        operation.Kind != OperationKind.InvalidStatement &&
-                        // operation.Kind != OperationKind.PlaceholderExpression && // https://github.com/dotnet/roslyn/issues/21294
-                        (operation.Kind != OperationKind.TupleExpression || !(semanticModel.GetOperationInternal(node.Parent)?.Kind == OperationKind.LoopStatement))) // https://github.com/dotnet/roslyn/issues/20798
-                    {
-                        Assert.True(set.Contains(operation));
-                    }
+                    Assert.True(set.Contains(operation));
                 }
 
                 node = node.Parent;
             }
         }
 
-        private static bool IsIgnoredNode(SyntaxNode node)
-        {
-            // this should be removed once this is fixed
-            // https://github.com/dotnet/roslyn/issues/21187
-            // basically, for these node. GetOpeartion will return null 
-            // even though GetOperation returns IOperation for its child (syntax node)
-            // violating our assumption that all spine once a node has IOperation should
-            // have an IOperation
-            if (node is CSharp.CSharpSyntaxNode csNode)
-            {
-                switch (csNode.Kind())
-                {
-                    case CSharp.SyntaxKind.VariableDeclarator:
-                        return csNode.Parent?.Kind() == CSharp.SyntaxKind.VariableDeclaration;
-                    case CSharp.SyntaxKind.EqualsValueClause:
-                        return csNode.Parent?.Kind() == CSharp.SyntaxKind.VariableDeclarator &&
-                               csNode.Parent?.Parent?.Kind() == CSharp.SyntaxKind.VariableDeclaration;
-                    case CSharp.SyntaxKind.IdentifierName when csNode.ToString() == "E":
-                        // related issue - https://github.com/dotnet/roslyn/pull/20960
-                        return csNode.Parent?.Kind() == CSharp.SyntaxKind.AddAssignmentExpression ||
-                               csNode.Parent?.Kind() == CSharp.SyntaxKind.SubtractAssignmentExpression;
-                    case CSharp.SyntaxKind.CheckedStatement:
-                    case CSharp.SyntaxKind.UncheckedStatement:
-                    case CSharp.SyntaxKind.UnsafeStatement:
-                        return true;
-
-                    default:
-                        return false;
-                }
-            }
-
-            if (node is VisualBasic.VisualBasicSyntaxNode vbNode)
-            {
-                switch (vbNode.Kind())
-                {
-                    case VisualBasic.SyntaxKind.SimpleArgument:
-                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.ArgumentList ||
-                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.TupleExpression;
-                    case VisualBasic.SyntaxKind.VariableDeclarator:
-                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.LocalDeclarationStatement ||
-                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.FieldDeclaration;
-                    case VisualBasic.SyntaxKind.EqualsValue:
-                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.VariableDeclarator;
-                    case VisualBasic.SyntaxKind.NamedFieldInitializer:
-                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.ObjectMemberInitializer;
-                    case VisualBasic.SyntaxKind.ObjectMemberInitializer:
-                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.AnonymousObjectCreationExpression;
-                    case VisualBasic.SyntaxKind.SelectStatement:
-                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.SelectBlock;
-                    case VisualBasic.SyntaxKind.CollectionInitializer:
-                    case VisualBasic.SyntaxKind.ModifiedIdentifier:
-                    case VisualBasic.SyntaxKind.CaseBlock:
-                    case VisualBasic.SyntaxKind.CaseElseBlock:
-                    case VisualBasic.SyntaxKind.CaseStatement:
-                    case VisualBasic.SyntaxKind.CaseElseStatement:
-                    case VisualBasic.SyntaxKind.WhileClause:
-                    case VisualBasic.SyntaxKind.ArgumentList:
-                    case VisualBasic.SyntaxKind.FromClause:
-                    case VisualBasic.SyntaxKind.ExpressionRangeVariable:
-                    case VisualBasic.SyntaxKind.LetClause:
-                    case VisualBasic.SyntaxKind.JoinCondition:
-                    case VisualBasic.SyntaxKind.AsNewClause:
-                    case VisualBasic.SyntaxKind.ForStepClause:
-                    case VisualBasic.SyntaxKind.UntilClause:
-                    case VisualBasic.SyntaxKind.InterpolationAlignmentClause:
-                        return true;
-                    default:
-                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.AddHandlerStatement ||
-                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RemoveHandlerStatement ||
-                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RaiseEventStatement;
-                }
-            }
-
-            throw ExceptionUtilities.Unreachable;
-        }
         #endregion
     }
 }

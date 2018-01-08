@@ -1865,6 +1865,66 @@ BC36639: 'ByRef' parameter 'a' cannot be used in a lambda expression.
 </expected>)
         End Sub
 
+        <Fact>
+        <WorkItem(22329, "https://github.com/dotnet/roslyn/issues/22329")>
+        Public Sub ShapeMismatchInOneArgument_01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C3
+    Shared Sub Main()
+        Test2(Nullable(New VT(Of Integer, Integer)()), New VT(Of Integer, Integer)())
+        Test2(New VT(Of Integer, Integer)(), Nullable(New VT(Of Integer, Integer)()))
+    End Sub
+    Shared Function Nullable(Of T As Structure)(x As T) As T?
+        Return x
+    End Function
+    Shared Sub Test2(Of T, U)(x As VT(Of T, U), y As VT(Of T, U))
+        System.Console.Write(1) 
+    End Sub
+    Public Structure VT(Of T, S)
+    End Structure
+End Class
+    </file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test2(Of T, U)(x As C3.VT(Of T, U), y As C3.VT(Of T, U))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2(Nullable(New VT(Of Integer, Integer)()), New VT(Of Integer, Integer)())
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test2(Of T, U)(x As C3.VT(Of T, U), y As C3.VT(Of T, U))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2(New VT(Of Integer, Integer)(), Nullable(New VT(Of Integer, Integer)()))
+        ~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(22329, "https://github.com/dotnet/roslyn/issues/22329")>
+        Public Sub ShapeMismatchInOneArgument_02()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Class C3
+    Shared Sub Main()
+        Test2(Nullable(New VT(Of Integer, Integer)()), New VT(Of Integer, Integer)())
+        Test2(New VT(Of Integer, Integer)(), Nullable(New VT(Of Integer, Integer)()))
+    End Sub
+    Shared Function Nullable(Of T As Structure)(x As T) As T?
+        Return x
+    End Function
+    Shared Sub Test2(Of T)(x As T, y As T)
+        System.Console.Write(1) 
+    End Sub
+    Public Structure VT(Of T, S)
+    End Structure
+End Class
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+11
+]]>)
+        End Sub
+
     End Class
 End Namespace
 

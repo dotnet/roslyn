@@ -879,6 +879,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 throw new ArgumentNullException(nameof(node));
             }
 
+            // In all cases, the resulting syntax for the new name has elastic trivia attached,
+            // whether via this call to SyntaxFactory.Identifier or via explicitly added elastic
+            // markers.
             SyntaxToken newIdentifier = SyntaxFactory.Identifier(name);
             switch (node.Kind())
             {
@@ -904,13 +907,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)node).WithIdentifier(newIdentifier);
                 case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)node).WithName(SyntaxFactory.IdentifierName(name));
+                    return ((NamespaceDeclarationSyntax)node).WithName(
+                        SyntaxFactory.ParseName(name)
+                            .WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
+                            .WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)));
                 case SyntaxKind.EnumMemberDeclaration:
                     return ((EnumMemberDeclarationSyntax)node).WithIdentifier(newIdentifier);
                 case SyntaxKind.VariableDeclarator:
                     return ((VariableDeclaratorSyntax)node).WithIdentifier(newIdentifier);
                 case SyntaxKind.Attribute:
-                    return ((AttributeSyntax)node).WithName(SyntaxFactory.IdentifierName(name));
+                    return ((AttributeSyntax)node).WithName(
+                        SyntaxFactory.ParseName(name)
+                            .WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
+                            .WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)));
                 case SyntaxKind.AttributeArgument:
                     return ((AttributeArgumentSyntax)node).WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(name)));
                 default:
@@ -1038,7 +1047,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case Accessibility.ProtectedOrInternal:
                     return EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
                 case Accessibility.ProtectedAndInternal:
-                    // PROTOTYPE: there is no appropriate mapping for private protected in EnvDTE.vsCMAccess
+                    // there is no appropriate mapping for private protected in EnvDTE.vsCMAccess
+                    // See https://github.com/dotnet/roslyn/issues/22406
                     return EnvDTE.vsCMAccess.vsCMAccessProtected;
                 default:
                     throw Exceptions.ThrowEFail();
@@ -1142,7 +1152,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            if (node is AccessorDeclarationSyntax)
+            if (node is AccessorDeclarationSyntax || 
+                node is ArrowExpressionClauseSyntax)
             {
                 return GetAccess(node.FirstAncestorOrSelf<BasePropertyDeclarationSyntax>());
             }

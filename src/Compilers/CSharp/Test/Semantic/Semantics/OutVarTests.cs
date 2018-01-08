@@ -196,10 +196,10 @@ public class Cls
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,20): error CS8184: A declaration is not allowed in this context.
+                // (6,20): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(6, 20),
-                // (6,28): error CS8184: A declaration is not allowed in this context.
+                // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x2").WithLocation(6, 28),
                 // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -1015,7 +1015,9 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
-            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
+
+            // skip cases where operation is not supported
+            AssertTypeFromOperation(model, expectedType, decl);
 
             // Note: the following assertion is not, in general, correct for declaration expressions,
             // even though this helper is used to handle declaration expressions.
@@ -1064,6 +1066,31 @@ public class Cls
             Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
 
             Assert.Null(model.GetDeclaredSymbol(decl));
+        }
+
+        private static void AssertTypeFromOperation(SemanticModel model, TypeSymbol expectedType, DeclarationExpressionSyntax decl)
+        {
+            // see https://github.com/dotnet/roslyn/issues/23006 and https://github.com/dotnet/roslyn/issues/23007 for more detail
+
+            // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
+            // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
+            // error recovery mode
+            var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
+            if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
+                foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)
+            {
+                // invalid syntax case where operation is not supported
+                return;
+            }
+
+            var typeofExpression = decl.Ancestors().OfType<TypeOfExpressionSyntax>().FirstOrDefault();
+            if (typeofExpression?.Type?.FullSpan.Contains(decl.Span) == true)
+            {
+                // invalid syntax case where operation is not supported
+                return;
+            }
+
+            Assert.Equal(expectedType, model.GetOperation(decl)?.Type);
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -5663,7 +5690,7 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -5697,7 +5724,7 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -8650,7 +8677,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
-            
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -21605,7 +21632,7 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(6, 19)
                 );
         }
-        
+
         [Fact]
         public void GlobalCode_Catch_01()
         {
@@ -30360,7 +30387,7 @@ class Program
     {
         switch (true)
         {
-            case TakeOutParam(3, out UndelcaredType x1):
+            case TakeOutParam(3, out UndeclaredType x1):
                 System.Console.WriteLine(x1);
                 break;
         }
@@ -30370,11 +30397,11 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
-                // (8,38): error CS0246: The type or namespace name 'UndelcaredType' could not be found (are you missing a using directive or an assembly reference?)
-                //             case TakeOutParam(3, out UndelcaredType x1):
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndelcaredType").WithArguments("UndelcaredType").WithLocation(8, 38),
+                // (8,38): error CS0246: The type or namespace name 'UndeclaredType' could not be found (are you missing a using directive or an assembly reference?)
+                //             case TakeOutParam(3, out UndeclaredType x1):
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndeclaredType").WithArguments("UndeclaredType").WithLocation(8, 38),
                 // (8,18): error CS0103: The name 'TakeOutParam' does not exist in the current context
-                //             case TakeOutParam(3, out UndelcaredType x1):
+                //             case TakeOutParam(3, out UndeclaredType x1):
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(8, 18),
                 // (9,17): warning CS0162: Unreachable code detected
                 //                 System.Console.WriteLine(x1);
@@ -31092,7 +31119,7 @@ public class C
     @"
 public class C
 {
-    static void M(out object x) { x = 1; System.Console.Write(""object returing M. ""); }
+    static void M(out object x) { x = 1; System.Console.Write(""object returning M. ""); }
     static void M(out int x) { x = 2; System.Console.Write(""int returning M.""); }
     static void Main()
     {
@@ -31103,7 +31130,7 @@ public class C
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "object returing M. int returning M.");
+            CompileAndVerify(comp, expectedOutput: "object returning M. int returning M.");
         }
 
         [Fact]
@@ -32511,7 +32538,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
@@ -32547,7 +32574,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
@@ -32653,7 +32680,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
@@ -32887,6 +32914,173 @@ public class C
                 );
 
             CompileAndVerify(compilation, expectedOutput: "23True");
+        }
+
+        [Fact]
+        [WorkItem(23378, "https://github.com/dotnet/roslyn/issues/23378")]
+        public void OutVarInArgList_01()
+        {
+            var text = @"
+public class C
+{
+    static void Main()
+    {
+        M(1, __arglist(out int y));
+        M(2, __arglist(out var z));
+        System.Console.WriteLine(z);
+    }
+    
+    static void M(int x, __arglist)
+    {    
+        x = 0;
+    }
+}";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (7,32): error CS8197: Cannot infer the type of implicitly-typed out variable 'z'.
+                //         M(2, __arglist(out var z));
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 32)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var zDecl = GetOutVarDeclaration(tree, "z");
+            var zRef = GetReference(tree, "z");
+            VerifyModelForOutVar(model, zDecl, zRef);
+        }
+
+        [Fact]
+        [WorkItem(23378, "https://github.com/dotnet/roslyn/issues/23378")]
+        public void OutVarInArgList_02()
+        {
+            var text = @"
+public class C
+{
+    static void Main()
+    {
+        __arglist(out int y);
+        __arglist(out var z);
+        System.Console.WriteLine(z);
+    }
+}";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0226: An __arglist expression may only appear inside of a call or new expression
+                //         __arglist(out int y);
+                Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(out int y)").WithLocation(6, 9),
+                // (7,27): error CS8197: Cannot infer the type of implicitly-typed out variable 'z'.
+                //         __arglist(out var z);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 27),
+                // (7,9): error CS0226: An __arglist expression may only appear inside of a call or new expression
+                //         __arglist(out var z);
+                Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(out var z)").WithLocation(7, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var zDecl = GetOutVarDeclaration(tree, "z");
+            var zRef = GetReference(tree, "z");
+            VerifyModelForOutVar(model, zDecl, zRef);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void OutVarInNewT_01()
+        {
+            var text = @"
+public class C
+{
+    static void M<T>() where T : new()
+    {
+        var x = new T(out var z);
+        System.Console.WriteLine(z);
+    }
+}";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+                //         var x = new T(out var z);
+                Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "new T(out var z)").WithArguments("T").WithLocation(6, 17)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var zDecl = GetOutVarDeclaration(tree, "z");
+            var zRef = GetReference(tree, "z");
+            VerifyModelForOutVarWithoutDataFlow(model, zDecl, zRef);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            Assert.Equal("new T(out var z)", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IInvalidOperation (OperationKind.Invalid, Type: T, IsInvalid) (Syntax: 'new T(out var z)')
+  Children(1):
+      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: var, IsInvalid) (Syntax: 'var z')
+        ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'z')
+");
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void OutVarInNewT_02()
+        {
+            var text = @"
+public class C
+{
+    static void M<T>() where T : C, new()
+    {
+        var x = new T(out var z) {F1 = 1};
+        System.Console.WriteLine(z);
+    }
+
+    public int F1;
+}
+
+
+";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+                //         var x = new T(out var z) {F1 = 1};
+                Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "new T(out var z) {F1 = 1}").WithArguments("T").WithLocation(6, 17)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var zDecl = GetOutVarDeclaration(tree, "z");
+            var zRef = GetReference(tree, "z");
+            VerifyModelForOutVarWithoutDataFlow(model, zDecl, zRef);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            Assert.Equal("new T(out var z) {F1 = 1}", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IInvalidOperation (OperationKind.Invalid, Type: T, IsInvalid) (Syntax: 'new T(out v ... z) {F1 = 1}')
+  Children(2):
+      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: var, IsInvalid) (Syntax: 'var z')
+        ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'z')
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsInvalid) (Syntax: '{F1 = 1}')
+        Initializers(1):
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'F1 = 1')
+              Left: 
+                IFieldReferenceOperation: System.Int32 C.F1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'F1')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'F1')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+");
         }
     }
 

@@ -1582,18 +1582,21 @@ class A
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-            // (10,9): error CS0031: Constant value '240' cannot be converted to a 'sbyte'
-            //     B = 0xf0, // CS0031
-            Diagnostic(ErrorCode.ERR_ConstOutOfRange, "0xf0").WithArguments("240", "sbyte"),
-            // (5,9): error CS0031: Constant value '-1' cannot be converted to a 'ushort'
-            //     B = -1 // CS0031
-            Diagnostic(ErrorCode.ERR_ConstOutOfRange, "-1").WithArguments("-1", "ushort"),
-            // (13,10): error CS0031: Constant value '128' cannot be converted to a 'sbyte'
-            //     E = (A + 1), // CS0031
-            Diagnostic(ErrorCode.ERR_ConstOutOfRange, "A + 1").WithArguments("128", "sbyte"),
-            // (17,15): error CS0031: Constant value '256' cannot be converted to a 'byte'
-            //     byte bt = 256;
-            Diagnostic(ErrorCode.ERR_ConstOutOfRange, "256").WithArguments("256", "byte"));
+                // (5,9): error CS0031: Constant value '-1' cannot be converted to a 'ushort'
+                //     B = -1 // CS0031
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "-1").WithArguments("-1", "ushort").WithLocation(5, 9),
+                // (10,9): error CS0031: Constant value '240' cannot be converted to a 'sbyte'
+                //     B = 0xf0, // CS0031
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "0xf0").WithArguments("240", "sbyte").WithLocation(10, 9),
+                // (13,10): error CS0031: Constant value '128' cannot be converted to a 'sbyte'
+                //     E = (A + 1), // CS0031
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "A + 1").WithArguments("128", "sbyte").WithLocation(13, 10),
+                // (17,15): error CS0031: Constant value '256' cannot be converted to a 'byte'
+                //     byte bt = 256;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "256").WithArguments("256", "byte").WithLocation(17, 15),
+                // (17,10): warning CS0414: The field 'A.bt' is assigned but its value is never used
+                //     byte bt = 256;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "bt").WithArguments("A.bt").WithLocation(17, 10));
         }
 
         [Fact]
@@ -3028,7 +3031,7 @@ public class MyClass : Outer.base1
 ";
             var comp = CreateStandardCompilation(text);
             var type1 = comp.SourceModule.GlobalNamespace.GetMembers("MyClass").Single() as NamedTypeSymbol;
-            var b = type1.BaseType;
+            var b = type1.BaseType();
             var errs = comp.GetDiagnostics();
             Assert.Equal(1, errs.Count());
             Assert.Equal(122, errs.First().Code);
@@ -3648,6 +3651,9 @@ class C
                 // (4,9): error CS0266: Cannot implicitly convert type 'E' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //     Y = C.F(),
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.F()").WithArguments("E", "int").WithLocation(4, 9),
+                // (4,9): error CS0133: The expression being assigned to 'E.Y' must be constant
+                //     Y = C.F(),
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "C.F()").WithArguments("E.Y").WithLocation(4, 9),
                 // (5,9): error CS0133: The expression being assigned to 'E.Z' must be constant
                 //     Z = C.G() + 1,
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "C.G() + 1").WithArguments("E.Z").WithLocation(5, 9));
@@ -5274,7 +5280,165 @@ class Program
         }
 
         [Fact]
-        public void CS7095WRN_FilterIsConstant1()
+        public void CS8359WRN_FilterIsConstantFalse_NonBoolean()
+        {
+            // Non-boolean constant filters are not considered for WRN_FilterIsConstant warnings. 
+
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (1) { }
+        catch (B) when (0) { }
+        catch (B) when (""false"") { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         catch (A) when (1) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool").WithLocation(11, 25),
+                // (12,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         catch (B) when (0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(12, 25),
+                // (13,25): error CS0029: Cannot implicitly convert type 'string' to 'bool'
+                //         catch (B) when ("false") { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""false""").WithArguments("string", "bool").WithLocation(13, 25),
+                // (14,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(14, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse1()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
+                // (12,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse2()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+class B : A { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when ((1+1)!=2) { }
+        catch (B) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "(1+1)!=2").WithLocation(11, 25),
+                // (12,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (B) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void CS8359WRN_FilterIsConstantFalse3()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+        finally { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS8360WRN_FilterIsConstantRedundantTryCatch1()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS8360WRN_FilterIsConstantRedundantTryCatch2()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when ((1+1)!=2) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "(1+1)!=2").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void CS7095WRN_FilterIsConstantTrue1()
         {
             var text = @"
 using System;
@@ -5292,13 +5456,13 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,23): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (11,25): warning CS7095: Filter expression is a constant 'true', consider removing the filter
                 //         catch (A) when (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(11, 25));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(11, 25));
         }
 
         [Fact]
-        public void CS7095WRN_FilterIsConstant2()
+        public void CS7095WRN_FilterIsConstantTrue2()
         {
             var text = @"
 using System;
@@ -5316,12 +5480,34 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (10,19): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (10,19): warning CS7095: Filter expression is a constant 'true', consider removing the filter
                 //         catch when (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 21),
-                // (12,19): warning CS7095: Filter expression is a constant, consider removing the filter
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 21),
+                // (12,19): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch when (false) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(12, 21));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 21));
+        }
+
+        [Fact]
+        public void CS7095WRN_FilterIsConstantTrue3()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch when ((1+1)==2) { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (10,19): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         catch when (true) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "(1+1)==2").WithLocation(10, 21));
         }
 
         [Fact]
@@ -5346,9 +5532,9 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (11,25): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (11,25): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
     //         catch (A) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
     // (13,13): warning CS0162: Unreachable code detected
     //             Console.WriteLine(1); 
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 13)
@@ -5379,9 +5565,9 @@ class Program
             // is to make conditional compilation easier. Such scenario doesn't apply to filters.
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (10,33): warning CS7105: Filter expression is a constant 'false', consider removing the try-catch block
     //         catch (Exception) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 33),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 33),
     // (12,13): warning CS0162: Unreachable code detected
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(12, 13)
@@ -5412,9 +5598,9 @@ class Program
             // is to make conditional compilation easier. Such scenario doesn't apply to filters.
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    // (10,33): warning CS7095: Filter expression is a constant 'true', consider removing the filter
     //         catch (Exception) when (true) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 33),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 33),
     // (12,31): error CS0165: Use of unassigned local variable 'x'
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 31)
@@ -6866,6 +7052,7 @@ public class MyClass
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_PtrExpected, Line = 15, Column = 7 } });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0196ERR_PtrIndexSingle()
         {
@@ -6881,10 +7068,27 @@ unsafe public class MyClass
       // j = i[1];
    }
 }";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,11): error CS0196: A pointer must be indexed by only one value
                 //       j = i[1,2];   // CS0196
                 Diagnostic(ErrorCode.ERR_PtrIndexSingle, "i[1,2]"));
+
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
+
+            Assert.Equal("i[1,2]", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1,2]')
+  Children(2):
+      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'i')
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1,2]')
+        Children(2):
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+");
         }
 
         [Fact]
@@ -7006,7 +7210,7 @@ initializing for System.String
 String
 ";
             // Although we accept this nasty code, it will not verify.
-            CompileAndVerify(text, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(text, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -8536,41 +8740,51 @@ class FixedTest
         }
 
         [Fact]
-        public void CS0255ERR_StackallocInCatchFinally()
+        public void CS0255ERR_StackallocInFinally()
         {
             var text = @"
-using System;
-
-public class TestTryFinally
+unsafe class Test
 {
-   public static unsafe void Test()
-   {
-      int i = 123;
-      string s = ""Some string"";
-      object o = s;
-
-      try
-      {
-         // Conversion is not valid; o contains a string not an int
-         i = (int) o;
-      }
-
-      finally
-      {
-         Console.Write(""i = {0}"", i);
-         int* fib = stackalloc int[100];   // CS0255
-      }
-   }
-
-   public static void Main()
-   {
-   }
-}
-";
+    void M()
+    {
+        try
+        {
+            // Something        
+        }
+        finally
+        {
+            int* fib = stackalloc int[100];
+        }
+    }
+}";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (21,21): error CS0255: stackalloc may not be used in a catch or finally block
-                //          int* fib = stackalloc int[100];   // CS0255
-                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]"));
+                // (12,24): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* fib = stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]").WithLocation(12, 24));
+        }
+
+        [Fact]
+        public void CS0255ERR_StackallocInCatch()
+        {
+            var text = @"
+unsafe class Test
+{
+    void M()
+    {
+        try
+        {
+            // Something        
+        }
+        catch
+        {
+            int* fib = stackalloc int[100];
+        }
+    }
+}";
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (12,24): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* fib = stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]").WithLocation(12, 24));
         }
 
         [Fact]
@@ -8623,7 +8837,10 @@ class MyClass
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,25): error CS0266: Cannot implicitly convert type 'long' to 'short'. An explicit conversion exists (are you missing a cast?)
                 //         const short s = 1L;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "short").WithLocation(5, 25));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "short").WithLocation(5, 25),
+                // (5,21): warning CS0219: The variable 's' is assigned but its value is never used
+                //         const short s = 1L;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(5, 21));
         }
 
         [Fact]
@@ -8648,7 +8865,13 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "2").WithArguments("int", "E").WithLocation(4, 11),
                 // (9,13): error CS0266: Cannot implicitly convert type 'char' to 'E'. An explicit conversion exists (are you missing a cast?)
                 //         g = 'c'; // CS0266
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "'c'").WithArguments("char", "E").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "'c'").WithArguments("char", "E").WithLocation(9, 13),
+                // (4,7): warning CS0414: The field 'C.f' is assigned but its value is never used
+                //     E f = 2; // CS0266
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 7),
+                // (5,7): warning CS0414: The field 'C.g' is assigned but its value is never used
+                //     E g = E.A;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "g").WithArguments("C.g").WithLocation(5, 7));
         }
 
         [Fact]
@@ -10250,8 +10473,9 @@ public class Test
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "h1a").WithArguments("H1<A>.implicit operator G1<A>(H1<A>)", "H0.implicit operator G0(H0)", "H1<A>", "G0"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
-        public void CS0459ERR_AddrOnReadOnlyLocal()
+        public void AddrOnReadOnlyLocal()
         {
             var text = @"
 class A
@@ -10261,25 +10485,19 @@ class A
         int[] ints = new int[] { 1, 2, 3 };
         foreach (int i in ints)
         {
-            int *j = &i;  // CS0459
+            int *j = &i;  
         }
 
         fixed (int *i = &_i)
         {
-            int **j = &i;  // CS0459
+            int **j = &i;  
         }
     }
 
     private int _i = 0;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,23): error CS0459: Cannot take the address of a read-only local variable
-                //             int *j = &i;  // CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i"),
-                // (14,24): error CS0459: Cannot take the address of a read-only local variable
-                //             int **j = &i;  // CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i"));
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -10987,8 +11205,18 @@ class Example
 }";
             var compilation = CreateStandardCompilation(text);
             compilation.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "1.0").WithArguments("M", "decimal"),
-                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "2.0").WithArguments("F", "float"));
+                // (7,22): error CS0664: Literal of type double cannot be implicitly converted to type 'decimal'; use an 'M' suffix to create a literal of this type
+                //         decimal d1 = 1.0;
+                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "1.0").WithArguments("M", "decimal").WithLocation(7, 22),
+                // (8,20): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
+                //         float f1 = 2.0;
+                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "2.0").WithArguments("F", "float").WithLocation(8, 20),
+                // (7,17): warning CS0219: The variable 'd1' is assigned but its value is never used
+                //         decimal d1 = 1.0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "d1").WithArguments("d1").WithLocation(7, 17),
+                // (8,15): warning CS0219: The variable 'f1' is assigned but its value is never used
+                //         float f1 = 2.0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "f1").WithArguments("f1").WithLocation(8, 15));
         }
 
         [Fact]
@@ -12454,6 +12682,8 @@ class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(23004, "https://github.com/dotnet/roslyn/issues/23004")]
         public void CS0856ERR_IndexedPropertyRequiresParams01()
         {
             var source1 =
@@ -12492,6 +12722,19 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "i.R").WithArguments("I.R").WithLocation(8, 9),
                 // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'I.R[int, int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.R[1]").WithArguments("y", "I.R[int, int, int]").WithLocation(9, 9));
+
+            var tree = compilation2.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
+
+            Assert.Equal("i.R[1]", node.ToString());
+
+            compilation2.VerifyOperationTree(node, expectedOperationTree:
+@"
+IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid) (Syntax: 'i.R[1]')
+  Children(2):
+      IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: I, IsInvalid) (Syntax: 'i')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+");
         }
 
         [Fact]
@@ -12595,7 +12838,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B
 {
@@ -15533,22 +15776,15 @@ public unsafe class C
     public readonly S _s2;
 }";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (18,9): error CS1708: Fixed size buffers can only be accessed through locals or fields
+                // (18,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         myC.UnsafeMethod().name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedNeedsLvalue, "myC.UnsafeMethod().name"),
-                // (19,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
-                //         C._s1.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "C._s1.name"),
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC.UnsafeMethod().name").WithLocation(18, 9),
                 // (19,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         C._s1.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "C._s1.name"),
-                // (20,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
-                //         myC._s2.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "myC._s2.name"),
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "C._s1.name").WithLocation(19, 9),
                 // (20,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         myC._s2.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC._s2.name")
-                );
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC._s2.name").WithLocation(20, 9));
         }
 
         [Fact, WorkItem(543995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543995"), WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
@@ -22895,6 +23131,8 @@ class Program
 
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(23009, "https://github.com/dotnet/roslyn/issues/23009")]
         public void ConditionalElementAccess001()
         {
             var text = @"
@@ -22924,7 +23162,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -22947,8 +23185,23 @@ class Program
     //         var x5 = null?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "<null>").WithLocation(24, 22)
     );
-        }
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().First();
 
+            Assert.Equal("base?.ToString()", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'base?.ToString()')
+  Operation: 
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'base')
+  WhenNotNull: 
+    IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
+      Instance Receiver: 
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'base')
+      Arguments(0)
+");
+        }
 
         [Fact]
         [WorkItem(976765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]
@@ -23335,6 +23588,52 @@ class Program
                );
         }
 
+        [WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")]
+        [Fact]
+        public void ConditionalMemberAccessRefLike()
+        {
+            var text = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var o = new Program();
+
+        o?.F(); // this is ok
+
+        var x = o?.F();
+
+        var y = o?.F() ?? default;
+
+        var z = o?.F().field ?? default;
+    }
+
+    S2 F() => throw null;
+}
+
+public ref struct S1
+{
+
+}
+
+public ref struct S2
+{
+    public S1 field;
+}
+";
+            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (10,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                //         var x = o?.F();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(10, 18),
+                // (12,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                //         var y = o?.F() ?? default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(12, 18),
+                // (14,18): error CS0023: Operator '?' cannot be applied to operand of type 'S1'
+                //         var z = o?.F().field ?? default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S1").WithLocation(14, 18)
+               );
+        }
+
         [Fact]
         [WorkItem(1179322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179322")]
         public void LabelSameNameAsParameter()
@@ -23421,6 +23720,30 @@ class Program
                 // (6,9): error CS8209: A value of type 'void' may not be assigned.
                 //         _ = M();
                 Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(22880, "https://github.com/dotnet/roslyn/issues/22880")]
+        public void AttributeCtorInParam()
+        {
+            var text = @"
+[A(1)]
+class A : System.Attribute {
+  A(in int x) { }
+}
+
+[B()]
+class B : System.Attribute {
+  B(in int x = 1) { }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (7,2): error CS8355: Cannot use attribute constructor 'B.B(in int)' because it is has 'in' parameters.
+                // [B()]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2),
+                // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
+                // [A(1)]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
                 );
         }
     }

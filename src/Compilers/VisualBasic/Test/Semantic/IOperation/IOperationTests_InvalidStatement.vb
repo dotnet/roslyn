@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -11,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18077"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidVariableDeclarationStatement()
             Dim source = <![CDATA[
 Class Program
@@ -22,9 +21,17 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x, 1 As Integer')
-  IVariableDeclaration: x As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'x')
-  IVariableDeclaration:  As System.Int32 (OperationKind.VariableDeclaration) (Syntax: '')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim x, 1 As Integer')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'x, 1 As Integer')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+          Initializer: 
+            null
+        IVariableDeclaratorOperation (Symbol:  As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -51,16 +58,18 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'Select Case ... End Select')
-  Switch expression: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
+            Dim expectedOperationTree = <![CDATA[
+ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'Select Case ... End Select')
+  Switch expression: 
+    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
   Sections:
-      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 1')
+      ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'Case 1')
           Clauses:
-              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '1')
-                Value: null
+              ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null) (Syntax: '1')
+                Value: 
+                  null
           Body:
-              IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 1')
+              IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Case 1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -86,19 +95,22 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'Select Case ... End Select')
-  Switch expression: IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
-      Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+            Dim expectedOperationTree = <![CDATA[
+ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'Select Case ... End Select')
+  Switch expression: 
+    IInvocationOperation (virtual Function System.Object.ToString() As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
+      Instance Receiver: 
+        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program) (Syntax: 'x')
       Arguments(0)
   Sections:
-      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'Case x ... Exit Select')
+      ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'Case x ... Exit Select')
           Clauses:
-              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid) (Syntax: 'x')
-                Value: null
+              ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'x')
+                Value: 
+                  null
           Body:
-              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Case x ... Exit Select')
-                IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement) (Syntax: 'Exit Select')
+              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Case x ... Exit Select')
+                IBranchOperation (BranchKind.Break, Label: exit) (OperationKind.Branch, Type: null) (Syntax: 'Exit Select')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -122,17 +134,24 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If x = Noth ... End If')
-  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = Nothing')
+            Dim expectedOperationTree = <![CDATA[
+IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'If x = Noth ... End If')
+  Condition: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x = Nothing')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
-          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-          Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'Nothing')
+      Operand: 
+        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
+          Left: 
+            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
+          Right: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, Constant: null, IsInvalid, IsImplicit) (Syntax: 'Nothing')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
-  IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If x = Noth ... End If')
-  IfFalse: null
+              Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
+  WhenTrue: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'If x = Noth ... End If')
+  WhenFalse: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -158,21 +177,29 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If Then'BIN ... Else')
-  Condition: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+            Dim expectedOperationTree = <![CDATA[
+IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'If Then'BIN ... Else')
+  Condition: 
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
-  IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If Then'BIN ... Else')
-  IfFalse: IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'ElseIf x Th ... x')
-      Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+  WhenTrue: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'If Then'BIN ... Else')
+  WhenFalse: 
+    IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'ElseIf x Th ... x')
+      Condition: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-      IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'ElseIf x Th ... x')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x')
-            Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
+          Operand: 
+            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
+      WhenTrue: 
+        IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'ElseIf x Th ... x')
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x')
+            Expression: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
                 Children(1):
-                    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-      IfFalse: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Else')
+                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
+      WhenFalse: 
+        IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Else')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -206,18 +233,26 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For i As In ... Next i')
   Locals: Local_1: i As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-  LimitValue: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Integer')
+      Initializer: 
+        null
+  InitialValue: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+  LimitValue: 
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
+  StepValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
   NextVariables(1):
-      ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -245,17 +280,25 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For Step (M ... Next')
+IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Step (M ... Next')
   Locals: Local_1:  As System.Object
-  LoopControlVariable: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: '')
-  InitialValue: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol:  As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
+      Initializer: 
+        null
+  InitialValue: 
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
-  LimitValue: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+  LimitValue: 
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
+  StepValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For Step (M ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For Step (M ... Next')
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -289,20 +332,29 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For i As In ... Next i')
   Locals: Local_1: i As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Integer')
+      Initializer: 
+        null
+  InitialValue: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+  LimitValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
-  StepValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+      Operand: 
+        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+  StepValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
+      Operand: 
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
           Children(0)
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
   NextVariables(1):
-      ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -331,9 +383,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'GoTo Label1')
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'GoTo Label1')
   Children(1):
-      IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: 'Label1')
+      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Label1')
         Children(0)
 ]]>.Value
 
@@ -357,7 +409,7 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Exit For')
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit For')
   Children(0)
 ]]>.Value
 
@@ -381,7 +433,7 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Continue')
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue')
   Children(0)
 ]]>.Value
 
@@ -398,7 +450,7 @@ BC30781: 'Continue' must be followed by 'Do', 'For' or 'While'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidCaseStatement_OutsideSwitchBlock()
             Dim source = <![CDATA[
 Module Program
@@ -408,8 +460,11 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Case 0')
-  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Case 0')
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Case 0')
+  Children(1):
+      ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: '0')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -435,13 +490,17 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'ElseIf args.Length = 0')
+            Dim expectedOperationTree = <![CDATA[
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'ElseIf args.Length = 0')
   Children(1):
-      IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'args.Length = 0')
-        Left: IPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'args.Length')
-            Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')]]>.Value
+      IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'args.Length = 0')
+        Left: 
+          IPropertyReferenceOperation: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'args.Length')
+            Instance Receiver: 
+              IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String(), IsInvalid) (Syntax: 'args')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC36005: 'ElseIf' must be preceded by a matching 'If' or 'ElseIf'.

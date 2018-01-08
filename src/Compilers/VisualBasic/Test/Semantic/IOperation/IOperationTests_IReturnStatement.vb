@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub SimpleRetuenFromRegularMethod()
+        Public Sub SimpleReturnFromRegularMethod()
             Dim source = <![CDATA[
 Class C
     Sub M()
@@ -20,8 +20,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
-  ReturnedValue: null
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return')
+  ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -40,8 +41,10 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')]]>.Value
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return True')
+  ReturnedValue: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -59,8 +62,10 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'Yield 0')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')]]>.Value
+IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'Yield 0')
+  ReturnedValue: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -79,11 +84,42 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
-  ReturnedValue: null
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return')
+  ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ReturnStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        Public Sub Return_ConstantConversions_01()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Function M() As Byte
+        Return 0.0'BIND:"Return 0.0"
+    End Function
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'Return 0.0')
+  ReturnedValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Byte'.
+        Return 0.0'BIND:"Return 0.0"
+               ~~~
+]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ReturnStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub

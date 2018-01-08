@@ -118,6 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return false;
             }
 
+            // (c) For throw expressions.
+            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            {
+                return false;
+            }
+
             return true;
         }
 

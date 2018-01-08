@@ -33,32 +33,45 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'fixed(int * ... }')
+IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed(int * ... }')
   Children(2):
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int *p = &i')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p = &i')
-          Variables: Local_1: System.Int32* p
-          Initializer: IOperation:  (OperationKind.None) (Syntax: '&i')
-              Children(1):
-                  IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i')
-                    Reference: IFieldReferenceExpression: System.Int32 C.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'i')
-      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ...  is {*p}"");')
-          Expression: IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... P is {*p}"")')
-              Instance Receiver: null
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int *p = &i')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int *p = &i')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = &i')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i')
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&i')
+                      Children(1):
+                          IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&i')
+                            Reference: 
+                              IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
+          Initializer: 
+            null
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ...  is {*p}"");')
+          Expression: 
+            IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... P is {*p}"")')
+              Instance Receiver: 
+                null
               Arguments(1):
-                  IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""P is {*p}""')
-                    IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""P is {*p}""')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '$""P is {*p}""')
+                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""P is {*p}""')
                       Parts(2):
-                          IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'P is ')
-                            Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""P is "") (Syntax: 'P is ')
-                          IInterpolation (OperationKind.Interpolation) (Syntax: '{*p}')
-                            Expression: IOperation:  (OperationKind.None) (Syntax: '*p')
+                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'P is ')
+                            Text: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""P is "", IsImplicit) (Syntax: 'P is ')
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{*p}')
+                            Expression: 
+                              IOperation:  (OperationKind.None, Type: null) (Syntax: '*p')
                                 Children(1):
-                                    ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p')
-                            Alignment: null
-                            FormatString: null
+                                    ILocalReferenceOperation: p (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p')
+                            Alignment: 
+                              null
+                            FormatString: 
+                              null
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -94,34 +107,49 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
+IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1, p2 = &i2')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
-          Variables: Local_1: System.Int32* p1
-          Initializer: IOperation:  (OperationKind.None) (Syntax: '&i1')
-              Children(1):
-                  IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i1')
-                    Reference: IFieldReferenceExpression: System.Int32 C.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'i1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = &i2')
-          Variables: Local_1: System.Int32* p2
-          Initializer: IOperation:  (OperationKind.None) (Syntax: '&i2')
-              Children(1):
-                  IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i2')
-                    Reference: IFieldReferenceExpression: System.Int32 C.i2 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i2')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'i2')
-      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i3 = *p1 + *p2;')
-          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i3 = *p1 + *p2')
-              Left: ILocalReferenceExpression: i3 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i3')
-              Right: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '*p1 + *p2')
-                  Left: IOperation:  (OperationKind.None) (Syntax: '*p1')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1, p2 = &i2')
+        IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p1 = &i1, p2 = &i2')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i1')
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&i1')
                       Children(1):
-                          ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p1')
-                  Right: IOperation:  (OperationKind.None) (Syntax: '*p2')
+                          IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&i1')
+                            Reference: 
+                              IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
+              IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &i2')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i2')
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&i2')
                       Children(1):
-                          ILocalReferenceExpression: p2 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p2')
+                          IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&i2')
+                            Reference: 
+                              IFieldReferenceOperation: System.Int32 C.i2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i2')
+          Initializer: 
+            null
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i3 = *p1 + *p2;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i3 = *p1 + *p2')
+              Left: 
+                ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '*p1 + *p2')
+                  Left: 
+                    IOperation:  (OperationKind.None, Type: null) (Syntax: '*p1')
+                      Children(1):
+                          ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p1')
+                  Right: 
+                    IOperation:  (OperationKind.None, Type: null) (Syntax: '*p2')
+                      Children(1):
+                          ILocalReferenceOperation: p2 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p2')
 ";
 
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -158,37 +186,56 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
+IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
-          Variables: Local_1: System.Int32* p1
-          Initializer: IOperation:  (OperationKind.None) (Syntax: '&i1')
-              Children(1):
-                  IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i1')
-                    Reference: IFieldReferenceExpression: System.Int32 C.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'i1')
-      IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p1 = &i1')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i1')
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&i1')
+                      Children(1):
+                          IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&i1')
+                            Reference: 
+                              IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
+          Initializer: 
+            null
+      IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
         Children(2):
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p2 = &i2')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = &i2')
-                Variables: Local_1: System.Int32* p2
-                Initializer: IOperation:  (OperationKind.None) (Syntax: '&i2')
-                    Children(1):
-                        IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i2')
-                          Reference: IFieldReferenceExpression: System.Int32 C.i2 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i2')
-                              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'i2')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-              IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i3 = *p1 + *p2;')
-                Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i3 = *p1 + *p2')
-                    Left: ILocalReferenceExpression: i3 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i3')
-                    Right: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '*p1 + *p2')
-                        Left: IOperation:  (OperationKind.None) (Syntax: '*p1')
+            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p2 = &i2')
+              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p2 = &i2')
+                Declarators:
+                    IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &i2')
+                      Initializer: 
+                        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i2')
+                          IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&i2')
                             Children(1):
-                                ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p1')
-                        Right: IOperation:  (OperationKind.None) (Syntax: '*p2')
+                                IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&i2')
+                                  Reference: 
+                                    IFieldReferenceOperation: System.Int32 C.i2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
+                                      Instance Receiver: 
+                                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i2')
+                Initializer: 
+                  null
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i3 = *p1 + *p2;')
+                Expression: 
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i3 = *p1 + *p2')
+                    Left: 
+                      ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                    Right: 
+                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '*p1 + *p2')
+                        Left: 
+                          IOperation:  (OperationKind.None, Type: null) (Syntax: '*p1')
                             Children(1):
-                                ILocalReferenceExpression: p2 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p2')
+                                ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p1')
+                        Right: 
+                          IOperation:  (OperationKind.None, Type: null) (Syntax: '*p2')
+                            Children(1):
+                                ILocalReferenceOperation: p2 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p2')
 ";
 
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -220,20 +267,28 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* p1 =')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p1 =')
-          Variables: Local_1: System.Int32* p1
-          Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-              Children(0)
-      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i3 = *p1;')
-          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i3 = *p1')
-              Left: ILocalReferenceExpression: i3 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i3')
-              Right: IOperation:  (OperationKind.None) (Syntax: '*p1')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 =')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int* p1 =')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 =')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
+                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                      Children(0)
+          Initializer: 
+            null
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i3 = *p1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i3 = *p1')
+              Left: 
+                ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+              Right: 
+                IOperation:  (OperationKind.None, Type: null) (Syntax: '*p1')
                   Children(1):
-                      ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p1')
+                      ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'
@@ -270,31 +325,41 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
-          Variables: Local_1: System.Int32* p1
-          Initializer: IOperation:  (OperationKind.None) (Syntax: '&i1')
-              Children(1):
-                  IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i1')
-                    Reference: IFieldReferenceExpression: System.Int32 C.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'i1')
-      IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
-        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'i3 = &p1;')
-          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'i3 = &p1')
-              Left: ILocalReferenceExpression: i3 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i3')
-              Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '&p1')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p1 = &i1')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i1')
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&i1')
+                      Children(1):
+                          IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&i1')
+                            Reference: 
+                              IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
+                                Instance Receiver: 
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
+          Initializer: 
+            null
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'i3 = &p1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'i3 = &p1')
+              Left: 
+                ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '&p1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32**, IsInvalid) (Syntax: '&p1')
-                      Reference: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32*, IsInvalid) (Syntax: 'p1')
-                          Children(1):
-                              ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*, IsInvalid) (Syntax: 'p1')
+                  Operand: 
+                    IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32**, IsInvalid) (Syntax: '&p1')
+                      Reference: 
+                        ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'p1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0459: Cannot take the address of a read-only local variable
+                // file.cs(15,22): error CS0266: Cannot implicitly convert type 'int**' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //                 i3 = &p1;
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "p1").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "&p1").WithArguments("int**", "int").WithLocation(15, 22)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<FixedStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename
             return token;
         }
 
-        internal static IEnumerable<ISymbol> GetSymbolsTouchingPosition(
+        internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
             int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);

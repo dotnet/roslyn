@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
-        private IEnumerable<EmbeddedText> _embedddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
+        private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
         // Only set when running tests to allow realized IL for a given method to be looked up by method.
         internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
@@ -368,12 +368,12 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             get 
             { 
-                return _embedddedTexts; 
+                return _embeddedTexts; 
             }
             set
             {
                 Debug.Assert(value != null);
-                _embedddedTexts = value;
+                _embeddedTexts = value;
             }
         }
 

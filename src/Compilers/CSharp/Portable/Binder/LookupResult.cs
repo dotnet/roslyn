@@ -158,6 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SingleLookupResult(LookupResultKind.WrongArity, symbol, error);
         }
 
+        internal static SingleLookupResult Empty()
+        {
+            return new SingleLookupResult(LookupResultKind.Empty, null, null);
+        }
+
         internal static SingleLookupResult NotReferencable(Symbol symbol, DiagnosticInfo error)
         {
             return new SingleLookupResult(LookupResultKind.NotReferencable, symbol, error);

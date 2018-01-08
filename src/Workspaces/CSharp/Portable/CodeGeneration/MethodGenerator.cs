@@ -90,14 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
-            var returnType = method.ReturnsByRef
-                ? method.ReturnType.GenerateRefTypeSyntax()
-                : method.ReturnType.GenerateTypeSyntax();
-
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
                 attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
                 modifiers: GenerateModifiers(method, destination, options),
-                returnType: returnType,
+                returnType: method.GenerateReturnTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),

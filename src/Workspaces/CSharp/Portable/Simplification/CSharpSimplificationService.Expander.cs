@@ -332,7 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     var inferredName = node.Expression.TryGetInferredMemberName();
                     if (inferredName != null)
                     {
-                        var identifier = SyntaxFactory.Identifier(inferredName);
+                        // Creating identifier without elastic trivia to avoid unexpected line break
+                        var identifier = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, inferredName, SyntaxTriviaList.Empty);
                         identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
 
                         newDeclarator = newDeclarator

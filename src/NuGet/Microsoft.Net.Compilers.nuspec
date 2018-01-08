@@ -3,11 +3,18 @@
   <metadata>
     <id>Microsoft.Net.Compilers</id>
     <summary>
-    .Net Compilers package. Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
-
-    This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.6+ Full Framework.
+      .NET Compilers package.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      .NET Compilers package.
+      Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
+
+      This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.6+ Full Framework.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>

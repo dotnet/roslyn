@@ -44,38 +44,54 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public Compilation Compilation => _compilation;
         internal ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
 
-        internal ImmutableArray<ModuleMetadata> GetAllModuleMetadata()
+        internal Metadata GetMetadata()
         {
             if (EmittedAssemblyData == null)
             {
                 throw new InvalidOperationException("You must call Emit before calling GetAllModuleMetadata.");
             }
 
-            ImmutableArray<ModuleMetadata> modules = ImmutableArray.Create(ModuleMetadata.CreateFromImage(EmittedAssemblyData));
-
-            if (_allModuleData != null)
+            if (_compilation.Options.OutputKind.IsNetModule())
             {
-                var netModules = _allModuleData.Where(m => m.Kind == OutputKind.NetModule);
-                if (netModules.Any())
-                {
-                    modules = modules.Concat(
-                        ImmutableArray.CreateRange(netModules.Select(m => ModuleMetadata.CreateFromImage(m.Image))));
-                }
+                var metadata = ModuleMetadata.CreateFromImage(EmittedAssemblyData);
+                metadata.Module.PretendThereArentNoPiaLocalTypes();
+                return metadata;
             }
+            else
+            {
+                var images = new List<ImmutableArray<byte>>
+                {
+                    EmittedAssemblyData
+                };
 
-            return modules;
+                if (_allModuleData != null)
+                {
+                    images.AddRange(_allModuleData.Where(m => m.Kind == OutputKind.NetModule).Select(m => m.Image));
+                }
+
+                return AssemblyMetadata.Create(images.Select(image =>
+                {
+                    var metadata = ModuleMetadata.CreateFromImage(image);
+                    metadata.Module.PretendThereArentNoPiaLocalTypes();
+                    return metadata;
+                }));
+            }
         }
 
-        public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
+        public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
         {
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
                 string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
                 _allModuleData = testEnvironment.GetAllModuleData();
 
-                if (peVerify)
+                if (peVerify == Verification.Passes)
                 {
                     testEnvironment.PeVerify();
+                }
+                else if (peVerify == Verification.Fails)
+                {
+                    Assert.Throws<PeVerifyException>(() => testEnvironment.PeVerify());
                 }
 
                 if (expectedSignatures != null)
@@ -202,7 +218,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (_lazyModuleSymbol == null)
             {
-                _lazyModuleSymbol = GetModuleSymbolForEmittedImage(EmittedAssemblyData, MetadataImportOptions.All);
+                var targetReference = LoadTestEmittedExecutableForSymbolValidation(EmittedAssemblyData, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+                _lazyModuleSymbol = GetSymbolFromMetadata(targetReference, MetadataImportOptions.All);
             }
 
             return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
@@ -220,42 +237,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return this;
         }
 
-        public IModuleSymbol GetModuleSymbolForEmittedImage()
-        {
-            return GetModuleSymbolForEmittedImage(EmittedAssemblyData, _compilation.Options.MetadataImportOptions);
-        }
-
-        private IModuleSymbol GetModuleSymbolForEmittedImage(ImmutableArray<byte> peImage, MetadataImportOptions importOptions)
-        {
-            if (peImage.IsDefault)
-            {
-                return null;
-            }
-            var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
-            var references = _compilation.References.Concat(new[] { targetReference });
-            var assemblies = GetReferencesToModuleSymbols(references, importOptions);
-            return assemblies.Last();
-        }
-
-        private IEnumerable<IModuleSymbol> GetReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions)
+        internal IModuleSymbol GetSymbolFromMetadata(MetadataReference metadataReference, MetadataImportOptions importOptions)
         {
             var dummy = _compilation
                 .RemoveAllSyntaxTrees()
-                .WithReferences(references)
+                .AddReferences(metadataReference)
                 .WithAssemblyName("Dummy")
                 .WithOptions(_compilation.Options.WithMetadataImportOptions(importOptions));
 
-            return references.Select(reference =>
+            var symbol = dummy.GetAssemblyOrModuleSymbol(metadataReference);
+
+            if (metadataReference.Properties.Kind == MetadataImageKind.Assembly)
             {
-                if (reference.Properties.Kind == MetadataImageKind.Assembly)
-                {
-                    return ((IAssemblySymbol)dummy.GetAssemblyOrModuleSymbol(reference))?.Modules.First();
-                }
-                else
-                {
-                    return (IModuleSymbol)dummy.GetAssemblyOrModuleSymbol(reference);
-                }
-            });
+                return ((IAssemblySymbol)symbol).Modules.First();
+            }
+            else
+            {
+                return (IModuleSymbol)symbol;
+            }
         }
 
         internal static MetadataReference LoadTestEmittedExecutableForSymbolValidation(

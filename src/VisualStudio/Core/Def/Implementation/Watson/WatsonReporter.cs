@@ -56,12 +56,15 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// CAB.</param>
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
-            if (!WatsonDisabled.s_reportWatson)
+            var emptyCallstack = exception.SetCallstackIfEmpty();
+
+            if (!WatsonDisabled.s_reportWatson ||
+                !exception.ShouldReport())
             {
                 return;
             }
 
-            TelemetryService.DefaultSession.PostFault(
+            var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
                 exceptionObject: exception,
@@ -69,8 +72,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 {
                     // always add current processes dump
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
+
                     return callback(arg);
                 });
+
+            // add extra bucket parameters to bucket better in NFW
+            // we do it here so that it gets bucketted better in both
+            // watson and telemetry. 
+            faultEvent.SetExtraParameters(exception, emptyCallstack);
+
+            TelemetryService.DefaultSession.PostEvent(faultEvent);
 
             if (exception is OutOfMemoryException)
             {

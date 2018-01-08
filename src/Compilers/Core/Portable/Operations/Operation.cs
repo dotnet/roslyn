@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis
 
         private class NoneOperation : Operation
         {
-            private readonly Func<ImmutableArray<IOperation>> _getChildren;
+            private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
 
             public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit) :
                 base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue, isImplicit: isImplicit)
             {
-                _getChildren = getChildren;
+                _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
             }
 
             public override void Accept(OperationVisitor visitor)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    foreach (var child in _getChildren().NullToEmpty())
+                    foreach (var child in _lazyChildren.Value)
                     {
                         if (child == null)
                         {
@@ -261,21 +261,20 @@ namespace Microsoft.CodeAnalysis
         {
             var operationAlreadyProcessed = PooledHashSet<IOperation>.GetInstance();
 
-            // start from current node since one node can have multiple operations mapped to
-            var currentCandidate = Syntax;
+            if (SemanticModel.Root == Syntax)
+            {
+                // this is the root
+                return null;
+            }
+
+            var currentCandidate = Syntax.Parent;
 
             try
             {
                 while (currentCandidate != null)
                 {
-                    if (!SemanticModel.Root.FullSpan.Contains(currentCandidate.FullSpan))
-                    {
-                        // reached top of parent chain
-                        break;
-                    }
-
                     // get operation
-                    var tree = SemanticModel.GetOperationInternal(currentCandidate);
+                    var tree = SemanticModel.GetOperation(currentCandidate);
                     if (tree != null)
                     {
                         // walk down operation tree to see whether this tree contains parent of this operation
@@ -284,6 +283,12 @@ namespace Microsoft.CodeAnalysis
                         {
                             return parent;
                         }
+                    }
+
+                    if (SemanticModel.Root == currentCandidate)
+                    {
+                        // reached top of parent chain
+                        break;
                     }
 
                     // move up the tree

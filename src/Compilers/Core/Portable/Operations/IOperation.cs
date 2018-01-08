@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
 {

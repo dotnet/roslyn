@@ -2312,7 +2312,7 @@ unsafe public class Test
 }";
             string expectedOutput = @"x => G(x)";
 
-            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput));
+            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [WorkItem(544246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
@@ -3052,7 +3052,7 @@ unsafe class Test
             var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
                 options: TestOptions.UnsafeReleaseDll,
-                verify: false);
+                verify: Verification.Fails);
 
             c.VerifyDiagnostics();
         }
@@ -3723,7 +3723,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
         [Fact]
-        public void NSaliasSystemIsGlobal()
+        public void NSAliasSystemIsGlobal()
         {
             string source = @"
 using System = global;
@@ -5132,7 +5132,7 @@ Public Class Cells
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
 
             var source2 =
 @"class A

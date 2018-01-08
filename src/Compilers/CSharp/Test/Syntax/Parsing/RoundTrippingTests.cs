@@ -398,7 +398,7 @@ partial class partial
         public void TestNegBug876575()
         {
             var text = @"partial enum E{}";
-            ParseAndRoundTripping(text, errorCount: 0);
+            ParseAndRoundTripping(text, errorCount: 1);
         }
 
         [Fact]
@@ -1439,7 +1439,7 @@ public class Test
 
         [WorkItem(911518, "DevDiv/Personal")]
         [Fact]
-        public void RegressError4AnonymousTypeWithTailingComma()
+        public void RegressError4AnonymousTypeWithTrailingComma()
         {
             var text = @"using System;
 public class Test

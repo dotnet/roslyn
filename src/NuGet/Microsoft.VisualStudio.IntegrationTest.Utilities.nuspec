@@ -2,8 +2,16 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.IntegrationTest.Utilities</id>
-    <summary>Utility methods used to run Visual Studio integration tests.</summary>
-    <description>$commitPathMessage$</description>
+    <summary>
+      Utility methods used to run Visual Studio integration tests.
+    </summary>
+    <description>
+      Utility methods used to run Visual Studio integration tests.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>

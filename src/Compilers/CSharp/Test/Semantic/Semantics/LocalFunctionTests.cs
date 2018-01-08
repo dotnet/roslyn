@@ -31,6 +31,106 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact]
+        public void UnsafeLocal()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var bytesA = local();
+
+        unsafe byte[] local()
+        {
+            var bytes = new byte[sizeof(int)];
+            fixed (byte* ptr = &bytes[0])
+            {
+                *(int*)ptr = sizeof(int);
+            }
+            return bytes;
+        }
+    }
+}";
+
+            var comp = CreateStandardCompilation(source);
+            Assert.Empty(comp.GetDeclarationDiagnostics());
+            comp.VerifyDiagnostics(
+                // (8,23): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //         unsafe byte[] local()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "local").WithLocation(8, 23)
+                );
+
+            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            compWithUnsafe.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalInUnsafeStruct()
+        {
+            var source = @"
+unsafe struct C
+{
+    void A()
+    {
+        var bytesA = local();
+        var bytesB = B();
+
+        byte[] local()
+        {
+            var bytes = new byte[sizeof(int)];
+            fixed (byte* ptr = &bytes[0])
+            {
+                *(int*)ptr = sizeof(int);
+            }
+            return bytes;
+        }
+    }
+
+    byte[] B()
+    {
+        var bytes = new byte[sizeof(long)];
+        fixed (byte* ptr = &bytes[0])
+        {
+            *(long*)ptr = sizeof(long);
+        }
+        return bytes;
+    }
+}";
+            // no need to declare local function `local` or method `B` as unsafe
+            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            compWithUnsafe.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalInUnsafeBlock()
+        {
+            var source = @"
+struct C
+{
+    void A()
+    {
+        unsafe
+        {
+            var bytesA = local();
+
+            byte[] local()
+            {
+                var bytes = new byte[sizeof(int)];
+                fixed (byte* ptr = &bytes[0])
+                {
+                    *(int*)ptr = sizeof(int);
+                }
+                return bytes;
+            }
+        }
+    }
+}";
+            // no need to declare local function `local` as unsafe
+            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            compWithUnsafe.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ConstraintBinding()
         {
             var comp = CreateStandardCompilation(@"
@@ -2696,7 +2796,7 @@ unsafe class D
         }
 
         [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
-        public void DeclarationInLocalFuncionParameterDefault()
+        public void DeclarationInLocalFunctionParameterDefault()
         {
             var text = @"
 class C
@@ -3230,6 +3330,44 @@ class C
                 //         L5(1, 3, val);
                 Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L5(1, 3, val)").WithArguments("L5").WithLocation(26, 9)
                 );
+        }
+
+        [Fact]
+        [WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")]
+        public void GetDeclaredSymbolOnTypeParameter()
+        {
+            var src = @"
+class C<T>
+{
+    void M<U>()
+    {
+        void LocalFunction<T, U, V>(T p1, U p2, V p3)
+        {
+        }
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var localDecl = (LocalFunctionStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement).AsNode();
+
+            var typeParameters = localDecl.TypeParameterList.Parameters;
+            var parameters = localDecl.ParameterList.Parameters;
+            verifyTypeParameterAndParameter(typeParameters[0], parameters[0], "T");
+            verifyTypeParameterAndParameter(typeParameters[1], parameters[1], "U");
+            verifyTypeParameterAndParameter(typeParameters[2], parameters[2], "V");
+
+            void verifyTypeParameterAndParameter(TypeParameterSyntax typeParameter, ParameterSyntax parameter, string expected)
+            {
+                var symbol = model.GetDeclaredSymbol(typeParameter);
+                Assert.Equal(expected, symbol.ToTestDisplayString());
+
+                var parameterSymbol = model.GetDeclaredSymbol(parameter);
+                Assert.Equal(expected, parameterSymbol.Type.ToTestDisplayString());
+                Assert.Same(symbol, parameterSymbol.Type);
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -23,7 +22,6 @@
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
     <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj" />
-    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
@@ -35,6 +33,7 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
     <ProjectReference Include="..\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\Core.Wpf\EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\CSharp\CSharpEditorFeatures.csproj" />
     <ProjectReference Include="..\Text\TextEditorFeatures.csproj" />
     <ProjectReference Include="..\VisualBasic\BasicEditorFeatures.vbproj" />
@@ -85,7 +84,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
@@ -115,5 +114,7 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\Imports.targets" />
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
 </Project>

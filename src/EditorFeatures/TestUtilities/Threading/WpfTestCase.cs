@@ -46,6 +46,14 @@ namespace Roslyn.Test.Utilities
                 {
                     try
                     {
+                        // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
+                        // or mouse input from the user. So use background priority which is a single level below user input.
+                        var dispatcherSynchronizationContext = new DispatcherSynchronizationContext();
+
+                        // xUnit creates its own synchronization context and wraps any existing context so that messages are
+                        // still pumped as necessary. So we are safe setting it here, where we are not safe setting it in test.
+                        SynchronizationContext.SetSynchronizationContext(dispatcherSynchronizationContext);
+
                         // Sync up FTAO to the context that we are creating here. 
                         ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(
                             Thread.CurrentThread,
@@ -54,14 +62,6 @@ namespace Roslyn.Test.Utilities
 
                         // Reset our flag ensuring that part of this test actually needs WpfFact
                         s_wpfFactRequirementReason = null;
-
-                        // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
-                        // or mouse input from the user. So use background priority which is a single level below user input.
-                        var dispatcherSynchronizationContext = new DispatcherSynchronizationContext();
-
-                        // xUnit creates its own synchronization context and wraps any existing context so that messages are
-                        // still pumped as necessary. So we are safe setting it here, where we are not safe setting it in test.
-                        SynchronizationContext.SetSynchronizationContext(dispatcherSynchronizationContext);
 
                         // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
                         var baseTask = base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);

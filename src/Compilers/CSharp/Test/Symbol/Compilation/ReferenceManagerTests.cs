@@ -387,8 +387,8 @@ public class OKImpl : I
                 // Dev11 adds "Lib 1.0" to the references, we don't (see DevDiv #15580)
                 AssertEx.SetEqual(new[] { $"{RuntimeCorLibName.Name} {RuntimeCorLibName.Version.ToString(2)}", "RefLibV1 1.0", "Lib 2.0", "X 2.0" }, reader.DumpAssemblyReferences());
             },
-            // PE verification would need .config file with Lib v1 -> Lib v2 binding redirect 
-            verify: false);
+            // PE verification fails on some platforms. Would need .config file with Lib v1 -> Lib v2 binding redirect
+            verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1737,7 +1737,7 @@ public class C : I { }
                 var reader = pe.GetMetadataReader();
                 AssertEx.SetEqual(new[] { "mscorlib 4.0" }, reader.DumpAssemblyReferences());
             },
-            verify: false);
+            verify: Verification.Passes);
         }
 
         [WorkItem(531537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531537")]
@@ -2543,7 +2543,7 @@ public class P
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         public void MissingAssemblyResolution_Aliases()
         {
             // c - a -> b with alias X
@@ -2570,7 +2570,7 @@ public class C : A
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         public void MissingAssemblyResolution_AliasesMerge()
         {
             // c - a -> "b, V1" resolved to "b, V3" with alias X
@@ -2865,7 +2865,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [Fact]
+        [NoIOperationValidationFact]
         public void MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
         {
             // c - a -> d -> "b,v2"
@@ -2931,7 +2931,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [Fact]
+        [NoIOperationValidationFact]
         public void MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
         {
             // c - a -> d -> "b,v2"

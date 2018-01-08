@@ -28,9 +28,10 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member Name: ""Prop1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Prop1')
+IDynamicMemberReferenceOperation (Member Name: ""Prop1"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Prop1')
   Type Arguments(0)
-  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+  Instance Receiver: 
+    ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -57,9 +58,10 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member Name: """", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd./*</bind>*/')
+IDynamicMemberReferenceOperation (Member Name: """", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic, IsInvalid) (Syntax: 'd./*</bind>*/')
   Type Arguments(0)
-  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+  Instance Receiver: 
+    ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected
@@ -90,10 +92,12 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.GetValue()')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd.GetValue()')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.GetValue')
       Type Arguments(0)
-      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Instance Receiver: 
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -121,10 +125,12 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.()')
-  Expression: IDynamicMemberReferenceExpression (Member Name: """", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd.')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic, IsInvalid) (Syntax: 'd.()')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: """", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic, IsInvalid) (Syntax: 'd.')
       Type Arguments(0)
-      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Instance Receiver: 
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -156,10 +162,12 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue(/*</bind>*/')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue(/*</bind>*/')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.GetValue')
       Type Arguments(0)
-      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Instance Receiver: 
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -191,11 +199,13 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.GetValue<int>()')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue<int>')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd.GetValue<int>()')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.GetValue<int>')
       Type Arguments(1):
         Symbol: System.Int32
-      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Instance Receiver: 
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -223,12 +233,14 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.GetValue<int, C1>()')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue<int, C1>')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd.GetValue<int, C1>()')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.GetValue<int, C1>')
       Type Arguments(2):
         Symbol: System.Int32
         Symbol: ConsoleApp1.C1
-      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Instance Receiver: 
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -256,11 +268,12 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int, C1>')
+IDynamicMemberReferenceOperation (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int, C1>')
   Type Arguments(2):
     Symbol: System.Int32
     Symbol: ConsoleApp1.C1
-  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+  Instance Receiver: 
+    ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0307: The property 'GetValue' cannot be used with type arguments
@@ -292,12 +305,14 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int,>()')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int,>')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int,>()')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int,>')
       Type Arguments(2):
         Symbol: System.Int32
         Symbol: ?
-      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Instance Receiver: 
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -329,11 +344,13 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member Name: ""Prop2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Prop1.Prop2')
+IDynamicMemberReferenceOperation (Member Name: ""Prop2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Prop1.Prop2')
   Type Arguments(0)
-  Instance Receiver: IDynamicMemberReferenceExpression (Member Name: ""Prop1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Prop1')
+  Instance Receiver: 
+    IDynamicMemberReferenceOperation (Member Name: ""Prop1"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Prop1')
       Type Arguments(0)
-      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Instance Receiver: 
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -358,13 +375,17 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.Method1().Method2()')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""Method2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1().Method2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd.Method1().Method2()')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""Method2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Method1().Method2')
       Type Arguments(0)
-      Instance Receiver: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.Method1()')
-          Expression: IDynamicMemberReferenceExpression (Member Name: ""Method1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1')
+      Instance Receiver: 
+        IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd.Method1()')
+          Expression: 
+            IDynamicMemberReferenceOperation (Member Name: ""Method1"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Method1')
               Type Arguments(0)
-              Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+              Instance Receiver: 
+                ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
           Arguments(0)
           ArgumentNames(0)
           ArgumentRefKinds(0)
@@ -397,13 +418,16 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member Name: ""Prop2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1<int>().Prop2')
+IDynamicMemberReferenceOperation (Member Name: ""Prop2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Method1<int>().Prop2')
   Type Arguments(0)
-  Instance Receiver: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.Method1<int>()')
-      Expression: IDynamicMemberReferenceExpression (Member Name: ""Method1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1<int>')
+  Instance Receiver: 
+    IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd.Method1<int>()')
+      Expression: 
+        IDynamicMemberReferenceOperation (Member Name: ""Method1"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Method1<int>')
           Type Arguments(1):
             Symbol: System.Int32
-          Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+          Instance Receiver: 
+            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
       Arguments(0)
       ArgumentNames(0)
       ArgumentRefKinds(0)

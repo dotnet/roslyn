@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -196,6 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
+            CheckRefReadOnlySymbols(node.Symbol);
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -211,6 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             _sawLocalFunctions = true;
+            CheckRefReadOnlySymbols(node.Symbol);
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -571,11 +576,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     return true;
 
+                case BoundKind.ConditionalOperator:
+                    return ((BoundConditionalOperator)receiver).IsRef;
+
                 case BoundKind.Call:
-                    return ((BoundCall)receiver).Method.RefKind != RefKind.None;
+                    return ((BoundCall)receiver).Method.RefKind == RefKind.Ref;
             }
 
             return false;
+        }
+
+        private void CheckRefReadOnlySymbols(MethodSymbol symbol)
+        {
+            if (symbol.ReturnsByRefReadonly ||
+                symbol.Parameters.Any(p => p.RefKind == RefKind.In))
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
+            }
         }
     }
 }

@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
         }
 
-        private static IEnumerable<DiagnosticData> FilterSuppressedDiagnostics(IEnumerable<DiagnosticData> diagnostics)
+        private static IEnumerable<DiagnosticData> FilterSuppressedDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
         {
-            if (diagnostics != null)
+            if (!diagnostics.IsDefault)
             {
                 foreach (var diagnostic in diagnostics)
                 {

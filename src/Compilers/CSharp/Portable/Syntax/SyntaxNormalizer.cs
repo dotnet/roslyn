@@ -205,8 +205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return LineBreaksAfterCloseBrace(currentToken, nextToken);
 
                 case SyntaxKind.CloseParenToken:
+                    // Note: the `where` case handles constraints on method declarations
+                    //  and also `where` clauses (consistently with other LINQ cases below)
                     return (((currentToken.Parent is StatementSyntax) && nextToken.Parent != currentToken.Parent)
-                        || nextToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
+                        || nextToken.Kind() == SyntaxKind.OpenBraceToken
+                        || nextToken.Kind() == SyntaxKind.WhereKeyword) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
                     if (currentToken.Parent is AttributeListSyntax && !(currentToken.Parent.Parent is ParameterSyntax))
@@ -425,8 +428,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (!next.IsKind(SyntaxKind.ColonToken) &&
                     !next.IsKind(SyntaxKind.DotToken) &&
+                    !next.IsKind(SyntaxKind.QuestionToken) &&
                     !next.IsKind(SyntaxKind.SemicolonToken) &&
                     !next.IsKind(SyntaxKind.OpenBracketToken) &&
+                    (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind())) &&
                     !next.IsKind(SyntaxKind.CloseParenToken) &&
                     !next.IsKind(SyntaxKind.CloseBraceToken) &&
                     !next.IsKind(SyntaxKind.ColonColonToken) &&
@@ -452,6 +457,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             return false;
+        }
+
+        private static bool KeywordNeedsSeparatorBeforeOpenParen(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.TypeOfKeyword:
+                case SyntaxKind.DefaultKeyword:
+                case SyntaxKind.NewKeyword:
+                case SyntaxKind.BaseKeyword:
+                case SyntaxKind.ThisKeyword:
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.UncheckedKeyword:
+                case SyntaxKind.SizeOfKeyword:
+                case SyntaxKind.ArgListKeyword:
+                    return false;
+                default:
+                    return true;
+            }
         }
 
         private static bool IsXmlTextToken(SyntaxKind kind)

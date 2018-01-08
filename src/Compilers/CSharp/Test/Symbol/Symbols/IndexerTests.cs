@@ -8,11 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -2103,26 +2101,28 @@ using System.Runtime.CompilerServices;
 class Program
 {
     [IndexerName(""A"")]
-    int this[int x]
+    public int this[int x]
     {
         get { return 0; }
         set { }
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
-            compilation.VerifyDiagnostics();
+            var compilation = CreateStandardCompilation(source).VerifyDiagnostics();
 
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").Indexers.Single();
             Assert.True(indexer.IsIndexer);
             Assert.Equal("A", indexer.MetadataName);
+            Assert.True(indexer.GetAttributes().Single().IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
 
-            // Appears in symbol model to reflect source.
-            var attribute = indexer.GetAttributes().Single();
-            Assert.True(attribute.IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
-
-            // Not emitted.
-            Assert.Equal(0, indexer.GetCustomAttributesToEmit(new ModuleCompilationState()).Count());
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var peIndexer = (PEPropertySymbol)module.GlobalNamespace.GetTypeMember("Program").Indexers.Single();
+                Assert.True(peIndexer.IsIndexer);
+                Assert.Equal("A", peIndexer.MetadataName);
+                Assert.Empty(peIndexer.GetAttributes());
+                Assert.Empty(((PEModuleSymbol)module).GetCustomAttributesForToken(peIndexer.Handle));
+            });
         }
 
         [WorkItem(545884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545884")]

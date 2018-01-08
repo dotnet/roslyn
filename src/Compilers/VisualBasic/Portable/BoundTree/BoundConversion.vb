@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Operand.AssertRValue()
 
             If Conversions.NoConversion(ConversionKind) Then
-                Debug.Assert(Operand.Kind <> BoundKind.UserDefinedConversion)
+                Debug.Assert((ConversionKind And VisualBasic.ConversionKind.UserDefined) = 0)
             Else
                 Debug.Assert(((ConversionKind And VisualBasic.ConversionKind.UserDefined) <> 0) = (Operand.Kind = BoundKind.UserDefinedConversion))
 

@@ -772,6 +772,7 @@ End Module
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub OptionalWithMarshallAs()
             Dim libSource =
@@ -853,7 +854,35 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
-            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected).VerifyDiagnostics()
+            Dim verifier = CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected).VerifyDiagnostics()
+            Dim compilation = verifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().ElementAt(6)
+
+            Assert.Equal("C.M7()", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IInvocationOperation (Sub C.M7([x As System.Object])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'C.M7()')
+  Instance Receiver: 
+    null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'C.M7')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C.M7')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IObjectCreationOperation (Constructor: Sub System.Runtime.InteropServices.DispatchWrapper..ctor(obj As System.Object)) (OperationKind.ObjectCreation, Type: System.Runtime.InteropServices.DispatchWrapper, IsImplicit) (Syntax: 'C.M7')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'C.M7')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'C.M7')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Initializer: 
+                null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value)
         End Sub
 
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>

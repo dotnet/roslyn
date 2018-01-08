@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Syntax,
                         _factory.Default(new PointerTypeSymbol(pinnedTemp.Type)),
                         pinnedTemp.Type),
-                        refKind: RefKind.Ref);
+                        isRef: true);
                 }
             }
 
@@ -254,8 +254,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             pinnedTemp = factory.SynthesizedLocal(
                 initializerType, 
                 syntax: declarator, 
-                isPinned: true, 
-                refKind: RefKind.Ref,  // different from the array and string cases
+                isPinned: true,
+                //NOTE: different from the array and string cases
+                //      RefReadOnly to allow referring to readonly variables. (technically we only "read" through the temp anyways)
+                refKind: RefKind.RefReadOnly,  
                 kind: SynthesizedLocalKind.FixedReference);
 
             // NOTE: we pin the reference, not the pointer.
@@ -263,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!localSymbol.IsPinned);
 
             // pinnedTemp = ref v;
-            BoundStatement pinnedTempInit = factory.Assignment(factory.Local(pinnedTemp), initializerExpr, refKind: RefKind.Ref);
+            BoundStatement pinnedTempInit = factory.Assignment(factory.Local(pinnedTemp), initializerExpr, isRef: true);
 
             // &pinnedTemp;
             var addr = new BoundAddressOfOperator(
@@ -431,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //(((temp = array) != null && temp.Length != 0) ? loc = &temp[0] : loc = null)
             BoundStatement localInit = factory.ExpressionStatement(
-                new BoundConditionalOperator(factory.Syntax, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType));
+                new BoundConditionalOperator(factory.Syntax,false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType));
 
             return InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol, localInit);
         }

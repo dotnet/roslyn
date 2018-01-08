@@ -100,12 +100,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var typeInferenceInfo = new TypeInferenceInfo(typeInfo.Type);
 
                         // If it bound to a method, try to get the Action/Func form of that method.
-                        if (typeInferenceInfo.InferredType == null &&
-                            symbolInfo.GetAllSymbols().Count() == 1 &&
-                            symbolInfo.GetAllSymbols().First().Kind == SymbolKind.Method)
+                        if (typeInferenceInfo.InferredType == null)
                         {
-                            var method = symbolInfo.GetAllSymbols().First();
-                            typeInferenceInfo = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
+                            var allSymbols = symbolInfo.GetAllSymbols();
+                            if (allSymbols.Length == 1 &&
+                                allSymbols[0].Kind == SymbolKind.Method)
+                            {
+                                var method = allSymbols[0];
+                                typeInferenceInfo = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
+                            }
                         }
 
                         if (IsUsableTypeFunc(typeInferenceInfo))

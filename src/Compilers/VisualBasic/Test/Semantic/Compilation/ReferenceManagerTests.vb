@@ -556,7 +556,7 @@ End Class
             main.VerifyDiagnostics()
 
             ' Disable PE verification, it would need .config file with Lib v1 -> Lib v2 binding redirect.
-            CompileAndVerify(main, verify:=False, validator:=
+            CompileAndVerify(main, verify:=Verification.Fails, validator:=
                 Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
@@ -1660,7 +1660,7 @@ End Class
             Assert.True(corlib1.ReferenceManagerEquals(corlib2))
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution1()
             ' c - a -> b
             Dim bRef = CreateCompilationWithMscorlib({"Public Class B : End Class"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
@@ -1678,11 +1678,11 @@ End Class
 
             Assert.Equal("B", DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol).Name)
 
-            Resolver.VerifyResolutionAttempts(
+            resolver.VerifyResolutionAttempts(
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_WeakIdentities1()
             ' c - a -> "b,v1,PKT=null" 
             '   - d -> "b,v2,PKT=null"
@@ -1717,7 +1717,7 @@ End Class
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_WeakIdentities2()
             ' c - a -> "b,v1,PKT=null"
             '   - d -> "b,v2,PKT=null"
@@ -1768,7 +1768,7 @@ End Class
             resolver.VerifyResolutionAttempts()
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_ActualMissing()
             ' c - a -> d
             Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
@@ -1789,7 +1789,7 @@ End Class
         ''' <summary>
         ''' Ignore assemblies returned by the resolver that don't match the reference identity.
         ''' </summary>
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_MissingDueToResolutionMismatch()
             ' c - a -> b
             Dim bRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
@@ -1812,7 +1812,7 @@ End Class
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_Modules()
             ' c - a - d
             '   - module(m) - b
@@ -1878,7 +1878,7 @@ End Class
         ''' <summary>
         ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         ''' </summary>
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -1918,7 +1918,7 @@ End Class
         ''' <summary>
         ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         ''' </summary>
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -1957,7 +1957,7 @@ End Class
                 "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_BindingToImplicitReference1()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -2002,7 +2002,7 @@ End Class
                 "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub MissingAssemblyResolution_BindingToImplicitReference2()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"

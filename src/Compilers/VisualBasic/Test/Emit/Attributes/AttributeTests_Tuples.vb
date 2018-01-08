@@ -122,7 +122,7 @@ End Class"
 "Namespace System.Runtime.CompilerServices
     Public Class TupleElementNamesAttribute
         Inherits Attribute
-        Public Sub New(names As String())
+        Public Sub New(names() As String)
         End Sub
     End Class
 End Namespace"

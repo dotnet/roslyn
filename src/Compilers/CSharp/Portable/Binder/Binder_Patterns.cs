@@ -27,55 +27,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var pattern = BindPattern(node.Pattern, expression, expressionType, hasErrors, diagnostics);
+            var pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
+            if (!hasErrors && pattern is BoundDeclarationPattern p && !p.IsVar && expression.ConstantValue == ConstantValue.Null)
+            {
+                diagnostics.Add(ErrorCode.WRN_IsAlwaysFalse, node.Location, p.DeclaredType.Type);
+            }
+
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
 
         internal BoundPattern BindPattern(
             PatternSyntax node,
-            BoundExpression operand,
             TypeSymbol operandType,
             bool hasErrors,
-            DiagnosticBag diagnostics,
-            bool wasSwitchCase = false)
+            DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.DeclarationPattern:
                     return BindDeclarationPattern(
-                        (DeclarationPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                        (DeclarationPatternSyntax)node, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.ConstantPattern:
+                    var constantPattern = (ConstantPatternSyntax)node;
                     return BindConstantPattern(
-                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics, wasSwitchCase);
+                        constantPattern, operandType, constantPattern.Expression, hasErrors, diagnostics, out bool wasExpression);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 
-        private BoundConstantPattern BindConstantPattern(
-            ConstantPatternSyntax node,
-            BoundExpression operand,
-            TypeSymbol operandType,
-            bool hasErrors,
-            DiagnosticBag diagnostics,
-            bool wasSwitchCase)
-        {
-            bool wasExpression;
-            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
-        }
-
         internal BoundConstantPattern BindConstantPattern(
             CSharpSyntaxNode node,
-            BoundExpression operand,
             TypeSymbol operandType,
             ExpressionSyntax patternExpression,
             bool hasErrors,
             DiagnosticBag diagnostics,
-            out bool wasExpression,
-            bool wasSwitchCase)
+            out bool wasExpression)
+        {
+            var innerExpression = patternExpression.SkipParens();
+            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
+            {
+                diagnostics.Add(ErrorCode.ERR_DefaultInPattern, innerExpression.Location);
+                hasErrors = true;
+            }
+
+            return BindConstantAsPattern(node, operandType, patternExpression, hasErrors, diagnostics, out wasExpression);
+        }
+
+        internal BoundConstantPattern BindConstantAsPattern(
+            CSharpSyntaxNode node,
+            TypeSymbol operandType,
+            ExpressionSyntax patternExpression,
+            bool hasErrors,
+            DiagnosticBag diagnostics,
+            out bool wasExpression)
         {
             var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
@@ -133,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool CheckValidPatternType(
             CSharpSyntaxNode typeSyntax,
-            BoundExpression operand,
             TypeSymbol operandType,
             TypeSymbol patternType,
             bool patternTypeWasInSource,
@@ -142,10 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)operandType != null);
             Debug.Assert((object)patternType != null);
-
-            // Because we do not support recursive patterns, we always have an operand
-            Debug.Assert((object)operand != null);
-            // Once we support recursive patterns that will be relaxed.
 
             if (operandType.IsErrorType() || patternType.IsErrorType())
             {
@@ -232,12 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindDeclarationPattern(
             DeclarationPatternSyntax node,
-            BoundExpression operand,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(operand != null && operandType != (object)null);
+            Debug.Assert(operandType != (object)null);
 
             var typeSyntax = node.Type;
 
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors |= CheckValidPatternType(typeSyntax, operand, operandType, declType,
+                hasErrors |= CheckValidPatternType(typeSyntax, operandType, declType,
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 

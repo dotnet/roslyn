@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.IncrementalCaches
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
 
@@ -509,12 +510,12 @@ namespace CSAssembly2
                             Optional codeActionIndex As Integer = 0,
                             Optional addedReference As String = Nothing,
                             Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
-            Dim verifySolutions As Action(Of Solution, Solution) = Nothing
+            Dim verifySolutions As Func(Of Solution, Solution, Task) = Nothing
             Dim workspace As TestWorkspace = Nothing
 
             If addedReference IsNot Nothing Then
                 verifySolutions =
-                    Sub(oldSolution As Solution, newSolution As Solution)
+                    Function(oldSolution As Solution, newSolution As Solution)
                         Dim initialDocId = workspace.DocumentWithCursor.Id
                         Dim oldProject = oldSolution.GetDocument(initialDocId).Project
                         Dim newProject = newSolution.GetDocument(initialDocId).Project
@@ -529,7 +530,8 @@ namespace CSAssembly2
                                                    Select p.Name
 
                         Assert.True(newProjectReferences.Contains(addedReference))
-                    End Sub
+                        Return SpecializedTasks.EmptyTask
+                    End Function
             End If
 
             Await TestAsync(definition, expected, codeActionIndex,

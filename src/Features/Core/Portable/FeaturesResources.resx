@@ -1319,4 +1319,19 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
     <value>Add argument name '{0}' (including trailing arguments)</value>
   </data>
+  <data name="Using_readonly_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using readonly structs will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Using_ref_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using ref structs will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Using_readonly_references_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using readonly references will prevent the debug session from continuing.</value>
+  </data>
+  <data name="local_function" xml:space="preserve">
+    <value>local function</value>
+  </data>
+  <data name="indexer_" xml:space="preserve">
+    <value>indexer</value>
+  </data>
 </root>

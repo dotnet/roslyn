@@ -36,8 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // have already been compared.
             MethodSymbol constructedSourceMethod = sourceMethod.ConstructIfGeneric(destinationMethod.TypeArguments);
 
-            customModifiers = CustomModifiersTuple.Create(constructedSourceMethod.ReturnTypeCustomModifiers,
-                                                          destinationMethod.ReturnsByRef ? constructedSourceMethod.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty);
+            customModifiers = CustomModifiersTuple.Create(
+                constructedSourceMethod.ReturnTypeCustomModifiers,
+                destinationMethod.RefKind != RefKind.None ? constructedSourceMethod.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty);
 
             parameters = CopyParameterCustomModifiers(constructedSourceMethod.Parameters, destinationMethod.Parameters, alsoCopyParamsModifier);
 

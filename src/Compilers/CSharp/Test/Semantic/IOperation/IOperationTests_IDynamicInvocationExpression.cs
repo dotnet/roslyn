@@ -27,12 +27,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'c.M2(d)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: null) (Syntax: 'c.M2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(d)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Arguments(1):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -63,12 +65,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'c.M2(d)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: null) (Syntax: 'c.M2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(d)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Arguments(1):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -100,13 +104,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'c.M2(d, ch)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: null) (Syntax: 'c.M2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(d, ch)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Arguments(2):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-      ILocalReferenceExpression: ch (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'ch')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
+      ILocalReferenceOperation: ch (OperationKind.LocalReference, Type: System.Char) (Syntax: 'ch')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -137,13 +143,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'c.M2(i: d, ch: e)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: null) (Syntax: 'c.M2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(i: d, ch: e)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Arguments(2):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-      IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'e')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
+      IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'e')
   ArgumentNames(2):
     ""i""
     ""ch""
@@ -174,14 +182,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'c.M2(ref d, out k, e)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: null) (Syntax: 'c.M2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(ref d, out k, e)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Arguments(3):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
-      ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
-      IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'e')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'd')
+      ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
+      IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'e')
   ArgumentNames(0)
   ArgumentRefKinds(3):
     Ref
@@ -210,11 +220,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'F(i)')
-  Expression: IFieldReferenceExpression: System.Action<System.Object> C.F (OperationKind.FieldReferenceExpression, Type: System.Action<System.Object>) (Syntax: 'F')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'F')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'F(i)')
+  Expression: 
+    IFieldReferenceOperation: System.Action<System.Object> C.F (OperationKind.FieldReference, Type: System.Action<System.Object>) (Syntax: 'F')
+      Instance Receiver: 
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F')
   Arguments(1):
-      IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'i')
+      IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'i')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -241,10 +253,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd(i)')
-  Expression: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd(i)')
+  Expression: 
+    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
   Arguments(1):
-      IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -267,12 +280,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'c.M2(i)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'c.M2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(i)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'c')
   Arguments(1):
-      IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -296,11 +311,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'c.M2(i)')
-  Expression: IFieldReferenceExpression: dynamic C.M2 (OperationKind.FieldReferenceExpression, Type: dynamic) (Syntax: 'c.M2')
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(i)')
+  Expression: 
+    IFieldReferenceOperation: dynamic C.M2 (OperationKind.FieldReference, Type: dynamic) (Syntax: 'c.M2')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Arguments(1):
-      IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -332,13 +349,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'c.M2(ref i, c: d)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: null) (Syntax: 'c.M2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(ref i, c: d)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Arguments(2):
-      ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
   ArgumentNames(2):
     ""null""
     ""c""
@@ -372,16 +391,19 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'c.M2(delegate { }, y)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: null) (Syntax: 'c.M2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic, IsInvalid) (Syntax: 'c.M2(delegate { }, y)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Arguments(2):
-      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate { }')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
-          IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
-            ReturnedValue: null
-      ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'y')
+      IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'delegate { }')
+        IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+          IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '{ }')
+            ReturnedValue: 
+              null
+      ILocalReferenceOperation: y (OperationKind.LocalReference, Type: dynamic) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -416,13 +438,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void C.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'c.M2(d)')
-  Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'c.M2(d)')
+  Children(2):
+      IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'C.M2(int, int)'
@@ -432,6 +451,43 @@ IInvocationExpression ( void C.M2()) (OperationKind.InvocationExpression, Type: 
                 //         var x = /*<bind>*/c.M2(d)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = /*<bind>*/c.M2(d)").WithArguments("void").WithLocation(6, 13)
             };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicInvocation_InConstructorInitializer()
+        {
+            string source = @"
+class B 
+{
+    protected B(int x) { }
+}
+
+class C : B
+{
+    C(dynamic x) : base((int)/*<bind>*/Goo(x)/*</bind>*/) { }
+ 
+    static object Goo(object x)
+    {
+        return x;
+    }
+}
+";
+            string expectedOperationTree = @"
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'Goo(x)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""Goo"", Containing Type: C) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'Goo')
+      Type Arguments(0)
+      Instance Receiver: 
+        null
+  Arguments(1):
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'x')
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

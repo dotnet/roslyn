@@ -289,9 +289,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
-            vbc.DebugType = "portable";
+            vbc.DebugType = "full";
             vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
-            Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void EmbedAllSources()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems(@"test.vb", @"test.txt");
+            vbc.EmbedAllSources = true;
+
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /embed /embed:test.vb /embed:test.txt test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.EmbedAllSources = true;
+
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /embed test.vb", vbc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -312,6 +329,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/optionstrict:custom /out:test.exe /refonly test.vb", vbc.GenerateResponseFileContents());
         }
 
+        [Fact]
+        public void SharedCompilationId()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.UseSharedCompilation = true;
+            vbc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.UseSharedCompilation = false;
+            vbc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+      
         [Fact]
         [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationFalse()

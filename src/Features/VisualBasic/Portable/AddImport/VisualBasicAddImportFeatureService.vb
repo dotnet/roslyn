@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CaseCorrection
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -88,6 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function CanAddImportForNamespace(diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
                 Case VisualBasicAddImportCodeFixProvider.BC30002,
+                     IDEDiagnosticIds.UnboundIdentifierId,
                      VisualBasicAddImportCodeFixProvider.BC30451
                     Exit Select
                 Case Else
@@ -120,6 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
                 Case VisualBasicAddImportCodeFixProvider.BC30002,
+                     IDEDiagnosticIds.UnboundIdentifierId,
                      VisualBasicAddImportCodeFixProvider.BC30451,
                      VisualBasicAddImportCodeFixProvider.BC32042,
                      VisualBasicAddImportCodeFixProvider.BC32045,
