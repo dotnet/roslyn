@@ -46,10 +46,10 @@
         },
         "dev15.6": {
             "nugetKind": "Release",
-            "version": "2.3.*",
+            "version": "2.7.*",
             "nuget": [ "https://api.nuget.org/v3/index.json" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.3" ]
+            "channels": [ "dev15.6" ]
         }
     }
 }
