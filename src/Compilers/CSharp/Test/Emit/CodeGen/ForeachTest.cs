@@ -59,7 +59,7 @@ public class Test
             foreach (var x in new int*[] { y }) { }
         }
     }
-}", options: TestOptions.UnsafeReleaseDll).VerifyIL("Test.Main", @"
+}", options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  4

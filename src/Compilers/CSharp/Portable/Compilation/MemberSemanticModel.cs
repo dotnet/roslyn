@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (enclosingLambdaOrQuery == null)
             {
                 nodeToBind = bindingRoot;
-                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(nodeToBind, nodeToBind.SpanStart);
+                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(nodeToBind, GetAdjustedNodePosition(nodeToBind));
             }
             else
             {
@@ -1497,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetLowerBoundNode(nodes);
                 }
 
-                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(nodeToBind.SpanStart, nodeToBind, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
+                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(GetAdjustedNodePosition(nodeToBind), nodeToBind, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
             }
 
             Binder incrementalBinder = new IncrementalBinder(this, lambdaRecoveryBinder);
@@ -1521,11 +1521,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // situations. Let's bind the node directly.
             if (enclosingLambdaOrQuery == null)
             {
-                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(lambdaOrQuery, lambdaOrQuery.SpanStart);
+                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(lambdaOrQuery, GetAdjustedNodePosition(lambdaOrQuery));
             }
             else
             {
-                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(lambdaOrQuery.SpanStart, lambdaOrQuery, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
+                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(GetAdjustedNodePosition(lambdaOrQuery), lambdaOrQuery, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
             }
 
             incrementalBinder = new IncrementalBinder(this, lambdaRecoveryBinder);

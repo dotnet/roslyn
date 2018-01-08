@@ -8129,7 +8129,7 @@ class Program
 
 }
 ";
-            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
 
             compilation.VerifyIL("Program.Store", @"
 {
@@ -8246,7 +8246,7 @@ class Program
             //IL Baseline rather than execute because I'm intentionally writing outside of bounds of buffer
             // This will compile without warning but runtime behavior is unpredictable.
 
-            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
             compilation.VerifyIL("Program.Load", @"
 {
   // Code size       47 (0x2f)
@@ -8325,7 +8325,7 @@ unsafe struct s
         
     }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
         }
 
         [Fact]
@@ -8406,10 +8406,10 @@ namespace ConsoleApplication30
 
     }
 }";
-            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll).Compilation;
+            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
             var comp2 = CompileAndVerify(s2,
-                options: TestOptions.UnsafeReleaseExe,
+                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 
@@ -8461,7 +8461,7 @@ namespace ConsoleApplication30
             // Only compile this as its intentionally writing outside of fixed buffer boundaries and 
             // this doesn't warn but causes flakiness when executed.
             var comp3 = CompileAndVerify(s3,
-                options: TestOptions.UnsafeReleaseDll,
+                options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
         }
 
