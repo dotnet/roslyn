@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             if (!s_enabled)
             {
-                // if listener is not enabled. it already return null listener
+                // if listener is not enabled. it always return null listener
                 return NullListener;
             }
 
