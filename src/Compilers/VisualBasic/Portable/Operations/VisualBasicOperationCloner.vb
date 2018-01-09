@@ -6,10 +6,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits OperationCloner
 
         Public Shared ReadOnly Property Instance As OperationCloner = New VisualBasicOperationCloner()
-
-        Public Overrides Function VisitCompoundAssignment(operation As ICompoundAssignmentOperation, argument As Object) As IOperation
-            Dim baseType = DirectCast(operation, BaseVisualBasicCompoundAssignmentOperation)
-            Return New VisualBasicCompoundAssignmentOperation(Visit(operation.Target), Visit(operation.Value), baseType.InConversionInternal, baseType.OutConversionInternal, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, DirectCast(operation, Operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit)
-        End Function
     End Class
 End Namespace

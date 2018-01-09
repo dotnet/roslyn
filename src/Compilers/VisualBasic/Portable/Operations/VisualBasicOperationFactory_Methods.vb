@@ -69,9 +69,9 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignment.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
-            Return New LazyVisualBasicCompoundAssignmentOperation(leftOperand, rightOperand, inConversion, outConversion, operatorInfo.OperatorKind,
-                                                                  operatorInfo.IsLifted, operatorInfo.IsChecked, operatorInfo.OperatorMethod,
-                                                                  _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyCompoundAssignmentOperation(leftOperand, rightOperand, inConversion, outConversion, operatorInfo.OperatorKind,
+                                                       operatorInfo.IsLifted, operatorInfo.IsChecked, operatorInfo.OperatorMethod,
+                                                       _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Structure BinaryOperatorInfo

@@ -1425,9 +1425,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(compoundAssignment))
             End If
 
-            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
-            If basicCompoundOperation IsNot Nothing Then
-                Return basicCompoundOperation.InConversionInternal
+            If compoundAssignment.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentExpression).InConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),
@@ -1448,9 +1447,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(compoundAssignment))
             End If
 
-            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
-            If basicCompoundOperation IsNot Nothing Then
-                Return basicCompoundOperation.OutConversionInternal
+            If compoundAssignment.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentExpression).OutConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),

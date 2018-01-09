@@ -720,9 +720,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(compoundAssignment));
             }
 
-            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignment)
+            if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return csharpCompoundAssignment.InConversionInternal;
+                return (Conversion)((BaseCompoundAssignmentExpression)compoundAssignment).InConversionConvertible;
             }
             else
             {
@@ -746,9 +746,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(compoundAssignment));
             }
 
-            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignemnt)
+            if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return csharpCompoundAssignemnt.OutConversionInternal;
+                return (Conversion)((BaseCompoundAssignmentExpression)compoundAssignment).OutConversionConvertible;
             }
             else
             {

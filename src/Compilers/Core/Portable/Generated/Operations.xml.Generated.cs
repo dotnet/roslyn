@@ -1129,13 +1129,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseCompoundAssignmentExpression : AssignmentExpression, ICompoundAssignmentOperation
     {
-        protected BaseCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseCompoundAssignmentExpression(IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.CompoundAssignment, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
             IsLifted = isLifted;
             IsChecked = isChecked;
             OperatorMethod = operatorMethod;
+            InConversionConvertible = inConversionConvertible;
+            OutConversionConvertible = outConversionConvertible;
         }
         /// <summary>
         /// Kind of binary operation.
@@ -1153,8 +1155,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
-        public abstract CommonConversion InConversion { get; }
-        public abstract CommonConversion OutConversion { get; }
+        internal IConvertibleConversion InConversionConvertible { get; }
+        internal IConvertibleConversion OutConversionConvertible { get; }
+        public CommonConversion InConversion => InConversionConvertible.ToCommonConversion();
+        public CommonConversion OutConversion => OutConversionConvertible.ToCommonConversion();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1164,6 +1168,33 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitCompoundAssignment(this, argument);
         }
+    }
+
+    internal sealed partial class CompoundAssignmentOperation : BaseCompoundAssignmentExpression
+    {
+        public CompoundAssignmentOperation(IOperation target, IOperation value, IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            TargetImpl = target;
+            ValueImpl = value;
+        }
+
+        protected override IOperation TargetImpl { get; }
+        protected override IOperation ValueImpl { get; }
+    }
+
+    internal sealed partial class LazyCompoundAssignmentOperation : BaseCompoundAssignmentExpression
+    {
+        private readonly Lazy<IOperation> _lazyTarget;
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyCompoundAssignmentOperation(Lazy<IOperation> target, Lazy<IOperation> value, IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyTarget = target;
+            _lazyValue = value;
+        }
+
+        protected override IOperation TargetImpl => _lazyTarget.Value;
+        protected override IOperation ValueImpl => _lazyValue.Value;
     }
 
     /// <summary>
