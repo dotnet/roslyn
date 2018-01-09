@@ -2,14 +2,12 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.Json
 {
-    using System;
     using static JsonHelpers;
 
     internal struct JsonLexer
@@ -208,98 +206,9 @@ namespace Microsoft.CodeAnalysis.Json
                    (c >= 'a' && c <= 'f');
         }
 
-        //private (ImmutableArray<VirtualChar>, JsonKind, JsonDiagnostic?) ScanNumber()
-        //{
-        //    var result = TryScanText("-Infinity", JsonKind.NegativeInfinityLiteralToken);
-        //    if (result != null)
-        //    {
-        //        return result.Value;
-        //    }
-
-        //    var start = this.Position;
-        //    while (Position < Text.Length && IsNumberChar(this.CurrentChar))
-        //    {
-        //        this.Position++;
-        //    }
-
-        //    var chars = GetSubPattern(start, this.Position);
-        //    var diagnostic = CheckNumberChars(chars);
-
-        //    // Validation of the number happens during the CheckSyntax phase.
-        //    return (GetSubPattern(start, this.Position), JsonKind.NumberToken, diagnostic);
-        //}
-
-        //private JsonDiagnostic? CheckNumberChars(ImmutableArray<VirtualChar> chars)
-        //{
-        //    var firstChar = chars[0].Char;
-
-        //    var singleDigit = char.IsDigit(firstChar) && chars.Length == 1;
-        //    if (singleDigit)
-        //    {
-        //        return null;
-        //    }
-
-        //    var nonBase10 =
-        //        firstChar == '0' && chars.Length > 1 &&
-        //        chars[1] != '.' && chars[1] != 'e' && chars[1] != 'E';
-
-        //    var literalText = new string(chars.Select(vc => vc.Char).ToArray());
-
-        //    if (nonBase10)
-        //    {
-        //        Debug.Assert(chars.Length > 1);
-        //        var b = chars[1] == 'x' || chars[2] == 'X' ? 16 : 8;
-
-        //        try
-        //        {
-        //            Convert.ToInt64(literalText.Substring(2), b);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            return new JsonDiagnostic(
-        //                WorkspacesResources.Invalid_number,
-        //                GetSpan(chars));
-        //        }
-        //    }
-        //    else if (!double.TryParse(literalText, out _))
-        //    {
-        //        return new JsonDiagnostic(
-        //            WorkspacesResources.Invalid_number,
-        //            GetSpan(chars));
-        //    }
-
-        //    return null;
-        //}
-
-        private static bool IsNumberChar(char ch)
-        {
-            switch (ch)
-            {
-                case 'x': case 'X':
-                case '-': case '+': case '.':
-                case '0': case '1': case '2': case '3': case '4':
-                case '5': case '6': case '7': case '8': case '9':
-                case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
-                case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         private (ImmutableArray<VirtualChar>, JsonKind, JsonDiagnostic?) ScanText()
         {
             var start = Position;
-            //var result = TryScanText("true", JsonKind.TrueLiteralToken) ??
-            //             TryScanText("false", JsonKind.FalseLiteralToken) ??
-            //             TryScanText("null", JsonKind.NullLiteralToken) ??
-            //             TryScanText("undefined", JsonKind.UndefinedLiteralToken) ??
-            //             TryScanText("NaN", JsonKind.NaNLiteralToken) ??
-            //             TryScanText("Infinity", JsonKind.InfinityLiteralToken);
-            //if (result != null)
-            //{
-            //    return result.Value;
-            //}
 
             var firstChar = this.CurrentChar;
             while (Position < Text.Length && !IsSpecial(this.CurrentChar))
