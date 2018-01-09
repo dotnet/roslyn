@@ -7,6 +7,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Json
 {
+    using System;
+    using System.Diagnostics;
+    using System.Globalization;
     using static JsonHelpers;
 
     internal partial struct JsonParser
@@ -58,10 +61,66 @@ namespace Microsoft.CodeAnalysis.Json
                     case JsonKind.Object: return CheckObject((JsonObjectNode)node);
                     case JsonKind.Constructor: return CheckConstructor((JsonConstructorNode)node);
                     case JsonKind.Property: return CheckProperty((JsonPropertyNode)node);
+                    case JsonKind.Literal: return CheckLiteral((JsonLiteralNode)node);
                 }
 
                 return CheckChildren(node);
             }
+
+            private JsonDiagnostic? CheckLiteral(JsonLiteralNode node)
+            {
+                if (node.LiteralToken.Kind == JsonKind.NumberToken)
+                {
+                    return CheckNumber(node.LiteralToken);
+                }
+
+                return CheckChildren(node);
+            }
+
+            private JsonDiagnostic? CheckNumber(JsonToken numberToken)
+            {
+                var chars = numberToken.VirtualChars;
+                var firstChar = chars[0].Char;
+
+                var singleDigit = char.IsDigit(firstChar) && chars.Length == 1;
+                if (singleDigit)
+                {
+                    return null;
+                }
+
+                var nonBase10 =
+                    firstChar == '0' && chars.Length > 1 &&
+                    chars[1] != '.' && chars[1] != 'e' && chars[1] != 'E';
+
+                var literalText = numberToken.VirtualChars.CreateString();
+                if (nonBase10)
+                {
+                    Debug.Assert(chars.Length > 1);
+                    var b = chars[1] == 'x' || chars[1] == 'X' ? 16 : 8;
+
+                    try
+                    {
+                        Convert.ToInt64(literalText, b);
+                    }
+                    catch (Exception)
+                    {
+                        return new JsonDiagnostic(
+                            WorkspacesResources.Invalid_number,
+                            GetSpan(chars));
+                    }
+                }
+                else if (!double.TryParse(
+                    literalText, NumberStyles.Float | NumberStyles.AllowThousands,
+                    CultureInfo.InvariantCulture, out _))
+                {
+                    return new JsonDiagnostic(
+                        WorkspacesResources.Invalid_number,
+                        GetSpan(chars));
+                }
+
+                return null;
+            }
+
 
             private JsonDiagnostic? CheckChildren(JsonNode node)
             {

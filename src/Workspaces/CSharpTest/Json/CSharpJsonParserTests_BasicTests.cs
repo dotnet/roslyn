@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid number"" Start=""9"" Length=""1"" />
+    <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
   </Diagnostics>
 </Tree>");
         }

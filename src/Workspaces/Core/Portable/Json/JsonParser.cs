@@ -377,60 +377,9 @@ namespace Microsoft.CodeAnalysis.Json
 
         private JsonValueNode ParseNumber(JsonToken textToken)
         {
-            var literalText = textToken.VirtualChars.CreateString();
 
             var numberToken = textToken.With(kind: JsonKind.NumberToken);
-            var diagnostic = CheckNumberChars(numberToken, literalText);
-
-            if (diagnostic != null)
-            {
-                numberToken = numberToken.AddDiagnosticIfNone(diagnostic.Value);
-            }
-
             return new JsonLiteralNode(numberToken);
-        }
-
-        private JsonDiagnostic? CheckNumberChars(JsonToken numberToken, string literalText)
-        {
-            var chars = numberToken.VirtualChars;
-            var firstChar = chars[0].Char;
-
-            var singleDigit = char.IsDigit(firstChar) && chars.Length == 1;
-            if (singleDigit)
-            {
-                return null;
-            }
-
-            var nonBase10 =
-                firstChar == '0' && chars.Length > 1 &&
-                chars[1] != '.' && chars[1] != 'e' && chars[1] != 'E';
-
-            if (nonBase10)
-            {
-                Debug.Assert(chars.Length > 1);
-                var b = chars[1] == 'x' || chars[1] == 'X' ? 16 : 8;
-
-                try
-                {
-                    Convert.ToInt64(literalText, b);
-                }
-                catch (Exception)
-                {
-                    return new JsonDiagnostic(
-                        WorkspacesResources.Invalid_number,
-                        GetSpan(chars));
-                }
-            }
-            else if (!double.TryParse(
-                literalText, NumberStyles.Float | NumberStyles.AllowThousands,
-                CultureInfo.InvariantCulture, out _))
-            {
-                return new JsonDiagnostic(
-                    WorkspacesResources.Invalid_number,
-                    GetSpan(chars));
-            }
-
-            return null;
         }
 
         private JsonEmptyValueNode ParseEmptyValue()
