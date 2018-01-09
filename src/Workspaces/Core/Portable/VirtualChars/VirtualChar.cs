@@ -42,14 +42,13 @@ namespace Microsoft.CodeAnalysis.VirtualChars
 
         public bool Equals(VirtualChar other)
             => Char == other.Char &&
-               Span.Equals(other.Span);
+               Span == other.Span;
 
         public override int GetHashCode()
         {
             var hashCode = 244102310;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
             hashCode = hashCode * -1521134295 + Char.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<TextSpan>.Default.GetHashCode(Span);
+            hashCode = hashCode * -1521134295 + Span.GetHashCode();
             return hashCode;
         }
 
