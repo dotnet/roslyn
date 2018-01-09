@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Json
                     if (childNode.Kind == JsonKind.Property)
                     {
                         return new JsonDiagnostic(
-                            WorkspacesResources.Property_not_allowed_in_a_json_array,
+                            WorkspacesResources.Properties_not_allowed_in_an_array,
                             GetSpan(((JsonPropertyNode)childNode).ColonToken));
                     }
                 }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Json
                         if (child.Kind != JsonKind.Property)
                         {
                             return new JsonDiagnostic(
-                               WorkspacesResources.Only_properties_allowed_in_a_json_object,
+                               WorkspacesResources.Only_properties_allowed_in_an_object,
                                GetSpan(GetFirstToken(child)));
                         }
                     }

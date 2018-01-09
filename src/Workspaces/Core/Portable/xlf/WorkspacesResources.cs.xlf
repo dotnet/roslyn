@@ -957,16 +957,6 @@
         <target state="new">Invalid number</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_properties_allowed_in_a_json_object">
-        <source>Only properties allowed in a json object</source>
-        <target state="new">Only properties allowed in a json object</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Property_not_allowed_in_a_json_array">
-        <source>Property not allowed in a json array</source>
-        <target state="new">Property not allowed in a json array</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unterminated_comment">
         <source>Unterminated comment</source>
         <target state="new">Unterminated comment</target>
@@ -1042,16 +1032,6 @@
         <target state="new">Illegal whitespace character</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_properties_allowed_in_object">
-        <source>Only properties allowed in object</source>
-        <target state="new">Only properties allowed in object</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Properties_not_allowed_in_array">
-        <source>Properties not allowed in array</source>
-        <target state="new">Properties not allowed in array</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Property_name_must_be_a_string">
         <source>Property name must be a string</source>
         <target state="new">Property name must be a string</target>
@@ -1075,6 +1055,16 @@
       <trans-unit id="_0_literal_not_allowed">
         <source>'{0}' literal not allowed</source>
         <target state="new">'{0}' literal not allowed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_properties_allowed_in_an_object">
+        <source>Only properties allowed in an object</source>
+        <target state="new">Only properties allowed in an object</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties_not_allowed_in_an_array">
+        <source>Properties not allowed in an array</source>
+        <target state="new">Properties not allowed in an array</target>
         <note />
       </trans-unit>
     </body>

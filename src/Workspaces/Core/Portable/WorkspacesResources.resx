@@ -709,12 +709,6 @@
   <data name="Invalid_number" xml:space="preserve">
     <value>Invalid number</value>
   </data>
-  <data name="Only_properties_allowed_in_a_json_object" xml:space="preserve">
-    <value>Only properties allowed in a json object</value>
-  </data>
-  <data name="Property_not_allowed_in_a_json_array" xml:space="preserve">
-    <value>Property not allowed in a json array</value>
-  </data>
   <data name="Unterminated_comment" xml:space="preserve">
     <value>Unterminated comment</value>
   </data>
@@ -760,11 +754,11 @@
   <data name="Illegal_whitespace_character" xml:space="preserve">
     <value>Illegal whitespace character</value>
   </data>
-  <data name="Only_properties_allowed_in_object" xml:space="preserve">
-    <value>Only properties allowed in object</value>
+  <data name="Only_properties_allowed_in_an_object" xml:space="preserve">
+    <value>Only properties allowed in an object</value>
   </data>
-  <data name="Properties_not_allowed_in_array" xml:space="preserve">
-    <value>Properties not allowed in array</value>
+  <data name="Properties_not_allowed_in_an_array" xml:space="preserve">
+    <value>Properties not allowed in an array</value>
   </data>
   <data name="Property_name_must_be_a_string" xml:space="preserve">
     <value>Property name must be a string</value>

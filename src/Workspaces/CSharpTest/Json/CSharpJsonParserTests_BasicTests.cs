@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Syntax error"" Start=""9"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Syntax error"" Start=""9"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -42,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -61,7 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -80,7 +86,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestFormFeed2()
+        {
+            Test(@"""[\f0,1]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[<Trivia><WhitespaceTrivia>\f</WhitespaceTrivia></Trivia></OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>0</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Illegal whitespace character"" Start=""10"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestFormFeed3()
+        {
+            // .net strict parsers don't report the problem with the trailing \f.  we do as it's
+            // per the ecma spec.
+            Test(@"""[0\f,1]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>0<Trivia><WhitespaceTrivia>\f</WhitespaceTrivia></Trivia></NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Illegal whitespace character"" Start=""11"" Length=""2"" />
+</Diagnostics>", runStrictTreeCheck: false);
         }
 
         [Fact]
@@ -99,7 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Unterminated comment"" Start=""9"" Length=""2"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Unterminated comment"" Start=""9"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -116,7 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Comments not allowed"" Start=""9"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -133,7 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Comments not allowed"" Start=""9"" Length=""4"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -150,7 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Comments not allowed"" Start=""9"" Length=""5"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -212,7 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""']' expected"" Start=""10"" Length=""0"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""']' expected"" Start=""10"" Length=""0"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -231,7 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""']' unexpected"" Start=""9"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""']' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -254,7 +338,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""10"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -280,7 +366,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Trailing comma not allowed"" Start=""14"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -329,7 +417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""10"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -358,7 +448,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""15"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -387,7 +479,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""10"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -416,7 +510,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""10"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -544,7 +640,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'undefined' literal not allowed"" Start=""9"" Length=""9"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -600,7 +698,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -657,7 +757,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -688,7 +790,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""',' expected"" Start=""12"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' expected"" Start=""12"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -707,7 +811,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -726,7 +832,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -745,7 +853,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""6"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""6"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -764,7 +874,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""3"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -783,7 +895,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""7"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""7"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -802,7 +916,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""4"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""4"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -821,7 +937,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""9"" Length=""13"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""9"" Length=""13"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -840,7 +958,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""3"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -859,7 +979,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""4"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""4"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -883,7 +1005,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'}' unexpected"" Start=""11"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""11"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -930,7 +1054,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""10"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -996,7 +1122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1032,9 +1160,148 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in a json object"" Start=""20"" Length=""3"" />
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""20"" Length=""3"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""20"" Length=""3"" />
+</Diagnostics>");
+        }
+        
+        [Fact]
+        public void TestNestedPropertyMissingColon()
+        {
+            Test(@"@""
+{
+  """"description"""": """"A person"""",
+  """"type"""": """"object"""",
+  """"properties"""":
+  {
+    """"name"""" {""""type"""":""""string""""},
+    """"hobbies"""": {
+      """"type"""": """"array"""",
+      """"items"""": {""""type"""":""""string""""}
+    }
+  }
+}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>
+          <Trivia>
+            <EndOfLineTrivia>
+</EndOfLineTrivia>
+          </Trivia>{<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""description""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <StringToken>""A person""</StringToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""type""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <StringToken>""object""</StringToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""properties""</StringToken>
+            <ColonToken>:<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></ColonToken>
+            <Object>
+              <OpenBraceToken>{<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></OpenBraceToken>
+              <Sequence>
+                <Literal>
+                  <StringToken>""name""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+                </Literal>
+                <Object>
+                  <OpenBraceToken>{</OpenBraceToken>
+                  <Sequence>
+                    <Property>
+                      <StringToken>""type""</StringToken>
+                      <ColonToken>:</ColonToken>
+                      <Literal>
+                        <StringToken>""string""</StringToken>
+                      </Literal>
+                    </Property>
+                  </Sequence>
+                  <CloseBraceToken>}</CloseBraceToken>
+                </Object>
+                <EmptyValue>
+                  <CommaToken>,<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></CommaToken>
+                </EmptyValue>
+                <Property>
+                  <StringToken>""hobbies""</StringToken>
+                  <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                  <Object>
+                    <OpenBraceToken>{<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>      </WhitespaceTrivia></Trivia></OpenBraceToken>
+                    <Sequence>
+                      <Property>
+                        <StringToken>""type""</StringToken>
+                        <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                        <Literal>
+                          <StringToken>""array""</StringToken>
+                        </Literal>
+                      </Property>
+                      <EmptyValue>
+                        <CommaToken>,<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>      </WhitespaceTrivia></Trivia></CommaToken>
+                      </EmptyValue>
+                      <Property>
+                        <StringToken>""items""</StringToken>
+                        <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                        <Object>
+                          <OpenBraceToken>{</OpenBraceToken>
+                          <Sequence>
+                            <Property>
+                              <StringToken>""type""</StringToken>
+                              <ColonToken>:</ColonToken>
+                              <Literal>
+                                <StringToken>""string""</StringToken>
+                              </Literal>
+                            </Property>
+                          </Sequence>
+                          <CloseBraceToken>}<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></CloseBraceToken>
+                        </Object>
+                      </Property>
+                    </Sequence>
+                    <CloseBraceToken>}<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CloseBraceToken>
+                  </Object>
+                </Property>
+              </Sequence>
+              <CloseBraceToken>}<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia></Trivia></CloseBraceToken>
+            </Object>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""102"" Length=""8"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""102"" Length=""8"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1070,9 +1337,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in a json object"" Start=""22"" Length=""5"" />
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""22"" Length=""5"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""22"" Length=""5"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1120,7 +1389,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""',' unexpected"" Start=""50"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""50"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1168,7 +1439,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'c' unexpected"" Start=""50"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'c' unexpected"" Start=""50"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1190,7 +1463,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'a' unexpected"" Start=""15"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'a' unexpected"" Start=""15"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1212,7 +1487,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'a' unexpected"" Start=""17"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'a' unexpected"" Start=""17"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1231,7 +1508,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Error parsing comment"" Start=""14"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Error parsing comment"" Start=""14"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1256,7 +1535,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'}' unexpected"" Start=""11"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""11"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1277,7 +1558,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'}' expected"" Start=""11"" Length=""0"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' expected"" Start=""11"" Length=""0"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1340,7 +1623,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1367,7 +1652,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1396,7 +1683,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Invalid property name"" Start=""12"" Length=""2"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1429,7 +1718,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""':' unexpected"" Start=""14"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""':' unexpected"" Start=""14"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1456,7 +1747,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1483,7 +1776,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""8"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1510,7 +1805,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""4"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1537,7 +1834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""9"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1569,7 +1868,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'a' unexpected"" Start=""12"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'a' unexpected"" Start=""12"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1596,7 +1897,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1623,7 +1926,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1650,7 +1955,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1677,7 +1984,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1704,7 +2013,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1731,7 +2042,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1766,7 +2079,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'(' unexpected"" Start=""13"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'(' unexpected"" Start=""13"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1795,7 +2110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Invalid property name"" Start=""12"" Length=""3"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1825,7 +2142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Trailing comma not allowed"" Start=""19"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1855,7 +2174,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Trailing comma not allowed"" Start=""21"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1884,7 +2205,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'}' unexpected"" Start=""19"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""19"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1913,7 +2236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""'}' unexpected"" Start=""21"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""21"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1942,7 +2267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Missing property value"" Start=""19"" Length=""0"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Missing property value"" Start=""19"" Length=""0"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1971,7 +2298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Missing property value"" Start=""21"" Length=""0"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Missing property value"" Start=""21"" Length=""0"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2004,7 +2333,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Nested properties not allowed"" Start=""27"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Nested properties not allowed"" Start=""27"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2037,7 +2368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Nested properties not allowed"" Start=""31"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Nested properties not allowed"" Start=""31"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2115,7 +2448,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""64"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2193,7 +2528,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""72"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2239,7 +2576,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""13"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2419,7 +2758,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""17"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2630,7 +2971,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""12"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2840,7 +3183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runLooseSubTreeCheck: false);
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""244"" Length=""1"" />
+</Diagnostics>", runLooseSubTreeCheck: false);
         }
 
         [Fact]
@@ -2869,7 +3214,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runLooseSubTreeCheck: false);
+        @"<Diagnostics>
+  <Diagnostic Message=""Comments not allowed"" Start=""11"" Length=""6"" />
+</Diagnostics>", runLooseSubTreeCheck: false);
         }
 
         [Fact]
@@ -2896,7 +3243,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""11"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2923,7 +3272,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""20"" Length=""13"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -2958,7 +3309,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""17"" Length=""4"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3055,7 +3408,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runLooseTreeCheck: false);
+        @"<Diagnostics>
+  <Diagnostic Message=""Comments not allowed"" Start=""10"" Length=""11"" />
+</Diagnostics>", runLooseTreeCheck: false);
         }
 
         [Fact]
@@ -3114,7 +3469,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""11"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3192,7 +3549,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3281,7 +3640,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""37"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3387,7 +3748,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""10"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3406,7 +3769,9 @@ b'</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""10"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3448,7 +3813,9 @@ b""</StringToken>
         @"<Diagnostics>
   <Diagnostic Message=""Name expected"" Start=""13"" Length=""0"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Name expected"" Start=""13"" Length=""0"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3471,7 +3838,9 @@ b""</StringToken>
         @"<Diagnostics>
   <Diagnostic Message=""'(' expected"" Start=""15"" Length=""0"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'(' expected"" Start=""15"" Length=""0"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3494,7 +3863,9 @@ b""</StringToken>
         @"<Diagnostics>
   <Diagnostic Message=""')' expected"" Start=""16"" Length=""0"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""')' expected"" Start=""16"" Length=""0"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3515,7 +3886,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3540,7 +3913,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3571,7 +3946,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3606,7 +3983,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3631,7 +4010,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3659,7 +4040,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3687,7 +4070,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3718,7 +4103,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3752,7 +4139,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3775,7 +4164,9 @@ b""</StringToken>
         @"<Diagnostics>
   <Diagnostic Message=""Invalid constructor name"" Start=""14"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3805,7 +4196,9 @@ b""</StringToken>
         @"<Diagnostics>
   <Diagnostic Message=""',' expected"" Start=""18"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3845,9 +4238,11 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in a json object"" Start=""15"" Length=""1"" />
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""15"" Length=""1"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""15"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3889,7 +4284,9 @@ b""</StringToken>
         @"<Diagnostics>
   <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""2"" />
 </Diagnostics>",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3949,7 +4346,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""11"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -3969,7 +4368,43 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""11"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestPropertyInArray1()
+        {
+            Test(@"@"" [""""a"""": 0] """, @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>
+          <Trivia>
+            <WhitespaceTrivia> </WhitespaceTrivia>
+          </Trivia>[</OpenBracketToken>
+        <Sequence>
+          <Property>
+            <StringToken>""a""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <NumberToken>0</NumberToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBracketToken>]<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Properties not allowed in an array"" Start=""17"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Properties not allowed in an array"" Start=""17"" Length=""1"" />
+</Diagnostics>");
         }
     }
 }

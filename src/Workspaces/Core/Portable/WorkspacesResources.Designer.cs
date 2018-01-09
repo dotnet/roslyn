@@ -1251,20 +1251,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only properties allowed in a json object.
+        ///   Looks up a localized string similar to Only properties allowed in an object.
         /// </summary>
-        internal static string Only_properties_allowed_in_a_json_object {
+        internal static string Only_properties_allowed_in_an_object {
             get {
-                return ResourceManager.GetString("Only_properties_allowed_in_a_json_object", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Only properties allowed in object.
-        /// </summary>
-        internal static string Only_properties_allowed_in_object {
-            get {
-                return ResourceManager.GetString("Only_properties_allowed_in_object", resourceCulture);
+                return ResourceManager.GetString("Only_properties_allowed_in_an_object", resourceCulture);
             }
         }
         
@@ -1332,11 +1323,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Properties not allowed in array.
+        ///   Looks up a localized string similar to Properties not allowed in an array.
         /// </summary>
-        internal static string Properties_not_allowed_in_array {
+        internal static string Properties_not_allowed_in_an_array {
             get {
-                return ResourceManager.GetString("Properties_not_allowed_in_array", resourceCulture);
+                return ResourceManager.GetString("Properties_not_allowed_in_an_array", resourceCulture);
             }
         }
         
@@ -1355,15 +1346,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Property_name_must_be_a_string {
             get {
                 return ResourceManager.GetString("Property_name_must_be_a_string", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Property not allowed in a json array.
-        /// </summary>
-        internal static string Property_not_allowed_in_a_json_array {
-            get {
-                return ResourceManager.GetString("Property_not_allowed_in_a_json_array", resourceCulture);
             }
         }
         

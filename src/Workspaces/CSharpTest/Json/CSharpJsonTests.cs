@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             bool runStrictTreeCheck = true, bool runStrictSubTreeCheck = true,
             [CallerMemberName]string name = "")
         {
+#if true
             if (runLooseSubTreeCheck || runLooseSubTreeCheck)
             {
                 Test(stringText, strict: false, expected, looseDiagnostics, runLooseTreeCheck, runLooseSubTreeCheck);
             }
+#endif
 
-#if false
             if (runStrictTreeCheck || runStrictSubTreeCheck)
             {
                 Test(stringText, strict: true, expected, strictDiagnostics, runStrictTreeCheck, runStrictSubTreeCheck);
             }
-#endif
         }
 
         private void Test(
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             // (like not ever actually finishing compiling).
             if (runSubTreeChecks)
             {
-                TryParseSubTrees(stringText, strict, runTreeCheck);
+                // TryParseSubTrees(stringText, strict, runTreeCheck);
             }
 
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
@@ -168,8 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                 {
                     try
                     {
-                        var serializer = new DataContractJsonSerializer(typeof(object));
-                        serializer.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(token.ValueText)));
+                        var serializer1 = new DataContractJsonSerializer(typeof(object));
+                        serializer1.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(token.ValueText)));
+
+                        var serializer2 = new JavaScriptSerializer();
+                        serializer2.DeserializeObject(token.ValueText);
                     }
                     catch (Exception ex)
                     {

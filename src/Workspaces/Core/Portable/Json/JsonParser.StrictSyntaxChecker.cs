@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Json
                     if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.EmptyValue)
                     {
                         return new JsonDiagnostic(
-                            WorkspacesResources.Only_properties_allowed_in_object,
+                            WorkspacesResources.Only_properties_allowed_in_an_object,
                             GetSpan(GetFirstToken(childNode)));
                     }
                 }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Json
                     if (childNode.Kind == JsonKind.Property)
                     {
                         return new JsonDiagnostic(
-                            WorkspacesResources.Properties_not_allowed_in_array,
+                            WorkspacesResources.Properties_not_allowed_in_an_array,
                             GetSpan(((JsonPropertyNode)childNode).ColonToken));
                     }
                 }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Json
                         {
                             return new JsonDiagnostic(
                                 string.Format(WorkspacesResources._0_unexpected, ","),
-                                GetSpan(((JsonPropertyNode)child).ColonToken));
+                                GetSpan(child));
                         }
                     }
                     else
@@ -179,15 +179,13 @@ namespace Microsoft.CodeAnalysis.Json
                         GetSpan(((JsonEmptyValueNode)node.Value).CommaToken));
                 }
 
-                return null;
+                return CheckString(node.NameToken) ?? CheckChildren(node);
             }
 
             private JsonDiagnostic? CheckLiteral(JsonLiteralNode node)
             {
-                switch (node.Kind)
+                switch (node.LiteralToken.Kind)
                 {
-                    case JsonKind.NaNLiteralToken:
-                    case JsonKind.InfinityLiteralToken:
                     case JsonKind.UndefinedLiteralToken:
                         return InvalidLiteral(node.LiteralToken);
                     case JsonKind.NumberToken:
@@ -196,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Json
                         return CheckString(node.LiteralToken);
                 }
 
-                return null;
+                return CheckChildren(node);
             }
 
             private static readonly Regex s_validNumberRegex =
@@ -221,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Json
                         GetSpan(literalToken));
                 }
 
-                return null;
+                return CheckToken(literalToken);
             }
 
             private JsonDiagnostic? CheckString(JsonToken literalToken)
@@ -233,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Json
                         literalToken.VirtualChars[0].Span);
                 }
 
-                return null;
+                return CheckToken(literalToken);
             }
 
             private JsonDiagnostic? InvalidLiteral(JsonToken literalToken)
@@ -245,9 +243,10 @@ namespace Microsoft.CodeAnalysis.Json
 
             private JsonDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
-                return new JsonDiagnostic(
-                    string.Format(WorkspacesResources._0_literal_not_allowed, "-Infinity"),
-                    GetSpan(node));
+                return null;
+                //return new JsonDiagnostic(
+                //    string.Format(WorkspacesResources._0_literal_not_allowed, "-Infinity"),
+                //    GetSpan(node));
             }
 
             private JsonDiagnostic? CheckConstructor(JsonConstructorNode node)
