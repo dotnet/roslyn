@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         public AbstractDiagnosticsAdornmentTaggerProvider(
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
-            : base(diagnosticService, notificationService, new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.ErrorSquiggles))
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
         }
 

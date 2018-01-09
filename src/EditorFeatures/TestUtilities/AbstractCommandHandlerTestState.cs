@@ -297,10 +297,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             Assert.False(waiters.Any(x => x.HasPendingWork), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
         }
 
-        public async Task WaitForAsynchronousOperationsAsync()
+        public Task WaitForAsynchronousOperationsAsync()
         {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.WaitAllAsync();
+            var provider = Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>() as AsynchronousOperationListenerProvider;
+            provider.WaitAll();
+
+            return Task.CompletedTask;
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)

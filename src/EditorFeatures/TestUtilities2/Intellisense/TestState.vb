@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
-                GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
+                GetExportedValue(Of IAsynchronousOperationListenerProvider),
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
                 New TestSignatureHelpPresenter(Me),
                 GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
-                GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
+                GetExportedValue(Of IAsynchronousOperationListenerProvider)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
 
@@ -87,9 +87,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
             types = If(types, New List(Of Type))
-
-            types.Add(GetType(CompletionWaiter))
-            types.Add(GetType(SignatureHelpWaiter))
 
             Return MinimalTestExportProvider.CreateTypeCatalog(types)
         End Function

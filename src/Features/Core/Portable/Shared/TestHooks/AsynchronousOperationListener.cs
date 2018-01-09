@@ -11,17 +11,22 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    internal partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
+    internal sealed partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
         private readonly object _gate = new object();
+        private readonly string _featureName;
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
+
         private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
         private int _counter;
         private bool _trackActiveTokens;
 
-        public AsynchronousOperationListener()
+        public AsynchronousOperationListener(string featureName = "noname", bool tracking = false)
         {
             TrackActiveTokens = Debugger.IsAttached;
+
+            _featureName = featureName;
+            TrackActiveTokens = tracking;
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
@@ -88,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public virtual Task CreateWaitTask()
+        public Task CreateWaitTask()
         {
             lock (_gate)
             {
@@ -147,25 +152,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     return _diagnosticTokenList.ToImmutableArray();
                 }
             }
-        }
-
-        internal static IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> CreateListeners(
-            string featureName, IAsynchronousOperationListener listener)
-        {
-            return CreateListeners(ValueTuple.Create(featureName, listener));
-        }
-
-        internal static IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> CreateListeners<T>(
-            params ValueTuple<string, T>[] pairs) where T : IAsynchronousOperationListener
-        {
-            return pairs.Select(CreateLazy).ToList();
-        }
-
-        private static Lazy<IAsynchronousOperationListener, FeatureMetadata> CreateLazy<T>(
-            ValueTuple<string, T> tuple) where T : IAsynchronousOperationListener
-        {
-            return new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                () => tuple.Item2, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", tuple.Item1 } }));
         }
     }
 }

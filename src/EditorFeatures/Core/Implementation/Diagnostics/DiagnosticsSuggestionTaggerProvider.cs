@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         public DiagnosticsSuggestionTaggerProvider(
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
-            : base(diagnosticService, notificationService, listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(diagnosticService, notificationService, listenerProvider)
         {
         }
 

@@ -29,7 +29,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => new VisualStudioWorkspace_InProc();
 
         public void SetOptionInfer(string projectName, bool value)
-            => InvokeOnUIThread(() => {
+            => InvokeOnUIThread(() =>
+            {
                 var convertedValue = value ? 1 : 0;
                 var project = GetProject(projectName);
                 project.Properties.Item("OptionInfer").Value = convertedValue;
@@ -55,13 +56,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => _visualStudioWorkspace.Options.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
 
         public void SetPrettyListing(string languageName, bool value)
-            => InvokeOnUIThread(() => {
+            => InvokeOnUIThread(() =>
+            {
                 _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
                     FeatureOnOffOptions.PrettyListing, languageName, value);
             });
 
         public void EnableQuickInfo(bool value)
-            => InvokeOnUIThread(() => {
+            => InvokeOnUIThread(() =>
+            {
                 _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
                     InternalFeatureOnOffOptions.QuickInfo, value);
             });
@@ -129,20 +132,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void CleanUpWorkspace()
-            => InvokeOnUIThread(() => {
+            => InvokeOnUIThread(() =>
+            {
                 LoadRoslynPackage();
                 _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
             });
 
         public void CleanUpWaitingService()
-            => InvokeOnUIThread(() => {
-                var asynchronousOperationWaiterExports = GetComponentModel().DefaultExportProvider.GetExports<IAsynchronousOperationWaiter>();
+            => InvokeOnUIThread(() =>
+            {
+                var provider = GetComponentModel().DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
-                if (!asynchronousOperationWaiterExports.Any())
+                if (provider == null)
                 {
                     throw new InvalidOperationException("The test waiting service could not be located.");
                 }
 
+                GetWaitingService().Enable(true);
                 GetWaitingService().EnableActiveTokenTracking(true);
             });
 

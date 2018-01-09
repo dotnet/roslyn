@@ -9,25 +9,7 @@ Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Public Class NavigationBarControllerTests
-        Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(NavigationBarWaiter)).WithPart(GetType(WorkspaceWaiter)))
-
-        <[Shared]>
-        <Export(GetType(IAsynchronousOperationListener))>
-        <Export(GetType(IAsynchronousOperationWaiter))>
-        <Export(GetType(NavigationBarWaiter))>
-        <Feature(FeatureAttribute.NavigationBar)>
-        Private Class NavigationBarWaiter
-            Inherits AsynchronousOperationListener
-        End Class
-
-        <[Shared]>
-        <Export(GetType(IAsynchronousOperationListener))>
-        <Export(GetType(IAsynchronousOperationWaiter))>
-        <Export(GetType(NavigationBarWaiter))>
-        <Feature(FeatureAttribute.Workspace)>
-        Private Class WorkspaceWaiter
-            Inherits AsynchronousOperationListener
-        End Class
+        Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Sub TestDoNotRecomputeAfterFullRecompute()
@@ -63,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
-        Public Async Function ProjectionBuffersWork() As Task
+        Public Sub ProjectionBuffersWork()
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -85,12 +67,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.TextBuffer)
 
-                Dim waiters = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter)
-                Await waiters.WaitAllAsync()
+                Dim provider = DirectCast(workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider), AsynchronousOperationListenerProvider)
+                provider.WaitAll()
 
                 Assert.True(presentItemsCalled)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestNavigationBarInCSharpLinkedFiles()
@@ -326,9 +308,15 @@ End Class
 
                 workspace.OnProjectNameChanged(workspace.Projects.Single().Id, "VBProj2", "VBProj2.vbproj")
 
-                Await workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.Workspace).Single().Value.CreateWaitTask()
-                Await workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.NavigationBar).Single().Value.CreateWaitTask()
-                Await workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter).WaitAllAsync()
+                Dim listenerProvider = DirectCast(workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)(), AsynchronousOperationListenerProvider)
+                Dim workspaceWaiter = DirectCast(listenerProvider.GetListener(FeatureAttribute.Workspace), IAsynchronousOperationWaiter)
+                Dim navigationBarWaiter = DirectCast(listenerProvider.GetListener(FeatureAttribute.NavigationBar), IAsynchronousOperationWaiter)
+
+                Await workspaceWaiter.CreateWaitTask()
+                Await navigationBarWaiter.CreateWaitTask()
+
+                listenerProvider.WaitAll()
+
                 Assert.Equal("VBProj2", projectName)
             End Using
         End Function

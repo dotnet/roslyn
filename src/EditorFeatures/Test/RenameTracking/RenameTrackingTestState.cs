@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
                 Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
                 SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
-                Workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
+                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
 
@@ -226,10 +226,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             Assert.NotNull(_notificationMessage);
         }
 
-        private async Task WaitForAsyncOperationsAsync()
+        private Task WaitForAsyncOperationsAsync()
         {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.WaitAllAsync();
+            var provider = Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>() as AsynchronousOperationListenerProvider;
+            provider.WaitAll();
+
+            return Task.CompletedTask;
         }
 
         public void Dispose()

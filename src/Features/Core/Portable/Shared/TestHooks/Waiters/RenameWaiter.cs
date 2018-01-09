@@ -5,9 +5,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Roslyn.Hosting.Diagnostics.Waiters
 {
-    [Shared]
-    [Export(typeof(IAsynchronousOperationListener))]
-    [Export(typeof(IAsynchronousOperationWaiter))]
-    [Feature(FeatureAttribute.Rename)]
+    // [Feature(FeatureAttribute.Rename)]
     internal class RenameWaiter : EditorAdornmentWaiter { }
 }
