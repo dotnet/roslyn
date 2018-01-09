@@ -226,6 +226,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonPropertyName)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition JsonPropertyNameTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.JsonConstructorName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition JsonConstructorNameTypeDefinition;
         #endregion
 
         #region VB XML Literals - Attribute Name 

@@ -1017,6 +1017,16 @@
         <target state="new">Nested properties not allowed</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_expected">
+        <source>Name expected</source>
+        <target state="new">Name expected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_constructor_name">
+        <source>Invalid constructor name</source>
+        <target state="new">Invalid constructor name</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

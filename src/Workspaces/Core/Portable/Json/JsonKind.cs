@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Json
         Literal,
         NegativeLiteral,
         Property,
+        Constructor,
         EmptyValue,
 
         // Tokens
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Json
         CloseBraceToken,
         OpenBracketToken,
         CloseBracketToken,
+        OpenParenToken,
+        CloseParenToken,
         StringToken,
         NumberToken,
         TextToken,
@@ -34,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Json
         InfinityLiteralToken,
         NegativeInfinityLiteralToken,
         MinusToken,
+        NewKeyword,
 
         // Trivia
         SingleLineCommentTrivia,

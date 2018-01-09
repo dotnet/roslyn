@@ -1439,8 +1439,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       <Object>
         <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
         <Sequence>
+          <Literal>
+            <NumberToken>0</NumberToken>
+          </Literal>
+          <Text>
+            <TextToken>(</TextToken>
+          </Text>
           <Property>
-            <TextToken>0(0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TextToken>
+            <TextToken>0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TextToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <NumberToken>0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NumberToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""'(' unexpected"" Start=""13"" Length=""1"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestStrangeIllegalPropName2()
+        {
+            Test(@"@""{ 0%0 : 0 }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <TextToken>0%0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Literal>
               <NumberToken>0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NumberToken>
@@ -2426,6 +2460,404 @@ b'</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor1()
+        {
+            Test(@"@""new""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new</NewKeyword>
+        <TextToken />
+        <OpenParenToken />
+        <Sequence />
+        <CloseParenToken />
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Name expected"" Start=""13"" Length=""0"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor2()
+        {
+            Test(@"@""new A""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken />
+        <Sequence />
+        <CloseParenToken />
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""'(' expected"" Start=""15"" Length=""0"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor3()
+        {
+            Test(@"@""new A(""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken />
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""')' expected"" Start=""16"" Length=""0"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor4()
+        {
+            Test(@"@""new A()""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor5()
+        {
+            Test(@"@""new A(1)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor6()
+        {
+            Test(@"@""new A(1, 2)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>2</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor7()
+        {
+            Test(@"@""new A([new B()])""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <Array>
+            <OpenBracketToken>[</OpenBracketToken>
+            <Sequence>
+              <Constructor>
+                <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+                <TextToken>B</TextToken>
+                <OpenParenToken>(</OpenParenToken>
+                <Sequence />
+                <CloseParenToken>)</CloseParenToken>
+              </Constructor>
+            </Sequence>
+            <CloseBracketToken>]</CloseBracketToken>
+          </Array>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor8()
+        {
+            Test(@"@""new A(,)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor9()
+        {
+            Test(@"@""new A(1,)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor10()
+        {
+            Test(@"@""new A(,1)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor11()
+        {
+            Test(@"@""new A(1,1)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor12()
+        {
+            Test(@"@""new A(1,,1)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor13()
+        {
+            Test(@"@""new %()""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>%</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Invalid constructor name"" Start=""14"" Length=""1"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestConstructor14()
+        {
+            Test(@"@""new A(1 2)""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>A</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NumberToken>
+          </Literal>
+          <Literal>
+            <NumberToken>2</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""',' expected"" Start=""18"" Length=""1"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestMultipleCommasInObject()
+        {
+            Test(@"@""{0:0,,1:1}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{</OpenBraceToken>
+        <Sequence>
+          <Property>
+            <TextToken>0</TextToken>
+            <ColonToken>:</ColonToken>
+            <Literal>
+              <NumberToken>0</NumberToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Property>
+            <TextToken>1</TextToken>
+            <ColonToken>:</ColonToken>
+            <Literal>
+              <NumberToken>1</NumberToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Only properties allowed in a json object"" Start=""15"" Length=""1"" />
+  </Diagnostics>
 </Tree>");
         }
     }

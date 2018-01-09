@@ -107,6 +107,11 @@
         <target state="new">JSON Punctuation</target>
         <note />
       </trans-unit>
+      <trans-unit id="JSON_Constructor_Name">
+        <source>JSON Constructor Name</source>
+        <target state="new">JSON Constructor Name</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

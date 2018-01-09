@@ -93,6 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.JsonArray, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.JsonObject, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.JsonPropertyName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonConstructorName, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorText, sourceFormatMap, targetFormatMap);

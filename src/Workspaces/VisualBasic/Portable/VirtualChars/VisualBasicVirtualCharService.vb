@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VirtualChars
         Public Shared ReadOnly Instance As IVirtualCharService = New VisualBasicVirtualCharService()
 
         Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As ImmutableArray(Of VirtualChar)
-            Return TryConvertSimpleDelimitedString(token, """", """")
+            Return TryConvertSimpleDoubleQuoteString(token, """", """")
         End Function
     End Class
 End Namespace

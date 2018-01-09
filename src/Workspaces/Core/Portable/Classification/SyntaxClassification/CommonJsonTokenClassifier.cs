@@ -153,6 +153,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 AddClassification(node.ColonToken, ClassificationTypeNames.JsonPunctuation);
             }
 
+            public void Visit(JsonConstructorNode node)
+            {
+                AddClassification(node.NewKeyword, ClassificationTypeNames.JsonKeyword);
+                AddClassification(node.NameToken, ClassificationTypeNames.JsonConstructorName);
+                AddClassification(node.OpenParenToken, ClassificationTypeNames.JsonPunctuation);
+                AddClassification(node.CloseParenToken, ClassificationTypeNames.JsonPunctuation);
+            }
+
             public void Visit(JsonLiteralNode node)
             {
                 VisitLiteral(node.LiteralToken);

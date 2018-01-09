@@ -69,5 +69,6 @@ namespace Microsoft.CodeAnalysis.Classification
         internal const string JsonArray = "json - array";
         internal const string JsonObject = "json - object";
         internal const string JsonPropertyName = "json - property name";
+        internal const string JsonConstructorName = "json - constructor name";
     }
 }

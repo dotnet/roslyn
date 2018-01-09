@@ -745,4 +745,10 @@
   <data name="Nested_properties_not_allowed" xml:space="preserve">
     <value>Nested properties not allowed</value>
   </data>
+  <data name="Name_expected" xml:space="preserve">
+    <value>Name expected</value>
+  </data>
+  <data name="Invalid_constructor_name" xml:space="preserve">
+    <value>Invalid constructor name</value>
+  </data>
 </root>

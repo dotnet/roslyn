@@ -882,6 +882,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid constructor name.
+        /// </summary>
+        internal static string Invalid_constructor_name {
+            get {
+                return ResourceManager.GetString("Invalid_constructor_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid escape sequence.
         /// </summary>
         internal static string Invalid_escape_sequence {
@@ -1112,6 +1121,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Name_can_be_simplified {
             get {
                 return ResourceManager.GetString("Name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name expected.
+        /// </summary>
+        internal static string Name_expected {
+            get {
+                return ResourceManager.GetString("Name_expected", resourceCulture);
             }
         }
         

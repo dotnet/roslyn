@@ -66,8 +66,9 @@ namespace Microsoft.CodeAnalysis.Json
             {
                 case '{': case '}':
                 case '[': case ']':
+                case '(': case ')':
                 case ',': case ':': 
-                case '\'': case '"': 
+                case '\'': case '"':
                     return true;
 
                 case ' ': case '\t': case '/': case '\r': case '\n':
@@ -93,6 +94,8 @@ namespace Microsoft.CodeAnalysis.Json
                 case '}': return ScanSingleCharToken(JsonKind.CloseBraceToken);
                 case '[': return ScanSingleCharToken(JsonKind.OpenBracketToken);
                 case ']': return ScanSingleCharToken(JsonKind.CloseBracketToken);
+                case '(': return ScanSingleCharToken(JsonKind.OpenParenToken);
+                case ')': return ScanSingleCharToken(JsonKind.CloseParenToken);
                 case ',': return ScanSingleCharToken(JsonKind.CommaToken);
                 case ':': return ScanSingleCharToken(JsonKind.ColonToken);
 

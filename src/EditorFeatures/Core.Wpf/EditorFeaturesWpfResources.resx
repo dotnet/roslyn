@@ -180,4 +180,7 @@
   <data name="JSON_Text" xml:space="preserve">
     <value>JSON Text</value>
   </data>
+  <data name="JSON_Constructor_Name" xml:space="preserve">
+    <value>JSON Constructor Name</value>
+  </data>
 </root>

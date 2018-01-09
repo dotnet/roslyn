@@ -633,6 +633,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(202, 121, 236);
             }
         }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonConstructorName)]
+        [Name(ClassificationTypeNames.JsonConstructorName)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class JsonConstructorNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private JsonConstructorNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.JSON_Constructor_Name;
+                this.ForegroundColor = Color.FromRgb(78, 201, 176);
+            }
+        }
         #endregion
 
 

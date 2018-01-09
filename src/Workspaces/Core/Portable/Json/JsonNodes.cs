@@ -296,4 +296,43 @@ namespace Microsoft.CodeAnalysis.Json
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
     }
+
+    internal sealed class JsonConstructorNode : JsonValueNode
+    {
+        public JsonConstructorNode(
+            JsonToken newKeyword, JsonToken nameToken, JsonToken openParenToken, JsonSequenceNode sequence, JsonToken closeParenToken)
+            : base(JsonKind.Constructor)
+        {
+            NewKeyword = newKeyword;
+            NameToken = nameToken;
+            OpenParenToken = openParenToken;
+            Sequence = sequence;
+            CloseParenToken = closeParenToken;
+        }
+
+        public JsonToken NewKeyword { get; }
+        public JsonToken NameToken { get; }
+        public JsonToken OpenParenToken { get; }
+        public JsonSequenceNode Sequence { get; }
+        public JsonToken CloseParenToken { get; }
+
+        public override int ChildCount => 5;
+
+        public override JsonNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return NewKeyword;
+                case 1: return NameToken;
+                case 2: return OpenParenToken;
+                case 3: return Sequence;
+                case 4: return CloseParenToken;
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        public override void Accept(IJsonNodeVisitor visitor)
+            => visitor.Visit(this);
+    }
 }

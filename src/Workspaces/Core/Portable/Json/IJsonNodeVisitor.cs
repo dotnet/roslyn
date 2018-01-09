@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Json
         void Visit(JsonArrayNode node);
         void Visit(JsonObjectNode node);
         void Visit(JsonPropertyNode node);
+        void Visit(JsonConstructorNode node);
         void Visit(JsonLiteralNode node);
         void Visit(JsonNegativeLiteralNode node);
         void Visit(JsonTextNode node);

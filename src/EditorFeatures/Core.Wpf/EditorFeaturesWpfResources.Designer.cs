@@ -106,6 +106,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to JSON Constructor Name.
+        /// </summary>
+        internal static string JSON_Constructor_Name {
+            get {
+                return ResourceManager.GetString("JSON_Constructor_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to JSON Keyword.
         /// </summary>
         internal static string JSON_Keyword {

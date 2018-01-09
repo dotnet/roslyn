@@ -18,12 +18,15 @@ namespace Microsoft.CodeAnalysis.Json
     {
         private static readonly string _closeBracketExpected = string.Format(WorkspacesResources._0_expected, ']');
         private static readonly string _closeBraceExpected = string.Format(WorkspacesResources._0_expected, '}');
+        private static readonly string _openParenExpected = string.Format(WorkspacesResources._0_expected, '(');
+        private static readonly string _closeParenExpected = string.Format(WorkspacesResources._0_expected, ')');
 
         private JsonLexer _lexer;
         private JsonToken _currentToken;
         private int _recursionDepth;
         private bool _inObject;
         private bool _inArray;
+        private bool _inConstructor;
 
         private JsonParser(
             ImmutableArray<VirtualChar> text) : this()
@@ -206,6 +209,16 @@ namespace Microsoft.CodeAnalysis.Json
                     }
                 }
                 break;
+
+                case JsonKind.Constructor:
+                {
+                    var diagnostic = CheckConstructor((JsonConstructorNode)node);
+                    if (diagnostic != null)
+                    {
+                        return diagnostic;
+                    }
+                }
+                break;
             }
 
             foreach (var child in node)
@@ -236,13 +249,20 @@ namespace Microsoft.CodeAnalysis.Json
                 }
             }
 
+            return CheckCommasBetweenSequenceElements(node.Sequence);
+        }
 
-            for (int i = 0, n = node.Sequence.ChildCount - 1; i < n; i++)
+        private JsonDiagnostic? CheckConstructor(JsonConstructorNode node)
+            => CheckCommasBetweenSequenceElements(node.Sequence);
+
+        private JsonDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
+        {
+            for (int i = 0, n = node.ChildCount - 1; i < n; i++)
             {
-                var child = node.Sequence.ChildAt(i).Node;
+                var child = node.ChildAt(i).Node;
                 if (child.Kind != JsonKind.EmptyValue)
                 {
-                    var next = node.Sequence.ChildAt(i + 1).Node;
+                    var next = node.ChildAt(i + 1).Node;
 
                     if (next.Kind != JsonKind.EmptyValue)
                     {
@@ -332,6 +352,11 @@ namespace Microsoft.CodeAnalysis.Json
                 return !_inArray;
             }
 
+            if (_currentToken.Kind == JsonKind.CloseParenToken)
+            {
+                return !_inConstructor;
+            }
+
             return true;
         }
 
@@ -346,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Json
                 case JsonKind.CommaToken:
                     return ParseEmptyValue();
                 default:
-                    return ParseLiteralOrProperty();
+                    return ParseLiteralOrPropertyOrConstructor();
             }
         }
 
@@ -427,23 +452,28 @@ namespace Microsoft.CodeAnalysis.Json
         private bool IsLegalPropertyNameChar(char ch)
             => char.IsLetterOrDigit(ch) | ch == '_' || ch == '$';
 
-        private JsonValueNode ParseLiteralOrProperty()
+        private JsonValueNode ParseLiteralOrPropertyOrConstructor()
         {
             // var token = ConsumeCurrentToken().With(kind: JsonKind.TextToken);
             var textToken = ConsumeCurrentToken();
             if (_currentToken.Kind != JsonKind.ColonToken)
             {
-                return ParseLiteralOrTextNode(textToken);
+                return ParseLiteralOrTextOrConstructor(textToken);
             }
 
             return ParseProperty(textToken);
         }
 
-        private JsonValueNode ParseLiteralOrTextNode(JsonToken token)
+        private JsonValueNode ParseLiteralOrTextOrConstructor(JsonToken token)
         {
             if (token.Kind == JsonKind.StringToken)
             {
                 return new JsonLiteralNode(token);
+            }
+
+            if (Matches(token, "new"))
+            {
+                return ParseConstructor(token);
             }
 
             Debug.Assert(token.VirtualChars.Length > 0);
@@ -475,6 +505,47 @@ namespace Microsoft.CodeAnalysis.Json
                 token.With(kind: JsonKind.TextToken).AddDiagnosticIfNone(new JsonDiagnostic(
                     string.Format(WorkspacesResources._0_unexpected, firstChar.Char),
                     firstChar.Span)));
+        }
+
+        private JsonConstructorNode ParseConstructor(JsonToken token)
+        {
+            var newKeyword = token.With(kind: JsonKind.NewKeyword);
+            var nameToken = ConsumeToken(JsonKind.TextToken, WorkspacesResources.Name_expected);
+
+            if (!IsValidConstructorName(nameToken))
+            {
+                nameToken = nameToken.AddDiagnosticIfNone(new JsonDiagnostic(
+                    WorkspacesResources.Invalid_constructor_name,
+                    GetSpan(nameToken)));
+            }
+
+            var openParen = ConsumeToken(JsonKind.OpenParenToken, _openParenExpected);
+
+            var savedInConstructor = _inConstructor;
+            _inConstructor = true;
+
+            var result = new JsonConstructorNode(
+                newKeyword,
+                nameToken,
+                openParen,
+                ParseSequence(),
+                ConsumeToken(JsonKind.CloseParenToken, _closeParenExpected));
+
+            _inConstructor = savedInConstructor;
+            return result;
+        }
+
+        private bool IsValidConstructorName(JsonToken nameToken)
+        {
+            foreach (var vc in nameToken.VirtualChars)
+            {
+                if (!char.IsLetterOrDigit(vc.Char))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool TryMatch(JsonToken token, string val, JsonKind kind, out JsonKind newKind)
@@ -583,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Json
             var result = new JsonArrayNode(
                 ConsumeCurrentToken(),
                 ParseSequence(),
-                ParseClose(JsonKind.CloseBracketToken, _closeBracketExpected));
+                ConsumeToken(JsonKind.CloseBracketToken, _closeBracketExpected));
 
             _inArray = savedInArray;
             return result;
@@ -597,20 +668,13 @@ namespace Microsoft.CodeAnalysis.Json
             var result = new JsonObjectNode(
                 ConsumeCurrentToken(),
                 ParseSequence(),
-                ParseClose(JsonKind.CloseBraceToken, _closeBraceExpected));
+                ConsumeToken(JsonKind.CloseBraceToken, _closeBraceExpected));
 
             _inObject = savedInObject;
             return result;
         }
 
-        //private JsonToken ConsumeOptionalCommaToken()
-        //{
-        //    return _currentToken.Kind == JsonKind.CommaToken
-        //        ? ConsumeCurrentToken()
-        //        : JsonToken.CreateMissing(JsonKind.CommaToken);
-        //}
-
-        private JsonToken ParseClose(JsonKind kind, string error)
+        private JsonToken ConsumeToken(JsonKind kind, string error)
         {
             if (_currentToken.Kind == kind)
             {
