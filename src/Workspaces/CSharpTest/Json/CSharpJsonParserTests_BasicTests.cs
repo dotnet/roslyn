@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Syntax error"" Start=""9"" Length=""1"" />
-  </Diagnostics>
 </Tree>");
         }
 

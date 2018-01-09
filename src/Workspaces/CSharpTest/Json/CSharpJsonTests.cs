@@ -33,35 +33,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             return token;
         }
 
-        private void Test(string stringText, string expected,
-            bool runJsonNetCheck = true, bool runJsonNetSubTreeTests = true,
-            bool runDataContractCheck = true, bool runDataContractSubTreeTests = true,
+        private void Test(string stringText,
+            string expected, string looseDiagnostics, string strictDiagnostics = "",
+            bool runLooseTreeCheck = true, bool runLooseSubTreeCheck = true,
+            bool runStrictTreeCheck = true, bool runStrictSubTreeCheck = true,
             [CallerMemberName]string name = "")
         {
-            var tree = TryParseTree(stringText, runJsonNetCheck, runDataContractCheck, conversionFailureOk: false);
+            if (runLooseSubTreeCheck || runLooseSubTreeCheck)
+            {
+                Test(stringText, strict: false, expected, looseDiagnostics, runLooseTreeCheck, runLooseSubTreeCheck);
+            }
+
+#if false
+            if (runStrictTreeCheck || runStrictSubTreeCheck)
+            {
+                Test(stringText, strict: true, expected, strictDiagnostics, runStrictTreeCheck, runStrictSubTreeCheck);
+            }
+#endif
+        }
+
+        private void Test(
+            string stringText, bool strict,
+            string expectedTree, string expectedDiagnostics,
+            bool runTreeCheck, bool runSubTreeChecks)
+        {
+            var tree = TryParseTree(stringText, strict, runTreeCheck, conversionFailureOk: false);
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
             // (like not ever actually finishing compiling).
-            if (runJsonNetSubTreeTests || runDataContractSubTreeTests)
+            if (runSubTreeChecks)
             {
-                TryParseSubTrees(stringText, 
-                    runJsonNetCheck && runJsonNetSubTreeTests, 
-                    runDataContractCheck && runDataContractSubTreeTests);
+                TryParseSubTrees(stringText, strict, runTreeCheck);
             }
 
-            var actual = TreeToText(tree).Replace("\"", "\"\"");
-            Assert.Equal(expected.Replace("\"", "\"\""), actual);
+            var actualTree = TreeToText(tree).Replace("\"", "\"\"");
+            Assert.Equal(expectedTree.Replace("\"", "\"\""), actualTree);
+
+            var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
+            Assert.Equal(expectedDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
         }
 
-        private void TryParseSubTrees(string stringText, bool runJsonNetCheck, bool runDataContractCheck)
+        private void TryParseSubTrees(string stringText, bool strict, bool runTreeCheck)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
             while (current != "@\"\"" && current != "\"\"")
             {
                 current = current.Substring(0, current.Length - 2) + "\"";
-                TryParseTree(current, runJsonNetCheck, runDataContractCheck, conversionFailureOk: true);
+                TryParseTree(current, strict, runTreeCheck, conversionFailureOk: true);
             }
 
             // Trim the input from the left and make sure tree invariants hold
@@ -77,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                     current = "\"" + current.Substring(2);
                 }
 
-                TryParseTree(current, runJsonNetCheck, runDataContractCheck, conversionFailureOk: true);
+                TryParseTree(current, strict, runTreeCheck, conversionFailureOk: true);
             }
 
             for (int start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
@@ -85,13 +105,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                 TryParseTree(
                     stringText.Substring(0, start) +
                     stringText.Substring(start + 1, stringText.Length - (start + 1)),
-                    runJsonNetCheck, runDataContractCheck,
+                    strict, runTreeCheck,
                     conversionFailureOk: true);
             }
         }
 
         private (SyntaxToken, JsonTree, ImmutableArray<VirtualChar>) JustParseTree(
-            string stringText, bool conversionFailureOk)
+            string stringText, bool strict, bool conversionFailureOk)
         {
             var token = GetStringToken(stringText);
             if (token.ValueText == "")
@@ -106,14 +126,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                 return (token, null, allChars);
             }
 
-            var tree = JsonParser.TryParse(allChars, strict: false);
+            var tree = JsonParser.TryParse(allChars, strict);
             return (token, tree, allChars);
         }
 
         private JsonTree TryParseTree(
-            string stringText, bool runJsonNetCheck, bool runDataContractCheck, bool conversionFailureOk)
+            string stringText, bool strict, bool runTreeCheck, bool conversionFailureOk)
         {
-            var (token, tree, allChars) = JustParseTree(stringText, conversionFailureOk);
+            var (token, tree, allChars) = JustParseTree(stringText, strict, conversionFailureOk);
             if (tree == null)
             {
                 Assert.True(allChars.IsDefault);
@@ -130,16 +150,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             //var o = d.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes("{ \"x\": 1 } ")));
             CheckInvariants(tree, allChars);
 
-            if (runJsonNetCheck)
+            if (runTreeCheck)
             {
-                try
+                if (strict)
                 {
-                    JToken.Parse(token.ValueText);
+                    try
+                    {
+                        JToken.Parse(token.ValueText);
+                    }
+                    catch (Exception)
+                    {
+                        Assert.NotEmpty(tree.Diagnostics);
+                        return tree;
+                    }
                 }
-                catch (Exception)
+                else
                 {
-                    Assert.NotEmpty(tree.Diagnostics);
-                    return tree;
+                    try
+                    {
+                        var serializer = new DataContractJsonSerializer(typeof(object));
+                        serializer.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(token.ValueText)));
+                    }
+                    catch (Exception ex)
+                    {
+                        Assert.NotEmpty(tree.Diagnostics);
+                        return tree;
+                    }
                 }
 
                 Assert.Empty(tree.Diagnostics);
@@ -150,20 +186,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 
         private string TreeToText(JsonTree tree)
         {
-            var element = new XElement("Tree",
-                NodeToElement(tree.Root));
+            return new XElement("Tree",
+                NodeToElement(tree.Root)).ToString();
+        }
 
-            if (tree.Diagnostics.Length > 0)
+        private string DiagnosticsToText(ImmutableArray<JsonDiagnostic> diagnostics)
+        { 
+            if (diagnostics.IsEmpty)
             {
-                element.Add(new XElement("Diagnostics",
-                    tree.Diagnostics.Select(d =>
-                        new XElement("Diagnostic",
-                            new XAttribute("Message", d.Message),
-                            new XAttribute("Start", d.Span.Start),
-                            new XAttribute("Length", d.Span.Length)))));
+                return "";
             }
 
-            return element.ToString();
+            return new XElement("Diagnostics",
+                diagnostics.Select(d =>
+                    new XElement("Diagnostic",
+                        new XAttribute("Message", d.Message),
+                        new XAttribute("Start", d.Span.Start),
+                        new XAttribute("Length", d.Span.Length)))).ToString();
         }
 
         private XElement NodeToElement(JsonNode node)
@@ -304,7 +343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[""", conversionFailureOk: false);
+[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[""",
+strict: false, conversionFailureOk: false);
             Assert.False(token.IsMissing);
             Assert.False(chars.IsDefaultOrEmpty);
             Assert.Null(tree);
