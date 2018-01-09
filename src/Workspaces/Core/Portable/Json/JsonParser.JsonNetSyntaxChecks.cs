@@ -16,44 +16,24 @@ namespace Microsoft.CodeAnalysis.Json
     {
         private partial struct JsonNetSyntaxChecker
         {
-            public JsonDiagnostic? Check(ImmutableArray<VirtualChar> text, JsonCompilationUnit root)
-                => CheckTopLevel(text, root) ?? CheckSyntax(root);
-
-            private JsonDiagnostic? CheckTopLevel(
-                ImmutableArray<VirtualChar> text, JsonCompilationUnit compilationUnit)
+            private JsonDiagnostic? CheckChildren(JsonNode node)
             {
-                var arraySequence = compilationUnit.Sequence;
-                if (arraySequence.ChildCount == 0)
+                foreach (var child in node)
                 {
-                    if (text.Length > 0 &&
-                        compilationUnit.EndOfFileToken.LeadingTrivia.All(
-                            t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
+                    if (child.IsNode)
                     {
-                        return new JsonDiagnostic(WorkspacesResources.Syntax_error, GetSpan(text));
-                    }
-                }
-                else if (arraySequence.ChildCount >= 2)
-                {
-                    var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
-                    return new JsonDiagnostic(
-                        string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
-                        GetSpan(firstToken));
-                }
-                foreach (var child in compilationUnit.Sequence)
-                {
-                    if (child.IsNode && child.Node.Kind == JsonKind.EmptyValue)
-                    {
-                        var emptyValue = (JsonEmptyValueNode)child.Node;
-                        return new JsonDiagnostic(
-                            string.Format(WorkspacesResources._0_unexpected, ','),
-                            GetSpan(emptyValue.CommaToken));
+                        var diagnostic = CheckSyntax(child.Node);
+                        if (diagnostic != null)
+                        {
+                            return diagnostic;
+                        }
                     }
                 }
 
                 return null;
             }
 
-            private JsonDiagnostic? CheckSyntax(JsonNode node)
+            public JsonDiagnostic? CheckSyntax(JsonNode node)
             {
                 switch (node.Kind)
                 {
@@ -62,12 +42,23 @@ namespace Microsoft.CodeAnalysis.Json
                     case JsonKind.Constructor: return CheckConstructor((JsonConstructorNode)node);
                     case JsonKind.Property: return CheckProperty((JsonPropertyNode)node);
                     case JsonKind.Literal: return CheckLiteral((JsonLiteralNode)node);
+                    case JsonKind.NegativeLiteral: return CheckNegativeLiteral((JsonNegativeLiteralNode)node);
                 }
 
                 return CheckChildren(node);
             }
 
             private JsonDiagnostic? CheckLiteral(JsonLiteralNode node)
+            {
+                if (node.LiteralToken.Kind == JsonKind.NumberToken)
+                {
+                    return CheckNumber(node.LiteralToken);
+                }
+
+                return CheckChildren(node);
+            }
+
+            private JsonDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
                 if (node.LiteralToken.Kind == JsonKind.NumberToken)
                 {
@@ -116,24 +107,6 @@ namespace Microsoft.CodeAnalysis.Json
                     return new JsonDiagnostic(
                         WorkspacesResources.Invalid_number,
                         GetSpan(chars));
-                }
-
-                return null;
-            }
-
-
-            private JsonDiagnostic? CheckChildren(JsonNode node)
-            {
-                foreach (var child in node)
-                {
-                    if (child.IsNode)
-                    {
-                        var diagnostic = CheckSyntax(child.Node);
-                        if (diagnostic != null)
-                        {
-                            return diagnostic;
-                        }
-                    }
                 }
 
                 return null;

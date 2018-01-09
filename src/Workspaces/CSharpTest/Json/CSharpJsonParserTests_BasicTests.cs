@@ -44,6 +44,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         [Fact]
+        public void TestTabSpace()
+        {
+            Test(@"""\t""", @"<Tree>
+  <CompilationUnit>
+    <Sequence />
+    <EndOfFile>
+      <Trivia>
+        <WhitespaceTrivia>	</WhitespaceTrivia>
+      </Trivia>
+    </EndOfFile>
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestFormFeed()
+        {
+            Test(@"""\f""", @"<Tree>
+  <CompilationUnit>
+    <Sequence />
+    <EndOfFile>
+      <Trivia>
+        <WhitespaceTrivia>\f</WhitespaceTrivia>
+      </Trivia>
+    </EndOfFile>
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
         public void TestSingleLineComment()
         {
             Test(@"""//""", @"<Tree>

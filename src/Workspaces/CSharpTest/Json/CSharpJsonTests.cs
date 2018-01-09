@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                 return (token, null, allChars);
             }
 
-            var tree = JsonParser.TryParse(allChars);
+            var tree = JsonParser.TryParse(allChars, strict: false);
             return (token, tree, allChars);
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         private XElement TriviaToElement(JsonTrivia trivia)
             => new XElement(
                 trivia.Kind.ToString(),
-                trivia.VirtualChars.CreateString());
+                trivia.VirtualChars.CreateString().Replace("\f", "\\f"));
 
         private void CheckInvariants(JsonTree tree, ImmutableArray<VirtualChar> allChars)
         {

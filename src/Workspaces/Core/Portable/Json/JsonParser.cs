@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VirtualChars;
 using Roslyn.Utilities;
- 
+
 namespace Microsoft.CodeAnalysis.Json
 {
     using System.Globalization;
@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Json
         /// diagnotics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static JsonTree TryParse(ImmutableArray<VirtualChar> text)
+        public static JsonTree TryParse(ImmutableArray<VirtualChar> text, bool strict)
         {
             try
             {
-                var tree1 = new JsonParser(text).ParseTree();
+                var tree1 = new JsonParser(text).ParseTree(strict);
                 return tree1;
             }
             catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Json
             }
         }
 
-        private JsonTree ParseTree()
+        private JsonTree ParseTree(bool strict)
         {
             var arraySequence = this.ParseSequence();
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
@@ -74,10 +74,12 @@ namespace Microsoft.CodeAnalysis.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
-            var diagnostic = GetDiagnostic(root);
+            var diagnostic = GetDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
             if (diagnostic == null)
             {
-                diagnostic = new JsonNetSyntaxChecker().Check(_lexer.Text, root);
+                diagnostic = strict
+                    ? new StrictSyntaxChecker().CheckSyntax(root)
+                    : new JsonNetSyntaxChecker().CheckSyntax(root);
             }
 
             var diagnostics = diagnostic == null
@@ -86,6 +88,40 @@ namespace Microsoft.CodeAnalysis.Json
 
             return new JsonTree(
                 _lexer.Text, root, diagnostics);
+        }
+
+        private JsonDiagnostic? CheckTopLevel(
+            ImmutableArray<VirtualChar> text, JsonCompilationUnit compilationUnit)
+        {
+            var arraySequence = compilationUnit.Sequence;
+            if (arraySequence.ChildCount == 0)
+            {
+                if (text.Length > 0 &&
+                    compilationUnit.EndOfFileToken.LeadingTrivia.All(
+                        t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
+                {
+                    return new JsonDiagnostic(WorkspacesResources.Syntax_error, GetSpan(text));
+                }
+            }
+            else if (arraySequence.ChildCount >= 2)
+            {
+                var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
+                return new JsonDiagnostic(
+                    string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
+                    GetSpan(firstToken));
+            }
+            foreach (var child in compilationUnit.Sequence)
+            {
+                if (child.IsNode && child.Node.Kind == JsonKind.EmptyValue)
+                {
+                    var emptyValue = (JsonEmptyValueNode)child.Node;
+                    return new JsonDiagnostic(
+                        string.Format(WorkspacesResources._0_unexpected, ','),
+                        GetSpan(emptyValue.CommaToken));
+                }
+            }
+
+            return null;
         }
 
         private static JsonToken GetFirstToken(JsonNode node)
@@ -377,7 +413,6 @@ namespace Microsoft.CodeAnalysis.Json
 
         private JsonValueNode ParseNumber(JsonToken textToken)
         {
-
             var numberToken = textToken.With(kind: JsonKind.NumberToken);
             return new JsonLiteralNode(numberToken);
         }

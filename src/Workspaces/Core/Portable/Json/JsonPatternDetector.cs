@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -109,57 +110,64 @@ namespace Microsoft.CodeAnalysis.Json
             return false;
         }
 
-        //    if (!IsMethodArgument(token, syntaxFacts) &&
-        //        !HasJsonLanguageComment(token, syntaxFacts))
-        //    {
-        //        return true;
-        //    }
-
-        //    return false;
-        //}
-
         private static bool HasJsonLanguageComment(
-            SyntaxToken token, ISyntaxFactsService syntaxFacts)
+            SyntaxToken token, ISyntaxFactsService syntaxFacts, out bool strict)
         {
-            if (HasJsonLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts))
+            if (HasJsonLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out strict))
             {
                 return true;
             }
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
-                if (HasJsonLanguageComment(node.GetLeadingTrivia(), syntaxFacts))
+                if (HasJsonLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out strict))
                 {
                     return true;
                 }
             }
 
+            strict = false;
             return false;
         }
 
         private static bool HasJsonLanguageComment(
-            SyntaxTriviaList list, ISyntaxFactsService syntaxFacts)
+            SyntaxTriviaList list, ISyntaxFactsService syntaxFacts, out bool strict)
         {
             foreach (var trivia in list)
             {
-                if (HasJsonLanguageComment(trivia, syntaxFacts))
+                if (HasJsonLanguageComment(trivia, syntaxFacts, out strict))
                 {
                     return true;
                 }
             }
 
+            strict = false;
             return false;
         }
 
         private static bool HasJsonLanguageComment(
-            SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts)
+            SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts, out bool strict)
         {
+            strict = false;
             if (syntaxFacts.IsRegularComment(trivia))
             {
                 var text = trivia.ToString();
                 var match = s_languageCommentDetector.Match(text);
                 if (match.Success)
                 {
+                    var optionGroup = match.Groups["option"];
+                    foreach (Capture capture in optionGroup.Captures)
+                    {
+                        if (StringComparer.OrdinalIgnoreCase.Equals("strict", capture.Value))
+                        {
+                            strict = true;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
                     return true;
                 }
             }
@@ -179,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return false;
             }
 
-            if (HasJsonLanguageComment(token, _syntaxFacts))
+            if (HasJsonLanguageComment(token, _syntaxFacts, out _))
             {
                 return true;
             }
@@ -226,13 +234,15 @@ namespace Microsoft.CodeAnalysis.Json
                 return null;
             }
 
+            HasJsonLanguageComment(token, _syntaxFacts, out var strict);
+
             var chars = _virtualCharService.TryConvertToVirtualChars(token);
             if (chars.IsDefaultOrEmpty)
             {
                 return null;
             }
 
-            return JsonParser.TryParse(chars);
+            return JsonParser.TryParse(chars, strict);
         }
 
         private bool AnalyzeStringLiteral(

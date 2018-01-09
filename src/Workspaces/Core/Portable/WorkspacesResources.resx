@@ -751,4 +751,34 @@
   <data name="Invalid_constructor_name" xml:space="preserve">
     <value>Invalid constructor name</value>
   </data>
+  <data name="Comments_not_allowed" xml:space="preserve">
+    <value>Comments not allowed</value>
+  </data>
+  <data name="Constructors_not_allowed" xml:space="preserve">
+    <value>Constructors not allowed</value>
+  </data>
+  <data name="Illegal_whitespace_character" xml:space="preserve">
+    <value>Illegal whitespace character</value>
+  </data>
+  <data name="Only_properties_allowed_in_object" xml:space="preserve">
+    <value>Only properties allowed in object</value>
+  </data>
+  <data name="Properties_not_allowed_in_array" xml:space="preserve">
+    <value>Properties not allowed in array</value>
+  </data>
+  <data name="Property_name_must_be_a_string" xml:space="preserve">
+    <value>Property name must be a string</value>
+  </data>
+  <data name="Strings_must_start_with_double_quote_not_single_quote" xml:space="preserve">
+    <value>Strings must start with " not '</value>
+  </data>
+  <data name="Trailing_comma_not_allowed" xml:space="preserve">
+    <value>Trailing comma not allowed</value>
+  </data>
+  <data name="Value_required" xml:space="preserve">
+    <value>Value required</value>
+  </data>
+  <data name="_0_literal_not_allowed" xml:space="preserve">
+    <value>'{0}' literal not allowed</value>
+  </data>
 </root>

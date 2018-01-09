@@ -1027,6 +1027,56 @@
         <target state="new">Invalid constructor name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments_not_allowed">
+        <source>Comments not allowed</source>
+        <target state="new">Comments not allowed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constructors_not_allowed">
+        <source>Constructors not allowed</source>
+        <target state="new">Constructors not allowed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Illegal_whitespace_character">
+        <source>Illegal whitespace character</source>
+        <target state="new">Illegal whitespace character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_properties_allowed_in_object">
+        <source>Only properties allowed in object</source>
+        <target state="new">Only properties allowed in object</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties_not_allowed_in_array">
+        <source>Properties not allowed in array</source>
+        <target state="new">Properties not allowed in array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_name_must_be_a_string">
+        <source>Property name must be a string</source>
+        <target state="new">Property name must be a string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
+        <source>Strings must start with " not '</source>
+        <target state="new">Strings must start with " not '</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Trailing_comma_not_allowed">
+        <source>Trailing comma not allowed</source>
+        <target state="new">Trailing comma not allowed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_required">
+        <source>Value required</source>
+        <target state="new">Value required</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_literal_not_allowed">
+        <source>'{0}' literal not allowed</source>
+        <target state="new">'{0}' literal not allowed</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
