@@ -56,7 +56,11 @@ namespace Microsoft.CodeAnalysis.VirtualChars
             return result;
         }
 
-        protected ImmutableArray<VirtualChar> TryConvertSimpleDelimitedString(
+        /// <summary>
+        /// Helper to convert simple string literals that escape quotes by doubling them.  This is 
+        /// how normal VB literals and c# verbatim string literals work.
+        /// </summary>
+        protected ImmutableArray<VirtualChar> TryConvertSimpleDoubleQuoteString(
             SyntaxToken token, string startDelimeter, string endDelimeter)
         {
             var tokenText = token.Text;
