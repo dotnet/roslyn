@@ -372,7 +372,7 @@ public struct S1
 
         [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
         [Fact]
-        public void OutParamAdOptional()
+        public void OutParamAndOptional()
         {
             var code = @"
 using System;
@@ -427,6 +427,72 @@ public class C
   IL_001b:  callvirt   ""C C.Test(object, C, out int, out int, object)""
   IL_0020:  pop
   IL_0021:  ret
+}");
+        }
+
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
+        [Fact]
+        public void OutParamAndOptionalNested()
+        {
+            var code = @"
+using System;
+public class C
+{
+    public static C cc => new C();
+
+    readonly int y;
+
+    public static void Main()
+    {
+        var v = new C(1);
+        System.Console.WriteLine('Q');
+    }
+
+    private C()
+    {
+    }
+
+    private C(int x)
+    {
+        var captured = 2;
+
+        C Test(object arg1, C arg2, out int i1, out int i2, object opt = null)
+        {
+            i1 = 1;
+            i2 = captured++;
+
+            return arg2;
+        }
+
+        var c = Test(1, this, out x, out y);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "Q");
+
+            verifier.VerifyIL("C..ctor(int)", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  6
+  .locals init (C.<>c__DisplayClass5_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldc.i4.2
+  IL_0009:  stfld      ""int C.<>c__DisplayClass5_0.captured""
+  IL_000e:  ldc.i4.1
+  IL_000f:  box        ""int""
+  IL_0014:  ldarg.0
+  IL_0015:  ldarga.s   V_1
+  IL_0017:  ldarg.0
+  IL_0018:  ldflda     ""int C.y""
+  IL_001d:  ldnull
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""C C.<.ctor>g__Test|5_0(object, C, out int, out int, object, ref C.<>c__DisplayClass5_0)""
+  IL_0025:  pop
+  IL_0026:  ret
 }");
         }
     }
