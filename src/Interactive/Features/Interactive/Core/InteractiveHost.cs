@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         // adjustable for testing purposes
         private readonly int _millisecondsTimeout;
         private const int MaxAttemptsToCreateProcess = 2;
+        private readonly SemaphoreSlim _disposeLock = new SemaphoreSlim(initialCount: 1);
 
         private LazyRemoteService _lazyRemoteService;
         private int _remoteServiceInstanceId;
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     return null;
                 }
 
-                return new RemoteService(this, newProcess, newProcessId, newService);
+                return new RemoteService(this, newProcess, newProcessId, newService, _disposeLock);
             }
             catch (OperationCanceledException)
             {
@@ -236,16 +237,19 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private void Dispose(bool joinThreads, bool disposing)
         {
-            if (disposing)
+            using (_disposeLock.DisposableWait())
             {
-                GC.SuppressFinalize(this);
-                DisposeChannel();
-            }
+                if (disposing)
+                {
+                    GC.SuppressFinalize(this);
+                    DisposeChannel();
+                }
 
-            if (_lazyRemoteService != null)
-            {
-                _lazyRemoteService.Dispose(joinThreads);
-                _lazyRemoteService = null;
+                if (_lazyRemoteService != null)
+                {
+                    _lazyRemoteService.Dispose(joinThreads);
+                    _lazyRemoteService = null;
+                }
             }
         }
 

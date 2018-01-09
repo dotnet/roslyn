@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
+            private readonly SemaphoreSlim _disposeLock;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
@@ -27,11 +28,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             private bool _disposing;                    // set to true on dispose
             private int _processExitHandling;           // set to ProcessExitHandled on dispose
 
-            internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
+            internal RemoteService(InteractiveHost host, Process process, int processId, Service service, SemaphoreSlim disposeLock)
             {
                 Debug.Assert(host != null);
                 Debug.Assert(process != null);
                 Debug.Assert(service != null);
+                Debug.Assert(disposeLock != null);
 
                 _host = host;
                 _disposing = false;
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _processId = processId;
                 this.Service = service;
                 _processExitHandling = 0;
+                _disposeLock = disposeLock;
 
                 // TODO (tomat): consider using single-thread async readers
                 _readOutputThread = new Thread(() => ReadOutput(error: false));
@@ -71,7 +74,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         if (!_disposing)
                         {
-                            await _host.OnProcessExited(Process).ConfigureAwait(false);
+                            using (await _disposeLock.DisposableWaitAsync().ConfigureAwait(false))
+                            {
+                                if (_host != null)
+                                {
+                                    await _host.OnProcessExited(Process).ConfigureAwait(false);
+                                }
+                            }
                         }
                     }
                 }
