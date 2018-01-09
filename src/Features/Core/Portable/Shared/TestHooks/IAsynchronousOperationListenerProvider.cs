@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// loop, dig into the waiters and see all of the active <see cref="IAsyncToken"/> values 
         /// representing the remaining work.
         /// </remarks>
-        public void WaitAll()
+        public async Task WaitAllAsync(Action eventProcessingAction = null)
         {
             var smallTimeout = TimeSpan.FromMilliseconds(10);
 
@@ -118,6 +118,14 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                         // see whether there are new tasks added while we were waiting
                         break;
                     }
+
+                    // certain test requires some event queues to be processed
+                    // for waiter tasks to finish such as Dispatcher queue
+                    eventProcessingAction?.Invoke();
+
+                    // in unit test where it uses fake foreground task scheduler such as StaTaskScheduler
+                    // we need to yield for the scheduler to run inlined tasks
+                    await Task.Yield();
                 } while (true);
             }
 

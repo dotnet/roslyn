@@ -110,11 +110,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return workspace
         End Function
 
-        Public Function WaitForRename(workspace As TestWorkspace) As Task
+        Public Async Function WaitForRename(workspace As TestWorkspace) As Task
             Dim provider = DirectCast(workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider), AsynchronousOperationListenerProvider)
-            provider.WaitAll()
-
-            Return Task.CompletedTask
+            Await provider.WaitAllDispatcherOperationAndTasksAsync()
         End Function
 
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)

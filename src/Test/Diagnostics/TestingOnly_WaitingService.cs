@@ -2,7 +2,9 @@
 
 using System;
 using System.Composition;
+using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Roslyn.Hosting.Diagnostics.Waiters
@@ -46,13 +48,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
 
             var waitTask = featureWaiter.CreateWaitTask();
 
-            while (!waitTask.Wait(100))
-            {
-                // set breakpoint here when debugging
-                var tokens = _provider.GetTokens();
-
-                GC.KeepAlive(tokens);
-            }
+            WaitForTask(waitTask);
 
             // Debugging trick: don't let the listeners collection get optimized away during execution.
             // This means if the process is killed during integration tests and the test was waiting, you can
@@ -63,17 +59,30 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
 
         public void WaitForAllAsyncOperations()
         {
-            ((AsynchronousOperationListenerProvider)_provider).WaitAll();
+            var task = _provider.WaitAllAsync(eventProcessingAction: () => Dispatcher.CurrentDispatcher.DoEvents());
+
+            WaitForTask(task);
         }
 
         public void EnableActiveTokenTracking(bool enable)
         {
-            ((AsynchronousOperationListenerProvider)_provider).Tracking(enable);
+            _provider.Tracking(enable);
         }
 
         public void Enable(bool enable)
         {
             AsynchronousOperationListenerProvider.Enable(enable);
+        }
+
+        private void WaitForTask(System.Threading.Tasks.Task task)
+        {
+            while (!task.Wait(100))
+            {
+                // set breakpoint here when debugging
+                var tokens = _provider.GetTokens();
+
+                GC.KeepAlive(tokens);
+            }
         }
     }
 }

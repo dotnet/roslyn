@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Composition
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -45,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
-        Public Sub ProjectionBuffersWork()
+        Public Async Function ProjectionBuffersWork() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -68,11 +67,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.TextBuffer)
 
                 Dim provider = DirectCast(workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider), AsynchronousOperationListenerProvider)
-                provider.WaitAll()
+                Await provider.WaitAllDispatcherOperationAndTasksAsync()
 
                 Assert.True(presentItemsCalled)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestNavigationBarInCSharpLinkedFiles()
@@ -315,7 +314,7 @@ End Class
                 Await workspaceWaiter.CreateWaitTask()
                 Await navigationBarWaiter.CreateWaitTask()
 
-                listenerProvider.WaitAll()
+                Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync()
 
                 Assert.Equal("VBProj2", projectName)
             End Using
