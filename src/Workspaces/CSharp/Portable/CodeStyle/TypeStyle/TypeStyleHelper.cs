@@ -79,8 +79,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             if (initializerExpression.IsKind(SyntaxKind.TupleExpression))
             {
                 var tuple = (TupleExpressionSyntax)initializerExpression;
-                return tuple.Arguments.All(a => IsTypeApparentInAssignmentExpression(stylePreferences, a.Expression,
-                    semanticModel, cancellationToken, typeInDeclaration));
+                foreach (var argument in tuple.Arguments)
+                {
+                    if (!IsTypeApparentInAssignmentExpression(stylePreferences, argument.Expression, semanticModel, cancellationToken, typeInDeclaration))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             // default(type)

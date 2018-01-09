@@ -1539,6 +1539,18 @@ namespace System
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(11094, "https://github.com/dotnet/roslyn/issues/11094")]
+        public async Task SuggestVarOnLocalWithNonApparentTupleType()
+        {
+            var before = @"class C { static void M(C c) { [|(int a, C b)|] s = (a: 1, b: c); } }";
+            var after = @"class C { static void M(C c) { var s = (a: 1, b: c); } }";
+
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparentAndForIntrinsics()));
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [WorkItem(11154, "https://github.com/dotnet/roslyn/issues/11154")]
         public async Task ValueTupleCreate()
         {
