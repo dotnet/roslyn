@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         private void Test(string stringText,
-            string expected, string looseDiagnostics, string strictDiagnostics = "",
+            string expected, string looseDiagnostics, string strictDiagnostics,
             bool runLooseTreeCheck = true, bool runLooseSubTreeCheck = true,
             bool runStrictTreeCheck = true, bool runStrictSubTreeCheck = true,
             [CallerMemberName]string name = "")
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 
             if (runTreeCheck)
             {
-                if (strict)
+                if (!strict)
                 {
                     try
                     {

@@ -19,7 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Syntax error"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -34,10 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -52,10 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -70,10 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Syntax error"" Start=""9"" Length=""2"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -88,10 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Unterminated comment"" Start=""9"" Length=""2"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Unterminated comment"" Start=""9"" Length=""2"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -106,7 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -121,7 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -136,7 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
       </Trivia>
     </EndOfFile>
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -153,7 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -173,7 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -190,10 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""']' expected"" Start=""10"" Length=""0"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""']' expected"" Start=""10"" Length=""0"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -208,10 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""']' unexpected"" Start=""9"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""']' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -232,7 +252,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -256,7 +278,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -277,7 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -301,7 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -328,7 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -355,7 +385,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -382,7 +414,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -397,7 +431,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -415,7 +451,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -430,7 +468,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -448,7 +488,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -463,7 +505,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -481,7 +525,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -496,7 +542,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -511,7 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -529,7 +579,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -544,10 +596,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -562,7 +615,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -578,7 +633,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -596,10 +653,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -626,10 +684,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""',' expected"" Start=""12"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""',' expected"" Start=""12"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -644,10 +703,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -662,10 +722,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -680,10 +741,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""6"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""6"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -698,10 +760,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""3"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""3"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -716,10 +779,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""7"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""7"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -734,10 +798,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""4"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""4"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -752,10 +817,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid number"" Start=""9"" Length=""13"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""9"" Length=""13"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -770,10 +836,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""3"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""3"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -788,10 +855,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""4"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""4"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -811,10 +879,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'}' unexpected"" Start=""11"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""11"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -859,7 +928,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -904,7 +975,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -919,10 +992,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'n' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -956,10 +1030,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Only properties allowed in a json object"" Start=""20"" Length=""3"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in a json object"" Start=""20"" Length=""3"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -993,10 +1068,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Only properties allowed in a json object"" Start=""22"" Length=""5"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in a json object"" Start=""22"" Length=""5"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1040,10 +1116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""',' unexpected"" Start=""50"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""50"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1087,10 +1164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'c' unexpected"" Start=""50"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'c' unexpected"" Start=""50"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1108,10 +1186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'a' unexpected"" Start=""15"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'a' unexpected"" Start=""15"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1129,10 +1208,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'a' unexpected"" Start=""17"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'a' unexpected"" Start=""17"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1147,10 +1227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Error parsing comment"" Start=""14"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Error parsing comment"" Start=""14"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1171,10 +1252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'}' unexpected"" Start=""11"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""11"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1191,10 +1273,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'}' expected"" Start=""11"" Length=""0"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' expected"" Start=""11"" Length=""0"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1211,7 +1294,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1226,7 +1311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1251,7 +1338,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1276,7 +1365,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1301,10 +1392,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid property name"" Start=""12"" Length=""2"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid property name"" Start=""12"" Length=""2"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1333,10 +1425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""':' unexpected"" Start=""14"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""':' unexpected"" Start=""14"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1361,7 +1454,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1386,7 +1481,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1411,7 +1508,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1436,7 +1535,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1464,10 +1565,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'a' unexpected"" Start=""12"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'a' unexpected"" Start=""12"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1492,7 +1594,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1517,7 +1621,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1542,7 +1648,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1567,7 +1675,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1592,7 +1702,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1617,7 +1729,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1648,10 +1762,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'(' unexpected"" Start=""13"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'(' unexpected"" Start=""13"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1676,10 +1791,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid property name"" Start=""12"" Length=""3"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid property name"" Start=""12"" Length=""3"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1707,7 +1823,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1735,7 +1853,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -1760,10 +1880,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'}' unexpected"" Start=""19"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""19"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1788,10 +1909,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'}' unexpected"" Start=""21"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""21"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1816,10 +1938,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Missing property value"" Start=""19"" Length=""0"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Missing property value"" Start=""19"" Length=""0"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1844,10 +1967,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Missing property value"" Start=""21"" Length=""0"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Missing property value"" Start=""21"" Length=""0"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1876,10 +2000,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Nested properties not allowed"" Start=""27"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Nested properties not allowed"" Start=""27"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1908,10 +2033,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Nested properties not allowed"" Start=""31"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Nested properties not allowed"" Start=""31"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -1987,7 +2113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2063,7 +2191,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2107,7 +2237,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2151,7 +2283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2283,7 +2417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2415,7 +2551,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2490,7 +2628,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2555,17 +2695,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
         public void TestLiterals3()
         {
-            // Note: we don't run subtree tests on json.net v9 because it has a bug where
-            // it won't fail when we expect it to.  This is due to:
-            //
-            // https://github.com/JamesNK/Newtonsoft.Json/releases
-            // Fix - Fixed JObject/JArray Parse not throwing an error when there is a comment followed by additional content
             Test(@"@""[
   1,
   0,
@@ -2701,17 +2838,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>", runJsonNetSubTreeTests: false);
+</Tree>",
+        @"",
+        @"", runLooseSubTreeCheck: false);
         }
 
         [Fact]
         public void TestCommentsInArray()
         {
-            // Note: we don't run subtree tests on json.net v9 because it has a bug where
-            // it won't fail when we expect it to.  This is due to:
-            //
-            // https://github.com/JamesNK/Newtonsoft.Json/releases
-            // Fix - Fixed JObject/JArray Parse not throwing an error when there is a comment followed by additional content
             Test(@"@""[/*hi*/1/*hi*/,2/*hi*/]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -2733,7 +2867,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>", runJsonNetSubTreeTests: false);
+</Tree>",
+        @"",
+        @"", runLooseSubTreeCheck: false);
         }
 
         [Fact]
@@ -2758,7 +2894,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2783,7 +2921,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -2816,15 +2956,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
         public void TestObjectLiteralComments()
         {
-            // Note: we don't run the json.net v9 because it has a bug where it will fail when we 
-            // expect it not to.  When we move to json.net 10 we can enable the test.
-
             Test(@"@""/*comment*/ { /*comment*/
         'Name': /*comment*/ 'Apple' /*comment*/, /*comment*/
         'ExpiryDate': '1',
@@ -2914,7 +3053,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>", runJsonNetCheck: false);
+</Tree>",
+        @"",
+        @"", runLooseTreeCheck: false);
         }
 
         [Fact]
@@ -2971,7 +3112,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3028,7 +3171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3043,10 +3188,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -3133,7 +3279,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3220,7 +3368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3235,7 +3385,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3252,7 +3404,9 @@ b'</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3269,7 +3423,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3288,10 +3444,11 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Name expected"" Start=""13"" Length=""0"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Name expected"" Start=""13"" Length=""0"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -3310,10 +3467,11 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""'(' expected"" Start=""15"" Length=""0"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'(' expected"" Start=""15"" Length=""0"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -3332,10 +3490,11 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""')' expected"" Start=""16"" Length=""0"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""')' expected"" Start=""16"" Length=""0"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -3354,7 +3513,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3377,7 +3538,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3406,7 +3569,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3439,7 +3604,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3462,7 +3629,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3488,7 +3657,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3514,7 +3685,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3543,7 +3716,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3575,7 +3750,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3594,10 +3771,11 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid constructor name"" Start=""14"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid constructor name"" Start=""14"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -3623,10 +3801,11 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""',' expected"" Start=""18"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""',' expected"" Start=""18"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -3664,10 +3843,11 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Only properties allowed in a json object"" Start=""15"" Length=""1"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in a json object"" Start=""15"" Length=""1"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -3685,7 +3865,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3703,10 +3885,11 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""2"" />
-  </Diagnostics>
-</Tree>");
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""2"" />
+</Diagnostics>",
+        @"");
         }
 
         [Fact]
@@ -3724,7 +3907,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3742,7 +3927,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3760,7 +3947,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
 
         [Fact]
@@ -3778,7 +3967,9 @@ b""</StringToken>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>");
+</Tree>",
+        @"",
+        @"");
         }
     }
 }
