@@ -816,27 +816,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> refKindsOpt)
         {
             // We might have an extra argument for the __arglist() of a varargs method.
-            Debug.Assert(arguments.Length == parameters.Length || arguments.Length == parameters.Length + 1, "argument count must match parameter count");
+            Debug.Assert(arguments.Length == parameters.Length || arguments.Length == parameters.Length + 1, 
+                "argument count must match parameter count in Emit");
+
             for (int i = 0; i < arguments.Length; i++)
             {
-                RefKind refKind;
+                // if we have an explicit refKind for the given argument, use that
+                // otherwise assume "None"
+                RefKind refKind = !refKindsOpt.IsDefault && i < refKindsOpt.Length ?
+                                        refKind = refKindsOpt[i]:
+                                        refKind = RefKind.None;
 
-                if (!refKindsOpt.IsDefault && i < refKindsOpt.Length)
+#if DEBUG
+                if (i < parameters.Length)
                 {
-                    // if we have an explicit refKind for the given argument, use that
-                    refKind = refKindsOpt[i];
-                }
-                else if (i < parameters.Length)
-                {
-                    // otherwise check the parameter
-                    refKind = parameters[i].RefKind;
+                    Debug.Assert(refKind == parameters[i].RefKind || 
+                        refKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In, 
+                        "in Emit argument RefKind must be compatible with the corresponding parameter");
                 }
                 else
                 {
                     // vararg case
                     Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
-                    refKind = RefKind.None;
                 }
+#endif
 
                 EmitArgument(arguments[i], refKind);
             }
