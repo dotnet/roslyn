@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
     {
         public static readonly IVirtualCharService Instance = new CSharpVirtualCharService();
 
-        private const char InvalidCharacter = char.MaxValue;
-
         protected override ImmutableArray<VirtualChar> TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
             if (token.Kind() != SyntaxKind.StringLiteralToken)
