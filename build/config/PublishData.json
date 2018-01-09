@@ -2,10 +2,10 @@
     "branches": {
         "master-vs-deps": {
             "nugetKind": "PerBuildPreRelease",
-            "version": "2.7.*",
+            "version": "2.8.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.6", "dev15.6p3" ]
+            "channels": [ "dev15.8" ]
         },
         "dev15.6-preview2-vs-deps": {
             "nugetKind": "PerBuildPreRelease",
@@ -20,13 +20,6 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.5", "dev15.5p3" ]
-        },
-        "features/readonly-ref": {
-            "nugetKind": "PerBuildPreRelease",
-            "version": "2.6.*",
-            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
-            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "ref-readonly" ]
         },
         "features/NullableReferenceTypes": {
             "nugetKind": "PerBuildPreRelease",
@@ -50,6 +43,13 @@
             "nuget": [ "https://api.nuget.org/v3/index.json" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.3" ]
+        },
+        "dev15.6": {
+            "nugetKind": "Release",
+            "version": "2.7.*",
+            "nuget": [ "https://api.nuget.org/v3/index.json" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.6" ]
         }
     }
 }
