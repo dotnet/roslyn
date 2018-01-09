@@ -3818,12 +3818,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (typeSymbol.TypeKind = TypeKind.Enum) AndAlso typeSymbol.GetAttributes().Any(IsFlagsAttribute)
         End Function
 
-        Private Function IsMemberOfThisEnum(thisEnumSymbol As TypeSymbol, member As String) As Boolean
-            Dim members = thisEnumSymbol.GetMembers()
-            For i = 0 To members.Length - 1
-                If String.Compare(member, members(i).Name, ignoreCase:=True) = 0 Then Return True
-            Next
-            Return False
+        Private Function IsMemberOfThisEnum(thisEnumSymbol As TypeSymbol, member As String, ByRef result As FieldSymbol) As Boolean
+            Dim members = thisEnumSymbol.GetMembers(member)
+            result = DirectCast(members.FirstOrDefault(), FieldSymbol)
+            Return result IsNot Nothing
         End Function
 
         Friend Function BindEnumFlagExpression(
@@ -3833,27 +3831,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 member As MemberAccessExpressionSyntax,
                                                 diagBag As DiagnosticBag
                                               ) As BoundExpression
-            If Not IsMemberOfThisEnum(original, member.Name.Identifier.ValueText) Then
-                Return ReportDiagnosticAndProduceBadExpression(
-                                                      diagBag:=diagBag,
-                                                       syntax:=member,
-                                                           id:=ERRID.ERR_NameNotMember2,
-                                                                member, original.Name)
+            Dim FlagName = member.Name.Identifier.ValueText
+            Dim eFlag As FieldSymbol = Nothing
+            If Not IsMemberOfThisEnum(original, FlagName, eFlag) Then
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, member.Name, ERRID.ERR_NameNotMember2, FlagName, original.Name)
             End If
             ' We have a valid member of the enum referred to.
-            Dim eFlag = TryCast(original.GetMembers(member.Name.Identifier.ValueText).FirstOrDefault, FieldSymbol)
-            If eFlag Is Nothing Then
-                Return ReportDiagnosticAndProduceBadExpression(
-                                                      diagBag:=diagBag,
-                                                       syntax:=member,
-                                                           id:=ERRID.ERR_NameNotMember2,
-                                                                member, original.Name)
-            End If
             Return New BoundFlagsEnumOperationExpressionSyntax(
                   syntax:=node,
                enumFlags:=expr,
                 enumFlag:=New BoundFieldAccess(member.Name, expr, eFlag, False, original),
-                   type:=GetSpecialType(SpecialType.System_Boolean, member.Name, diagBag))
+                    type:=GetSpecialType(SpecialType.System_Boolean, member.Name, diagBag))
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)
