@@ -10,12 +10,12 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
     [Export, Shared]
     public class TestingOnly_WaitingService
     {
-        private readonly IAsynchronousOperationListenerProvider _provider;
+        private readonly AsynchronousOperationListenerProvider _provider;
 
         [ImportingConstructor]
         private TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
         {
-            _provider = provider;
+            _provider = (AsynchronousOperationListenerProvider)provider;
         }
 
         public void WaitForAsyncOperations(string featureName, bool waitForWorkspaceFirst = true)
@@ -29,8 +29,8 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             // the FeatureMetadata ("FeatureName" as well). Types and names of properties must
             // match. Read more at http://mef.codeplex.com/wikipage?title=Exports%20and%20Metadata
 
-            var workspaceWaiter = _provider.GetListener(FeatureAttribute.Workspace) as IAsynchronousOperationWaiter;
-            var featureWaiter = _provider.GetListener(featureName) as IAsynchronousOperationWaiter;
+            var workspaceWaiter = _provider.GetWaiter(FeatureAttribute.Workspace);
+            var featureWaiter = _provider.GetWaiter(featureName);
             Contract.ThrowIfNull(featureWaiter);
 
             // wait for each of the features specified in the featuresToWaitFor string
@@ -49,7 +49,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             while (!waitTask.Wait(100))
             {
                 // set breakpoint here when debugging
-                var tokens = ((AsynchronousOperationListenerProvider)_provider).GetTokens();
+                var tokens = _provider.GetTokens();
 
                 GC.KeepAlive(tokens);
             }

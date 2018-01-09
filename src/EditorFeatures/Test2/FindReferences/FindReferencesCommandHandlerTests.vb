@@ -48,7 +48,7 @@ class C
                                                                      End Sub)
 
                 ' Wait for the find refs to be done.
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.FindReferences), IAsynchronousOperationWaiter).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).CreateWaitTask()
 
                 Assert.Equal(1, context.Definitions.Count)
                 Assert.Equal(testDocument.AnnotatedSpans("Definition").Single(),

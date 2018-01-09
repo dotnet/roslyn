@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                             }
 
                             // wait taggers
-                            await (listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles) as IAsynchronousOperationWaiter).CreateWaitTask();
+                            await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
 
                             // check left buffer
                             var leftSnapshot = leftBuffer.CurrentSnapshot;

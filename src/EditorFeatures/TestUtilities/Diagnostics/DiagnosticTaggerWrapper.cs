@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
         private readonly SolutionCrawlerRegistrationService _solutionCrawlerService;
         public readonly DiagnosticService DiagnosticService;
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly AsynchronousOperationListenerProvider _listenerProvider;
 
         private ITaggerProvider _taggerProvider;
 
@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
             }
 
-            await (_listenerProvider.GetListener(FeatureAttribute.DiagnosticService) as IAsynchronousOperationWaiter).CreateWaitTask();
-            await (_listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles) as IAsynchronousOperationWaiter).CreateWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService

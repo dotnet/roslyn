@@ -2154,7 +2154,7 @@ struct Type<T>
                             edit.Apply();
                         }
 
-                        var waiter = listenerProvider.GetListener(FeatureAttribute.Classification) as IAsynchronousOperationWaiter;
+                        var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
                         await waiter.CreateWaitTask();
                     }
                 }
@@ -2180,7 +2180,7 @@ struct Type<T>
                 var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
                 using (var disposable = (IDisposable)tagger)
                 {
-                    var waiter = listenerProvider.GetListener(FeatureAttribute.Classification) as IAsynchronousOperationWaiter;
+                    var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
                     await waiter.CreateWaitTask();
 
                     var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());

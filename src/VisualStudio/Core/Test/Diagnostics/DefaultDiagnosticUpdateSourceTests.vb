@@ -44,8 +44,8 @@ class 123 { }
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                     Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), InvocationReasons.Empty, CancellationToken.None)
 
-                    Await DirectCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), IAsynchronousOperationWaiter).CreateWaitTask()
-                    Await DirectCast(listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles), IAsynchronousOperationWaiter).CreateWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                     Dim snapshot = buffer.CurrentSnapshot
                     Dim spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray()
@@ -83,8 +83,8 @@ class A
                 Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), IAsynchronousOperationWaiter).CreateWaitTask()
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles), IAsynchronousOperationWaiter).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
@@ -117,8 +117,8 @@ class A
                 Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), IAsynchronousOperationWaiter).CreateWaitTask()
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles), IAsynchronousOperationWaiter).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
@@ -151,8 +151,8 @@ class A
                 Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), IAsynchronousOperationWaiter).CreateWaitTask()
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles), IAsynchronousOperationWaiter).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 2)
@@ -187,8 +187,8 @@ class A
 
                 analyzer.RemoveDocument(document.Id)
 
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), IAsynchronousOperationWaiter).CreateWaitTask()
-                Await DirectCast(listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles), IAsynchronousOperationWaiter).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 0)

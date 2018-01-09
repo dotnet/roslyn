@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 End Using
 
                 Using DirectCast(tagger, IDisposable)
-                    Await DirectCast(listenerProvider.GetListener(FeatureAttribute.Classification), IAsynchronousOperationWaiter).CreateWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.Classification).CreateWaitTask()
 
                     ' Note: we don't actually care what results we get back.  We're just
                     ' verifying that we don't crash because the SemanticViewTagger ends up

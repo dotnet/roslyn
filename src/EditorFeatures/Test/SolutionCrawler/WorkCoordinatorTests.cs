@@ -912,10 +912,10 @@ End Class";
 
         private async Task WaitWaiterAsync(ExportProvider provider)
         {
-            var workspaceWaiter = GetListenerProvider(provider).GetListener(FeatureAttribute.Workspace) as IAsynchronousOperationWaiter;
+            var workspaceWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.Workspace);
             await workspaceWaiter.CreateWaitTask();
 
-            var solutionCrawlerWaiter = GetListenerProvider(provider).GetListener(FeatureAttribute.SolutionCrawler) as IAsynchronousOperationWaiter;
+            var solutionCrawlerWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.SolutionCrawler);
             await solutionCrawlerWaiter.CreateWaitTask();
         }
 
@@ -977,9 +977,9 @@ End Class";
                         });
         }
 
-        private static IAsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
+        private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
         {
-            return provider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            return (AsynchronousOperationListenerProvider)provider.GetExportedValue<IAsynchronousOperationListenerProvider>();
         }
 
         private static void SetOptions(Workspace workspace)
@@ -1001,8 +1001,8 @@ End Class";
             public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
                 : base(EditorServicesUtil.CreateExportProvider(), workspaceKind, disablePartialSolutions)
             {
-                _workspaceWaiter = GetListenerProvider(ExportProvider).GetListener(FeatureAttribute.Workspace) as IAsynchronousOperationWaiter;
-                _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetListener(FeatureAttribute.SolutionCrawler) as IAsynchronousOperationWaiter;
+                _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
+                _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawler);
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);

@@ -99,7 +99,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
 
-            var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>() as AsynchronousOperationListenerProvider;
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
 
             var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference), listenerProvider);
@@ -113,10 +113,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
 
             // wait for listener
-            var workspaceListener = listenerProvider.GetListener(FeatureAttribute.Workspace) as IAsynchronousOperationWaiter;
+            var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
             await workspaceListener.CreateWaitTask();
 
-            var listener = listenerProvider.GetListener(FeatureAttribute.RemoteHostClient) as IAsynchronousOperationWaiter;
+            var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
             await listener.CreateWaitTask();
 
             // checksum should already exist

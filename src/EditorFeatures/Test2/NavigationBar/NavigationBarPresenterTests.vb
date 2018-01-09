@@ -309,8 +309,8 @@ End Class
                 workspace.OnProjectNameChanged(workspace.Projects.Single().Id, "VBProj2", "VBProj2.vbproj")
 
                 Dim listenerProvider = DirectCast(workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)(), AsynchronousOperationListenerProvider)
-                Dim workspaceWaiter = DirectCast(listenerProvider.GetListener(FeatureAttribute.Workspace), IAsynchronousOperationWaiter)
-                Dim navigationBarWaiter = DirectCast(listenerProvider.GetListener(FeatureAttribute.NavigationBar), IAsynchronousOperationWaiter)
+                Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
+                Dim navigationBarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
 
                 Await workspaceWaiter.CreateWaitTask()
                 Await navigationBarWaiter.CreateWaitTask()

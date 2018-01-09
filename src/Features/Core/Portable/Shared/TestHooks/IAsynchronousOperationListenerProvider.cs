@@ -18,35 +18,37 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     /// </summary>
     internal interface IAsynchronousOperationListenerProvider
     {
+        /// <summary>
+        /// Get <see cref="IAsynchronousOperationListener"/> for given feature.
+        /// same provider will return a singleton listener for same feature
+        /// </summary>
         IAsynchronousOperationListener GetListener(string featureName);
     }
 
     [Export(typeof(IAsynchronousOperationListenerProvider)), Shared]
     internal class AsynchronousOperationListenerProvider : IAsynchronousOperationListenerProvider
     {
+        public static readonly IAsynchronousOperationListenerProvider NullProvider = new NullListenerProvider();
+        public static readonly IAsynchronousOperationListener NullListener = new NullOperationListener();
+
         /// <summary>
         /// indicate whether asynchronous listener is enabled or not
         /// </summary>
         public static bool s_enabled = false;
 
-        public static readonly IAsynchronousOperationListenerProvider NullProvider = new NullListenerProvider();
-        public static readonly IAsynchronousOperationListener NullListener = new NullOperationListener();
-
-        private readonly ConcurrentDictionary<string, IAsynchronousOperationListener> _listeners =
+        private readonly ConcurrentDictionary<string, IAsynchronousOperationListener> _singletonListeners =
             new ConcurrentDictionary<string, IAsynchronousOperationListener>(concurrencyLevel: 2, capacity: 20);
 
+        /// <summary>
+        /// indicate whether <see cref="AsynchronousOperationListener.TrackActiveTokens"/> is enabled or not
+        /// </summary>
         private bool _trackingBehavior;
 
         public static void Enable(bool enable)
         {
+            // right now, made it static so that one can enable it through reflection easy
+            // but we can think of some other way
             s_enabled = enable;
-        }
-
-        public void Tracking(bool enable)
-        {
-            _trackingBehavior = enable;
-
-            _listeners.Values.Cast<AsynchronousOperationListener>().Do(l => l.TrackActiveTokens = enable);
         }
 
         public IAsynchronousOperationListener GetListener(string featureName)
@@ -57,12 +59,29 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 return NullListener;
             }
 
-            if (_listeners.TryGetValue(featureName, out var listener))
+            if (_singletonListeners.TryGetValue(featureName, out var listener))
             {
                 return listener;
             }
 
-            return _listeners.GetOrAdd(featureName, name => new AsynchronousOperationListener(name, _trackingBehavior));
+            return _singletonListeners.GetOrAdd(featureName, name => new AsynchronousOperationListener(name, _trackingBehavior));
+        }
+
+        /// <summary>
+        /// Enable or disable TrackActiveTokens for test
+        /// </summary>
+        public void Tracking(bool enable)
+        {
+            _trackingBehavior = enable;
+            _singletonListeners.Values.Cast<AsynchronousOperationListener>().Do(l => l.TrackActiveTokens = enable);
+        }
+
+        /// <summary>
+        /// Get Waiters for listeners for test
+        /// </summary>
+        public IAsynchronousOperationWaiter GetWaiter(string featureName)
+        {
+            return (IAsynchronousOperationWaiter)GetListener(featureName);
         }
 
         /// <summary>
@@ -81,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             Task[] tasks = null;
             while (true)
             {
-                var waiters = _listeners.Values.Cast<IAsynchronousOperationWaiter>();
+                var waiters = _singletonListeners.Values.Cast<IAsynchronousOperationWaiter>();
                 tasks = waiters.Select(x => x.CreateWaitTask()).Where(t => !t.IsCompleted).ToArray();
 
                 if (tasks.Length == 0)
@@ -111,9 +130,18 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
+        public bool HasPendingWaiter()
+        {
+            var waiters = _singletonListeners.Values.Cast<IAsynchronousOperationWaiter>();
+            return waiters.Any(w => w.HasPendingWork);
+        }
+
+        /// <summary>
+        /// Get all saved DiagnosticAsyncToken to investigate tests failure easier
+        /// </summary>
         public List<AsynchronousOperationListener.DiagnosticAsyncToken> GetTokens()
         {
-            return _listeners.Values.Cast<AsynchronousOperationListener>().Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
+            return _singletonListeners.Values.Cast<AsynchronousOperationListener>().Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
         }
 
         private class NullOperationListener : IAsynchronousOperationListener

@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 using (var disposable = tagger as IDisposable)
                 {
-                    await (listenerProvider.GetListener(FeatureAttribute.DiagnosticService) as IAsynchronousOperationWaiter).CreateWaitTask();
-                    await (listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles) as IAsynchronousOperationWaiter).CreateWaitTask();
+                    await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask();
+                    await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    await (listenerProvider.GetListener(FeatureAttribute.DiagnosticService) as IAsynchronousOperationWaiter).CreateWaitTask();
-                    await (listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles) as IAsynchronousOperationWaiter).CreateWaitTask();
+                    await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask();
+                    await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
