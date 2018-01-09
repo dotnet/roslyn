@@ -74,7 +74,11 @@ namespace Microsoft.CodeAnalysis.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
-            var diagnostic = GetDiagnostic(root) ?? CheckTopLevel(root) ?? CheckSyntax(root);
+            var diagnostic = GetDiagnostic(root);
+            if (diagnostic == null)
+            {
+                diagnostic = new JsonNetSyntaxChecker().Check(_lexer.Text, root);
+            }
 
             var diagnostics = diagnostic == null
                 ? ImmutableArray<JsonDiagnostic>.Empty
@@ -84,59 +88,7 @@ namespace Microsoft.CodeAnalysis.Json
                 _lexer.Text, root, diagnostics);
         }
 
-        private JsonDiagnostic? CheckTopLevel(JsonCompilationUnit compilationUnit)
-        {
-            var arraySequence = compilationUnit.Sequence;
-            if (arraySequence.ChildCount == 0)
-            {
-                if (_lexer.Text.Length > 0 &&
-                    compilationUnit.EndOfFileToken.LeadingTrivia.All(
-                        t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
-                {
-                    return new JsonDiagnostic(WorkspacesResources.Syntax_error, GetSpan(_lexer.Text));
-                }
-            }
-            else if (arraySequence.ChildCount >= 2)
-            {
-                var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
-                return new JsonDiagnostic(
-                    string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
-                    GetSpan(firstToken));
-            }
-            foreach (var child in compilationUnit.Sequence)
-            {
-                if (child.IsNode && child.Node.Kind == JsonKind.EmptyValue)
-                {
-                    var emptyValue = (JsonEmptyValueNode)child.Node;
-                    return new JsonDiagnostic(
-                        string.Format(WorkspacesResources._0_unexpected, ','),
-                        GetSpan(emptyValue.CommaToken));
-                }
-            }
-            
-            //else if (arraySequence.ChildCount == 1)
-            //{
-            //    var value = (JsonValueNode)arraySequence.ChildAt(0).Node;
-            //    if (!value.CommaToken.IsMissing)
-            //    {
-            //        return new JsonDiagnostic(
-            //            string.Format(WorkspacesResources._0_unexpected, ','),
-            //            GetSpan(value.CommaToken));
-            //    }
-            //}
-            //else if (arraySequence.ChildCount > 1)
-            //{
-            //    var value = (JsonValueNode)arraySequence.ChildAt(1).Node;
-            //    var firstToken = GetFirstToken(value);
-            //    return new JsonDiagnostic(
-            //        string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
-            //        GetSpan(value));
-            //}
-
-            return null;
-        }
-
-        private JsonToken GetFirstToken(JsonNode node)
+        private static JsonToken GetFirstToken(JsonNode node)
         {
             foreach (var child in node)
             {
@@ -180,125 +132,6 @@ namespace Microsoft.CodeAnalysis.Json
                 if (diagnostic != null)
                 {
                     return diagnostic;
-                }
-            }
-
-            return null;
-        }
-
-        private JsonDiagnostic? CheckSyntax(JsonNode node)
-        {
-            switch (node.Kind)
-            {
-                case JsonKind.Array:
-                {
-                    var diagnostic = CheckArray((JsonArrayNode)node);
-                    if (diagnostic != null)
-                    {
-                        return diagnostic;
-                    }
-                }
-                break;
-
-                case JsonKind.Object:
-                {
-                    var diagnostic = CheckObject((JsonObjectNode)node);
-                    if (diagnostic != null)
-                    {
-                        return diagnostic;
-                    }
-                }
-                break;
-
-                case JsonKind.Constructor:
-                {
-                    var diagnostic = CheckConstructor((JsonConstructorNode)node);
-                    if (diagnostic != null)
-                    {
-                        return diagnostic;
-                    }
-                }
-                break;
-            }
-
-            foreach (var child in node)
-            {
-                if (child.IsNode)
-                {
-                    var diagnostic = CheckSyntax(child.Node);
-                    if (diagnostic != null)
-                    {
-                        return diagnostic;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private JsonDiagnostic? CheckArray(JsonArrayNode node)
-        {
-            foreach (var child in node.Sequence)
-            {
-                var childNode = child.Node;
-                if (childNode.Kind == JsonKind.Property)
-                {
-                    return new JsonDiagnostic(
-                        WorkspacesResources.Property_not_allowed_in_a_json_array,
-                        GetSpan(((JsonPropertyNode)childNode).ColonToken));
-                }
-            }
-
-            return CheckCommasBetweenSequenceElements(node.Sequence);
-        }
-
-        private JsonDiagnostic? CheckConstructor(JsonConstructorNode node)
-            => CheckCommasBetweenSequenceElements(node.Sequence);
-
-        private JsonDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
-        {
-            for (int i = 0, n = node.ChildCount - 1; i < n; i++)
-            {
-                var child = node.ChildAt(i).Node;
-                if (child.Kind != JsonKind.EmptyValue)
-                {
-                    var next = node.ChildAt(i + 1).Node;
-
-                    if (next.Kind != JsonKind.EmptyValue)
-                    {
-                        return new JsonDiagnostic(
-                           string.Format(WorkspacesResources._0_expected, ','),
-                           GetSpan(GetFirstToken(next)));
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private JsonDiagnostic? CheckObject(JsonObjectNode node)
-        {
-            for (int i = 0, n = node.Sequence.ChildCount; i < n; i++)
-            {
-                var child = node.Sequence.ChildAt(i).Node;
-
-                if (i % 2 == 0)
-                {
-                    if (child.Kind != JsonKind.Property)
-                    {
-                        return new JsonDiagnostic(
-                           WorkspacesResources.Only_properties_allowed_in_a_json_object,
-                           GetSpan(GetFirstToken(child)));
-                    }
-                }
-                else
-                {
-                    if (child.Kind != JsonKind.EmptyValue)
-                    {
-                        return new JsonDiagnostic(
-                           string.Format(WorkspacesResources._0_expected, ','),
-                           GetSpan(GetFirstToken(child)));
-                    }
                 }
             }
 
@@ -395,12 +228,6 @@ namespace Microsoft.CodeAnalysis.Json
             if (stringLiteralOrText.Kind != JsonKind.StringToken)
             {
                 stringLiteralOrText = stringLiteralOrText.With(kind: JsonKind.TextToken);
-                if (!IsLegalPropertyNameText(stringLiteralOrText))
-                {
-                    stringLiteralOrText = stringLiteralOrText.AddDiagnosticIfNone(new JsonDiagnostic(
-                        WorkspacesResources.Invalid_property_name,
-                        GetSpan(stringLiteralOrText)));
-                }
             }
 
             var colonToken = ConsumeCurrentToken();
@@ -435,22 +262,6 @@ namespace Microsoft.CodeAnalysis.Json
             return new JsonPropertyNode(
                 stringLiteralOrText, colonToken, value);
         }
-
-        private bool IsLegalPropertyNameText(JsonToken textToken)
-        {
-            foreach (var ch in textToken.VirtualChars)
-            {
-                if (!IsLegalPropertyNameChar(ch))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool IsLegalPropertyNameChar(char ch)
-            => char.IsLetterOrDigit(ch) | ch == '_' || ch == '$';
 
         private JsonValueNode ParseLiteralOrPropertyOrConstructor()
         {
