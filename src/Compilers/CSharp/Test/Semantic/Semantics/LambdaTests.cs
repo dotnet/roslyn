@@ -2630,5 +2630,84 @@ class C
             var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "1234");
         }
+
+        [Fact, WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        public void InMalformedEmbeddedStatement_01()
+        {
+            var source = @"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.ContentType, out var chars)
+        {
+        }
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateStandardCompilation(tree);
+
+            ExpressionSyntax contentType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ContentType").Single();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("ContentType", contentType.ToString());
+            Assert.Null(model.GetSymbolInfo(contentType).Symbol);
+            Assert.Equal(TypeKind.Error, model.GetTypeInfo(contentType).Type.TypeKind);
+
+            ExpressionSyntax b = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b").Single();
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("b", b.ToString());
+            ISymbol symbol = model.GetSymbolInfo(b).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("? b", symbol.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, model.GetTypeInfo(b).Type.TypeKind);
+
+            ParameterSyntax parameterSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+
+            model = comp.GetSemanticModel(tree);
+            symbol = model.GetDeclaredSymbol(parameterSyntax);
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("? b", symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        public void InMalformedEmbeddedStatement_02()
+        {
+            var source = @"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.ContentType, out var chars)
+        {
+        }
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateStandardCompilation(tree);
+
+            ExpressionSyntax contentType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ContentType").Single();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("ContentType", contentType.ToString());
+            var lambda = (MethodSymbol)model.GetEnclosingSymbol(contentType.SpanStart);
+            Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
+
+            ExpressionSyntax b = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b").Single();
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("b", b.ToString());
+            lambda = (MethodSymbol)model.GetEnclosingSymbol(b.SpanStart);
+            Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
+
+            model = comp.GetSemanticModel(tree);
+            ParameterSyntax parameterSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+            Assert.Equal("void Program.method1()", model.GetEnclosingSymbol(parameterSyntax.SpanStart).ToTestDisplayString());
+        }
     }
 }

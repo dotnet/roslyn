@@ -2697,8 +2697,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
-        <source>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="translated">'{0}: Typy polí instance označené deklarací StructLayout(LayoutKind.Explicit) musí mít atribut FieldOffset.</target>
+        <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
+        <target state="needs-review-translation">'{0}: Typy polí instance označené deklarací StructLayout(LayoutKind.Explicit) musí mít atribut FieldOffset.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -3469,11 +3469,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">Typ pro {0} nejde odvodit, protože jeho inicializátor přímo nebo nepřímo odkazuje na definici.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitLayoutAndAutoImplementedProperty">
-        <source>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</source>
-        <target state="translated">'{0}: V typu s označením StructLayout(LayoutKind.Explicit) nejde používat automaticky implementované vlastnosti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoProperty">
@@ -7479,7 +7474,20 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
                                název výstupního souboru s příponou .pdb).
  /errorendlocation             Vypíše řádek a sloupec koncového umístění 
                                jednotlivých chyb.
- /preferreduil</target>
+ /preferreduilang              Určuje název upřednostňovaného výstupního jazyka.
+ /nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll).
+ /subsystemversion:&lt;řetězec&gt;   Určuje verzi subsystému tohoto sestavení.
+ /lib:&lt;seznam souborů&gt;         Určuje další adresáře, ve kterých se mají 
+                               hledat reference.
+ /errorreport:&lt;řetězec&gt;        Určuje způsob zpracování interních chyb kompilátoru: 
+                               prompt, send, queue nebo none. Výchozí možnost 
+                               je queue (zařadit do fronty).
+ /appconfig:&lt;soubor&gt;           Určuje konfigurační soubor aplikace, 
+                               který obsahuje nastavení vazby sestavení.
+ /moduleassemblyname:&lt;řetězec&gt; Určuje název sestavení, jehož součástí bude 
+                               tento modul.
+ /modulename:&lt;řetězec&gt;         Určuje název zdrojového modulu.
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8487,11 +8495,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">První parametr rozšiřující metody in {0} musí být typem hodnoty.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Modifikátor parametru {0} nejde použít za modifikátorem {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Pole instancí struktur jen pro čtení musí být jen pro čtení.</target>
@@ -8575,6 +8578,26 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
         <target state="translated">Výchozí literál default není platný jako vzor. Podle potřeby použijte jiný literál (například 0 nebo null). Pokud chcete, aby odpovídalo vše, použijte vzor „var _“.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
+        <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
+        <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
+        <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
+        <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
     </body>

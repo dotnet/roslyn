@@ -2697,8 +2697,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
-        <source>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="translated">'{0}": типы полей экземпляров, помеченные StructLayout(LayoutKind.Explicit), должны иметь атрибут FieldOffset.</target>
+        <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
+        <target state="needs-review-translation">'{0}": типы полей экземпляров, помеченные StructLayout(LayoutKind.Explicit), должны иметь атрибут FieldOffset.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -3469,11 +3469,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">Не удается получить тип "{0}", так как инициализатор прямо или косвенно ссылается на определение.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitLayoutAndAutoImplementedProperty">
-        <source>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</source>
-        <target state="translated">'"{0}": автоматически реализованные свойства не могут быть использованы в типах, помеченных StructLayout(LayoutKind.Explicit).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoProperty">
@@ -7474,7 +7469,25 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                файлов.
  /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                Задать сопоставление для выходных данных имен исходного пути по
-       </target>
+                               компилятору.
+ /pdb:&lt;файл&gt;                   Задать имя файла для отладочной информации (по умолчанию
+                               используется имя выходного файла с расширением PDB)
+ /errorendlocation             Выводить строку и столбец конечного расположения
+                               каждой ошибки.
+ /preferreduilang              Указать имя предпочтительного языка вывода.
+ /nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll).
+ /subsystemversion:&lt;строка&gt;    Задать версию подсистемы этой сборки.
+ /lib:&lt;список файлов&gt;              Задать дополнительные каталоги для поиска
+                               ссылок.
+ /errorreport:&lt;строка&gt;         Указать способ обработки внутренних ошибок компилятора:
+                               prompt, send, queue или none. По умолчанию используется
+                               queue.
+ /appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
+                               содержащий параметры привязки сборки.
+ /moduleassemblyname:&lt;строка&gt;  Имя сборки, частью которой будет являться
+                               этот модуль.
+ /modulename:&lt;строка&gt;          Задать имя исходного модуля.
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8482,11 +8495,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Первый параметр метода расширения "in" "{0}" должен иметь тип значения.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Модификатор параметра "{0}" не может использоваться после модификатора "{1}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Поля экземпляров в структурах только для чтения должны быть доступны только для чтения.</target>
@@ -8570,6 +8578,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
         <target state="translated">Литерал по умолчанию "default" недопустимо использовать в качестве шаблона. Используйте другой литерал (например, "0" или "null") по мере необходимости. Чтобы задать полное совпадение, используйте шаблон отмены "var _".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
+        <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
+        <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
+        <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
+        <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
     </body>

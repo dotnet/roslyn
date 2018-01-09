@@ -27,7 +27,11 @@
          same format as provided by MicroBuild v2, but greater than any that MicroBuild v2 will produce, and is still compatible
          with the Win32 file version limitations. This is required so that builds done locally, where '$(OfficialBuild)' == 'true',
          can still be deployed to VS and override the version that is globally installed. -->
-    <BuildNumber Condition="'$(BuildNumber)' == ''">00065535.0</BuildNumber>
+    <BuildNumberFiveDigitDateStamp Condition="'$(BuildNumber)' == ''">65535</BuildNumberFiveDigitDateStamp>
+    <BuildNumberBuildOfTheDayPadded Condition="'$(BuildNumber)' == ''">01</BuildNumberBuildOfTheDayPadded>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildNumber)' != ''">
     <!-- When a build number is specified, it needs to be in the format of 'x.y'-->
     <Error Condition="$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).Length) != 2">BuildNumber should have two parts (in the form of 'x.y')</Error>
 
@@ -37,12 +41,15 @@
          BuildNumberBuildOfTheDayPadded: 01;and the 12th build of the day, 20160615.12, will produce BuildNumberFiveDigitDateStamp: 60615, BuildNumberBuildOfTheDay: 12
 
          Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
-         in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. Unfortunately for releases in 2017 we can't go any higher, so
-         well continue the month counting instead: the build after 61231 is 61301. -->
-    <BuildNumberFiveDigitDateStampLeft>$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(0))).Substring($([System.Convert]::ToInt32(3))).Trim())</BuildNumberFiveDigitDateStampLeft>
-    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(BuildNumberFiveDigitDateStampLeft))), $([System.Convert]::ToInt32(8800))))</BuildNumberFiveDigitDateStamp>
+         in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. Further, if this would result in a number like 71201 or 81201, we
+         decrement the year and add 12 to the month to extend the time. -->
+    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(0)))), 20100000))</BuildNumberFiveDigitDateStamp>
+    <_BuildNumberFiveDigitDateStampYearsToOffset>$([System.Math]::Max($([System.Convert]::ToInt32($([MSBuild]::Subtract($([MSBuild]::Divide($(BuildNumberFiveDigitDateStamp), 10000)), 6)))), 0))</_BuildNumberFiveDigitDateStampYearsToOffset>
+    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(BuildNumberFiveDigitDateStamp))), $([MSBuild]::Multiply($(_BuildNumberFiveDigitDateStampYearsToOffset), 8800))))</BuildNumberFiveDigitDateStamp>
     <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(1))).PadLeft($([System.Convert]::ToInt32(2)), $([System.Convert]::ToChar(`0`))))</BuildNumberBuildOfTheDayPadded>
+  </PropertyGroup>
 
+  <PropertyGroup>
     <!-- NuGet version -->
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
