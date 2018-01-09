@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             If conversionInfo.IsDelegateCreation Then
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
             Else
-                Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+                Return New LazyConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
         End Function
 

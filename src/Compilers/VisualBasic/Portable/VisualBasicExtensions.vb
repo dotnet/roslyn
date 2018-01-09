@@ -1369,9 +1369,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
-            Dim basicConversionExpression = TryCast(conversionExpression, BaseVisualBasicConversionExpression)
-            If basicConversionExpression IsNot Nothing Then
-                Return basicConversionExpression.ConversionInternal
+            If conversionExpression.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(conversionExpression, BaseConversionExpression).ConvertibleConversion, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
                                                           NameOf(IConversionOperation)),

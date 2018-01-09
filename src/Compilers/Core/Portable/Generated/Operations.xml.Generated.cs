@@ -1368,15 +1368,17 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseConversionExpression : Operation, IConversionOperation
     {
-        protected BaseConversionExpression(bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseConversionExpression(IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Conversion, semanticModel, syntax, type, constantValue, isImplicit)
         {
             IsTryCast = isTryCast;
             IsChecked = isChecked;
+            ConvertibleConversion = convertibleConversion;
         }
 
         public abstract IOperation OperandImpl { get; }
-        public abstract CommonConversion Conversion { get; }
+        internal IConvertibleConversion ConvertibleConversion { get; }
+        public CommonConversion Conversion => ConvertibleConversion.ToCommonConversion();
         public bool IsTryCast { get; }
         public bool IsChecked { get; }
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
@@ -1402,6 +1404,28 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitConversion(this, argument);
         }
+    }
+
+    internal sealed partial class ConversionOperation : BaseConversionExpression
+    {
+        public ConversionOperation(IOperation operand, IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            OperandImpl = operand;
+        }
+
+        public override IOperation OperandImpl { get; }
+    }
+
+    internal sealed partial class LazyConversionOperation : BaseConversionExpression
+    {
+        private readonly Lazy<IOperation> _lazyOperand;
+
+        public LazyConversionOperation(Lazy<IOperation> lazyOperand, IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyOperand = lazyOperand;
+        }
+
+        public override IOperation OperandImpl => _lazyOperand.Value;
     }
 
     /// <remarks>

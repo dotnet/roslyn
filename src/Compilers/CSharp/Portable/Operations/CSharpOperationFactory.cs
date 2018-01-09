@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                     bool isChecked = conversion.IsNumeric && boundConversion.Checked;
-                    return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new LazyConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
             }
         }
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
             bool isImplicit = boundAsOperator.WasCompilerGenerated;
-            return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDelegateCreationOperation CreateBoundDelegateCreationExpressionOperation(BoundDelegateCreationExpression boundDelegateCreationExpression)
