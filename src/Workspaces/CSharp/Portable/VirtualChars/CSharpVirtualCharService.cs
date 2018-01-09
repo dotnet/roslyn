@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
         }
 
         private ImmutableArray<VirtualChar> TryConvertVerbatimStringToVirtualChars(SyntaxToken token)
-            => TryConvertSimpleDelimitedString(token, "@\"", "\"");
+            => TryConvertSimpleDoubleQuoteString(token, "@\"", "\"");
 
         private ImmutableArray<VirtualChar> TryConvertStringToVirtualChars(SyntaxToken token)
         {
