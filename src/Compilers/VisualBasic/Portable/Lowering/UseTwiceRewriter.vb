@@ -208,9 +208,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(node.IsLValue)
 
+#If DONT_USE_BYREF_LOCALS_FOR_USE_TWICE Then
+#Else
             If IsInvariantArray(node.Expression.Type) Then
                 Return UseTwiceLValue(containingMember, node, arg)
             End If
+#End If
 
             ' Note, as an alternative we could capture reference to the array element in a ByRef temp.
             ' However, without an introduction of an indirect assignment node, IL-gen is unable to distinguish 
@@ -239,8 +242,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function IsInvariantArray(type As TypeSymbol) As Boolean
-            Dim value = TryCast(type, ArrayTypeSymbol)?.ElementType?.IsNotInheritable
-            Return value.HasValue AndAlso value.GetValueOrDefault()
+            Dim value = TryCast(type, ArrayTypeSymbol)?.ElementType.IsNotInheritable
+            Return value.GetValueOrDefault()
         End Function
 
         Private Shared Function UseTwiceLValue(containingMember As Symbol, lvalue As BoundExpression, temporaries As ArrayBuilder(Of SynthesizedLocal)) As Result
