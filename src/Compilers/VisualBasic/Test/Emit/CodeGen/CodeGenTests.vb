@@ -14314,23 +14314,29 @@ Module M
     End Sub
     Function G(a() As String) As String
         With a(0)
-            Return .ToString()
+            Return .ToString() + .ToLower()
         End With
     End Function
 End Module
     </file>
 </compilation>
-            CompileAndVerify(comp, expectedOutput:="B").
+            CompileAndVerify(comp, expectedOutput:="Bb").
             VerifyIL("M.G",
             <![CDATA[
 {
-  // Code size        9 (0x9)
+  // Code size       22 (0x16)
   .maxstack  2
+  .locals init (String V_0) //$W0
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  ldelem.ref
-  IL_0003:  callvirt   "Function String.ToString() As String"
-  IL_0008:  ret
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  callvirt   "Function String.ToString() As String"
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   "Function String.ToLower() As String"
+  IL_0010:  call       "Function String.Concat(String, String) As String"
+  IL_0015:  ret
 }
 ]]>)
         End Sub
@@ -14351,23 +14357,37 @@ Module M
     End Sub
     Function G(a() As Object) As String
         With a(0)
-            Return .ToString()
+            Return .ToString() + .ToLower()
         End With
     End Function
 End Module
     </file>
 </compilation>
-            CompileAndVerify(comp, expectedOutput:="AB").
+            CompileAndVerify(comp, expectedOutput:="AaBb").
             VerifyIL("M.G",
             <![CDATA[
 {
-  // Code size        9 (0x9)
-  .maxstack  2
+  // Code size       42 (0x2a)
+  .maxstack  8
+  .locals init (Object V_0) //$W0
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  ldelem.ref
-  IL_0003:  callvirt   "Function Object.ToString() As String"
-  IL_0008:  ret
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  callvirt   "Function Object.ToString() As String"
+  IL_000a:  ldloc.0
+  IL_000b:  ldnull
+  IL_000c:  ldstr      "ToLower"
+  IL_0011:  ldc.i4.0
+  IL_0012:  newarr     "Object"
+  IL_0017:  ldnull
+  IL_0018:  ldnull
+  IL_0019:  ldnull
+  IL_001a:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet(Object, System.Type, String, Object(), String(), System.Type(), Boolean()) As Object"
+  IL_001f:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_0024:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
+  IL_0029:  ret
 }
 ]]>)
         End Sub
@@ -14387,23 +14407,29 @@ Module M
     End Sub
     Function G(a() As Integer) As String
         With a(0)
-            Return .ToString()
+            Return .ToString() + .ToString()
         End With
     End Function
 End Module
     </file>
 </compilation>
-            CompileAndVerify(comp, expectedOutput:="1").
+            CompileAndVerify(comp, expectedOutput:="11").
             VerifyIL("M.G",
             <![CDATA[
 {
-  // Code size       13 (0xd)
+  // Code size       26 (0x1a)
   .maxstack  2
+  .locals init (Integer& V_0) //$W0
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  ldelema    "Integer"
-  IL_0007:  call       "Function Integer.ToString() As String"
-  IL_000c:  ret
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       "Function Integer.ToString() As String"
+  IL_000e:  ldloc.0
+  IL_000f:  call       "Function Integer.ToString() As String"
+  IL_0014:  call       "Function String.Concat(String, String) As String"
+  IL_0019:  ret
 }
 ]]>)
         End Sub
