@@ -3731,7 +3731,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""119"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -4328,7 +4330,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""2"" />
+</Diagnostics>");
         }
 
         [Fact]

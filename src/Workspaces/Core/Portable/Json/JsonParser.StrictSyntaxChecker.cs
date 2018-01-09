@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Json
 {
     using System.Text.RegularExpressions;
+    using Microsoft.CodeAnalysis.Text;
     using Microsoft.CodeAnalysis.VirtualChars;
     using static JsonHelpers;
 
@@ -240,6 +241,27 @@ namespace Microsoft.CodeAnalysis.Json
                             WorkspacesResources.Illegal_string_character,
                             chars[i].Span);
                     }
+                }
+
+                // Lexer allows \' as that's ok in json.net.  Check and block that here.
+                for (int i = 1, n = chars.Length - 1; i < n;)
+                {
+                    if (chars[i] == '\\')
+                    {
+                        if (chars[i + 1] == '\'')
+                        {
+                            return new JsonDiagnostic(
+                                WorkspacesResources.Invalid_escape_sequence,
+                                TextSpan.FromBounds(chars[i].Span.Start, chars[i + 1].Span.End));
+                        }
+
+                        // Legal escape.  just jump forward past it.  Note, this works for simple
+                        // escape and unicode \uXXXX escapes.
+                        i += 2;
+                        continue;
+                    }
+
+                    i++;
                 }
 
                 return CheckToken(literalToken);
