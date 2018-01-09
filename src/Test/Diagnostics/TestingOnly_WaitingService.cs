@@ -82,6 +82,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
                 var tokens = _provider.GetTokens();
 
                 GC.KeepAlive(tokens);
+
+                // make sure pending task that require UI threads to finish as well.
+                Dispatcher.CurrentDispatcher.DoEvents();
             }
         }
     }
