@@ -864,6 +864,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Illegal string character.
+        /// </summary>
+        internal static string Illegal_string_character {
+            get {
+                return ResourceManager.GetString("Illegal_string_character", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Illegal whitespace character.
         /// </summary>
         internal static string Illegal_whitespace_character {

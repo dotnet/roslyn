@@ -1067,6 +1067,11 @@
         <target state="new">Properties not allowed in an array</target>
         <note />
       </trans-unit>
+      <trans-unit id="Illegal_string_character">
+        <source>Illegal string character</source>
+        <target state="new">Illegal string character</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

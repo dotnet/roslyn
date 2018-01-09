@@ -751,6 +751,9 @@
   <data name="Constructors_not_allowed" xml:space="preserve">
     <value>Constructors not allowed</value>
   </data>
+  <data name="Illegal_string_character" xml:space="preserve">
+    <value>Illegal string character</value>
+  </data>
   <data name="Illegal_whitespace_character" xml:space="preserve">
     <value>Illegal whitespace character</value>
   </data>

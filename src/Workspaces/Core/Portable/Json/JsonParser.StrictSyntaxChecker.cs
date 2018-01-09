@@ -224,11 +224,22 @@ namespace Microsoft.CodeAnalysis.Json
 
             private JsonDiagnostic? CheckString(JsonToken literalToken)
             {
-                if (literalToken.VirtualChars[0].Char == '\'')
+                var chars = literalToken.VirtualChars;
+                if (chars[0].Char == '\'')
                 {
                     return new JsonDiagnostic(
                         WorkspacesResources.Strings_must_start_with_double_quote_not_single_quote,
-                        literalToken.VirtualChars[0].Span);
+                        chars[0].Span);
+                }
+
+                for (int i = 1, n = chars.Length - 1; i < n; i++)
+                {
+                    if (chars[i].Char < ' ')
+                    {
+                        return new JsonDiagnostic(
+                            WorkspacesResources.Illegal_string_character,
+                            chars[i].Span);
+                    }
                 }
 
                 return CheckToken(literalToken);

@@ -3790,7 +3790,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Illegal string character"" Start=""13"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
