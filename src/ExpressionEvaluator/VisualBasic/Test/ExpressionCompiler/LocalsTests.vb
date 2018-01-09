@@ -3284,6 +3284,43 @@ End Class"
                 End Sub)
         End Sub
 
+        ''' <summary>
+        ''' CompileGetLocals should skip locals with errors.
+        ''' </summary>
+        <WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")>
+        <Fact>
+        Public Sub SkipPseudoVariablesWithUseSiteErrors()
+            Const source =
+"Class C
+    Shared Sub M(x As Object)
+        Dim y As Object
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim aliases = ImmutableArray.Create(ReturnValueAlias(1, "UnknownType, UnknownAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"))
+                    Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+                    Dim typeName As String = Nothing
+                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim testData = New CompilationTestData()
+                    context.CompileGetLocals(
+                        locals,
+                        argumentsOnly:=False,
+                        aliases:=aliases,
+                        diagnostics:=diagnostics,
+                        typeName:=typeName,
+                        testData:=testData)
+                    diagnostics.Verify()
+                    diagnostics.Free()
+                    Assert.Equal(2, locals.Count)
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "x")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "y")
+                    locals.Free()
+                End Sub)
+        End Sub
+
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, argumentsOnly As Boolean, locals As ArrayBuilder(Of LocalAndMethod), count As Integer, ByRef typeName As String, ByRef testData As CompilationTestData)
             Dim context = CreateMethodContext(runtime, methodName)
 
