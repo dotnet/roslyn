@@ -3328,7 +3328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 </Tree>",
         @"",
         @"<Diagnostics>
-  <Diagnostic Message=""Invalid number"" Start=""17"" Length=""4"" />
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""4"" />
 </Diagnostics>");
         }
 
@@ -3569,7 +3569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
-</Diagnostics>");
+</Diagnostics>", runStrictSubTreeCheck: false);
         }
 
         [Fact]
@@ -4445,7 +4445,7 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"", runStrictSubTreeCheck: false);
         }
 
         [Fact]
@@ -4462,7 +4462,7 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"", runStrictSubTreeCheck: false);
         }
 
         [Fact]
@@ -4487,6 +4487,7 @@ b""</StringToken>
         [Fact]
         public void TestSimpleNumber4()
         {
+            // DataContractJsonSerializer does not follow the spec for numbers properly.
             Test(@"@""-.0""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -4498,7 +4499,9 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>", runStrictTreeCheck: false);
         }
 
         [Fact]
@@ -4540,6 +4543,550 @@ b""</StringToken>
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber1()
+        {
+            Test(@"@""0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestNumber2()
+        {
+            Test(@"@""-0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestNumber3()
+        {
+            // DataContractJsonSerializer does not follow the spec for numbers properly.
+            Test(@"@""00""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>00</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
+</Diagnostics>", runStrictTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber4()
+        {
+            // DataContractJsonSerializer does not follow the spec for numbers properly.
+            Test(@"@""-00""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-00</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>", runStrictTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber5()
+        {
+            // DataContractJsonSerializer does not follow the spec for numbers properly.
+            Test(@"@""0.""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0.</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
+</Diagnostics>", runStrictTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber6()
+        {
+            // DataContractJsonSerializer does not follow the spec for numbers properly.
+            Test(@"@""-0.""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-0.</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>", runStrictTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber7()
+        {
+            Test(@"@""0e""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0e</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber8()
+        {
+            Test(@"@""-0e""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-0e</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber9()
+        {
+            Test(@"@""0e0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0e0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"", runStrictSubTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber10()
+        {
+            Test(@"@""-0e0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-0e0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"", runStrictSubTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber11()
+        {
+            Test(@"@""0e1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0e1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"", runStrictSubTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber12()
+        {
+            Test(@"@""-0e1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-0e1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"", runStrictSubTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber13()
+        {
+            Test(@"@""0e-1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0e-1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestNumber14()
+        {
+            Test(@"@""-0e-1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-0e-1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestNumber15()
+        {
+            Test(@"@""0e+1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0e+1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestNumber16()
+        {
+            Test(@"@""-0e+1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-0e+1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestNumber17()
+        {
+            Test(@"@""--0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>--0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber18()
+        {
+            Test(@"@""+0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>+0</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'+' unexpected"" Start=""10"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'+' unexpected"" Start=""10"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber19()
+        {
+            Test(@"@""0..0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0..0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
+</Diagnostics>", runStrictSubTreeCheck: false);
+        }
+
+        [Fact]
+        public void TestNumber20()
+        {
+            Test(@"@""0ee0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0ee0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber21()
+        {
+            Test(@"@""1e++1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>1e++1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber22()
+        {
+            Test(@"@""1e--1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>1e--1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber23()
+        {
+            Test(@"@""1e+-1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>1e+-1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber24()
+        {
+            Test(@"@""1e-+1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>1e-+1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber25()
+        {
+            Test(@"@""1e1.0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>1e1.0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""5"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber26()
+        {
+            Test(@"@""1e+1.1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>1e+1.1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""6"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""6"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber27()
+        {
+            Test(@"@""1-1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>1-1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestNumber28()
+        {
+            Test(@"@""1+1""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>1+1</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
 </Diagnostics>");
         }
     }

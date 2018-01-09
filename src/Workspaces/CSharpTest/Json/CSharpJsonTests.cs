@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                         var serializer2 = new JavaScriptSerializer();
                         serializer2.DeserializeObject(token.ValueText);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         Assert.NotEmpty(tree.Diagnostics);
                         return tree;
