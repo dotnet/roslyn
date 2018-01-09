@@ -648,6 +648,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         [Fact]
         public void TestNaNLiteral1()
         {
+            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
+            // the spec.  So we don't run those checks.
             Test(@"""NaN""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -659,12 +661,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'NaN' literal not allowed"" Start=""9"" Length=""3"" />
+</Diagnostics>", runStrictTreeCheck: false);
         }
 
         [Fact]
         public void TestNaNLiteral2()
         {
+            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
+            // the spec.  So we don't run those checks.
             Test(@""" NaN """, @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -679,7 +685,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'NaN' literal not allowed"" Start=""10"" Length=""3"" />
+</Diagnostics>", runStrictTreeCheck: false);
         }
 
         [Fact]
@@ -706,6 +714,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         [Fact]
         public void TestInfinity1()
         {
+            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
+            // the spec.  So we don't run those checks.
             Test(@"""Infinity""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -717,12 +727,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'Infinity' literal not allowed"" Start=""9"" Length=""8"" />
+</Diagnostics>", runStrictTreeCheck: false);
         }
 
         [Fact]
         public void TestNegativeInfinity1()
         {
+            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
+            // the spec.  So we don't run those checks.
             Test(@"""-Infinity""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -735,12 +749,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
 </Tree>",
         @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""'-Infinity' literal not allowed"" Start=""9"" Length=""9"" />
+</Diagnostics>", runStrictTreeCheck: false);
         }
 
         [Fact]
         public void TestNegativeInfinity2()
         {
+            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
+            // the spec.  So we don't run those checks.
             Test(@"""- Infinity""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -759,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
-</Diagnostics>");
+</Diagnostics>", runStrictTreeCheck: false);
         }
 
         [Fact]

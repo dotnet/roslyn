@@ -187,6 +187,8 @@ namespace Microsoft.CodeAnalysis.Json
             {
                 switch (node.LiteralToken.Kind)
                 {
+                    case JsonKind.NaNLiteralToken:
+                    case JsonKind.InfinityLiteralToken:
                     case JsonKind.UndefinedLiteralToken:
                         return InvalidLiteral(node.LiteralToken);
                     case JsonKind.NumberToken:
@@ -276,10 +278,9 @@ namespace Microsoft.CodeAnalysis.Json
 
             private JsonDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
-                return null;
-                //return new JsonDiagnostic(
-                //    string.Format(WorkspacesResources._0_literal_not_allowed, "-Infinity"),
-                //    GetSpan(node));
+                return new JsonDiagnostic(
+                    string.Format(WorkspacesResources._0_literal_not_allowed, "-Infinity"),
+                    GetSpan(node));
             }
 
             private JsonDiagnostic? CheckConstructor(JsonConstructorNode node)
