@@ -672,6 +672,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         [Fact]
+        public void TestIncompleteUnicode2()
+        {
+            Test(@"@""""""h\u123""""""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>""h\u123""</StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""7"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestIncompleteEscape2()
+        {
+            Test(@"@""""""h\u""""""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>""h\u""</StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""4"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
         public void TestInvalidNonBase10()
         {
             Test(@"""0aq2dun13.hod""", @"<Tree>
@@ -703,6 +739,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
   <Diagnostics>
     <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""3"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestUnterminatedString2()
+        {
+            Test(@"""\""hi""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>""hi</StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Unterminated string"" Start=""9"" Length=""4"" />
   </Diagnostics>
 </Tree>");
         }
@@ -776,6 +830,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         [Fact]
+        public void TestMultiObject2()
+        {
+            Test(@"""{\""first\"":1,\""second\"":2,\""third\"":3}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{</OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""first""</StringToken>
+            <ColonToken>:</ColonToken>
+            <Literal>
+              <NumberToken>1</NumberToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""second""</StringToken>
+            <ColonToken>:</ColonToken>
+            <Literal>
+              <NumberToken>2</NumberToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""third""</StringToken>
+            <ColonToken>:</ColonToken>
+            <Literal>
+              <NumberToken>3</NumberToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
         public void TestExtraChar()
         {
             Test(@"""nullz""", @"<Tree>
@@ -826,6 +925,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
   <Diagnostics>
     <Diagnostic Message=""Only properties allowed in a json object"" Start=""20"" Length=""3"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestMissingColon2()
+        {
+            Test(@"@""{ """"a"""": 0, """"b"""" 0 }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""a""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <NumberToken>0</NumberToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""b""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+          </Literal>
+          <Literal>
+            <NumberToken>0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Only properties allowed in a json object"" Start=""22"" Length=""5"" />
   </Diagnostics>
 </Tree>");
         }
@@ -941,6 +1077,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
   <Diagnostics>
     <Diagnostic Message=""'a' unexpected"" Start=""15"" Length=""1"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestAdditionalContentWhitespaceText2()
+        {
+            Test(@"@""""""hi"""" a""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>""hi""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+      </Literal>
+      <Text>
+        <TextToken>a</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""'a' unexpected"" Start=""17"" Length=""1"" />
   </Diagnostics>
 </Tree>");
         }
@@ -1523,6 +1680,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         [Fact]
         public void TestObjectWithEmptyPropValue2()
         {
+            Test(@"""{\""first\"": , }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{</OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""first""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <EmptyValue>
+              <CommaToken />
+            </EmptyValue>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestObjectWithEmptyPropValue3()
+        {
             Test(@"""{'first': }""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -1549,7 +1734,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         [Fact]
-        public void TestObjectWithEmptyPropValue3()
+        public void TestObjectWithEmptyPropValue4()
+        {
+            Test(@"""{\""first\"": }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{</OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""first""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Text>
+              <TextToken>}</TextToken>
+            </Text>
+          </Property>
+        </Sequence>
+        <CloseBraceToken />
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""'}' unexpected"" Start=""21"" Length=""1"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestObjectWithEmptyPropValue5()
         {
             Test(@"""{'first': """, @"<Tree>
   <CompilationUnit>
@@ -1572,6 +1785,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
   <Diagnostics>
     <Diagnostic Message=""Missing property value"" Start=""19"" Length=""0"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestObjectWithEmptyPropValue6()
+        {
+            Test(@"""{\""first\"": """, @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{</OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""first""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <EmptyValue>
+              <CommaToken />
+            </EmptyValue>
+          </Property>
+        </Sequence>
+        <CloseBraceToken />
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Missing property value"" Start=""21"" Length=""0"" />
   </Diagnostics>
 </Tree>");
         }
@@ -1604,6 +1845,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
   </CompilationUnit>
   <Diagnostics>
     <Diagnostic Message=""Nested properties not allowed"" Start=""27"" Length=""1"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestNestedProp2()
+        {
+            Test(@"""{\""first\"": \""second\"": \""third\"" }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{</OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""first""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Property>
+              <StringToken>""second""</StringToken>
+              <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+              <Literal>
+                <StringToken>""third""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+              </Literal>
+            </Property>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Nested properties not allowed"" Start=""31"" Length=""1"" />
   </Diagnostics>
 </Tree>");
         }
@@ -1685,6 +1958,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         [Fact]
+        public void TestMultiItemList2()
+        {
+            Test(@"""[{ \""name\"": \""Admin\"" },{ \""name\"": \""Publisher\"" },1,null,[],,\""string\""]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Object>
+            <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+            <Sequence>
+              <Property>
+                <StringToken>""name""</StringToken>
+                <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                <Literal>
+                  <StringToken>""Admin""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+                </Literal>
+              </Property>
+            </Sequence>
+            <CloseBraceToken>}</CloseBraceToken>
+          </Object>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Object>
+            <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+            <Sequence>
+              <Property>
+                <StringToken>""name""</StringToken>
+                <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                <Literal>
+                  <StringToken>""Publisher""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+                </Literal>
+              </Property>
+            </Sequence>
+            <CloseBraceToken>}</CloseBraceToken>
+          </Object>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NullLiteralToken>null</NullLiteralToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Array>
+            <OpenBracketToken>[</OpenBracketToken>
+            <Sequence />
+            <CloseBracketToken>]</CloseBracketToken>
+          </Array>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""string""</StringToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
         public void TestMultiLine1()
         {
             Test(@"@""
@@ -1713,6 +2062,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
           </EmptyValue>
           <Property>
             <StringToken>'d'</StringToken>
+            <ColonToken>:</ColonToken>
+            <Literal>
+              <TrueLiteralToken>true<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia></Trivia></TrueLiteralToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestMultiLine2()
+        {
+            Test(@"@""
+{""""a"""":
+""""bc"""",""""d"""":true
+}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>
+          <Trivia>
+            <EndOfLineTrivia>
+</EndOfLineTrivia>
+          </Trivia>{</OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""a""</StringToken>
+            <ColonToken>:<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia></Trivia></ColonToken>
+            <Literal>
+              <StringToken>""bc""</StringToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""d""</StringToken>
             <ColonToken>:</ColonToken>
             <Literal>
               <TrueLiteralToken>true<Trivia><EndOfLineTrivia>
@@ -1861,6 +2254,138 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         [Fact]
+        public void TestNestedObject1()
+        {
+            Test(@"@""
+{
+  """"description"""": """"A person"""",
+  """"type"""": """"object"""",
+  """"properties"""":
+  {
+    """"name"""": {""""type"""":""""string""""},
+    """"hobbies"""": {
+      """"type"""": """"array"""",
+      """"items"""": {""""type"""":""""string""""}
+    }
+  }
+}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>
+          <Trivia>
+            <EndOfLineTrivia>
+</EndOfLineTrivia>
+          </Trivia>{<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""description""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <StringToken>""A person""</StringToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""type""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <StringToken>""object""</StringToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""properties""</StringToken>
+            <ColonToken>:<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></ColonToken>
+            <Object>
+              <OpenBraceToken>{<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></OpenBraceToken>
+              <Sequence>
+                <Property>
+                  <StringToken>""name""</StringToken>
+                  <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                  <Object>
+                    <OpenBraceToken>{</OpenBraceToken>
+                    <Sequence>
+                      <Property>
+                        <StringToken>""type""</StringToken>
+                        <ColonToken>:</ColonToken>
+                        <Literal>
+                          <StringToken>""string""</StringToken>
+                        </Literal>
+                      </Property>
+                    </Sequence>
+                    <CloseBraceToken>}</CloseBraceToken>
+                  </Object>
+                </Property>
+                <EmptyValue>
+                  <CommaToken>,<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></CommaToken>
+                </EmptyValue>
+                <Property>
+                  <StringToken>""hobbies""</StringToken>
+                  <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                  <Object>
+                    <OpenBraceToken>{<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>      </WhitespaceTrivia></Trivia></OpenBraceToken>
+                    <Sequence>
+                      <Property>
+                        <StringToken>""type""</StringToken>
+                        <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                        <Literal>
+                          <StringToken>""array""</StringToken>
+                        </Literal>
+                      </Property>
+                      <EmptyValue>
+                        <CommaToken>,<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>      </WhitespaceTrivia></Trivia></CommaToken>
+                      </EmptyValue>
+                      <Property>
+                        <StringToken>""items""</StringToken>
+                        <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+                        <Object>
+                          <OpenBraceToken>{</OpenBraceToken>
+                          <Sequence>
+                            <Property>
+                              <StringToken>""type""</StringToken>
+                              <ColonToken>:</ColonToken>
+                              <Literal>
+                                <StringToken>""string""</StringToken>
+                              </Literal>
+                            </Property>
+                          </Sequence>
+                          <CloseBraceToken>}<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></CloseBraceToken>
+                        </Object>
+                      </Property>
+                    </Sequence>
+                    <CloseBraceToken>}<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CloseBraceToken>
+                  </Object>
+                </Property>
+              </Sequence>
+              <CloseBraceToken>}<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia></Trivia></CloseBraceToken>
+            </Object>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
         public void TestLiterals1()
         {
             Test(@"@""{ A: '', B: 1, C: , D: 1.23, E: 3.45, F: null }""", @"<Tree>
@@ -1937,6 +2462,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 
         [Fact]
         public void TestLiterals2()
+        {
+            Test(@"@""{ """"A"""": """""""", """"B"""": 1, """"D"""": 1.23, """"E"""": 3.45, """"F"""": null }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""A""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <StringToken>""""</StringToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""B""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <NumberToken>1</NumberToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""D""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <NumberToken>1.23</NumberToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""E""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <NumberToken>3.45</NumberToken>
+            </Literal>
+          </Property>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Property>
+            <StringToken>""F""</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <NullLiteralToken>null<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NullLiteralToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestLiterals3()
         {
             // Note: we don't run subtree tests on json.net v9 because it has a bug where
             // it won't fail when we expect it to.  This is due to:
@@ -2124,6 +2714,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         <Sequence>
           <Property>
             <StringToken>'text'</StringToken>
+            <ColonToken>:</ColonToken>
+            <Literal>
+              <NumberToken>0xabcdef12345</NumberToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestUnicode3()
+        {
+            Test(@"@""{""""text"""":0xabcdef12345}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{</OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>""text""</StringToken>
             <ColonToken>:</ColonToken>
             <Literal>
               <NumberToken>0xabcdef12345</NumberToken>
@@ -2327,6 +2942,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         [Fact]
+        public void TestEmptyStrings2()
+        {
+            Test(@"@""["""""""","""""""","""""""","""""""","""""""","""""""",""""""""]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <StringToken>""""</StringToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""""</StringToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""""</StringToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""""</StringToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""""</StringToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""""</StringToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,</CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""""</StringToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
         public void TestInvalidNumber()
         {
             Test(@"@""0-10""", @"<Tree>
@@ -2432,6 +3104,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         [Fact]
+        public void TestSimpleEscapes2()
+        {
+            Test(@"@""[false, true, true, false, """"test!"""", 1.11, 0e-10, 0E-10, 0.25e-5, 0.3e10, 6.0221418e23, """"Purple\r \n monkey\'s:\tdishwasher""""]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <FalseLiteralToken>false</FalseLiteralToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <TrueLiteralToken>true</TrueLiteralToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <TrueLiteralToken>true</TrueLiteralToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <FalseLiteralToken>false</FalseLiteralToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""test!""</StringToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>1.11</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>0e-10</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>0E-10</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>0.25e-5</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>0.3e10</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <NumberToken>6.0221418e23</NumberToken>
+          </Literal>
+          <EmptyValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </EmptyValue>
+          <Literal>
+            <StringToken>""Purple\r \n monkey\'s:\tdishwasher""</StringToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
         public void TestDoubleQuoteInSingleQuote()
         {
             Test(@"@""'a""""b'""", @"<Tree>
@@ -2456,6 +3215,23 @@ b'""", @"<Tree>
       <Literal>
         <StringToken>'a
 b'</StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestMultiLineString2()
+        {
+            Test(@"@""""""a
+b""""""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>""a
+b""</StringToken>
       </Literal>
     </Sequence>
     <EndOfFile />
@@ -2858,6 +3634,117 @@ b'</StringToken>
   <Diagnostics>
     <Diagnostic Message=""Only properties allowed in a json object"" Start=""15"" Length=""1"" />
   </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestSimpleEscapes3()
+        {
+            Test(@"@"" """"\r\n\f\t\b"""" """, @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>
+          <Trivia>
+            <WhitespaceTrivia> </WhitespaceTrivia>
+          </Trivia>""\r\n\f\t\b""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestSimpleEscapes4()
+        {
+            Test(@"@"" """"\m"""" """, @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>
+          <Trivia>
+            <WhitespaceTrivia> </WhitespaceTrivia>
+          </Trivia>""\m""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""2"" />
+  </Diagnostics>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestSimpleEscapes5()
+        {
+            Test(@"@"" """"\\\/\"""""""" """, @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>
+          <Trivia>
+            <WhitespaceTrivia> </WhitespaceTrivia>
+          </Trivia>""\\\/\""""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestSimpleEscapes6()
+        {
+            Test(@"@"" """"\'"""" """, @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>
+          <Trivia>
+            <WhitespaceTrivia> </WhitespaceTrivia>
+          </Trivia>""\'""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestSimpleEscapes7()
+        {
+            Test(@"@"" '\'' """, @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>
+          <Trivia>
+            <WhitespaceTrivia> </WhitespaceTrivia>
+          </Trivia>'\''<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>");
+        }
+
+        [Fact]
+        public void TestSimpleEscapes8()
+        {
+            Test(@"@"" '\""""' """, @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <StringToken>
+          <Trivia>
+            <WhitespaceTrivia> </WhitespaceTrivia>
+          </Trivia>'\""'<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
 </Tree>");
         }
     }
