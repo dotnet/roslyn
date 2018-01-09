@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 
             if (token.VirtualChars.Length > 0)
             {
-                element.Add(new string(token.VirtualChars.Select(vc => vc.Char).ToArray()));
+                element.Add(token.VirtualChars.CreateString());
             }
 
             return element;
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         private XElement TriviaToElement(RegexTrivia trivia)
             => new XElement(
                 trivia.Kind.ToString(),
-                new string(trivia.VirtualChars.Select(vc => vc.Char).ToArray()));
+                trivia.VirtualChars.CreateString());
 
         private void CheckInvariants(RegexTree tree, ImmutableArray<VirtualChar> allChars)
         {

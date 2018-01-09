@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             var token = new RegexToken(RegexKind.EscapeCategoryToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
-            var category = new string(token.VirtualChars.Select(vc => vc.Char).ToArray());
+            var category = token.VirtualChars.CreateString();
 
             if (!RegexCharClass.IsEscapeCategory(category))
             {
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             var token = new RegexToken(RegexKind.CaptureNameToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
-            token = token.With(value: new string(token.VirtualChars.Select(vc => vc.Char).ToArray()));
+            token = token.With(value: token.VirtualChars.CreateString());
             return token;
         }
 
