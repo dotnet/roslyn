@@ -118,10 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                 {
                     JToken.Parse(token.ValueText);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Assert.NotEmpty(tree.Diagnostics);
-                    // Assert.True(tree.Diagnostics.Any(d => e.Message.Contains(d.Message)));
                     return tree;
                 }
 
