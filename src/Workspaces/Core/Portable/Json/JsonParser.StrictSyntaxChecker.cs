@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Json
                 {
                     return new JsonDiagnostic(
                         WorkspacesResources.Value_required,
-                        GetSpan(((JsonEmptyValueNode)node.Value).CommaToken));
+                        new TextSpan(node.ColonToken.VirtualChars[0].Span.End, 0));
                 }
 
                 return CheckString(node.NameToken) ?? CheckChildren(node);

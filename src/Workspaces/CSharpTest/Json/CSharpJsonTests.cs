@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Web.Script.Serialization;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.VirtualChars;
 using Microsoft.CodeAnalysis.Json;
@@ -39,12 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             bool runStrictTreeCheck = true, bool runStrictSubTreeCheck = true,
             [CallerMemberName]string name = "")
         {
-#if true
             if (runLooseSubTreeCheck || runLooseSubTreeCheck)
             {
                 Test(stringText, strict: false, expected, looseDiagnostics, runLooseTreeCheck, runLooseSubTreeCheck);
             }
-#endif
 
             if (runStrictTreeCheck || runStrictSubTreeCheck)
             {
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             // (like not ever actually finishing compiling).
             if (runSubTreeChecks)
             {
-                // TryParseSubTrees(stringText, strict, runTreeCheck);
+                TryParseSubTrees(stringText, strict, runTreeCheck);
             }
 
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
