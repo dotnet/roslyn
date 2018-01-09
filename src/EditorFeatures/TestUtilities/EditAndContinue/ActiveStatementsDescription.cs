@@ -28,9 +28,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             OldTrackingSpans = null;
         }
 
+        private static readonly DocumentId s_dummyDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
+
         public ActiveStatementsDescription(string oldSource, string newSource)
         {
-            OldStatements = GetActiveStatements(oldSource);
+            OldStatements = GetActiveStatements(oldSource, s_dummyDocumentId);
             NewSpans = GetActiveSpans(newSource);
             OldRegions = GetExceptionRegions(oldSource, OldStatements.Length);
             NewRegions = GetExceptionRegions(newSource, NewSpans.Length);
@@ -123,18 +125,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return result.ToArray();
         }
 
-        private static readonly DocumentId s_dummyDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
+        private static readonly ImmutableArray<Guid> s_dummyThreadIds = ImmutableArray.Create(default(Guid));
 
-        internal static ActiveStatement CreateActiveStatement(ActiveStatementFlags flags, LinePositionSpan span)
+        internal static ActiveStatement CreateActiveStatement(ActiveStatementFlags flags, LinePositionSpan span, DocumentId documentId)
             => new ActiveStatement(
-                index: 0,
-                documentId: s_dummyDocumentId,
                 ordinal: 0,
-                flags, 
+                primaryDocumentOrdinal: 0,
+                ImmutableArray.Create(documentId),
+                flags,
                 span,
-                instructionId: default);
+                instructionId: default,
+                s_dummyThreadIds);
 
-        internal static ActiveStatement[] GetActiveStatements(string src)
+        internal static ActiveStatement[] GetActiveStatements(string src, DocumentId documentId)
         {
             var text = SourceText.From(src);
             var result = new List<ActiveStatement>();
@@ -143,8 +146,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             foreach (var span in GetActiveSpans(src))
             {
                 result.Add(CreateActiveStatement(
-                    (i == 0) ? ActiveStatementFlags.LeafFrame : ActiveStatementFlags.None,
-                    text.Lines.GetLinePositionSpan(span)));
+                    (i == 0) ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame,
+                    text.Lines.GetLinePositionSpan(span),
+                    documentId));
 
                 i++;
             }

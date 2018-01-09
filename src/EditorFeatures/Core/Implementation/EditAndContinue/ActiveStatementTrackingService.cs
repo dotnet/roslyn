@@ -178,12 +178,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                     lock (_trackingSpans)
                     {
-                        foreach (var (documentId, documentSpans) in baseActiveStatements.DocumentMap)
+                        foreach (var (documentId, documentActiveStatements) in baseActiveStatements.DocumentMap)
                         {
                             var document = _editSession.BaseSolution.GetDocument(documentId);
                             if (TryGetSnapshot(document, out var snapshot))
                             {
-                                TrackActiveSpansNoLock(document, snapshot, documentSpans);
+                                TrackActiveSpansNoLock(document, snapshot, documentActiveStatements);
                             }
                         }
                     }
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                                 if (!leafUpdated)
                                 {
-                                    leafUpdated = (span.Flags & ActiveStatementFlags.LeafFrame) != 0;
+                                    leafUpdated = span.IsLeaf;
                                 }
 
                                 updated = true;

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -34,18 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             IEnumerable<ActiveStatementDebugInfo> Enumerate()
             {
                 int sourceIndex = 0;
-                int id = 0;
+                int index = 0;
                 foreach (var markedSource in markedSources)
                 {
-                    foreach (var activeStatement in ActiveStatementsDescription.GetActiveStatements(markedSource))
+                    var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
+
+                    foreach (var activeStatement in ActiveStatementsDescription.GetActiveStatements(markedSource, documentId))
                     {
                         yield return new ActiveStatementDebugInfo(
-                            new ActiveInstructionId(default, methodToken: 0x06000000 | methodRowIds[id], 1, 0), 
-                            documentName: TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension), 
-                            activeStatement.Span, 
-                            activeStatement.Flags);
+                            new ActiveInstructionId(default, methodToken: 0x06000000 | methodRowIds[index], 1, 0),
+                            documentName: TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension),
+                            linePositionSpan: activeStatement.Span,
+                            threadIds: ImmutableArray.Create(default(Guid)),
+                            flags: activeStatement.Flags);
 
-                        id++;
+                        index++;
                     }
 
                     sourceIndex++;
@@ -99,8 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 "
             };
 
-            var activeStatements = GetActiveStatementDebugInfos(markedSource, methodRowIds: new[] { 1, 2, 3, 4 }, ".cs").Concat(
-                new ActiveStatementDebugInfo(new ActiveInstructionId(default, 0x06000001, 1, 0), TestWorkspace.GetDefaultTestSourceDocumentName(0, ".cs"), default, ActiveStatementFlags.NonUserCode));
+            var activeStatements = GetActiveStatementDebugInfos(markedSource, methodRowIds: new[] { 1, 2, 3, 4 }, ".cs");
 
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)));
@@ -142,23 +145,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.InstructionId.MethodToken).ToArray();
                 var s = statements[0];
                 Assert.Equal(0x06000001, s.InstructionId.MethodToken);
-                Assert.Equal(0, s.Ordinal);
-                Assert.Equal(docs[0].Id, s.DocumentId);
+                Assert.Equal(0, s.PrimaryDocumentOrdinal);
+                Assert.Equal(docs[0].Id, s.DocumentIds.Single());
 
                 s = statements[1];
                 Assert.Equal(0x06000002, s.InstructionId.MethodToken);
-                Assert.Equal(1, s.Ordinal);
-                Assert.Equal(docs[0].Id, s.DocumentId);
+                Assert.Equal(1, s.PrimaryDocumentOrdinal);
+                Assert.Equal(docs[0].Id, s.DocumentIds.Single());
 
                 s = statements[2];
                 Assert.Equal(0x06000003, s.InstructionId.MethodToken);
-                Assert.Equal(0, s.Ordinal);
-                Assert.Equal(docs[1].Id, s.DocumentId);
+                Assert.Equal(0, s.PrimaryDocumentOrdinal);
+                Assert.Equal(docs[1].Id, s.DocumentIds.Single());
 
                 s = statements[3];
                 Assert.Equal(0x06000004, s.InstructionId.MethodToken);
-                Assert.Equal(1, s.Ordinal);
-                Assert.Equal(docs[1].Id, s.DocumentId);
+                Assert.Equal(1, s.PrimaryDocumentOrdinal);
+                Assert.Equal(docs[1].Id, s.DocumentIds.Single());
 
                 // Exception Regions
 

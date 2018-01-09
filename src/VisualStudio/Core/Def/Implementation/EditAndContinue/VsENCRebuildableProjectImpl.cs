@@ -839,16 +839,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
         }
 
-        internal static ENCPROG_ACTIVE_STATEMENT_REMAP[] GetRemapActiveStatements(ImmutableArray<(int MethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)> remaps)
+        internal static ENCPROG_ACTIVE_STATEMENT_REMAP[] GetRemapActiveStatements(ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> remaps)
         {
             var result = new ENCPROG_ACTIVE_STATEMENT_REMAP[remaps.Length];
             for (int i = 0; i < remaps.Length; i++)
             {
                 result[i] = new ENCPROG_ACTIVE_STATEMENT_REMAP
                 {
-                    MethodToken = remaps[i].MethodToken,
-                    OldMethodVersion = remaps[i].OldMethodVersion,
-                    OldILOffset = remaps[i].OldILOffset,
+                    ThreadId = remaps[i].ThreadId,
+                    MethodToken = remaps[i].OldInstructionId.MethodToken,
+                    OldMethodVersion = remaps[i].OldInstructionId.MethodVersion,
+                    OldILOffset = remaps[i].OldInstructionId.ILOffset,
                     NewStartLine = remaps[i].NewSpan.Start.Line + 1,
                     NewStartCol = remaps[i].NewSpan.Start.Character + 1,
                     NewEndLine = remaps[i].NewSpan.End.Line + 1,

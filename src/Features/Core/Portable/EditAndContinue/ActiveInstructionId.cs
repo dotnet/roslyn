@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => obj is ActiveInstructionId && Equals((ActiveInstructionId)obj);
 
         public bool Equals(ActiveInstructionId other)
-            => ModuleId.Equals(other.ModuleId) &&
+            => ILOffset == other.ILOffset &&
                MethodToken == other.MethodToken &&
                MethodVersion == other.MethodVersion &&
-               ILOffset == other.ILOffset;
+               ModuleId.Equals(other.ModuleId);
 
         public override int GetHashCode()
             => Hash.Combine(ModuleId.GetHashCode(), Hash.Combine(MethodToken, Hash.Combine(MethodVersion, ILOffset)));

@@ -9,6 +9,19 @@ namespace Roslyn.Utilities
 {
     internal static class PooledBuilderExtensions
     {
+        public static Dictionary<K, V> ToDictionaryAndFree<K, V>(this PooledDictionary<K, V> builders)
+        {
+            var dictionary = new Dictionary<K, V>(builders.Count);
+
+            foreach (var (key, items) in builders)
+            {
+                dictionary.Add(key, items);
+            }
+
+            builders.Free();
+            return dictionary;
+        }
+
         public static Dictionary<K, ImmutableArray<V>> ToDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
         {
             var dictionary = new Dictionary<K, ImmutableArray<V>>(builders.Count);

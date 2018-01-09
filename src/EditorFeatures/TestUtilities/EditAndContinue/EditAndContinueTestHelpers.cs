@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         oldText,
                         editScript.Match.OldRoot,
                         oldActiveStatements[i].Span,
-                        isLeaf: oldActiveStatements[i].IsLeaf,
+                        isNonLeaf: oldActiveStatements[i].IsNonLeaf,
                         out _);
 
                     AssertSpansEqual(description.OldRegions[i], actualOldExceptionRegions, oldSource, oldText);

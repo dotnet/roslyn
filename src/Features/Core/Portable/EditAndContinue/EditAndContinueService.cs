@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -195,20 +196,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                Document document = _debuggingSession.InitialSolution.Workspace.CurrentSolution.GetDocument(baseActiveStatement.DocumentId);
-                SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                Document primaryDocument = _debuggingSession.InitialSolution.Workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
 
                 // TODO:is this needed?
                 // Try to get spans from the tracking service first.
                 // We might get an imprecise result if the document analysis hasn't been finished yet and 
                 // the active statement has structurally changed, but that's ok. The user won't see an updated tag
                 // for the statement until the analysis finishes anyways.
+                //
+                // SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 //if (_trackingService.TryGetSpan(baseActiveStatement.Id, text, out var trackedSpan) && trackedSpan.Length > 0)
                 //{
                 //    lineSpan = text.Lines.GetLinePositionSpan(trackedSpan);
                 //}
 
-                var documentAnalysis = await _editSession.GetDocumentAnalysis(document).GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var documentAnalysis = await _editSession.GetDocumentAnalysis(primaryDocument).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var currentActiveStatements = documentAnalysis.ActiveStatements;
                 if (currentActiveStatements.IsDefault)
                 {
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                return currentActiveStatements[baseActiveStatement.Ordinal].Span;
+                return currentActiveStatements[baseActiveStatement.PrimaryDocumentOrdinal].Span;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -241,9 +243,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                // TODO: avoid waiting for ERs of all active statements to be calculated and just calculate the one we are interested inat this moment:
+                // TODO: avoid waiting for ERs of all active statements to be calculated and just calculate the one we are interested in at this moment:
                 var baseExceptionRegions = await _editSession.BaseActiveExceptionRegions.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return baseExceptionRegions[baseActiveStatement.Index].IsActiveStatementCovered;
+                return baseExceptionRegions[baseActiveStatement.Ordinal].IsActiveStatementCovered;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

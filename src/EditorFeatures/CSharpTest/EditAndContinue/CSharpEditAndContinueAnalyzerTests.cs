@@ -273,7 +273,7 @@ class C
                 var oldStatementSpan = oldText.Lines.GetLinePositionSpan(oldStatementTextSpan);
                 var oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan);
 
-                var baseActiveStatements = ImmutableArray.Create(ActiveStatementsDescription.CreateActiveStatement(ActiveStatementFlags.LeafFrame, oldStatementSpan));
+                var baseActiveStatements = ImmutableArray.Create(ActiveStatementsDescription.CreateActiveStatement(ActiveStatementFlags.IsLeafFrame, oldStatementSpan, DocumentId.CreateNewId(ProjectId.CreateNewId())));
                 var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newDocument, CancellationToken.None);
 
                 Assert.True(result.HasChanges);

@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal readonly struct ActiveStatementsMap
     {
         /// <summary>
-        /// Groups active statement spans by document. 
-        /// <see cref="ActiveStatementId"/> is used to identify span in this map.
+        /// Groups active statements by document. 
+        /// Multiple documents point to the same set of active statements if they are linked to the same underlying source file.
         /// </summary>
         public readonly IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>> DocumentMap;
 
         /// <summary>
-        /// Maps active instruction ids to <see cref="ActiveStatement"/>. 
+        /// Active statements by instruction id.
         /// </summary>
         public readonly IReadOnlyDictionary<ActiveInstructionId, ActiveStatement> InstructionMap;
 

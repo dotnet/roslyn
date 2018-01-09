@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         None = 0,
 
         /// <summary>
-        /// The statement is in a leaf frame.
+        /// At least one of the threads whom this active statement belongs to is in a leaf frame.
         /// </summary>
-        LeafFrame = 1,
+        IsLeafFrame = 1,
 
         /// <summary>
         /// The statement is partially executed.
@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// When the debugger asks the CLR for the active statement information it compares ICorDebugFunction.GetVersionNumber()
         /// and ICorDebugFunction.GetCurrentVersionNumber() to determine the value of this flag.
         /// </remarks>
-        MethodUpToDate = 8
+        MethodUpToDate = 8,
+
+        /// <summary>
+        /// At least one of the threads whom this active statement belongs to is in a non-leaf frame.
+        /// </summary>
+        IsNonLeafFrame = 16,
     }
 }

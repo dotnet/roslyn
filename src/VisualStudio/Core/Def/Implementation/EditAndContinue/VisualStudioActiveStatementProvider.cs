@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -47,15 +48,46 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                 completion.SetCanceled();
                             }
 
-                            int activeStatementCount = 0;
-                            int pendingStatements = activeStatementsResult.ActiveStatements.Length;
+                            // group active statement by instruction and aggregate flags and threads:
+                            var instructionMap = PooledDictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)>.GetInstance();
+                            foreach (var dkmStatement in activeStatementsResult.ActiveStatements)
+                            {
+                                // flags whose value only depends on the active instruction:
+                                const DkmActiveStatementFlags instructionFlagsMask = DkmActiveStatementFlags.MethodUpToDate | DkmActiveStatementFlags.MidStatement | DkmActiveStatementFlags.NonUser;
+                                var instructionFlags = (ActiveStatementFlags)(dkmStatement.Flags & instructionFlagsMask);
+
+                                bool isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
+                                var frameFlags = isLeaf ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame;
+
+                                var instructionId = new ActiveInstructionId(
+                                    dkmStatement.InstructionSymbol.Module.Id.Mvid,
+                                    dkmStatement.InstructionAddress.MethodId.Token,
+                                    unchecked((int)dkmStatement.ExecutingMethodVersion),
+                                    unchecked((int)dkmStatement.InstructionAddress.ILOffset));
+
+                                if (instructionMap.TryGetValue(instructionId, out var entry))
+                                {
+                                    // all flags, except for LeafFrame should be the same for active statements whose instruction ids are the same:
+                                    Debug.Assert(instructionFlags == (entry.Flags & (ActiveStatementFlags)instructionFlagsMask));
+                                    
+                                    entry.Flags |= frameFlags;
+                                }
+                                else
+                                {
+                                    entry = (dkmStatement.InstructionSymbol, ArrayBuilder<Guid>.GetInstance(1), instructionMap.Count, instructionFlags | frameFlags);
+                                }
+
+                                instructionMap[instructionId] = entry;
+                                entry.Threads.Add(dkmStatement.Thread.UniqueId);
+                            }
+
+                            int pendingStatements = instructionMap.Count;
                             builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
                             builders[runtimeIndex].Count = pendingStatements;
 
-                            foreach (var dkmStatement in activeStatementsResult.ActiveStatements)
+                            foreach (var (instructionId, (symbol, threads, index, flags)) in instructionMap)
                             {
-                                int activeStatementIndex = activeStatementCount;
-                                dkmStatement.InstructionSymbol.GetSourcePosition(workList, DkmSourcePositionFlags.None, InspectionSession: null, sourcePositionResult =>
+                                symbol.GetSourcePosition(workList, DkmSourcePositionFlags.None, InspectionSession: null, sourcePositionResult =>
                                 {
                                     if (cancellationToken.IsCancellationRequested)
                                     {
@@ -65,26 +97,26 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                                     if (sourcePositionResult.ErrorCode == 0)
                                     {
-                                        builders[runtimeIndex][activeStatementIndex] = new ActiveStatementDebugInfo(
-                                            new ActiveInstructionId(
-                                                dkmStatement.InstructionSymbol.Module.Id.Mvid,
-                                                dkmStatement.InstructionAddress.MethodId.Token,
-                                                unchecked((int)dkmStatement.InstructionAddress.MethodId.Version),
-                                                unchecked((int)dkmStatement.InstructionAddress.ILOffset)),
+                                        builders[runtimeIndex][index] = new ActiveStatementDebugInfo(
+                                            instructionId,
                                             sourcePositionResult.SourcePosition.DocumentName,
                                             ToLinePositionSpan(sourcePositionResult.SourcePosition.TextSpan),
-                                            (ActiveStatementFlags)dkmStatement.Flags);
+                                            threads.ToImmutableAndFree(),
+                                            flags);
                                     }
 
-                                    // the last active statement of the last runtime has been processed:
-                                    if (Interlocked.Decrement(ref pendingStatements) == 0 && 
-                                        Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                    // the last active statement of the current runtime has been processed:
+                                    if (Interlocked.Decrement(ref pendingStatements) == 0)
                                     {
-                                        completion.SetResult(builders.ToImmutableArrayAndFree());
+                                        instructionMap.Free();
+
+                                        // the last active statement of the last runtime has been processed:
+                                        if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                        {
+                                            completion.SetResult(builders.ToImmutableArrayAndFree());
+                                        }
                                     }
                                 });
-
-                                activeStatementCount++;
                             }
                         });
 

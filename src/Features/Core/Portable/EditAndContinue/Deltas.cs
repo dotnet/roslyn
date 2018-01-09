@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.Emit;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly EmitDifferenceResult EmitResult;
         public readonly ImmutableArray<(ActiveInstructionId, LinePositionSpan)> UpdatedActiveStatementSpans;
         public readonly ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> ExceptionRegionSpanDeltas;
-        public readonly ImmutableArray<(int MethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
+        public readonly ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
 
         public Deltas(
             byte[] il,
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineEdits,
             ImmutableArray<(ActiveInstructionId, LinePositionSpan)> updatedActiveStatementSpans,
             ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> exceptionRegionSpanDeltas,
-            ImmutableArray<(int MethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
+            ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
             EmitDifferenceResult emitResult)
         {
             IL = new ILDelta(il);

@@ -5450,6 +5450,7 @@ Class C
         <AS:1>Console.WriteLine(2)</AS:1> 
         <AS:2>Console.WriteLine(3)</AS:2> 
         <AS:3>Console.WriteLine(4)</AS:3> 
+        <AS:4>Console.WriteLine(5)</AS:4> 
     End Sub
 End Class
 "
@@ -5460,21 +5461,24 @@ Class C
         <AS:1>Console.WriteLine(20)</AS:1> 
         <AS:2>Console.WriteLine(30)</AS:2> 
         <AS:3>Console.WriteLine(40)</AS:3> 
+        <AS:4>Console.WriteLine(50)</AS:4> 
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame)
-            active.OldStatements(1) = active.OldStatements(1).WithFlags(ActiveStatementFlags.PartiallyExecuted)
-            active.OldStatements(2) = active.OldStatements(2).WithFlags(ActiveStatementFlags.LeafFrame)
-            active.OldStatements(3) = active.OldStatements(3).WithFlags(ActiveStatementFlags.None)
+            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
+            active.OldStatements(1) = active.OldStatements(1).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsNonLeafFrame)
+            active.OldStatements(2) = active.OldStatements(2).WithFlags(ActiveStatementFlags.IsLeafFrame)
+            active.OldStatements(3) = active.OldStatements(3).WithFlags(ActiveStatementFlags.IsNonLeafFrame)
+            active.OldStatements(4) = active.OldStatements(4).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10)"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(20)"),
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40)"))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(50)"))
         End Sub
 
         <Fact>
@@ -5495,7 +5499,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame)
+            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()"))
