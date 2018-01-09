@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
                             // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
                             //
-                            // In this case we rewrite the assignment as follows:
+                            // In the dynamic case, or when the array may be co-variant, we rewrite the assignment as follows:
                             //
                             //   E t_array = array;
                             //   I t_index = index; (possibly more indices)

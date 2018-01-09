@@ -13839,7 +13839,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub ArrayElementByReferenceDerived_Invariant()
+        Public Sub ArrayElementByReference_Invariant()
             Dim comp =
 <compilation>
     <file>
@@ -13877,7 +13877,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
-        Public Sub ArrayElementByReferenceDerived_Covariant()
+        Public Sub ArrayElementByReference_Covariant()
             Dim comp =
 <compilation>
     <file>
@@ -13923,44 +13923,6 @@ End Module
 ]]>)
         End Sub
 
-        <Fact>
-        Public Sub ArrayElementByReferenceDerived_ValueType()
-            Dim comp =
-<compilation>
-    <file>
-Option Strict Off
-Module M
-    Sub Main()
-        F(New Integer() {1})
-    End Sub
-    Sub F(a() As Integer)
-        G(a)
-        System.Console.Write(a(0))
-    End Sub
-    Sub G(a() As Integer)
-        H(a(0))
-    End Sub
-    Sub H(ByRef i As Integer)
-        i = 2
-    End Sub
-End Module
-    </file>
-</compilation>
-            CompileAndVerify(comp, expectedOutput:="2").
-            VerifyIL("M.G",
-            <![CDATA[
-{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  ldelema    "Integer"
-  IL_0007:  call       "Sub M.H(ByRef Integer)"
-  IL_000c:  ret
-}
-]]>)
-        End Sub
-
         ' Generated code results in ArrayTypeMismatchException,
         ' matching native compiler.
         <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
@@ -14001,6 +13963,159 @@ End Module
   IL_0001:  ldc.i4.0
   IL_0002:  ldelema    "Object"
   IL_0007:  call       "Sub M.H(ByRef Object)"
+  IL_000c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReference_TypeParameter()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        Dim a = New String() { "b" }
+        Dim b = New B()
+        b.F(a)
+        System.Console.Write(a(0))
+    End Sub
+End Module
+MustInherit Class A(Of T)
+    Friend MustOverride Sub F(Of U As T)(a() As U)
+End Class
+Class B
+    Inherits A(Of String)
+    Friend Overrides Sub F(Of U As String)(a() As U)
+        G(a(0))
+    End Sub
+    Sub G(ByRef s As String)
+        s = s.ToUpper()
+    End Sub
+End Class
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="B").
+            VerifyIL("B.F",
+            <![CDATA[
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (U() V_0,
+                String V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldelem     "U"
+  IL_000a:  box        "U"
+  IL_000f:  castclass  "String"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Sub B.G(ByRef String)"
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloc.1
+  IL_001f:  unbox.any  "U"
+  IL_0024:  stelem     "U"
+  IL_0029:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementByReference_StructConstraint()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        Dim a = New Integer() { 1 }
+        Dim b = New B()
+        b.F(a)
+        System.Console.Write(a(0))
+    End Sub
+End Module
+MustInherit Class A(Of T)
+    Friend MustOverride Sub F(Of U As {T, Structure})(a() As U)
+End Class
+Class B
+    Inherits A(Of Integer)
+    Friend Overrides Sub F(Of U As {Integer, Structure})(a() As U)
+        G(a(0))
+    End Sub
+    Sub G(ByRef i As Integer)
+        i += 1
+    End Sub
+End Class
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="2").
+            VerifyIL("B.F",
+            <![CDATA[
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (U() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldelem     "U"
+  IL_000a:  box        "U"
+  IL_000f:  unbox.any  "Integer"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Sub B.G(ByRef Integer)"
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloc.1
+  IL_001f:  box        "Integer"
+  IL_0024:  unbox.any  "U"
+  IL_0029:  stelem     "U"
+  IL_002e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayElementByReference_ValueType()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Integer() {1})
+    End Sub
+    Sub F(a() As Integer)
+        G(a)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Integer)
+        H(a(0))
+    End Sub
+    Sub H(ByRef i As Integer)
+        i = 2
+    End Sub
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="2").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "Integer"
+  IL_0007:  call       "Sub M.H(ByRef Integer)"
   IL_000c:  ret
 }
 ]]>)
