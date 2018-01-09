@@ -44,10 +44,13 @@ namespace Microsoft.CodeAnalysis.VirtualChars
 
         public override int GetHashCode()
         {
-            var hashCode = 244102310;
-            hashCode = hashCode * -1521134295 + Char.GetHashCode();
-            hashCode = hashCode * -1521134295 + Span.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                var hashCode = 244102310;
+                hashCode = hashCode * -1521134295 + Char.GetHashCode();
+                hashCode = hashCode * -1521134295 + Span.GetHashCode();
+                return hashCode;
+            }
         }
 
         public static bool operator ==(VirtualChar char1, VirtualChar char2)

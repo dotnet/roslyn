@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.VirtualChars
     public class CSharpVirtualCharServiceTests
     {
         private const string _statmentPrefix = "var v = ";
-
+        
         private SyntaxToken GetStringToken(string text)
         {
             var statement = _statmentPrefix + text;

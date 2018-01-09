@@ -28,41 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
         }
 
         private ImmutableArray<VirtualChar> TryConvertVerbatimStringToVirtualChars(SyntaxToken token)
-        {
-            const string StartDelimeter = "@\"";
-            const string EndDelimeter = "\"";
-
-            var tokenText = token.Text;
-            if (!tokenText.StartsWith(StartDelimeter) ||
-                !tokenText.EndsWith(EndDelimeter))
-            {
-                Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
-                return default;
-            }
-
-            var startIndexInclusive = StartDelimeter.Length;
-            var endIndexExclusive = tokenText.Length - EndDelimeter.Length;
-
-            var result = ArrayBuilder<VirtualChar>.GetInstance();
-
-            var offset = token.SpanStart;
-            for (var index = startIndexInclusive; index < endIndexExclusive;)
-            {
-                if (tokenText[index] == '"' &&
-                    tokenText[index + 1] == '"')
-                {
-                    result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
-                    index += 2;
-                }
-                else
-                {
-                    result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
-                    index++;
-                }
-            }
-
-            return result.ToImmutableAndFree();
-        }
+            => TryConvertSimpleDelimitedString(token, "@\"", "\"");
 
         private ImmutableArray<VirtualChar> TryConvertStringToVirtualChars(SyntaxToken token)
         {
