@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.VirtualChars
     {
         public ImmutableArray<VirtualChar> TryConvertToVirtualChars(SyntaxToken token)
         {
+            // We don't process any strings that contain diagnostics in it.  That means that we can 
+            // trust that all the string's contents (most importantly, the escape sequences) are well
+            // formed.
             if (token.ContainsDiagnostics)
             {
                 return default;
@@ -19,13 +22,13 @@ namespace Microsoft.CodeAnalysis.VirtualChars
 
 #if DEBUG
             // Do some invariant checking to make sure we processed the string token the same
-            // way the C# compiler did.
+            // way the C# and VB compilers did.
             if (!result.IsDefault)
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
                 var expectedValueText = token.ValueText;
-                var actualValueText = new string(result.Select(vc => vc.Char).ToArray());
+                var actualValueText = result.CreateString();
                 Debug.Assert(expectedValueText == actualValueText);
 
                 if (result.Length > 0)
