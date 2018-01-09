@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Json
             }
 
             Debug.Assert(token.VirtualChars.Length > 0);
-            var literalText = new string(token.VirtualChars.Select(vc => vc.Char).ToArray());
+            var literalText = token.VirtualChars.CreateString();
 
             switch (literalText)
             {

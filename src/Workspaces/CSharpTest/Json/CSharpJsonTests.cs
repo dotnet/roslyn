@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 
             if (token.VirtualChars.Length > 0)
             {
-                element.Add(new string(token.VirtualChars.Select(vc => vc.Char).ToArray()));
+                element.Add(token.VirtualChars.CreateString());
             }
 
             if (token.TrailingTrivia.Length > 0)
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         private XElement TriviaToElement(JsonTrivia trivia)
             => new XElement(
                 trivia.Kind.ToString(),
-                new string(trivia.VirtualChars.Select(vc => vc.Char).ToArray()));
+                trivia.VirtualChars.CreateString());
 
         private void CheckInvariants(JsonTree tree, ImmutableArray<VirtualChar> allChars)
         {
