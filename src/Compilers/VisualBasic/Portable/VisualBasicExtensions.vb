@@ -1386,9 +1386,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetInConversion(argument As IArgumentOperation) As Conversion
-            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
-            If basicArgument IsNot Nothing Then
-                Return basicArgument.InConversionInternal
+            If argument.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(argument, BaseArgument).InConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
                                                           NameOf(IArgumentOperation)),
@@ -1404,9 +1403,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetOutConversion(argument As IArgumentOperation) As Conversion
-            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
-            If basicArgument IsNot Nothing Then
-                Return basicArgument.OutConversionInternal
+            If argument.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(argument, BaseArgument).OutConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
                                                           NameOf(IArgumentOperation)),

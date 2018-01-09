@@ -41,9 +41,11 @@ namespace Microsoft.CodeAnalysis.Operations
             var argument = value.Syntax?.Parent as ArgumentSyntax;
 
             // if argument syntax doesn't exist, this operation is implicit
-            return new CSharpArgument(kind,
+            return new ArgumentOperation(value,
+                Conversion.Identity,
+                Conversion.Identity,
+                kind,
                 parameter,
-                value,
                 semanticModel: _semanticModel,
                 syntax: argument ?? value.Syntax,
                 constantValue: default,

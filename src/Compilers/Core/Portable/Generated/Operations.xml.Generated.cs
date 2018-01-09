@@ -201,11 +201,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseArgument : Operation, IArgumentOperation
     {
-        protected BaseArgument(ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+        protected BaseArgument(IConvertibleConversion inConversion, IConvertibleConversion outConversion, ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Argument, semanticModel, syntax, type: null, constantValue: constantValue, isImplicit: isImplicit)
         {
             ArgumentKind = argumentKind;
             Parameter = parameter;
+            InConversionConvertible = inConversion;
+            OutConversionConvertible = outConversion;
         }
         /// <summary>
         /// Kind of argument.
@@ -216,8 +218,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public IParameterSymbol Parameter { get; }
         protected abstract IOperation ValueImpl { get; }
-        public abstract CommonConversion InConversion { get; }
-        public abstract CommonConversion OutConversion { get; }
+        internal IConvertibleConversion InConversionConvertible { get; }
+        internal IConvertibleConversion OutConversionConvertible { get; }
+        public CommonConversion InConversion => InConversionConvertible.ToCommonConversion();
+        public CommonConversion OutConversion => OutConversionConvertible.ToCommonConversion();
         public override IEnumerable<IOperation> Children
         {
             get
@@ -240,6 +244,28 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitArgument(this, argument);
         }
+    }
+
+    internal sealed partial class ArgumentOperation : BaseArgument
+    {
+        public ArgumentOperation(IOperation value, IConvertibleConversion inConversion, IConvertibleConversion outConversion, ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(inConversion, outConversion, argumentKind, parameter, semanticModel, syntax, constantValue, isImplicit)
+        {
+            ValueImpl = value;
+        }
+
+        protected override IOperation ValueImpl { get; }
+    }
+
+    internal sealed partial class LazyArgumentOperation : BaseArgument
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyArgumentOperation(Lazy<IOperation> value, IConvertibleConversion inConversion, IConvertibleConversion outConversion, ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(inConversion, outConversion, argumentKind, parameter, semanticModel, syntax, constantValue, isImplicit)
+        {
+            _lazyValue = value;
+        }
+
+        protected override IOperation ValueImpl => _lazyValue.Value;
     }
 
     /// <summary>
