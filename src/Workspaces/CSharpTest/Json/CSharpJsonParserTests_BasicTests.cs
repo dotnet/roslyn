@@ -94,20 +94,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         [Fact]
         public void TestFormFeed2()
         {
-            Test(@"""[\f0,1]""", @"<Tree>
+            Test(@"""[\f1,0]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
       <Array>
         <OpenBracketToken>[<Trivia><WhitespaceTrivia>\f</WhitespaceTrivia></Trivia></OpenBracketToken>
         <Sequence>
           <Literal>
-            <NumberToken>0</NumberToken>
+            <NumberToken>1</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,</CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>1</NumberToken>
+            <NumberToken>0</NumberToken>
           </Literal>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             // (like not ever actually finishing compiling).
             if (runSubTreeChecks)
             {
-                // TryParseSubTrees(stringText, strict, runTreeCheck);
+                TryParseSubTrees(stringText, strict, runTreeCheck);
             }
 
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
