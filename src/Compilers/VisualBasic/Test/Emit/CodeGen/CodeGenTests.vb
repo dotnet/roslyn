@@ -14133,6 +14133,57 @@ End Module
 ]]>)
         End Sub
 
+        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        Public Sub ArrayElementCompoundAssignment_Covariant_NonConstantIndex()
+            Dim comp =
+<compilation>
+    <file>
+Option Strict Off
+Module M
+    Sub Main()
+        F(New Object() {""}, "A")
+        F(New String() {""}, "B")
+    End Sub
+    Sub F(a() As Object, s As String)
+        G(a, s)
+        System.Console.Write(a(0))
+    End Sub
+    Sub G(a() As Object, s As String)
+        a(Index(a)) += s
+    End Sub
+    Function Index(arg As Object) As Integer
+        System.Console.Write(arg.GetType().Name)
+        Return 0
+    End Function
+End Module
+    </file>
+</compilation>
+            CompileAndVerify(comp, expectedOutput:="Object[]AString[]B").
+            VerifyIL("M.G",
+            <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  4
+  .locals init (Object() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  call       "Function M.Index(Object) As Integer"
+  IL_0009:  dup
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.ref
+  IL_000e:  ldarg.1
+  IL_000f:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_0014:  stelem.ref
+  IL_0015:  ret
+}
+]]>)
+        End Sub
+
         <Fact>
         Public Sub ArrayElementWithBlock_Invariant()
             Dim comp =

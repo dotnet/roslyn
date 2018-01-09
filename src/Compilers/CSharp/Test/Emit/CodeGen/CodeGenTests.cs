@@ -16190,6 +16190,57 @@ unsafe class Test
 }");
         }
 
+        [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
+        [Fact]
+        public void ArrayElementCompoundAssignment_Covariant_NonConstantIndex()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new object[] { """" }, ""A"");
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(object[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(object[] a, string s)
+    {
+        a[Index(a)] += s;
+    }
+    static int Index(object arg)
+    {
+        System.Console.Write(arg.GetType().Name);
+        return 0;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "Object[]AString[]B");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  4
+  .locals init (object[] V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""int C.Index(object)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.ref
+  IL_000e:  ldarg.1
+  IL_000f:  call       ""string string.Concat(object, object)""
+  IL_0014:  stelem.ref
+  IL_0015:  ret
+}");
+        }
+
         [Fact]
         public void ArrayElementIncrement_ValueType()
         {
