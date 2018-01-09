@@ -299,6 +299,32 @@ class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InArrayOfNullableIntrinsicType()
+        {
+            var before = @"
+class Program
+{
+    void Method(int?[] x)
+    {
+        [|var|] y = x;
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method(int?[] x)
+    {
+        int?[] y = x;
+    }
+}";
+            // The type is intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
         public async Task InNullableCustomType()
         {
             var before = @"

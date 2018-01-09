@@ -1771,7 +1771,7 @@ options: ImplicitTypeEverywhere());
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23893, "https://github.com/dotnet/roslyn/issues/23893")]
-        public async Task SuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
+        public async Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
         {
             var before =
 @"class C

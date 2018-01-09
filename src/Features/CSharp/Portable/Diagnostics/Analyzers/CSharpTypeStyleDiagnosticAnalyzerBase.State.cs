@@ -108,24 +108,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                     return false;
                 }
 
-                type = type.RemoveNullableIfPresent();
-
-                if (type.IsSpecialType())
+                while (true)
                 {
-                    return true;
-                }
+                    type = type.RemoveNullableIfPresent();
 
-                if (type.IsArrayType())
-                {
-                    return IsMadeOfSpecialTypes(((IArrayTypeSymbol)type).ElementType);
-                }
+                    if (type.IsArrayType())
+                    {
+                        type = ((IArrayTypeSymbol)type).ElementType;
+                        continue;
+                    }
 
-                if (type.IsPointerType())
-                {
-                    return IsMadeOfSpecialTypes(((IPointerTypeSymbol)type).PointedAtType);
-                }
+                    if (type.IsPointerType())
+                    {
+                        type = ((IPointerTypeSymbol)type).PointedAtType;
+                        continue;
+                    }
 
-                return false;
+                    return type.IsSpecialType();
+                }
             }
 
             private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
