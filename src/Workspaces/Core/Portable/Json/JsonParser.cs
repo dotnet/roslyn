@@ -350,14 +350,6 @@ namespace Microsoft.CodeAnalysis.Json
             }
         }
 
-        private JsonNegativeLiteralNode ParseNegativeInfinity(JsonToken literalToken)
-        {
-            SplitLiteral(literalToken, out var minusToken, out var newLiteralToken);
-
-            return new JsonNegativeLiteralNode(
-                minusToken, newLiteralToken.With(kind: JsonKind.InfinityLiteralToken));
-        }
-
         private static void SplitLiteral(JsonToken literalToken, out JsonToken minusToken, out JsonToken newLiteralToken)
         {
             minusToken = new JsonToken(
@@ -455,23 +447,28 @@ namespace Microsoft.CodeAnalysis.Json
             }
 
             Debug.Assert(token.VirtualChars.Length > 0);
-            var literalText = token.VirtualChars.CreateString();
-
-            switch (literalText)
+            if (TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
+                TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
+                TryMatch(token, "null", JsonKind.NullLiteralToken, out newKind) ||
+                TryMatch(token, "false", JsonKind.FalseLiteralToken, out newKind) ||
+                TryMatch(token, "Infinity", JsonKind.InfinityLiteralToken, out newKind) ||
+                TryMatch(token, "undefined", JsonKind.UndefinedLiteralToken, out newKind))
             {
-                case "NaN": return ParseLiteral(token, JsonKind.NaNLiteralToken);
-                case "true": return ParseLiteral(token, JsonKind.TrueLiteralToken);
-                case "null": return ParseLiteral(token, JsonKind.NullLiteralToken);
-                case "false": return ParseLiteral(token, JsonKind.FalseLiteralToken);
-                case "Infinity": return ParseLiteral(token, JsonKind.InfinityLiteralToken);
-                case "undefined": return ParseLiteral(token, JsonKind.UndefinedLiteralToken);
-                case "-Infinity": return ParseNegativeInfinity(token);
+                return new JsonLiteralNode(token.With(kind: newKind));
+            }
+
+            if (Matches(token, "-Infinity"))
+            {
+                SplitLiteral(token, out var minusToken, out var newLiteralToken);
+
+                return new JsonNegativeLiteralNode(
+                    minusToken, newLiteralToken.With(kind: JsonKind.InfinityLiteralToken));
             }
 
             var firstChar = token.VirtualChars[0];
             if (firstChar == '-' || firstChar == '.' || IsDigit(firstChar))
             {
-                return ParseNumber(token, literalText);
+                return ParseNumber(token);
             }
 
             return new JsonTextNode(
@@ -480,14 +477,47 @@ namespace Microsoft.CodeAnalysis.Json
                     firstChar.Span)));
         }
 
+        private bool TryMatch(JsonToken token, string val, JsonKind kind, out JsonKind newKind)
+        {
+            if (Matches(token, val))
+            {
+                newKind = kind;
+                return true;
+            }
+
+            newKind = default;
+            return false;
+        }
+
+        private bool Matches(JsonToken token, string val)
+        {
+            var chars = token.VirtualChars;
+            if (chars.Length != val.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0, n = val.Length; i < n; i++)
+            {
+                if (chars[i].Char != val[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private bool IsDigit(char ch)
             => ch >= '0' && ch <= '9';
 
         private JsonLiteralNode ParseLiteral(JsonToken textToken, JsonKind kind)
             => new JsonLiteralNode(textToken.With(kind: kind));
 
-        private JsonValueNode ParseNumber(JsonToken textToken, string literalText)
+        private JsonValueNode ParseNumber(JsonToken textToken)
         {
+            var literalText = textToken.VirtualChars.CreateString();
+
             var numberToken = textToken.With(kind: JsonKind.NumberToken);
             var diagnostic = CheckNumberChars(numberToken, literalText);
 
