@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Json
             }
 
             private static readonly Regex s_validNumberRegex =
-                new Regex(@"-?[0-9]*(\.[0-9]*)?([eE][-+]?[0-9]*)?", RegexOptions.Compiled);
+                new Regex(@"^((-[0-9]*)|([0-9]+))(\.[0-9]*)?([eE][-+]?[0-9]*)?$", RegexOptions.Compiled);
 
             private JsonDiagnostic? CheckNumber(JsonToken literalToken)
             {

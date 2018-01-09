@@ -4412,5 +4412,75 @@ b""</StringToken>
   <Diagnostic Message=""Properties not allowed in an array"" Start=""17"" Length=""1"" />
 </Diagnostics>");
         }
+
+        [Fact]
+        public void TestSimpleNumber1()
+        {
+            Test(@"@""0.0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>0.0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestSimpleNumber2()
+        {
+            Test(@"@""-0.0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-0.0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestSimpleNumber3()
+        {
+            Test(@"@"".0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>.0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestSimpleNumber4()
+        {
+            Test(@"@""-.0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-.0</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
     }
 }
