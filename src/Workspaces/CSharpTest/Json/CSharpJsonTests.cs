@@ -2,8 +2,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Json;
+using System.Text;
+using System.Web.Script.Serialization;
+using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.VirtualChars;
 using Microsoft.CodeAnalysis.Json;
@@ -29,30 +34,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
         }
 
         private void Test(string stringText, string expected,
-            bool runJsonNetCheck = true, bool runSubTreeTests = true, [CallerMemberName]string name = "")
+            bool runJsonNetCheck = true, bool runJsonNetSubTreeTests = true,
+            bool runDataContractCheck = true, bool runDataContractSubTreeTests = true,
+            [CallerMemberName]string name = "")
         {
-            var tree = TryParseTree(stringText, runJsonNetCheck, conversionFailureOk: false);
+            var tree = TryParseTree(stringText, runJsonNetCheck, runDataContractCheck, conversionFailureOk: false);
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
             // (like not ever actually finishing compiling).
-            if (runSubTreeTests)
+            if (runJsonNetSubTreeTests || runDataContractSubTreeTests)
             {
-                TryParseSubTrees(stringText, runJsonNetCheck);
+                TryParseSubTrees(stringText, runJsonNetCheck, runDataContractCheck);
             }
 
             var actual = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actual);
         }
 
-        private void TryParseSubTrees(string stringText, bool runJsonNetCheck)
+        private void TryParseSubTrees(string stringText, bool runJsonNetCheck, bool runDataContractCheck)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
             while (current != "@\"\"" && current != "\"\"")
             {
                 current = current.Substring(0, current.Length - 2) + "\"";
-                TryParseTree(current, runJsonNetCheck, conversionFailureOk: true);
+                TryParseTree(current, runJsonNetCheck, runDataContractCheck, conversionFailureOk: true);
             }
 
             // Trim the input from the left and make sure tree invariants hold
@@ -68,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                     current = "\"" + current.Substring(2);
                 }
 
-                TryParseTree(current, runJsonNetCheck, conversionFailureOk: true);
+                TryParseTree(current, runJsonNetCheck, runDataContractCheck, conversionFailureOk: true);
             }
 
             for (int start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
@@ -76,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                 TryParseTree(
                     stringText.Substring(0, start) +
                     stringText.Substring(start + 1, stringText.Length - (start + 1)),
-                    runJsonNetCheck,
+                    runJsonNetCheck, runDataContractCheck,
                     conversionFailureOk: true);
             }
         }
@@ -101,7 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             return (token, tree, allChars);
         }
 
-        private JsonTree TryParseTree(string stringText, bool runJsonNetCheck, bool conversionFailureOk)
+        private JsonTree TryParseTree(
+            string stringText, bool runJsonNetCheck, bool runDataContractCheck, bool conversionFailureOk)
         {
             var (token, tree, allChars) = JustParseTree(stringText, conversionFailureOk);
             if (tree == null)
@@ -110,6 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                 return null;
             }
 
+            //JavaScriptSerializer x = new JavaScriptSerializer();
+            //x.DeserializeObject("{ x: 1 }");
+            //var r = JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes("{ \"x\": 1 } "),
+            //    XmlDictionaryReaderQuotas.Max);
+            //var v1 = r.Read();
+            //var v2 = r.Read();
+            //var d = new DataContractJsonSerializer(typeof(object));
+            //var o = d.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes("{ \"x\": 1 } ")));
             CheckInvariants(tree, allChars);
 
             if (runJsonNetCheck)
@@ -256,26 +272,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
             position += virtualChars.Length;
         }
 
-//        [Fact]
-//        public void TestDeepRecursion()
-//        {
-//            var (token, tree, chars) =
-//                JustParseTree(
-//@"@""((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-//(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((""", conversionFailureOk: false);
-//            Assert.False(token.IsMissing);
-//            Assert.False(chars.IsDefaultOrEmpty);
-//            Assert.Null(tree);
-//        }
+        [Fact]
+        public void TestDeepRecursion()
+        {
+            var (token, tree, chars) =
+                JustParseTree(
+@"@""((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((""", conversionFailureOk: false);
+            Assert.False(token.IsMissing);
+            Assert.False(chars.IsDefaultOrEmpty);
+            Assert.Null(tree);
+        }
     }
 }

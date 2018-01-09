@@ -2078,7 +2078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>", runSubTreeTests: false);
+</Tree>", runJsonNetSubTreeTests: false);
         }
 
         [Fact]
@@ -2110,7 +2110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-</Tree>", runSubTreeTests: false);
+</Tree>", runJsonNetSubTreeTests: false);
         }
 
         [Fact]
