@@ -4482,5 +4482,47 @@ b""</StringToken>
         @"",
         @"");
         }
+
+        [Fact]
+        public void TestStandaloneMinus()
+        {
+            Test(@"@""-""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestMinusDot()
+        {
+            Test(@"@""-.""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Literal>
+        <NumberToken>-.</NumberToken>
+      </Literal>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
+</Diagnostics>");
+        }
     }
 }
