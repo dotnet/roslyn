@@ -3841,11 +3841,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 member, original.Name)
             End If
             ' We have a valid member of the enum referred to.
-            Dim g As New GeneratedLabelSymbol(original.Name)
-            Return New BoundFlagsEnumOperationExpressionSyntax(node, expr,
-                                               BindMemberAccess(CType(node, VisualBasicSyntaxNode),
-                                                           New BoundLabel(member.Name, g, original, False),
-                                                                member.Name, False, diagBag), GetSpecialType(SpecialType.System_Boolean, member.Name, diagBag))
+            Dim eFlag = TryCast(original.GetMembers(member.Name.Identifier.ValueText).FirstOrDefault, FieldSymbol)
+            If eFlag Is Nothing Then
+                Return ReportDiagnosticAndProduceBadExpression(
+                                                      diagBag:=diagBag,
+                                                       syntax:=member,
+                                                           id:=ERRID.ERR_NameNotMember2,
+                                                                member, original.Name)
+            End If
+            Return New BoundFlagsEnumOperationExpressionSyntax(
+                  syntax:=node,
+               enumFlags:=expr,
+                enumFlag:=New BoundFieldAccess(member.Name, expr, eFlag, False, original),
+                   type:=GetSpecialType(SpecialType.System_Boolean, member.Name, diagBag))
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)
