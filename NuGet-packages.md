@@ -18,7 +18,7 @@ Below are the versions of the language available in the NuGet packages. Remember
 - Version `2.3` means C# 7.1 and VB 15.3 (Visual Studio 2017 version 15.3). For instance, `2.3.0-beta1` corresponds to Visual Studio 2017 version 15.3 (Preview 1).
 - Version `2.4` is still C# 7.1 and VB 15.3, but with a couple fixes (Visual Studio 2017 version 15.4).
 - Version `2.6` means C# 7.2 and VB 15.5 (Visual Studio 2017 version 15.5).
-- Version `2.7` means C# 7.2 and VB 15.5, but with a number of fixes (Visual Studio 2017 version 15.6).
+- Version `2.7` means C# 7.2 and VB 15.5, but with a number of [fixes](https://github.com/dotnet/roslyn/issues?q=is%3Aissue+is%3Aclosed+label%3AArea-Compilers+milestone%3A15.6) (Visual Studio 2017 version 15.6).
 
 See the [history of C# language features](https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md) for more details.
 
