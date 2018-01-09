@@ -322,14 +322,6 @@ namespace Microsoft.CodeAnalysis.Json
         {
             var newKeyword = token.With(kind: JsonKind.NewKeyword);
             var nameToken = ConsumeToken(JsonKind.TextToken, WorkspacesResources.Name_expected);
-
-            if (!IsValidConstructorName(nameToken))
-            {
-                nameToken = nameToken.AddDiagnosticIfNone(new JsonDiagnostic(
-                    WorkspacesResources.Invalid_constructor_name,
-                    GetSpan(nameToken)));
-            }
-
             var openParen = ConsumeToken(JsonKind.OpenParenToken, _openParenExpected);
 
             var savedInConstructor = _inConstructor;
@@ -344,19 +336,6 @@ namespace Microsoft.CodeAnalysis.Json
 
             _inConstructor = savedInConstructor;
             return result;
-        }
-
-        private bool IsValidConstructorName(JsonToken nameToken)
-        {
-            foreach (var vc in nameToken.VirtualChars)
-            {
-                if (!char.IsLetterOrDigit(vc.Char))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         private bool TryMatch(JsonToken token, string val, JsonKind kind, out JsonKind newKind)

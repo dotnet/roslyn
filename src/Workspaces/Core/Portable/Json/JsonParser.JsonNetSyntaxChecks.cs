@@ -1,17 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VirtualChars;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Json
 {
-    using System.Globalization;
     using static JsonHelpers;
 
     internal partial struct JsonParser
@@ -103,7 +98,29 @@ namespace Microsoft.CodeAnalysis.Json
             }
 
             private JsonDiagnostic? CheckConstructor(JsonConstructorNode node)
-                => CheckCommasBetweenSequenceElements(node.Sequence) ?? CheckChildren(node);
+            {
+                if (!IsValidConstructorName(node.NameToken))
+                {
+                    return new JsonDiagnostic(
+                        WorkspacesResources.Invalid_constructor_name,
+                        GetSpan(node.NameToken));
+                }
+
+                return CheckCommasBetweenSequenceElements(node.Sequence) ?? CheckChildren(node);
+            }
+
+            private static bool IsValidConstructorName(JsonToken nameToken)
+            {
+                foreach (var vc in nameToken.VirtualChars)
+                {
+                    if (!char.IsLetterOrDigit(vc.Char))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
 
             private JsonDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
             {
