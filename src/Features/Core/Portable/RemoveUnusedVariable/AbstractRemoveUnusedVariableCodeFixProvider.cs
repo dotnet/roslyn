@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
             MergeNodesToRemove(nodesToRemove);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            foreach (var node in nodesToRemove.WhereNotNull())
+            foreach (var node in nodesToRemove)
             {
                 actionsToPerform.Add((node.SpanStart, () => RemoveOrReplaceNode(syntaxEditor, node, syntaxFacts)));
             }
