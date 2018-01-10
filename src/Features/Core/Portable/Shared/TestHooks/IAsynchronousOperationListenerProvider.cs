@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// <summary>
         /// indicate whether asynchronous listener is enabled or not
         /// </summary>
-        public static bool s_enabled = false;
+        public static bool? s_enabled = null;
 
         private readonly ConcurrentDictionary<string, IAsynchronousOperationListener> _singletonListeners =
             new ConcurrentDictionary<string, IAsynchronousOperationListener>(concurrencyLevel: 2, capacity: 20);
@@ -51,9 +51,24 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             s_enabled = enable;
         }
 
+        public bool IsEnabled
+        {
+            get
+            {
+                if (!s_enabled.HasValue)
+                {
+                    // if s_enabled has never been set, check environment variable to see whether it should be enabled.
+                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterEnabled");
+                    s_enabled = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
+                }
+
+                return s_enabled.Value;
+            }
+        }
+
         public IAsynchronousOperationListener GetListener(string featureName)
         {
-            if (!s_enabled)
+            if (!IsEnabled)
             {
                 // if listener is not enabled. it always return null listener
                 return NullListener;
