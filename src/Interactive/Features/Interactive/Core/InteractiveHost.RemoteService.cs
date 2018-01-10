@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
-            private readonly SemaphoreSlim _disposeLock;
+            private readonly SemaphoreSlim _disposeSemaphore;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             private bool _disposing;                    // set to true on dispose
             private int _processExitHandling;           // set to ProcessExitHandled on dispose
 
-            internal RemoteService(InteractiveHost host, Process process, int processId, Service service, SemaphoreSlim disposeLock)
+            internal RemoteService(InteractiveHost host, Process process, int processId, Service service, SemaphoreSlim disposeSemaphore)
             {
                 Debug.Assert(host != null);
                 Debug.Assert(process != null);
                 Debug.Assert(service != null);
-                Debug.Assert(disposeLock != null);
+                Debug.Assert(disposeSemaphore != null);
 
                 _host = host;
                 _disposing = false;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _processId = processId;
                 this.Service = service;
                 _processExitHandling = 0;
-                _disposeLock = disposeLock;
+                _disposeSemaphore = disposeSemaphore;
 
                 // TODO (tomat): consider using single-thread async readers
                 _readOutputThread = new Thread(() => ReadOutput(error: false));
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         if (!_disposing)
                         {
-                            using (await _disposeLock.DisposableWaitAsync().ConfigureAwait(false))
+                            using (await _disposeSemaphore.DisposableWaitAsync().ConfigureAwait(false))
                             {
                                 if (_host != null)
                                 {
