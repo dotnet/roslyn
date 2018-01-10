@@ -77,3 +77,5 @@ In Visual Studio 2017 version 15.6 such conversions will be explicitly disallowe
 Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'` 
    
 - https://github.com/dotnet/roslyn/pull/23416 Before Visual Studio 2017 version 15.6 (Roslyn version 2.8) the compiler accepted `__arglist(...)` expressions with void-typed arguments. For instance, `__arglist(Console.WriteLine())`. But such program would fail at runtime. In Visual Studio 2017 version 15.6, this causes a compile-time error.
+
+- https://github.com/dotnet/roslyn/pull/24023 In Visual Studio 2017 version 15.6, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax constructor and Update(), the parameter refOrOutKeyword was renamed to refKindKeyword (source breaking change if you're using named arguments).
