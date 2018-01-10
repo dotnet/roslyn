@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
@@ -20,13 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // case int i $$
-            if (IsIdentifierInCasePattern(context.LeftToken.Parent))
-            {
-                return true;
-            }
-
             // case int i w$$
-            if (IsIdentifierInCasePattern(context.LeftToken.GetPreviousToken().Parent))
+            if (IsIdentifierInCasePattern(context.TargetToken.Parent))
             {
                 return true;
             }
@@ -37,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsIdentifierInCasePattern(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.SingleVariableDesignation)
-                && node.Parent.IsKind(SyntaxKind.DeclarationPattern)
-                && node.Parent.Parent.IsKind(SyntaxKind.CasePatternSwitchLabel);
+                && node.IsParentKind(SyntaxKind.DeclarationPattern)
+                && node.Parent.IsParentKind(SyntaxKind.CasePatternSwitchLabel);
         }
     }
 }
