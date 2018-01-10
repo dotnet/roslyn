@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using Roslyn.Utilities;
 
@@ -50,36 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                             // group active statement by instruction and aggregate flags and threads:
                             var instructionMap = PooledDictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)>.GetInstance();
-                            foreach (var dkmStatement in activeStatementsResult.ActiveStatements)
-                            {
-                                // flags whose value only depends on the active instruction:
-                                const DkmActiveStatementFlags instructionFlagsMask = DkmActiveStatementFlags.MethodUpToDate | DkmActiveStatementFlags.MidStatement | DkmActiveStatementFlags.NonUser;
-                                var instructionFlags = (ActiveStatementFlags)(dkmStatement.Flags & instructionFlagsMask);
-
-                                bool isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
-                                var frameFlags = isLeaf ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame;
-
-                                var instructionId = new ActiveInstructionId(
-                                    dkmStatement.InstructionSymbol.Module.Id.Mvid,
-                                    dkmStatement.InstructionAddress.MethodId.Token,
-                                    unchecked((int)dkmStatement.ExecutingMethodVersion),
-                                    unchecked((int)dkmStatement.InstructionAddress.ILOffset));
-
-                                if (instructionMap.TryGetValue(instructionId, out var entry))
-                                {
-                                    // all flags, except for LeafFrame should be the same for active statements whose instruction ids are the same:
-                                    Debug.Assert(instructionFlags == (entry.Flags & (ActiveStatementFlags)instructionFlagsMask));
-                                    
-                                    entry.Flags |= frameFlags;
-                                }
-                                else
-                                {
-                                    entry = (dkmStatement.InstructionSymbol, ArrayBuilder<Guid>.GetInstance(1), instructionMap.Count, instructionFlags | frameFlags);
-                                }
-
-                                instructionMap[instructionId] = entry;
-                                entry.Threads.Add(dkmStatement.Thread.UniqueId);
-                            }
+                            GroupActiveStatementsByInstructionId(instructionMap, activeStatementsResult.ActiveStatements);
 
                             int pendingStatements = instructionMap.Count;
                             builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
@@ -133,6 +105,42 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             workList.BeginExecution();
 
             return completion.Task;
+        }
+
+        private static void GroupActiveStatementsByInstructionId(
+            Dictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)> instructionMap, 
+            IEnumerable<DkmActiveStatement> dkmStatements)
+        {
+            foreach (var dkmStatement in dkmStatements)
+            {
+                // flags whose value only depends on the active instruction:
+                const DkmActiveStatementFlags instructionFlagsMask = DkmActiveStatementFlags.MethodUpToDate | DkmActiveStatementFlags.MidStatement | DkmActiveStatementFlags.NonUser;
+                var instructionFlags = (ActiveStatementFlags)(dkmStatement.Flags & instructionFlagsMask);
+
+                bool isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
+                var frameFlags = isLeaf ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame;
+
+                var instructionId = new ActiveInstructionId(
+                    dkmStatement.InstructionSymbol.Module.Id.Mvid,
+                    dkmStatement.InstructionAddress.MethodId.Token,
+                    unchecked((int)dkmStatement.ExecutingMethodVersion),
+                    unchecked((int)dkmStatement.InstructionAddress.ILOffset));
+
+                if (instructionMap.TryGetValue(instructionId, out var entry))
+                {
+                    // all flags, except for LeafFrame should be the same for active statements whose instruction ids are the same:
+                    Debug.Assert(instructionFlags == (entry.Flags & (ActiveStatementFlags)instructionFlagsMask));
+
+                    entry.Flags |= frameFlags;
+                }
+                else
+                {
+                    entry = (dkmStatement.InstructionSymbol, ArrayBuilder<Guid>.GetInstance(1), instructionMap.Count, instructionFlags | frameFlags);
+                }
+
+                instructionMap[instructionId] = entry;
+                entry.Threads.Add(dkmStatement.Thread.UniqueId);
+            }
         }
 
         private static LinePositionSpan ToLinePositionSpan(DkmTextSpan span)

@@ -5482,7 +5482,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PartiallyExecutedActiveStatement_Delete()
+        Public Sub PartiallyExecutedActiveStatement_Delete1()
             Dim src1 As String = "
 Class C
     Sub F()
@@ -5503,6 +5503,30 @@ End Class
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()"))
+        End Sub
+
+        <Fact>
+        Public Sub PartiallyExecutedActiveStatement_Delete2()
+            Dim src1 As String = "
+Class C
+    Sub F()
+        <AS:0>Console.WriteLine(1)</AS:0> 
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Class C
+    Sub F()
+    <AS:0>End Sub</AS:0> 
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub F()"))
         End Sub
     End Class
 End Namespace

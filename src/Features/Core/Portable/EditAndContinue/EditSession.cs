@@ -130,18 +130,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var debugInfo in debugInfos)
             {
-                // TODO (tomat): We need to track these for remapping purposes.
-                //
-                // Active statement is in user hidden code. The only information that we have from the debugger
-                // is the method token. We don't need to track the statement (it's not in user code anyways),
-                // but we should probably track the list of such methods in order to preserve their local variables.
-                // Not sure what's exactly the scenario here, perhaps modifying async method/iterator? 
-                // Dev12 just ignores these.
-                //if ((debugInfo.Flags & ActiveStatementFlags.NonUserCode) != 0)
-                //{
-                //    continue;
-                //}
-
                 var linePositionSpan = debugInfo.LinePositionSpan;
                 
                 // Map outdated active statement spans - the span reported by the debugger might correspond to an IP that has not been remapped yet.
@@ -155,7 +143,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var documentIds = solution.GetDocumentIdsWithFilePath(debugInfo.DocumentName);
                 if (documentIds.IsEmpty)
                 {
-                    // TODO: continue without doc, warning if no document found for an active statement?
+                    // Ignore active statements that don't belong to the solution (non-Roslyn managed languages).
                     continue;
                 }
 
@@ -176,6 +164,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 primaryDocumentActiveStatements.Add(activeStatement);
 
+                // TODO: associate only those documents that are from a project with the right module id
                 for (int i = 1; i < documentIds.Length; i++)
                 {
                     if (!byDocument.TryGetValue(documentIds[i], out var linkedDocumentActiveStatements))
@@ -492,7 +481,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         baseActiveStatements, 
                         baseActiveExceptionRegions,
                         updatedMethodTokens,
-                        projectChanges.ActiveStatements, 
+                        projectChanges.NewActiveStatements, 
                         out var exceptionRegionSpanDeltas,
                         out var updatedActiveStatementSpans,
                         out var activeStatementsInUpdatedMethods);
@@ -516,14 +505,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static void GetActiveStatementAndExceptionRegionSpans(
+        // internal for testing
+        internal static void GetActiveStatementAndExceptionRegionSpans(
             Guid moduleId,
             ActiveStatementsMap baseActiveStatements, 
             ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
             int[] updatedMethodTokens,
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> activeStatementsInChangedDocuments,
+            ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> newActiveStatementsInChangedDocuments,
             out ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> exceptionRegionSpanDeltas,
-            out ImmutableArray<(ActiveInstructionId, LinePositionSpan)> updatedActiveStatementSpans,
+            out ImmutableArray<(ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> updatedActiveStatementSpans,
             out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods)
         {
             int exceptionRegionCount = baseActiveExceptionRegions.Sum(regions => regions.Spans.Length);
@@ -533,10 +523,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<(Guid, ActiveInstructionId, LinePositionSpan)>.GetInstance();
 
             // Process active statements and their exception regions in changed documents of this project/module:
-            foreach (var (documentId, newActiveStatements, newExceptionRegions) in activeStatementsInChangedDocuments)
+            foreach (var (documentId, newActiveStatements, newExceptionRegions) in newActiveStatementsInChangedDocuments)
             {
                 var oldActiveStatements = baseActiveStatements.DocumentMap[documentId];
                 Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
+                Debug.Assert(newActiveStatements.Length == newExceptionRegions.Length);
 
                 for (int i = 0; i < newActiveStatements.Length; i++)
                 {
@@ -564,7 +555,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     int j = 0;
                     foreach (var oldSpan in baseActiveExceptionRegions[ordinal].Spans)
                     {
-                        var newSpan = newExceptionRegions[ordinal][j++];
+                        var newSpan = newExceptionRegions[oldActiveStatement.PrimaryDocumentOrdinal][j++];
                         exceptionRegionBuilder.Add((oldInstructionId.MethodToken, oldInstructionId.MethodVersion, oldSpan, newSpan));
                     }
 

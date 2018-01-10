@@ -1068,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if ((isNonLeaf || isPartiallyExecuted) && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntaxOpt, statementPart))
                     {
                         // rude edit: non-leaf active statement changed
-                        diagnostics.Add(new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.PartiallyExecutedActiveStatementUpdate : RudeEditKind.ActiveStatementUpdate, newSpan));
+                        diagnostics.Add(new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.ActiveStatementUpdate : RudeEditKind.PartiallyExecutedActiveStatementUpdate, newSpan));
                     }
 
                     // other statements around active statement:
@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         // rude edit: internal active statement deleted
                         diagnostics.Add(
-                            new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.PartiallyExecutedActiveStatementDelete : RudeEditKind.DeleteActiveStatement,
+                            new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.DeleteActiveStatement : RudeEditKind.PartiallyExecutedActiveStatementDelete,
                             GetDeletedNodeDiagnosticSpan(match.Matches, oldStatementSyntax)));
                     }
                 }

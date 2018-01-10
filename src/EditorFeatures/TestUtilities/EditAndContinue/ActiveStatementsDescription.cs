@@ -32,8 +32,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public ActiveStatementsDescription(string oldSource, string newSource)
         {
-            OldStatements = GetActiveStatements(oldSource, s_dummyDocumentId);
-            NewSpans = GetActiveSpans(newSource);
+            var oldText = SourceText.From(oldSource);
+
+            OldStatements = GetActiveSpans(oldSource).Aggregate(
+                new List<ActiveStatement>(),
+                (list, s) => SetListItem(list, s.Id, CreateActiveStatement(s.Span, s.Id, oldText, s_dummyDocumentId))).ToArray();
+
+            NewSpans = GetActiveSpans(newSource).Aggregate(
+                new List<TextSpan>(), 
+                (list, s) => SetListItem(list, s.Id, s.Span)).ToArray();
+
             OldRegions = GetExceptionRegions(oldSource, OldStatements.Length);
             NewRegions = GetExceptionRegions(newSource, NewSpans.Length);
 
@@ -109,20 +117,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        internal static TextSpan[] GetActiveSpans(string src)
+        internal static IEnumerable<(TextSpan Span, int Id)> GetActiveSpans(string markedSource)
         {
-            var result = new List<TextSpan>();
-
-            foreach (var (span, ids) in GetSpansRecursive(s_activeStatementPattern, "ActiveStatement", src, offset: 0))
+            foreach (var (span, ids) in GetSpansRecursive(s_activeStatementPattern, "ActiveStatement", markedSource, offset: 0))
             {
                 foreach (int id in ids)
                 {
-                    EnsureSlot(result, id);
-                    result[id] = span;
+                    yield return (span, id);
                 }
             }
-
-            return result.ToArray();
         }
 
         private static readonly ImmutableArray<Guid> s_dummyThreadIds = ImmutableArray.Create(default(Guid));
@@ -137,24 +140,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 instructionId: default,
                 s_dummyThreadIds);
 
-        internal static ActiveStatement[] GetActiveStatements(string src, DocumentId documentId)
-        {
-            var text = SourceText.From(src);
-            var result = new List<ActiveStatement>();
-
-            int i = 0;
-            foreach (var span in GetActiveSpans(src))
-            {
-                result.Add(CreateActiveStatement(
-                    (i == 0) ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame,
-                    text.Lines.GetLinePositionSpan(span),
-                    documentId));
-
-                i++;
-            }
-
-            return result.ToArray();
-        }
+        internal static ActiveStatement CreateActiveStatement(TextSpan span, int id, SourceText text, DocumentId documentId)
+            => CreateActiveStatement(
+                (id == 0) ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame,
+                text.Lines.GetLinePositionSpan(span),
+                documentId);
 
         internal static TextSpan?[] GetTrackingSpans(string src, int count)
         {
@@ -205,7 +195,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return result.Select(r => r.AsImmutableOrEmpty()).ToArray();
         }
 
-        private static void EnsureSlot<T>(List<T> list, int i)
+        public static List<T> SetListItem<T>(List<T> list, int i, T item)
+        {
+            EnsureSlot(list, i);
+            list[i] = item;
+            return list;
+        }
+
+        public static void EnsureSlot<T>(List<T> list, int i)
         {
             while (i >= list.Count)
             {

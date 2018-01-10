@@ -9011,7 +9011,7 @@ class C
         }
 
         [Fact]
-        public void PartiallyExecutedActiveStatement_Deleted()
+        public void PartiallyExecutedActiveStatement_Deleted1()
         {
             string src1 = @"
 class C
@@ -9035,6 +9035,33 @@ class C
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "{"));
+        }
+
+        [Fact]
+        public void PartiallyExecutedActiveStatement_Deleted2()
+        {
+            string src1 = @"
+class C
+{
+    public static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0> 
+    }
+}";
+            string src2 = @"
+class C
+{
+    public static void F()
+    { 
+    <AS:0>}</AS:0>
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            active.OldStatements[0] = active.OldStatements[0].WithFlags(ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
         #endregion

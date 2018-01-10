@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly LinePositionSpan Span;
 
         /// <summary>
-        /// Document ids - mutliple if the physical file is linked.
+        /// Document ids - multiple if the physical file is linked.
+        /// TODO: currently we associate all linked documents to the AS regardless of whether they belong to a project that matches the AS module.
         /// </summary>
         public readonly ImmutableArray<DocumentId> DocumentIds;
 
