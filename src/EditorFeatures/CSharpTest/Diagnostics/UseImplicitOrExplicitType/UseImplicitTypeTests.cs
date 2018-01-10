@@ -2124,5 +2124,90 @@ class Program
     public static bool TryGetValue<T>(T key, out T value) => false;
 }", options: ImplicitTypeEverywhere());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23711, "https://github.com/dotnet/roslyn/issues/23711")]
+        public async Task SuggestVarForDelegateType()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|GetHandler|] handler = Handler;
+    }
+
+    private static GetHandler Handler;
+
+    delegate object GetHandler();
+}", @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var handler = Handler;
+    }
+
+    private static GetHandler Handler;
+
+    delegate object GetHandler();
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23711, "https://github.com/dotnet/roslyn/issues/23711")]
+        public async Task DoNotSuggestVarForDelegateType1()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|GetHandler|] handler = () => new object();
+    }
+
+    private static GetHandler Handler;
+
+    delegate object GetHandler();
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23711, "https://github.com/dotnet/roslyn/issues/23711")]
+        public async Task DoNotSuggestVarForDelegateType2()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|GetHandler|] handler = Foo;
+    }
+
+    private static GetHandler Handler;
+
+    private static object Foo() => new object();
+
+    delegate object GetHandler();
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23711, "https://github.com/dotnet/roslyn/issues/23711")]
+        public async Task DoNotSuggestVarForDelegateType3()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|GetHandler|] handler = delegate { return new object(); };
+    }
+
+    private static GetHandler Handler;
+
+    delegate object GetHandler();
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }
