@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,9 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.PatternMatching;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
@@ -124,27 +128,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 #pragma warning disable CS0618 // MatchKind is obsolete
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {
+                ImmutableArray<Span> arrayTextSpan = ImmutableArray<Span>.Empty;
+                foreach (var s in result.NameMatchSpans)
+                {
+                    arrayTextSpan.Add(new Span(s.Start, s.Length));
+                }
+
+                var patternMatch = new PatternMatch(GetMatchKind(result.MatchKind), 
+                    result.IsCaseSensitive, true, arrayTextSpan);
+
                 var navigateToItem = new NavigateToItem(
                     result.Name,
                     result.Kind,
                     GetNavigateToLanguage(project.Language),
                     result.SecondarySort,
                     result,
-                    GetMatchKind(result.MatchKind),
-                    result.IsCaseSensitive,
+                    patternMatch,
                     _displayFactory);
                 _callback.AddItem(navigateToItem);
             }
 
-            private MatchKind GetMatchKind(NavigateToMatchKind matchKind)
+            private PatternMatchKind GetMatchKind(NavigateToMatchKind matchKind)
             {
                 switch (matchKind)
                 {
-                    case NavigateToMatchKind.Exact: return MatchKind.Exact;
-                    case NavigateToMatchKind.Prefix: return MatchKind.Prefix;
-                    case NavigateToMatchKind.Substring: return MatchKind.Substring;
-                    case NavigateToMatchKind.Regular: return MatchKind.Regular;
-                    default: return MatchKind.None;
+                    case NavigateToMatchKind.Exact: return PatternMatchKind.Exact;
+                    case NavigateToMatchKind.Prefix: return PatternMatchKind.Prefix;
+                    case NavigateToMatchKind.Substring: return PatternMatchKind.Substring;
+                    case NavigateToMatchKind.CamelCaseExact: return PatternMatchKind.CamelCaseExact;
+                    case NavigateToMatchKind.CamelCasePrefix: return PatternMatchKind.CamelCasePrefix;
+                    case NavigateToMatchKind.CamelCaseNonContiguousPrefix: return PatternMatchKind.CamelCaseNonContiguousPrefix;
+                    case NavigateToMatchKind.CamelCaseSubstring: return PatternMatchKind.CamelCaseSubstring;
+                    case NavigateToMatchKind.Fuzzy: return PatternMatchKind.Fuzzy;
+                    default: throw ExceptionUtilities.UnexpectedValue(matchKind);
                 }
             }
 #pragma warning restore CS0618 // MatchKind is obsolete

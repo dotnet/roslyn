@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -13,9 +14,12 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.PatternMatching;
 using Moq;
 using Roslyn.Test.EditorUtilities.NavigateTo;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 #pragma warning disable CS0618 // MatchKind is obsolete
@@ -138,7 +142,7 @@ partial class Goo
     int b;
 }", async w =>
             {
-                var expecteditem1 = new NavigateToItem("Goo", NavigateToItemKind.Class, "csharp", null, null, MatchKind.Exact, true, null);
+                var expecteditem1 = new NavigateToItem("Goo", NavigateToItemKind.Class, "csharp", null, null, new PatternMatch(PatternMatchKind.Exact, true, true, ImmutableArray<Span>.Empty), null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
 
                 var items = await _aggregator.GetItemsAsync("Goo");
@@ -368,7 +372,7 @@ Class Program { FileStyleUriParser f; }", async w =>
         {
             await TestAsync("partial class Goo { partial void Bar(); } partial class Goo { partial void Bar() { Console.Write(\"hello\"); } }", async w =>
             {
-                var expecteditem1 = new NavigateToItem("Bar", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null);
+                var expecteditem1 = new NavigateToItem("Bar", NavigateToItemKind.Method, "csharp", null, null, new PatternMatch(PatternMatchKind.Exact, true, true, ImmutableArray<Span>.Empty), null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
 
                 var items = await _aggregator.GetItemsAsync("Bar");
@@ -397,7 +401,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             var program = "class Goo { public virtual string Name { get; set; } } class DogBed : Goo { public override string Name { get { return base.Name; } set {} } }";
             await TestAsync(program, async w =>
             {
-                var expecteditem1 = new NavigateToItem("Name", NavigateToItemKind.Property, "csharp", null, null, MatchKind.Exact, true, null);
+                var expecteditem1 = new NavigateToItem("Name", NavigateToItemKind.Property, "csharp", null, null, new PatternMatch(PatternMatchKind.Exact, true, true, ImmutableArray<Span>.Empty), null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
 
                 var items = await _aggregator.GetItemsAsync("Name");
@@ -487,11 +491,11 @@ class C2
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("C1", NavigateToItemKind.Class, "csharp", "C1", null, MatchKind.Prefix, true, null),
-                    new NavigateToItem("C1", NavigateToItemKind.Method, "csharp", "C1", null, MatchKind.Prefix, true, null),
-                    new NavigateToItem("C2", NavigateToItemKind.Class, "csharp", "C2", null, MatchKind.Prefix, true, null),
-                    new NavigateToItem("C2", NavigateToItemKind.Method, "csharp", "C2", null, MatchKind.Prefix, true, null), // this is the static ctor
-                    new NavigateToItem("C2", NavigateToItemKind.Method, "csharp", "C2", null, MatchKind.Prefix, true, null),
+                    new NavigateToItem("C1", NavigateToItemKind.Class, "csharp", "C1", null, new PatternMatch(PatternMatchKind.Prefix, true, true, ImmutableArray<Span>.Empty), null),
+                    new NavigateToItem("C1", NavigateToItemKind.Method, "csharp", "C1", null, new PatternMatch(PatternMatchKind.Prefix, true, true, ImmutableArray<Span>.Empty), null),
+                    new NavigateToItem("C2", NavigateToItemKind.Class, "csharp", "C2", null, new PatternMatch(PatternMatchKind.Prefix, true, true, ImmutableArray<Span>.Empty), null),
+                    new NavigateToItem("C2", NavigateToItemKind.Method, "csharp", "C2", null, new PatternMatch(PatternMatchKind.Prefix, true, true, ImmutableArray<Span>.Empty), null), // this is the static ctor
+                    new NavigateToItem("C2", NavigateToItemKind.Method, "csharp", "C2", null, new PatternMatch(PatternMatchKind.Prefix, true, true, ImmutableArray<Span>.Empty), null),
                 };
                 var items = (await _aggregator.GetItemsAsync("C")).ToList();
                 items.Sort(CompareNavigateToItems);
@@ -550,9 +554,9 @@ class C2
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
             {
-                var expecteditem1 = new NavigateToItem("get_keyword", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
-                var expecteditem2 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
-                var expecteditem3 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, true, null);
+                var expecteditem1 = new NavigateToItem("get_keyword", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
+                var expecteditem2 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
+                var expecteditem3 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2, expecteditem3 };
 
                 var items = await _aggregator.GetItemsAsync("GK");
@@ -569,8 +573,8 @@ class C2
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
             {
-                var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
-                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, true, null);
+                var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
+                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
 
                 var items = await _aggregator.GetItemsAsync("GKW");
@@ -585,8 +589,8 @@ class C2
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
             {
-                var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
-                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Substring, true, null);
+                var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
+                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
 
                 var items = await _aggregator.GetItemsAsync("K W");
@@ -624,8 +628,8 @@ class C2
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
             await TestAsync(source, async w =>
             {
-                var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
-                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Substring, true, null);
+                var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
+                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Substring, true, true, ImmutableArray<Span>.Empty), null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
 
                 var items = await _aggregator.GetItemsAsync("K*W");
