@@ -474,11 +474,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override IOperation CloneOperationCore(IOperation operation)
-        {
-            return CSharpOperationCloner.Instance.Visit(operation);
-        }
-
         #region GetSymbolInfo
 
         /// <summary>

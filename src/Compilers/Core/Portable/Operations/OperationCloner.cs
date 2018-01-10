@@ -1,13 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
-    internal abstract class OperationCloner : OperationVisitor<object, IOperation>
+    internal sealed class OperationCloner : OperationVisitor<object, IOperation>
     {
-        protected T Visit<T>(T node) where T : IOperation
+        private static readonly Lazy<OperationCloner> _lazyInstance = new Lazy<OperationCloner>(() => new OperationCloner());
+
+        /// <summary>
+        /// Deep clone given IOperation
+        /// </summary>
+        public static T CloneOperation<T>(T operation) where T : IOperation
+        {
+            return _lazyInstance.Value.Visit(operation);
+        }
+
+        private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
         }

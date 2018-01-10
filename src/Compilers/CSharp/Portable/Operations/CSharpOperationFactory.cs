@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // always return cloned one
             if (boundNode.Kind == BoundKind.ImplicitReceiver)
             {
-                return _semanticModel.CloneOperation(CreateInternal(boundNode));
+                return OperationCloner.CloneOperation(CreateInternal(boundNode));
             }
 
             return _cache.GetOrAdd(boundNode, n => CreateInternal(n));

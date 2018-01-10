@@ -143,10 +143,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Overrides Function CloneOperationCore(operation As IOperation) As IOperation
-            Return VisualBasicOperationCloner.Instance.Visit(operation)
-        End Function
-
         ''' <summary>
         ''' Returns what symbol(s), if any, the given expression syntax bound to in the program.
         '''

@@ -87,13 +87,6 @@ namespace Microsoft.CodeAnalysis
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Deep Clone given IOperation
-        /// </summary>
-        internal T CloneOperation<T>(T operation) where T : IOperation => (T)CloneOperationCore(operation);
-
-        internal abstract IOperation CloneOperationCore(IOperation operation);
-
-        /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>
         public virtual bool IgnoresAccessibility
