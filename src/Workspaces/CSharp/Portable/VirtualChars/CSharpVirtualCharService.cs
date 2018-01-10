@@ -83,53 +83,77 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
             // Copied from Lexer.ScanEscapeSequence.
             Debug.Assert(tokenText[index] == '\\');
 
+            return TryAddSingleCharacterEscape(result, tokenText, offset, index) ||
+                   TryAddMultiCharacterEscape(result, tokenText, offset, index);
+        }
+
+        private bool TryAddSingleCharacterEscape(
+            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+        {
+            // Copied from Lexer.ScanEscapeSequence.
+            Debug.Assert(tokenText[index] == '\\');
+
             var ch = tokenText[index + 1];
             switch (ch)
             {
-            // escaped characters that translate to themselves
-            case '\'':
-            case '"':
-            case '\\':
-                break;
-            // translate escapes as per C# spec 2.4.4.4
-            case '0':
-                ch = (char)0;
-                break;
-            case 'a':
-                ch = '\u0007';
-                break;
-            case 'b':
-                ch = '\u0008';
-                break;
-            case 'f':
-                ch = '\u000c';
-                break;
-            case 'n':
-                ch = '\u000a';
-                break;
-            case 'r':
-                ch = '\u000d';
-                break;
-            case 't':
-                ch = '\u0009';
-                break;
-            case 'v':
-                ch = '\u000b';
-                break;
-            case 'x':
-            case 'u':
-            case 'U':
-                return TryAddComplexEscape(result, tokenText, offset, index, ch);
-            default:
-                Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                // escaped characters that translate to themselves
+                case '\'':
+                case '"':
+                case '\\':
+                    break;
+                // translate escapes as per C# spec 2.4.4.4
+                case '0':
+                    ch = (char)0;
+                    break;
+                case 'a':
+                    ch = '\u0007';
+                    break;
+                case 'b':
+                    ch = '\u0008';
+                    break;
+                case 'f':
+                    ch = '\u000c';
+                    break;
+                case 'n':
+                    ch = '\u000a';
+                    break;
+                case 'r':
+                    ch = '\u000d';
+                    break;
+                case 't':
+                    ch = '\u0009';
+                    break;
+                case 'v':
+                    ch = '\u000b';
+                    break;
+                default:
+                    return false;
             }
 
             result.Add(new VirtualChar(ch, new TextSpan(offset + index, 2)));
             return true;
         }
 
-        private bool TryAddComplexEscape(
+        private bool TryAddMultiCharacterEscape(
+            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+        { 
+            // Copied from Lexer.ScanEscapeSequence.
+            Debug.Assert(tokenText[index] == '\\');
+
+            var ch = tokenText[index + 1];
+            switch (ch)
+            {
+            case 'x':
+            case 'u':
+            case 'U':
+                return TryAddMultiCharacterEscape(result, tokenText, offset, index, ch);
+            default:
+                Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                return false;
+            }
+        }
+
+        private bool TryAddMultiCharacterEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index, char character)
         {
             var startIndex = index;
