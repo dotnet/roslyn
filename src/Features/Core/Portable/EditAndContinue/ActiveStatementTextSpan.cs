@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Span = span;
         }
 
-        // <summary>
+        /// <summary>
         /// True if at least one of the threads whom this active statement belongs to is in a leaf frame.
         /// </summary>
         public bool IsLeaf => (Flags & ActiveStatementFlags.IsLeafFrame) != 0;

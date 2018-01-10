@@ -175,8 +175,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
-        // TODO: export as implementation of Microsoft.VisualStudio.Debugger.IManagedActiveStatementTracker 
-
         public async Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
