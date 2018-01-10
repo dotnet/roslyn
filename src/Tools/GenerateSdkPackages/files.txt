@@ -1,5 +1,6 @@
 Microsoft.VisualStudio.Debugger.Engine.dll
 Microsoft.VisualStudio.Debugger.Metadata.dll
+Microsoft.VisualStudio.Debugger.UI.Interfaces.dll
 Microsoft.VisualStudio.Shell.Design.dll
 Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll
 vspkgs\Microsoft.VisualStudio.ComponentModelHost.dll
