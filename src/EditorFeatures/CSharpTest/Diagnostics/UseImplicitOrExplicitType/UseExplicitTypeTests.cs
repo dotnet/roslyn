@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -460,6 +459,174 @@ class Program
         }
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        public async Task OnDeconstructionVar()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        [|var|] (x, y) = new Program();
+    }
+    void Deconstruct(out int i, out string s) { i = 1; s = ""hello""; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        (int x, string y) = new Program();
+    }
+    void Deconstruct(out int i, out string s) { i = 1; s = ""hello""; }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        public async Task OnNestedDeconstructionVar()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        [|var|] (x, (y, z)) = new Program();
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        (int x, (int y, Program z)) = new Program();
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        public async Task OnBadlyFormattedNestedDeconstructionVar()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        [|var|](x,(y,z)) = new Program();
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        (int x, (int y, Program z)) = new Program();
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        public async Task OnForeachNestedDeconstructionVar()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        foreach ([|var|] (x, (y, z)) in new[] { new Program() } { }
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        foreach ((int x, (int y, Program z)) in new[] { new Program() } { }
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        public async Task OnNestedDeconstructionVarWithTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        /*before*/[|var|]/*after*/ (/*x1*/x/*x2*/, /*yz1*/(/*y1*/y/*y2*/, /*z1*/z/*z2*/)/*yz2*/) /*end*/ = new Program();
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        /*before*//*after*/(/*x1*/int x/*x2*/, /*yz1*/(/*y1*/int y/*y2*/, /*z1*/Program z/*z2*/)/*yz2*/) /*end*/ = new Program();
+    }
+    void Deconstruct(out int i, out Program s) { i = 1; s = null; }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        public async Task OnDeconstructionVarWithDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        [|var|] (x, _) = new Program();
+    }
+    void Deconstruct(out int i, out string s) { i = 1; s = ""hello""; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        (int x, string _) = new Program();
+    }
+    void Deconstruct(out int i, out string s) { i = 1; s = ""hello""; }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
+        public async Task OnDeconstructionVarWithErrorType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        [|var|] (x, y) = new Program();
+    }
+    void Deconstruct(out int i, out Error s) { i = 1; s = null; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        (int x, Error y) = new Program();
+    }
+    void Deconstruct(out int i, out Error s) { i = 1; s = null; }
+}", options: ExplicitTypeEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
