@@ -3295,6 +3295,19 @@ namespace N {
             MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo+"1")]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByIncomplete()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                where i > 0
+                orderby$$ 
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, ?>(Func<int, ?> keySelector)"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
         public async Task QueryMethodinfoSelectMany1()
