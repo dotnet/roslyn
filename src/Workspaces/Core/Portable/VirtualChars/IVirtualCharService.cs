@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.VirtualChars
 {
@@ -26,6 +27,22 @@ namespace Microsoft.CodeAnalysis.VirtualChars
     /// </summary>
     internal interface IVirtualCharService : ILanguageService
     {
+        /// <summary>
+        /// Takes in a string token and return the <see cref="VirtualChar"/>s corresponding to each
+        /// char of the tokens <see cref="SyntaxToken.ValueText"/>.  In other words, for each char
+        /// in ValueText there will be a VirtualChar in the resultant array.  Each VirtualChar will
+        /// specify what char the language considers them to represent, as well as the span of text
+        /// in the original <see cref="SourceText"/> that the language created that char from. 
+        /// 
+        /// For most chars this will be a single character span.  i.e. 'c' -> 'c'.  However, for
+        /// escapes this may be a multi character span.  i.e. 'c' -> '\u0063'
+        /// 
+        /// If the token is not a string literal token, or the string literal has any diagnostics
+        /// on it, then <see langword="default"/> will be returned.   Additionally, because a
+        /// VirtualChar can only represent a single char, while some escape sequences represent
+        /// multiple chars, <see langword="default"/> will also be returned in those cases. All these
+        /// cases could be relaxed in the future.  But they greatly simplify the implementation.
+        /// </summary>
         ImmutableArray<VirtualChar> TryConvertToVirtualChars(SyntaxToken token);
     }
 }
