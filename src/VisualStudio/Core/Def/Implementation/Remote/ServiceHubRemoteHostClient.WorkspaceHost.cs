@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -49,19 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 RegisterPrimarySolution();
             }
 
-            private void RegisterPrimarySolution()
-            {
-                this.AssertIsForeground();
-                _currentSolutionId = _workspace.CurrentSolution.Id;
-                var solutionId = _currentSolutionId;
-
-                var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
-
-                _session.TryInvokeAsync(
-                    nameof(IRemoteHostService.RegisterPrimarySolutionId),
-                    new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
-            }
-
             public void OnBeforeWorkingFolderChange()
             {
                 this.AssertIsForeground();
@@ -84,13 +70,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 UnregisterPrimarySolution(solutionId, synchronousShutdown: false);
             }
 
+            private void RegisterPrimarySolution()
+            {
+                this.AssertIsForeground();
+                _currentSolutionId = _workspace.CurrentSolution.Id;
+                var solutionId = _currentSolutionId;
+
+                var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
+
+                try
+                {
+                    // this will only return false if OOP doesn't exist. otherwise,
+                    // it will throw and handled as usual
+                    _session.TryInvokeAsync(
+                        nameof(IRemoteHostService.RegisterPrimarySolutionId),
+                        new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
+                }
+                catch (JsonRpcEx.UnexpectedRemoteHostException)
+                {
+                    // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
+                    // no one outside of engine should ever catch this exception or care about it.
+                    // we catch here so that we don't physically crash VS and give users time to save and exist VS
+                }
+            }
+
             private void UnregisterPrimarySolution(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                _session.TryInvokeAsync(
-                    nameof(IRemoteHostService.UnregisterPrimarySolutionId),
-                    new object[] { solutionId, synchronousShutdown },
-                    CancellationToken.None).Wait(CancellationToken.None);
+                try
+                {
+                    // this will only return false if OOP doesn't exist. otherwise,
+                    // it will throw and handled as usual
+                    _session.TryInvokeAsync(
+                        nameof(IRemoteHostService.UnregisterPrimarySolutionId),
+                        new object[] { solutionId, synchronousShutdown },
+                        CancellationToken.None).Wait(CancellationToken.None);
+                }
+                catch (JsonRpcEx.UnexpectedRemoteHostException)
+                {
+                    // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
+                    // no one outside of engine should ever catch this exception or care about it.
+                    // we catch here so that we don't physically crash VS and give users time to save and exist VS
+                }
             }
 
             public void ClearSolution() { }

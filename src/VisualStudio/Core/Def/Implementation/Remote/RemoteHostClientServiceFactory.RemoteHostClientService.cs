@@ -196,10 +196,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var checksums = AddGlobalAssets(cancellationToken);
 
                 // send over global asset
-                await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
-                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    (object)checksums, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    // this only return false if OOP doesn't exist. otherwise, this will throw
+                    // as usual. 
+                    await client.TryRunRemoteAsync(
+                        WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
+                        nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)checksums, cancellationToken).ConfigureAwait(false);
+                }
+                catch(JsonRpcEx.UnexpectedRemoteHostException)
+                {
+                    // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
+                    // no one outside of engine should ever catch this exception or care about it.
+                    // we catch here so that we don't physically crash VS and give users time to save and exist VS
+                }
 
                 return client;
             }

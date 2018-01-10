@@ -59,17 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                cancellationToken.ThrowIfCancellationRequested();
-
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
+                HandleException(ex, cancellationToken);
             }
         }
 
@@ -83,17 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                cancellationToken.ThrowIfCancellationRequested();
+                HandleException(ex, cancellationToken);
 
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
                 return Contract.FailWithReturn<T>("can't reach here");
             }
         }
@@ -109,17 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                cancellationToken.ThrowIfCancellationRequested();
-
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
+                HandleException(ex, cancellationToken);
             }
         }
 
@@ -134,19 +105,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                cancellationToken.ThrowIfCancellationRequested();
+                HandleException(ex, cancellationToken);
 
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
                 return Contract.FailWithReturn<T>("can't reach here");
             }
+        }
+
+        private void HandleException(Exception ex, CancellationToken cancellationToken)
+        {
+            // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
+            // Handle this case by throwing a proper cancellation exception instead.
+            // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
+            cancellationToken.ThrowIfCancellationRequested();
+
+            LogError($"exception: {ex.ToString()}");
+
+            // we are getting unexpected exception from service hub. rather than doing hard crash on unexpected exception,
+            // we decide to do soft crash where we show info bar to users saying VS got corrupted and users should save
+            // thier works and close VS.
+            //
+            // currently, the way we do soft crash is throwing cancellation exception of our own. since after this point,
+            // we consider VS is crashed, no caller should attempt to catch this exception and try to recover or care about
+            // this exception.
+            // in our point of view, VS is crashed. we just let VS process to alive so that users can save thier work.
+            //
+            // after this point, think it as OOM happened. like certain code path in Roslyn where we let VS to alive after OOM
+            // one should consider VS as unusable and crashed. only there so that users can save thier work.
+            //
+            // once we have proper non fatal watson framework, we should remove this and let generic NFW to take care of this
+            // situation. until then, this is a workaround we have.
+            ThrowOwnCancellationToken();
         }
 
         // these are for debugging purpose. once we find out root cause of the issue
@@ -161,6 +149,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return true;
             }
 
+            // there was several bugs around VsixDiscoveryService, ExtensionManager, StreamJsonRpc and service hub itself
+            // that throws unexpected exceptions that we are tracking, once they are fixed, we should remove these 
+            // and return false so that original exception propagate to the top.
+            // for now, we NFW and return true so that we can throw special cancellation exception
+            // so that VS doesn't crash.
             s_debuggingLastDisconnectReason = _debuggingLastDisconnectReason;
             s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;
 
@@ -198,12 +191,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // log disconnect information before throw
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);
 
-            // create its own cancellation token and throw it
-            using (var ownCancellationSource = new CancellationTokenSource())
-            {
-                ownCancellationSource.Cancel();
-                ownCancellationSource.Token.ThrowIfCancellationRequested();
-            }
+            // throw special cancellation token to indicate this unexpected situation has happened
+            // we create new exception since throw sets stacktrace of the exception
+            throw new UnexpectedRemoteHostException();
         }
 
         protected void Disconnect()
@@ -249,6 +239,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// this is a workaround to not crash host when remote call is failed for a reason not
+        /// related to us. example will be extension manager failure, connection creation failure
+        /// and etc. this is a special exception that should be only used in very specific cases.
+        /// 
+        /// no one except code related to OOP engine should care about this exception. 
+        /// if this is fired, then VS is practicially in corrupted/crashed mode. we just didn't
+        /// physically crashed VS due to feedbacks that want to give users time to save their works.
+        /// when this is fired, VS clearly shows users to save works and restart VS since VS is crashed.
+        /// 
+        /// so no one should ever, outside of OOP engine, try to catch this exception and try to recover.
+        /// 
+        /// that facts this inherits cancellation exception is an implementation detail to make VS not physically crash.
+        /// it doesn't mean one should try to recover from it or treat it as cancellation exception.
+        /// 
+        /// we choose cancellation exception since we didn't want this workaround to be too intrusive.
+        /// on our code. we already handle cancellation gracefully and recover properly in most of cases.
+        /// but that doesn't mean we want to let users to keep use VS. like I stated above, once this is
+        /// fired, VS is logically crashed. we just want VS to be stable enough until users save and exist VS.
+        /// 
+        /// this is a workaround since we would like to go back to normal crash behavior
+        /// if enough of the above issues are fixed or we implements official NFW framework in Roslyn
+        /// </summary>
+        public class UnexpectedRemoteHostException : OperationCanceledException
+        {
+            public UnexpectedRemoteHostException() :
+                base("unexpected remote host exception", CancellationToken.None)
+            {
+            }
         }
     }
 }
