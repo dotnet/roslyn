@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var testOptions = new TestParameters(parseOptions, compilationOptions, options);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).Where(d => d.Id == diagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
+                diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
                 Assert.Equal(1, diagnostics.Count());
 
                 var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());

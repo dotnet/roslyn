@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ValidateJsonString
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
-            : base(IDEDiagnosticIds.RegexPatternDiagnosticId,
+            : base(IDEDiagnosticIds.JsonPatternDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _stringLiteralKind = stringLiteralKind;
