@@ -67,36 +67,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             return _singletonListeners.GetOrAdd(featureName, name => new AsynchronousOperationListener(name, TrackingBehavior));
         }
 
-        private static bool IsEnabled
-        {
-            get
-            {
-                if (!s_enabled.HasValue)
-                {
-                    // if s_enabled has never been set, check environment variable to see whether it should be enabled.
-                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterEnabled");
-                    s_enabled = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
-                }
-
-                return s_enabled.Value;
-            }
-        }
-
-        private bool TrackingBehavior
-        {
-            get
-            {
-                if (!_trackingBehavior.HasValue)
-                {
-                    // if _trackingBehavior has never been set, check environment variable to see whether it should be enabled.
-                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterAsyncTokenTrackingEnabled");
-                    _trackingBehavior = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
-                }
-
-                return _trackingBehavior.Value;
-            }
-        }
-
         /// <summary>
         /// Enable or disable TrackActiveTokens for test
         /// </summary>
@@ -123,14 +93,14 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// loop, dig into the waiters and see all of the active <see cref="IAsyncToken"/> values 
         /// representing the remaining work.
         /// </remarks>
-        public async Task WaitAllAsync(Action eventProcessingAction = null)
+        public async Task WaitAllAsync(string[] featureNames = null, Action eventProcessingAction = null)
         {
             var smallTimeout = TimeSpan.FromMilliseconds(10);
 
             Task[] tasks = null;
             while (true)
             {
-                var waiters = _singletonListeners.Values.Cast<IAsynchronousOperationWaiter>();
+                var waiters = GetCandidateWaiters(featureNames);
                 tasks = waiters.Select(x => x.CreateWaitTask()).Where(t => !t.IsCompleted).ToArray();
 
                 if (tasks.Length == 0)
@@ -180,6 +150,46 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public List<AsynchronousOperationListener.DiagnosticAsyncToken> GetTokens()
         {
             return _singletonListeners.Values.Cast<AsynchronousOperationListener>().Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
+        }
+
+        private static bool IsEnabled
+        {
+            get
+            {
+                if (!s_enabled.HasValue)
+                {
+                    // if s_enabled has never been set, check environment variable to see whether it should be enabled.
+                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterEnabled");
+                    s_enabled = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
+                }
+
+                return s_enabled.Value;
+            }
+        }
+
+        private bool TrackingBehavior
+        {
+            get
+            {
+                if (!_trackingBehavior.HasValue)
+                {
+                    // if _trackingBehavior has never been set, check environment variable to see whether it should be enabled.
+                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterAsyncTokenTrackingEnabled");
+                    _trackingBehavior = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
+                }
+
+                return _trackingBehavior.Value;
+            }
+        }
+
+        private IEnumerable<IAsynchronousOperationWaiter> GetCandidateWaiters(string[] featureNames)
+        {
+            if (featureNames == null || featureNames.Length == 0)
+            {
+                return _singletonListeners.Values.Cast<IAsynchronousOperationWaiter>();
+            }
+
+            return _singletonListeners.Where(kv => featureNames.Contains(kv.Key)).Select(kv => (IAsynchronousOperationWaiter)kv.Value);
         }
 
         private class NullOperationListener : IAsynchronousOperationListener

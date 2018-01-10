@@ -228,7 +228,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private async Task WaitForAsyncOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>() as AsynchronousOperationListenerProvider;
-            await provider.WaitAllDispatcherOperationAndTasksAsync();
+            await provider.WaitAllDispatcherOperationAndTasksAsync(
+                FeatureAttribute.RenameTracking,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.EventHookup);
         }
 
         public void Dispose()
