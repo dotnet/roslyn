@@ -60,12 +60,8 @@ namespace Microsoft.CodeAnalysis.JsonStringDetector
                 return;
             }
 
-            var detector = JsonPatternDetector.TryGetOrCreate(
+            var detector = JsonPatternDetector.GetOrCreate(
                 semanticModel, _syntaxFacts, _semanticFacts, _virtualCharService);
-            if (detector == null)
-            {
-                return;
-            }
 
             var root = syntaxTree.GetRoot(cancellationToken);
             Analyze(context, detector, root, cancellationToken);

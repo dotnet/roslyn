@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = JsonPatternDetector.TryGetOrCreate(
+            var detector = JsonPatternDetector.GetOrCreate(
                 semanticModel, syntaxFacts, document.GetLanguageService<ISemanticFactsService>(), document.GetLanguageService<IVirtualCharService>());
-            if (detector == null || !detector.IsDefinitelyJson(token, cancellationToken))
+            if (!detector.IsDefinitelyJson(token, cancellationToken))
             {
                 return default;
             }

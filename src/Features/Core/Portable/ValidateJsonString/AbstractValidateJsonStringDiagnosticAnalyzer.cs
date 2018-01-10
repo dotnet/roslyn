@@ -57,11 +57,8 @@ namespace Microsoft.CodeAnalysis.ValidateJsonString
                 return;
             }
 
-            var detector = JsonPatternDetector.TryGetOrCreate(semanticModel, _syntaxFacts, _semanticFacts, _virtualCharService);
-            if (detector == null)
-            {
-                return;
-            }
+            var detector = JsonPatternDetector.GetOrCreate(
+                semanticModel, _syntaxFacts, _semanticFacts, _virtualCharService);
 
             var root = syntaxTree.GetRoot(cancellationToken);
             Analyze(context, detector,root, cancellationToken);

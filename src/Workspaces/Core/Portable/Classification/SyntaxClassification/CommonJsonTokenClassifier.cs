@@ -28,12 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
-            var detector = JsonPatternDetector.TryGetOrCreate(semanticModel, syntaxFacts, semanticFacts, virtualCharService);
-            if (detector == null)
-            {
-                return;
-            }
-
+            var detector = JsonPatternDetector.GetOrCreate(semanticModel, syntaxFacts, semanticFacts, virtualCharService);
             if (!detector.IsDefinitelyJson(token, cancellationToken))
             {
                 return;

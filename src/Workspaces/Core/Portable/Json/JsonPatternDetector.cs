@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Json
             _typesOfInterest = typesOfInterest;
         }
 
-        public static JsonPatternDetector TryGetOrCreate(
+        public static JsonPatternDetector GetOrCreate(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
@@ -73,21 +73,16 @@ namespace Microsoft.CodeAnalysis.Json
             }
 
             return _modelToDetector.GetValue(
-                semanticModel, _ => TryCreate(semanticModel, syntaxFacts, semanticFacts, virtualCharService));
+                semanticModel, _ => Create(semanticModel, syntaxFacts, semanticFacts, virtualCharService));
         }
 
-        private static JsonPatternDetector TryCreate(
+        private static JsonPatternDetector Create(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
             var types = _typeNamesOfInterest.Select(t => semanticModel.Compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
-            if (types.Count == 0)
-            {
-                return null;
-            }
-
             return new JsonPatternDetector(
                 semanticModel, syntaxFacts, semanticFacts, virtualCharService, types);
         }
