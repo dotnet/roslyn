@@ -42,28 +42,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// <summary>
         /// indicate whether <see cref="AsynchronousOperationListener.TrackActiveTokens"/> is enabled or not
         /// </summary>
-        private bool _trackingBehavior;
+        private bool? _trackingBehavior;
 
         public static void Enable(bool enable)
         {
             // right now, made it static so that one can enable it through reflection easy
             // but we can think of some other way
             s_enabled = enable;
-        }
-
-        public bool IsEnabled
-        {
-            get
-            {
-                if (!s_enabled.HasValue)
-                {
-                    // if s_enabled has never been set, check environment variable to see whether it should be enabled.
-                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterEnabled");
-                    s_enabled = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
-                }
-
-                return s_enabled.Value;
-            }
         }
 
         public IAsynchronousOperationListener GetListener(string featureName)
@@ -79,7 +64,37 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 return listener;
             }
 
-            return _singletonListeners.GetOrAdd(featureName, name => new AsynchronousOperationListener(name, _trackingBehavior));
+            return _singletonListeners.GetOrAdd(featureName, name => new AsynchronousOperationListener(name, TrackingBehavior));
+        }
+
+        private static bool IsEnabled
+        {
+            get
+            {
+                if (!s_enabled.HasValue)
+                {
+                    // if s_enabled has never been set, check environment variable to see whether it should be enabled.
+                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterEnabled");
+                    s_enabled = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
+                }
+
+                return s_enabled.Value;
+            }
+        }
+
+        private bool TrackingBehavior
+        {
+            get
+            {
+                if (!_trackingBehavior.HasValue)
+                {
+                    // if _trackingBehavior has never been set, check environment variable to see whether it should be enabled.
+                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterAsyncTokenTrackingEnabled");
+                    _trackingBehavior = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
+                }
+
+                return _trackingBehavior.Value;
+            }
         }
 
         /// <summary>
