@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
 
         protected override ImmutableArray<VirtualChar> TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
+            Debug.Assert(!token.ContainsDiagnostics);
             if (token.Kind() != SyntaxKind.StringLiteralToken)
             {
                 return default;
