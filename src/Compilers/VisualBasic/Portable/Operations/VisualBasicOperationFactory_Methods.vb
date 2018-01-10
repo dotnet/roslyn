@@ -224,10 +224,10 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' if argument syntax doesn't exist, then this operation is implicit
             Return New ArgumentOperation(
                 value,
-                inConversion,
-                outConversion,
                 kind,
                 parameter,
+                inConversion,
+                outConversion,
                 semanticModel:=_semanticModel,
                 syntax:=If(argument, value.Syntax),
                 constantValue:=Nothing,

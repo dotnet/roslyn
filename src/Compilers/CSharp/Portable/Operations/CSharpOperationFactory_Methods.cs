@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class CSharpOperationFactory
     {
+        private static readonly IConvertibleConversion s_boxedIdentityConversion = Conversion.Identity;
+
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
             return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
@@ -42,10 +44,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
             // if argument syntax doesn't exist, this operation is implicit
             return new ArgumentOperation(value,
-                Conversion.Identity,
-                Conversion.Identity,
                 kind,
                 parameter,
+                s_boxedIdentityConversion,
+                s_boxedIdentityConversion,
                 semanticModel: _semanticModel,
                 syntax: argument ?? value.Syntax,
                 constantValue: default,

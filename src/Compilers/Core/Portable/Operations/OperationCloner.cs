@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitArgument(IArgumentOperation operation, object argument)
         {
             var baseArgument = (BaseArgument)operation;
-            return new ArgumentOperation(Visit(operation.Value), baseArgument.InConversionConvertible, baseArgument.OutConversionConvertible, operation.ArgumentKind, operation.Parameter, ((Operation)operation).SemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
+            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertible, baseArgument.OutConversionConvertible, ((Operation)operation).SemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, object argument)

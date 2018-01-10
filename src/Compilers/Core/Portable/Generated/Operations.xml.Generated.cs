@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseArgument : Operation, IArgumentOperation
     {
-        protected BaseArgument(IConvertibleConversion inConversion, IConvertibleConversion outConversion, ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+        protected BaseArgument(ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion,  SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Argument, semanticModel, syntax, type: null, constantValue: constantValue, isImplicit: isImplicit)
         {
             ArgumentKind = argumentKind;
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class ArgumentOperation : BaseArgument
     {
-        public ArgumentOperation(IOperation value, IConvertibleConversion inConversion, IConvertibleConversion outConversion, ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(inConversion, outConversion, argumentKind, parameter, semanticModel, syntax, constantValue, isImplicit)
+        public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyArgumentOperation(Lazy<IOperation> value, IConvertibleConversion inConversion, IConvertibleConversion outConversion, ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(inConversion, outConversion, argumentKind, parameter, semanticModel, syntax, constantValue, isImplicit)
+        public LazyArgumentOperation(Lazy<IOperation> value, ArgumentKind argumentKind, IConvertibleConversion inConversion, IConvertibleConversion outConversion, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, constantValue, isImplicit)
         {
             _lazyValue = value;
         }
