@@ -4860,7 +4860,7 @@ class Program
         }
 
         [Fact]
-        public void TestCompoundOnAfieldOfGeneric()
+        public void TestCompoundOnAFieldOfGeneric()
         {
             var source = @"
 class Program
