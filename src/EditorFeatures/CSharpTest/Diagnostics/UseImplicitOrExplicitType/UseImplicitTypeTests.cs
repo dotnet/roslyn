@@ -1573,8 +1573,19 @@ namespace System
             var after = @"class C { static void M() { var s = (a: 1, ""hello""); } }";
 
             await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparentAndForIntrinsics());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
+        }
 
-            // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(11094, "https://github.com/dotnet/roslyn/issues/11094")]
+        public async Task SuggestVarOnLocalWithNonApparentTupleType()
+        {
+            var before = @"class C { static void M(C c) { [|(int a, C b)|] s = (a: 1, b: c); } }";
+            var after = @"class C { static void M(C c) { var s = (a: 1, b: c); } }";
+
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparentAndForIntrinsics()));
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
