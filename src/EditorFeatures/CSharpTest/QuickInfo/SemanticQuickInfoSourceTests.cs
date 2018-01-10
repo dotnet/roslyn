@@ -37,12 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             var documentId = workspace.GetDocumentId(testDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);
 
-            var provider = new SemanticQuickInfoProvider(
-                workspace.GetService<IProjectionBufferFactoryService>(),
-                workspace.GetService<IEditorOptionsFactoryService>(),
-                workspace.GetService<ITextEditorFactoryService>(),
-                workspace.GetService<IGlyphService>(),
-                workspace.GetService<ClassificationTypeMap>());
+            var provider = new SemanticQuickInfoProvider();
 
             await TestWithOptionsAsync(document, provider, position, expectedResults);
 
@@ -101,12 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var provider = new SemanticQuickInfoProvider(
-                        workspace.GetService<IProjectionBufferFactoryService>(),
-                        workspace.GetService<IEditorOptionsFactoryService>(),
-                        workspace.GetService<ITextEditorFactoryService>(),
-                        workspace.GetService<IGlyphService>(),
-                        workspace.GetService<ClassificationTypeMap>());
+                var provider = new SemanticQuickInfoProvider();
 
                 var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
                 if (state != null)
@@ -256,12 +246,7 @@ using System.Linq;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var provider = new SemanticQuickInfoProvider(
-                        workspace.GetService<IProjectionBufferFactoryService>(),
-                        workspace.GetService<IEditorOptionsFactoryService>(),
-                        workspace.GetService<ITextEditorFactoryService>(),
-                        workspace.GetService<IGlyphService>(),
-                        workspace.GetService<ClassificationTypeMap>());
+                var provider = new SemanticQuickInfoProvider();
 
                 var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
                 if (state != null)
@@ -5166,6 +5151,45 @@ namespace ConsoleApplication1
     }
 }",
             MainDescription($"void Program.Test<Bar>()"));
+        }
+
+        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task InMalformedEmbeddedStatement_01()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.Content$$Type, out var chars)
+        {
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task InMalformedEmbeddedStatement_02()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b$$.ContentType, out var chars)
+        {
+        }
+    }
+}
+",
+            MainDescription("(parameter) ? b"));
         }
     }
 }

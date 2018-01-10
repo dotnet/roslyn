@@ -3858,8 +3858,8 @@ class Program
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("DerivedNonVirtual");
                 var classC = globalNamespace.GetMember<NamedTypeSymbol>("Derived2Override");
 
-                Assert.Equal(classA, classB.BaseType);
-                Assert.Equal(classB, classC.BaseType);
+                Assert.Equal(classA, classB.BaseType());
+                Assert.Equal(classB, classC.BaseType());
 
                 var methodA = classA.GetMember<MethodSymbol>("M");
                 var methodB = classB.GetMember<MethodSymbol>("M");
@@ -3961,7 +3961,7 @@ class B : A
                 var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
 
-                Assert.Equal(classA, classB.BaseType);
+                Assert.Equal(classA, classB.BaseType());
 
                 var fooA = classA.GetMember<MethodSymbol>("Foo");
                 var fooB = classB.GetMember<MethodSymbol>("Foo");

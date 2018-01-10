@@ -1058,7 +1058,7 @@ class Test
     }
 }", TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "24");
+            CompileAndVerify(comp, expectedOutput: "24", verify: Verification.Fails);
         }
 
         [Fact]

@@ -287,9 +287,9 @@ abstract public class B : I2, I3
                 Assert.Equal(TypeKind.Class, classA.TypeKind);
                 Assert.Equal(TypeKind.Class, classB.TypeKind);
 
-                Assert.Same(i1, classA.Interfaces.Single());
+                Assert.Same(i1, classA.Interfaces().Single());
 
-                var interfaces = classB.Interfaces;
+                var interfaces = classB.Interfaces();
                 Assert.Same(i2, interfaces[0]);
                 Assert.Same(i3, interfaces[1]);
 
@@ -325,15 +325,15 @@ class C : I1 { }
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // Order is important - should be pre-order depth-first with declaration order at each level
-                Assert.True(i1.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i2, i3, i4, i5, i6, i7)));
-                Assert.True(i2.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i3, i4)));
-                Assert.False(i3.Interfaces.Any());
-                Assert.False(i4.Interfaces.Any());
-                Assert.True(i5.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i6, i7)));
-                Assert.False(i6.Interfaces.Any());
-                Assert.False(i7.Interfaces.Any());
+                Assert.True(i1.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i2, i3, i4, i5, i6, i7)));
+                Assert.True(i2.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i3, i4)));
+                Assert.False(i3.Interfaces().Any());
+                Assert.False(i4.Interfaces().Any());
+                Assert.True(i5.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i6, i7)));
+                Assert.False(i6.Interfaces().Any());
+                Assert.False(i7.Interfaces().Any());
 
-                Assert.True(c.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i1, i2, i3, i4, i5, i6, i7)));
+                Assert.True(c.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i1, i2, i3, i4, i5, i6, i7)));
             });
         }
 
@@ -745,13 +745,13 @@ class Derived<T, U> : Base<T, U>
                 var derivedType = module.GlobalNamespace.GetTypeMembers("Derived").Single();
                 Assert.Equal(derivedType.Arity, 2);
 
-                var baseType = derivedType.BaseType;
+                var baseType = derivedType.BaseType();
                 Assert.Equal(baseType.Name, "Base");
                 Assert.Equal(baseType.Arity, 2);
 
-                Assert.Equal(derivedType.BaseType, baseType);
-                Assert.Same(baseType.TypeArguments[0], derivedType.TypeParameters[0]);
-                Assert.Same(baseType.TypeArguments[1], derivedType.TypeParameters[1]);
+                Assert.Equal(derivedType.BaseType(), baseType);
+                Assert.Same(baseType.TypeArguments()[0], derivedType.TypeParameters[0]);
+                Assert.Same(baseType.TypeArguments()[1], derivedType.TypeParameters[1]);
             };
             CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
@@ -1242,7 +1242,7 @@ class C : B<string>
                 VerifyAutoProperty(q, isFromSource);
 
                 var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
-                p = classC.BaseType.GetProperty("P");
+                p = classC.BaseType().GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
@@ -1355,7 +1355,7 @@ class C : B<string>
 
         private void CheckEnumType(NamedTypeSymbol type, Accessibility declaredAccessibility, SpecialType underlyingType)
         {
-            Assert.Equal(type.BaseType.SpecialType, SpecialType.System_Enum);
+            Assert.Equal(type.BaseType().SpecialType, SpecialType.System_Enum);
             Assert.Equal(type.EnumUnderlyingType.SpecialType, underlyingType);
             Assert.Equal(type.DeclaredAccessibility, declaredAccessibility);
             Assert.True(type.IsSealed);

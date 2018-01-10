@@ -5152,7 +5152,7 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput: @"---
 M
 ---
 ---");
@@ -5513,7 +5513,7 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput: @"---
 F1
 ---
 F1

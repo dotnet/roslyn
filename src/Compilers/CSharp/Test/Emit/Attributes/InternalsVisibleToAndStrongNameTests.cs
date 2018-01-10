@@ -1121,26 +1121,17 @@ public class C
                 Assert.True(success.Success);
             }
 
-            Assert.True(IsFileSigned(tempFile));
+            Assert.True(IsFileFullSigned(tempFile));
         }
 
-        private static bool IsFileSigned(TempFile file)
+        private static bool IsFileFullSigned(TempFile file)
         {
-            //TODO should check to see that the output was actually signed
             using (var metadata = new FileStream(file.Path, FileMode.Open))
             {
-                return IsStreamSigned(metadata);
+                return ILValidation.IsStreamFullSigned(metadata);
             }
         }
 
-        private static bool IsStreamSigned(Stream moduleContents)
-        {
-            using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
-            {
-                var flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags;
-                return CorFlags.StrongNameSigned == (flags & CorFlags.StrongNameSigned);
-            }
-        }
         private void ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(MemoryStream moduleContents, AttributeDescription expectedModuleAttr, bool legacyStrongName)
         {
             //a module doesn't get signed for real. It should have either a keyfile or keycontainer attribute
@@ -1192,7 +1183,7 @@ public class Z
             success.Diagnostics.Verify();
 
             Assert.True(success.Success);
-            Assert.True(IsFileSigned(tempFile));
+            Assert.True(IsFileFullSigned(tempFile));
         }
 
         [Fact]
@@ -1423,8 +1414,8 @@ public class C {}";
             outStrm.Position = 0;
             refStrm.Position = 0;
 
-            Assert.True(IsStreamSigned(outStrm));
-            Assert.True(IsStreamSigned(refStrm));
+            Assert.True(ILValidation.IsStreamFullSigned(outStrm));
+            Assert.True(ILValidation.IsStreamFullSigned(refStrm));
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
@@ -2171,7 +2162,7 @@ public class C
                 Assert.True(success.Success);
             }
 
-            Assert.True(IsFileSigned(tempFile));
+            Assert.True(IsFileFullSigned(tempFile));
         }
 
         [Fact]

@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
-        <target state="new">     (Press TAB to insert)</target>
+        <target state="translated">(Tab キーを押して挿入)</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
-        <target state="new">Smart Indenting</target>
+        <target state="translated">スマート インデント</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">
         <source>Split string</source>
-        <target state="new">Split string</target>
+        <target state="translated">文字列を分割します</target>
         <note />
       </trans-unit>
     </body>

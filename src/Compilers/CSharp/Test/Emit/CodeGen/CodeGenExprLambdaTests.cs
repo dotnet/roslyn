@@ -2312,7 +2312,7 @@ unsafe public class Test
 }";
             string expectedOutput = @"x => G(x)";
 
-            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput));
+            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [WorkItem(544246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
@@ -3052,7 +3052,7 @@ unsafe class Test
             var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
                 options: TestOptions.UnsafeReleaseDll,
-                verify: Verification.Passes);
+                verify: Verification.Fails);
 
             c.VerifyDiagnostics();
         }

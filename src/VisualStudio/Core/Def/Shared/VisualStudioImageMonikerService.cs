@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 
 namespace Microsoft.VisualStudio.LanguageServices.Shared
 {

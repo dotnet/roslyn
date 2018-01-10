@@ -131,13 +131,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 (compilation.Options.OutputKind == OutputKind.ConsoleApplication || compilation.Options.OutputKind == OutputKind.WindowsApplication),
                 "Compilation must be executable if output is expected.");
 
-            if (verify == Verification.Passes)
-            {
-                // Unsafe code might not verify, so don't try.
-                var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
-                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe) ? Verification.Passes : Verification.Skipped;
-            }
-
             if (sourceSymbolValidator != null)
             {
                 var module = compilation.Assembly.Modules.First();

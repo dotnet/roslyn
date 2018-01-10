@@ -446,6 +446,9 @@
   <data name="InvalidDiagnosticIdReported" xml:space="preserve">
     <value>Reported diagnostic has an ID '{0}', which is not a valid identifier.</value>
   </data>
+  <data name="CompilerDiagnosticIdReported" xml:space="preserve">
+    <value>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</value>
+  </data>
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>

@@ -771,7 +771,7 @@ class C1 : IBase1, IBase2
             Action<ModuleSymbol> validator = module =>
             {
                 var typeSymbol = module.GlobalNamespace.GetTypeMembers("C1").Single();
-                Assert.True(typeSymbol.Interfaces.All(iface => iface.Name == "IBase" || iface.Name == "IBase1" || iface.Name == "IBase2"));
+                Assert.True(typeSymbol.Interfaces().All(iface => iface.Name == "IBase" || iface.Name == "IBase1" || iface.Name == "IBase2"));
             };
 
             CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures: new[]

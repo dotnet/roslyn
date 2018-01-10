@@ -7129,7 +7129,7 @@ class Module1
             }
         }
 
-        [Fact()]
+        [NoIOperationValidationFact]
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =
@@ -7302,7 +7302,7 @@ class Module1
             Assert.Equal(n, nodes.Length);
         }
 
-        [Fact()]
+        [NoIOperationValidationFact]
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =

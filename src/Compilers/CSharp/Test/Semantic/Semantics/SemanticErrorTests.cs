@@ -3031,7 +3031,7 @@ public class MyClass : Outer.base1
 ";
             var comp = CreateStandardCompilation(text);
             var type1 = comp.SourceModule.GlobalNamespace.GetMembers("MyClass").Single() as NamedTypeSymbol;
-            var b = type1.BaseType;
+            var b = type1.BaseType();
             var errs = comp.GetDiagnostics();
             Assert.Equal(1, errs.Count());
             Assert.Equal(122, errs.First().Code);

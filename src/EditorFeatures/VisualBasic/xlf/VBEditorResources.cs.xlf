@@ -4,107 +4,107 @@
     <body>
       <trans-unit id="Case_Correction">
         <source>Case Correction</source>
-        <target state="new">Case Correction</target>
+        <target state="translated">Oprava velkých a malých písmen</target>
         <note />
       </trans-unit>
       <trans-unit id="Correcting_word_casing">
         <source>Correcting word casing...</source>
-        <target state="new">Correcting word casing...</target>
+        <target state="translated">Opravují se velká a malá písmena u slov...</target>
         <note />
       </trans-unit>
       <trans-unit id="New_">
         <source>New</source>
-        <target state="new">New</target>
+        <target state="translated">Nový</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_Events">
         <source>({0} Events)</source>
-        <target state="new">({0} Events)</target>
+        <target state="translated">(Počet událostí: {0})</target>
         <note />
       </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
-        <target state="new">This call is required by the designer.</target>
+        <target state="translated">Toto volání je vyžadované návrhářem.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_any_initialization_after_the_InitializeComponent_call">
         <source>Add any initialization after the InitializeComponent() call.</source>
-        <target state="new">Add any initialization after the InitializeComponent() call.</target>
+        <target state="translated">Přidejte libovolnou inicializaci po volání InitializeComponent().</target>
         <note />
       </trans-unit>
       <trans-unit id="End_Construct">
         <source>End Construct</source>
-        <target state="new">End Construct</target>
+        <target state="translated">Koncová konstrukce</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
-        <target state="new">Smart Indenting</target>
+        <target state="translated">Chytré odsazování</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Document">
         <source>Format Document</source>
-        <target state="new">Format Document</target>
+        <target state="translated">Formátovat dokument</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="new">Formatting Document...</target>
+        <target state="translated">Formátuje se dokument...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
-        <target state="new">Insert new line</target>
+        <target state="translated">Vložit nový řádek</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Paste">
         <source>Format Paste</source>
-        <target state="new">Format Paste</target>
+        <target state="translated">Vložit formát</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_pasted_text">
         <source>Formatting pasted text...</source>
-        <target state="new">Formatting pasted text...</target>
+        <target state="translated">Formátuje se vložený text...</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">
         <source>Paste</source>
-        <target state="new">Paste</target>
+        <target state="translated">Vložit</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_on_Save">
         <source>Format on Save</source>
-        <target state="new">Format on Save</target>
+        <target state="translated">Formátovat při uložení</target>
         <note />
       </trans-unit>
       <trans-unit id="Committing_line">
         <source>Committing line</source>
-        <target state="new">Committing line</target>
+        <target state="translated">Potvrzují se zmměny řádku.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Pretty_List">
         <source>Visual Basic Pretty List</source>
-        <target state="new">Visual Basic Pretty List</target>
+        <target state="translated">Visual Basic formátování typu Pretty List</target>
         <note />
       </trans-unit>
       <trans-unit id="Multiple_Types">
         <source>&lt;Multiple Types&gt;</source>
-        <target state="new">&lt;Multiple Types&gt;</target>
+        <target state="translated">&lt;Víc typů&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
-        <target state="new">not supported</target>
+        <target state="translated">nepodporované</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Member">
         <source>Generate Member</source>
-        <target state="new">Generate Member</target>
+        <target state="translated">Generovat člen</target>
         <note />
       </trans-unit>
       <trans-unit id="Line_commit">
         <source>Line commit</source>
-        <target state="new">Line commit</target>
+        <target state="translated">Potvrzení změn řádku</target>
         <note />
       </trans-unit>
     </body>

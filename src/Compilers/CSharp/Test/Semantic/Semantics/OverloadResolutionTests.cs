@@ -709,7 +709,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             while (type.IsTupleType)
             {
                 var underlyingType = type.TupleUnderlyingType;
-                var typeArgs = underlyingType.TypeArguments;
+                var typeArgs = underlyingType.TypeArguments();
                 if (typeArgs.Length < 8)
                 {
                     return underlyingType;
@@ -883,7 +883,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             Assert.Equal("A<System.Int32, System.Threading.Tasks.Task>", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F1").Type;
-            Assert.Equal(TypeKind.Error, ((NamedTypeSymbol)type).TypeArguments[0].TypeKind);
+            Assert.Equal(TypeKind.Error, ((NamedTypeSymbol)type).TypeArguments()[0].TypeKind);
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<B>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<B>", normalized.ToTestDisplayString());
@@ -2622,7 +2622,7 @@ unsafe class Test
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"2
 True
 3
 3

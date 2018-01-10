@@ -1044,13 +1044,13 @@ class Query
 
             //  test
             Assert.Equal(typeViewName, type.ToDisplayString());
-            Assert.Equal("object", type.BaseType.ToDisplayString());
+            Assert.Equal("object", type.BaseType().ToDisplayString());
             Assert.True(fieldsCount == 0 ? !type.IsGenericType : type.IsGenericType);
             Assert.Equal(fieldsCount, type.Arity);
             Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
             Assert.True(type.IsSealed);
             Assert.False(type.IsStatic);
-            Assert.Equal(0, type.Interfaces.Length);
+            Assert.Equal(0, type.Interfaces().Length);
 
             //  test non-existing members
             Assert.Equal(0, type.GetMembers("doesnotexist").Length);

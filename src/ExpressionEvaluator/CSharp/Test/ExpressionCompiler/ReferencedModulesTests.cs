@@ -749,7 +749,7 @@ namespace System
             var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
-            Assert.NotNull(objectType.BaseType);
+            Assert.NotNull(objectType.BaseType());
 
             ImmutableArray<byte> peBytes;
             ImmutableArray<byte> pdbBytes;
@@ -867,7 +867,7 @@ namespace System
             var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
-            Assert.NotNull(objectType.BaseType);
+            Assert.NotNull(objectType.BaseType());
 
             var pdbPath = Temp.CreateDirectory().Path;
             ImmutableArray<byte> peBytes;
