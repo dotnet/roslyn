@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.VirtualChars
         protected ImmutableArray<VirtualChar> TryConvertSimpleDoubleQuoteString(
             SyntaxToken token, string startDelimeter, string endDelimeter)
         {
+            Debug.Assert(!token.ContainsDiagnostics);
+
             var tokenText = token.Text;
             if (!tokenText.StartsWith(startDelimeter) ||
                 !tokenText.EndsWith(endDelimeter))
