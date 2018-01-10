@@ -2751,7 +2751,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Expression expected after yield return</value>
   </data>
   <data name="ERR_AnonDelegateCantUse" xml:space="preserve">
-    <value>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, or query expression</value>
+    <value>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</value>
   </data>
   <data name="ERR_IllegalInnerUnsafe" xml:space="preserve">
     <value>Unsafe code may not appear in iterators</value>
