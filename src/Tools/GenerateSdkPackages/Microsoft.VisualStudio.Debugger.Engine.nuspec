@@ -14,7 +14,7 @@
     <summary></summary>
     <releaseNotes>https://www.visualstudio.com/news/vs2015-vs</releaseNotes>
     <copyright>Copyright © Microsoft</copyright>
-    <tags>VSSDK</tags>
+    <tags>VisualStudio debugger</tags>
   </metadata>
   <files>
     <file src="$debuggerPath$\ref\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll" target="ref\net20" />
