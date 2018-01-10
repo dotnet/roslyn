@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public bool HasPendingWaiter()
+        public bool HasPendingWaiter(params string[] featureNames)
         {
-            var waiters = _singletonListeners.Values.Cast<IAsynchronousOperationWaiter>();
+            var waiters = GetCandidateWaiters(featureNames);
             return waiters.Any(w => w.HasPendingWork);
         }
 
