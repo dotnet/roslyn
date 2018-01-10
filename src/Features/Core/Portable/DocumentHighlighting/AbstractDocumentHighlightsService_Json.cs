@@ -79,13 +79,13 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var ch = virtualChar.Value;
             if (caretOnLeft)
             {
-                return ch == '{' || ch == '['
+                return ch == '{' || ch == '[' || ch == '('
                     ? FindBraceHighlights(document, tree, ch)
                     : ImmutableArray<DocumentHighlights>.Empty;
             }
             else
             {
-                return ch == '}' || ch == ']'
+                return ch == '}' || ch == ']' || ch == ')'
                     ? FindBraceHighlights(document, tree, ch)
                     : ImmutableArray<DocumentHighlights>.Empty;
             }
@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 case JsonObjectNode obj: return Create(document, obj.OpenBraceToken, obj.CloseBraceToken);
                 case JsonArrayNode array: return Create(document, array.OpenBracketToken, array.CloseBracketToken);
+                case JsonConstructorNode cons: return Create(document, cons.OpenParenToken, cons.CloseParenToken);
             }
 
             return default;
@@ -121,13 +122,14 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         {
             switch (node)
             {
-                case JsonArrayNode array when
-                    array.OpenBracketToken.VirtualChars.Contains(ch) || array.CloseBracketToken.VirtualChars.Contains(ch):
+                case JsonArrayNode array when Matches(array.OpenBracketToken, array.CloseBracketToken, ch):
                     return array;
-                    
-                case JsonObjectNode obj when
-                    obj.OpenBraceToken.VirtualChars.Contains(ch) || obj.CloseBraceToken.VirtualChars.Contains(ch):
+
+                case JsonObjectNode obj when Matches(obj.OpenBraceToken, obj.CloseBraceToken, ch):
                     return obj;
+
+                case JsonConstructorNode cons when Matches(cons.OpenParenToken, cons.CloseParenToken, ch):
+                    return cons;
             }
 
             foreach (var child in node)
@@ -144,5 +146,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
             return null;
         }
+
+        private bool Matches(JsonToken openToken, JsonToken closeToken, VirtualChar ch)
+            => openToken.VirtualChars.Contains(ch) || closeToken.VirtualChars.Contains(ch);
     }
 }
