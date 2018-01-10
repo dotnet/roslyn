@@ -4,7 +4,6 @@ using System;
 using System.Composition;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Roslyn.Hosting.Diagnostics.Waiters
@@ -59,7 +58,8 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
 
         public void WaitForAllAsyncOperations()
         {
-            var task = _provider.WaitAllAsync(eventProcessingAction: () => Dispatcher.CurrentDispatcher.DoEvents());
+            var task = _provider.WaitAllAsync(
+                eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));
 
             WaitForTask(task);
         }
@@ -84,7 +84,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
                 GC.KeepAlive(tokens);
 
                 // make sure pending task that require UI threads to finish as well.
-                Dispatcher.CurrentDispatcher.DoEvents();
+                Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
             }
         }
     }
