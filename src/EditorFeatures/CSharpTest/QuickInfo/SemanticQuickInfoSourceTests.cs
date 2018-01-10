@@ -3295,7 +3295,7 @@ namespace N {
             MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo+"1")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
         public async Task QueryMethodinfoOrderByIncomplete()
         {

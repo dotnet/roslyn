@@ -294,22 +294,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsQueryKeyword
-            Return token.IsKind(
-                SyntaxKind.FromKeyword,
-                SyntaxKind.GroupKeyword,
-                SyntaxKind.JoinKeyword,
-                SyntaxKind.IntoKeyword,
-                SyntaxKind.LetKeyword,
-                SyntaxKind.ByKeyword,
-                SyntaxKind.SelectKeyword,
-                SyntaxKind.OrderKeyword,
-                SyntaxKind.OnKeyword,
-                SyntaxKind.EqualsKeyword,
-                SyntaxKind.AscendingKeyword,
-                SyntaxKind.DescendingKeyword) OrElse
-                (token.IsKind(SyntaxKind.InKeyword) AndAlso
-                token.Parent IsNot Nothing AndAlso
-                token.Parent.IsKind(SyntaxKind.FromClause, SyntaxKind.SimpleJoinClause, SyntaxKind.GroupJoinClause))
+            Select Case token.Kind()
+                Case SyntaxKind.FromKeyword,
+                     SyntaxKind.GroupKeyword,
+                     SyntaxKind.JoinKeyword,
+                     SyntaxKind.IntoKeyword,
+                     SyntaxKind.LetKeyword,
+                     SyntaxKind.ByKeyword,
+                     SyntaxKind.SelectKeyword,
+                     SyntaxKind.OrderKeyword,
+                     SyntaxKind.OnKeyword,
+                     SyntaxKind.EqualsKeyword,
+                     SyntaxKind.AscendingKeyword,
+                     SyntaxKind.DescendingKeyword
+                    Return True
+                Case SyntaxKind.InKeyword
+                    Select Case token.Parent?.Kind()
+                        Case SyntaxKind.FromClause,
+                             SyntaxKind.SimpleJoinClause,
+                             SyntaxKind.GroupJoinClause
+                            Return True
+                        Case Else
+                            Return False
+                    End Select
+                Case Else
+                    Return False
+            End Select
         End Function
 
         Public Function IsThrowExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThrowExpression

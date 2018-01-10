@@ -183,13 +183,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
 
-            var skipSymbolInfoLookup = declaredSymbol != null && declaredSymbol.Kind == SymbolKind.RangeVariable;
+            var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
             var allSymbols = skipSymbolInfoLookup
                 ? ImmutableArray<ISymbol>.Empty
-                : semanticFacts.GetSymbolInfo(semanticModel, bindableParent, token, cancellationToken)
-                               .GetBestOrAllSymbols()
-                               .WhereAsArray(s => !s.Equals(declaredSymbol))
-                               .SelectAsArray(s => MapSymbol(s, type));
+                : semanticFacts
+                    .GetSymbolInfo(semanticModel, bindableParent, token, cancellationToken)
+                    .GetBestOrAllSymbols()
+                    .WhereAsArray(s => !s.Equals(declaredSymbol))
+                    .SelectAsArray(s => MapSymbol(s, type));
 
             // NOTE(cyrusn): This is a workaround to how the semantic model binds and returns
             // information for VB event handlers.  Namely, if you have:

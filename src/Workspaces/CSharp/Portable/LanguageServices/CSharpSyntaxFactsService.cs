@@ -297,20 +297,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Kind() == SyntaxKind.QueryExpression;
 
         public bool IsQueryKeyword(SyntaxToken token)
-            => token.IsKind(
-                SyntaxKind.FromKeyword,
-                SyntaxKind.GroupKeyword,
-                SyntaxKind.JoinKeyword,
-                SyntaxKind.IntoKeyword,
-                SyntaxKind.LetKeyword,
-                SyntaxKind.ByKeyword,
-                SyntaxKind.SelectKeyword,
-                SyntaxKind.OrderByKeyword,
-                SyntaxKind.OnKeyword,
-                SyntaxKind.EqualsKeyword,
-                SyntaxKind.AscendingKeyword,
-                SyntaxKind.DescendingKeyword) ||
-            (token.IsKind(SyntaxKind.InKeyword) && (token.Parent?.IsKind(SyntaxKind.FromClause, SyntaxKind.JoinClause, SyntaxKind.JoinIntoClause) == true));
+        {
+            switch (token.Kind())
+            {
+                case SyntaxKind.FromKeyword:
+                case SyntaxKind.GroupKeyword:
+                case SyntaxKind.JoinKeyword:
+                case SyntaxKind.IntoKeyword:
+                case SyntaxKind.LetKeyword:
+                case SyntaxKind.ByKeyword:
+                case SyntaxKind.SelectKeyword:
+                case SyntaxKind.OrderByKeyword:
+                case SyntaxKind.OnKeyword:
+                case SyntaxKind.EqualsKeyword:
+                case SyntaxKind.AscendingKeyword:
+                case SyntaxKind.DescendingKeyword:
+                    return true;
+                case SyntaxKind.InKeyword:
+                    switch (token.Parent?.Kind())
+                    {
+                        case SyntaxKind.FromClause:
+                        case SyntaxKind.JoinClause:
+                        case SyntaxKind.JoinIntoClause:
+                            return true;
+                        default:
+                            return false;
+                    }
+                default:
+                    return false;
+            }
+        }
 
         public bool IsThrowExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.ThrowExpression;
