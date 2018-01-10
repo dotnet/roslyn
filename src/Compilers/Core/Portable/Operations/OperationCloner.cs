@@ -8,14 +8,18 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed class OperationCloner : OperationVisitor<object, IOperation>
     {
-        private static readonly Lazy<OperationCloner> _lazyInstance = new Lazy<OperationCloner>(() => new OperationCloner());
+        private static readonly OperationCloner s_instance = new OperationCloner();
 
         /// <summary>
         /// Deep clone given IOperation
         /// </summary>
         public static T CloneOperation<T>(T operation) where T : IOperation
         {
-            return _lazyInstance.Value.Visit(operation);
+            return s_instance.Visit(operation);
+        }
+
+        private OperationCloner()
+        {
         }
 
         private T Visit<T>(T node) where T : IOperation
