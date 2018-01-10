@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             // constructor invocations cases:
             //      = new type();
-            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) &&
+            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression) &&
                 !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 return true;

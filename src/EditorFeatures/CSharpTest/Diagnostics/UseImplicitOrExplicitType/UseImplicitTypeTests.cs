@@ -1482,7 +1482,7 @@ class C
 {
     static void M()
     {
-        [|int[]|] n1 = new[] {2, 4, 6, 8};
+        [|C[]|] n1 = new[] { new C() }; // type not apparent and not intrinsic
     }
 }";
             await TestDiagnosticInfoAsync(source,
@@ -1507,6 +1507,45 @@ class C
                 options: ImplicitTypeEnforcements(),
                 diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Error);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(23893, "https://github.com/dotnet/roslyn/issues/23893")]
+        public async Task SuggestVarOnLocalWithIntrinsicArrayType()
+        {
+            var before = @"class C { static void M() { [|int[]|] s = new int[0]; } }";
+            var after = @"class C { static void M() { var s = new int[0]; } }";
+
+            //The type is intrinsic and apparent
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent())); // Preference of intrinsic types dominates
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(23893, "https://github.com/dotnet/roslyn/issues/23893")]
+        public async Task SuggestVarOnLocalWithCustomArrayType()
+        {
+            var before = @"class C { static void M() { [|C[]|] s = new C[0]; } }";
+            var after = @"class C { static void M() { var s = new C[0]; } }";
+
+            //The type is not intrinsic but apparent
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(23893, "https://github.com/dotnet/roslyn/issues/23893")]
+        public async Task SuggestVarOnLocalWithNonApparentCustomArrayType()
+        {
+            var before = @"class C { static void M() { [|C[]|] s = new[] { new C() }; } }";
+            var after = @"class C { static void M() { var s = new[] { new C() }; } }";
+
+            //The type is not intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
         private static string trivial2uple =
@@ -1728,6 +1767,21 @@ class C
     }
 }",
 options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23893, "https://github.com/dotnet/roslyn/issues/23893")]
+        public async Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
+        {
+            var before =
+@"class C
+{
+    static void M(out int x)
+    {
+        M([|out int|] x);
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]

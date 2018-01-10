@@ -221,6 +221,212 @@ class Program
         #endregion
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InArrayType()
+        {
+            var before = @"
+class Program
+{
+    void Method()
+    {
+        [|var|] x = new Program[0];
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method()
+    {
+        Program[] x = new Program[0];
+    }
+}";
+            // The type is apparent and not intrinsic
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeExceptWhereApparent()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InArrayTypeWithIntrinsicType()
+        {
+            var before = @"
+class Program
+{
+    void Method()
+    {
+        [|var|] x = new int[0];
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method()
+    {
+        int[] x = new int[0];
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent()); // preference for builtin types dominates
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InNullableIntrinsicType()
+        {
+            var before = @"
+class Program
+{
+    void Method(int? x)
+    {
+        [|var|] y = x;
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method(int? x)
+    {
+        int? y = x;
+    }
+}";
+            // The type is intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InArrayOfNullableIntrinsicType()
+        {
+            var before = @"
+class Program
+{
+    void Method(int?[] x)
+    {
+        [|var|] y = x;
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method(int?[] x)
+    {
+        int?[] y = x;
+    }
+}";
+            // The type is intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InNullableCustomType()
+        {
+            var before = @"
+struct Program
+{
+    void Method(Program? x)
+    {
+        [|var|] y = x;
+    }
+}";
+            var after = @"
+struct Program
+{
+    void Method(Program? x)
+    {
+        Program? y = x;
+    }
+}";
+            // The type is not intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InPointerTypeWithIntrinsicType()
+        {
+            var before = @"
+unsafe class Program
+{
+    void Method(int* y)
+    {
+        [|var|] x = y;
+    }
+}";
+            var after = @"
+unsafe class Program
+{
+    void Method(int* y)
+    {
+        int* x = y;
+    }
+}";
+            // The type is intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent()); // preference for builtin types dominates
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InPointerTypeWithCustomType()
+        {
+            var before = @"
+unsafe class Program
+{
+    void Method(Program* y)
+    {
+        [|var|] x = y;
+    }
+}";
+            var after = @"
+unsafe class Program
+{
+    void Method(Program* y)
+    {
+        Program* x = y;
+    }
+}";
+            // The type is not intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23893, "https://github.com/dotnet/roslyn/issues/23893")]
+        public async Task InOutParameter()
+        {
+            var before = @"
+class Program
+{
+    void Method(out int x)
+    {
+        Method(out [|var|] x);
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method(out int x)
+    {
+        Method(out int x);
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1086,6 +1292,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
         public async Task SuggestExplicitTypeNotificationLevelWarning()
         {
             var source =
@@ -1094,7 +1301,7 @@ class C
 {
     static void M()
     {
-        [|var|] n1 = new[] {2, 4, 6, 8};
+        [|var|] n1 = new[] { new C() }; // type not apparent and not intrinsic
     }
 }";
             await TestDiagnosticInfoAsync(source,
