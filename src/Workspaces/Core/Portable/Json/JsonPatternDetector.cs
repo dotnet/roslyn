@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Json
         /// All matching is case insensitive, with spaces allowed between the punctuation.
         /// </summary>
         private static readonly Regex s_languageCommentDetector =
-            new Regex(@"language\s*=\s*json((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            new Regex(@"lang(uage)?\s*=\s*json((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public JsonPatternDetector(

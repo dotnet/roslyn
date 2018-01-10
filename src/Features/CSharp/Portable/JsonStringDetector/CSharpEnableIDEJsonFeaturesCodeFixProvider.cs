@@ -13,14 +13,20 @@ namespace Microsoft.CodeAnalysis.CSharp.JsonStringDetector
     {
         private static readonly List<SyntaxTrivia> s_commentTrivia = new List<SyntaxTrivia>
         {
-            SyntaxFactory.Comment("/*language=json*/"),
+            SyntaxFactory.Comment("/*lang=json*/"),
+            SyntaxFactory.ElasticSpace
+        };
+        private static readonly List<SyntaxTrivia> s_strictCommentTrivia = new List<SyntaxTrivia>
+        {
+            SyntaxFactory.Comment("/*lang=json,strict*/"),
             SyntaxFactory.ElasticSpace
         };
 
-        protected override void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral)
+        protected override void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, bool strict)
         {
             var newStringLiteral = stringLiteral.WithLeadingTrivia(
-                stringLiteral.LeadingTrivia.AddRange(s_commentTrivia));
+                stringLiteral.LeadingTrivia.AddRange(
+                    strict ? s_strictCommentTrivia : s_commentTrivia));
 
             editor.ReplaceNode(stringLiteral.Parent, stringLiteral.Parent.ReplaceToken(stringLiteral, newStringLiteral));
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -7,10 +8,12 @@ using Microsoft.CodeAnalysis.Json;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.ValidateRegexString
+namespace Microsoft.CodeAnalysis.JsonStringDetector
 {
     internal abstract class AbstractJsonStringDetectorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        public const string StrictKey = nameof(StrictKey);
+
         private readonly int _stringLiteralKind;
         private readonly ISyntaxFactsService _syntaxFacts;
         private readonly ISemanticFactsService _semanticFacts;
@@ -88,9 +91,16 @@ namespace Microsoft.CodeAnalysis.ValidateRegexString
                         !detector.IsDefinitelyJson(token, cancellationToken) &&
                         detector.IsProbablyJson(token, cancellationToken))
                     {
+                        var chars = _virtualCharService.TryConvertToVirtualChars(token);
+                        var strictTree = JsonParser.TryParse(chars, strict: true);
+                        var properties = strictTree != null && strictTree.Diagnostics.Length == 0
+                            ? ImmutableDictionary<string, string>.Empty.Add(StrictKey, "")
+                            : ImmutableDictionary<string, string>.Empty;
+
                         context.ReportDiagnostic(Diagnostic.Create(
                             this.GetDescriptorWithSeverity(DiagnosticSeverity.Info),
-                            token.GetLocation()));
+                            token.GetLocation(),
+                            properties));
                     }
                 }
             }

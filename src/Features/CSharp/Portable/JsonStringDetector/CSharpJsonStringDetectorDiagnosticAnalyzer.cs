@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.VirtualChars;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ValidateRegexString;
+using Microsoft.CodeAnalysis.JsonStringDetector;
 
 namespace Microsoft.CodeAnalysis.CSharp.JsonStringDetector
 {

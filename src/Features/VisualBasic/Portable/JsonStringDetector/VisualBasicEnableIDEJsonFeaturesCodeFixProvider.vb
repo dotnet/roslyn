@@ -14,17 +14,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.JsonStringDetector
 
         Private Shared ReadOnly s_commentTrivia As New List(Of SyntaxTrivia) From
         {
-            SyntaxFactory.CommentTrivia("' language=json"),
+            SyntaxFactory.CommentTrivia("' lang=json"),
             SyntaxFactory.ElasticCarriageReturnLineFeed
         }
 
-        Protected Overrides Sub AddComment(editor As SyntaxEditor, stringLiteral As SyntaxToken)
+        Private Shared ReadOnly s_strictCommentTrivia As New List(Of SyntaxTrivia) From
+        {
+            SyntaxFactory.CommentTrivia("' lang=json,strict"),
+            SyntaxFactory.ElasticCarriageReturnLineFeed
+        }
+
+        Protected Overrides Sub AddComment(editor As SyntaxEditor, stringLiteral As SyntaxToken, strict As Boolean)
             Dim containingStatement = stringLiteral.Parent.GetAncestor(Of StatementSyntax)
 
             Dim leadingBlankLines = containingStatement.GetLeadingBlankLines()
 
+            Dim comment = If(strict, s_strictCommentTrivia, s_commentTrivia)
             Dim newStatement = containingStatement.GetNodeWithoutLeadingBlankLines().
-                                                   WithPrependedLeadingTrivia(leadingBlankLines.AddRange(s_commentTrivia))
+                                                   WithPrependedLeadingTrivia(leadingBlankLines.AddRange(comment))
 
             editor.ReplaceNode(containingStatement, newStatement)
         End Sub

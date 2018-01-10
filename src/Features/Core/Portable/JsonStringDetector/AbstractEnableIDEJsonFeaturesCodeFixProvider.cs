@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.JsonStringDetector
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.JsonDetectionDiagnosticId);
 
+        protected abstract void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, bool strict);
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
@@ -39,13 +41,13 @@ namespace Microsoft.CodeAnalysis.JsonStringDetector
                 var stringLiteral = diagnostic.Location.FindToken(cancellationToken);
                 Debug.Assert(syntaxFacts.IsStringLiteral(stringLiteral));
 
-                AddComment(editor, stringLiteral);
+                var strict = diagnostic.Properties.ContainsKey(
+                    AbstractJsonStringDetectorDiagnosticAnalyzer.StrictKey);
+                AddComment(editor, stringLiteral, strict);
             }
 
             return SpecializedTasks.EmptyTask;
         }
-
-        protected abstract void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         /// Option names are the values from the <see cref="RegexOptions"/> enum.
         /// </summary>
         private static readonly Regex s_languageCommentDetector = 
-            new Regex(@"language\s*=\s*regex(p)?((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            new Regex(@"lang(uage)?\s*=\s*regex(p)?((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private static readonly Dictionary<string, RegexOptions> s_nameToOption =
