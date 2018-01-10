@@ -828,8 +828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Build a new list of arguments to pass to the local function
                 // call that includes any necessary capture frames
-                var argumetsBuilder = ArrayBuilder<BoundExpression>.GetInstance(loweredSymbol.ParameterCount);
-                argumetsBuilder.AddRange(arguments);
+                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(loweredSymbol.ParameterCount);
+                argumentsBuilder.AddRange(arguments);
 
                 var start = loweredSymbol.ParameterCount - frameCount;
                 for (int i = start; i < loweredSymbol.ParameterCount; i++)
@@ -848,12 +848,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var frame = FrameOfType(syntax, frameType);
-                    argumetsBuilder.Add(frame);
+                    argumentsBuilder.Add(frame);
                 }
 
                 // frame arguments are passed by ref
                 // add corresponding refkinds
-                var refkindsBuilder = ArrayBuilder<RefKind>.GetInstance(argumetsBuilder.Count);
+                var refkindsBuilder = ArrayBuilder<RefKind>.GetInstance(argumentsBuilder.Count);
                 if (!argRefKinds.IsDefault)
                 {
                     refkindsBuilder.AddRange(argRefKinds);
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 refkindsBuilder.AddMany(RefKind.Ref, frameCount);
 
-                arguments = argumetsBuilder.ToImmutableAndFree();
+                arguments = argumentsBuilder.ToImmutableAndFree();
                 argRefKinds = refkindsBuilder.ToImmutableAndFree();
             }
 
