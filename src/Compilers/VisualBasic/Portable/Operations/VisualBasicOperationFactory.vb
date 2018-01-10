@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 ' since same bound node appears in multiple places in the tree
                 ' we can't use bound node to operation map.
                 ' for now, we will just create new operation and return cloned
-                Return _semanticModel.CloneOperation(CreateInternal(boundNode))
+                Return OperationCloner.CloneOperation(CreateInternal(boundNode))
             End If
 
             ' A BoundUserDefined conversion is always the operand of a BoundConversion, and is handled
@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             If conversionInfo.IsDelegateCreation Then
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
             Else
-                Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+                Return New LazyConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
         End Function
 

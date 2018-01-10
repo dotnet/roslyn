@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // always return cloned one
             if (boundNode.Kind == BoundKind.ImplicitReceiver)
             {
-                return _semanticModel.CloneOperation(CreateInternal(boundNode));
+                return OperationCloner.CloneOperation(CreateInternal(boundNode));
             }
 
             return _cache.GetOrAdd(boundNode, n => CreateInternal(n));
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                     bool isChecked = conversion.IsNumeric && boundConversion.Checked;
-                    return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new LazyConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
             }
         }
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
             bool isImplicit = boundAsOperator.WasCompilerGenerated;
-            return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDelegateCreationOperation CreateBoundDelegateCreationExpressionOperation(BoundDelegateCreationExpression boundDelegateCreationExpression)
@@ -1041,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundCompoundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundCompoundAssignmentOperator.ConstantValue);
             bool isImplicit = boundCompoundAssignmentOperator.WasCompilerGenerated;
-            return new LazyCSharpCompoundAssignmentOperation(target, value, inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyCompoundAssignmentOperation(target, value, inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IIncrementOrDecrementOperation CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)

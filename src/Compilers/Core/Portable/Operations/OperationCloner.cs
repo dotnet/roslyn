@@ -1,13 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
-    internal abstract class OperationCloner : OperationVisitor<object, IOperation>
+    internal sealed class OperationCloner : OperationVisitor<object, IOperation>
     {
-        protected T Visit<T>(T node) where T : IOperation
+        private static readonly OperationCloner s_instance = new OperationCloner();
+
+        /// <summary>
+        /// Deep clone given IOperation
+        /// </summary>
+        public static T CloneOperation<T>(T operation) where T : IOperation
+        {
+            return s_instance.Visit(operation);
+        }
+
+        private OperationCloner()
+        {
+        }
+
+        private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
         }
@@ -52,6 +67,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
         {
             return new VariableDeclaration(VisitArray(operation.Declarators), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitConversion(IConversionOperation operation, object argument)
+        {
+            return new ConversionOperation(Visit(operation.Operand), ((BaseConversionExpression)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitch(ISwitchOperation operation, object argument)
@@ -175,6 +195,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InvocationExpression(operation.TargetMethod, Visit(operation.Instance), operation.IsVirtual, VisitArray(operation.Arguments), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitArgument(IArgumentOperation operation, object argument)
+        {
+            var baseArgument = (BaseArgument)operation;
+            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertible, baseArgument.OutConversionConvertible, ((Operation)operation).SemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
+        }
+
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, object argument)
         {
             return new OmittedArgumentExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -253,6 +279,12 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, object argument)
         {
             return new BinaryOperatorExpression(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.IsLifted, operation.IsChecked, operation.IsCompareText, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, object argument)
+        {
+            var compoundAssignment = (BaseCompoundAssignmentExpression)operation;
+            return new CompoundAssignmentOperation(Visit(operation.Target), Visit(operation.Value), compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConditional(IConditionalOperation operation, object argument)

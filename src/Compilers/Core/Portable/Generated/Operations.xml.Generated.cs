@@ -201,11 +201,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseArgument : Operation, IArgumentOperation
     {
-        protected BaseArgument(ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+        protected BaseArgument(ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion,  SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Argument, semanticModel, syntax, type: null, constantValue: constantValue, isImplicit: isImplicit)
         {
             ArgumentKind = argumentKind;
             Parameter = parameter;
+            InConversionConvertible = inConversion;
+            OutConversionConvertible = outConversion;
         }
         /// <summary>
         /// Kind of argument.
@@ -216,8 +218,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public IParameterSymbol Parameter { get; }
         protected abstract IOperation ValueImpl { get; }
-        public abstract CommonConversion InConversion { get; }
-        public abstract CommonConversion OutConversion { get; }
+        internal IConvertibleConversion InConversionConvertible { get; }
+        internal IConvertibleConversion OutConversionConvertible { get; }
+        public CommonConversion InConversion => InConversionConvertible.ToCommonConversion();
+        public CommonConversion OutConversion => OutConversionConvertible.ToCommonConversion();
         public override IEnumerable<IOperation> Children
         {
             get
@@ -240,6 +244,28 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitArgument(this, argument);
         }
+    }
+
+    internal sealed partial class ArgumentOperation : BaseArgument
+    {
+        public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, constantValue, isImplicit)
+        {
+            ValueImpl = value;
+        }
+
+        protected override IOperation ValueImpl { get; }
+    }
+
+    internal sealed partial class LazyArgumentOperation : BaseArgument
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyArgumentOperation(Lazy<IOperation> value, ArgumentKind argumentKind, IConvertibleConversion inConversion, IConvertibleConversion outConversion, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, constantValue, isImplicit)
+        {
+            _lazyValue = value;
+        }
+
+        protected override IOperation ValueImpl => _lazyValue.Value;
     }
 
     /// <summary>
@@ -1103,13 +1129,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseCompoundAssignmentExpression : AssignmentExpression, ICompoundAssignmentOperation
     {
-        protected BaseCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseCompoundAssignmentExpression(IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.CompoundAssignment, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
             IsLifted = isLifted;
             IsChecked = isChecked;
             OperatorMethod = operatorMethod;
+            InConversionConvertible = inConversionConvertible;
+            OutConversionConvertible = outConversionConvertible;
         }
         /// <summary>
         /// Kind of binary operation.
@@ -1127,8 +1155,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
-        public abstract CommonConversion InConversion { get; }
-        public abstract CommonConversion OutConversion { get; }
+        internal IConvertibleConversion InConversionConvertible { get; }
+        internal IConvertibleConversion OutConversionConvertible { get; }
+        public CommonConversion InConversion => InConversionConvertible.ToCommonConversion();
+        public CommonConversion OutConversion => OutConversionConvertible.ToCommonConversion();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1138,6 +1168,33 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitCompoundAssignment(this, argument);
         }
+    }
+
+    internal sealed partial class CompoundAssignmentOperation : BaseCompoundAssignmentExpression
+    {
+        public CompoundAssignmentOperation(IOperation target, IOperation value, IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            TargetImpl = target;
+            ValueImpl = value;
+        }
+
+        protected override IOperation TargetImpl { get; }
+        protected override IOperation ValueImpl { get; }
+    }
+
+    internal sealed partial class LazyCompoundAssignmentOperation : BaseCompoundAssignmentExpression
+    {
+        private readonly Lazy<IOperation> _lazyTarget;
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyCompoundAssignmentOperation(Lazy<IOperation> target, Lazy<IOperation> value, IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyTarget = target;
+            _lazyValue = value;
+        }
+
+        protected override IOperation TargetImpl => _lazyTarget.Value;
+        protected override IOperation ValueImpl => _lazyValue.Value;
     }
 
     /// <summary>
@@ -1368,15 +1425,17 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseConversionExpression : Operation, IConversionOperation
     {
-        protected BaseConversionExpression(bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseConversionExpression(IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Conversion, semanticModel, syntax, type, constantValue, isImplicit)
         {
             IsTryCast = isTryCast;
             IsChecked = isChecked;
+            ConvertibleConversion = convertibleConversion;
         }
 
         public abstract IOperation OperandImpl { get; }
-        public abstract CommonConversion Conversion { get; }
+        internal IConvertibleConversion ConvertibleConversion { get; }
+        public CommonConversion Conversion => ConvertibleConversion.ToCommonConversion();
         public bool IsTryCast { get; }
         public bool IsChecked { get; }
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
@@ -1402,6 +1461,28 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitConversion(this, argument);
         }
+    }
+
+    internal sealed partial class ConversionOperation : BaseConversionExpression
+    {
+        public ConversionOperation(IOperation operand, IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            OperandImpl = operand;
+        }
+
+        public override IOperation OperandImpl { get; }
+    }
+
+    internal sealed partial class LazyConversionOperation : BaseConversionExpression
+    {
+        private readonly Lazy<IOperation> _lazyOperand;
+
+        public LazyConversionOperation(Lazy<IOperation> lazyOperand, IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyOperand = lazyOperand;
+        }
+
+        public override IOperation OperandImpl => _lazyOperand.Value;
     }
 
     /// <remarks>
