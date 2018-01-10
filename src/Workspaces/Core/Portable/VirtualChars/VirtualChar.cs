@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.VirtualChars
         {
             if (span.IsEmpty)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Span should not be empty.", nameof(span));
             }
 
             Char = @char;
