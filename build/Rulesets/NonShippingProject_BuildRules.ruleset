@@ -33,4 +33,17 @@
     <!-- Mark constant field as 'const' instead of static readonly - not useful for tests -->
     <Rule Id="CA1802" Action="None" />
   </Rules>  
+
+  <Rules AnalyzerId="Xunit.Analyzers" RuleNamespace="Xunit.Analyzers">
+    <!-- Do not use Enumerable.Any() to check if a value exists in a collection -->
+    <Rule Id="xUnit2012" Action="None" />
+    <!-- Do not use equality check to check for collection size -->
+    <Rule Id="xUnit2013" Action="None" />
+    <!-- Do not use typeof expression to check the exception type -->
+    <Rule Id="xUnit2015" Action="None" />
+    <!-- Do not use Contains() to check if a value exists in a collection -->
+    <Rule Id="xUnit2017" Action="None" />
+    <!-- Do not compare an object's exact type to an abstract class or interface -->
+    <Rule Id="xUnit2018" Action="None" />
+  </Rules> 
 </RuleSet>
