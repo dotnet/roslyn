@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Function
 
         Public Async Function WaitForRename(workspace As TestWorkspace) As Task
-            Dim provider = DirectCast(workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider), AsynchronousOperationListenerProvider)
+            Dim provider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider))
             Await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.Rename)
         End Function
 

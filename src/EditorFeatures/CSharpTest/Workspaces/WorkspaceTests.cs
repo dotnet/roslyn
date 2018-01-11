@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
-            var workspaceWaiter = workspace.ExportProvider
-                                           .GetExportedValue<IAsynchronousOperationListenerProvider>()
-                                           .GetListener(FeatureAttribute.Workspace) as IAsynchronousOperationWaiter;
+            var workspaceWaiter = (IAsynchronousOperationWaiter)workspace.ExportProvider
+                                    .GetExportedValue<IAsynchronousOperationListenerProvider>()
+                                    .GetListener(FeatureAttribute.Workspace);
 
             await workspaceWaiter.CreateWaitTask();
         }

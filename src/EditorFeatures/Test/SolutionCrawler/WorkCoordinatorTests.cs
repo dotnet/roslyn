@@ -979,7 +979,7 @@ End Class";
 
         private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
         {
-            return (AsynchronousOperationListenerProvider)provider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            return provider.GetExportedValue<AsynchronousOperationListenerProvider>();
         }
 
         private static void SetOptions(Workspace workspace)

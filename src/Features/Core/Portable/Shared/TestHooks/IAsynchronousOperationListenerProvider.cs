@@ -25,7 +25,14 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         IAsynchronousOperationListener GetListener(string featureName);
     }
 
-    [Export(typeof(IAsynchronousOperationListenerProvider)), Shared]
+    /// <summary>
+    /// use <see cref="IAsynchronousOperationListenerProvider" /> in product code to get
+    /// <see cref="IAsynchronousOperationListener" /> and use
+    /// <see cref="AsynchronousOperationListenerProvider" /> in test to get waiter.
+    /// </summary>
+    [Shared]
+    [Export(typeof(IAsynchronousOperationListenerProvider))]
+    [Export(typeof(AsynchronousOperationListenerProvider))]
     internal class AsynchronousOperationListenerProvider : IAsynchronousOperationListenerProvider
     {
         public static readonly IAsynchronousOperationListenerProvider NullProvider = new NullListenerProvider();
