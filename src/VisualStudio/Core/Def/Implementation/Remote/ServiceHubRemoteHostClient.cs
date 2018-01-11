@@ -132,17 +132,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // projectTracker is sending events, the workspace host can then use that connection 
             // instead of having to expensively spin up a fresh one.
             var session = await client.TryCreateKeepAliveSessionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
-            var host = new WorkspaceHost(vsWorkspace, session);
 
-            // RegisterWorkspaceHost is required to be called from UI thread so push the code
-            // to UI thread to run. 
-            await Task.Factory.SafeStartNew(() =>
-            {
-                var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
-
-                projectTracker.RegisterWorkspaceHost(host);
-                projectTracker.StartSendingEventsToWorkspaceHost(host);
-            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
+            // TODO: subscribe to working folder changes
         }
 
         private ServiceHubRemoteHostClient(

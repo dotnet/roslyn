@@ -10,6 +10,8 @@ using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -22,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Readonly fields
         private static readonly ConditionalWeakTable<SolutionId, string> s_workingFolderPathMap = new ConditionalWeakTable<SolutionId, string>();
 
+        /// <summary>
+        /// The underlying workspace. This is an instance of <see cref="VisualStudioWorkspaceImpl"/> in Visual Studio, but
+        /// of TestWorkpace if we're in tests. Type checking should be avoided for the most part.
+        /// </summary>
+        private readonly Workspace _workspace;
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsSolution _vsSolution;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
@@ -29,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #endregion
 
         #region Mutable fields accessed only from foreground thread - don't need locking for access (all accessing methods must have AssertIsForeground).
-        private readonly List<WorkspaceHostState> _workspaceHosts;
 
         /// <summary>
         /// Set to true while we're batching project loads. That is, between
@@ -52,10 +58,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Set to true once the solution has already been completely loaded and all future changes
-        /// should be pushed immediately to the workspace hosts. This may not actually result in changes
-        /// being pushed to a particular host if <see cref="WorkspaceHostState.HostReadyForEvents"/> isn't true yet.
+        /// should be pushed immediately to the workspace hosts.
         /// </summary>
         private bool _solutionLoadComplete = false;
+
+        /// <summary>
+        /// Set to true if we've already called <see cref="Workspace.OnSolutionAdded(Microsoft.CodeAnalysis.SolutionInfo)"/>. Set to false after the solution has closed.
+        /// </summary>
+        private bool _solutionAdded;
+
+        /// <summary>
+        /// The projects that have already been added to the workspace.
+        /// </summary>
+        private readonly HashSet<AbstractProject> _pushedProjects = new HashSet<AbstractProject>();
+
         #endregion
 
         #region Mutable fields accessed from foreground or background threads - need locking for access.
@@ -100,15 +116,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject));
         }
 
-        public VisualStudioProjectTracker(IServiceProvider serviceProvider, HostWorkspaceServices workspaceServices)
+        public VisualStudioProjectTracker(IServiceProvider serviceProvider, Workspace workspace)
             : base(assertIsForeground: true)
         {
             _projectMap = new Dictionary<ProjectId, AbstractProject>();
             _projectPathToIdMap = new Dictionary<string, ProjectId>(StringComparer.OrdinalIgnoreCase);
 
             _serviceProvider = serviceProvider;
-            _workspaceHosts = new List<WorkspaceHostState>(capacity: 1);
-            WorkspaceServices = workspaceServices;
+            _workspace = workspace;
+            WorkspaceServices = workspace.Services;
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
@@ -163,45 +179,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             return null;
-        }
-
-        public void RegisterWorkspaceHost(IVisualStudioWorkspaceHost host)
-        {
-            this.AssertIsForeground();
-
-            if (_workspaceHosts.Any(hostState => hostState.Host == host))
-            {
-                throw new ArgumentException("The workspace host is already registered.", nameof(host));
-            }
-
-            _workspaceHosts.Add(new WorkspaceHostState(this, host));
-        }
-
-        public void StartSendingEventsToWorkspaceHost(IVisualStudioWorkspaceHost host)
-        {
-            AssertIsForeground();
-
-            var hostData = _workspaceHosts.FirstOrDefault(s => s.Host == host);
-            if (hostData == null)
-            {
-                throw new ArgumentException("The workspace host not registered", nameof(host));
-            }
-
-            // This method is idempotent.
-            if (hostData.HostReadyForEvents)
-            {
-                return;
-            }
-
-            hostData.HostReadyForEvents = true;
-
-            // If any of the projects are already interactive, then we better catch up the host.
-            var interactiveProjects = this.ImmutableProjects.Where(p => p.PushingChangesToWorkspaceHosts);
-
-            if (interactiveProjects.Any())
-            {
-                hostData.StartPushingToWorkspaceAndNotifyOfOpenDocuments(interactiveProjects);
-            }
         }
 
         public void InitializeProviders(DocumentProvider documentProvider, VisualStudioMetadataReferenceManager metadataReferenceProvider, VisualStudioRuleSetManager ruleSetFileProvider)
@@ -272,11 +249,109 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            using (Dispatcher.CurrentDispatcher.DisableProcessing())
+            // If the solution is closing we shouldn't do anything, because all of our state is
+            // in the process of going away. This can happen if we receive notification that a document has
+            // opened in the middle of the solution close operation.
+            if (_solutionIsClosing)
             {
-                foreach (var hostState in _workspaceHosts)
+                return;
+            }
+
+            // We need to push these projects and any project dependencies we already know about. Therefore, compute the
+            // transitive closure of the projects that haven't already been pushed, keeping them in appropriate order.
+            var visited = new HashSet<AbstractProject>();
+            var inOrderToPush = new List<AbstractProject>();
+
+            void addToInOrderToPush(AbstractProject project)
+            {
+                Contract.ThrowIfFalse(ContainsProject(project));
+
+                // Bail out if any of the following is true:
+                //  1. We have already started pushing changes for this project OR
+                //  2. We have already visited this project in a prior recursive call                
+                if (_pushedProjects.Contains(project) || !visited.Add(project))
                 {
-                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
+                    return;
+                }
+
+                foreach (var projectReference in project.GetCurrentProjectReferences())
+                {
+                    addToInOrderToPush(GetProject(projectReference.ProjectId));
+                }
+
+                inOrderToPush.Add(project);
+            }
+
+            foreach (var project in projects)
+            {
+                addToInOrderToPush(project);
+            }
+
+            var projectInfos = inOrderToPush.Select(p => p.CreateProjectInfoForCurrentState()).ToImmutableArray();
+
+            // We need to enable projects to start pushing changes to the workspace even before we add the solution/project to the host.
+            // This is required because between the point we capture the project info for current state and the point where we start pushing to the workspace,
+            // project system may send new events on the AbstractProject on a background thread, and these won't get pushed over to the workspace hosts as we didn't set the _pushingChangesToWorkspaceHost flag on the AbstractProject.
+            // By invoking StartPushingToWorkspaceHosts upfront, any project state changes on the background thread will enqueue notifications to workspace hosts on foreground scheduled tasks.
+            foreach (var project in inOrderToPush)
+            {
+                project.StartPushingToWorkspaceHosts();
+            }
+
+            using (WorkspaceServices.GetService<IGlobalOperationNotificationService>()?.Start("Add Project to Workspace"))
+            {
+                if (!_solutionAdded)
+                {
+                    string solutionFilePath = null;
+                    VersionStamp? version = default;
+                    // Figure out the solution version
+                    if (ErrorHandler.Succeeded(_vsSolution.GetSolutionInfo(out var solutionDirectory, out var solutionFileName, out var userOptsFile)) && solutionFileName != null)
+                    {
+                        solutionFilePath = Path.Combine(solutionDirectory, solutionFileName);
+                        if (File.Exists(solutionFilePath))
+                        {
+                            version = VersionStamp.Create(File.GetLastWriteTimeUtc(solutionFilePath));
+                        }
+                    }
+
+                    if (version == null)
+                    {
+                        version = VersionStamp.Create();
+                    }
+
+                    var id = SolutionId.CreateNewId(string.IsNullOrWhiteSpace(solutionFileName) ? null : solutionFileName);
+                    RegisterSolutionProperties(id);
+
+                    var solutionInfo = SolutionInfo.Create(id, version.Value, solutionFilePath, projects: projectInfos);
+
+                    NotifyWorkspace(workspace => workspace.OnSolutionAdded(solutionInfo));
+
+                    _solutionAdded = true;
+                }
+                else
+                {
+                    // The solution is already added, so we'll just do project added notifications from here
+                    foreach (var projectInfo in projectInfos)
+                    {
+                        NotifyWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
+                    }
+                }
+
+                foreach (var project in inOrderToPush)
+                {
+                    _pushedProjects.Add(project);
+
+                    foreach (var document in project.GetCurrentDocuments())
+                    {
+                        if (document.IsOpen)
+                        {
+                            NotifyWorkspace(workspace =>
+                                workspace.OnDocumentOpened(
+                                    document.Id,
+                                    document.GetOpenTextBuffer().AsTextContainer(),
+                                    isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable)));
+                        }
+                    }
                 }
             }
         }
@@ -295,12 +370,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             UpdateProjectBinPath(project, project.BinOutputPath, null);
 
-            using (Dispatcher.CurrentDispatcher.DisableProcessing())
+            if (_pushedProjects.Contains(project))
             {
-                foreach (var hostState in _workspaceHosts)
-                {
-                    hostState.RemoveProject(project);
-                }
+                NotifyWorkspace(workspace => workspace.OnProjectRemoved(project.Id));
+
+                _pushedProjects.Remove(project);
             }
         }
 
@@ -378,23 +452,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Notifies the workspace host about the given action.
+        /// Notifies the <see cref="Workspace"/> of the change with the appropriate threading handling.
         /// </summary>
         /// <remarks>This method must be called on the foreground thread.</remarks>
-        internal void NotifyWorkspaceHosts(Action<IVisualStudioWorkspaceHost> action)
+        internal void NotifyWorkspace(Action<Workspace> action)
         {
             AssertIsForeground();
 
             // We do not want to allow message pumping/reentrancy when processing project system changes.
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                foreach (var workspaceHost in _workspaceHosts)
-                {
-                    if (workspaceHost.HostReadyForEvents)
-                    {
-                        action(workspaceHost.Host);
-                    }
-                }
+                action(_workspace);
             }
         }
 
@@ -539,8 +607,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 Contract.ThrowIfFalse(_projectMap.Count == 0);
             }
 
-            NotifyWorkspaceHosts(host => host.OnSolutionRemoved());
-            NotifyWorkspaceHosts(host => host.ClearSolution());
+            NotifyWorkspace(host => host.OnSolutionRemoved());
+            NotifyWorkspace(host => (host as VisualStudioWorkspaceImpl)?.ClearReferenceCache());
 
             lock (_gate)
             {
@@ -549,10 +617,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             RuleSetFileProvider.ClearCachedRuleSetFiles();
 
-            foreach (var workspaceHost in _workspaceHosts)
-            {
-                workspaceHost.SolutionClosed();
-            }
+            _solutionAdded = false;
+            _pushedProjects.Clear();
 
             _solutionIsClosing = false;
         }

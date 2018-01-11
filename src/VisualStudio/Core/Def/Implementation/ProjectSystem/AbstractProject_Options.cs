@@ -128,7 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (_pushingChangesToWorkspaceHosts)
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(Id, newCompilationOptions, newParseOptions));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnCompilationOptionsChanged(Id, newCompilationOptions));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnParseOptionsChanged(Id, newParseOptions));
             }
         }
 

@@ -45,15 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_pushingChangesToWorkspaceHosts)
             {
                 var analyzerReference = analyzer.GetReference();
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(Id, analyzerReference));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceAdded(Id, analyzerReference));
 
                 List<VisualStudioAnalyzer> existingReferencesWithLoadErrors = GetCurrentAnalyzers().Where(a => a.HasLoadErrors).ToList();
 
                 foreach (var existingReference in existingReferencesWithLoadErrors)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceRemoved(Id, existingReference.GetReference()));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceRemoved(Id, existingReference.GetReference()));
                     existingReference.Reset();
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(Id, existingReference.GetReference()));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceAdded(Id, existingReference.GetReference()));
                 }
 
                 GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_pushingChangesToWorkspaceHosts)
             {
                 var analyzerReference = analyzer.GetReference();
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceRemoved(Id, analyzerReference));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceRemoved(Id, analyzerReference));
 
                 GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
