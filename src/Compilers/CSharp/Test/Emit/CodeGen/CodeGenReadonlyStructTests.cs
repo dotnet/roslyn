@@ -1077,24 +1077,19 @@ class Test
 
             CompileAndVerify(comp, expectedOutput: "10", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       26 (0x1a)
   .maxstack  2
-  .locals init (System.Span<int> V_0, //x
-                int V_1)
-  IL_0000:  ldc.i4.s   10
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
-  IL_0004:  conv.u
-  IL_0005:  ldc.i4.4
-  IL_0006:  mul.ovf.un
-  IL_0007:  localloc
-  IL_0009:  ldloc.1
-  IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_000f:  stloc.0
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""int System.Span<int>.Length.get""
-  IL_0017:  call       ""void System.Console.WriteLine(int)""
-  IL_001c:  ret
+  .locals init (System.Span<int> V_0) //x
+  IL_0000:  ldc.i4.s   40
+  IL_0002:  conv.u
+  IL_0003:  localloc
+  IL_0005:  ldc.i4.s   10
+  IL_0007:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int System.Span<int>.Length.get""
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ret
 }");
         }
 
