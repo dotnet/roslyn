@@ -1901,7 +1901,7 @@ class Program
     }
 }";
             VerifyDiagnostics(source,
-    // (10,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
+    // (10,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(10, 31)
     );

@@ -2697,8 +2697,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
-        <source>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="translated">'{0}': StructLayout(LayoutKind.Explicit) でマークされたインスタンス フィールドの型には、FieldOffset 属性を指定する必要があります。</target>
+        <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
+        <target state="needs-review-translation">'{0}': StructLayout(LayoutKind.Explicit) でマークされたインスタンス フィールドの型には、FieldOffset 属性を指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -3469,11 +3469,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">初期化子が直接的または間接的に定義を参照しているため、'{0}' の型を推論することはできません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitLayoutAndAutoImplementedProperty">
-        <source>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</source>
-        <target state="translated">'{0}': 自動実装プロパティは、StructLayout(LayoutKind.Explicit) でマークされた型の内部では使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoProperty">
@@ -4391,8 +4386,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
-        <source>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
-        <target state="translated">ref または out パラメーター '{0}' は、匿名メソッド、ラムダ式、またはクエリ式の内部では使用できません。</target>
+        <source>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
+        <target state="needs-review-translation">ref または out パラメーター '{0}' は、匿名メソッド、ラムダ式、またはクエリ式の内部では使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -8583,6 +8578,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
         <target state="translated">既定のリテラル 'default' はパターンとして無効です。必要に応じて別のリテラル (例: '0' または 'null') をご使用ください。すべてと一致するためには、破棄パターン 'var _' をご使用ください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
+        <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
+        <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
+        <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
+        <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
     </body>
