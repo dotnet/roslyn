@@ -226,11 +226,6 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComSourceInterfacesAttribute");
         }
 
-        public static INamedTypeSymbol EventHandler(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.EventHandler");
-        }
-
         public static INamedTypeSymbol GenericEventHandler(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.EventHandler`1");
