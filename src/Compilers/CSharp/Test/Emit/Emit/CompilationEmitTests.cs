@@ -823,13 +823,11 @@ public class C
 
             string name = GetUniqueName();
             string source1 = sourceTemplate.Replace("CHANGE", change1);
-            CSharpCompilation comp1 = CreateStandardCompilation(Parse(source1, options: TestOptions.RegularLatest),
-                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+            CSharpCompilation comp1 = CreateStandardCompilation(Parse(source1), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
-            Compilation comp2 = CreateStandardCompilation(Parse(source2, options: TestOptions.RegularLatest),
-                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+            Compilation comp2 = CreateStandardCompilation(Parse(source2), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             if (expectMatch)

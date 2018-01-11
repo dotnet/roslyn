@@ -350,7 +350,7 @@ class C
         M(1, first: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,14): error CS1744: Named argument 'first' specifies a parameter for which a positional argument has already been given
                 //         M(1, first: 2);
@@ -406,7 +406,7 @@ class C
         M(c: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 //         M(c: 1, 2);
@@ -438,7 +438,7 @@ class C
         M(x: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         M(x: 1, 2);
@@ -467,7 +467,7 @@ class C
         M(1, x: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,14): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
                 //         M(1, x: 2);
@@ -499,7 +499,7 @@ class C
         M(x: 3, new[] { ""4"", ""5"" });
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.", parseOptions: TestOptions.RegularLatest);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.");
             comp.VerifyDiagnostics();
         }
 
@@ -517,7 +517,7 @@ class C
         M(x: 1, x: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2);
@@ -581,7 +581,7 @@ class C
         M(y: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,11): error CS8321: Named argument 'y' is used out-of-position but is followed by an unnamed argument
                 //         M(y: 1, 2);
@@ -610,7 +610,7 @@ class C
         M(x: 1, y: 2, 3);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,9): error CS1501: No overload for method 'M' takes 3 arguments
                 //         M(x: 1, y: 2, 3);
@@ -632,7 +632,7 @@ class C
         M(x: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //     static void M(params int[] x, int y)
@@ -665,7 +665,7 @@ class C
         M(y: 1, x: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "x=2 y[0]=1 y.Length=1");
 
@@ -693,7 +693,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 //         M(c: valueC, valueB);
@@ -731,7 +731,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.", parseOptions: TestOptions.RegularLatest);
+            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -763,7 +763,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.", parseOptions: TestOptions.RegularLatest);
+            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -790,7 +790,7 @@ class C
         M(a: 1, 2);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "42", parseOptions: TestOptions.RegularLatest);
+            var comp = CompileAndVerify(source, expectedOutput: "42");
             comp.VerifyDiagnostics();
         }
 
@@ -866,7 +866,7 @@ class C
         c[a: 1, d] = d;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -884,7 +884,7 @@ class C
         M(b: 2, 3, 4);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,11): error CS8321: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 //         M(b: 2, 3, 4);
@@ -907,7 +907,7 @@ class C
         M(1, b: 2, 3, 4);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2", parseOptions: TestOptions.RegularLatest);
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2");
             verifier.VerifyDiagnostics();
         }
 
@@ -930,7 +930,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,38): error CS1016: Named attribute argument expected
                 // [MyAttribute(condition: true, P = 1, 42)]
@@ -1003,7 +1003,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,14): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 // [MyAttribute(c:3, 2)]
@@ -1031,7 +1031,7 @@ class C
         M(x: 1, x: 2, __arglist());
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2, __arglist());
@@ -1053,7 +1053,7 @@ class C
         M(__arglist(x: 1, x: 2, __arglist()));
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(__arglist(x: 1, x: 2, __arglist()));
@@ -1095,7 +1095,7 @@ class C
         return result;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.", parseOptions: TestOptions.RegularLatest);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.");
             comp.VerifyDiagnostics();
         }
 
@@ -1110,7 +1110,7 @@ class C
         M(y: 1, x: 2, __arglist(3));
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,11): error CS8322: Named argument 'y' is used out-of-position but is followed by an unnamed argument
                 //         M(y: 1, x: 2, __arglist(3));
@@ -1126,7 +1126,7 @@ class C
 {
     C() : this(x: 1, x: 2, 3) { }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,22): error CS1740: Named argument 'x' cannot be specified multiple times
                 //     C() : this(x: 1, x: 2, 3) { }
@@ -1148,7 +1148,7 @@ class C
         new C(x: 1, x: 2, 3);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         new C(x: 1, x: 2, 3);
@@ -1172,7 +1172,7 @@ class C
         System.Console.Write(c[x: 1, x: 2, 3]);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,38): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         System.Console.Write(c[x: 1, x: 2, 3]);

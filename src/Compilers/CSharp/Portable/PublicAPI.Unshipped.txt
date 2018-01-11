@@ -1,6 +1,8 @@
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.WithRefKindKeyword(Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Argument(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
+*REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.SyntaxToken refOrOutKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Conversion.IsStackAlloc.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.ToCommonConversion() -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.CSharp.DeconstructionInfo
@@ -11,6 +13,9 @@ Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_2 = 702 -> Microsoft.CodeA
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.RefKindKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.WithRefKindKeyword(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.RefKindKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithRefKindKeyword(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.WithReadOnlyKeyword(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
@@ -21,4 +26,5 @@ static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeconstructionInfo(this
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInConversion(this Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation compoundAssignment) -> Microsoft.CodeAnalysis.CSharp.Conversion
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetOutConversion(this Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation compoundAssignment) -> Microsoft.CodeAnalysis.CSharp.Conversion
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Argument(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
