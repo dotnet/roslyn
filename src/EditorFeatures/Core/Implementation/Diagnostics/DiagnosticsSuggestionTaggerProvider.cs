@@ -6,8 +6,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -29,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
-        protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
-
+        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         public DiagnosticsSuggestionTaggerProvider(
@@ -42,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
-        {
-            return diagnostic.Severity == DiagnosticSeverity.Info;
-        }
+            => diagnostic.Severity == DiagnosticSeverity.Info;
 
         protected override IErrorTag CreateTag(DiagnosticData diagnostic) =>
             new ErrorTag(PredefinedErrorTypeNames.HintedSuggestion, diagnostic.Message);

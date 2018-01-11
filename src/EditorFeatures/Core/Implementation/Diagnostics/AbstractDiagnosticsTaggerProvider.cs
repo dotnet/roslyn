@@ -1,12 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
@@ -22,47 +31,132 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     /// Each of these taggers is nicely asynchronous and properly works within the async
     /// tagging infrastructure. 
     /// </summary>
-    internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> :
-        ForegroundThreadAffinitizedObject,
-        ITaggerProvider
+    internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerProvider<TTag>
         where TTag : ITag
     {
-        private readonly object _uniqueKey = new object();
         private readonly IDiagnosticService _diagnosticService;
-        private readonly IForegroundNotificationService _notificationService;
-        private readonly IAsynchronousOperationListener _listener;
 
         protected AbstractDiagnosticsTaggerProvider(
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListener listener)
+            : base(listener, notificationService)
         {
             _diagnosticService = diagnosticService;
-            _notificationService = notificationService;
-            _listener = listener;
         }
 
-        protected internal abstract IEnumerable<Option<bool>> Options { get; }
+        protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
+
+        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return TaggerEventSources.Compose(
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Medium),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.Medium),
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService, TaggerDelay.Short));
+        }
+
         protected internal abstract bool IsEnabled { get; }
         protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
         protected internal abstract ITagSpan<TTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
 
-        ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+        protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
-            return CreateTagger<T>(buffer);
+            ProduceTags(context, spanToTag);
+            return SpecializedTasks.EmptyTask;
         }
 
-        public IAccurateTagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
         {
-            var tagger = buffer.Properties.GetOrCreateSingletonProperty(
-                _uniqueKey, () => new AggregatingTagger(this, buffer));
-            tagger.OnTaggerCreated();
-            return tagger as IAccurateTagger<T>;
+            if (!this.IsEnabled)
+            {
+                return;
+            }
+
+            var document = spanToTag.Document;
+            if (document == null)
+            {
+                return;
+            }
+
+            var editorSnapshot = spanToTag.SnapshotSpan.Snapshot;
+
+            var cancellationToken = context.CancellationToken;
+            var workspace = document.Project.Solution.Workspace;
+
+            // See if we've marked any spans as those we want to suppress diagnostics for.
+            // This can happen for buffers used in the preview workspace where some feature
+            // is generating code that it doesn't want errors shown for.
+            var buffer = editorSnapshot.TextBuffer;
+            var suppressedDiagnosticsSpans = default(NormalizedSnapshotSpanCollection);
+            buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
+
+            var eventArgs = _diagnosticService.GetDiagnosticsUpdatedEventArgs(
+                workspace, document.Project.Id, document.Id, context.CancellationToken);
+
+            var sourceText = editorSnapshot.AsText();
+            foreach (var updateArg in eventArgs)
+            {
+                ProduceTags(
+                    context, spanToTag, workspace, document, sourceText, editorSnapshot,
+                    suppressedDiagnosticsSpans, updateArg, cancellationToken);
+            }
         }
 
-        private void RemoveTagger(AggregatingTagger tagger, ITextBuffer buffer)
+        private void ProduceTags(
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
+            Workspace workspace, Document document, SourceText sourceText, ITextSnapshot editorSnapshot,
+            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans, UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
         {
-            buffer.Properties.RemoveProperty(_uniqueKey);
+            try
+            {
+                var id = updateArgs.Id;
+                var diagnostics = _diagnosticService.GetDiagnostics(
+                    workspace, document.Project.Id, document.Id, id, false, cancellationToken);
+
+                var isLiveUpdate = id is ISupportLiveUpdate;
+
+                var requestedSpan = spanToTag.SnapshotSpan;
+                var requestedSnapshot = requestedSpan.Snapshot;
+
+                foreach (var diagnosticData in diagnostics)
+                {
+                    if (this.IncludeDiagnostic(diagnosticData))
+                    {
+                        // We're going to be retrieving the diagnostics against the last time the engine
+                        // computed them against this document *id*.  That might have been a different
+                        // version of the document vs what we're looking at now.  As such, we have to 
+                        // ensure that the information we get back is not outside the bounds of the editor
+                        // snapshot we're currently looking at.
+
+                        // Note: GetExistingOrCalculatedTextSpan always succeeds.  But it does not ensure
+                        // that the span it returns is within the span of sourceText.  So we make sure that
+                        // the start/end of it fits in our snapshot.
+
+                        var diagnosticSpan = diagnosticData.GetExistingOrCalculatedTextSpan(sourceText)
+                                                           .ToSnapshotSpan(editorSnapshot);
+
+                        if (diagnosticSpan.IntersectsWith(requestedSpan) &&
+                            !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
+                        {
+                            var tagSpan = this.CreateTagSpan(isLiveUpdate, diagnosticSpan, diagnosticData);
+                            if (tagSpan != null)
+                            {
+                                context.AddTag(tagSpan);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportWithoutCrash(ex))
+            {
+                // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=428328&_a=edit&triage=false
+                // explicitly report NFW to find out what is causing us for out of range.
+                // stop crashing on such occations
+                return;
+            }
         }
+
+        private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)
+            => suppressedSpans != null && suppressedSpans.IntersectsWith(span);
     }
 }
