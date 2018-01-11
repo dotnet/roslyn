@@ -365,5 +365,15 @@ namespace Analyzer.Utilities
         {
             return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.StructLayoutAttribute");
         }
+
+        public static INamedTypeSymbol IDbCommand(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Data.IDbCommand");
+        }
+
+        public static INamedTypeSymbol IDataAdapter(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Data.IDataAdapter");
+        }
     }
 }

@@ -356,9 +356,10 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        private static bool IsImplementationOfInterfaceMember(ISymbol symbol, ISymbol interfaceMember)
+        public static bool IsImplementationOfInterfaceMember(this ISymbol symbol, ISymbol interfaceMember)
         {
-            return interfaceMember != null && symbol.Equals(symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
+            return interfaceMember != null &&
+                   symbol.Equals(symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
         }
 
         /// <summary>

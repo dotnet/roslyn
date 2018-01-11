@@ -285,5 +285,20 @@ namespace Analyzer.Utilities.Extensions
             // from being considered a static holder class.
             return !member.IsStatic && !member.IsDefaultConstructor();
         }
+
+        public static IPropertySymbol GetProperty(this INamedTypeSymbol namedType, string propertyName)
+        {
+            if (namedType == null)
+            {
+                throw new ArgumentNullException(nameof(namedType));
+            }
+
+            if (propertyName == null)
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            return (IPropertySymbol)namedType.GetMembers(propertyName).Single();
+        }
     }
 }

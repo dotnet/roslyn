@@ -71,6 +71,29 @@ namespace Analyzer.Utilities.Extensions
             return source.Where((Func<T, bool>)s_notNullTest);
         }
 
+        public static ImmutableArray<TSource> WhereAsArray<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> selector)
+        {
+            var builder = ImmutableArray.CreateBuilder<TSource>();
+            bool any = false;
+            foreach (var element in source)
+            {
+                if (selector(element))
+                {
+                    any = true;
+                    builder.Add(element);
+                }
+            }
+
+            if (any)
+            {
+                return builder.ToImmutable();
+            }
+            else
+            {
+                return ImmutableArray<TSource>.Empty;
+            }
+        }
+
         private class ComparisonComparer<T> : Comparer<T>
         {
             private readonly Comparison<T> _compare;
