@@ -3953,9 +3953,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode VisitCrefParameter(CrefParameterSyntax node)
     {
-      var refOrOutKeyword = this.VisitToken(node.RefOrOutKeyword);
+      var refKindKeyword = this.VisitToken(node.RefKindKeyword);
       var type = (TypeSyntax)this.Visit(node.Type);
-      return node.Update(refOrOutKeyword, type);
+      return node.Update(refKindKeyword, type);
     }
 
     public override SyntaxNode VisitXmlElement(XmlElementSyntax node)
@@ -9753,20 +9753,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new CrefParameterSyntax instance.</summary>
-    public static CrefParameterSyntax CrefParameter(SyntaxToken refOrOutKeyword, TypeSyntax type)
+    public static CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, TypeSyntax type)
     {
-      switch (refOrOutKeyword.Kind())
+      switch (refKindKeyword.Kind())
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
+        case SyntaxKind.InKeyword:
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refOrOutKeyword");
+          throw new ArgumentException("refKindKeyword");
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
-      return (CrefParameterSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken)refOrOutKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+      return (CrefParameterSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken)refKindKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
     }
 
 

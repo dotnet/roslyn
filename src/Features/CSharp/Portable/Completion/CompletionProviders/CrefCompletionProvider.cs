@@ -341,13 +341,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                         var parameter = parameters[i];
 
-                        if (parameter.RefKind == RefKind.Out)
+                        switch (parameter.RefKind)
                         {
-                            builder.Append("out ");
-                        }
-                        else if (parameter.RefKind == RefKind.Ref)
-                        {
-                            builder.Append("ref ");
+                            case RefKind.Ref:
+                                builder.Append("ref ");
+                                break;
+                            case RefKind.Out:
+                                builder.Append("out ");
+                                break;
+                            case RefKind.In:
+                                builder.Append("in ");
+                                break;
                         }
 
                         builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position));
