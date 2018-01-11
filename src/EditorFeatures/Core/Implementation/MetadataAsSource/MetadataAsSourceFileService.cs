@@ -218,17 +218,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
             {
+                var candidateAssemblies = new List<IAssemblySymbol>();
                 foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
                 {
                     if (assembly.Identity.Name == name.Name
-                        && assembly.Identity.Version == name.Version
                         && assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
                     {
-                        // reference assemblies should be fine here...
-                        var reference = parentCompilation.GetMetadataReference(assembly);
-                        return AssemblyDefinition.ReadAssembly(reference.Display);
+                        if (assembly.Identity.Version == name.Version)
+                        {
+                            candidateAssemblies.Clear();
+                            candidateAssemblies.Add(assembly);
+                            break;
+                        }
+                        else
+                        {
+                            candidateAssemblies.Add(assembly);
+                        }
                     }
                 }
+
+                candidateAssemblies.Sort((x, y) => Comparer<Version>.Default.Compare(x.Identity.Version, y.Identity.Version));
+                var resolved = candidateAssemblies.LastOrDefault();
+                if (resolved != null)
+                {
+                    // reference assemblies should be fine here...
+                    var reference = parentCompilation.GetMetadataReference(resolved);
+                    return AssemblyDefinition.ReadAssembly(reference.Display);
+                }
+
                 // not found
                 return null;
             }
