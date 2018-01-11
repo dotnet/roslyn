@@ -314,9 +314,51 @@ class C
                 // (6,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 15),
+                // (6,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                //         using await (new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
                 // (9,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 15)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 15),
+                // (9,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void TestMissingIDisposable()
+        {
+            string source = @"
+class C
+{
+    int M()
+    {
+        using (new C())
+        {
+        }
+        using (var x = new C())
+        {
+            return 1;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.MakeTypeMissing((WellKnownType)SpecialType.System_IDisposable);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
+                //         using (new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(6, 9),
+                // (6,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                //         using (new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(6, 16),
+                // (9,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
+                //         using (var x = new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(9, 9),
+                // (9,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                //         using (var x = new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = new C()").WithArguments("C").WithLocation(9, 16)
                 );
         }
 
@@ -349,6 +391,35 @@ class C : System.IAsyncDisposable
                 // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
                 //         using await (var x = new C()) { return 1; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (var x = new C()) { return 1; }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void TestMissingDispose()
+        {
+            string source = @"
+class C : System.IDisposable
+{
+    int M()
+    {
+        using (new C()) { }
+        using (var x = new C()) { return 1; }
+    }
+    public void Dispose()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+                //         using (new C()) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using (new C()) { }").WithArguments("System.IDisposable", "Dispose").WithLocation(6, 9),
+                // (7,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+                //         using (var x = new C()) { return 1; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using (var x = new C()) { return 1; }").WithArguments("System.IDisposable", "Dispose").WithLocation(7, 9)
                 );
         }
 
@@ -429,7 +500,7 @@ public class C : Base
         public void TestWithDeclaration()
         {
             string source = @"
-class C : System.IAsyncDisposable
+class C : System.IAsyncDisposable, System.IDisposable
 {
     public static async System.Threading.Tasks.Task<int> Main()
     {
@@ -444,11 +515,45 @@ class C : System.IAsyncDisposable
         System.Console.Write(""DisposeAsync"");
         return System.Threading.Tasks.Task.CompletedTask;
     }
+    public void Dispose()
+    {
+        System.Console.Write(""IGNORED"");
+    }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void TestIAsyncDisposableInRegularUsing()
+        {
+            string source = @"
+class C : System.IAsyncDisposable, System.IDisposable
+{
+    public static int Main()
+    {
+        using (var x = new C())
+        {
+            System.Console.Write(""body "");
+            return 1;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""IGNORED"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+    public void Dispose()
+    {
+        System.Console.Write(""Dispose"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body Dispose");
         }
 
         [Fact]
@@ -678,6 +783,49 @@ class C : System.IAsyncDisposable
         }
 
         [Fact]
+        public void TestWithNullExpression()
+        {
+            string source = @"
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        using await (null)
+        {
+            System.Console.Write(""body"");
+            return;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "body");
+        }
+
+        [Fact]
+        public void TestWithMethodName()
+        {
+            string source = @"
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        using await (Main)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,22): error CS9000: 'method group': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                //         using await (Main)
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "Main").WithArguments("method group").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
         public void TestWithDynamicExpression()
         {
             string source = @"
@@ -895,6 +1043,33 @@ struct S : System.IAsyncDisposable
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void TestWithNullNullableExpression()
+        {
+            string source = @"
+struct S : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        S? s = null;
+        using await (s)
+        {
+            System.Console.Write(""body"");
+            return;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write(""NOT RELEVANT"");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "body");
         }
     }
 }

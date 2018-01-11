@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Lower "using (expression) statement" and "using await (expression) statement" to a try-finally block.
+        /// Lower "using [await] (expression) statement" to a try-finally block.
         /// </summary>
         private BoundBlock RewriteExpressionUsingStatement(BoundUsingStatement node, BoundBlock tryBlock)
         {
@@ -155,8 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Lower "using (ResourceType resource = expression) statement" and
-        /// "using await (ResourceType resuorce = expression) statement" to a try-finally block.
+        /// Lower "using [await] (ResourceType resource = expression) statement" to a try-finally block.
         /// </summary>
         /// <remarks>
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.

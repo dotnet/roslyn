@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureAttributesOnBackingFields = MessageBase + 12731,
 
-        IDS_FeatureAsyncStreams = MessageBase + 12777, // PROTOTYPE(async-streams) Compat IDs
+        IDS_FeatureAsyncStreams = MessageBase + 12777, // PROTOTYPE(async-streams) Compact IDs
     }
 
     // Message IDs may refer to strings that need to be localized.

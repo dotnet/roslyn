@@ -91,7 +91,7 @@
   </Node>
 
   <!--
-  This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
+  This node is used to represent an awaitable expression of a certain type, when binding an async using statement.
   It will be replaced by an actual bound node during lowering.
   -->
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
