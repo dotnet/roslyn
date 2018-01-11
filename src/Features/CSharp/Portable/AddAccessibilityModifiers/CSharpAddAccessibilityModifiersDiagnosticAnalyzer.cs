@@ -78,16 +78,54 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 
             // If they already have accessibility, no need to report anything.
             var accessibility = generator.GetAccessibility(member);
-            if (accessibility != Accessibility.NotApplicable)
+
+            var isOmit = option.Value == AccessibilityModifiersRequired.OmitIfDefault;
+
+            if (isOmit)
             {
-                return;
+                if (accessibility == Accessibility.NotApplicable)
+                {
+                    return;
+                }
+
+                // Check for default modifiers in namespace and outside of namespace
+                var parentKind = member.Parent.Kind();
+                if (parentKind == SyntaxKind.CompilationUnit ||
+                    parentKind == SyntaxKind.NamespaceDeclaration)
+                {
+                    // Default is internal
+                    if (accessibility != Accessibility.Internal)
+                    {
+                        return;
+                    }
+                }
+
+                if (parentKind == SyntaxKind.ClassDeclaration ||
+                    parentKind == SyntaxKind.StructDeclaration)
+                {
+                    // Inside a type, default is private
+                    if (accessibility != Accessibility.Private)
+                    {
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                if (accessibility != Accessibility.NotApplicable)
+                {
+                    return;
+                }
             }
 
             // Missing accessibility.  Report issue to user.
             var additionalLocations = ImmutableArray.Create(member.GetLocation());
+            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                nameof(AccessibilityModifiersRequired), isOmit ? "omit" : "add");
             context.ReportDiagnostic(Diagnostic.Create(
                 CreateDescriptorWithSeverity(option.Notification.Value),
                 name.GetLocation(),
+                properties: properties,
                 additionalLocations: additionalLocations));
         }
     }

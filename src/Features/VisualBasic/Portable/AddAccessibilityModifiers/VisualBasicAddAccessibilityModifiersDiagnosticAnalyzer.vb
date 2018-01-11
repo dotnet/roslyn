@@ -57,15 +57,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
             ' If they already have accessibility, no need to report anything.
             Dim Accessibility = generator.GetAccessibility(member)
-            If Accessibility <> Accessibility.NotApplicable Then
-                Return
+
+            Dim isOmit = [option].Value = AccessibilityModifiersRequired.OmitIfDefault
+
+            If isOmit Then
+                If Accessibility = Accessibility.NotApplicable Then
+                    Return
+                End If
+
+           
+                If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
+                   member.IsParentKind(SyntaxKind.NamespaceBlock) Then
+                    ' default is Friend
+                    If Accessibility <> Accessibility.Friend Then
+                        Return
+                    End If
+                End If
+
+                If member.IsParentKind(SyntaxKind.ClassBlock) Then
+                    ' default for const and field in a class is private
+                    If member.IsKind(SyntaxKind.FieldDeclaration) Then
+                        If Accessibility <> Accessibility.Private Then
+                            Return
+                        End If
+                    End If
+                End If
+
+                ' Everything else has a default of public
+                If Accessibility <> Accessibility.Public Then
+                    Return
+                End If
+            Else ' Require all
+                If Accessibility <> Accessibility.NotApplicable Then
+                    Return
+                End If
             End If
 
             ' Missing accessibility.  Report issue to user.
             Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
+            Dim properties = ImmutableDictionary (Of String, String).Empty.Add(NameOf(AccessibilityModifiersRequired), If(isOmit, "omit", "add"))
             context.ReportDiagnostic(Diagnostic.Create(
                 CreateDescriptorWithSeverity([option].Notification.Value),
                 name.GetLocation(),
+                properties:=properties,
                 additionalLocations:=additionalLocations))
         End Sub
     End Class

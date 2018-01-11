@@ -13,5 +13,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         // want to require them, while some may want to keep the traditional C# style
         // that public interface members do not need accessibility modifiers.
         ForNonInterfaceMembers = 2,
+        OmitIfDefault = 3
     }
 }

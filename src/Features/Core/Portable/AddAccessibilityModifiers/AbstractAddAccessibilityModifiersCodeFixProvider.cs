@@ -8,8 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -42,17 +44,38 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 
             foreach (var diagnostic in diagnostics)
             {
+                
                 var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                var declarator = MapToDeclarator(declaration);
 
-                var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+                // Check to see if we need to add or remove
+                var isOmit = false;
+                if (diagnostic.Properties.TryGetValue(nameof(AccessibilityModifiersRequired), out var optionValue))
+                {
+                    isOmit = optionValue == "omit";
+                }
 
-                editor.ReplaceNode(
-                    declaration,
-                    (currentDeclaration, generator) =>
-                    {
-                        return generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility);
-                    });
+                if (isOmit)
+                {
+                    editor.ReplaceNode(
+                        declaration,
+                        (currentDeclaration, generator) =>
+                        {
+                            return generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable);
+                        });
+                }
+                else
+                {
+                    var declarator = MapToDeclarator(declaration);
+
+                    var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+
+                    editor.ReplaceNode(
+                        declaration,
+                        (currentDeclaration, generator) =>
+                        {
+                            return generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility);
+                        });
+                }
             }
         }
 
