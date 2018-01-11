@@ -20,10 +20,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function Rewrite_As_IsSet(node As BoundFlagsEnumOperationExpressionSyntax) As BoundNode
+            ' IsSet <== (Flags And Flag) = Flag
             Dim flagPart = node.EnumFlag.MakeRValue
             Dim _AND_ = MakeBinaryExpression(node.Syntax, BinaryOperatorKind.And, node.EnumFlags.MakeRValue, flagPart, False, node.EnumFlags.Type).MakeCompilerGenerated
             Dim _EQ_ = MakeBinaryExpression(node.Syntax, BinaryOperatorKind.Equals, _AND_.MakeRValue, flagPart, False, GetSpecialType(SpecialType.System_Boolean)).MakeCompilerGenerated
             Return _EQ_.MakeRValue
         End Function
+
+        Private Function Rewrite_As_FlagSet(node As BoundFlagsEnumOperationExpressionSyntax) As BoundNode
+            ' WithSetFlag <== Flags Or Flag
+            Dim flagPart = node.EnumFlag.MakeRValue
+            Dim _Or_ = MakeBinaryExpression(node.Syntax, BinaryOperatorKind.Or, node.EnumFlags.MakeRValue, flagPart, False, node.EnumFlags.Type).MakeCompilerGenerated
+            Return _Or_.MakeRValue
+        End Function
+
+        Private Function Rewrite_As_FlagClr(node As BoundFlagsEnumOperationExpressionSyntax) As BoundNode
+            ' WithClearedFlag <== Flags And (Not Flag)
+            Dim flagPart = node.EnumFlag.MakeRValue
+            Dim _NOT_ = New BoundUnaryOperator(node.Syntax, UnaryOperatorKind.Not, flagPart, False, node.EnumFlags.Type)
+            Dim _AND_ = MakeBinaryExpression(node.Syntax, BinaryOperatorKind.And, node.EnumFlags.MakeRValue, _NOT_, False, node.EnumFlags.Type).MakeCompilerGenerated
+            Return _AND_.MakeRValue
+        End Function
+
     End Class
 End Namespace
