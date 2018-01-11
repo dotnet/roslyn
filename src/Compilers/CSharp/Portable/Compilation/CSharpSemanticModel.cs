@@ -3193,7 +3193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AwaitExpression:
                     var await = (BoundAwaitExpression)boundNode;
-                    isDynamic = await.IsDynamic;
+                    isDynamic = await.AwaitableInfo.IsDynamic;
                     // TODO:
                     goto default;
 

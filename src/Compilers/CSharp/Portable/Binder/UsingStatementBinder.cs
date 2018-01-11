@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion iDisposableConversion = Conversion.NoConversion;
             BoundMultipleLocalDeclarations declarationsOpt = null;
             BoundExpression expressionOpt = null;
-            BoundAwaitExpression boundAwaitOpt = null;
+            AwaitableInfo? awaitOpt = null;
             if (expressionSyntax != null)
             {
                 expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var syntaxForAwait = (SyntaxNode)expressionSyntax ?? declarationSyntax;
                     BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntaxForAwait, taskType).MakeCompilerGenerated();
-                    boundAwaitOpt = BindAwait(placeholder, syntaxForAwait, diagnostics).MakeCompilerGenerated();
+                    (awaitOpt, hasErrors) = BindAwaitInfo(placeholder, syntaxForAwait, diagnostics);
                 }
             }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
-                boundAwaitOpt,
+                awaitOpt,
                 hasErrors);
         }
 

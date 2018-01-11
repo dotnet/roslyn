@@ -1,33 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Structure containing all semantic information about an await expression.
+    /// Public structure containing all semantic information about an await expression.
     /// </summary>
     public struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
     {
-        public IMethodSymbol GetAwaiterMethod { get; }
+        private readonly AwaitableInfo _awaitableInfo;
 
-        public IPropertySymbol IsCompletedProperty { get; }
+        public IMethodSymbol GetAwaiterMethod => _awaitableInfo.GetAwaiter;
 
-        public IMethodSymbol GetResultMethod { get; }
+        public IPropertySymbol IsCompletedProperty => _awaitableInfo.IsCompleted;
 
-        public bool IsDynamic { get; }
+        public IMethodSymbol GetResultMethod => _awaitableInfo.GetResult; 
 
-        internal AwaitExpressionInfo(IMethodSymbol getAwaiterMethod,
-                                     IPropertySymbol isCompletedProperty,
-                                     IMethodSymbol getResultMethod,
-                                     bool isDynamic)
+        public bool IsDynamic => GetResultMethod == null;
+
+        internal AwaitExpressionInfo(AwaitableInfo awaitableInfo)
         {
-            this.GetAwaiterMethod = getAwaiterMethod;
-            this.IsCompletedProperty = isCompletedProperty;
-            this.GetResultMethod = getResultMethod;
-            this.IsDynamic = isDynamic;
+            _awaitableInfo = awaitableInfo;
         }
 
         public override bool Equals(object obj)
@@ -37,15 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(AwaitExpressionInfo other)
         {
-            return object.Equals(this.GetAwaiterMethod, other.GetAwaiterMethod)
-                && object.Equals(this.IsCompletedProperty, other.IsCompletedProperty)
-                && object.Equals(this.GetResultMethod, other.GetResultMethod)
-                && this.IsDynamic == other.IsDynamic;
+            return _awaitableInfo.Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(GetAwaiterMethod, Hash.Combine(IsCompletedProperty, Hash.Combine(GetResultMethod, IsDynamic.GetHashCode())));
+            return _awaitableInfo.GetHashCode();
         }
     }
 }

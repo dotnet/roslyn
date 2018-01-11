@@ -22,6 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics)
         {
+            (AwaitableInfo info, bool hasErrors) = BindAwaitInfo(expression, node, diagnostics);
+
+            return new BoundAwaitExpression(node, expression, info, info.Type, hasErrors);
+        }
+
+        internal (AwaitableInfo, bool hasErrors) BindAwaitInfo(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics)
+        {
             MethodSymbol getAwaiter;
             PropertySymbol isCompleted;
             MethodSymbol getResult;
@@ -40,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors ? CreateErrorType() :
                 Compilation.DynamicType;
 
-            return new BoundAwaitExpression(node, expression, getAwaiter, isCompleted, getResult, awaitExpressionType, hasErrors);
+            return (new AwaitableInfo(getAwaiter, isCompleted, getResult, awaitExpressionType), hasErrors);
         }
 
         /// <summary>

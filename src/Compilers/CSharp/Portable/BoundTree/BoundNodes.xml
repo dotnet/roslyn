@@ -92,7 +92,7 @@
 
   <!--
   This node is used to represent an awaitable expression of a certain type, when binding an async using statement.
-  It will be replaced by an actual bound node during lowering.
+  It does not survive past initial binding.
   -->
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
@@ -443,9 +443,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="GetAwaiter" Type="MethodSymbol" Null="allow"/>
-    <Field Name="IsCompleted" Type="PropertySymbol" Null="allow"/>
-    <Field Name="GetResult" Type="MethodSymbol" Null="allow"/>
+    <Field Name="AwaitableInfo" Type="AwaitableInfo" Null="allow"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
@@ -899,8 +897,7 @@
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
-    <!-- A bound await, but with a placeholder instead of an awaited expression -->
-    <Field Name="AwaitOpt" Type="BoundAwaitExpression" Null="allow"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo?" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">

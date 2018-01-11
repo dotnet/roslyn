@@ -562,19 +562,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundAwaitExpression : BoundExpression
-    {
-        internal bool IsDynamic
-        {
-            get { return (object)this.GetResult == null; }
-        }
-
-        internal BoundAwaitExpression WithExpression(BoundExpression newExpression)
-        {
-            return this.Update(newExpression, this.GetAwaiter, this.IsCompleted, this.GetResult, this.Type);
-        }
-    }
-
     internal partial class BoundCollectionElementInitializer
     {
         public override Symbol ExpressionSymbol

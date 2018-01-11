@@ -368,7 +368,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(expression, VisitMethodSymbol(node.GetAwaiter), VisitPropertySymbol(node.IsCompleted), VisitMethodSymbol(node.GetResult), type);
+
+            AwaitableInfo info = node.AwaitableInfo;
+            return node.Update(
+                expression,
+                new AwaitableInfo(VisitMethodSymbol(info.GetAwaiter), VisitPropertySymbol(info.IsCompleted), VisitMethodSymbol(info.GetResult), info.Type),
+                type);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)

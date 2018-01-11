@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion iDisposableConversion, BoundAwaitExpression awaitOpt)
+        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion iDisposableConversion, AwaitableInfo? awaitOpt)
         {
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, BoundAwaitExpression awaitOpt)
+        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, AwaitableInfo? awaitOpt)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -314,7 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // await local.DisposeAsync()
                 _sawAwaitInExceptionHandler = true;
-                BoundAwaitExpression awaitExpr = awaitOpt.WithExpression(BoundCall.Synthesized(syntax, disposedExpression, disposeAsyncMethodSymbol));
+                var callExpr = BoundCall.Synthesized(syntax, disposedExpression, disposeAsyncMethodSymbol);
+                BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, callExpr, awaitOpt.Value, awaitOpt.Value.Type) { WasCompilerGenerated = true };
                 disposeCall = (BoundExpression)VisitAwaitExpression(awaitExpr);
             }
             else
