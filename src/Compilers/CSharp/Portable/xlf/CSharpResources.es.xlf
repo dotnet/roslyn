@@ -8586,8 +8586,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
-        <source>In arguments cannot be used in dynamically dispatched expession.</source>
-        <target state="new">In arguments cannot be used in dynamically dispatched expession.</target>
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
         <note />
       </trans-unit>
     </body>

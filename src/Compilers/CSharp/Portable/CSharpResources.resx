@@ -5239,6 +5239,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</value>
   </data>
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
-    <value>In arguments cannot be used in dynamically dispatched expession.</value>
+    <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
   </data>
 </root>

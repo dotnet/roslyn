@@ -5426,7 +5426,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In arguments cannot be used in dynamically dispatched expession..
+        ///   Looks up a localized string similar to Arguments with &apos;in&apos; modifier cannot be used in dynamically dispatched expessions..
         /// </summary>
         internal static string ERR_InDynamicMethodArg {
             get {
