@@ -122,6 +122,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                         }
                         catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                         {
+                            var failureText = e.ToString();
+                            var failureTextAsComment = "// " + failureText.Replace("\n", "\n// ") + "\n";
+
+                            var sourceText = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            temporaryDocument = temporaryDocument.WithText(sourceText.Replace(default, failureTextAsComment));
+
                             useDecompiler = false;
                         }
                     }
