@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", MatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPrivate);
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPrivate);
             });
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("DogBed")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "DogBed", "[|DogBed|]", MatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
+                VerifyNavigateToResultItem(item, "DogBed", "[|DogBed|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Method")).Single();
-                VerifyNavigateToResultItem(item, "Method", "[|Method|]()", MatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo.Bar.DogBed", "Test"));
+                VerifyNavigateToResultItem(item, "Method", "[|Method|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo.Bar.DogBed", "Test"));
             });
         }
 
@@ -106,7 +106,7 @@ class Goo<T> where T : IEnumerable
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>", MatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPrivate);
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPrivate);
             });
         }
 
@@ -124,7 +124,7 @@ class Goo<U>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
-                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]<T>(T)", MatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo<U>", "Test"));
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]<T>(T)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo<U>", "Test"));
             });
         }
 
@@ -176,7 +176,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", MatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
         }
 
@@ -189,7 +189,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("B")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", MatchKind.Prefix, NavigateToItemKind.Structure, Glyph.StructurePrivate);
+                VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Structure, Glyph.StructurePrivate);
             });
         }
 
@@ -205,7 +205,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Colors")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Colors", "[|Colors|]", MatchKind.Exact, NavigateToItemKind.Enum, Glyph.EnumPrivate);
+                VerifyNavigateToResultItem(item, "Colors", "[|Colors|]", PatternMatchKind.Exact, NavigateToItemKind.Enum, Glyph.EnumPrivate);
             });
         }
 
@@ -221,7 +221,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("R")).Single();
-                VerifyNavigateToResultItem(item, "Red", "[|R|]ed", MatchKind.Prefix, NavigateToItemKind.EnumItem, Glyph.EnumMemberPublic);
+                VerifyNavigateToResultItem(item, "Red", "[|R|]ed", PatternMatchKind.Prefix, NavigateToItemKind.EnumItem, Glyph.EnumMemberPublic);
             });
         }
 
@@ -235,7 +235,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("ba")).Single();
-                VerifyNavigateToResultItem(item, "bar", "[|ba|]r", MatchKind.Prefix, NavigateToItemKind.Constant, Glyph.ConstantPrivate);
+                VerifyNavigateToResultItem(item, "bar", "[|ba|]r", PatternMatchKind.Prefix, NavigateToItemKind.Constant, Glyph.ConstantPrivate);
             });
         }
 
@@ -249,7 +249,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("string")).Single();
-                VerifyNavigateToResultItem(item, "string", "[|string|]", MatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "string", "[|string|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -260,7 +260,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             await TestAsync(program, async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("this")).Single();
-                VerifyNavigateToResultItem(item, "this", "[|this|][int]", MatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "this", "[|this|][int]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -271,7 +271,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             await TestAsync(program, async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("CEH")).Single();
-                VerifyNavigateToResultItem(item, "ChangedEventHandler", "[|C|]hanged[|E|]vent[|H|]andler", MatchKind.Regular, NavigateToItemKind.Event, Glyph.EventPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "ChangedEventHandler", "[|C|]hanged[|E|]vent[|H|]andler", PatternMatchKind.Fuzzy, NavigateToItemKind.Event, Glyph.EventPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -285,7 +285,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("B")).Single();
-                VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", MatchKind.Prefix, NavigateToItemKind.Property, Glyph.PropertyPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Property, Glyph.PropertyPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -299,7 +299,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
-                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", MatchKind.Regular, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", PatternMatchKind.Fuzzy, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -315,7 +315,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
-                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething(int, string)", MatchKind.Regular, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething(int, string)", PatternMatchKind.Fuzzy, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -331,7 +331,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method);
-                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", MatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -347,7 +347,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method);
-                VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", MatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -363,7 +363,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method && t.Name != ".ctor");
-                VerifyNavigateToResultItem(item, "Goo", "[|Goo|].static Goo()", MatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|].static Goo()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -391,7 +391,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
-                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", MatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -433,7 +433,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("IG")).Single();
-                VerifyNavigateToResultItem(item, "IGoo", "[|IG|]oo", MatchKind.Prefix, NavigateToItemKind.Interface, Glyph.InterfacePublic);
+                VerifyNavigateToResultItem(item, "IGoo", "[|IG|]oo", PatternMatchKind.Prefix, NavigateToItemKind.Interface, Glyph.InterfacePublic);
             });
         }
 
@@ -447,7 +447,7 @@ Class Program { FileStyleUriParser f; }", async w =>
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("DoStuff")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "DoStuff", "[|DoStuff|]", MatchKind.Exact, NavigateToItemKind.Delegate, Glyph.DelegateInternal);
+                VerifyNavigateToResultItem(item, "DoStuff", "[|DoStuff|]", PatternMatchKind.Exact, NavigateToItemKind.Delegate, Glyph.DelegateInternal);
             });
         }
 
@@ -463,7 +463,7 @@ class Goo
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("sqr")).Single();
-                VerifyNavigateToResultItem(item, "sqr", "[|sqr|]", MatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+                VerifyNavigateToResultItem(item, "sqr", "[|sqr|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
             });
         }
 
@@ -590,7 +590,7 @@ class C2
             await TestAsync(source, async w =>
             {
                 var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
-                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty), null);
+                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, new PatternMatch(PatternMatchKind.Substring, true, true, ImmutableArray<Span>.Empty), null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
 
                 var items = await _aggregator.GetItemsAsync("K W");
@@ -617,7 +617,7 @@ class C2
             await TestAsync(source, async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("G_K_W")).Single();
-                VerifyNavigateToResultItem(item, "get_key_word", "[|g|]et[|_k|]ey[|_w|]ord", MatchKind.Regular, NavigateToItemKind.Field, Glyph.FieldPrivate);
+                VerifyNavigateToResultItem(item, "get_key_word", "[|g|]et[|_k|]ey[|_w|]ord", PatternMatchKind.Fuzzy, NavigateToItemKind.Field, Glyph.FieldPrivate);
             });
         }
 
