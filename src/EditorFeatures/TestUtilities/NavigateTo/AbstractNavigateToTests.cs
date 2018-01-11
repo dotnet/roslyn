@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Text.PatternMatching;
 using Moq;
 using Roslyn.Test.EditorUtilities.NavigateTo;
 using Roslyn.Test.Utilities;
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
+#pragma warning disable CS0618 // MatchKind is obsolete
         protected void VerifyNavigateToResultItems(
             List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
@@ -105,12 +107,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         internal void VerifyNavigateToResultItem(
             NavigateToItem result, string name, string displayMarkup, 
-            MatchKind matchKind, string navigateToItemKind,
+            PatternMatchKind matchKind, string navigateToItemKind,
             Glyph glyph, string additionalInfo = null)
         {
             // Verify symbol information
             Assert.Equal(name, result.Name);
-            Assert.Equal(matchKind, result.MatchKind);
+            Assert.True(matchKind.Equals(result.PatternMatch.Kind), string.Format("pattern: {0}, match: {1} expected: {2} actual: {3}", matchKind, result.MatchKind, matchKind, result.PatternMatch.Kind));
             Assert.Equal(this.Language, result.Language);
             Assert.Equal(navigateToItemKind, result.Kind);
 
@@ -163,5 +165,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             result = a.SecondarySort.CompareTo(b.SecondarySort);
             return result;
         }
+#pragma warning restore CS0618 // MatchKind is obsolete
     }
 }
