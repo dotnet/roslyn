@@ -356,21 +356,21 @@
   <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
 
   <!-- 
-    In order to leverage LUT testing we need to have both of the follownig packages in 
+    In order to use Test Explorer in Visual Studio as well as leverage LUT testing we need to have both of the follownig packages in 
     our build.  
 
-        - xunit.runner.desktop
+        - xunit.runner.visualstudio
         - xunit
 
-    Both of these include xunit.abstractions.dll in different forms: content and reference
-    respectively.  This creates a double write violation in our build.  The content item
+    Both of these include xunit.abstractions.dll in different forms: None and reference
+    respectively.  This creates a double write violation in our build.  The None item
     is unnecessary for us since we reference the xunit package hence remove it here. 
 
     https://github.com/dotnet/roslyn/issues/18753
   -->
   <Target Name="RemoveDuplicateXUnitContent">
       <ItemGroup>
-        <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
+        <None Remove="@(None)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
     </ItemGroup>
   </Target>
 
