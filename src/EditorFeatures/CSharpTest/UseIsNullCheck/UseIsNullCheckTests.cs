@@ -217,5 +217,55 @@ class C
     }
 }");
         }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestMissingIfValueParameterTypeIsUnconstraintGeneric()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value, string parameterName)
+    {
+        if ([||]ReferenceEquals(value, null))
+        {
+            throw new System.ArgumentNullException(parameterName);
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsConstraintGeneric()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value, string parameterName) where T:class
+    {
+        if ([||]ReferenceEquals(value, null))
+        {
+            throw new System.ArgumentNullException(parameterName);
+        }
+    }
+}
+",
+@"
+class C
+{
+    public static void NotNull<T>(T value, string parameterName) where T:class
+    {
+        if (value is null)
+        {
+            throw new System.ArgumentNullException(parameterName);
+        }
+    }
+}
+");
+        }
     }
 }

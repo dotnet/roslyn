@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
         {
             var cancellationToken = context.CancellationToken;
-            
+
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
             if (!IsLanguageVersionSupported(syntaxTree.Options))
@@ -108,6 +109,10 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
+            if (HasUnconstraintGenericParameter(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken))
+            {
+                return;
+            }
 
             var additionalLocations = ImmutableArray.Create(invocation.GetLocation());
             var properties = ImmutableDictionary<string, string>.Empty;
@@ -125,7 +130,23 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     additionalLocations, properties));
         }
 
-        private bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)
+        private static bool HasUnconstraintGenericParameter(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
+        {
+            var valueNode = syntaxFacts.IsNullLiteralExpression(node1) ? node2 : node1;
+            var argumentExpression = syntaxFacts.GetExpressionOfArgument(valueNode);
+            if (argumentExpression != null)
+            {
+                var parameterType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type;
+                if (parameterType is ITypeParameterSymbol typeParameter)
+                {
+                    return !typeParameter.HasReferenceTypeConstraint;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)
             => syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) &&
                !syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node2));
     }
