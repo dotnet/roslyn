@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         Optional extraExportedTypes As List(Of Type) = Nothing,
                         Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
-            MyBase.New(workspaceElement, MinimalTestExportProvider.CreateTypeCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
+            MyBase.New(workspaceElement, MinimalTestExportProvider.CreateTypeCatalog(If(extraExportedTypes, New List(Of Type))), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
