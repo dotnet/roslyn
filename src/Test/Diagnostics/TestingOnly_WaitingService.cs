@@ -38,11 +38,8 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             if (waitForWorkspaceFirst)
             {
                 // at least wait for the workspace to finish processing everything.
-                if (workspaceWaiter != null)
-                {
-                    var task = workspaceWaiter.CreateWaitTask();
-                    task.Wait();
-                }
+                var task = workspaceWaiter.CreateWaitTask();
+                task.Wait();
             }
 
             var waitTask = featureWaiter.CreateWaitTask();
@@ -56,9 +53,10 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             GC.KeepAlive(featureWaiter);
         }
 
-        public void WaitForAllAsyncOperations()
+        public void WaitForAllAsyncOperations(params string[] featureNames)
         {
             var task = _provider.WaitAllAsync(
+                featureNames,
                 eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));
 
             WaitForTask(task);
