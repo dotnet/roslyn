@@ -97,15 +97,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             foreach (var updateArg in eventArgs)
             {
                 ProduceTags(
-                    context, spanToTag, workspace, document, sourceText, editorSnapshot,
+                    context, spanToTag, workspace, document, sourceText,
                     suppressedDiagnosticsSpans, updateArg, cancellationToken);
             }
         }
 
         private void ProduceTags(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
-            Workspace workspace, Document document, SourceText sourceText, ITextSnapshot editorSnapshot,
-            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans, UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
+            Workspace workspace, Document document, SourceText sourceText, 
+            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans, 
+            UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
         {
             try
             {
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 var isLiveUpdate = id is ISupportLiveUpdate;
 
                 var requestedSpan = spanToTag.SnapshotSpan;
-                var requestedSnapshot = requestedSpan.Snapshot;
+                var editorSnapshot = requestedSpan.Snapshot;
 
                 foreach (var diagnosticData in diagnostics)
                 {
@@ -124,13 +125,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     {
                         // We're going to be retrieving the diagnostics against the last time the engine
                         // computed them against this document *id*.  That might have been a different
-                        // version of the document vs what we're looking at now.  As such, we have to 
-                        // ensure that the information we get back is not outside the bounds of the editor
-                        // snapshot we're currently looking at.
-
-                        // Note: GetExistingOrCalculatedTextSpan always succeeds.  But it does not ensure
-                        // that the span it returns is within the span of sourceText.  So we make sure that
-                        // the start/end of it fits in our snapshot.
+                        // version of the document vs what we're looking at now.  But that's ok:
+                        // 
+                        // 1) GetExistingOrCalculatedTextSpan will ensure that the diagnostics spans are
+                        //    contained within 'editorSnapshot'.
+                        // 2) We'll eventually hear about an update to the diagnostics for this document
+                        //    for whatever edits happened between the last time and this current snapshot.
+                        //    So we'll eventually reach a point where the diagnostics exactly match the
+                        //    editorSnapshot.
 
                         var diagnosticSpan = diagnosticData.GetExistingOrCalculatedTextSpan(sourceText)
                                                            .ToSnapshotSpan(editorSnapshot);
