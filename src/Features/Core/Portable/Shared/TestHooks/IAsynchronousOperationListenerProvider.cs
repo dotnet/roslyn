@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public AsynchronousOperationListenerProvider()
         {
             _singletonListeners = new ConcurrentDictionary<string, AsynchronousOperationListener>(concurrencyLevel: 2, capacity: 20);
-            _createCallback = name => new AsynchronousOperationListener(name, EnableDiagnosticTokens);
+            _createCallback = name => new AsynchronousOperationListener(name, DiagnosticTokensEnabled);
         }
 
         public IAsynchronousOperationListener GetListener(string featureName)
