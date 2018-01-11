@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener("test", tracking: false);
+                var listener = new AsynchronousOperationListener();
 
                 var done = false;
                 var asyncToken = listener.BeginAsyncOperation("Test");
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener("test", tracking: false);
+                var listener = new AsynchronousOperationListener();
 
                 var done = false;
                 var asyncToken1 = listener.BeginAsyncOperation("Test");
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener("test", tracking: false);
+                var listener = new AsynchronousOperationListener();
 
                 var done = false;
                 var continued = false;
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener("test", tracking: false);
+                var listener = new AsynchronousOperationListener();
 
                 var outerDone = false;
                 var innerDone = false;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener("test", tracking: false);
+                var listener = new AsynchronousOperationListener();
 
                 var outerDone = false;
                 var firstQueuedDone = false;
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener("test", tracking: false);
+                var listener = new AsynchronousOperationListener();
 
                 var done = false;
                 var queuedFinished = false;
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             {
                 var signal1 = new ManualResetEventSlim();
                 var signal2 = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener("test", tracking: false);
+                var listener = new AsynchronousOperationListener();
 
                 var firstDone = false;
                 var secondDone = false;

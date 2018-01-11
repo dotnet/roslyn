@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                     return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
                 }
 
-                var asyncListener = new AsynchronousOperationListener("tagger");
+                var asyncListener = new AsynchronousOperationListener();
 
                 WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 

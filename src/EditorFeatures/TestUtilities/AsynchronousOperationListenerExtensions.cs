@@ -8,9 +8,9 @@ namespace Roslyn.Test.Utilities
 {
     public static class AsynchronousOperationListenerExtensions
     {
-        internal static Task WaitAllDispatcherOperationAndTasksAsync(this AsynchronousOperationListenerProvider provider, params string[] featureNames)
+        internal static Task WaitAllDispatcherOperationAndTasksAsync(this IAsynchronousOperationListenerProvider provider, params string[] featureNames)
         {
-            return provider.WaitAllAsync(featureNames, eventProcessingAction: () => Dispatcher.CurrentDispatcher.DoEvents());
+            return ((AsynchronousOperationListenerProvider)provider).WaitAllAsync(featureNames, eventProcessingAction: () => Dispatcher.CurrentDispatcher.DoEvents());
         }
     }
 }

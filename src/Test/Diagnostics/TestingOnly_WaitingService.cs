@@ -64,7 +64,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
 
         public void EnableActiveTokenTracking(bool enable)
         {
-            _provider.Tracking(enable);
+            _provider.EnableDiagnosticTokens(enable);
         }
 
         public void Enable(bool enable)

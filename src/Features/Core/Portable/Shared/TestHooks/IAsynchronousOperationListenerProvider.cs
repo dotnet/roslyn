@@ -39,23 +39,39 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public static readonly IAsynchronousOperationListener NullListener = new NullOperationListener();
 
         /// <summary>
-        /// indicate whether asynchronous listener is enabled or not
+        /// indicate whether asynchronous listener is enabled or not.
+        /// it is tri-state since we want to retrieve this value, if never explicitly set, from environment variable
+        /// and then cache it.
+        /// we read value from environment variable (RoslynWaiterEnabled) because we want team, that doesn't have
+        /// access to Roslyn code (InternalVisibleTo), can use this listener/waiter framework as well. 
+        /// those team can enable this without using <see cref="AsynchronousOperationListenerProvider.Enable(bool)" /> API
         /// </summary>
         public static bool? s_enabled = null;
 
-        private readonly ConcurrentDictionary<string, IAsynchronousOperationListener> _singletonListeners =
-            new ConcurrentDictionary<string, IAsynchronousOperationListener>(concurrencyLevel: 2, capacity: 20);
+        private readonly ConcurrentDictionary<string, AsynchronousOperationListener> _singletonListeners;
+        private readonly Func<string, AsynchronousOperationListener> _createCallback;
 
         /// <summary>
         /// indicate whether <see cref="AsynchronousOperationListener.TrackActiveTokens"/> is enabled or not
+        /// it is tri-state since we want to retrieve this value, if never explicitly set, from environment variable
+        /// and then cache it.
+        /// we read value from environment variable (RoslynWaiterDiagnosticTokenEnabled) because we want team, that doesn't have
+        /// access to Roslyn code (InternalVisibleTo), can use this listener/waiter framework as well. 
+        /// those team can enable this without using <see cref="AsynchronousOperationListenerProvider.EnableDiagnosticTokens(bool)" /> API
         /// </summary>
-        private bool? _trackingBehavior;
+        private bool? _enableDiagnosticTokens;
 
         public static void Enable(bool enable)
         {
             // right now, made it static so that one can enable it through reflection easy
             // but we can think of some other way
             s_enabled = enable;
+        }
+
+        public AsynchronousOperationListenerProvider()
+        {
+            _singletonListeners = new ConcurrentDictionary<string, AsynchronousOperationListener>(concurrencyLevel: 2, capacity: 20);
+            _createCallback = name => new AsynchronousOperationListener(name, EnableDiagnosticTokens);
         }
 
         public IAsynchronousOperationListener GetListener(string featureName)
@@ -66,21 +82,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 return NullListener;
             }
 
-            if (_singletonListeners.TryGetValue(featureName, out var listener))
-            {
-                return listener;
-            }
-
-            return _singletonListeners.GetOrAdd(featureName, name => new AsynchronousOperationListener(name, TrackingBehavior));
+            return _singletonListeners.GetOrAdd(featureName, _createCallback);
         }
 
         /// <summary>
         /// Enable or disable TrackActiveTokens for test
         /// </summary>
-        public void Tracking(bool enable)
+        public void EnableDiagnosticTokens(bool enable)
         {
-            _trackingBehavior = enable;
-            _singletonListeners.Values.Cast<AsynchronousOperationListener>().Do(l => l.TrackActiveTokens = enable);
+            _enableDiagnosticTokens = enable;
+            _singletonListeners.Values.Do(l => l.TrackActiveTokens = enable);
         }
 
         /// <summary>
@@ -156,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// </summary>
         public List<AsynchronousOperationListener.DiagnosticAsyncToken> GetTokens()
         {
-            return _singletonListeners.Values.Cast<AsynchronousOperationListener>().Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
+            return _singletonListeners.Values.Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
         }
 
         private static bool IsEnabled
@@ -174,18 +185,18 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        private bool TrackingBehavior
+        private bool DiagnosticTokensEnabled
         {
             get
             {
-                if (!_trackingBehavior.HasValue)
+                if (!_enableDiagnosticTokens.HasValue)
                 {
                     // if _trackingBehavior has never been set, check environment variable to see whether it should be enabled.
-                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterAsyncTokenTrackingEnabled");
-                    _trackingBehavior = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
+                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterDiagnosticTokenEnabled");
+                    _enableDiagnosticTokens = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
                 }
 
-                return _trackingBehavior.Value;
+                return _enableDiagnosticTokens.Value;
             }
         }
 

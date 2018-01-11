@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         Optional extraExportedTypes As List(Of Type) = Nothing,
                         Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
-            MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
+            MyBase.New(workspaceElement, MinimalTestExportProvider.CreateTypeCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -84,12 +84,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     GetService(Of IEditorOperationsFactoryService)),
                 Nothing)
         End Sub
-
-        Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
-            types = If(types, New List(Of Type))
-
-            Return MinimalTestExportProvider.CreateTypeCatalog(types)
-        End Function
 
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,

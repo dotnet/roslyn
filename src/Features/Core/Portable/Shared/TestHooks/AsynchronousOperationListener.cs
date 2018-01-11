@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         private int _counter;
         private bool _trackActiveTokens;
 
-        public AsynchronousOperationListener(string featureName = "noname", bool tracking = false)
+        public AsynchronousOperationListener(string featureName = "noname", bool enableDiagnosticTokens = false)
         {
             TrackActiveTokens = Debugger.IsAttached;
 
             _featureName = featureName;
-            TrackActiveTokens = tracking;
+            TrackActiveTokens = enableDiagnosticTokens;
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
@@ -97,18 +97,18 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             lock (_gate)
             {
-                var source = new TaskCompletionSource<bool>();
                 if (_counter == 0)
                 {
                     // There is nothing to wait for, so we are immediately done
-                    source.SetResult(true);
+                    return Task.CompletedTask;
                 }
                 else
                 {
+                    var source = new TaskCompletionSource<bool>();
                     _pendingTasks.Add(source);
-                }
 
-                return source.Task;
+                    return source.Task;
+                }
             }
         }
 
