@@ -20,12 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function Rewrite_As_IsSet(node As BoundFlagsEnumOperationExpressionSyntax) As BoundNode
-            Dim _AND_ = New BoundBinaryOperator(node.Syntax, BinaryOperatorKind.And, node.EnumFlags.MakeRValue, node.EnumFlag.MakeRValue, False, node.EnumFlags.Type)
-            Dim pAnd = _AND_ ' BoundParenthesized(node.Syntax, _AND_.MakeRValue, _AND_.Type)
-            Dim _EQ_ = New BoundBinaryOperator(node.Syntax, BinaryOperatorKind.Equals, pAnd.MakeRValue, node.EnumFlag.MakeRValue, False, GetSpecialType(SpecialType.System_Boolean))
-            Dim PEq = _AND_ 'New BoundParenthesized(node.Syntax, _EQ_.MakeRValue, _EQ_.Type)
-            Dim MCG = PEq.MakeCompilerGenerated
-            Return MCG.MakeRValue
+            Dim flagPart = node.EnumFlag.MakeRValue
+            Dim _AND_ = MakeBinaryExpression(node.Syntax, BinaryOperatorKind.And, node.EnumFlags.MakeRValue, flagPart, False, node.EnumFlags.Type).MakeCompilerGenerated
+            Dim _EQ_ = MakeBinaryExpression(node.Syntax, BinaryOperatorKind.Equals, _AND_.MakeRValue, flagPart, False, GetSpecialType(SpecialType.System_Boolean)).MakeCompilerGenerated
+            Return _EQ_.MakeRValue
         End Function
     End Class
 End Namespace
