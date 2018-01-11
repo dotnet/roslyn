@@ -22,6 +22,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private VisualStudioWorkspace_InProc()
         {
+            // we need to enable waiting service before we create workspace
+            GetWaitingService().Enable(true);
+
             _visualStudioWorkspace = GetComponentModelService<VisualStudioWorkspace>();
         }
 
@@ -148,7 +151,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     throw new InvalidOperationException("The test waiting service could not be located.");
                 }
 
-                GetWaitingService().Enable(true);
                 GetWaitingService().EnableActiveTokenTracking(true);
             });
 
