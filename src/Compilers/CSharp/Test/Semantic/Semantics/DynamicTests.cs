@@ -3926,5 +3926,33 @@ class C
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 17)
                 );
         }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamic2()
+        {
+            string source = @"
+class C
+{
+    static void M1()
+    {
+        int x = 42;
+        dynamic d = null;
+        d.M2(1, in d, 123, in x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         d.M2(1, in d, 123, in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(8, 20),
+                // (8,31): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         d.M2(1, in d, 123, in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 31)
+                );
+        }
     }
 }
