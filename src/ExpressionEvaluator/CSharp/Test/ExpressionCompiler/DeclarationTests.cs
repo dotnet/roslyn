@@ -2170,5 +2170,33 @@ class C
                 Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
             });     
         }
+
+        [Fact]
+        public void DuplicateDeclarationInOutVar()
+        {
+            var source =
+@"class C
+{
+    static void F(out double x, out int y) => x = y = 4;
+
+    static void M()
+    {
+#line 999
+        F(out var x, out var y);
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                string error;
+                CompileDeclaration(context, "F(out var x, out var y)", out flags, out testData, out error);
+                Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+            });
+        }
     }
 }
