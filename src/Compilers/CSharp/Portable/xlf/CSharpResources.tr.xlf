@@ -8585,6 +8585,11 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">'default' varsayılan sabit değeri bir desen olarak geçerli değil. Uygun olan başka bir sabit değeri (ör. '0' veya 'null') kullanın. Tüm öğeleri eşleştirmek için 'var _' atma desenini kullanın.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

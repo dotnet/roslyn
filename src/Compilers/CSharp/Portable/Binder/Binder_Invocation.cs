@@ -330,15 +330,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundExpression> argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
+            var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(node, argArray, diagnostics, queryClause);
+            hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause);
 
             return new BoundDynamicInvocation(
                 node,
                 expression,
                 argArray,
                 arguments.GetNames(),
-                arguments.RefKinds.ToImmutableOrNull(),
+                refKindsArray,
                 applicableMethods,
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
@@ -411,11 +412,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool ReportBadDynamicArguments(
             SyntaxNode node,
             ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKinds,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
         {
             bool hasErrors = false;
             bool reportedBadQuery = false;
+
+            if (!refKinds.IsDefault)
+            {
+                for (int argIndex = 0; argIndex < refKinds.Length; argIndex++)
+                {
+                    if (refKinds[argIndex] == RefKind.In)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_InDynamicMethodArg, arguments[argIndex].Syntax);
+                        hasErrors = true;
+                    }
+                }
+            }
 
             foreach (var arg in arguments)
             {
@@ -680,8 +694,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var validResult = resolution.OverloadResolutionResult.ValidResult;
             var args = resolution.AnalyzedArguments.Arguments.ToImmutable();
+            var refKindsArray = resolution.AnalyzedArguments.RefKinds.ToImmutableOrNull();
 
-            ReportBadDynamicArguments(syntax, args, diagnostics, queryClause);
+            ReportBadDynamicArguments(syntax, args, refKindsArray, diagnostics, queryClause);
 
             var localFunction = validResult.Member;
             var methodResult = validResult.Result;

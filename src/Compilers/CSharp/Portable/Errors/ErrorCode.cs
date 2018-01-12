@@ -1552,5 +1552,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConditionalInInterpolation = 8361,
         ERR_CantUseVoidInArglist = 8362,
         ERR_DefaultInPattern = 8363,
+        ERR_InDynamicMethodArg = 8364,
     }
 }
