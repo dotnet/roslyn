@@ -163,5 +163,25 @@ namespace Analyzer.Utilities.Extensions
         {
             return operation.Kind == OperationKind.None && operation.Parent == null;
         }
+
+        /// <summary>
+        /// Returns the topmost <see cref="IBlockOperation"/> containing the given <paramref name="operation"/>.
+        /// </summary>
+        public static IBlockOperation GetTopmostParentBlock(this IOperation operation)
+        {
+            IOperation currentOperation = operation;
+            IBlockOperation topMostBlockOperation = null;
+            while (currentOperation != null)
+            {
+                if (currentOperation is IBlockOperation blockOperation)
+                {
+                    topMostBlockOperation = blockOperation;
+                }
+
+                currentOperation = currentOperation.Parent;
+            }
+
+            return topMostBlockOperation;
+        }
     }
 }
