@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
@@ -101,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
                 }
 
+                AssertValidLocalRewriting(loweredStatement);
+
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
@@ -108,6 +112,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ex.Diagnostic);
                 sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertValidLocalRewriting(BoundNode node)
+        {
+            switch (node.Kind)
+            {
+                case BoundKind.UsingStatement:
+                case BoundKind.AwaitableValuePlaceholder:
+                    Debug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");
+                    break;
+            }
+
+            foreach (var child in ((IBoundNodeWithIOperationChildren)node).Children)
+            {
+                AssertValidLocalRewriting(child);
             }
         }
 

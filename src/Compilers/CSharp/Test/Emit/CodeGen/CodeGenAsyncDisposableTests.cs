@@ -1125,6 +1125,77 @@ struct S : System.IAsyncDisposable
         }
 
         [Fact]
+        public void TestWithMultipleResources()
+        {
+            string source = @"
+class S : System.IAsyncDisposable
+{
+    private int _i;
+    S(int i)
+    {
+        System.Console.Write($""ctor{i} "");
+        _i = i;
+    }
+    public static async System.Threading.Tasks.Task Main()
+    {
+        using await (S s1 = new S(1), s2 = new S(2))
+        {
+            System.Console.Write(""body "");
+            return;
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write($""dispose{_i} "");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1");
+        }
+
+        [Fact]
+        public void TestWithMultipleResourcesAndException()
+        {
+            string source = @"
+class S : System.IAsyncDisposable
+{
+    private int _i;
+    S(int i)
+    {
+        System.Console.Write($""ctor{i} "");
+        _i = i;
+    }
+    public static async System.Threading.Tasks.Task Main()
+    {
+        try
+        {
+            using await (S s1 = new S(1), s2 = new S(2))
+            {
+                System.Console.Write(""body "");
+                throw new System.Exception();
+            }
+        }
+        catch (System.Exception)
+        {
+            System.Console.Write(""caught"");
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write($""dispose{_i} "");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
+        }
+
+        [Fact]
         public void TestAwaitExpressionInfo_IEquatable()
         {
             string source = @"
