@@ -79,6 +79,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             => size == Size.Small ? SmallData2 : size == Size.Medium ? MediumData2 : LargeData2;
 
         [Fact]
+        public async Task TestNullFilePaths()
+        {
+            var solution = CreateOrOpenSolution(nullPaths: true);
+
+            var streamName = "stream";
+
+            using (var storage = GetStorage(solution))
+            {
+                var project = solution.Projects.First();
+                var document = project.Documents.First();
+                Assert.False(await storage.WriteStreamAsync(project, streamName, EncodeString("")));
+                Assert.False(await storage.WriteStreamAsync(document, streamName, EncodeString("")));
+
+                Assert.Null(await storage.ReadStreamAsync(project, streamName));
+                Assert.Null(await storage.ReadStreamAsync(document, streamName));
+            }
+        }
+
+        [Fact]
         public async Task PersistentService_Solution_WriteReadDifferentInstances()
         {
             var solution = CreateOrOpenSolution();

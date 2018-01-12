@@ -20,25 +20,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             => new SQLitePersistentStorageService(_persistentEnabledOptionService, faultInjector);
 
         [Fact]
-        public async Task TestNullFilePaths()
-        {
-            var solution = CreateOrOpenSolution(nullPaths: true);
-
-            var streamName = "stream";
-
-            using (var storage = GetStorage(solution))
-            {
-                var project = solution.Projects.First();
-                var document = project.Documents.First();
-                Assert.False(await storage.WriteStreamAsync(project, streamName, EncodeString("")));
-                Assert.False(await storage.WriteStreamAsync(document, streamName, EncodeString("")));
-
-                Assert.Null(await storage.ReadStreamAsync(project, streamName));
-                Assert.Null(await storage.ReadStreamAsync(document, streamName));
-            }
-        }
-
-        [Fact]
         public void TestCrashInNewConnection()
         {
             var solution = CreateOrOpenSolution(nullPaths: true);
