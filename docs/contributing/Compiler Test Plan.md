@@ -97,6 +97,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to" and renaming
+    - cref comments
     - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
 

@@ -2847,5 +2847,54 @@ IInvocationOperation (void Program.B(in System.Single x, in System.Single y, [in
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
         DiagnosticDescription.None);
         }
+
+        [WorkItem(23692, "https://github.com/dotnet/roslyn/issues/23692")]
+        [Fact]
+        public void ThisToInParam()
+        {
+            var code = @"
+using System;
+
+static class Ex
+{
+    public static void InMethod(in X arg) => Console.Write(arg);
+}
+
+class X
+{
+    public void M()
+    {
+        // pass `this` by in-parameter.
+        Ex.InMethod(this);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new X();
+
+        // baseline
+        Ex.InMethod(x);
+
+        x.M();
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
+
+            verifier.VerifyIL("X.M()", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""void Ex.InMethod(in X)""
+  IL_0007:  ret
+}
+");
+        }
     }
 }
