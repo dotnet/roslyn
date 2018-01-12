@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EventHookup
             HACK_SetShimQuickInfoSessionWorker(textView, null);
         }
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete
         private void HACK_SetShimQuickInfoSessionWorker(ITextView textView, IQuickInfoSession quickInfoSession)
         {
             var properties = textView.Properties.PropertyList;
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EventHookup
             public event EventHandler ApplicableToSpanChanged;
             public event EventHandler PresenterChanged;
 #pragma warning restore 67
-
+#pragma warning restore CS0618 // IQuickInfo* is obsolete
             public PropertyCollection Properties
             {
                 get

@@ -6,6 +6,7 @@ Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
 
+#Disable Warning BC40000 ' MatchKind is obsolete
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
     Public Class NavigateToTests
         Inherits AbstractNavigateToTests
@@ -758,3 +759,4 @@ End Class
         End Function
     End Class
 End Namespace
+#Enable Warning BC40000 ' MatchKind is obsolete
