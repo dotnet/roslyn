@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override SyntaxToken IdentifierToken
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return default; }
         }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences

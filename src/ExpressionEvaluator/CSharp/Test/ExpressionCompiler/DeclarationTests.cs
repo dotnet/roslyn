@@ -1719,10 +1719,16 @@ class C
 
         private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData)
         {
+            string error;
+            CompileDeclaration(context, declaration, out flags, out testData, out error);
+            Assert.Null(error);
+        }
+
+        private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData, out string error)
+        {
             testData = new CompilationTestData();
 
             ResultProperties resultProperties;
-            string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var result = context.CompileExpression(
                 declaration,
@@ -1734,7 +1740,6 @@ class C
                 out missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Null(error);
             Assert.Empty(missingAssemblyIdentities);
 
             flags = resultProperties.Flags;
@@ -2138,6 +2143,32 @@ class C
   IL_006d:  ret
 }");
             });
+        }
+
+        [Fact]
+        public void DuplicateDeclaration()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var x = 0;
+#line 999
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                string error;
+                CompileDeclaration(context, "var x = 1;", out flags, out testData, out error);
+                Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+            });     
         }
     }
 }
