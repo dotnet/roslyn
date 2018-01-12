@@ -469,7 +469,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<InvocationExpressionSyntax>(_g.NameOfExpression(_g.IdentifierName("x")), "nameof(x)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24212"), WorkItem(24212, "https://github.com/dotnet/roslyn/issues/24212"]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24212"), WorkItem(24212, "https://github.com/dotnet/roslyn/issues/24212")]
         public void TestNameOfExpressions_ContextualKeyword()
         {
             var nameofExpression = (InvocationExpressionSyntax)_g.NameOfExpression(_g.IdentifierName("x"));
