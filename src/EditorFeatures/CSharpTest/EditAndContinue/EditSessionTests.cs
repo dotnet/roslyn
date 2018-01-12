@@ -294,12 +294,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             {
                 "mvid=22222222-2222-2222-2222-222222222222 0x06000003 v1 IL_0001: (23,14)-(23,24)",
                 "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002: (9,20)-(9,25)"
-            }, updatedActiveStatementSpans.Select(v => $"mvid={v.OldInstructionId.ModuleId} 0x{v.OldInstructionId.MethodToken:X8} v{v.OldInstructionId.MethodVersion} IL_{v.OldInstructionId.ILOffset:X4}: {v.NewSpan}"));
+            }, updatedActiveStatementSpans.Select(v => $"{v.OldInstructionId.GetDebuggerDisplay(): {v.NewSpan}"));
 
             AssertEx.Equal(new[]
             {
                 "thread=00000000-0000-0000-0000-000000000010 mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002: (9,20)-(9,25)"
-            }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} mvid={v.OldInstructionId.ModuleId} 0x{v.OldInstructionId.MethodToken:X8} v{v.OldInstructionId.MethodVersion} IL_{v.OldInstructionId.ILOffset:X4}: {v.NewSpan}"));
+            }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
 
             AssertEx.Equal(new[] 
             {
