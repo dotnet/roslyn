@@ -268,9 +268,19 @@ namespace Analyzer.Utilities.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                var type1 = method1.Parameters[index].Type.OriginalDefinition;
+                var type2 = method2.Parameters[index].Type.OriginalDefinition;
+                
+                if (type1.TypeKind == TypeKind.TypeParameter &&
+                    type2.TypeKind == TypeKind.TypeParameter &&
+                    ((ITypeParameterSymbol)type1).Ordinal == ((ITypeParameterSymbol)type2).Ordinal)
+                {
+                    continue;
+                }
+
                 // this doesnt account for type conversion but FxCop implementation seems doesnt either
                 // so this should match FxCop implementation.
-                if (method2.Parameters[index].Type.Equals(method1.Parameters[index].Type) == false)
+                if (!type2.Equals(type1))
                 {
                     return false;
                 }
