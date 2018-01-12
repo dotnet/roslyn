@@ -538,7 +538,7 @@ class C
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task JointAssignmentRemoveBoth()
+        public async Task JointAssignment()
         {
             var input = @"
 <Workspace>
