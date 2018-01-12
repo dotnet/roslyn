@@ -557,7 +557,7 @@ End Class")
         <WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function ExplicitInterfaceImplementation() As Task
-            Await TestMissingInRegularAndScriptAsync("
+            Await TestInRegularAndScriptAsync("
 Namespace RoslynSandbox
     Public Interface IFoo
         ReadOnly Property Bar() As Object
@@ -576,6 +576,23 @@ Namespace RoslynSandbox
 
         Public Sub New(bar As Object)
             _bar = bar
+        End Sub
+    End Class
+End Namespace
+",
+"
+Namespace RoslynSandbox
+    Public Interface IFoo
+        ReadOnly Property Bar() As Object
+    End Interface
+
+    Friend Class Foo
+        Implements IFoo
+
+		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+
+        Public Sub New(bar As Object)
+            Me.Bar = bar
         End Sub
     End Class
 End Namespace
