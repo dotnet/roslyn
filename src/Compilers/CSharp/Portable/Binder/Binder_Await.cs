@@ -20,34 +20,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindAwait(expression, node, diagnostics);
         }
 
-        internal BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics)
+        private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics)
         {
-            (AwaitableInfo info, bool hasErrors) = BindAwaitInfo(expression, node, diagnostics);
-
-            return new BoundAwaitExpression(node, expression, info, info.Type, hasErrors);
-        }
-
-        internal (AwaitableInfo, bool hasErrors) BindAwaitInfo(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics)
-        {
-            MethodSymbol getAwaiter;
-            PropertySymbol isCompleted;
-            MethodSymbol getResult;
-
-            bool hasErrors =
-                ReportBadAwaitWithoutAsync(node, diagnostics) |
-                ReportBadAwaitContext(node, diagnostics) |
-                !GetAwaitableExpressionInfo(expression, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
+            bool hasErrors = false;
+            AwaitableInfo info = BindAwaitInfo(expression, node, diagnostics, ref hasErrors);
 
             // Spec 7.7.7.2:
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
             // if the return type of GetResult is void, the await-expression is classified as nothing. If it has a
             // non-void return type T, the await-expression is classified as a value of type T.
-            TypeSymbol awaitExpressionType =
-                (object)getResult != null ? getResult.ReturnType :
-                hasErrors ? CreateErrorType() :
-                Compilation.DynamicType;
+            TypeSymbol awaitExpressionType = info.GetResult?.ReturnType ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
 
-            return (new AwaitableInfo(getAwaiter, isCompleted, getResult, awaitExpressionType), hasErrors);
+            return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
+        }
+
+        internal AwaitableInfo BindAwaitInfo(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics, ref bool hasErrors)
+        {
+            MethodSymbol getAwaiter;
+            PropertySymbol isCompleted;
+            MethodSymbol getResult;
+
+            hasErrors |=
+                ReportBadAwaitWithoutAsync(node, diagnostics) |
+                ReportBadAwaitContext(node, diagnostics) |
+                !GetAwaitableExpressionInfo(expression, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
+
+            return new AwaitableInfo(getAwaiter, isCompleted, getResult);
         }
 
         /// <summary>

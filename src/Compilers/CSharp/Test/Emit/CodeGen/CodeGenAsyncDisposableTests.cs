@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -327,6 +328,57 @@ class C
         }
 
         [Fact]
+        public void TestMissingIAsyncDisposableAndMissingTaskAndMissingAsync()
+        {
+            string source = @"
+class C
+{
+    System.Threading.Tasks.Task<int> M()
+    {
+        using await (new C())
+        {
+        }
+        using await (var x = new C())
+        {
+            return 1;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
+                //         using await (new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 15),
+                // (6,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                //         using await (new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
+                // (6,15): error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
+                //         using await (new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.Task").WithLocation(6, 15),
+                // (6,22): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
+                //         using await (new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "new C()").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 22),
+                // (9,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 15),
+                // (9,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22),
+                // (9,15): error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.Task").WithLocation(9, 15),
+                // (9,22): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "var x = new C()").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 22),
+                // (11,20): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
+                //             return 1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(11, 20)
+                );
+        }
+
+        [Fact]
         public void TestMissingIDisposable()
         {
             string source = @"
@@ -345,7 +397,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source);
-            comp.MakeTypeMissing((WellKnownType)SpecialType.System_IDisposable);
+            comp.MakeTypeMissing(SpecialType.System_IDisposable);
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
                 //         using (new C())
@@ -1070,6 +1122,71 @@ struct S : System.IAsyncDisposable
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "body");
+        }
+
+        [Fact]
+        public void TestAwaitExpressionInfo_IEquatable()
+        {
+            string source = @"
+public class C
+{
+    void GetAwaiter() { }
+    void GetResult() { }
+    bool IsCompleted => true;
+}
+public class D
+{
+    void GetAwaiter() { }
+    void GetResult() { }
+    bool IsCompleted => true;
+}
+";
+            var comp = CreateStandardCompilation(source);
+            var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
+            var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
+            var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");
+            var first = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult1));
+
+            var nulls1 = new AwaitExpressionInfo(new AwaitableInfo(null, isCompleted1, getResult1));
+            var nulls2 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, null, getResult1));
+            var nulls3 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, null));
+
+            Assert.False(first.Equals(nulls1));
+            Assert.False(first.Equals(nulls2));
+            Assert.False(first.Equals(nulls3));
+
+            Assert.False(nulls1.Equals(first));
+            Assert.False(nulls2.Equals(first));
+            Assert.False(nulls3.Equals(first));
+
+            object nullObj = null;
+            Assert.False(first.Equals(nullObj));
+
+            var getAwaiter2 = (MethodSymbol)comp.GetMember("D.GetAwaiter");
+            var isCompleted2 = (PropertySymbol)comp.GetMember("D.IsCompleted");
+            var getResult2 = (MethodSymbol)comp.GetMember("D.GetResult");
+            var second1 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter2, isCompleted1, getResult1));
+            var second2 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted2, getResult1));
+            var second3 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult2));
+            var second4 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter2, isCompleted2, getResult2));
+
+            Assert.False(first.Equals(second1));
+            Assert.False(first.Equals(second2));
+            Assert.False(first.Equals(second3));
+            Assert.False(first.Equals(second4));
+
+            Assert.False(second1.Equals(first));
+            Assert.False(second2.Equals(first));
+            Assert.False(second3.Equals(first));
+            Assert.False(second4.Equals(first));
+
+            Assert.True(first.Equals(first));
+            Assert.True(first.Equals((object)first));
+
+            Assert.True(first.GetHashCode() != 0);
+            Assert.True(first.GetHashCode() != second1.GetHashCode());
+            Assert.True(first.GetHashCode() != second2.GetHashCode());
+            Assert.True(first.GetHashCode() != second3.GetHashCode());
         }
     }
 }

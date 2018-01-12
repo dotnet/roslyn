@@ -2937,6 +2937,11 @@ namespace Microsoft.CodeAnalysis
             return _lazyMakeMemberMissingMap != null && _lazyMakeMemberMissingMap.ContainsKey(member);
         }
 
+        internal void MakeTypeMissing(SpecialType type)
+        {
+            MakeTypeMissing((WellKnownType)type);
+        }
+
         internal void MakeTypeMissing(WellKnownType type)
         {
             if (_lazyMakeWellKnownTypeMissingMap == null)
@@ -2945,6 +2950,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             _lazyMakeWellKnownTypeMissingMap[(int)type] = true;
+        }
+
+        internal bool IsTypeMissing(SpecialType type)
+        {
+            return IsTypeMissing((WellKnownType)type);
         }
 
         internal bool IsTypeMissing(WellKnownType type)

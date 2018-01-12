@@ -2470,12 +2470,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitStatement(node.DeclarationsOpt);
             }
 
-            if (((UsingStatementSyntax)node.Syntax).AwaitKeyword != default)
+            if (_trackExceptions) NotePossibleException(node);
+            VisitStatement(node.Body);
+
+            if (node.AwaitOpt != null)
             {
                 _pendingBranches.Add(new PendingBranch(node, this.State));
             }
-            if (_trackExceptions) NotePossibleException(node);
-            VisitStatement(node.Body);
             return null;
         }
 

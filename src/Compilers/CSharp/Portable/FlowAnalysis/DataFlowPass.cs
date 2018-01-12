@@ -290,8 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case BoundKind.UsingStatement:
                     var usingStatement = (BoundUsingStatement)pending.Branch;
-                    var usingSyntax = (UsingStatementSyntax)usingStatement.Syntax;
-                    return usingSyntax.AwaitKeyword != default;
+                    return usingStatement.AwaitOpt != null;
                 default:
                     return false;
             }

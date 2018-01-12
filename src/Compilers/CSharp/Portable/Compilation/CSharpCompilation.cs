@@ -1265,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol result;
-            if (IsTypeMissing((WellKnownType)specialType))
+            if (IsTypeMissing(specialType))
             {
                 MetadataTypeName emittedName = MetadataTypeName.FromFullName(specialType.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
                 result = new MissingMetadataTypeSymbol.TopLevel(Assembly.CorLibrary.Modules[0], ref emittedName, specialType);
@@ -1273,8 +1273,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 result = Assembly.GetSpecialType(specialType);
-                Debug.Assert(result.SpecialType == specialType);
             }
+
+            Debug.Assert(result.SpecialType == specialType);
             return result;
         }
 

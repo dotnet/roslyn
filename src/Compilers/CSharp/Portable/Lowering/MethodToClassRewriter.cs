@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
+
+            Debug.Assert(node.AwaitOpt is null);
             return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, awaitOpt: null);
         }
 
@@ -372,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AwaitableInfo info = node.AwaitableInfo;
             return node.Update(
                 expression,
-                new AwaitableInfo(VisitMethodSymbol(info.GetAwaiter), VisitPropertySymbol(info.IsCompleted), VisitMethodSymbol(info.GetResult), info.Type),
+                new AwaitableInfo(VisitMethodSymbol(info.GetAwaiter), VisitPropertySymbol(info.IsCompleted), VisitMethodSymbol(info.GetResult)),
                 type);
         }
 

@@ -126,17 +126,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!hasErrors && hasAwait)
+            if (hasAwait)
             {
                 TypeSymbol taskType = this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-                hasErrors = ReportUseSiteDiagnostics(taskType, diagnostics, _syntax.AwaitKeyword);
+                hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, _syntax.AwaitKeyword);
 
-                if (!hasErrors)
-                {
-                    var syntaxForAwait = (SyntaxNode)expressionSyntax ?? declarationSyntax;
-                    BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntaxForAwait, taskType).MakeCompilerGenerated();
-                    (awaitOpt, hasErrors) = BindAwaitInfo(placeholder, syntaxForAwait, diagnostics);
-                }
+                var syntaxForAwait = (SyntaxNode)expressionSyntax ?? declarationSyntax;
+                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntaxForAwait, taskType).MakeCompilerGenerated();
+                awaitOpt = BindAwaitInfo(placeholder, syntaxForAwait, diagnostics, ref hasErrors);
             }
 
             BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);

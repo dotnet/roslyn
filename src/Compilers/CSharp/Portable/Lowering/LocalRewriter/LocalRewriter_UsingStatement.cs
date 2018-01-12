@@ -315,7 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // await local.DisposeAsync()
                 _sawAwaitInExceptionHandler = true;
                 var callExpr = BoundCall.Synthesized(syntax, disposedExpression, disposeAsyncMethodSymbol);
-                BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, callExpr, awaitOpt, awaitOpt.Type) { WasCompilerGenerated = true };
+
+                TypeSymbol awaitExpressionType = awaitOpt?.GetResult?.ReturnType ?? _compilation.DynamicType;
+                BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, callExpr, awaitOpt, awaitExpressionType) { WasCompilerGenerated = true };
                 disposeCall = (BoundExpression)VisitAwaitExpression(awaitExpr);
             }
             else
