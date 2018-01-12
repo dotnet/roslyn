@@ -31,6 +31,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact]
+        public void LocalFunctionTypeParametersUseCorrectBinder()
+        {
+            var text = @"
+class C
+{
+    static void M()
+    {
+        void local<[X]T>() {}
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var comp = CreateStandardCompilation(tree);
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ");
+            var m = newTree.GetRoot()
+                .DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(m.Body.SpanStart, m, out model));
+
+            var x = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+            Assert.Equal("X", x.Identifier.Text);
+
+            // If we aren't using the right binder here, the compiler crashes going through the binder factory
+            var info = model.GetSymbolInfo(x);
+            Assert.Null(info.Symbol);
+
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void local<[X]T>() {}
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[X]").WithLocation(6, 20),
+                // (6,21): error CS0246: The type or namespace name 'XAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void local<[X]T>() {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("XAttribute").WithLocation(6, 21),
+                // (6,21): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //         void local<[X]T>() {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 21),
+                // (6,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local<[X]T>() {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 14));
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute()
+        {
+            const string text = @"
+using System;
+class A : Attribute {}
+
+class C
+{
+    static void M()
+    {
+        void local<[A]T>() {}
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var comp = CreateStandardCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var a = tree.GetRoot().DescendantNodes()
+                .OfType<IdentifierNameSyntax>().ElementAt(2);
+            Assert.Equal("A", a.Identifier.Text);
+            var attrInfo = model.GetSymbolInfo(a);
+            var attrType = comp.GlobalNamespace.GetTypeMember("A");
+            var attrCtor = attrType.GetMember(".ctor");
+            Assert.Equal(attrCtor, attrInfo.Symbol);
+
+            // Assert that this is also true for the speculative semantic model
+            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ");
+            var m = newTree.GetRoot()
+                .DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(m.Body.SpanStart, m, out model));
+
+            a = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ElementAt(2);
+            Assert.Equal("A", a.Identifier.Text);
+
+            // If we aren't using the right binder here, the compiler crashes going through the binder factory
+            var info = model.GetSymbolInfo(a);
+            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
+            Assert.Equal(attrType, info.Symbol);
+        }
+
+        [Fact]
         public void UnsafeLocal()
         {
             var source = @"

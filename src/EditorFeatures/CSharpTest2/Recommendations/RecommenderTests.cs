@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 else
                 {
                     var result = (await RecommendKeywordsAsync(position, context)).Single();
-                    Assert.NotNull(result);
+                    Assert.True(result != null, "No recommended keywords");
                     Assert.Equal(keywordText, result.Keyword);
                     if (matchPriority != null)
                     {

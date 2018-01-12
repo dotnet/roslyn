@@ -81,6 +81,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         {
             issueSpan = default;
 
+            // var (x, y) = e;
+            // foreach (var (x, y) in e) ...
+            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression))
+            {
+                var parent = (DeclarationExpressionSyntax)typeName.Parent;
+                if (parent.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+                {
+                    issueSpan = typeName.Span;
+                    return true;
+                }
+            }
+
             // If it is currently not var, explicit typing exists, return. 
             // this also takes care of cases where var is mapped to a named type via an alias or a class declaration.
             if (!typeName.IsTypeInferred(semanticModel))
