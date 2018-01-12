@@ -23746,5 +23746,280 @@ class B : System.Attribute {
                 Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
                 );
         }
+
+        [Fact]
+        public void EnumConstraint_Compilation_Alone()
+        {
+            CreateStandardCompilation(@"
+public class Test<T> where T : System.Enum
+{
+}
+public enum E1
+{
+    A
+}
+public class Test2
+{
+    public void M()
+    {
+        var a = new Test<E1>();             // enum
+        var b = new Test<int>();            // value type
+        var c = new Test<string>();         // reference type
+    }
+}").VerifyDiagnostics(
+                // (14,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         var b = new Test<int>();            // value type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "int").WithArguments("Test<T>", "System.Enum", "T", "int").WithLocation(14, 26),
+                // (15,26): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'string' to 'System.Enum'.
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "string").WithArguments("Test<T>", "System.Enum", "T", "string").WithLocation(15, 26));
+        }
+
+        [Fact]
+        public void EnumConstraint_Compilation_ReferenceType()
+        {
+            CreateStandardCompilation(@"
+public class Test<T> where T : class, System.Enum
+{
+}
+public enum E1
+{
+    A
+}
+public class Test2
+{
+    public void M()
+    {
+        var a = new Test<E1>();             // enum
+        var b = new Test<int>();            // value type
+        var c = new Test<string>();         // reference type
+    }
+}").VerifyDiagnostics(
+                // (13,26): error CS0452: The type 'E1' must be a reference type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var a = new Test<E1>();             // enum
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "E1").WithArguments("Test<T>", "T", "E1").WithLocation(13, 26),
+                // (14,26): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var b = new Test<int>();            // value type
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("Test<T>", "T", "int").WithLocation(14, 26),
+                // (15,26): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'string' to 'System.Enum'.
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "string").WithArguments("Test<T>", "System.Enum", "T", "string").WithLocation(15, 26));
+        }
+
+        [Fact]
+        public void EnumConstraint_Compilation_ValueType()
+        {
+            CreateStandardCompilation(@"
+public class Test<T> where T : struct, System.Enum
+{
+}
+public enum E1
+{
+    A
+}
+public class Test2
+{
+    public void M()
+    {
+        var a = new Test<E1>();             // enum
+        var b = new Test<int>();            // value type
+        var c = new Test<string>();         // reference type
+    }
+}").VerifyDiagnostics(
+                // (14,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         var b = new Test<int>();            // value type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "int").WithArguments("Test<T>", "System.Enum", "T", "int").WithLocation(14, 26),
+                // (15,26): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(15, 26));
+        }
+
+        [Fact]
+        public void EnumConstraint_Compilation_Constructor()
+        {
+            CreateStandardCompilation(@"
+public class Test<T> where T : System.Enum, new()
+{
+}
+public enum E1
+{
+    A
+}
+public class Test2
+{
+    public void M()
+    {
+        var a = new Test<E1>();             // enum
+        var b = new Test<int>();            // value type
+        var c = new Test<string>();         // reference type
+    }
+}").VerifyDiagnostics(
+                // (14,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         var b = new Test<int>();            // value type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "int").WithArguments("Test<T>", "System.Enum", "T", "int").WithLocation(14, 26),
+                // (15,26): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'string' to 'System.Enum'.
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "string").WithArguments("Test<T>", "System.Enum", "T", "string").WithLocation(15, 26),
+                // (15,26): error CS0310: 'string' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(15, 26));
+        }
+
+
+        [Fact]
+        public void EnumConstraint_Reference_Alone()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test<T> where T : System.Enum
+{
+}"
+                ).EmitToImageReference();
+
+            var code = @"
+public enum E1
+{
+    A
+}
+
+public class Test2
+{
+    public void M()
+    {
+        var a = new Test<E1>();             // enum
+        var b = new Test<int>();            // value type
+        var c = new Test<string>();         // reference type
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (12,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         var b = new Test<int>();            // value type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "int").WithArguments("Test<T>", "System.Enum", "T", "int").WithLocation(12, 26),
+                // (13,26): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'string' to 'System.Enum'.
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "string").WithArguments("Test<T>", "System.Enum", "T", "string").WithLocation(13, 26));
+        }
+
+        [Fact]
+        public void EnumConstraint_Reference_ReferenceType()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test<T> where T : class, System.Enum
+{
+}"
+                ).EmitToImageReference();
+
+            var code = @"
+public enum E1
+{
+    A
+}
+
+public class Test2
+{
+    public void M()
+    {
+        var a = new Test<E1>();             // enum
+        var b = new Test<int>();            // value type
+        var c = new Test<string>();         // reference type
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (11,26): error CS0452: The type 'E1' must be a reference type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var a = new Test<E1>();             // enum
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "E1").WithArguments("Test<T>", "T", "E1").WithLocation(11, 26),
+                // (12,26): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var b = new Test<int>();            // value type
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("Test<T>", "T", "int").WithLocation(12, 26),
+                // (13,26): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'string' to 'System.Enum'.
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "string").WithArguments("Test<T>", "System.Enum", "T", "string").WithLocation(13, 26));
+        }
+
+        [Fact]
+        public void EnumConstraint_Reference_ValueType()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test<T> where T : struct, System.Enum
+{
+}"
+                ).EmitToImageReference();
+
+            var code = @"
+public enum E1
+{
+    A
+}
+
+public class Test2
+{
+    public void M()
+    {
+        var a = new Test<E1>();             // enum
+        var b = new Test<int>();            // value type
+        var c = new Test<string>();         // reference type
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (12,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         var b = new Test<int>();            // value type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "int").WithArguments("Test<T>", "System.Enum", "T", "int").WithLocation(12, 26),
+                // (13,26): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(13, 26));
+        }
+
+        [Fact]
+        public void EnumConstraint_Reference_Constructor()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test<T> where T : System.Enum, new()
+{
+}"
+                ).EmitToImageReference();
+
+            var code = @"
+public enum E1
+{
+    A
+}
+
+public class Test2
+{
+    public void M()
+    {
+        var a = new Test<E1>();             // enum
+        var b = new Test<int>();            // value type
+        var c = new Test<string>();         // reference type
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (12,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         var b = new Test<int>();            // value type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "int").WithArguments("Test<T>", "System.Enum", "T", "int").WithLocation(12, 26),
+                // (13,26): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'string' to 'System.Enum'.
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "string").WithArguments("Test<T>", "System.Enum", "T", "string").WithLocation(13, 26),
+                // (13,26): error CS0310: 'string' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var c = new Test<string>();         // reference type
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(13, 26));
+        }
+
+        [Fact]
+        public void EnumConstraint_Before_7_3()
+        {
+            var code = @"
+public class Test<T> where T : System.Enum
+{
+}";
+
+            CreateStandardCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_2)).VerifyDiagnostics(
+                // (2,32): error CS8320: Feature 'enum generic type constraints' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // public class Test<T> where T : System.Enum
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "System.Enum").WithArguments("enum generic type constraints", "7.3").WithLocation(2, 32));
+        }
     }
 }

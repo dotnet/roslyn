@@ -9201,5 +9201,14 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "o");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task EnumConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "Enum");
+        }
     }
 }

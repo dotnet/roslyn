@@ -433,5 +433,18 @@ class C
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                     });
         }
+
+        [Fact]
+        public async Task EnumConstraint_UpgradeTo_7_3()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class X<T> where T : [|System.Enum|]
+{
+}
+",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2),
+                index: 1);
+        }
     }
 }

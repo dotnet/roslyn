@@ -5152,5 +5152,17 @@ namespace ConsoleApplication1
 }",
             MainDescription($"void Program.Test<Bar>()"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EnumConstraint()
+        {
+            await TestInMethodAsync(
+@"
+class X<T> where T : System.Enum
+{
+    private $$T x;
+}",
+                MainDescription($"T {FeaturesResources.in_} X<T> where T : Enum"));
+        }
     }
 }
