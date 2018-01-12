@@ -2181,7 +2181,6 @@ class C
 
     static void M()
     {
-#line 999
         F(out var x, out var y);
     }
 }";
@@ -2189,7 +2188,7 @@ class C
 
             WithRuntimeInstance(compilation0, runtime =>
             {
-                var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
+                var context = CreateMethodContext(runtime, "C.M");
 
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
