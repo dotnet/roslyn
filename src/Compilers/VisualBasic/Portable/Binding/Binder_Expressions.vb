@@ -3839,7 +3839,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We have a valid member of the enum referred to.
             Return New BoundFlagsEnumOperationExpressionSyntax(
                   syntax:=node,
-               enumFlags:=expr,
+               enumFlags:=expr, Nothing,
                 enumFlag:=New BoundFieldAccess(member.Name, expr, eFlag, False, original),
                     type:=GetSpecialType(SpecialType.System_Boolean, member.Name, diagBag))
         End Function

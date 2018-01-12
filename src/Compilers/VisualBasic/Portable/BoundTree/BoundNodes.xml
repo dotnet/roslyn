@@ -34,6 +34,7 @@
     <ValueType Name="SourceMemberFlags"/>
     <ValueType Name="NoOpStatementFlavor"/>
     <ValueType Name="BoundTypeOrValueData"/>
+    <ValueType Name="FlagsEnumOperatorKind"/>
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="allow"/>
@@ -1926,7 +1927,7 @@
 
     <!--What we are invoking. BoundLateMemberAccess or BoundBadExpression -->
     <Field Name="EnumFlags" Type="BoundExpression" Null="disallow"/>
-    <!--<Field Name="Op"    Type="PunctuationSyntax" Null="disallow"/>-->
+    <Field Name="Op"        Type="FlagsEnumOperatorKind" Null="NotApplicable"/>
     <Field Name="EnumFlag"  Type="BoundExpression" Null ="disallow"/>
   </Node>
 

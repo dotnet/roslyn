@@ -210,6 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
 
+
     Friend MustInherit Partial Class BoundExpression
         Inherits BoundNode
 
@@ -9747,7 +9748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Partial Class BoundFlagsEnumOperationExpressionSyntax
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, enumFlags As BoundExpression, enumFlag As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, enumFlags As BoundExpression, op As FlagsEnumOperatorKind, enumFlag As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.FlagsEnumOperationExpressionSyntax, syntax, type, hasErrors OrElse enumFlags.NonNullAndHasErrors() OrElse enumFlag.NonNullAndHasErrors())
 
             Debug.Assert(enumFlags IsNot Nothing, "Field 'enumFlags' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -9755,6 +9756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._EnumFlags = enumFlags
+            Me._Op = op
             Me._EnumFlag = enumFlag
 
             Validate()
@@ -9771,6 +9773,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _Op As FlagsEnumOperatorKind
+        Public ReadOnly Property Op As FlagsEnumOperatorKind
+            Get
+                Return _Op
+            End Get
+        End Property
+
         Private ReadOnly _EnumFlag As BoundExpression
         Public ReadOnly Property EnumFlag As BoundExpression
             Get
@@ -9782,9 +9791,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitFlagsEnumOperationExpressionSyntax(Me)
         End Function
 
-        Public Function Update(enumFlags As BoundExpression, enumFlag As BoundExpression, type As TypeSymbol) As BoundFlagsEnumOperationExpressionSyntax
-            If enumFlags IsNot Me.EnumFlags OrElse enumFlag IsNot Me.EnumFlag OrElse type IsNot Me.Type Then
-                Dim result = New BoundFlagsEnumOperationExpressionSyntax(Me.Syntax, enumFlags, enumFlag, type, Me.HasErrors)
+        Public Function Update(enumFlags As BoundExpression, op As FlagsEnumOperatorKind, enumFlag As BoundExpression, type As TypeSymbol) As BoundFlagsEnumOperationExpressionSyntax
+            If enumFlags IsNot Me.EnumFlags OrElse op <> Me.Op OrElse enumFlag IsNot Me.EnumFlag OrElse type IsNot Me.Type Then
+                Dim result = New BoundFlagsEnumOperationExpressionSyntax(Me.Syntax, enumFlags, op, enumFlag, type, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -13618,7 +13627,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim enumFlags As BoundExpression = DirectCast(Me.Visit(node.EnumFlags), BoundExpression)
             Dim enumFlag As BoundExpression = DirectCast(Me.Visit(node.EnumFlag), BoundExpression)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(enumFlags, enumFlag, type)
+            Return node.Update(enumFlags, node.Op, enumFlag, type)
         End Function
 
     End Class
@@ -15078,6 +15087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitFlagsEnumOperationExpressionSyntax(node As BoundFlagsEnumOperationExpressionSyntax, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("flagsEnumOperationExpressionSyntax", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("enumFlags", Nothing, new TreeDumperNode() { Visit(node.EnumFlags, Nothing) }),
+                New TreeDumperNode("op", node.Op, Nothing),
                 New TreeDumperNode("enumFlag", Nothing, new TreeDumperNode() { Visit(node.EnumFlag, Nothing) }),
                 New TreeDumperNode("type", node.Type, Nothing)
             })

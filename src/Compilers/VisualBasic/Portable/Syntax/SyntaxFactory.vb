@@ -1120,5 +1120,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' By default mark submissions as invalid since there's at least one error.
             Return True
         End Function
+
+        Friend Shared Function FlagsEnumIsSetToken(leadingTrivia As SyntaxTriviaList, trailingTrivia As SyntaxTriviaList) As SyntaxToken
+            Return SyntaxFactory.FlagsEnumOperator(leadingTrivia, SyntaxKind.FlagsEnumIsSetToken, "!", trailingTrivia)
+        End Function
+
+        Friend Shared Function FlagsEnumSetToken(leadingTrivia As SyntaxTriviaList, trailingTrivia As SyntaxTriviaList) As SyntaxToken
+            Return SyntaxFactory.FlagsEnumOperator(leadingTrivia, SyntaxKind.FlagsEnumIsSetToken, "!+", trailingTrivia)
+        End Function
+
+        Friend Shared Function FlagsEnumClearToken(leadingTrivia As SyntaxTriviaList, trailingTrivia As SyntaxTriviaList) As SyntaxToken
+            Return SyntaxFactory.FlagsEnumOperator(leadingTrivia, SyntaxKind.FlagsEnumClearToken, "!-", trailingTrivia)
+        End Function
     End Class
 End Namespace

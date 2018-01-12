@@ -8591,7 +8591,7 @@ Unify Enum declarations with other block type declarations.
       </node-kind>
 
     </node-structure>
-
+    
     <!--********************
       -  Punctuation
       **********************-->
@@ -9568,19 +9568,51 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Base"></lm-equiv>
         <native-equiv name="Base"></native-equiv>
       </child>
-      <!--<Field name="OperatorToken" kind="PunctuationSyntax">
-      --><!--<kind name="FlagsEnumIsSetToken" token-text="!"/>
-      <kind name="FlagsEnumSetToken" token-text="!+"/>
-      <kind name="FlagsEnumClrToken" token-text="!-"/>--><!--
-      </Field>--><!--
-          <child name="OperatorToken" kind="PunctuationSyntax"></child>-->
-  <child name="EnumFlag" kind="@SimpleNameSyntax">
+      <child name="OperatorToken" kind="@FlagsEnumOperatorSyntax"></child>
+      <child name="EnumFlag" kind="@SimpleNameSyntax">
         <description>The identifier after the "!" or "!+" or "!-" token.</description>
         <lm-equiv name="Value"></lm-equiv>
         <native-equiv name="Name"></native-equiv>
       </child>
     </node-structure>
-
-
+      
+    <node-structure name="FlagsEnumOperatorSyntax" parent ="SyntaxToken" has-default-factory ="true" default-trailing-trivia="space" >
+      <node-kind name="FlagsEnumSetToken"  token-text="!+">
+        <lm-equiv name="BangPlusToken" />
+        <native-equiv name="" />
+      </node-kind>
+      <node-kind name="FlagsEnumClearToken" token-text="!-">
+        <lm-equiv name="BangMinusToken" />
+        <native-equiv name="" />
+      </node-kind>
+      <node-kind name="FlagsEnumIsSetToken" token-text="!">
+        <lm-equiv name="BangToken" />
+        <native-equiv name="" />
+      </node-kind> 
+    </node-structure>
+    
+    <!--********************
+      -  FlagsEnumOperatorKind
+      **********************-->
+    <enumeration name="FlagsEnumOperatorKind">
+      <description>
+        Represents one of the type characters or literal suffixes of VB. Used to describe
+        a) the type character suffixes that can be placed on identifiers, and
+        b) the suffixes that can be placed on integer literals.
+      </description>
+      <lm-equiv name="FlagsEnumOperator"></lm-equiv>
+      <enumerators>
+        <enumerator name="None" hexvalue="0"></enumerator>
+        <enumerator name="IsSet" hexvalue="1">
+          <description>The "!" flagsEnum operator."</description>
+        </enumerator>
+        <enumerator name="[Set]" hexvalue="2">
+          <description>The "!+" flagsEnum operator."</description>
+        </enumerator>
+        <enumerator name="Clear" hexvalue="3">
+          <description>The "!=" flagsEnum operator."</description>
+        </enumerator>
+      </enumerators>
+    </enumeration>
   </definitions>
 </define-parse-tree>
