@@ -9076,6 +9076,11 @@
         <target state="translated">{0} は有効な Visual Basic 複合割り当て操作ではありません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MissingFlagsAttributeOnEnum">
+        <source>Enum '{0}' requires &lt;Flags&gt; attribute.</source>
+        <target state="new">Enum '{0}' requires &lt;Flags&gt; attribute.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

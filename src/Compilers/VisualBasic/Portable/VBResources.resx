@@ -5527,4 +5527,7 @@
   <data name="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid Visual Basic compound assignment operation</value>
   </data>
+  <data name="ERR_MissingFlagsAttributeOnEnum" xml:space="preserve">
+    <value>Enum '{0}' requires &lt;Flags&gt; attribute.</value>
+  </data>
 </root>

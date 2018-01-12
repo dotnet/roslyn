@@ -1007,6 +1007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             GetNextToken()
 
             If DotOrBangToken.Kind = SyntaxKind.ExclamationToken Then
+
                 Dim Name = ParseIdentifierNameAllowingKeyword()
                 Return SyntaxFactory.DictionaryAccessExpression(Term, DotOrBangToken, Name)
             Else
