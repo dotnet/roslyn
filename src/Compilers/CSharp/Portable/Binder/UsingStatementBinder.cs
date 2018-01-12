@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion iDisposableConversion = Conversion.NoConversion;
             BoundMultipleLocalDeclarations declarationsOpt = null;
             BoundExpression expressionOpt = null;
-            AwaitableInfo? awaitOpt = null;
+            AwaitableInfo awaitOpt = null;
             if (expressionSyntax != null)
             {
                 expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);

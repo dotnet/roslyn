@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Internal structure containing all semantic information about an await expression.
     /// </summary>
-    internal struct AwaitableInfo : IEquatable<AwaitableInfo>
+    internal class AwaitableInfo : IEquatable<AwaitableInfo>
     {
         public MethodSymbol GetAwaiter { get; }
 
@@ -48,16 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int GetHashCode()
         {
             return Hash.Combine(GetAwaiter, Hash.Combine(IsCompleted, Hash.Combine(GetResult, Type.GetHashCode())));
-        }
-
-        public static bool operator ==(AwaitableInfo left, AwaitableInfo right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(AwaitableInfo left, AwaitableInfo right)
-        {
-            return !left.Equals(right);
         }
     }
 }
