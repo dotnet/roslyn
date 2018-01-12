@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private static readonly ImmutableArray<MetadataReference> s_stdRefs = CoreClrShim.IsRunningOnCoreClr
             ? ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef)
-            : ImmutableArray.Create(MscorlibRef);
+            : ImmutableArray.Create(MscorlibRef_v46);
 
         // Careful! Make sure everything in s_desktopRefsToRemove is constructed with
         // the same object identity, since MetadataReference uses reference equality.
