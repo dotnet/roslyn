@@ -418,6 +418,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public MethodSymbol HiddenMethod
+        {
+            get
+            {
+                if (ReferenceEquals(this.ConstructedFrom, this))
+                {
+                    if (IsDefinition)
+                    {
+                        return (MethodSymbol)OverriddenOrHiddenMembers.GetHiddenMember();
+                    }
+
+                    return (MethodSymbol)OverriddenOrHiddenMembersResult.GetHiddenMember(this, OriginalDefinition.OverriddenMethod);
+                }
+
+                return null;
+            }
+        }
+
         /// <summary>
         /// Returns true if calls to this method are omitted in this syntax tree. Calls are omitted
         /// when the called method is a partial method with no implementation part, or when the
@@ -1059,7 +1077,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.OverriddenMethod;
+                return this.OverriddenMethod;             
+            }
+        }
+
+        IMethodSymbol IMethodSymbol.HiddenMethod
+        {
+            get
+            {
+                return this.HiddenMethod;
             }
         }
 

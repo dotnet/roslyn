@@ -90,6 +90,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return null;
         }
 
+
+        public static ISymbol HiddenMember(this ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Event:
+                    throw new NotImplementedException();
+
+                case SymbolKind.Method:
+                    return ((IMethodSymbol)symbol).HiddenMethod;
+
+                case SymbolKind.Property:
+                    throw new NotImplementedException();
+            }
+
+            return null;
+        }
+
         public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
         {
             switch (symbol)
@@ -616,7 +634,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <returns>
-        /// Returns true if symbol is a local variable and its declaring syntax node is 
+        /// Returns true if symbol is a local variable and its declaring syntax node is
         /// after the current position, false otherwise (including for non-local symbols)
         /// </returns>
         public static bool IsInaccessibleLocal(this ISymbol symbol, int position)
@@ -638,12 +656,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Checks a given symbol for browsability based on its declaration location, attributes 
-        /// explicitly limiting browsability, and whether showing of advanced members is enabled. 
+        /// Checks a given symbol for browsability based on its declaration location, attributes
+        /// explicitly limiting browsability, and whether showing of advanced members is enabled.
         /// The optional attribute constructor parameters may be used to specify the symbols of the
-        /// constructors of the various browsability limiting attributes because finding these 
-        /// repeatedly over a large list of symbols can be slow. If providing these constructor 
-        /// symbols, they should be in the format provided by 
+        /// constructors of the various browsability limiting attributes because finding these
+        /// repeatedly over a large list of symbols can be slow. If providing these constructor
+        /// symbols, they should be in the format provided by
         /// EditorBrowsableHelpers.GetSpecial*AttributeConstructor(). If these are not provided,
         /// they will be found in the compilation.
         /// </summary>
@@ -657,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             List<IMethodSymbol> typeLibVarAttributeConstructors = null,
             INamedTypeSymbol hideModuleNameAttribute = null)
         {
-            // Namespaces can't have attributes, so just return true here.  This also saves us a 
+            // Namespaces can't have attributes, so just return true here.  This also saves us a
             // costly check if this namespace has any locations in source (since a merged namespace
             // needs to go collect all the locations).
             if (symbol.Kind == SymbolKind.Namespace)
@@ -674,7 +692,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // Ignore browsability limiting attributes if the symbol is declared in source.
-            // Check all locations since some of VB's embedded My symbols are declared in 
+            // Check all locations since some of VB's embedded My symbols are declared in
             // both source and the MyTemplateLocation.
             if (symbol.Locations.All(loc => loc.IsInSource))
             {
@@ -957,7 +975,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // NOTE: (rather than any OnCompleted method conforming to a certain pattern).
             // NOTE: Should this code be updated to match the spec?
 
-            // void OnCompleted(Action) 
+            // void OnCompleted(Action)
             // Actions are delegates, so we'll just check for delegates.
             if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters.Length == 1 && x.Parameters.First().Type.TypeKind == TypeKind.Delegate))
             {
@@ -970,7 +988,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         /// <summary>
         /// First, remove symbols from the set if they are overridden by other symbols in the set.
-        /// If a symbol is overridden only by symbols outside of the set, then it is not removed. 
+        /// If a symbol is overridden only by symbols outside of the set, then it is not removed.
         /// This is useful for filtering out symbols that cannot be accessed in a given context due
         /// to the existence of overriding members. Second, remove remaining symbols that are
         /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
@@ -979,7 +997,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
             this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
-            symbols = symbols.RemoveOverriddenSymbolsWithinSet();
+            symbols = symbols.RemoveOverriddenOrHiddenSymbolsWithinSet();
 
             // Since all symbols are from the same compilation, find the required attribute
             // constructors once and reuse.
@@ -1006,19 +1024,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     hideModuleNameAttribute));
         }
 
-        private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
+        private static ImmutableArray<T> RemoveOverriddenOrHiddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
         {
-            var overriddenSymbols = new HashSet<ISymbol>();
+            var overriddenOrHiddenSymbols = new HashSet<ISymbol>();
 
             foreach (var symbol in symbols)
             {
-                if (symbol.OverriddenMember() != null && !overriddenSymbols.Contains(symbol.OverriddenMember()))
+                if (symbol.OverriddenMember() != null && !overriddenOrHiddenSymbols.Contains(symbol.OverriddenMember()))
                 {
-                    overriddenSymbols.Add(symbol.OverriddenMember());
+                    overriddenOrHiddenSymbols.Add(symbol.OverriddenMember());
+                }
+                else if (symbol.HiddenMember() != null && !overriddenOrHiddenSymbols.Contains(symbol.HiddenMember()))
+                {
+                    overriddenOrHiddenSymbols.Add(symbol.HiddenMember());
                 }
             }
 
-            return symbols.WhereAsArray(s => !overriddenSymbols.Contains(s));
+            return symbols.WhereAsArray(s => !overriddenOrHiddenSymbols.Contains(s));
         }
 
         public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(

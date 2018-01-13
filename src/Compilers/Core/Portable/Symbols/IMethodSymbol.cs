@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis
         /// and there correctly was a method to override), returns the overridden method.
         /// </summary>
         IMethodSymbol OverriddenMethod { get; }
+        IMethodSymbol HiddenMethod { get; }
 
         /// <summary>
         /// If this method can be applied to an object, returns the type of object it is applied to.
