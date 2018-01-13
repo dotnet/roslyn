@@ -1227,6 +1227,7 @@ class C
             Assert.Equal("(System.Int32 a, System.Int32 b)", tuple2.ToTestDisplayString());
             var underlying2 = tuple2.TupleUnderlyingType;
             Assert.Equal("System.ValueTuple<System.Int32, System.Int32>[missing]", underlying2.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32 b)", model.GetTypeInfo(ab).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
