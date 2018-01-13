@@ -2908,11 +2908,13 @@ class C
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal("(var x1, var (x2, x3))", lhs.ToString());
                 Assert.Equal("(System.Int32 x1, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x1, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(lhs).Symbol);
 
                 var lhsNested = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
                 Assert.Equal("var (x2, x3)", lhsNested.ToString());
                 Assert.Equal("(System.Int32 x2, System.String x3)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x2, System.String x3)", model.GetTypeInfo(lhsNested).ConvertedType.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(lhsNested).Symbol);
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
