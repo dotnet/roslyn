@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
             {
-                return default;
+                return null;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 
             if (tree == null)
             {
-                return default;
+                return null;
             }
 
             return GetMatchingBraces(tree, position);
