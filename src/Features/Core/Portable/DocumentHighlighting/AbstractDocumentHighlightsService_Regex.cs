@@ -48,99 +48,29 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private ImmutableArray<DocumentHighlights> GetHighlights(
             Document document, RegexTree tree, int position)
         {
-            var highlightsOnTheRight = GetHighlights(document, tree, position, caretOnLeft: true);
-            var highlightsOnTheLeft = GetHighlights(document, tree, position - 1, caretOnLeft: false);
-
-            if (!highlightsOnTheRight.references.IsEmpty)
+            var referencesOnTheRight = GetReferences(document, tree, position, caretOnLeft: true);
+            if (!referencesOnTheRight.IsEmpty)
             {
-                // We were on the left of a reference.  Just return only these highlights.
-                return highlightsOnTheRight.references;
-            }
-
-            if (!highlightsOnTheRight.braces.IsEmpty)
-            {
-                // We were on the left of an open open.  Return these highlights, and any 
-                // highlights if we were on the right of a close paren.  Don't return
-                // references to the left of the caret.
-                return highlightsOnTheRight.braces.Concat(highlightsOnTheLeft.braces);
+                return referencesOnTheRight;
             }
 
             // Nothing was on the right of the caret.  Return anything we were able to find on 
             // the left of the caret
-            return highlightsOnTheLeft.references.Concat(highlightsOnTheLeft.braces);
+            var referencesOnTheLeft = GetReferences(document, tree, position - 1, caretOnLeft: false);
+            return referencesOnTheLeft;
         }
 
-        private (ImmutableArray<DocumentHighlights> references, ImmutableArray<DocumentHighlights> braces) GetHighlights(
+        private ImmutableArray<DocumentHighlights> GetReferences(
             Document document, RegexTree tree, int position, bool caretOnLeft)
         {
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
             if (virtualChar == null)
             {
-                return (ImmutableArray<DocumentHighlights>.Empty, ImmutableArray<DocumentHighlights>.Empty);
+                return ImmutableArray<DocumentHighlights>.Empty;
             }
 
             var ch = virtualChar.Value;
-            var referenceHighlights = FindReferenceHighlights(document, tree, ch);
-
-            if (caretOnLeft)
-            {
-                var braceHighlights = ch == '('
-                    ? FindBraceHighlights(document, tree, ch)
-                    : ImmutableArray<DocumentHighlights>.Empty;
-
-                return (referenceHighlights, braceHighlights);
-            }
-            else
-            {
-                var braceHighlights = ch == ')'
-                    ? FindBraceHighlights(document, tree, ch)
-                    : ImmutableArray<DocumentHighlights>.Empty;
-
-                return (referenceHighlights, braceHighlights);
-            }
-        }
-
-        private ImmutableArray<DocumentHighlights> FindBraceHighlights(
-            Document document, RegexTree tree, VirtualChar ch)
-        {
-            var node = FindGroupingNode(tree.Root, ch);
-            if (node == null)
-            {
-                return ImmutableArray<DocumentHighlights>.Empty;
-            }
-
-            if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
-            {
-                return ImmutableArray<DocumentHighlights>.Empty;
-            }
-
-            return ImmutableArray.Create(new DocumentHighlights(
-                document, ImmutableArray.Create(
-                    new HighlightSpan(node.OpenParenToken.VirtualChars[0].Span, HighlightSpanKind.None),
-                    new HighlightSpan(node.CloseParenToken.VirtualChars[0].Span, HighlightSpanKind.None))));
-        }
-
-        private RegexGroupingNode FindGroupingNode(RegexNode node, VirtualChar ch)
-        {
-            if (node is RegexGroupingNode grouping &&
-                (grouping.OpenParenToken.VirtualChars.Contains(ch) || grouping.CloseParenToken.VirtualChars.Contains(ch)))
-            {
-                return grouping;
-            }
-
-            foreach (var child in node)
-            {
-                if (child.IsNode)
-                {
-                    var result = FindGroupingNode(child.Node, ch);
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-            }
-
-            return null;
+            return FindReferenceHighlights(document, tree, ch);
         }
 
         private ImmutableArray<DocumentHighlights> FindReferenceHighlights(
@@ -223,6 +153,5 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
             return null;
         }
-
     }
 }
