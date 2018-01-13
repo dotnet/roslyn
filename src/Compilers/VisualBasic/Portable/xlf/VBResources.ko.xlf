@@ -9075,6 +9075,19 @@
         <target state="translated">{0}은(는) 유효한 Visual Basic 복합 할당 연산이 아닙니다.</target>
         <note />
       </trans-unit>
+<<<<<<< Feature_DefaultOptionalParameter
+=======
+      <trans-unit id="ERR_MissingFlagsAttributeOnEnum">
+        <source>Enum '{0}' requires &lt;Flags&gt; attribute.</source>
+        <target state="new">Enum '{0}' requires &lt;Flags&gt; attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_DefaultOptionalParameter">
+        <source>Default Optional Parameter</source>
+        <target state="new">Default Optional Parameter</target>
+        <note />
+      </trans-unit>
+>>>>>>> local
     </body>
   </file>
 </xliff>

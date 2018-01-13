@@ -9076,6 +9076,19 @@
         <target state="translated">{0} n'est pas une opération d'assignation composée Visual Basic valide</target>
         <note />
       </trans-unit>
+<<<<<<< Feature_DefaultOptionalParameter
+=======
+      <trans-unit id="ERR_MissingFlagsAttributeOnEnum">
+        <source>Enum '{0}' requires &lt;Flags&gt; attribute.</source>
+        <target state="new">Enum '{0}' requires &lt;Flags&gt; attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_DefaultOptionalParameter">
+        <source>Default Optional Parameter</source>
+        <target state="new">Default Optional Parameter</target>
+        <note />
+      </trans-unit>
+>>>>>>> local
     </body>
   </file>
 </xliff>
