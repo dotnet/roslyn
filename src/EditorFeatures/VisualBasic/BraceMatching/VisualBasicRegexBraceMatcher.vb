@@ -9,15 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
     Friend Class VisualBasicRegexBraceMatcher
         Implements IBraceMatcher
 
-        Public Async Function FindBracesAsync(document As Document, position As Integer, Optional cancellationToken As CancellationToken = Nothing) As Task(Of BraceMatchingResult?) Implements IBraceMatcher.FindBracesAsync
-            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = root.FindToken(position)
-            If token.Kind() <> SyntaxKind.StringLiteralToken Then
-                Return Nothing
-            End If
-
-            Return Await CommonRegexBraceMatcher.FindBracesAsync(
-                document, token, position, cancellationToken).ConfigureAwait(False)
+        Public Function FindBracesAsync(document As Document, position As Integer, Optional cancellationToken As CancellationToken = Nothing) As Task(Of BraceMatchingResult?) Implements IBraceMatcher.FindBracesAsync
+            Return CommonRegexBraceMatcher.FindBracesAsync(document, position, cancellationToken)
         End Function
     End Class
 End Namespace

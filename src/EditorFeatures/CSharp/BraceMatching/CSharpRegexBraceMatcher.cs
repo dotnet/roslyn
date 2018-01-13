@@ -10,17 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
     [ExportBraceMatcher(LanguageNames.CSharp)]
     internal class CSharpRegexBraceMatcher : IBraceMatcher
     {
-        public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken = default)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-            if (token.Kind() != SyntaxKind.StringLiteralToken)
-            {
-                return null;
-            }
-
-            return await CommonRegexBraceMatcher.FindBracesAsync(
-                document, token, position, cancellationToken).ConfigureAwait(false);
-        }
+        public Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken)
+            => CommonRegexBraceMatcher.FindBracesAsync(document, position, cancellationToken);
     }
 }
