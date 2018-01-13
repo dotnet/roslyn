@@ -507,29 +507,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ArrayAccess:
-                    if (isDynamicAssignment)
                     {
-                        // In non-dynamic array[index] op= R we emit:
-                        //   T& tmp = &array[index];
-                        //   *tmp = *L op R;
-                        // where T is the type of L.
-                        // 
-                        // If L is an array access, the assignment is dynamic, the compile-time of the array is dynamic[] 
-                        // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
-                        // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
-                        //
-                        // In this case we rewrite the assignment as follows:
-                        //
-                        //   E t_array = array;
-                        //   I t_index = index; (possibly more indices)
-                        //   T value = t_array[t_index];
-                        //   t_array[t_index] = value op R;
-
                         var arrayAccess = (BoundArrayAccess)originalLHS;
-                        var loweredArray = VisitExpression(arrayAccess.Expression);
-                        var loweredIndices = VisitList(arrayAccess.Indices);
+                        if (isDynamicAssignment || !IsInvariantArray(arrayAccess.Expression.Type))
+                        {
+                            // In non-dynamic, invariant array[index] op= R we emit:
+                            //   T& tmp = &array[index];
+                            //   *tmp = *L op R;
+                            // where T is the type of L.
+                            // 
+                            // If L is an array access, the assignment is dynamic, the compile-time of the array is dynamic[] 
+                            // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
+                            // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
+                            //
+                            // In the dynamic case, or when the array may be co-variant, we rewrite the assignment as follows:
+                            //
+                            //   E t_array = array;
+                            //   I t_index = index; (possibly more indices)
+                            //   T value = t_array[t_index];
+                            //   t_array[t_index] = value op R;
+                            var loweredArray = VisitExpression(arrayAccess.Expression);
+                            var loweredIndices = VisitList(arrayAccess.Indices);
 
-                        return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                            return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                        }
                     }
                     break;
 
@@ -601,6 +602,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             stores.Add(assignmentToTemp2);
             temps.Add(variableTemp.LocalSymbol);
             return variableTemp;
+        }
+
+        private static bool IsInvariantArray(TypeSymbol type)
+        {
+            return (type as ArrayTypeSymbol)?.ElementType.IsSealed == true;
         }
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)

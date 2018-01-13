@@ -305,5 +305,195 @@ class Class1
 	}
 }");
         }
+
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
+        [Fact]
+        public void RefExtensionMethods_OutParam()
+        {
+            var code = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+
+        var inst = new S1();
+
+        int orig;
+
+        var result = inst.Mutate(out orig);
+
+        System.Console.Write(orig);
+        System.Console.Write(inst.x);
+    }
+}
+
+public static class S1_Ex
+{
+    public static bool Mutate(ref this S1 instance, out int orig)
+    {
+        orig = instance.x;
+        instance.x = 42;
+
+        return true;
+    }
+}
+
+public struct S1
+{
+    public int x;
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "042");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (S1 V_0, //inst
+                int V_1) //orig
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""bool S1_Ex.Mutate(ref S1, out int)""
+  IL_0011:  pop
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""void System.Console.Write(int)""
+  IL_0018:  ldloc.0
+  IL_0019:  ldfld      ""int S1.x""
+  IL_001e:  call       ""void System.Console.Write(int)""
+  IL_0023:  ret
+}");
+
+        }
+
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
+        [Fact]
+        public void OutParamAndOptional()
+        {
+            var code = @"
+using System;
+public class C
+{
+    public static C cc => new C();
+    readonly int x;
+    readonly int y;
+
+    public static void Main()
+    {
+        var v = new C(1);
+        System.Console.WriteLine('Q');
+    }
+
+    private C()
+    {
+    }
+
+    private C(int x)
+    {
+        var c = C.cc.Test(1, this, out x, out y);
+    }
+
+    public C Test(object arg1, C arg2, out int i1, out int i2, object opt = null)
+    {
+        i1 = 1;
+        i2 = 2;
+
+        return arg2;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "Q");
+
+            verifier.VerifyIL("C..ctor(int)", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  6
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  call       ""C C.cc.get""
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""int""
+  IL_0011:  ldarg.0
+  IL_0012:  ldarga.s   V_1
+  IL_0014:  ldarg.0
+  IL_0015:  ldflda     ""int C.y""
+  IL_001a:  ldnull
+  IL_001b:  callvirt   ""C C.Test(object, C, out int, out int, object)""
+  IL_0020:  pop
+  IL_0021:  ret
+}");
+        }
+
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
+        [Fact]
+        public void OutParamAndOptionalNested()
+        {
+            var code = @"
+using System;
+public class C
+{
+    public static C cc => new C();
+
+    readonly int y;
+
+    public static void Main()
+    {
+        var v = new C(1);
+        System.Console.WriteLine('Q');
+    }
+
+    private C()
+    {
+    }
+
+    private C(int x)
+    {
+        var captured = 2;
+
+        C Test(object arg1, C arg2, out int i1, out int i2, object opt = null)
+        {
+            i1 = 1;
+            i2 = captured++;
+
+            return arg2;
+        }
+
+        var c = Test(1, this, out x, out y);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "Q");
+
+            verifier.VerifyIL("C..ctor(int)", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  6
+  .locals init (C.<>c__DisplayClass5_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldc.i4.2
+  IL_0009:  stfld      ""int C.<>c__DisplayClass5_0.captured""
+  IL_000e:  ldc.i4.1
+  IL_000f:  box        ""int""
+  IL_0014:  ldarg.0
+  IL_0015:  ldarga.s   V_1
+  IL_0017:  ldarg.0
+  IL_0018:  ldflda     ""int C.y""
+  IL_001d:  ldnull
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""C C.<.ctor>g__Test|5_0(object, C, out int, out int, object, ref C.<>c__DisplayClass5_0)""
+  IL_0025:  pop
+  IL_0026:  ret
+}");
+        }
     }
 }

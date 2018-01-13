@@ -78,9 +78,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(expression.Type.IsValueType, "only value types may need a ref to this");
-                    Debug.Assert(HasHome(expression, addressKind));
-                    _builder.EmitOpCode(ILOpCode.Ldarg_0);
+                    Debug.Assert(expression.Type.IsValueType || IsReadOnly(addressKind), "'this' is readonly in classes");
+
+                    if (expression.Type.IsValueType)
+                    {
+                        _builder.EmitLoadArgumentOpcode(0);
+                    }
+                    else
+                    {
+                        _builder.EmitLoadArgumentAddrOpcode(0);
+                    }
+
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -363,15 +371,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     return true;
 
-                case BoundKind.BaseReference:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.RefValueOperator:
                     return true;
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(expression.Type.IsValueType);
+                    var type = expression.Type;
+                    if (type.IsReferenceType)
+                    {
+                        Debug.Assert(IsReadOnly(addressKind), "`this` is readonly in classes");
+                        return true;
+                    }
 
-                    if (!IsReadOnly(addressKind) && expression.Type.IsReadOnly)
+                    if (!IsReadOnly(addressKind) && type.IsReadOnly)
                     {
                         return _method.MethodKind == MethodKind.Constructor;
                     }
