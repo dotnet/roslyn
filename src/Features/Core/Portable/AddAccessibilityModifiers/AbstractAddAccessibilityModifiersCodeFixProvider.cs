@@ -48,34 +48,28 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                 var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
                 // Check to see if we need to add or remove
-                var isOmit = false;
-                if (diagnostic.Properties.TryGetValue(nameof(AccessibilityModifiersRequired), out var optionValue))
-                {
-                    isOmit = optionValue == "omit";
-                }
+                // If there's a modifier, then we need to remove it, otherwise no modifier, add it.
 
-                if (isOmit)
-                {
-                    editor.ReplaceNode(
-                        declaration,
-                        (currentDeclaration, generator) =>
+                var declarator = MapToDeclarator(declaration);
+
+                var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+
+                editor.ReplaceNode(
+                    declaration,
+                    (currentDeclaration, generator) =>
+                    {                        
+                        if(generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable)
                         {
-                            return generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable);
-                        });
-                }
-                else
-                {
-                    var declarator = MapToDeclarator(declaration);
-
-                    var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
-
-                    editor.ReplaceNode(
-                        declaration,
-                        (currentDeclaration, generator) =>
-                        {
+                            // No accessibilty was declared, we need to add it
                             return generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility);
-                        });
-                }
+                        }
+                        else
+                        {
+                            // There was an accessibility, so remove it
+                            return generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable);
+                        }
+                        
+                    });
             }
         }
 

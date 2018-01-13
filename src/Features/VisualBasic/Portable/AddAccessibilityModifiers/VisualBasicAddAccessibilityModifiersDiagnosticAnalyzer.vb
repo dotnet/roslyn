@@ -94,12 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             End If
 
             ' Missing accessibility.  Report issue to user.
-            Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
-            Dim properties = ImmutableDictionary (Of String, String).Empty.Add(NameOf(AccessibilityModifiersRequired), If(isOmit, "omit", "add"))
+            Dim additionalLocations = ImmutableArray.Create(member.GetLocation())            
             context.ReportDiagnostic(Diagnostic.Create(
                 CreateDescriptorWithSeverity([option].Notification.Value),
                 name.GetLocation(),
-                properties:=properties,
                 additionalLocations:=additionalLocations))
         End Sub
     End Class

@@ -119,13 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             }
 
             // Missing accessibility.  Report issue to user.
-            var additionalLocations = ImmutableArray.Create(member.GetLocation());
-            var properties = ImmutableDictionary<string, string>.Empty.Add(
-                nameof(AccessibilityModifiersRequired), isOmit ? "omit" : "add");
+            var additionalLocations = ImmutableArray.Create(member.GetLocation());            
             context.ReportDiagnostic(Diagnostic.Create(
                 CreateDescriptorWithSeverity(option.Notification.Value),
                 name.GetLocation(),
-                properties: properties,
                 additionalLocations: additionalLocations));
         }
     }
