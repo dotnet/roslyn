@@ -13,8 +13,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     internal static class CommonRegexBraceMatcher
     {
         internal static async Task<BraceMatchingResult?> FindBracesAsync(
-            Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+            Document document, int position, CancellationToken cancellationToken)
         {
+            var option = document.Project.Solution.Workspace.Options.GetOption(
+                RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
+            if (!option)
+            {
+                return default;
+            }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(position);
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
             {

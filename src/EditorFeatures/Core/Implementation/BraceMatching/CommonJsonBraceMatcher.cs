@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Json;
@@ -10,11 +8,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.VirtualChars;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.DocumentHighlighting
+namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
-    internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
+    internal static class CommonJsonBraceMatcher
     {
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetJsonHighlightsAsync(
+        internal static async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var option = document.Project.Solution.Workspace.Options.GetOption(JsonOptions.HighlightRelatedJsonComponentsUnderCursor, document.Project.Language);
@@ -46,79 +44,53 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return default;
             }
 
-            return GetHighlights(document, tree, position);
+            return GetMatchingBraces(tree, position);
         }
 
-        private ImmutableArray<DocumentHighlights> GetHighlights(
-            Document document, JsonTree tree, int position)
-        {
-            var bracesOnTheRight = GetHighlights(document, tree, position, caretOnLeft: true);
-            var bracesOnTheLeft = GetHighlights(document, tree, position - 1, caretOnLeft: false);
-
-            if (!bracesOnTheRight.IsEmpty)
-            {
-                // We were on the left of an open open.  Return these highlights, and any 
-                // highlights if we were on the right of a close paren.
-                return bracesOnTheRight.Concat(bracesOnTheLeft);
-            }
-
-            // Nothing was on the right of the caret.  Return anything we were able to find on 
-            // the left of the caret
-            return bracesOnTheLeft;
-        }
-
-        private ImmutableArray<DocumentHighlights> GetHighlights(
-            Document document, JsonTree tree, int position, bool caretOnLeft)
+        private static BraceMatchingResult? GetMatchingBraces(JsonTree tree, int position)
         {
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
             if (virtualChar == null)
             {
-                return ImmutableArray<DocumentHighlights>.Empty;
+                return null;
             }
 
             var ch = virtualChar.Value;
-            if (caretOnLeft)
+            if (ch == '{' || ch == '[' || ch == '(' ||
+                ch == '}' || ch == ']' || ch == ')')
             {
-                return ch == '{' || ch == '[' || ch == '('
-                    ? FindBraceHighlights(document, tree, ch)
-                    : ImmutableArray<DocumentHighlights>.Empty;
+                return FindBraceHighlights(tree, ch);
             }
-            else
-            {
-                return ch == '}' || ch == ']' || ch == ')'
-                    ? FindBraceHighlights(document, tree, ch)
-                    : ImmutableArray<DocumentHighlights>.Empty;
-            }
+
+            return null;
         }
 
-        private ImmutableArray<DocumentHighlights> FindBraceHighlights(
-            Document document, JsonTree tree, VirtualChar ch)
+        private static BraceMatchingResult? FindBraceHighlights(JsonTree tree, VirtualChar ch)
         {
             var node = FindObjectOrArrayNode(tree.Root, ch);
             switch (node)
             {
-                case JsonObjectNode obj: return Create(document, obj.OpenBraceToken, obj.CloseBraceToken);
-                case JsonArrayNode array: return Create(document, array.OpenBracketToken, array.CloseBracketToken);
-                case JsonConstructorNode cons: return Create(document, cons.OpenParenToken, cons.CloseParenToken);
+                case JsonObjectNode obj: return Create(obj.OpenBraceToken, obj.CloseBraceToken);
+                case JsonArrayNode array: return Create(array.OpenBracketToken, array.CloseBracketToken);
+                case JsonConstructorNode cons: return Create(cons.OpenParenToken, cons.CloseParenToken);
             }
 
             return default;
         }
 
-        private ImmutableArray<DocumentHighlights> Create(Document document, JsonToken open, JsonToken close)
+        private static BraceMatchingResult? Create(JsonToken open, JsonToken close)
         {
             if (open.IsMissing || close.IsMissing)
             {
                 return default;
             }
 
-            return ImmutableArray.Create(new DocumentHighlights(
-                document, ImmutableArray.Create(
-                    new HighlightSpan(JsonHelpers.GetSpan(open), HighlightSpanKind.None),
-                    new HighlightSpan(JsonHelpers.GetSpan(close), HighlightSpanKind.None))));
+            return new BraceMatchingResult(
+                JsonHelpers.GetSpan(open),
+                JsonHelpers.GetSpan(close));
         }
 
-        private JsonValueNode FindObjectOrArrayNode(JsonNode node, VirtualChar ch)
+        private static JsonValueNode FindObjectOrArrayNode(JsonNode node, VirtualChar ch)
         {
             switch (node)
             {
@@ -147,7 +119,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return null;
         }
 
-        private bool Matches(JsonToken openToken, JsonToken closeToken, VirtualChar ch)
+        private static bool Matches(JsonToken openToken, JsonToken closeToken, VirtualChar ch)
             => openToken.VirtualChars.Contains(ch) || closeToken.VirtualChars.Contains(ch);
     }
 }

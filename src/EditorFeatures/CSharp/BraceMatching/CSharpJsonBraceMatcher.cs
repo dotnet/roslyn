@@ -2,15 +2,14 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
 {
     [ExportBraceMatcher(LanguageNames.CSharp)]
-    internal class CSharpRegexBraceMatcher : IBraceMatcher
+    internal class CSharpJsonBraceMatcher : IBraceMatcher
     {
         public Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken)
-            => CommonRegexBraceMatcher.FindBracesAsync(document, position, cancellationToken);
+            => CommonJsonBraceMatcher.FindBracesAsync(document, position, cancellationToken);
     }
 }

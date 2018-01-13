@@ -60,13 +60,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var result = await TryGetJsonHighlightsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (!result.IsDefaultOrEmpty)
-            {
-                return result;
-            }
-
-            result = await TryGetRegexPatternHighlightsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var result = await TryGetRegexPatternHighlightsAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
             {
                 return result;
