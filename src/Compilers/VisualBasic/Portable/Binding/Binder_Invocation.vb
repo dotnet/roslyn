@@ -3085,6 +3085,10 @@ ProduceBoundNode:
                     defaultConstantValue = ConstantValue.Nothing
                 End If
             End If
+                            HandleOptionalObjectTypeWithNoDefault(param,defaultArgument,syntax,diagnostics)
+            If param.IsOptional AndAlso Not param.HasExplicitDefaultValue Then
+                defaultArgument.SetWasCompilerGenerated
+                end if
 
             If defaultConstantValue IsNot Nothing Then
 
@@ -3209,7 +3213,15 @@ ProduceBoundNode:
                 defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
 
             ElseIf param.IsOptional Then
+                HandleOptionalObjectTypeWithNoDefault(param,defaultArgument,syntax,diagnostics)
 
+
+            End If
+
+            Return defaultArgument?.MakeCompilerGenerated()
+        End Function
+
+        Private Sub HandleOptionalObjectTypeWithNoDefault(param As ParameterSymbol,byref defaultArgument As BoundExpression,byref syntax as SyntaxNode,byref diagnostics As DiagnosticBag) 
                 ' Handle optional object type argument when no default value is specified.
                 ' Section 3 of §11.8.2 Applicable Methods
 
@@ -3236,15 +3248,10 @@ ProduceBoundNode:
                                                                             Nothing,
                                                                             methodSymbol.ContainingType)
                     End If
-
-                Else
+                        Else
                     defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
                 End If
-
-            End If
-
-            Return defaultArgument?.MakeCompilerGenerated()
-        End Function
+    End sub
 
         Private Shared Function GetCallerLocation(syntax As SyntaxNode) As TextSpan
             Select Case syntax.Kind
