@@ -4688,7 +4688,7 @@ checkNullable:
                 ' we are still on the same parameter. Otherwise, don't resync
                 ' and allow the caller to decide how to recover.
 
-                If PeekAheadFor(SyntaxKind.AsKeyword, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken) = SyntaxKind.AsKeyword Then
+                If PeekAheadFor(SyntaxKind.AsKeyword, SyntaxKind.EqualsToken, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken) = SyntaxKind.AsKeyword Then
                     paramName = ResyncAt(paramName, SyntaxKind.AsKeyword)
                 End If
             End If
@@ -4721,15 +4721,16 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
+                If _scanner.CheckFeatureAvailability(Feature.DefaultOptionalParameter) = False Then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
+                End If
 
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
 
-            If value IsNot Nothing Then
+            If value IsNot Nothing AndAlso (Not equals.IsMissing) Then
 
                 If value.ContainsDiagnostics Then
                     value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)

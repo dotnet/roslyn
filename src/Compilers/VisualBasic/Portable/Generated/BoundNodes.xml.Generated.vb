@@ -4932,7 +4932,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.ParameterEqualsValue, syntax, hasErrors OrElse value.NonNullAndHasErrors())
 
             Debug.Assert(parameter IsNot Nothing, "Field 'parameter' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Parameter = parameter
             Me._Value = value

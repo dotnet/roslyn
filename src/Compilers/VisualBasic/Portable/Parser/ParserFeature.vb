@@ -36,6 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         LeadingDigitSeparator
         NonTrailingNamedArguments
         PrivateProtected
+        DefaultOptionalParameter
     End Enum
 
     Friend Module FeatureExtensions
@@ -86,7 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Feature.NonTrailingNamedArguments,
                     Feature.PrivateProtected
                     Return LanguageVersion.VisualBasic15_5
-
+                Case Feature.DefaultOptionalParameter
+                    Return LanguageVersion.VisualBasic15
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
@@ -152,6 +154,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_LeadingDigitSeparator
                 Case Feature.PrivateProtected
                     Return ERRID.FEATURE_PrivateProtected
+                Case Feature.DefaultOptionalParameter
+                    Return ERRID.FEATURE_DefaultOptionalParameter
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
