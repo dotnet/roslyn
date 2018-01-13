@@ -258,6 +258,7 @@ namespace Outer
             event Action I.e6 { add { } remote { } }
 
             static C() { }
+
             C() { }
             public C(int i) { }
 
