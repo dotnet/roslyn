@@ -43,17 +43,13 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
-            {
-                
+            {                
                 var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+                var declarator = MapToDeclarator(declaration);
+                var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
 
                 // Check to see if we need to add or remove
                 // If there's a modifier, then we need to remove it, otherwise no modifier, add it.
-
-                var declarator = MapToDeclarator(declaration);
-
-                var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
-
                 editor.ReplaceNode(
                     declaration,
                     (currentDeclaration, generator) =>
@@ -67,8 +63,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                         {
                             // There was an accessibility, so remove it
                             return generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable);
-                        }
-                        
+                        }                        
                     });
             }
         }
