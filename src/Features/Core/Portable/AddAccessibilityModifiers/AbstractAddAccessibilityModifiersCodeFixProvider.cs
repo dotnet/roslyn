@@ -2,16 +2,13 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -43,9 +40,10 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
-            {                
+            {
                 var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
                 var declarator = MapToDeclarator(declaration);
+
                 var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
 
                 // Check to see if we need to add or remove

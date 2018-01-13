@@ -76,9 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                 return;
             }
 
-            // If they already have accessibility, no need to report anything.
+            // This analyzer bases all of its decisions on the accessibility
             var accessibility = generator.GetAccessibility(member);
 
+            // Omit will flag any accesibility values that exist and are default
+            // The other options will remove or ignore accessibility
             var isOmit = option.Value == AccessibilityModifiersRequired.OmitIfDefault;
 
             if (isOmit)
@@ -88,38 +90,47 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                     return;
                 }
 
-                // Check for default modifiers in namespace and outside of namespace
                 var parentKind = member.Parent.Kind();
-                if (parentKind == SyntaxKind.CompilationUnit ||
-                    parentKind == SyntaxKind.NamespaceDeclaration)
+                switch(parentKind)
                 {
-                    // Default is internal
-                    if (accessibility != Accessibility.Internal)
-                    {
-                        return;
-                    }
-                }
+                    // Check for default modifiers in namespace and outside of namespace
+                    case SyntaxKind.CompilationUnit:
+                    case SyntaxKind.NamespaceDeclaration:
+                        {
+                            // Default is internal
+                            if (accessibility != Accessibility.Internal)
+                            {
+                                return;
+                            }
+                        }
+                        break;
 
-                if (parentKind == SyntaxKind.ClassDeclaration ||
-                    parentKind == SyntaxKind.StructDeclaration)
-                {
-                    // Inside a type, default is private
-                    if (accessibility != Accessibility.Private)
-                    {
-                        return;
-                    }
+                    case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.StructDeclaration:
+                        {
+                            // Inside a type, default is private
+                            if (accessibility != Accessibility.Private)
+                            {
+                                return;
+                            }
+                        }
+                        break;
+
+                    default:
+                        return; // Unknown parent kind, don't do anything
                 }
             }
             else
             {
+                // Mode is always, so we have to flag missing modifiers
                 if (accessibility != Accessibility.NotApplicable)
                 {
                     return;
                 }
             }
 
-            // Missing accessibility.  Report issue to user.
-            var additionalLocations = ImmutableArray.Create(member.GetLocation());            
+            // Have an issue to flag, either add or remove. Report issue to user.
+            var additionalLocations = ImmutableArray.Create(member.GetLocation());
             context.ReportDiagnostic(Diagnostic.Create(
                 CreateDescriptorWithSeverity(option.Notification.Value),
                 name.GetLocation(),

@@ -55,16 +55,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 Return
             End If
 
-            ' If they already have accessibility, no need to report anything.
+            ' This analyzer bases all of its decisions on the accessibility
             Dim Accessibility = generator.GetAccessibility(member)
 
+            ' Omit will flag any accesibility values that exist and are default
+            ' The other options will remove or ignore accessibility
             Dim isOmit = [option].Value = AccessibilityModifiersRequired.OmitIfDefault
 
             If isOmit Then
                 If Accessibility = Accessibility.NotApplicable Then
                     Return
                 End If
-
            
                 If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
                    member.IsParentKind(SyntaxKind.NamespaceBlock) Then
@@ -87,14 +88,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 If Accessibility <> Accessibility.Public Then
                     Return
                 End If
-            Else ' Require all
+            Else ' Require all, flag missing modidifers
                 If Accessibility <> Accessibility.NotApplicable Then
                     Return
                 End If
             End If
 
-            ' Missing accessibility.  Report issue to user.
-            Dim additionalLocations = ImmutableArray.Create(member.GetLocation())            
+            ' Have an issue to flag, either add or remove. Report issue to user.
+            Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
             context.ReportDiagnostic(Diagnostic.Create(
                 CreateDescriptorWithSeverity([option].Notification.Value),
                 name.GetLocation(),
