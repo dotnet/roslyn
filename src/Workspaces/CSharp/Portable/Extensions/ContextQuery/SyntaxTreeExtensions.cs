@@ -1534,24 +1534,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.OpenParenToken))
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.Parent.IsKind(
+                    SyntaxKind.ForStatement, SyntaxKind.ForEachStatement,
+                    SyntaxKind.ForEachVariableStatement, SyntaxKind.UsingStatement))
             {
-                var previous = token.GetPreviousToken(includeSkipped: true);
-                if (previous.IsKind(SyntaxKind.ForKeyword) ||
-                    previous.IsKind(SyntaxKind.ForEachKeyword) ||
-                    previous.IsKind(SyntaxKind.UsingKeyword))
-                {
-                    return true;
-                }
-
-                if (previous.IsKind(SyntaxKind.AwaitKeyword))
-                {
-                    var beforeAwait = previous.GetPreviousToken(includeSkipped: true);
-                    if (beforeAwait.IsKind(SyntaxKind.ForEachKeyword, SyntaxKind.UsingKeyword))
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
 
             var tokenOnLeftOfStart = syntaxTree.FindTokenOnLeftOfPosition(token.SpanStart, cancellationToken);
@@ -2369,16 +2357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // todo: handle 'for' cases.
 
             // using ( |
-            if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword))
-            {
-                return true;
-            }
-
             // using await ( |
-            if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.AwaitKeyword) &&
-                token.GetPreviousToken(includeSkipped: true).GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword))
+            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.UsingStatement))
             {
                 return true;
             }
