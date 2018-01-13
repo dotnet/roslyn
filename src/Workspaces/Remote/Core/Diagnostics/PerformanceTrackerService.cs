@@ -129,6 +129,9 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             public void Report(Dictionary<string, (double mean, double stddev)> rawPerformanceData)
             {
+                // this is implementation of  https://en.wikipedia.org/wiki/Local_outlier_factor
+                // see the wiki for more information
+
                 // convert string (analyzerId) to index
                 var analyzerIdIndex = GetAnalyzerIdIndex(rawPerformanceData.Keys);
 
