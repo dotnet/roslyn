@@ -674,27 +674,6 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function TestRegexBracket1() As Task
-            Dim input =
-           <Workspace>
-               <Project Language="C#" CommonReferences="true">
-                   <Document>
-using System.Text.RegularExpressions;
-
-class C
-{
-    void Goo()
-    {
-        var r = new Regex(@"{|Reference:(|}a{|Reference:)|}$$");
-    }
-}
-                    </Document>
-               </Project>
-           </Workspace>
-            Await VerifyHighlightsAsync(input)
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestRegexReference1() As Task
 
             Dim input =
@@ -714,25 +693,6 @@ class C
                </Project>
            </Workspace>
 
-            Await VerifyHighlightsAsync(input)
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function TestJsonBracket1() As Task
-            Dim input =
-           <Workspace>
-               <Project Language="C#" CommonReferences="true">
-                   <Document>
-class C
-{
-    void Goo()
-    {
-        var r = /*lang=json*/ @"new Json{|Reference:(|}1, 2, 3{|Reference:)|}$$");
-    }
-}
-                    </Document>
-               </Project>
-           </Workspace>
             Await VerifyHighlightsAsync(input)
         End Function
     End Class
