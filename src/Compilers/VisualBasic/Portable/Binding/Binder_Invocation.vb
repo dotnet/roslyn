@@ -3079,17 +3079,17 @@ ProduceBoundNode:
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
             Dim defaultConstantValue As ConstantValue = Nothing
             If param.IsOptional Then
-                If param.HasExplicitDefaultValue Then
+              If param.HasExplicitDefaultValue Then
                     defaultConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
                 Else
                     defaultConstantValue = ConstantValue.Nothing
                 End If
+                If defaultConstantValue Is Nothing Then
+                    HandleOptionalObjectTypeWithNoDefault(param,defaultArgument,syntax,diagnostics)
+                    defaultArgument.SetWasCompilerGenerated
+                End If
             End If
-                            HandleOptionalObjectTypeWithNoDefault(param,defaultArgument,syntax,diagnostics)
-            If param.IsOptional AndAlso Not param.HasExplicitDefaultValue Then
-                defaultArgument.SetWasCompilerGenerated
-                end if
-
+            
             If defaultConstantValue IsNot Nothing Then
 
                 If callerInfoOpt IsNot Nothing AndAlso
@@ -3212,8 +3212,8 @@ ProduceBoundNode:
 
                 defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
 
-            ElseIf param.IsOptional Then
-                HandleOptionalObjectTypeWithNoDefault(param,defaultArgument,syntax,diagnostics)
+            'ElseIf param.IsOptional Then
+            '    HandleOptionalObjectTypeWithNoDefault(param,defaultArgument,syntax,diagnostics)
 
 
             End If
