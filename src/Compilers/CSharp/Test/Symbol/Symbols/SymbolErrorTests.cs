@@ -12281,7 +12281,7 @@ class C
 @"using System;
 interface IA<T> where T : object { }
 interface IB<T> where T : System.Object { }
-interface IC<T, U> where T : ValueType where U : Enum { }
+interface IC<T, U> where T : ValueType { }
 interface ID<T> where T : Array { }
 interface IE<T, U> where T : Delegate where U : MulticastDelegate { }";
             CreateStandardCompilation(source).VerifyDiagnostics(
@@ -12291,8 +12291,6 @@ interface IE<T, U> where T : Delegate where U : MulticastDelegate { }";
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(3, 27),
                 // (4,30): error CS0702: Constraint cannot be special class 'System.ValueType'
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "ValueType").WithArguments("System.ValueType").WithLocation(4, 30),
-                // (4,50): error CS0702: Constraint cannot be special class 'System.Enum'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Enum").WithArguments("System.Enum").WithLocation(4, 50),
                 // (5,27): error CS0702: Constraint cannot be special class 'System.Array'
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Array").WithArguments("System.Array").WithLocation(5, 27),
                 // (6,30): error CS0702: Constraint cannot be special class 'System.Delegate'
