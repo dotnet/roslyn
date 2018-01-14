@@ -812,7 +812,11 @@ Class P
         Report(C.F6())
     End Sub
     Shared Sub Report(o As Object)
-        System.Console.WriteLine("{0}: {1}", o.GetType(), o)
+        If o IsNot Nothing Then 
+            System.Console.WriteLine("{0}: {1}", o.GetType(), o)
+        Else
+            System.Console.WriteLine("{0}: {1}", "System.Object","-null-")
+        End If
     End Sub
 End Class
 ]]>
@@ -821,7 +825,7 @@ End Class
             Dim comp = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.DebugExe)
             comp.AssertTheseDiagnostics(<errors/>)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
-System.Reflection.Missing: System.Reflection.Missing
+System.Object: -null-
 System.DateTime: 01/01/0001 00:00:00
 System.DateTime: 01/01/0001 00:00:00
 System.DateTime: 01/01/0001 00:00:00
