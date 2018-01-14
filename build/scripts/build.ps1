@@ -28,6 +28,7 @@ param (
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
     [string]$signType = "",
+    [switch]$coreClrBuild = $false,
 
     # Test options 
     [switch]$test32 = $false,
@@ -110,6 +111,12 @@ function Process-Arguments() {
         exit 1
     }
 
+    if ($build -and $coreClrBuild)
+    {
+        Write-Host "Cannot combine desktop build and CoreCLR build"
+        exit 1
+    }
+
     if ($buildAll) {
         $script:build = $true
     }
@@ -118,7 +125,7 @@ function Process-Arguments() {
     $script:debug = -not $release
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
@@ -155,7 +162,17 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
 
     $args += " $buildArgs"
     $args += " $projectFilePath"
-    Exec-Console $msbuild $args
+
+    if ($useDotnetBuild)
+    {
+        $args = " build --no-restore " + $args
+        $args += " -m:1"
+        Exec-Console $dotnet $args
+    }
+    else
+    {
+        Exec-Console $msbuild $args
+    }
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
@@ -164,23 +181,41 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
 # Important to not set $script:bootstrapDir here yet as we're actually in the process of 
 # building the bootstrap.
 function Make-BootstrapBuild() {
-
-    Write-Host "Building Bootstrap compiler"
-    Run-MSBuild "build\Toolset\Toolset.csproj" "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP" -logFileName "Bootstrap"
     $dir = Join-Path $binariesDir "Bootstrap"
+    Write-Host "Building Bootstrap compiler"
+    $bootstrapArgs = "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
-    Move-Item "$configDir\Exes\Toolset\*" $dir
+    if ($coreClrBuild) {
+        $bootstrapFramework = "netcoreapp2.0"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapCsc.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapVbc.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapVBCSCompiler.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
+        Exec-Console "dotnet" "$dir/bincore/VBCSCompiler.dll" -shutdown
+    }
+    else {
+        Run-MSBuild "build\Toolset\Toolset.csproj" $bootstrapArgs -logFileName "Bootstrap"
+        Remove-Item -re $dir -ErrorAction SilentlyContinue
+        Create-Directory $dir
+        Move-Item "$configDir\Exes\Toolset\*" $dir
 
-    Write-Host "Cleaning Bootstrap compiler artifacts"
-    Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"
-    Stop-BuildProcesses
+        Write-Host "Cleaning Bootstrap compiler artifacts"
+        Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"
+        Stop-BuildProcesses
+    }
+
     return $dir
 }
 
 function Build-Artifacts() { 
     if ($build) { 
         Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
+    }
+
+    if ($coreClrBuild)
+    {
+        Run-MSBuild "Compilers.sln" -useDotnetBuild
     }
 
     if ($buildAll) {
@@ -628,7 +663,7 @@ try {
         $bootstrapDir = Make-BootstrapBuild
     }
 
-    if ($build -or $pack) {
+    if ($build -or $coreClrBuild -or $pack) {
         Build-Artifacts
     }
 

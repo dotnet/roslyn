@@ -3,6 +3,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         }
                     }
 
-                    if(assemblyPath != null)
+                    if (assemblyPath != null)
                     {
                         var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
                         var desktopToolLocalLocation = Path.Combine(assemblyDirectory, toolName);
@@ -213,6 +214,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         }
                     }
                 }
+
 
                 if (toolLocation == null)
                 {
