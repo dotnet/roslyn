@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         {
             TypeSyntax declaredType;
             State state = null;
-            var shouldAnalyze = false;
+            var isStylePreferred = false;
             var declarationStatement = context.Node;
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
@@ -71,12 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var declaration = (VariableDeclarationSyntax)declarationStatement;
                 declaredType = declaration.Type;
 
-                shouldAnalyze = ShouldAnalyzeVariableDeclaration(declaration, semanticModel, cancellationToken);
-
-                if (shouldAnalyze)
+                if (ShouldAnalyzeVariableDeclaration(declaration, semanticModel, cancellationToken))
                 {
                     state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: true, cancellationToken: cancellationToken);
-                    shouldAnalyze = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+                    isStylePreferred = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
                 }
             }
             else if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
@@ -84,12 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var declaration = (ForEachStatementSyntax)declarationStatement;
                 declaredType = declaration.Type;
 
-                shouldAnalyze = ShouldAnalyzeForEachStatement(declaration, semanticModel, cancellationToken);
-
-                if (shouldAnalyze)
+                if (ShouldAnalyzeForEachStatement(declaration, semanticModel, cancellationToken))
                 {
                     state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: false, cancellationToken: cancellationToken);
-                    shouldAnalyze = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+                    isStylePreferred = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
                 }
             }
             else if (declarationStatement.IsKind(SyntaxKind.DeclarationExpression))
@@ -97,12 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var declaration = (DeclarationExpressionSyntax) declarationStatement;
                 declaredType = declaration.Type;
 
-                shouldAnalyze = ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
-
-                if (shouldAnalyze)
+                if (ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken))
                 {
                     state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: false, cancellationToken: cancellationToken);
-                    shouldAnalyze = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+                    isStylePreferred = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
                 }
             }
             else
@@ -111,13 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
-            if (shouldAnalyze)
+            if (state != null)
             {
-                Debug.Assert(state != null, "analyzing a declaration and state is null.");
                 if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out var diagnosticSpan))
                 {
-                    // The severity preference is not Hidden, as indicated by shouldAnalyze.
-                    var descriptor = GetDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
+                    var descriptor = GetDescriptorWithSeverity(isStylePreferred ? state.GetDiagnosticSeverityPreference() : DiagnosticSeverity.Hidden);
                     context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, diagnosticSpan));
                 }
             }

@@ -1048,10 +1048,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task DoNotSuggestVarOnBuiltInType_Literal_WithOption()
+        public async Task SuggestVarHiddenOnBuiltInType_Literal_WithOption()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            string before = @"using System;
 
 class C
 {
@@ -1059,14 +1058,28 @@ class C
     {
         [|int|] s = 5;
     }
-}", new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
+}";
+            string after = @"using System;
+
+class C
+{
+    static void M()
+    {
+        var s = 5;
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeButKeepIntrinsics(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task DoNotSuggestVarOnBuiltInType_WithOption()
+        public async Task SuggestVarHiddenOnBuiltInType_WithOption()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            string before = @"using System;
 
 class C
 {
@@ -1076,14 +1089,30 @@ class C
     {
         [|int|] s = (unchecked(maxValue + 10));
     }
-}", new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
+}";
+            string after = @"using System;
+
+class C
+{
+    private const int maxValue = int.MaxValue;
+
+    static void M()
+    {
+        var s = (unchecked(maxValue + 10));
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeButKeepIntrinsics(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task DoNotSuggestVarOnFrameworkTypeEquivalentToBuiltInType()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            string before = @"using System;
 
 class C
 {
@@ -1093,7 +1122,24 @@ class C
     {
         [|Int32|] s = (unchecked(maxValue + 10));
     }
-}", new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
+}";
+            string after = @"using System;
+
+class C
+{
+    private const int maxValue = int.MaxValue;
+
+    static void M()
+    {
+        var s = (unchecked(maxValue + 10));
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeButKeepIntrinsics(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1145,10 +1191,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task DoNotSuggestVarWhereTypeIsEvident_Literals()
+        public async Task SuggestVarHiddenWhereTypeIsEvident_Literals()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            string before = @"using System;
 
 class C
 {
@@ -1156,7 +1201,23 @@ class C
     {
         [|int|] text = 5;
     }
-}", new TestParameters(options: ImplicitTypeWhereApparent()));
+}";
+            string after = @"using System;
+
+class C
+{
+    public void Process()
+    {
+        var text = 5;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeWhereApparent(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1210,10 +1271,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
+        public async Task SuggestVarHidden_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            string before = @"using System;
 
 class C
 {
@@ -1222,14 +1282,29 @@ class C
         object o = int.MaxValue;
         [|int|] i = (Int32)o;
     }
-}", new TestParameters(options: ImplicitTypeWhereApparent()));
+}";
+            string after = @"using System;
+
+class C
+{
+    public void Process()
+    {
+        object o = int.MaxValue;
+        var i = (Int32)o;
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeWhereApparent(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule2()
+        public async Task SuggestVarHidden_BuiltInTypesRulePrecedesOverTypeIsApparentRule2()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            string before = @"using System;
 
 class C
 {
@@ -1238,14 +1313,31 @@ class C
         object o = int.MaxValue;
         [|Int32|] i = (Int32)o;
     }
-}", new TestParameters(options: ImplicitTypeWhereApparent()));
+}";
+
+            string after = @"using System;
+
+class C
+{
+    public void Process()
+    {
+        object o = int.MaxValue;
+        var i = (Int32)o;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeWhereApparent(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task DoNotSuggestVarWhereTypeIsEvident_IsExpression()
+        public async Task SuggestVarHiddenWhereTypeIsEvident_IsExpression()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            string before = @"using System;
 
 class C
 {
@@ -1262,7 +1354,34 @@ class A : IInterface
 
 interface IInterface
 {
-}", new TestParameters(options: ImplicitTypeWhereApparent()));
+}";
+
+
+            string after = @"using System;
+
+class C
+{
+    public void Process()
+    {
+        A a = new A();
+        var s = a is IInterface;
+    }
+}
+
+class A : IInterface
+{
+}
+
+interface IInterface
+{
+}";
+
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeWhereApparent(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1442,7 +1561,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestVarNotificationLevelNone()
         {
-            var source =
+            var before =
 @"using System;
 class C
 {
@@ -1451,8 +1570,22 @@ class C
         [|C|] n1 = new C();
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source,
-                new TestParameters(options: ImplicitTypeNoneEnforcement()));
+
+            var after =
+@"using System;
+class C
+{
+    static void M()
+    {
+        var n1 = new C();
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeNoneEnforcement());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeNoneEnforcement(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1535,8 +1668,12 @@ namespace System
 
             await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
 
-            // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
-            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ImplicitTypeWhereApparent(),
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1738,7 +1875,7 @@ options: ImplicitTypeEverywhere());
 using System;
 namespace System
 {
-    public readonly ref struct Span<T> 
+    public readonly ref struct Span<T>
     {
         unsafe public Span(void* pointer, int length) { }
     }
@@ -1760,7 +1897,7 @@ class C
 using System;
 namespace System
 {
-    public readonly ref struct Span<T> 
+    public readonly ref struct Span<T>
     {
         unsafe public Span(void* pointer, int length) { }
     }
@@ -1782,7 +1919,7 @@ class C
 using System;
 namespace System
 {
-    public readonly ref struct Span<T> 
+    public readonly ref struct Span<T>
     {
         unsafe public Span(void* pointer, int length) { }
     }

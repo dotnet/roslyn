@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -1054,7 +1053,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeNotificationLevelNone()
         {
-            var source =
+            var before =
 @"using System;
 class C
 {
@@ -1063,8 +1062,23 @@ class C
         [|var|] n1 = new C();
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source,
-                new TestParameters(options: ExplicitTypeNoneEnforcement()));
+
+   var after =
+@"using System;
+class C
+{
+    static void M()
+    {
+        C n1 = new C();
+    }
+}";
+
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeNoneEnforcement());
+
+            await TestDiagnosticInfoAsync(before,
+                options: ExplicitTypeNoneEnforcement(),
+                diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]

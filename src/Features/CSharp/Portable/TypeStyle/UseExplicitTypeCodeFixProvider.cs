@@ -37,9 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
+            var fixSingle = diagnostics.Count() == 1;
 
             foreach (var diagnostic in diagnostics)
             {
+                if (!fixSingle && diagnostic.Severity == DiagnosticSeverity.Hidden)
+                {
+                    continue;
+                }
+
                 var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 await HandleDeclarationAsync(document, editor, node, cancellationToken).ConfigureAwait(false);
             }
