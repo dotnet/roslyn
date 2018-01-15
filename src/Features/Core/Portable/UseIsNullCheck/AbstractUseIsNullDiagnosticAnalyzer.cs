@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(compilationContext => {
+            => context.RegisterCompilationStartAction(compilationContext =>
+            {
                 var objectType = compilationContext.Compilation.GetSpecialType(SpecialType.System_Object);
                 if (objectType != null)
                 {
@@ -109,6 +110,11 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
+            if (HasValueTypeConstraintGenericParameter(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken))
+            {
+                return;
+            }
+
             var additionalLocations = ImmutableArray.Create(invocation.GetLocation());
             var properties = ImmutableDictionary<string, string>.Empty;
 
@@ -123,6 +129,22 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 Diagnostic.Create(
                     GetDescriptorWithSeverity(severity), nameNode.GetLocation(),
                     additionalLocations, properties));
+        }
+
+        private static bool HasValueTypeConstraintGenericParameter(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
+        {
+            var valueNode = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) ? node2 : node1;
+            var argumentExpression = syntaxFacts.GetExpressionOfArgument(valueNode);
+            if (argumentExpression != null)
+            {
+                var parameterType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type;
+                if (parameterType is ITypeParameterSymbol typeParameter)
+                {
+                    return typeParameter.HasValueTypeConstraint;
+                }
+            }
+
+            return false;
         }
 
         private static bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)

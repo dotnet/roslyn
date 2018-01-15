@@ -226,22 +226,22 @@ class C
 @"
 class C
 {
-    public static void NotNull<T>(T value, string parameterName)
+    public static void NotNull<T>(T value)
     {
         if ([||]ReferenceEquals(value, null))
         {
-            throw new System.ArgumentNullException(parameterName);
+            return;
         }
     }
 }
 ", @"
 class C
 {
-    public static void NotNull<T>(T value, string parameterName)
+    public static void NotNull<T>(T value)
     {
         if (value == null)
         {
-            throw new System.ArgumentNullException(parameterName);
+            return;
         }
     }
 }
@@ -250,17 +250,17 @@ class C
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestValueParameterTypeIsConstraintGeneric()
+        public async Task TestValueParameterTypeIsRefConstraintGeneric()
         {
             await TestInRegularAndScriptAsync(
 @"
 class C
 {
-    public static void NotNull<T>(T value, string parameterName) where T:class
+    public static void NotNull<T>(T value) where T:class
     {
         if ([||]ReferenceEquals(value, null))
         {
-            throw new System.ArgumentNullException(parameterName);
+            return;
         }
     }
 }
@@ -268,11 +268,30 @@ class C
 @"
 class C
 {
-    public static void NotNull<T>(T value, string parameterName) where T:class
+    public static void NotNull<T>(T value) where T:class
     {
         if (value == null)
         {
-            throw new System.ArgumentNullException(parameterName);
+            return;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsValueConstraintGeneric()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:struct
+    {
+        if ([||]ReferenceEquals(value, null))
+        {
+            return;
         }
     }
 }
