@@ -454,6 +454,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 if (PlatformInformation.IsWindows)
                 {
+                    if (CoreClrShim.IsRunningOnCoreClr)
+                    {
+                        // CoreCLR doesn't have these APIs, so we just have to rely on
+                        // Windows ACLs for security
+                        return true;
+                    }
+
                     var currentIdentity = WindowsIdentity.GetCurrent();
                     var currentOwner = currentIdentity.Owner;
                     var remotePipeSecurity = GetPipeSecurity(pipeStream);
@@ -477,7 +484,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             // Identity verification is unavailable in the MSBuild task,
             // but verification is not needed client-side so that's okay.
-            // (unavailable due to lack of internal reflection capabilities in netstandard1.3)
             return true;
         }
 #else
