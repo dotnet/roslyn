@@ -36,7 +36,7 @@ class C
 {
     void M(string s)
     {
-        if (s is null)
+        if (s == null)
             return;
     }
 }");
@@ -62,7 +62,7 @@ class C
 {
     void M(string s)
     {
-        if (s is null)
+        if (s == null)
             return;
     }
 }");
@@ -88,7 +88,7 @@ class C
 {
     void M(string s)
     {
-        if (s is null)
+        if (s == null)
             return;
     }
 }");
@@ -114,7 +114,7 @@ class C
 {
     void M(string s)
     {
-        if (s is null)
+        if (s == null)
             return;
     }
 }");
@@ -140,7 +140,7 @@ class C
 {
     void M(string s)
     {
-        if (!(s is null))
+        if (s != null)
             return;
     }
 }");
@@ -183,8 +183,8 @@ class C
 {
     void M(string s1, string s2)
     {
-        if (s1 is null ||
-            s2 is null)
+        if (s1 == null ||
+            s2 == null)
             return;
     }
 }");
@@ -211,8 +211,8 @@ class C
 {
     void M(string s1, string s2)
     {
-        if (s1 is null ||
-            s2 is null)
+        if (s1 == null ||
+            s2 == null)
             return;
     }
 }");
@@ -222,13 +222,24 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestMissingIfValueParameterTypeIsUnconstraintGeneric()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
     public static void NotNull<T>(T value, string parameterName)
     {
         if ([||]ReferenceEquals(value, null))
+        {
+            throw new System.ArgumentNullException(parameterName);
+        }
+    }
+}
+", @"
+class C
+{
+    public static void NotNull<T>(T value, string parameterName)
+    {
+        if (value == null)
         {
             throw new System.ArgumentNullException(parameterName);
         }
@@ -259,7 +270,7 @@ class C
 {
     public static void NotNull<T>(T value, string parameterName) where T:class
     {
-        if (value is null)
+        if (value == null)
         {
             throw new System.ArgumentNullException(parameterName);
         }

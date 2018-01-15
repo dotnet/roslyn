@@ -17,12 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override string GetIsNotNullTitle()
             => GetIsNullTitle();
 
-        protected override SyntaxNode CreateIsNullCheck(SyntaxNode argument)
-            => SyntaxFactory.IsPatternExpression(
+        private static SyntaxNode CreateNullCheck(SyntaxNode argument, SyntaxKind comparisonOperator)
+            => SyntaxFactory.BinaryExpression(
+                comparisonOperator,
                 (ExpressionSyntax)argument,
-                SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))).Parenthesize();
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)).Parenthesize();
+
+        protected override SyntaxNode CreateIsNullCheck(SyntaxNode argument)
+            => CreateNullCheck(argument, SyntaxKind.EqualsExpression);
 
         protected override SyntaxNode CreateIsNotNullCheck(SyntaxNode notExpression, SyntaxNode argument)
-            => ((PrefixUnaryExpressionSyntax)notExpression).WithOperand((ExpressionSyntax)CreateIsNullCheck(argument));
+            => CreateNullCheck(argument, SyntaxKind.NotEqualsExpression);
     }
 }
