@@ -35,6 +35,19 @@ namespace Roslyn.Utilities
             return dictionary;
         }
 
+        public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
+        {
+            var result = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
+
+            foreach (var (key, items) in builders)
+            {
+                result.Add(key, items.ToImmutableAndFree());
+            }
+
+            builders.Free();
+            return result.ToImmutable();
+        }
+
         public static ImmutableArray<T> ToImmutableArrayAndFree<T>(this ArrayBuilder<ArrayBuilder<T>> builders)
         {
             try

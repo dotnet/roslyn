@@ -39,5 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal string GetDebuggerDisplay()
             => $"mvid={ModuleId} 0x{MethodToken:X8} v{MethodVersion} IL_{ILOffset:X4}";
+
+        public ActiveMethodId MethodId => new ActiveMethodId(ModuleId, MethodToken, MethodVersion);
     }
 }

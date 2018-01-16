@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private DebuggingSession _debuggingSession;
         private EditSession _editSession;
 
+        // TODO:
         // Maps active statement instructions to their latest spans.
         //
         // Consider a function F containing a call to function G that is updated a couple of times
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // 3rd break: previously updated statements contains (F, v=1, il=1)->span3
         //            get active statements returns (F, v=3, il=3, span3) the active statement is up-to-date
         //
-        private Dictionary<ActiveInstructionId, LinePositionSpan> _lazyPreviouslyUpdatedActiveStatementSpans;
+        private ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
 
         internal EditAndContinueService(IDiagnosticAnalyzerService diagnosticService, IActiveStatementProvider activeStatementProvider)
         {
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _diagnosticService = diagnosticService;
             _activeStatementProvider = activeStatementProvider;
+            _nonRemappableRegions = ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 
         public DebuggingSession DebuggingSession => _debuggingSession;
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _debuggingSession, 
                 _activeStatementProvider, 
                 projects, 
-                _lazyPreviouslyUpdatedActiveStatementSpans ?? SpecializedCollections.EmptyReadOnlyDictionary<ActiveInstructionId, LinePositionSpan>(),
+                _nonRemappableRegions,
                 stoppedAtException);
 
             Interlocked.CompareExchange(ref _editSession, newSession, null);
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // TODO(tomat): document added
         }
 
-        public void EndEditSession(ImmutableArray<(ActiveInstructionId, LinePositionSpan)> updatedActiveStatementSpansOpt)
+        public void EndEditSession(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
         {
             Debug.Assert(_debuggingSession != null && _editSession != null);
 
@@ -114,19 +116,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // then clear all reported rude edits:
             _diagnosticService.Reanalyze(_debuggingSession.InitialSolution.Workspace, documentIds: session.GetDocumentsWithReportedRudeEdits());
 
-            // save updated active statement spans for the next edit session:
-            if (!updatedActiveStatementSpansOpt.IsDefaultOrEmpty)
-            {
-                if (_lazyPreviouslyUpdatedActiveStatementSpans == null)
-                {
-                    _lazyPreviouslyUpdatedActiveStatementSpans = new Dictionary<ActiveInstructionId, LinePositionSpan>();
-                }
-
-                foreach (var (instruction, span) in updatedActiveStatementSpansOpt)
-                {
-                    _lazyPreviouslyUpdatedActiveStatementSpans[instruction] = span;
-                }
-            }
+            // save updated non-remappable regions for the next edit session:
+            _nonRemappableRegions = nonRemappableRegions;
 
             // TODO(tomat): allow changing documents
         }

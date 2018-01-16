@@ -35,6 +35,7 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Reflection.PortableExecutable;
 using Microsoft.VisualStudio.LanguageServices.EditAndContinue;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -50,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         // projects that entered the break state:
         private static readonly List<KeyValuePair<ProjectId, ProjectReadOnlyReason>> s_breakStateEnteredProjects = new List<KeyValuePair<ProjectId, ProjectReadOnlyReason>>();
+        private static readonly List<ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)>> s_pendingNonRemappableRegions = new List<ImmutableArray<(ActiveMethodId, NonRemappableRegion)>>();
 
         private static VsReadOnlyDocumentTracker s_readOnlyDocumentTracker;
 
@@ -75,8 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private ProjectAnalysisSummary _lastEditSessionSummary = ProjectAnalysisSummary.NoChanges;
         private EmitBaseline _committedBaseline;
         private EmitBaseline _pendingBaseline;
-        private ImmutableArray<(ActiveInstructionId, LinePositionSpan)> _pendingUpdatedActiveStatementSpans;
         private Project _projectBeingEmitted;
+        private ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> _pendingNonRemappableRegions;
 
         private ImmutableArray<DocumentId> _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
 
@@ -223,6 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(s_debugStateProjectCount == 0);
                     Debug.Assert(s_breakStateProjectCount == 0);
                     Debug.Assert(s_breakStateEnteredProjects.Count == 0);
+                    Debug.Assert(s_pendingNonRemappableRegions.Count == 0);
 
                     _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
 
@@ -321,6 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 log.Write("Exit Debug Mode: project '{0}'", _vsProject.DisplayName);
                 Debug.Assert(s_breakStateEnteredProjects.Count == 0);
+                Debug.Assert(s_pendingNonRemappableRegions.Count == 0);
 
                 // Clear the solution stored while projects were entering break mode. 
                 // It should be cleared as soon as all tracked projects enter the break mode 
@@ -458,6 +462,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(cActiveStatements == (pActiveStatements != null ? pActiveStatements.Length : 0));
                     Debug.Assert(s_breakStateProjectCount < s_debugStateProjectCount);
                     Debug.Assert(s_breakStateProjectCount == s_breakStateEnteredProjects.Count);
+                    Debug.Assert(s_pendingNonRemappableRegions.Count == 0);
                     Debug.Assert(IsDebuggable);
 
                     if (s_breakStateEntrySolution == null)
@@ -699,8 +704,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                         _encService.EditSession.LogEditSession(s_encDebuggingSessionInfo);
 
-                        _encService.EndEditSession(_changesApplied ? _pendingUpdatedActiveStatementSpans : default);
-                        _pendingUpdatedActiveStatementSpans = default;
+                        _encService.EndEditSession(GroupToImmutable(
+                            from regionsPerModule in s_pendingNonRemappableRegions
+                            from region in regionsPerModule
+                            group region.Region by region.Method));
+
+                        s_pendingNonRemappableRegions.Clear();
 
                         _trackingService.EndTracking();
 
@@ -730,6 +739,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 return VSConstants.E_FAIL;
             }
+        }
+
+        private static ImmutableDictionary<K, ImmutableArray<V>> GroupToImmutable<K, V>(IEnumerable<IGrouping<K, V>> items)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
+
+            foreach (var item in items)
+            {
+                builder.Add(item.Key, item.ToImmutableArray());
+            }
+
+            return builder.ToImmutable();
         }
 
         public unsafe int BuildForEnc(object pUpdatePE)
@@ -808,14 +829,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 updater.SetRemapMethods(delta.Pdb.UpdatedMethods, (uint)delta.Pdb.UpdatedMethods.Length);
                 updater.SetDeltaMetadata(delta.Metadata.Bytes, (uint)delta.Metadata.Bytes.Length);
 
-                var ranges = GetExceptionRanges(delta.ExceptionRegionSpanDeltas);
+                var ranges = GetExceptionRanges(delta.NonRemappableRegions);
                 updater.SetExceptionRanges(ranges, ranges.Length);
 
                 var remapActiveStatements = GetRemapActiveStatements(delta.ActiveStatementsInUpdatedMethods);
                 updater.SetRemapActiveStatements(remapActiveStatements, remapActiveStatements.Length);
 
                 _pendingBaseline = delta.EmitResult.Baseline;
-                _pendingUpdatedActiveStatementSpans = delta.UpdatedActiveStatementSpans;
+                _pendingNonRemappableRegions = delta.NonRemappableRegions;
 
 #if DEBUG
                 fixed (byte* deltaMetadataPtr = &delta.Metadata.Bytes[0])
@@ -861,28 +882,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             return result;
         }
 
-        internal static ENCPROG_EXCEPTION_RANGE[] GetExceptionRanges(ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> deltas)
+        internal static ENCPROG_EXCEPTION_RANGE[] GetExceptionRanges(ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
         {
-            var result = new ENCPROG_EXCEPTION_RANGE[deltas.Length];
-            for (int i = 0; i < deltas.Length; i++)
-            {
-                // Debugger line and column numbers are 1-based.
-                // 
-                // The range span is the new span.
-                //   old = new + delta
-                //   new = old – delta
+            var exceptionRegionCount = nonRemappableRegions.Count(d => d.Region.IsExceptionRegion);
 
-                result[i] = new ENCPROG_EXCEPTION_RANGE
+            var result = new ENCPROG_EXCEPTION_RANGE[exceptionRegionCount];
+            int i = 0;
+            foreach (var (method, region) in nonRemappableRegions)
+            {
+                if (region.IsExceptionRegion)
                 {
-                    MethodToken = deltas[i].MethodToken,
-                    MethodVersion = deltas[i].OldMethodVersion,
-                    // the debugger expects these to be 0-based
-                    StartLine = deltas[i].NewSpan.Start.Line,
-                    StartCol = deltas[i].NewSpan.Start.Character,
-                    EndLine = deltas[i].NewSpan.End.Line,
-                    EndCol = deltas[i].NewSpan.End.Character,
-                    Delta = deltas[i].OldSpan.Start.Line - deltas[i].NewSpan.Start.Line,
-                };
+                    // Debugger line and column numbers are 1-based.
+                    // 
+                    // The range span is the new span. Deltas are inverse.
+                    //   old = new + delta
+                    //   new = old – delta
+
+                    int delta = region.LineDelta;
+
+                    result[i++] = new ENCPROG_EXCEPTION_RANGE
+                    {
+                        MethodToken = method.MethodToken,
+                        MethodVersion = method.MethodVersion,
+                        // the debugger expects these to be 0-based
+                        StartLine = region.Span.Start.Line + delta,
+                        StartCol = region.Span.Start.Character,
+                        EndLine = region.Span.End.Line + delta,
+                        EndCol = region.Span.End.Character,
+                        Delta = -delta,
+                    };
+                }
             }
 
             return result;
@@ -1115,12 +1144,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 Debug.Assert(_encService.EditSession != null);
                 Debug.Assert(!_encService.EditSession.StoppedAtException);
                 Debug.Assert(_pendingBaseline != null);
+                Debug.Assert(!_pendingNonRemappableRegions.IsDefault);
 
                 // Since now on until exiting the break state, we consider the changes applied and the project state should be NoChanges.
                 _changesApplied = true;
 
                 _committedBaseline = _pendingBaseline;
                 _pendingBaseline = null;
+
+                s_pendingNonRemappableRegions.Add(_pendingNonRemappableRegions);
+                _pendingNonRemappableRegions = default;
 
                 return VSConstants.S_OK;
             }
