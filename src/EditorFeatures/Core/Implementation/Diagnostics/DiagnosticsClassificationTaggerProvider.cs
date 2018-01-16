@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private readonly ClassificationTag _classificationTag;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
-        protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         public DiagnosticsClassificationTaggerProvider(
