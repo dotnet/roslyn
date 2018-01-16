@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            return $"{userName}.{isAdmin}.{basePipeName}";
+            return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
         }
 
         internal static string GetBasePipeName(string compilerExeDirectory)
