@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> LineEdits;
         public readonly PdbDelta Pdb;
         public readonly EmitDifferenceResult EmitResult;
-        public readonly ImmutableArray<(ActiveInstructionId, LinePositionSpan)> UpdatedActiveStatementSpans;
-        public readonly ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> ExceptionRegionSpanDeltas;
+        public readonly ImmutableArray<(ActiveMethodId, NonRemappableRegion)> NonRemappableRegions;
         public readonly ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
 
         public Deltas(
@@ -26,16 +25,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             MemoryStream pdb,
             int[] updatedMethods,
             ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineEdits,
-            ImmutableArray<(ActiveInstructionId, LinePositionSpan)> updatedActiveStatementSpans,
-            ImmutableArray<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)> exceptionRegionSpanDeltas,
+            ImmutableArray<(ActiveMethodId, NonRemappableRegion)> nonRemappableRegions,
             ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
             EmitDifferenceResult emitResult)
         {
             IL = new ILDelta(il);
             Metadata = new MetadataDelta(metadata);
             Pdb = new PdbDelta(pdb, updatedMethods);
-            UpdatedActiveStatementSpans = updatedActiveStatementSpans;
-            ExceptionRegionSpanDeltas = exceptionRegionSpanDeltas;
+            NonRemappableRegions = nonRemappableRegions;
             ActiveStatementsInUpdatedMethods = activeStatementsInUpdatedMethods;
             EmitResult = emitResult;
             LineEdits = lineEdits;
