@@ -8585,6 +8585,11 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Domyślny literał „default” nie jest prawidłowy jako wzorzec. Użyj innego odpowiedniego literału (np. „0” lub „null”). Aby dopasować wszystko, użyj wzorca odrzucania „var _”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

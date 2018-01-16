@@ -8585,6 +8585,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">預設常值 'default' 為無效的模式。請使用另一個適當的常值 (例如 '0' 或 'null')。若要與所有項目相符，請使用捨棄模式 'var_'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
