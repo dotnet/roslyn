@@ -11,7 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         public DkmActiveStatementFlags Flags { get; set; }
         public DkmInstructionSymbol InstructionSymbol { get; set; }
         public DkmClrInstructionAddress InstructionAddress { get; set; }
-        public uint ExecutingMethodVersion { get; set; }
         public DkmThread Thread { get; set; }
 
         public DkmActiveStatement(
@@ -23,13 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             DkmActiveStatementFlags flags)
         {
             Flags = flags;
-            InstructionSymbol = new DkmInstructionSymbol() { Module = new DkmModule() { Id = new DkmModuleId(moduleId, default) } };
             InstructionAddress = new DkmClrInstructionAddress()
             {
                 MethodId = new DkmClrMethodId(methodToken, methodVersion),
                 ILOffset = ilOffset,
+                ModuleInstance = new DkmClrModuleInstance() { Mvid = moduleId }
             };
-            ExecutingMethodVersion = methodVersion;
             Thread = new DkmThread() { UniqueId = threadId };
         }
     }
