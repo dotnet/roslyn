@@ -33,11 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 bool isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
                 var frameFlags = isLeaf ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame;
 
+                var instruction = dkmStatement.InstructionAddress;
+
                 var instructionId = new ActiveInstructionId(
-                    dkmStatement.InstructionSymbol.Module.Id.Mvid,
-                    dkmStatement.InstructionAddress.MethodId.Token,
-                    unchecked((int)dkmStatement.ExecutingMethodVersion),
-                    unchecked((int)dkmStatement.InstructionAddress.ILOffset));
+                    instruction.ModuleInstance.Mvid,
+                    instruction.MethodId.Token,
+                    unchecked((int)instruction.MethodId.Version),
+                    unchecked((int)instruction.ILOffset));
 
                 if (instructionMap.TryGetValue(instructionId, out var entry))
                 {

@@ -9,5 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
     {
         public DkmClrMethodId MethodId { get; set; }
         public uint ILOffset { get; set; }
+        public DkmClrModuleInstance ModuleInstance { get; set; }
     }
 }
