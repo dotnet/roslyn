@@ -8585,6 +8585,11 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="translated">Un littéral par défaut 'default' n'est pas valide en tant que modèle. Utilisez un autre littéral (comme '0' ou 'null') selon le cas. Pour tout faire correspondre, utilisez un modèle de rejet 'var _'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
