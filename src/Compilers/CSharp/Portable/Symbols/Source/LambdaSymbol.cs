@@ -44,11 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, diagnostics);
-
-            if (IsAsync)
-            {
-                AwaitInAsyncMethodChecker.Check(_syntax, DiagnosticLocation, diagnostics);
-            }
         }
 
         public LambdaSymbol(

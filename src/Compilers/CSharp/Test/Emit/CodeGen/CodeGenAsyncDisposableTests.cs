@@ -349,7 +349,7 @@ class C : System.IAsyncDisposable
     }
     public System.Threading.Tasks.Task DisposeAsync()
     {
-        System.Console.Write(""dispose "");
+        System.Console.Write(""dispose"");
         return System.Threading.Tasks.Task.CompletedTask;
     }
 }
@@ -357,6 +357,32 @@ class C : System.IAsyncDisposable
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose");
+        }
+
+        [Fact]
+        public void TestRegularAwaitInFinallyBlock()
+        {
+            string source = @"
+class C
+{
+    static async System.Threading.Tasks.Task<int> Main()
+    {
+        try
+        {
+        }
+        finally
+        {
+            System.Console.Write(""before "");
+            await System.Threading.Tasks.Task.CompletedTask;
+            System.Console.Write(""after"");
+        }
+        return 1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "before after");
         }
 
         [Fact]
@@ -1189,6 +1215,41 @@ struct S : System.IAsyncDisposable
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "body");
+        }
+
+        [Fact]
+        public void AssignsInAsyncWithAsyncUsing()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+class C
+{
+    public static void M2()
+    {
+        int a=0, x, y, z;
+        L1();
+        a++;
+        x++;
+        y++;
+        z++;
+
+        async void L1()
+        {
+            x = 0;
+            using await (null) { }
+            y = 0;
+
+            // local function exists with a pending branch from the async using, in which `y` was not assigned
+        }
+    }
+}" + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0165: Use of unassigned local variable 'y'
+                //         y++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(10, 9),
+                // (11,9): error CS0165: Use of unassigned local variable 'z'
+                //         z++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(11, 9)
+                );
         }
 
         [Fact]

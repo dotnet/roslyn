@@ -602,23 +602,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         private class LocalRewritingValidator : BoundTreeWalker
         {
+            private static LocalRewritingValidator s_instance = new LocalRewritingValidator();
+
             /// <summary>
             /// Asserts that no unexpected nodes survived local rewriting.
             /// </summary>
             [Conditional("DEBUG")]
             public static void Validate(BoundNode node)
             {
-                new LocalRewritingValidator().Visit(node);
-            }
-
-            public override BoundNode Visit(BoundNode node)
-            {
-                if (!(node is BoundExpression))
-                {
-                    return base.Visit(node);
-                }
-
-                return null;
+                s_instance.Visit(node);
             }
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
