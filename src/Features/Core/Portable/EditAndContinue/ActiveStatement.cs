@@ -22,14 +22,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Ordinal of the active statement within the primary containing document (<see cref="PrimaryDocumentId"/>).
         /// </summary>
         public readonly int PrimaryDocumentOrdinal;
-
         /// <summary>
         /// The instruction of the active statement that is being executed.
+        /// The executing version of the method might be several generations old.
+        /// E.g. when the thread is executing an exception handling region and hasn't been remapped yet.
         /// </summary>
         public readonly ActiveInstructionId InstructionId;
 
         /// <summary>
-        /// Span in source file.
+        /// The current source span.
         /// </summary>
         public readonly LinePositionSpan Span;
 

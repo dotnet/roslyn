@@ -850,10 +850,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     MethodToken = remaps[i].OldInstructionId.MethodToken,
                     OldMethodVersion = remaps[i].OldInstructionId.MethodVersion,
                     OldILOffset = remaps[i].OldInstructionId.ILOffset,
-                    NewStartLine = remaps[i].NewSpan.Start.Line + 1,
-                    NewStartCol = remaps[i].NewSpan.Start.Character + 1,
-                    NewEndLine = remaps[i].NewSpan.End.Line + 1,
-                    NewEndCol = remaps[i].NewSpan.End.Character + 1,
+                    // the debugger expects these to be 0-based
+                    NewStartLine = remaps[i].NewSpan.Start.Line,
+                    NewStartCol = remaps[i].NewSpan.Start.Character,
+                    NewEndLine = remaps[i].NewSpan.End.Line,
+                    NewEndCol = remaps[i].NewSpan.End.Character,
                 };
             }
 
@@ -875,10 +876,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 {
                     MethodToken = deltas[i].MethodToken,
                     MethodVersion = deltas[i].OldMethodVersion,
-                    StartLine = deltas[i].NewSpan.Start.Line + 1,
-                    StartCol = deltas[i].NewSpan.Start.Character + 1,
-                    EndLine = deltas[i].NewSpan.End.Line + 1,
-                    EndCol = deltas[i].NewSpan.End.Character + 1,
+                    // the debugger expects these to be 0-based
+                    StartLine = deltas[i].NewSpan.Start.Line,
+                    StartCol = deltas[i].NewSpan.Start.Character,
+                    EndLine = deltas[i].NewSpan.End.Line,
+                    EndCol = deltas[i].NewSpan.End.Character,
                     Delta = deltas[i].OldSpan.Start.Line - deltas[i].NewSpan.Start.Line,
                 };
             }

@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             {
                 "mvid=22222222-2222-2222-2222-222222222222 0x06000003 v1 IL_0001: (23,14)-(23,24)",
                 "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002: (9,20)-(9,25)"
-            }, updatedActiveStatementSpans.Select(v => $"{v.OldInstructionId.GetDebuggerDisplay(): {v.NewSpan}"));
+            }, updatedActiveStatementSpans.Select(v => $"{v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
 
             AssertEx.Equal(new[]
             {
