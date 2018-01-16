@@ -2927,17 +2927,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Next
         End Sub
 
+        Private Shared Function AreEquivalentIgnoringLambdaBodies(left As SyntaxList(Of SyntaxNode), right As SyntaxList(Of SyntaxNode)) As Boolean
+            If left.Count <> right.Count Then
+                Return False
+            End If
+
+            For i = 0 To left.Count - 1
+                If AreEquivalentIgnoringLambdaBodies(left(i), right(i)) Then
+                    Return False
+                End If
+            Next
+
+            Return False
+        End Function
+
         Private Shared Function AreExceptionHandlingPartsEquivalent(oldNode As SyntaxNode, newNode As SyntaxNode) As Boolean
             Select Case oldNode.Kind
                 Case SyntaxKind.TryBlock
                     Dim oldTryBlock = DirectCast(oldNode, TryBlockSyntax)
                     Dim newTryBlock = DirectCast(newNode, TryBlockSyntax)
-                    Return SyntaxFactory.AreEquivalent(oldTryBlock.FinallyBlock, newTryBlock.FinallyBlock) AndAlso
-                           SyntaxFactory.AreEquivalent(oldTryBlock.CatchBlocks, newTryBlock.CatchBlocks)
+                    Return AreEquivalentIgnoringLambdaBodies(oldTryBlock.FinallyBlock, newTryBlock.FinallyBlock) AndAlso
+                           AreEquivalentIgnoringLambdaBodies(oldTryBlock.CatchBlocks, newTryBlock.CatchBlocks)
 
                 Case SyntaxKind.CatchBlock,
                      SyntaxKind.FinallyBlock
-                    Return SyntaxFactory.AreEquivalent(oldNode, newNode)
+                    Return AreEquivalentIgnoringLambdaBodies(oldNode, newNode)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(oldNode.Kind)

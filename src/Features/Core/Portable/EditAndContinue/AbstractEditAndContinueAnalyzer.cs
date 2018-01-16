@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var trackingService = baseSolution.Workspace.Services.GetService<IActiveStatementTrackingService>();
 
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 // TODO: newTree.HasErrors?
                 var syntaxDiagnostics = newRoot.GetDiagnostics();
                 var syntaxErrorCount = syntaxDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var edit = script.Edits[i];
 
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements,newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
+                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
                 ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
             }
 
@@ -1105,6 +1105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newStatementSyntaxOpt,
                     newSpan,
                     ordinal,
+                    oldText,
                     newText,
                     isNonLeaf,
                     newExceptionRegions,
@@ -1129,6 +1130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode newStatementSyntaxOpt,
             TextSpan newStatementSyntaxSpan,
             int ordinal,
+            SourceText oldText,
             SourceText newText,
             bool isNonLeaf,
             ImmutableArray<LinePositionSpan>[] newExceptionRegions,
@@ -1150,13 +1152,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (oldAncestors.Count > 0 || newAncestors.Count > 0)
             {
                 var edits = bodyMatch.GetSequenceEdits(oldAncestors, newAncestors);
+
+                // validate that the exception regions don't have any sygnificant syntax changes:
                 ReportEnclosingExceptionHandlingRudeEdits(diagnostics, edits, oldStatementSyntax, newStatementSyntaxSpan);
 
+                // TODO: validate semantic changes, checked/unchecked regions etc. (see https://github.com/dotnet/roslyn/issues/23865)
+
                 // Exception regions are not needed in presence of errors.
+                // Only perform additional rude edit analysis if there no errors have been reported yet.
                 if (diagnostics.Count == 0)
                 {
+                    // validate that the regions did not change line numbers:
+                    var oldRegions = GetExceptionRegions(oldAncestors, oldText);
+                    var newRegions = GetExceptionRegions(newAncestors, newText);
+
+                    ReportExceptionRegionsRudeEdits(diagnostics, oldText, oldRegions, newText, newRegions);
+
                     Debug.Assert(oldAncestors.Count == newAncestors.Count);
-                    newExceptionRegions[ordinal] = GetExceptionRegions(newAncestors, newText);
+                    newExceptionRegions[ordinal] = newRegions;
+                }
+            }
+        }
+
+        private static void ReportExceptionRegionsRudeEdits(List<RudeEditDiagnostic> diagnostics, SourceText oldText, ImmutableArray<LinePositionSpan> oldRegions, SourceText newText, ImmutableArray<LinePositionSpan> newRegions)
+        {
+            // we already reported rude edit if regions were inserted/deleted:
+            Debug.Assert(oldRegions.Length == newRegions.Length);
+
+            for (int i = 0; i < oldRegions.Length; i++)
+            {
+                var oldRegion = oldRegions[i];
+                var newRegion = newRegions[i];
+
+                if (oldRegion.End.Line - oldRegion.Start.Line != newRegion.End.Line - newRegion.Start.Line)
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdateExceptionHandlerAroundActiveStatement, newText.Lines.GetTextSpan(newRegion)));
                 }
             }
         }

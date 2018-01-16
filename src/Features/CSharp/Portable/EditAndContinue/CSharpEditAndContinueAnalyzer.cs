@@ -418,15 +418,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left, right);
         }
 
-        private static bool AreEquivalentIgnoringLambdaBodies(SyntaxList<SyntaxNode> left, SyntaxNode right)
+        private static bool AreEquivalentIgnoringLambdaBodies(SyntaxList<SyntaxNode> left, SyntaxList<SyntaxNode> right)
         {
-            // usual case:
-            if (SyntaxFactory.AreEquivalent(left, right))
+            if (left.Count != right.Count)
             {
-                return true;
+                return false;
             }
 
-            return LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left, right);
+            for (int i = 0; i < left.Count; i++)
+            {
+                if (LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left[i], right[i]))
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         internal override SyntaxNode FindPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode)
@@ -2998,14 +3005,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // try/catch/finally have distinct labels so only the nodes of the same kind may match:
                 Debug.Assert(edit.Kind != EditKind.Update || edit.OldNode.RawKind == edit.NewNode.RawKind);
 
-                if (edit.Kind != EditKind.Update || !AreExceptionClausesEqual(edit.OldNode, edit.NewNode))
+                if (edit.Kind != EditKind.Update || !AreExceptionClausesEquivalent(edit.OldNode, edit.NewNode))
                 {
                     AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan);
                 }
             }
         }
 
-        private static bool AreExceptionClausesEqual(SyntaxNode oldNode, SyntaxNode newNode)
+        private static bool AreExceptionClausesEquivalent(SyntaxNode oldNode, SyntaxNode newNode)
         {
             switch (oldNode.Kind())
             {

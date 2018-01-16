@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.DeleteActiveStatement,
                 RudeEditKind.UpdateExceptionHandlerOfActiveTry,
                 RudeEditKind.UpdateTryOrCatchWithActiveFinally,
-                RudeEditKind.UpdateCatchHandlerAroundActiveStatement,
+                RudeEditKind.UpdateExceptionHandlerAroundActiveStatement,
                 RudeEditKind.FieldKindUpdate,
                 RudeEditKind.TypeKindUpdate,
                 RudeEditKind.AccessorKindUpdate,

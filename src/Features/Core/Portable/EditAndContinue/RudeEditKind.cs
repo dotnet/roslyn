@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         GenericTypeTriviaUpdate = 39,
         GenericTypeInitializerUpdate = 40,
         PartialTypeInitializerUpdate = 41,
-        //// AsyncMethodUpdate = 42,
-        //// AsyncMethodTriviaUpdate = 43,
+        // AsyncMethodUpdate = 42,
+        // AsyncMethodTriviaUpdate = 43,
         StackAllocUpdate = 44,
 
         ExperimentalFeaturesEnabled = 45,
@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         DeleteAroundActiveStatement = 61,
         DeleteActiveStatement = 62,
         UpdateAroundActiveStatement = 63,
-        UpdateExceptionHandlerOfActiveTry = 64,
-        UpdateTryOrCatchWithActiveFinally = 65,
-        UpdateCatchHandlerAroundActiveStatement = 66,
+        // UpdateExceptionHandlerOfActiveTry = 64,   
+        // UpdateTryOrCatchWithActiveFinally = 65,
+        UpdateExceptionHandlerAroundActiveStatement = 66,
         UpdateStaticLocal = 67,
 
         InsertConstructorToTypeWithInitializersWithLambdas = 68,
