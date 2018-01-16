@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
@@ -356,6 +360,190 @@ public class Test2
                 // (13,33): error CS0315: The type 'E' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no boxing conversion from 'E' to 'Test2'.
                 //         var a = new Test<Test2, E>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "E").WithArguments("Test<T, U>", "Test2", "U", "E").WithLocation(13, 33));
+        }
+
+        [Fact]
+        public void EnumConstraint_IsReflectedinSymbols_Alone()
+        {
+            var code = "public class Test<T> where T : System.Enum { }";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.False(typeParameter.HasValueTypeConstraint);
+                Assert.False(typeParameter.HasReferenceTypeConstraint);
+                Assert.Equal(SpecialType.System_Enum, typeParameter.ConstraintTypes().Single().SpecialType);
+            };
+
+            CompileAndVerify(code, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void EnumConstraint_IsReflectedinSymbols_ValueType()
+        {
+            var code = "public class Test<T> where T : struct, System.Enum { }";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.True(typeParameter.HasValueTypeConstraint);
+                Assert.False(typeParameter.HasReferenceTypeConstraint);
+                Assert.False(typeParameter.HasConstructorConstraint);
+                Assert.Equal(SpecialType.System_Enum, typeParameter.ConstraintTypes().Single().SpecialType);
+            };
+
+            CompileAndVerify(code, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void EnumConstraint_IsReflectedinSymbols_ReferenceType()
+        {
+            var code = "public class Test<T> where T : class, System.Enum { }";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.False(typeParameter.HasValueTypeConstraint);
+                Assert.True(typeParameter.HasReferenceTypeConstraint);
+                Assert.False(typeParameter.HasConstructorConstraint);
+                Assert.Equal(SpecialType.System_Enum, typeParameter.ConstraintTypes().Single().SpecialType);
+            };
+
+            CompileAndVerify(code, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void EnumConstraint_IsReflectedinSymbols_Constructor()
+        {
+            var code = "public class Test<T> where T : System.Enum, new() { }";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.False(typeParameter.HasValueTypeConstraint);
+                Assert.False(typeParameter.HasReferenceTypeConstraint);
+                Assert.True(typeParameter.HasConstructorConstraint);
+                Assert.Equal(SpecialType.System_Enum, typeParameter.ConstraintTypes().Single().SpecialType);
+            };
+
+            CompileAndVerify(code, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void EnumConstraint_EnforcedInInheritanceChain_Downwards_Source()
+        {
+            CreateStandardCompilation(@"
+public abstract class A
+{
+    public abstract void M<T>() where T : System.Enum;
+}
+public class B : A
+{
+    public override void M<T>() { }
+
+    public void Test()
+    {
+        this.M<int>();
+        this.M<E>();
+    }
+}
+public enum E
+{
+}").VerifyDiagnostics(
+                // (12,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'B.M<T>()'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         this.M<int>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "this.M<int>").WithArguments("B.M<T>()", "System.Enum", "T", "int").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void EnumConstraint_EnforcedInInheritanceChain_Downwards_Reference()
+        {
+            var reference = CreateStandardCompilation(@"
+public abstract class A
+{
+    public abstract void M<T>() where T : System.Enum;
+}").EmitToImageReference();
+
+            CreateStandardCompilation(@"
+public class B : A
+{
+    public override void M<T>() { }
+
+    public void Test()
+    {
+        this.M<int>();
+        this.M<E>();
+    }
+}
+public enum E
+{
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (8,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'B.M<T>()'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         this.M<int>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "this.M<int>").WithArguments("B.M<T>()", "System.Enum", "T", "int").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void EnumConstraint_EnforcedInInheritanceChain_Upwards_Source()
+        {
+            CreateStandardCompilation(@"
+public abstract class A
+{
+    public abstract void M<T>();
+}
+public class B : A
+{
+    public override void M<T>() where T : System.Enum { }
+}").VerifyDiagnostics(
+                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                //     public override void M<T>() where T : System.Enum { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+        }
+
+        [Fact]
+        public void EnumConstraint_EnforcedInInheritanceChain_Upwards_Reference()
+        {
+            var reference = CreateStandardCompilation(@"
+public abstract class A
+{
+    public abstract void M<T>();
+}").EmitToImageReference();
+
+            CreateStandardCompilation(@"
+public class B : A
+{
+    public override void M<T>() where T : System.Enum { }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                //     public override void M<T>() where T : System.Enum { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+        }
+
+        [Fact]
+        public void EnumConstraint_ResolveParentConstraints()
+        {
+            var comp = CreateStandardCompilation(@"
+public enum MyEnum
+{
+}
+public abstract class A<T>
+{
+    public abstract void F<U>() where U : System.Enum, T;
+}
+public class B : A<MyEnum>
+{
+    public override void F<U>() { }
+}");
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var method = module.GlobalNamespace.GetTypeMember("B").GetMethod("F");
+                var constraintTypeNames = method.TypeParameters.Single().ConstraintTypes().Select(type => type.ToTestDisplayString());
+
+                AssertEx.SetEqual(new[] { "System.Enum", "MyEnum" }, constraintTypeNames);
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator);
         }
     }
 }
