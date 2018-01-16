@@ -20,6 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
+    using ProviderAndDocumentToLatestUpdate = Dictionary<(object providerId, Document document), DiagnosticsUpdatedArgs>;
+
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     {
         private class AggregatingTagger : ForegroundThreadAffinitizedObject, IAccurateTagger<TTag>, IDisposable
@@ -207,10 +209,53 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
+            // We may get a flood of diagnostic notificaitons on the BG.  In order to not overwhelm
+            // the UI thread with work to do, and to avoid excess allocations, we batch up these
+            // notifications, and attempt to process them all at once on the UI thread every 50ms
+            // or so.
+            //
+            // Because we're batching, we can optimize things such that we only store two pieces
+            // of data per provider.  Specifically, if they were removing all diagnostics, and
+            // per-document, the latest diagnostics we've created for it.
+            private static readonly ObjectPool<ProviderAndDocumentToLatestUpdate> s_pool = new ObjectPool<ProviderAndDocumentToLatestUpdate>(
+                () => new ProviderAndDocumentToLatestUpdate());
+
+            private readonly object _gate = new object();
+            private ProviderAndDocumentToLatestUpdate _idAndDocToLatestUpdate = s_pool.Allocate();
+            private Task _updateTask = null;
+
             private void OnDiagnosticsUpdatedOnBackground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsBackground();
-                RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e));
+                if (_disposed)
+                {
+                    return;
+                }
+
+                var document = e.Solution.GetDocument(e.DocumentId);
+                if (document == null)
+                {
+                    // Not a diagnostic event for a document.  Not something we can handle.
+                    return;
+                }
+
+                lock (_gate)
+                {
+                    _idAndDocToLatestUpdate[(e.Id, document)] = e;
+
+                    // Check if there's already an in-flight update task.  If so, there's nothing we
+                    // need to do.  The in-flight task will pick up the work we enqueued.  Otherwise,
+                    // create a task to process this work (and anything else that comes in) for 50ms
+                    // from now.
+                    if (_updateTask == null)
+                    {
+                        var token = _owner._listener.BeginAsyncOperation(GetType().Name + "OnDiagnosticsUpdatedOnBackground");
+
+                        _updateTask = Task.Delay(50).ContinueWith(
+                            _ => OnDiagnosticsUpdatedOnForeground(),
+                            this.ForegroundTaskScheduler).CompletesAsyncOperation(token);
+                    }
+                }
             }
 
             /// <summary>
@@ -227,44 +272,94 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// Similarly, clearing out data is just a matter of us clearing our reference
             /// to the data.  
             /// </summary>
-            private void OnDiagnosticsUpdatedOnForeground(DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdatedOnForeground()
             {
                 this.AssertIsForeground();
 
-                if (_disposed)
+                ProviderAndDocumentToLatestUpdate latestUpdates;
+                lock (_gate)
                 {
-                    return;
+                    Debug.Assert(_updateTask != null);
+
+                    // Grab the work we need to do.  Create a fresh dictionary for new work to be
+                    // put into.
+                    latestUpdates = _idAndDocToLatestUpdate;
+                    _idAndDocToLatestUpdate = s_pool.Allocate();
+
+                    // Clear out the task so that any new work that comes in will cause a new update
+                    // task to be created.
+                    _updateTask = null;
                 }
 
-                // Do some quick checks to avoid doing any further work for diagnostics  we don't
-                // care about.
-                var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-                var ourDocumentId = ourDocument?.Id;
-                if (ourDocumentId != _currentDocumentId)
+                try
                 {
-                    // Our buffer has started tracking some other document entirely.
-                    // We have to clear out all of the diagnostics we have currently stored.
-                    RemoveAllCachedDiagnostics();
+                    if (_disposed)
+                    {
+                        return;
+                    }
+
+                    // Do some quick checks to avoid doing any further work for diagnostics  we don't
+                    // care about.
+                    var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                    var ourDocumentId = ourDocument?.Id;
+                    if (ourDocumentId != _currentDocumentId)
+                    {
+                        // Our buffer has started tracking some other document entirely.
+                        // We have to clear out all of the diagnostics we have currently stored.
+                        RemoveAllCachedDiagnostics();
+                    }
+
+                    _currentDocumentId = ourDocumentId;
+                    
+                    if (ourDocument == null)
+                    {
+                        // We're no longer associated with a workspace document.  Don't show any
+                        // diagnostic tags in this buffer.
+                        return;
+                    }
+
+                    foreach (var kvp in latestUpdates)
+                    {
+                        var providerId = kvp.Key.providerId;
+                        var diagnosticDocument = kvp.Key.document;
+
+                        if (diagnosticDocument.Id != ourDocument.Id ||
+                            diagnosticDocument.Project.Solution.Workspace != ourDocument.Project.Solution.Workspace)
+                        {
+                            // Notification for some other document.  Just ignore it.
+                            continue;
+                        }
+
+                        // Process removes for this provider first, then process the creates for it for
+                        // our document.
+                        var updateArgs = kvp.Value;
+                        if (updateArgs.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
+                        {
+                            OnDiagnosticsRemovedOnForeground(updateArgs);
+                        }
+                        else
+                        {
+                            OnDiagnosticsCreatedOnForeground(diagnosticDocument, updateArgs);
+                        }
+                    }
                 }
-
-                _currentDocumentId = ourDocumentId;
-
-                // Now see if the document we're tracking corresponds to the diagnostics
-                // we're hearing about.  If not, just ignore them.
-                if (ourDocument == null ||
-                    ourDocument.Project.Solution.Workspace != e.Workspace ||
-                    ourDocument.Id != e.DocumentId)
+                finally
                 {
-                    return;
+                    s_pool.ClearAndFree(latestUpdates);
                 }
+            }
+
+            private void OnDiagnosticsCreatedOnForeground(
+                Document diagnosticDocument, DiagnosticsUpdatedArgs e)
+            {
+                this.AssertIsForeground();
+
+                Debug.Assert(!_disposed);
+                Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated);
 
                 // We're hearing about diagnostics for our document.  We may be hearing
                 // about new diagnostics coming, or existing diagnostics being cleared
                 // out.
-
-                // First see if this is a document/project removal.  If so, clear out any state we
-                // have associated with any analyzers we have for that document/project.
-                ProcessRemovedDiagnostics(e);
 
                 // Make sure we can find an editor snapshot for these errors.  Otherwise we won't
                 // be able to make ITagSpans for them.  If we can't, just bail out.  This happens
@@ -275,19 +370,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // Note: if the Solution or Document is null here, then that means the document
                 // was removed.  In that case, we do want to proceed so that we'll produce 0
                 // tags and we'll update the editor appropriately.
-                SourceText sourceText = null;
-                ITextSnapshot editorSnapshot = null;
-                if (e.Solution != null)
-                {
-                    var diagnosticDocument = e.Solution.GetDocument(e.DocumentId);
-                    if (diagnosticDocument != null)
-                    {
-                        if (!diagnosticDocument.TryGetText(out sourceText))
+                        if (!diagnosticDocument.TryGetText(out var sourceText))
                         {
                             return;
                         }
 
-                        editorSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+                        var editorSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
                         if (editorSnapshot == null)
                         {
                             return;
@@ -316,27 +404,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         {
                             return;
                         }
-                    }
-                }
 
                 OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
-            private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsRemovedOnForeground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
+
                 Debug.Assert(!_disposed);
+                Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved);
 
-                if (e.Kind != DiagnosticsUpdatedKind.DiagnosticsRemoved)
-                {
-                    // Wasn't a removal.  We don't need to do anything here.
-                    return;
-                }
+                // We're hearing about diagnostics for our document.  We may be hearing
+                // about new diagnostics coming, or existing diagnostics being cleared
+                // out.
 
-                // See if we're being told about diagnostics going away because a document/project
-                // was removed.  If so, clear out any diagnostics we have associated with this
-                // diagnostic source ID and notify any listeners that 
-
+                // First see if this is a document/project removal.  If so, clear out any state we
+                // have associated with any analyzers we have for that document/project.
                 var id = e.Id;
                 if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
