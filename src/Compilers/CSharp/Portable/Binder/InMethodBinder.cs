@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
-            : base(enclosing)
+            : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtInMethodBoundary)
         {
             Debug.Assert((object)owner != null);
             _methodSymbol = owner;
