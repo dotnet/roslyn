@@ -10,22 +10,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class AwaitableInfo
     {
-        public readonly MethodSymbol getAwaiter;
-        public readonly PropertySymbol isCompleted;
-        public readonly MethodSymbol getResult;
+        public readonly MethodSymbol GetAwaiter;
+        public readonly PropertySymbol IsCompleted;
+        public readonly MethodSymbol GetResult;
 
-        public bool IsDynamic => getResult is null;
+        public bool IsDynamic => GetResult is null;
 
         internal AwaitableInfo(MethodSymbol getAwaiterMethod, PropertySymbol isCompletedProperty, MethodSymbol getResultMethod)
         {
-            this.getAwaiter = getAwaiterMethod;
-            this.isCompleted = isCompletedProperty;
-            this.getResult = getResultMethod;
+            this.GetAwaiter = getAwaiterMethod;
+            this.IsCompleted = isCompletedProperty;
+            this.GetResult = getResultMethod;
         }
 
         internal AwaitableInfo Update(MethodSymbol newGetAwaiter, PropertySymbol newIsCompleted, MethodSymbol newGetResult)
         {
-            if (ReferenceEquals(getAwaiter, newGetAwaiter) && ReferenceEquals(isCompleted, newIsCompleted) && ReferenceEquals(getResult, newGetResult))
+            if (ReferenceEquals(GetAwaiter, newGetAwaiter) && ReferenceEquals(IsCompleted, newIsCompleted) && ReferenceEquals(GetResult, newGetResult))
             {
                 return this;
             }

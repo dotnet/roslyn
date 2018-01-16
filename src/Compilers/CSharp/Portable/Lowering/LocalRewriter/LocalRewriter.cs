@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
                 }
 
-                AssertValidLocalRewriting(loweredStatement);
+                LocalRewritingValidator.Validate(loweredStatement);
 
                 return loweredStatement;
             }
@@ -112,23 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ex.Diagnostic);
                 sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
-            }
-        }
-
-        [Conditional("DEBUG")]
-        private static void AssertValidLocalRewriting(BoundNode node)
-        {
-            switch (node.Kind)
-            {
-                case BoundKind.UsingStatement:
-                case BoundKind.AwaitableValuePlaceholder:
-                    Debug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");
-                    break;
-            }
-
-            foreach (var child in ((IBoundNodeWithIOperationChildren)node).Children)
-            {
-                AssertValidLocalRewriting(child);
             }
         }
 
@@ -615,5 +598,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }
         }
+
+#if DEBUG
+        private class LocalRewritingValidator : BoundTreeWalker
+        {
+            /// <summary>
+            /// Asserts that no unexpected nodes survived local rewriting.
+            /// </summary>
+            [Conditional("DEBUG")]
+            public static void Validate(BoundNode node)
+            {
+                new LocalRewritingValidator().Visit(node);
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                if (!(node is BoundExpression))
+                {
+                    return base.Visit(node);
+                }
+
+                return null;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            private void Fail(BoundNode node)
+            {
+                Debug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");
+            }
+        }
+#endif
     }
 }

@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// A pending branch.  These are created for a return, break, continue, goto statement,
-        /// yield return, yield break, await expression, foreach/using await, and if PreciseAbstractFlowPass.trackExceptions
+        /// yield return, yield break, and if PreciseAbstractFlowPass.trackExceptions
         /// is true for other
         /// constructs that can cause an exception to be raised such as a throw statement or method
         /// invocation.

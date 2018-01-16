@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AwaitableInfo info = node.AwaitableInfo;
             return node.Update(
                 expression,
-                node.AwaitableInfo.Update(VisitMethodSymbol(info.getAwaiter), VisitPropertySymbol(info.isCompleted), VisitMethodSymbol(info.getResult)),
+                node.AwaitableInfo.Update(VisitMethodSymbol(info.GetAwaiter), VisitPropertySymbol(info.IsCompleted), VisitMethodSymbol(info.GetResult)),
                 type);
         }
 

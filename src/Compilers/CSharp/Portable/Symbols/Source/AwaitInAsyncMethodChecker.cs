@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public bool FoundAwait { get; private set; } = false;
+        private bool _foundAwait = false;
+        public bool FoundAwait => _foundAwait;
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
@@ -50,14 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override void VisitAwaitExpression(AwaitExpressionSyntax node)
         {
-            FoundAwait = true;
+            _foundAwait = true;
         }
 
         public override void VisitUsingStatement(UsingStatementSyntax node)
         {
             if (node.AwaitKeyword != default)
             {
-                FoundAwait = true;
+                _foundAwait = true;
                 return;
             }
 
