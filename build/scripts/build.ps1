@@ -28,7 +28,7 @@ param (
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
     [string]$signType = "",
-    [switch]$coreClrBuild = $false,
+    [switch]$buildCoreClr = $false,
 
     # Test options 
     [switch]$test32 = $false,
@@ -111,12 +111,12 @@ function Process-Arguments() {
         exit 1
     }
 
-    if ($build -and $coreClrBuild) {
-        Write-Host "Cannot combine desktop build and CoreCLR build"
+    if ($buildCoreClr -and $buildAll) {
+        Write-Host "Cannot combine coreclr build with full Roslyn build"
         exit 1
     }
 
-    if ($buildAll) {
+    if ($buildAll -or $buildCoreClr) {
         $script:build = $true
     }
 
@@ -185,7 +185,7 @@ function Make-BootstrapBuild() {
     $bootstrapArgs = "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
-    if ($coreClrBuild) {
+    if ($buildCoreClr) {
         $bootstrapFramework = "netcoreapp2.0"
         $logDir = Join-Path $binariesDir "Logs"
         Create-Directory $logDir
@@ -210,13 +210,12 @@ function Make-BootstrapBuild() {
 }
 
 function Build-Artifacts() { 
-    if ($build) { 
-        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
-    }
-
-    if ($coreClrBuild)
+    if ($buildCoreClr)
     {
         Run-MSBuild "Compilers.sln" -useDotnetBuild
+    }
+    elseif ($build) {
+        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
     }
 
     if ($buildAll) {
@@ -664,7 +663,7 @@ try {
         $bootstrapDir = Make-BootstrapBuild
     }
 
-    if ($build -or $coreClrBuild -or $pack) {
+    if ($build -or $buildCoreClr -or $pack) {
         Build-Artifacts
     }
 
