@@ -26,28 +26,71 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         {
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _owner;
             private readonly ITextBuffer _subjectBuffer;
+            private readonly WorkspaceRegistration _workspaceRegistration;
+            private readonly CancellationTokenSource _initialDiagnosticsCancellationSource = new CancellationTokenSource();
 
             private int _refCount;
             private bool _disposed;
-
-            /// <summary>
-            /// The current Document that our <see cref="_subjectBuffer"/> is associated with.
-            /// If our buffer becomes associated with another document, we will clear out any
-            /// cached diagnostic information we've collected so far as it's no longer valid.
-            /// </summary>
-            private DocumentId _currentDocumentId;
 
             private readonly Dictionary<object, (TaggerProvider provider, IAccurateTagger<TTag> tagger)> _idToProviderAndTagger = new Dictionary<object, (TaggerProvider provider, IAccurateTagger<TTag> tagger)>();
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
+            // Data that is used from both threads and needs to be protected by _gate.
+            private readonly object _gate = new object();
+
             // Use a chain of tasks to make sure that we process each diagnostic event serially.
             // This also ensures that the first diagnostic event we hear about will be processed
             // after the initial background work to get the first group of diagnostics.
-            private readonly object _taskGate = new object();
             private Task _taskChain;
 
-            private readonly CancellationTokenSource _initialDiagnosticsCancellationSource = new CancellationTokenSource();
+            /// <summary>
+            /// The current Document and Workspace that our <see cref="_subjectBuffer"/> is 
+            /// associated with.  If our buffer becomes associated with another document or
+            /// workspace, we will clear out any cached diagnostic information we've collected 
+            /// so far as they're no longer valid.
+            /// 
+            /// Note: we fundamentally have a race condition here.  While we will update this
+            /// whenever our ITextBuffer changes which document it is associated with, there
+            /// is no guarantee that we will hear about the diagnostics from that document
+            /// afterwards.  i.e. we may end up with the following chain of events:
+            /// 
+            /// 1. Text buffer switches document association.
+            /// 2. We hear about diagnostics from that new document (and we ignore them)
+            /// 3. We hear about hte association change.
+            /// 
+            /// This is a problem no matter which thread we process diagnostics on.  The only
+            /// way to prevent this would be to have to listen and remember about all diagnostics
+            /// for some amount of time, or to have the diagnostic service and workspace coordinate
+            /// to ensure that diagnostic events always happened after workspace eveents.
+            /// </summary>
+            private DocumentId _currentDocumentId;
+            private Workspace _workspace;
+
+            /// <summary>
+            /// We may get a flood of diagnostic notificaitons on the BG.  In order to not overwhelm
+            /// the UI thread with work to do, and to avoid excess allocations, we batch up these
+            /// notifications, and attempt to process them all at once on the UI thread every 50ms
+            /// or so.
+            /// 
+            /// This means less notification allocations, and less UI timeslices
+            /// needed.  This does mean we may spend a little more time on the UI processing all
+            /// those notifications.  However, that time should still be very brief as we do almost
+            /// nothing on the UI itself (we just push the data into our providers, and inform the
+            /// editor that we have changed).
+            /// </summary>
+            private Dictionary<object, DiagnosticsUpdatedArgs> idToLatestArgs = s_providerPool.Allocate();
+
+            /// <summary>
+            /// The task we use to actuall process all the diagnostic notifications we've gotten.
+            /// We only ever have one of these in flight at a time.  If the task is in flight and
+            /// we get new diagnostic events, we just add them to <see cref="idToLatestArgs"/>
+            /// to be processed when the task finally executes.
+            /// </summary>
+            private Task _updateTask = null;
+
+            private static readonly ObjectPool<Dictionary<object, DiagnosticsUpdatedArgs>> s_providerPool = new ObjectPool<Dictionary<object, DiagnosticsUpdatedArgs>>(
+                () => new Dictionary<object, DiagnosticsUpdatedArgs>());
 
             public AggregatingTagger(
                 AbstractDiagnosticsTaggerProvider<TTag> owner,
@@ -58,6 +101,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 _currentDocumentId = document?.Id;
+
+                // Listen for whenever this buffer gets associated with a different workspace/document.
+                _workspaceRegistration = Workspace.GetWorkspaceRegistration(_subjectBuffer.AsTextContainer());
+                _workspaceRegistration.WorkspaceChanged += OnWorkspaceChanged;
+                _workspace = document?.Project.Solution.Workspace;
+
+                if (_workspace != null)
+                {
+                    _workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+                }
 
                 // Kick off a background task to collect the initial set of diagnostics.
                 var cancellationToken = _initialDiagnosticsCancellationSource.Token;
@@ -72,6 +125,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // we have an underlying tagger responsible for asynchronously handling diagnostics
                 // from the owner of that diagnostic update.
                 _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+            }
+
+            private void OnWorkspaceChanged(object sender, EventArgs e)
+            {
+                this.AssertIsForeground();
+
+                // Disconnect from the old workspace notifications and hook up to the new ones.
+                lock (_gate)
+                {
+                    if (_workspace != null)
+                    {
+                        _workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
+                    }
+
+                    _workspace = _workspaceRegistration.Workspace;
+                    if (_workspace != null)
+                    {
+                        _workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+                    }
+                }
+
+                // We started tracking another document.  Clear out everything we've stored up so far.
+                ResetCurrentDocumentIdIfNecessary();
+            }
+
+            private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
+            {
+                this.AssertIsForeground();
+                this.ResetCurrentDocumentIdIfNecessary();
+            }
+
+            private void ResetCurrentDocumentIdIfNecessary()
+            {
+                this.AssertIsForeground();
+
+                var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+
+                // Safe to read _currentDocumentId here, we are the fg thread.
+                if (document?.Id == _currentDocumentId &&
+                    document?.Project.Solution.Workspace == _workspace)
+                {
+                    // Nothing changed.
+                    return;
+                }
+
+                lock (_gate)
+                {
+                    // Ensure the bg thread sees writes to this field.
+                    _currentDocumentId = document?.Id;
+                }
+
+                // We started tracking another document.  Clear out everything we've stored up so far.
+                RemoveAllCachedDiagnostics();
             }
 
             private void GetInitialDiagnosticsInBackground(
@@ -151,6 +257,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     _disposed = true;
 
+                    if (_workspace != null)
+                    {
+                        _workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
+                    }
+
+                    _workspaceRegistration.WorkspaceChanged -= OnWorkspaceChanged;
+
                     // Stop listening to diagnostic changes from the diagnostic service.
                     _owner._diagnosticService.DiagnosticsUpdated -= OnDiagnosticsUpdated;
                     _initialDiagnosticsCancellationSource.Cancel();
@@ -195,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                lock (_taskGate)
+                lock (_gate)
                 {
                     // Chain the events so we process them serially.  This also ensures
                     // that we don't process events while still getting our initial set
@@ -210,7 +323,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private void OnDiagnosticsUpdatedOnBackground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsBackground();
-                RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e));
+                if (_disposed)
+                {
+                    return;
+                }
+
+                if (e.DocumentId == null)
+                {
+                    // Not a diagnostic event for a document.  Not something we can handle.
+                    return;
+                }
+
+                lock (_gate)
+                {
+                    // On the bg, have to read _currentDocumentId in a lock to ensure we see writes
+                    // to it.
+                    // 
+                    // Note: this approach is still is fundamentally racey.  We may be processing 
+                    // the diagnostic events for a document that *currently* doesn't match our text 
+                    // buffer, but which may *once* we hear about the active context change.  There 
+                    // is no guarantee that we hear aobut diagnostic events after the workspace events.
+                    if (e.DocumentId != _currentDocumentId)
+                    {
+                        // Not a notification for the document we're currently tracking.  Ignore this.
+                        return;
+                    }
+
+                    idToLatestArgs[e.Id] = e;
+
+                    // Check if there's already an in-flight update task.  If so, there's nothing we
+                    // need to do.  The in-flight task will pick up the work we enqueued.  Otherwise,
+                    // create a task to process this work (and anything else that comes in) for 50ms
+                    // from now.
+                    if (_updateTask == null)
+                    {
+                        var token = _owner._listener.BeginAsyncOperation(GetType().Name + "OnDiagnosticsUpdatedOnBackground");
+
+                        _updateTask = Task.Delay(50).ContinueWith(
+                            _ => OnDiagnosticsUpdatedOnForeground(),
+                            this.ForegroundTaskScheduler).CompletesAsyncOperation(token);
+                    }
+                }
             }
 
             /// <summary>
@@ -227,44 +380,83 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// Similarly, clearing out data is just a matter of us clearing our reference
             /// to the data.  
             /// </summary>
-            private void OnDiagnosticsUpdatedOnForeground(DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdatedOnForeground()
             {
                 this.AssertIsForeground();
 
-                if (_disposed)
+                Dictionary<object, DiagnosticsUpdatedArgs> latestArgs;
+                lock (_gate)
                 {
-                    return;
+                    Debug.Assert(_updateTask != null);
+
+                    // Grab the work we need to do.  Create a fresh dictionary for new work to be
+                    // put into.
+                    latestArgs = idToLatestArgs;
+                    idToLatestArgs = s_providerPool.Allocate();
+
+                    // Clear out the task so that any new work that comes in will cause a new update
+                    // task to be created.
+                    _updateTask = null;
                 }
 
-                // Do some quick checks to avoid doing any further work for diagnostics  we don't
-                // care about.
-                var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-                var ourDocumentId = ourDocument?.Id;
-                if (ourDocumentId != _currentDocumentId)
+                try
                 {
-                    // Our buffer has started tracking some other document entirely.
-                    // We have to clear out all of the diagnostics we have currently stored.
-                    RemoveAllCachedDiagnostics();
+                    if (_disposed)
+                    {
+                        return;
+                    }
+
+                    // Safe to access _currentDocumentId here.  We are the fg thread.
+                    var ourDocument = _workspace.CurrentSolution.GetDocument(_currentDocumentId);
+                    if (ourDocument == null)
+                    {
+                        // We're no longer associated with a workspace document.  Don't show any
+                        // diagnostic tags in this buffer.
+                        return;
+                    }
+
+                    foreach (var kvp in latestArgs)
+                    {
+                        var updateArgs = kvp.Value;
+                        Debug.Assert(kvp.Key == updateArgs.Id);
+
+                        if (updateArgs.DocumentId != ourDocument.Id ||
+                            updateArgs.Workspace != ourDocument.Project.Solution.Workspace)
+                        {
+                            // Notification for some other document.  Just ignore it. This can happen
+                            // if the active document we were tracking changed between when we got
+                            // the diagnostic notification on the BG and now.
+                            continue;
+                        }
+
+                        if (updateArgs.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
+                        {
+                            OnDiagnosticsRemovedOnForeground(updateArgs);
+                        }
+                        else
+                        {
+                            OnDiagnosticsCreatedOnForeground(updateArgs);
+                        }
+                    }
                 }
-
-                _currentDocumentId = ourDocumentId;
-
-                // Now see if the document we're tracking corresponds to the diagnostics
-                // we're hearing about.  If not, just ignore them.
-                if (ourDocument == null ||
-                    ourDocument.Project.Solution.Workspace != e.Workspace ||
-                    ourDocument.Id != e.DocumentId)
+                finally
                 {
-                    return;
+                    s_providerPool.ClearAndFree(latestArgs);
                 }
+            }
+
+            private void OnDiagnosticsCreatedOnForeground(DiagnosticsUpdatedArgs e)
+            {
+                this.AssertIsForeground();
+
+                Debug.Assert(!_disposed);
+                Debug.Assert(e.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated);
+
+                var diagnosticDocument = e.Solution.GetDocument(e.DocumentId);
 
                 // We're hearing about diagnostics for our document.  We may be hearing
                 // about new diagnostics coming, or existing diagnostics being cleared
                 // out.
-
-                // First see if this is a document/project removal.  If so, clear out any state we
-                // have associated with any analyzers we have for that document/project.
-                ProcessRemovedDiagnostics(e);
 
                 // Make sure we can find an editor snapshot for these errors.  Otherwise we won't
                 // be able to make ITagSpans for them.  If we can't, just bail out.  This happens
@@ -275,19 +467,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // Note: if the Solution or Document is null here, then that means the document
                 // was removed.  In that case, we do want to proceed so that we'll produce 0
                 // tags and we'll update the editor appropriately.
-                SourceText sourceText = null;
-                ITextSnapshot editorSnapshot = null;
-                if (e.Solution != null)
-                {
-                    var diagnosticDocument = e.Solution.GetDocument(e.DocumentId);
-                    if (diagnosticDocument != null)
-                    {
-                        if (!diagnosticDocument.TryGetText(out sourceText))
+                        if (!diagnosticDocument.TryGetText(out var sourceText))
                         {
                             return;
                         }
 
-                        editorSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+                        var editorSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
                         if (editorSnapshot == null)
                         {
                             return;
@@ -316,27 +501,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         {
                             return;
                         }
-                    }
-                }
 
                 OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
-            private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsRemovedOnForeground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
+
                 Debug.Assert(!_disposed);
 
-                if (e.Kind != DiagnosticsUpdatedKind.DiagnosticsRemoved)
-                {
-                    // Wasn't a removal.  We don't need to do anything here.
-                    return;
-                }
-
-                // See if we're being told about diagnostics going away because a document/project
-                // was removed.  If so, clear out any diagnostics we have associated with this
-                // diagnostic source ID and notify any listeners that 
-
+                // This is a document removal.  Clear out any state we have associated with 
+                // this analyzer. 
                 var id = e.Id;
                 if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
