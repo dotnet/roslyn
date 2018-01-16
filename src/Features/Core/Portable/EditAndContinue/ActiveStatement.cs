@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public bool IsNonLeaf => (Flags & ActiveStatementFlags.IsNonLeafFrame) != 0;
 
+        public bool IsMethodUpToDate => (Flags & ActiveStatementFlags.MethodUpToDate) != 0;
+
         public DocumentId PrimaryDocumentId => DocumentIds[0];
 
         internal ActiveStatement WithSpan(LinePositionSpan span)
