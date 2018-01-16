@@ -111,8 +111,7 @@ function Process-Arguments() {
         exit 1
     }
 
-    if ($build -and $coreClrBuild)
-    {
+    if ($build -and $coreClrBuild) {
         Write-Host "Cannot combine desktop build and CoreCLR build"
         exit 1
     }
@@ -188,9 +187,11 @@ function Make-BootstrapBuild() {
     Create-Directory $dir
     if ($coreClrBuild) {
         $bootstrapFramework = "netcoreapp2.0"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapCsc.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapVbc.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapVBCSCompiler.binlog"
+        $logDir = Join-Path $binariesDir "Logs"
+        Create-Directory $logDir
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapCsc.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVbc.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVBCSCompiler.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
         Exec-Console "dotnet" "$dir/bincore/VBCSCompiler.dll" -shutdown
     }

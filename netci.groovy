@@ -87,7 +87,7 @@ commitPullList.each { isPr ->
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {
-              batchFile("""powershell -noprofile -executionPolicy RemoteSigned -file .\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -restore -cibuild -bootstrap -coreClrBuild -testCoreClr -binaryLog""")
+              batchFile("""powershell -noprofile -executionPolicy RemoteSigned -file .\\build\\scripts\\build.ps1 ${(configuration == 'debug') ? '-debug' : '-release'} -restore -cibuild -bootstrap -coreClrBuild -testCoreClr -binaryLog""")
             }
     }
 

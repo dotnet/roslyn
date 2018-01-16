@@ -215,7 +215,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                 }
 
-
                 if (toolLocation == null)
                 {
                     // Roslyn only deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
