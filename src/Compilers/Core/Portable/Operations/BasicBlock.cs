@@ -5,6 +5,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
+    /// <summary>
+    /// PROTOTYPE(dataflow): Add documentation
+    /// </summary>
     public enum BasicBlockKind
     {
         Entry,
@@ -12,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Operations
         Block
     }
 
+    /// <summary>
+    /// PROTOTYPE(dataflow): Add documentation
+    /// </summary>
     public sealed class BasicBlock
     {
         private ImmutableArray<IOperation>.Builder _statements;

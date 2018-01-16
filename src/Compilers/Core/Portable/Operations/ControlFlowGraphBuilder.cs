@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
             Debug.Assert(_evalStack.Count == 0);
+
+            // PROTOTYPE(dataflow): Ensure that statement's parent is null at this point.
             AddStatement(Visit(operation, null));
             Debug.Assert(_evalStack.Count == 0);
             _currentStatement = saveCurrentStatement;
@@ -107,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return;
             }
 
+            // PROTOTYPE(dataflow): Assert that statement's parent is null at this point.
             CurrentBasicBlock.AddStatement(statement);
         }
 
@@ -260,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     AddStatement(new SimpleAssignmentExpression(new FlowCapture(captureId, operation.Syntax,
                                                                                 isInitialization: true, operation.Type,
                                                                                 default(Optional<object>)),
-                                                                isRef:false, // TODO
+                                                                isRef:false, // PROTOTYPE(dataflow): Is 'false' always the right value?
                                                                 operation,
                                                                 semanticModel: null,
                                                                 operation.Syntax,
@@ -280,6 +283,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new SimpleAssignmentExpression(_evalStack.Pop(), operation.IsRef, value, null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        // PROTOTYPE(dataflow):
         //public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, object argument)
         //{
         //    _evalStack.Push(Visit(operation.ArrayReference));
@@ -311,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, object argument)
         {
-            // TODO: ensure we properly detect logical Not
+            // PROTOTYPE(dataflow): ensure we properly detect logical Not
             if (operation.OperatorKind == UnaryOperatorKind.Not)
             {
                 return VisitConditionalExpression(operation.Operand, sense: false);
@@ -426,11 +430,11 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation VisitConditionalExpression(IOperation condition, bool sense)
         {
-            // TODO: Do not erase UnaryOperatorKind.Not if ProduceIsSense below will have to add it back.
+            // PROTOTYPE(dataflow): Do not erase UnaryOperatorKind.Not if ProduceIsSense below will have to add it back.
             while (condition.Kind == OperationKind.UnaryOperator)
             {
                 var unOp = (IUnaryOperation)condition;
-                // TODO: ensure we properly detect logical Not
+                // PROTOTYPE(dataflow): ensure we properly detect logical Not
                 if (unOp.OperatorKind != UnaryOperatorKind.Not)
                 {
                     break;
@@ -459,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return new UnaryOperatorExpression(UnaryOperatorKind.Not,
                                                    condition,
-                                                   isLifted: false, // TODO: Deal with nullable
+                                                   isLifted: false, // PROTOTYPE(dataflow): Deal with nullable
                                                    isChecked: false,
                                                    operatorMethod: null,
                                                    semanticModel: null,
