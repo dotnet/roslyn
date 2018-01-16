@@ -140,9 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Return statements are included
                         break;
                     case BoundKind.YieldReturnStatement:
-                    case BoundKind.AwaitExpression:
-                    case BoundKind.UsingStatement:
-                        // We don't do anything with yield return statements, async using statement, or await expressions;
+                        // We don't do anything with yield return statements;
                         // they are treated as if they are not jumps.
                         continue;
                     default:

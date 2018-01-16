@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _binder = binder;
+
+            if (IsAsync)
+            {
+                AwaitInAsyncMethodChecker.Check(_syntax, _syntax.Identifier.GetLocation(), _declarationDiagnostics);
+            }
         }
 
         /// <summary>

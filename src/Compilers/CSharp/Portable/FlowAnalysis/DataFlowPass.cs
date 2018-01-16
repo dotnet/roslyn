@@ -253,29 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pendingReturns;
         }
 
-        protected override ImmutableArray<PendingBranch> RemoveReturns()
-        {
-            var result = base.RemoveReturns();
-
-            if (currentMethodOrLambda?.IsAsync == true &&
-                !currentMethodOrLambda.IsImplicitlyDeclared)
-            {
-                var foundAwait = result.Any(pending => HasAwait(pending));
-                if (!foundAwait)
-                {
-                    // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
-                    // much better than using its 'Location' (which is the entire span of the lambda).
-                    var diagnosticLocation = currentMethodOrLambda is LambdaSymbol lambda
-                        ? lambda.DiagnosticLocation
-                        : currentMethodOrLambda.Locations[0];
-
-                    Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
-                }
-            }
-
-            return result;
-        }
-
         private static bool HasAwait(PendingBranch pending)
         {
             if (pending.Branch is null)

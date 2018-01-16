@@ -268,9 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expression = (BoundExpression)Visit(node.Expression);
             resultPlace = (BoundExpression)Visit(resultPlace);
-            MethodSymbol getAwaiter = VisitMethodSymbol(node.AwaitableInfo.GetAwaiter);
-            MethodSymbol getResult = VisitMethodSymbol(node.AwaitableInfo.GetResult);
-            MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.IsCompleted != null) ? VisitMethodSymbol(node.AwaitableInfo.IsCompleted.GetMethod) : null;
+            MethodSymbol getAwaiter = VisitMethodSymbol(node.AwaitableInfo.getAwaiter);
+            MethodSymbol getResult = VisitMethodSymbol(node.AwaitableInfo.getResult);
+            MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.isCompleted != null) ? VisitMethodSymbol(node.AwaitableInfo.isCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
             // The awaiter temp facilitates EnC method remapping and thus have to be long-lived.

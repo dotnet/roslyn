@@ -7,19 +7,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Public structure containing all semantic information about an await expression.
+    /// Structure containing all semantic information about an await expression.
     /// </summary>
     public struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
     {
         private readonly AwaitableInfo _awaitableInfo;
 
-        public IMethodSymbol GetAwaiterMethod => _awaitableInfo.GetAwaiter;
+        public IMethodSymbol GetAwaiterMethod => _awaitableInfo.getAwaiter;
 
-        public IPropertySymbol IsCompletedProperty => _awaitableInfo.IsCompleted;
+        public IPropertySymbol IsCompletedProperty => _awaitableInfo.isCompleted;
 
-        public IMethodSymbol GetResultMethod => _awaitableInfo.GetResult; 
+        public IMethodSymbol GetResultMethod => _awaitableInfo.getResult; 
 
-        public bool IsDynamic => GetResultMethod == null;
+        public bool IsDynamic => _awaitableInfo.IsDynamic;
 
         internal AwaitExpressionInfo(AwaitableInfo awaitableInfo)
         {

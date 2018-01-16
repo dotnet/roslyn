@@ -260,12 +260,80 @@ class C : System.IAsyncDisposable
         }
 
         [Fact]
+        public void MissingAwaitInAsyncMethod()
+        {
+            string source = @"
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        System.Action a = () =>
+        {
+            System.Action b = async () => { await local(); }; // this await doesn't count towards Main method
+        };
+
+        async System.Threading.Tasks.Task local()
+        {
+            await local(); // neither does this one
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (4,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Threading.Tasks.Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(4, 53)
+                );
+        }
+
+        [Fact]
+        public void MissingAwaitInAsyncMethod2()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Action lambda1 = async () =>
+        {
+            System.Action b = async () => { await local(); }; // this await doesn't count towards lambda
+        };
+
+        System.Action lambda2 = async () => await local2(); // this await counts towards lambda
+
+        async System.Threading.Tasks.Task local()
+        {
+            System.Func<System.Threading.Tasks.Task> c = innerLocal;
+
+            async System.Threading.Tasks.Task innerLocal()
+            {
+                await local(); // this await doesn't count towards local function
+            }
+        }
+
+        async System.Threading.Tasks.Task local2() => await local(); // this await counts towards local function
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         System.Action lambda1 = async () =>
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42),
+                // (13,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async System.Threading.Tasks.Task local()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(13, 43)
+                );
+        }
+
+        [Fact]
         public void TestInFinallyBlock()
         {
             string source = @"
 class C : System.IAsyncDisposable
 {
-    async System.Threading.Tasks.Task<int> M()
+    static async System.Threading.Tasks.Task<int> Main()
     {
         try
         {
@@ -274,22 +342,21 @@ class C : System.IAsyncDisposable
         {
             using await (var x = new C())
             {
+                System.Console.Write(""using "");
             }
         }
         return 1;
     }
     public System.Threading.Tasks.Task DisposeAsync()
     {
-        throw null;
+        System.Console.Write(""dispose "");
+        return System.Threading.Tasks.Task.CompletedTask;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (11,13): error CS0157: Control cannot leave the body of a finally clause
-                //             using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "using").WithLocation(11, 13)
-                );
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "using dispose");
         }
 
         [Fact]
@@ -1254,10 +1321,8 @@ public class D
             Assert.True(first.Equals(first));
             Assert.True(first.Equals((object)first));
 
-            Assert.True(first.GetHashCode() != 0);
-            Assert.True(first.GetHashCode() != second1.GetHashCode());
-            Assert.True(first.GetHashCode() != second2.GetHashCode());
-            Assert.True(first.GetHashCode() != second3.GetHashCode());
+            var another = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult1));
+            Assert.True(first.GetHashCode() == another.GetHashCode());
         }
     }
 }

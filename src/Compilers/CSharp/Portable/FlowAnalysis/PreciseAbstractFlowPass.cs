@@ -2051,7 +2051,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             VisitRvalue(node.Expression);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }
@@ -2472,11 +2471,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_trackExceptions) NotePossibleException(node);
             VisitStatement(node.Body);
-
-            if (node.AwaitOpt != null)
-            {
-                _pendingBranches.Add(new PendingBranch(node, this.State));
-            }
             return null;
         }
 

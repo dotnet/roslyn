@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            // Using statements have been lowered away before the lamdba and async rewriters
+            // Using statements have been lowered away before the lambda and async rewriters
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AwaitableInfo info = node.AwaitableInfo;
             return node.Update(
                 expression,
-                new AwaitableInfo(VisitMethodSymbol(info.GetAwaiter), VisitPropertySymbol(info.IsCompleted), VisitMethodSymbol(info.GetResult)),
+                node.AwaitableInfo.Update(VisitMethodSymbol(info.getAwaiter), VisitPropertySymbol(info.isCompleted), VisitMethodSymbol(info.getResult)),
                 type);
         }
 
