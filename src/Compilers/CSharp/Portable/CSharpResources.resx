@@ -5067,9 +5067,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
     <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
   </data>
-  <data name="ERR_ExpressionVariableInQueryClause" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within a query clause.</value>
-  </data>
   <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
     <value>{ or ; or =&gt; expected</value>
   </data>
@@ -5246,5 +5243,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DefaultInPattern" xml:space="preserve">
     <value>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</value>
+  </data>
+  <data name="IDS_FeatureExpressionVariablesInQueriesAndInitializers" xml:space="preserve">
+    <value>declaration of expression variables in member initializers and queries</value>
   </data>
 </root>
