@@ -1020,9 +1020,7 @@ class D
 </Workspace>
 ", exportProvider: s_exportProvider))
             {
-                var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
-
-                _provider = new NavigateToItemProvider(workspace, aggregateListener);
+                _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
                 _aggregator = new NavigateToTestAggregator(_provider);
 
                 var items = await _aggregator.GetItemsAsync("VisibleMethod");
