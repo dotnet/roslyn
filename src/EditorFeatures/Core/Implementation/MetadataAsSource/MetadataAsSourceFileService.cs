@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -194,10 +195,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var fullName = GetFullReflectionName(containingOrThis);
 
             var compilation = await temporaryDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            // TODO: retrieve path to actual assembly instead of reference assembly
-            var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
+
+            string assemblyLocation = null;
+            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute));
+            if (isReferenceAssembly)
+            {
+                // Attempt to resolve the assembly via the current process' binding path
+                try
+                {
+                    var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
+                    var loadedAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == fullAssemblyName);
+                    var assembly = loadedAssembly ?? Assembly.ReflectionOnlyLoad(fullAssemblyName);
+                    assemblyLocation = assembly.Location;
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                {
+                }
+            }
+
+            if (assemblyLocation == null)
+            {
+                var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
+                assemblyLocation = reference.Display;
+            }
+
             // Load the assembly.
-            var ad = AssemblyDefinition.ReadAssembly(reference.Display, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
+            var ad = AssemblyDefinition.ReadAssembly(assemblyLocation, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
 
             // Initialize a decompiler with default settings.
             var decompiler = new CSharpDecompiler(ad.MainModule, new DecompilerSettings());
