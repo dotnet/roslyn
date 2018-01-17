@@ -5,8 +5,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -16,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     [ExportWorkspaceService(typeof(IPerformanceTrackerService), WorkspaceKind.Host), Shared]
     internal class PerformanceTrackerService : IPerformanceTrackerService
     {
+        private static readonly Func<IEnumerable<AnalyzerPerformanceInfo>, int, string> s_snapshotLogger = SnapshotLogger;
+
         private const double DefaultMinLOFValue = 20;
         private const double DefaultMeanThreshold = 100;
         private const double DefaultStddevThreshold = 100;
@@ -51,6 +55,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount)
         {
+            Logger.Log(FunctionId.PerformanceTrackerService_AddSnapshot, s_snapshotLogger, snapshot, unitCount);
+
             RecordBuiltInAnalyzers(snapshot);
 
             lock (_gate)
@@ -107,6 +113,30 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private void OnSnapshotAdded()
         {
             SnapshotAdded?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static string SnapshotLogger(IEnumerable<AnalyzerPerformanceInfo> snapshots, int unitCount)
+        {
+            using (var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject())
+            {
+                var sb = pooledObject.Object;
+
+                sb.Append(unitCount);
+
+                foreach (var snapshot in snapshots)
+                {
+                    sb.Append("|");
+                    sb.Append(snapshot.AnalyzerId);
+                    sb.Append(":");
+                    sb.Append(snapshot.BuiltIn);
+                    sb.Append(":");
+                    sb.Append(snapshot.TimeSpan.TotalMilliseconds);
+                }
+
+                sb.Append("*");
+
+                return sb.ToString();
+            }
         }
 
         private sealed class ReportGenerator : IDisposable, IComparer<BadAnalyzerInfo>

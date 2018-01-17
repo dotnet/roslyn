@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly TraceSource _logger;
 
             public PerformanceReporter(TraceSource logger, IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker, TimeSpan reportingInterval, CancellationToken shutdownToken) : base(
-                // async listener is not needed in remote host
-                AggregateAsynchronousOperationListener.CreateEmptyListener(),
+                AsynchronousOperationListenerProvider.NullListener,
                 SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>(),
                 (int)reportingInterval.TotalMilliseconds, shutdownToken)
             {
