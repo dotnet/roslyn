@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             if (client == null)
             {
                 // no remote support
+                return;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
