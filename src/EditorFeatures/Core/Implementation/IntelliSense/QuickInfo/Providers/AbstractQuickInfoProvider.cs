@@ -104,8 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IList<TaggedText> typeParameterMap,
             IList<TaggedText> anonymousTypes,
             IList<TaggedText> usageText,
-            IList<TaggedText> exceptionText
-          )
+            IList<TaggedText> exceptionText)
         {
             return new QuickInfoDisplayDeferredContent(
                 symbolGlyph: new SymbolGlyphDeferredContent(glyph),

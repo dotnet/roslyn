@@ -5344,7 +5344,9 @@ class C
                 SymbolDisplayPartKind.Keyword, // string
                 SymbolDisplayPartKind.Punctuation);
         }
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+
+        [Fact]
+        [WorkItem(23970, "https://github.com/dotnet/roslyn/pull/23970")]
         public void ThisDisplayParts()
         {
             var text =
@@ -5372,64 +5374,17 @@ class A
 
             var actualThis = ((MemberAccessExpressionSyntax)invocation.Expression).Expression;
             Assert.Equal("this", actualThis.ToString());
-            var escapedThis = invocation.ArgumentList.Arguments[0];
-            Assert.Equal("@this", escapedThis.ToString());
 
-            // PROTOTYPE
-            //var symbol = comp.GetMember("C.f");
-
-            //// Fully qualified format.
-            //Verify(
-            //    SymbolDisplay.ToDisplayParts(symbol, format),
-            //    "(int One, global::N.C<(object[], global::N.A.B Two)>, int, object Four, int, object, int, object, global::N.A Nine) f");
-
-            //// Minimally qualified format.
-            //Verify(
-            //    SymbolDisplay.ToDisplayParts(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
-            //    "(int One, C<(object[], B Two)>, int, object Four, int, object, int, object, A Nine) C.f");
-
-            //// ToMinimalDisplayParts.
-            //var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-            //Verify(
-            //    SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 1"), format),
-            //    "(int One, C<(object[], NAB Two)>, int, object Four, int, object, int, object, A Nine) f");
-            //Verify(
-            //    SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 2"), format),
-            //    "(int One, N.C<(object[], NAB Two)>, int, object Four, int, object, int, object, N.A Nine) f");
-        }
-
-        [Fact]
-        [WorkItem(23970, "https://github.com/dotnet/roslyn/pull/23970")]
-        public void DisplayThisAndEscapedThis()
-        {
-            var comp = CreateCompilation(source: @"
-class C
-{
-    void M(int @this)
-    {
-        this.M(@this);
-    }
-}", references: new[] { MscorlibRef });
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-
-            var actualThis = ((MemberAccessExpressionSyntax)invocation.Expression).Expression;
-            Assert.Equal("this", actualThis.ToString());
-
-            var actualThisSymbol = model.GetSymbolInfo(actualThis).Symbol;
-            Verify(actualThisSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeName)),
-                "this",
-                SymbolDisplayPartKind.ParameterName);
+            Verify(
+                SymbolDisplay.ToDisplayParts(model.GetSymbolInfo(actualThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "A this");
 
             var escapedThis = invocation.ArgumentList.Arguments[0].Expression;
             Assert.Equal("@this", escapedThis.ToString());
 
-            var escapedThisSymbol = model.GetSymbolInfo(escapedThis).Symbol;
-            Verify(escapedThisSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeName)),
-                "@this",
-                SymbolDisplayPartKind.ParameterName);
+            Verify(
+                SymbolDisplay.ToDisplayParts(model.GetSymbolInfo(escapedThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "int @this");
         }
 
         [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]
