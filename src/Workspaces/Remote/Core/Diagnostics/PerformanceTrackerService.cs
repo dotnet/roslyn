@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     internal class PerformanceTrackerService : IPerformanceTrackerService
     {
         private const double DefaultMinLOFValue = 20;
-        private const double DefaultMeanThreshold = 500;
-        private const double DefaultStddevThreshold = 500;
+        private const double DefaultMeanThreshold = 100;
+        private const double DefaultStddevThreshold = 100;
 
         private const int SampleSize = 300;
         private const double K_Value_Ratio = 2D / 3D;
