@@ -218,31 +218,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
             {
-                var candidateAssemblies = new List<IAssemblySymbol>();
                 foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
                 {
-                    if (assembly.Identity.Name == name.Name
-                        && assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
+                    if (assembly.Identity.Name != name.Name
+                        || !assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
                     {
-                        if (assembly.Identity.Version == name.Version)
-                        {
-                            candidateAssemblies.Clear();
-                            candidateAssemblies.Add(assembly);
-                            break;
-                        }
-                        else
-                        {
-                            candidateAssemblies.Add(assembly);
-                        }
+                        continue;
                     }
-                }
 
-                candidateAssemblies.Sort((x, y) => Comparer<Version>.Default.Compare(x.Identity.Version, y.Identity.Version));
-                var resolved = candidateAssemblies.LastOrDefault();
-                if (resolved != null)
-                {
+                    if (assembly.Identity.Version != name.Version
+                        && !string.Equals("mscorlib", assembly.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // MSBuild treats mscorlib special for the purpose of assembly resolution/unification, where all
+                        // versions of the assembly are considered equal. The same policy is adopted here.
+                        continue;
+                    }
+
                     // reference assemblies should be fine here...
-                    var reference = parentCompilation.GetMetadataReference(resolved);
+                    var reference = parentCompilation.GetMetadataReference(assembly);
                     return AssemblyDefinition.ReadAssembly(reference.Display);
                 }
 
