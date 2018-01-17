@@ -5,7 +5,7 @@
     xmlns:converters="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
     xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
@@ -21,9 +21,9 @@
                     <Setter.Value>
                         <Style TargetType="DataGridCell">
                             <Setter Property="BorderThickness" Value="1" />
-                            <Setter Property="IsTabStop" 
-                                    Value="{Binding 
-                                        Path=Column, 
+                            <Setter Property="IsTabStop"
+                                    Value="{Binding
+                                        Path=Column,
                                         Converter={StaticResource ColumnToTabStopConverter},
                                         RelativeSource={RelativeSource Self}}"/>
                         </Style>
@@ -35,12 +35,18 @@
             <converters:MarginConverter x:Key="MarginConverter" />
         </Grid.Resources>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
             <RowDefinition Height="*" />
             <RowDefinition Height="5" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <TextBlock Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeader}" >
+            <Hyperlink RequestNavigate="LearnMoreHyperlink_RequestNavigate" NavigateUri="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreUri}">
+                <TextBlock Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreText}"/>
+            </Hyperlink>
+        </TextBlock>
         <DataGrid
-            Grid.Row="0"
+            Grid.Row="1"
             x:Uid="CodeStyleContent"
             x:Name="CodeStyleMembers"
             Margin="0,5,0,0"
@@ -88,7 +94,7 @@
             </DataGrid.GroupStyle>
             <DataGrid.Columns>
                 <DataGridTemplateColumn
-                    x:Name="description" 
+                    x:Name="description"
                     Header="{x:Static local:GridOptionPreviewControl.DescriptionHeader}"
                     Width="4.5*"
                     IsReadOnly="True">
@@ -106,8 +112,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn 
-                    x:Name="preference" 
+                <DataGridTemplateColumn
+                    x:Name="preference"
                     Header="{x:Static local:GridOptionPreviewControl.PreferenceHeader}"
                     Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
@@ -115,7 +121,7 @@
                             <ComboBox
                                     ItemsSource="{Binding Preferences}"
                                     DisplayMemberPath="Name"
-                                    SelectedItem="{Binding SelectedPreference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                    SelectedItem="{Binding SelectedPreference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Left">
                                 <ComboBox.ItemContainerStyle>
@@ -127,8 +133,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn 
-                    x:Name="severity" 
+                <DataGridTemplateColumn
+                    x:Name="severity"
                     Header="{x:Static local:GridOptionPreviewControl.SeverityHeader}"
                     Width="2.5*">
                     <DataGridTemplateColumn.CellTemplate>
@@ -147,12 +153,12 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <imaging:CrispImage
-                                            Height="16" 
-                                            Width="16" 
+                                            Height="16"
+                                            Width="16"
                                             Moniker="{Binding Moniker}"
                                             Grid.Column="0"/>
-                                            <TextBlock 
-                                            Margin="5, 0, 0, 0" 
+                                            <TextBlock
+                                            Margin="5, 0, 0, 0"
                                             Text="{Binding Notification}"
                                             Grid.Column="1"/>
                                         </Grid>
@@ -169,8 +175,8 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch"></GridSplitter>
-        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch"></GridSplitter>
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1">
             <ContentControl Name="EditorControl" Content="{Binding TextViewHost, Mode=OneWay}" Focusable="False"></ContentControl>
         </Border>
     </Grid>
