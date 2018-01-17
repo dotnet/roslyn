@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(refKinds.IsDefault || refKinds.Length == args.Length);
 
-            if(args.Length == 0)
+            if (args.Length == 0)
             {
                 return args;
             }
@@ -500,6 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var replacement = Spill(builder, newList[i], refKind, sideEffectsOnly);
 
                 Debug.Assert(sideEffectsOnly || replacement != null);
+                Debug.Assert(!sideEffectsOnly || refKind == RefKind.None);
+
                 if (!sideEffectsOnly)
                 {
                     result.Add(replacement);
