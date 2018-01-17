@@ -2878,7 +2878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Exception Handling Rude Edits"
 
-        Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, isLeaf As Boolean) As List(Of SyntaxNode)
+        Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
             Dim result = New List(Of SyntaxNode)()
             Dim initialNode = node
 
@@ -2887,7 +2887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Select Case kind
                     Case SyntaxKind.TryBlock
-                        If Not isLeaf Then
+                        If isNonLeaf Then
                             result.Add(node)
                         End If
 
@@ -2927,17 +2927,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Next
         End Sub
 
+        Private Shared Function AreEquivalentIgnoringLambdaBodies(left As SyntaxList(Of SyntaxNode), right As SyntaxList(Of SyntaxNode)) As Boolean
+            If left.Count <> right.Count Then
+                Return False
+            End If
+
+            For i = 0 To left.Count - 1
+                If AreEquivalentIgnoringLambdaBodies(left(i), right(i)) Then
+                    Return False
+                End If
+            Next
+
+            Return False
+        End Function
+
         Private Shared Function AreExceptionHandlingPartsEquivalent(oldNode As SyntaxNode, newNode As SyntaxNode) As Boolean
             Select Case oldNode.Kind
                 Case SyntaxKind.TryBlock
                     Dim oldTryBlock = DirectCast(oldNode, TryBlockSyntax)
                     Dim newTryBlock = DirectCast(newNode, TryBlockSyntax)
-                    Return SyntaxFactory.AreEquivalent(oldTryBlock.FinallyBlock, newTryBlock.FinallyBlock) AndAlso
-                           SyntaxFactory.AreEquivalent(oldTryBlock.CatchBlocks, newTryBlock.CatchBlocks)
+                    Return AreEquivalentIgnoringLambdaBodies(oldTryBlock.FinallyBlock, newTryBlock.FinallyBlock) AndAlso
+                           AreEquivalentIgnoringLambdaBodies(oldTryBlock.CatchBlocks, newTryBlock.CatchBlocks)
 
                 Case SyntaxKind.CatchBlock,
                      SyntaxKind.FinallyBlock
-                    Return SyntaxFactory.AreEquivalent(oldNode, newNode)
+                    Return AreEquivalentIgnoringLambdaBodies(oldNode, newNode)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(oldNode.Kind)
@@ -3113,14 +3127,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                                        match As Match(Of SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
                                                                        newActiveStatement As SyntaxNode,
-                                                                       isLeaf As Boolean)
+                                                                       isNonLeaf As Boolean)
 
             Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(match.NewRoot)
             If onErrorOrResumeStatement IsNot Nothing Then
                 AddRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
             End If
 
-            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf)
+            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement)
         End Sub
 
         Private Shared Function FindOnErrorOrResumeStatement(newDeclarationOrBody As SyntaxNode) As SyntaxNode
@@ -3143,8 +3157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As List(Of RudeEditDiagnostic),
                                                                             match As Match(Of SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
-                                                                            newActiveStatement As SyntaxNode,
-                                                                            isLeaf As Boolean)
+                                                                            newActiveStatement As SyntaxNode)
 
             ' Rude Edits for Using/SyncLock/With/ForEach statements that are added/updated around an active statement.
             ' Although such changes are technically possible, they might lead to confusion since 

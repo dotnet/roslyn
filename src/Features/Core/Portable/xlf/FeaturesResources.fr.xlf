@@ -712,21 +712,6 @@
         <target state="translated">Renommer une variable capturée de '{0}' en '{1}' empêche la poursuite de la session de débogage.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</source>
-        <target state="translated">La modification d'un gestionnaire catch/finally avec une instruction active dans le bloc try empêche la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</source>
-        <target state="translated">La modification d'une instruction try/catch/finally lorsque le bloc finally est actif empêche la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch handler around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">La modification d'un gestionnaire catch autour d'une instruction active empêche la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</source>
         <target state="translated">La modification de '{0}' contenant l'opérateur 'stackalloc' empêche la session de débogage de se poursuivre.</target>
@@ -1983,6 +1968,11 @@ Version utilisée dans : {2}</target>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">indexeur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_an_exception_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying an exception handler around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Modifying an exception handler around an active statement will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
     </body>

@@ -2083,26 +2083,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_" +
-                        "prevent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying a catch handler around an active statement will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_sessi" +
-                        "on_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifying a generic method will prevent the debug session from continuing..
         /// </summary>
         internal static string Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing {
@@ -2122,22 +2102,22 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_pre" +
-                        "vent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifying an active &apos;{0}&apos; which contains &apos;On Error&apos; or &apos;Resume&apos; statements will prevent the debug session from continuing..
         /// </summary>
         internal static string Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_t" +
                         "he_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying an exception handler around an active statement will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_an_exception_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_an_exception_handler_around_an_active_statement_will_prevent_the_debug_" +
+                        "session_from_continuing", resourceCulture);
             }
         }
         
@@ -3636,15 +3616,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
-        /// </summary>
-        internal static string Variable_declaration_can_be_deconstructed {
-            get {
-                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
         /// </summary>
         internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
@@ -3668,6 +3639,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
+        /// </summary>
+        internal static string Variable_declaration_can_be_deconstructed {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
             }
         }
         

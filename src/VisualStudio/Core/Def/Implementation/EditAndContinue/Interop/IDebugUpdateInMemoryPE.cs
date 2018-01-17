@@ -90,4 +90,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         void SetDeltaMetadata([In][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]byte[] pbMetadata, uint cbMetadata);
     }
+
+    [ComImport]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [Guid("AE2FF3A4-2FA6-487C-AE74-9FB3D9276742")]
+    internal interface IDebugUpdateInMemoryPE3 : IDebugUpdateInMemoryPE2
+    {
+        // leave a vtable gap for IDebugUpdateInMemoryPE2 methods
+        void _VtblGap0_10();
+
+        void SetExceptionRanges([In][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]ENCPROG_EXCEPTION_RANGE[] pRanges, int cRanges);
+        void SetRemapActiveStatements([In][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]ENCPROG_ACTIVE_STATEMENT_REMAP[] pRemapActiveStatements, int cRemapActiveStatements);
+    }
 }

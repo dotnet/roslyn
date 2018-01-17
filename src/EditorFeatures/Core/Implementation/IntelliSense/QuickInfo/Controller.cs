@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class Controller :
@@ -168,3 +169,4 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete

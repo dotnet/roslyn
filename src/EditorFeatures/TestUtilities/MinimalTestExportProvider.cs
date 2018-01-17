@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(DefaultSymbolMappingService),
                 typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
-                typeof(TestExportJoinableTaskContext) // Needed by editor components, but not actually exported anywhere else
+                typeof(TestExportJoinableTaskContext), // Needed by editor components, but not actually exported anywhere else
+                typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
             };
 
             return types//.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // EDITOR
 
                 // Microsoft.VisualStudio.Platform.VSEditor.dll:
-                typeof(Microsoft.VisualStudio.Platform.VSEditor.EventArgsHelper).Assembly,
+                Assembly.LoadFrom("Microsoft.VisualStudio.Platform.VSEditor.dll"),
 
                 // Microsoft.VisualStudio.Text.Logic.dll:
                 //   Must include this because several editor options are actually stored as exported information 
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public static ExportProvider CreateExportProvider(ComposableCatalog catalog)
         {
-            var configuration = CompositionConfiguration.Create(catalog.WithDesktopSupport().WithCompositionService());
+            var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
         }
