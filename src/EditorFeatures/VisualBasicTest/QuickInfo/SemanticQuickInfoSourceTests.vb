@@ -2152,5 +2152,129 @@ End Class
 ",
             MainDescription("Sub Program.Test(Of Bar)()"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_01() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Property ViewData As C1
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Property C2.ViewData As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_02() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Shared Property ViewData As C1
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Property C2.ViewData As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_03() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Function ViewData As C1
+        Return Nothing
+    End Function
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Function C2.ViewData() As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_04() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Shared Function ViewData As C1
+        Return Nothing
+    End Function
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Function C2.ViewData() As C1"))
+        End Function
     End Class
 End Namespace
