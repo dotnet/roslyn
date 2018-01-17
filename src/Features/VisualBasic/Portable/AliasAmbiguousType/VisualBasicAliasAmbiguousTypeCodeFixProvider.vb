@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.AliasAmbiguousType
 Imports Microsoft.CodeAnalysis.CodeFixes
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
-
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AliasAmbiguousType), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FullyQualify)>
     Friend Class VisualBasicAliasAmbiguousTypeCodeFixProvider
@@ -20,6 +19,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
         Protected Overrides Function GetTextPreviewOfChange(aliasName As String, typeSymbol As ITypeSymbol) As String
             Return $"Imports { aliasName } = { typeSymbol.ToNameDisplayString() }"
         End Function
-
     End Class
 End Namespace

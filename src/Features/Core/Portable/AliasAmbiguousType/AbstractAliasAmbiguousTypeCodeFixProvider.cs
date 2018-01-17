@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
 {
     internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvider
     {
-
         protected abstract string GetTextPreviewOfChange(string aliasName, ITypeSymbol typeSymbol);
 
         public override FixAllProvider GetFixAllProvider() => null;
@@ -50,16 +49,15 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 {
                     var typeName = symbol.Name;
                     var codeActionPreviewText = GetTextPreviewOfChange(typeName, symbol);
-                    Task<Document> CreateChangedDocument(CancellationToken c)
-                    {
-                        var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
-                        var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
-                        return Task.FromResult(document.WithSyntaxRoot(newRoot));
-                    };
-                    codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, CreateChangedDocument));
+                    codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, c =>
+                        {
+                            var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
+                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
+                            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+                        }));
                 }
                 var groupingTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
-                var groupingCodeAction = new GroupingCodeAction(groupingTitle, codeActionsBuilder.ToImmutable());
+                var groupingCodeAction = new CodeActionWithNestedActions(groupingTitle, codeActionsBuilder.ToImmutable(), isInlinable: true);
                 context.RegisterCodeFix(groupingCodeAction, context.Diagnostics.First());
             }
         }
@@ -76,14 +74,6 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
                 base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
-        }
-
-        private class GroupingCodeAction : CodeActionWithNestedActions
-        {
-            public GroupingCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions, isInlinable: true)
             {
             }
         }
