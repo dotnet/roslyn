@@ -36,6 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
         public bool IsExperimentEnabled(string experimentName)
         {
+            if (experimentName == WellKnownExperimentNames.EditorUseModernCompletionAPI) // Remove
+            {
+                return true;
+            }
+
             ThisCanBeCalledOnAnyThread();
             if (_isCachedFlightEnabledInfo != null)
             {
