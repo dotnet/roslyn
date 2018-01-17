@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
                 }
 
-                LocalRewritingValidator.Validate(loweredStatement);
+                //LocalRewritingValidator.Validate(loweredStatement);
 
                 return loweredStatement;
             }
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if DEBUG
-        private class LocalRewritingValidator : BoundTreeWalker
+        private class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private static LocalRewritingValidator s_instance = new LocalRewritingValidator();
 
@@ -611,11 +611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static void Validate(BoundNode node)
             {
                 s_instance.Visit(node);
-            }
-
-            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
-            {
-                throw ExceptionUtilities.Unreachable;
             }
 
             public override BoundNode VisitUsingStatement(BoundUsingStatement node)
