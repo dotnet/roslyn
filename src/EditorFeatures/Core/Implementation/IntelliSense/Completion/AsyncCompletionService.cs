@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -67,6 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // check whether this feature is on.
             if (!subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
+            {
+                controller = null;
+                return false;
+            }
+
+            // Is the editor modern completion experiment active?
+            if (subjectBuffer.IsExperimentActive(WellKnownExperimentNames.EditorUseModernCompletionAPI))
             {
                 controller = null;
                 return false;
