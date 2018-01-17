@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class EditSessionTests
+    public class EditSessionTests : TestBase
     {
         internal sealed class TestActiveStatementProvider : IActiveStatementProvider
         {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                         documentName: documentName,
                         linePositionSpan: text.Lines.GetLinePositionSpan(span),
                         threadIds: (threads != null) ? threads[index] : ImmutableArray.Create(threadId),
-                        flags: (flags != null) ? flags[index] : (id == 0 ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame));
+                        flags: (flags != null) ? flags[index] : ((id == 0 ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) | ActiveStatementFlags.MethodUpToDate));
 
                     index++;
                 }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var module1 = new Guid("11111111-1111-1111-1111-111111111111");
             var module2 = new Guid("22222222-2222-2222-2222-222222222222");
 
-            var activeStatements = GetActiveStatementDebugInfos(markedSource, 
+            var activeStatements = GetActiveStatementDebugInfos(markedSource,
                 methodRowIds: new[] { 1, 2, 3, 4, 5 },
                 ilOffsets: new[] { 1, 1, 1, 2, 3 },
                 modules: new[] { module1, module1, module2, module2, module2 });
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 new ActiveStatementDebugInfo(
                     new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
                     "NonRoslynDocument.mcpp",
-                    new LinePositionSpan(new LinePosition(1,1), new LinePosition(1,10)),
+                    new LinePositionSpan(new LinePosition(1, 1), new LinePosition(1, 10)),
                     threadIds: ImmutableArray.Create(Guid.NewGuid()),
                     ActiveStatementFlags.IsNonLeafFrame));
 
@@ -196,55 +196,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             // Active Statements
 
+            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            AssertEx.Equal(new[]
+            {
+                "0: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs]",
+                "1: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
+                "2: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
+                "3: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
+                "4: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]"
+            }, statements.Select(InspectAS));
+
+            // Active Statements per document
+
             Assert.Equal(2, baseActiveStatements.DocumentMap.Count);
 
-            AssertEx.Equal(new[] 
+            AssertEx.Equal(new[]
             {
-                "0: (9,14)-(9,35) flags=[IsLeafFrame] pdid=test1.cs docs=[test1.cs]",
-                "1: (4,32)-(4,37) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]"
+                "0: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs]",
+                "1: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]"
             }, baseActiveStatements.DocumentMap[docs[0]].Select(InspectAS));
 
-            AssertEx.Equal(new[] 
+            AssertEx.Equal(new[]
             {
-                "2: (21,14)-(21,24) flags=[IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
-                "3: (8,20)-(8,25) flags=[IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
-                "4: (26,20)-(26,25) flags=[IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]"
+                "2: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
+                "3: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
+                "4: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]"
             }, baseActiveStatements.DocumentMap[docs[1]].Select(InspectAS));
 
-            Assert.Equal(5, baseActiveStatements.InstructionMap.Count);
-
-            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
-            var s = statements[0];
-            Assert.Equal(0x06000001, s.InstructionId.MethodToken);
-            Assert.Equal(module1, s.InstructionId.ModuleId);
-            Assert.Equal(0, s.PrimaryDocumentOrdinal);
-            Assert.Equal(docs[0], s.DocumentIds.Single());
-
-            s = statements[1];
-            Assert.Equal(0x06000002, s.InstructionId.MethodToken);
-            Assert.Equal(module1, s.InstructionId.ModuleId);
-            Assert.Equal(1, s.PrimaryDocumentOrdinal);
-            Assert.Equal(docs[0], s.DocumentIds.Single());
-
-            s = statements[2];
-            Assert.Equal(0x06000003, s.InstructionId.MethodToken);
-            Assert.Equal(module2, s.InstructionId.ModuleId);
-            Assert.Equal(0, s.PrimaryDocumentOrdinal);
-            Assert.Equal(docs[1], s.DocumentIds.Single());
-
-            s = statements[3];
-            Assert.Equal(0x06000004, s.InstructionId.MethodToken);
-            Assert.Equal(module2, s.InstructionId.ModuleId);
-            Assert.Equal(1, s.PrimaryDocumentOrdinal);
-            Assert.Equal(docs[1], s.DocumentIds.Single());
-
-            s = statements[4];
-            Assert.Equal(0x06000005, s.InstructionId.MethodToken);
-            Assert.Equal(module2, s.InstructionId.ModuleId);
-            Assert.Equal(2, s.PrimaryDocumentOrdinal);
-            Assert.Equal(docs[1], s.DocumentIds.Single());
-
-            // Exception Regions
+           // Exception Regions
 
             AssertEx.Equal(new[]
             {
@@ -280,12 +259,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
+            var initialNonRemappableRegions = new Dictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>
+            {
+                { new ActiveMethodId(), ImmutableArray.Create(new NonRemappableRegion()) }
+            };
+
             EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module2,
                 baseActiveStatements,
                 baseExceptionRegions,
                 updatedMethodTokens: new[] { 0x06000004 }, // contains only recompiled methods in the project we are interested in (module2)
-                default,
+                initialNonRemappableRegions.ToImmutableDictionary(),
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
                 out var nonRemappableRegions);

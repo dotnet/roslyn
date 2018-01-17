@@ -75,11 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private EncEditSessionInfo _encEditSessionInfo = new EncEditSessionInfo();
 
         private readonly ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
-
-#if DEBUG
-        private readonly (ActiveMethodId, ImmutableArray<NonRemappableRegion>)[] _nonRemappableRegionsDebug;
-#endif
-
+        
         internal EditSession(
             Solution baseSolution,
             DebuggingSession debuggingSession,
@@ -107,7 +103,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _documentsWithReportedRudeEdits = new HashSet<DocumentId>();
 
             _nonRemappableRegions = nonRemappableRegions;
-            _nonRemappableRegionsDebug = nonRemappableRegions.Select(x => (x.Key, x.Value)).ToArray();
 
             BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true);
             BaseActiveExceptionRegions = new AsyncLazy<ImmutableArray<ActiveStatementExceptionRegions>>(GetBaseActiveExceptionRegionsAsync, cacheResult: true);

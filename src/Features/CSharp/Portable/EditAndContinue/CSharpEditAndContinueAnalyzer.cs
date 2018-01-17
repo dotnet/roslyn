@@ -418,17 +418,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left, right);
         }
 
-        private static bool AreEquivalentIgnoringLambdaBodies(SyntaxList<SyntaxNode> left, SyntaxNode right)
-        {
-            // usual case:
-            if (SyntaxFactory.AreEquivalent(left, right))
-            {
-                return true;
-            }
-
-            return LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left, right);
-        }
-
         internal override SyntaxNode FindPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode)
         {
             return SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode);
@@ -2998,26 +2987,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // try/catch/finally have distinct labels so only the nodes of the same kind may match:
                 Debug.Assert(edit.Kind != EditKind.Update || edit.OldNode.RawKind == edit.NewNode.RawKind);
 
-                if (edit.Kind != EditKind.Update || !AreExceptionClausesEqual(edit.OldNode, edit.NewNode))
+                if (edit.Kind != EditKind.Update || !AreExceptionClausesEquivalent(edit.OldNode, edit.NewNode))
                 {
                     AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan);
                 }
             }
         }
 
-        private static bool AreExceptionClausesEqual(SyntaxNode oldNode, SyntaxNode newNode)
+        private static bool AreExceptionClausesEquivalent(SyntaxNode oldNode, SyntaxNode newNode)
         {
             switch (oldNode.Kind())
             {
                 case SyntaxKind.TryStatement:
                     var oldTryStatement = (TryStatementSyntax)oldNode;
                     var newTryStatement = (TryStatementSyntax)newNode;
-                    return AreEquivalentIgnoringLambdaBodies(oldTryStatement.Finally, newTryStatement.Finally)
-                        && AreEquivalentIgnoringLambdaBodies(oldTryStatement.Catches, newTryStatement.Catches);
+                    return SyntaxFactory.AreEquivalent(oldTryStatement.Finally, newTryStatement.Finally)
+                        && SyntaxFactory.AreEquivalent(oldTryStatement.Catches, newTryStatement.Catches);
 
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.FinallyClause:
-                    return AreEquivalentIgnoringLambdaBodies(oldNode, newNode);
+                    return SyntaxFactory.AreEquivalent(oldNode, newNode);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
