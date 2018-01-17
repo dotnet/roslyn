@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -28,6 +27,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public void SendEscape()
         {
-            _commandHandler.ExecuteCommand(new EscapeKeyCommandArgs(_view, _view.TextBuffer), () => { });
+            _commandHandler.ExecuteCommand(new EscapeKeyCommandArgs(_view, _view.TextBuffer), TestCommandExecutionContext.Create());
         }
 
         public void MoveCaret(int delta)
