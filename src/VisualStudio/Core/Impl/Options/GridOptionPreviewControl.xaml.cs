@@ -16,13 +16,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal partial class GridOptionPreviewControl : AbstractOptionPageControl
     {
+        private static string useEditorConfigUrl = "https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference";
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
 
-        public static string CodeStylePageHeader = "The settings configured here only apply to your machine. To configure these settings to travel with your solution, use EditorConfig. ";
-        public static string CodeStylePageHeaderLearnMoreText = "Learn more";
-        public static Uri CodeStylePageHeaderLearnMoreUri = new Uri("https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference");
+        // to leave a space between the end of sentence and "learn more" link
+        public static string CodeStylePageHeader => ServicesVSResources.Code_style_header_use_editor_config + " ";
+        public static string CodeStylePageHeaderLearnMoreText => ServicesVSResources.Learn_more;
+        public static Uri CodeStylePageHeaderLearnMoreUri = new Uri(useEditorConfigUrl);
         public static string DescriptionHeader => ServicesVSResources.Description;
         public static string PreferenceHeader => ServicesVSResources.Preference;
         public static string SeverityHeader => ServicesVSResources.Severity;
