@@ -84,11 +84,12 @@ class C
         private void Verify(string marker, IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
-               FeatureAttribute.SolutionCrawler,
-               FeatureAttribute.DiagnosticService,
-               FeatureAttribute.Classification,
-               FeatureAttribute.ReferenceHighlighting));
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification,
+                FeatureAttribute.ReferenceHighlighting);
 
             AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId), message: "Testing 'definition'\r\n");
 
@@ -106,11 +107,12 @@ class C
         private void VerifyNone(string marker)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
-               FeatureAttribute.SolutionCrawler,
-               FeatureAttribute.DiagnosticService,
-               FeatureAttribute.Classification,
-               FeatureAttribute.ReferenceHighlighting));
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification,
+                FeatureAttribute.ReferenceHighlighting);
 
             Assert.Empty(VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId));
             Assert.Empty(VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId));

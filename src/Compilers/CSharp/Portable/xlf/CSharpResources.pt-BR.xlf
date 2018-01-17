@@ -8580,6 +8580,11 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">Um literal padrão 'default' não é válido como um padrão. Use outro literal (por exemplo, '0' ou 'null') conforme apropriado. Para corresponder a tudo, use um padrão de descarte 'var _'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
         <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
