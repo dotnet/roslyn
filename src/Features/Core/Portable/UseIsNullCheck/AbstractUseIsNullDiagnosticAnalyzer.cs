@@ -14,6 +14,15 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         : AbstractCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
+
+        private enum ConstraintParameterKind
+        {
+            NotGeneric,
+            UnconstraintGeneric,
+            ReferenceTypeConstraint,
+            ValueTypeConstraint,
+        }
+
         protected AbstractUseIsNullCheckDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    title,
@@ -110,13 +119,18 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            if (HasValueTypeConstraintGenericParameter(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken))
+            var properties = ImmutableDictionary<string, string>.Empty;
+
+            switch (GetGenericParameterConstraintType(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken))
             {
-                return;
+                case ConstraintParameterKind.ValueTypeConstraint:
+                    return;
+                case ConstraintParameterKind.UnconstraintGeneric:
+                    properties = properties.Add(AbstractUseIsNullCheckCodeFixProvider.UnconstraintGeneric, "");
+                    break;
             }
 
             var additionalLocations = ImmutableArray.Create(invocation.GetLocation());
-            var properties = ImmutableDictionary<string, string>.Empty;
 
             var negated = syntaxFacts.IsLogicalNotExpression(invocation.Parent);
             if (negated)
@@ -131,7 +145,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     additionalLocations, properties));
         }
 
-        private static bool HasValueTypeConstraintGenericParameter(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
+        private static ConstraintParameterKind GetGenericParameterConstraintType(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
         {
             var valueNode = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) ? node2 : node1;
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(valueNode);
@@ -140,11 +154,21 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 var parameterType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type;
                 if (parameterType is ITypeParameterSymbol typeParameter)
                 {
-                    return typeParameter.HasValueTypeConstraint;
+                    if (typeParameter.HasReferenceTypeConstraint)
+                    {
+                        return ConstraintParameterKind.ReferenceTypeConstraint;
+                    }
+
+                    if (typeParameter.HasValueTypeConstraint)
+                    {
+                        return ConstraintParameterKind.ValueTypeConstraint;
+                    }
+
+                    return ConstraintParameterKind.UnconstraintGeneric;
                 }
             }
 
-            return false;
+            return ConstraintParameterKind.NotGeneric;
         }
 
         private static bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)

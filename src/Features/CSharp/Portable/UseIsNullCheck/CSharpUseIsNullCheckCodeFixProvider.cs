@@ -17,16 +17,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override string GetIsNotNullTitle()
             => GetIsNullTitle();
 
-        private static SyntaxNode CreateNullCheck(SyntaxNode argument, SyntaxKind comparisonOperator)
+        private static SyntaxNode CreateEqualsNullCheck(SyntaxNode argument, SyntaxKind comparisonOperator)
             => SyntaxFactory.BinaryExpression(
                 comparisonOperator,
                 (ExpressionSyntax)argument,
                 SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)).Parenthesize();
 
-        protected override SyntaxNode CreateIsNullCheck(SyntaxNode argument)
-            => CreateNullCheck(argument, SyntaxKind.EqualsExpression);
+        private static SyntaxNode CreateIsNullCheck(SyntaxNode argument)
+            => SyntaxFactory.IsPatternExpression(
+                (ExpressionSyntax)argument,
+                SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))).Parenthesize();
 
-        protected override SyntaxNode CreateIsNotNullCheck(SyntaxNode notExpression, SyntaxNode argument)
-            => CreateNullCheck(argument, SyntaxKind.NotEqualsExpression);
+        private static SyntaxNode CreateIsNotNullCheck(SyntaxNode notExpression, SyntaxNode argument)
+            => ((PrefixUnaryExpressionSyntax)notExpression).WithOperand((ExpressionSyntax)CreateIsNullCheck(argument));
+
+        protected override SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstraintGeneric)
+            => isUnconstraintGeneric
+                ? CreateEqualsNullCheck(argument, SyntaxKind.EqualsExpression)
+                : CreateIsNullCheck(argument);
+
+        protected override SyntaxNode CreateNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool isUnconstraintGeneric)
+            => isUnconstraintGeneric
+                ? CreateEqualsNullCheck(argument, SyntaxKind.NotEqualsExpression)
+                : CreateIsNotNullCheck(notExpression, argument);
     }
 }

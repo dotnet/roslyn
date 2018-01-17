@@ -18,14 +18,15 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
     internal abstract class AbstractUseIsNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public const string Negated = nameof(Negated);
+        public const string UnconstraintGeneric = nameof(UnconstraintGeneric);
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
         protected abstract string GetIsNullTitle();
         protected abstract string GetIsNotNullTitle();
-        protected abstract SyntaxNode CreateIsNullCheck(SyntaxNode argument);
-        protected abstract SyntaxNode CreateIsNotNullCheck(SyntaxNode notExpression, SyntaxNode argument);
+        protected abstract SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstraintGeneric);
+        protected abstract SyntaxNode CreateNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool isUnconstraintGeneric);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             {
                 var invocation = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 var negate = diagnostic.Properties.ContainsKey(Negated);
+                var isUnconstraintGeneric = diagnostic.Properties.ContainsKey(UnconstraintGeneric);
 
                 var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
                 var argument = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(arguments[0]))
@@ -56,7 +58,9 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     : syntaxFacts.GetExpressionOfArgument(arguments[0]);
 
                 var toReplace = negate ? invocation.Parent : invocation;
-                var replacement = negate ? CreateIsNotNullCheck(invocation.Parent, argument) : CreateIsNullCheck(argument);
+                var replacement = negate
+                    ? CreateNotNullCheck(invocation.Parent, argument, isUnconstraintGeneric)
+                    : CreateNullCheck(argument, isUnconstraintGeneric);
 
                 editor.ReplaceNode(
                     toReplace,
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)
             {
             }

@@ -36,7 +36,7 @@ class C
 {
     void M(string s)
     {
-        if (s == null)
+        if (s is null)
             return;
     }
 }");
@@ -62,7 +62,7 @@ class C
 {
     void M(string s)
     {
-        if (s == null)
+        if (s is null)
             return;
     }
 }");
@@ -88,7 +88,7 @@ class C
 {
     void M(string s)
     {
-        if (s == null)
+        if (s is null)
             return;
     }
 }");
@@ -114,7 +114,7 @@ class C
 {
     void M(string s)
     {
-        if (s == null)
+        if (s is null)
             return;
     }
 }");
@@ -140,7 +140,7 @@ class C
 {
     void M(string s)
     {
-        if (s != null)
+        if (!(s is null))
             return;
     }
 }");
@@ -183,8 +183,8 @@ class C
 {
     void M(string s1, string s2)
     {
-        if (s1 == null ||
-            s2 == null)
+        if (s1 is null ||
+            s2 is null)
             return;
     }
 }");
@@ -211,8 +211,8 @@ class C
 {
     void M(string s1, string s2)
     {
-        if (s1 == null ||
-            s2 == null)
+        if (s1 is null ||
+            s2 is null)
             return;
     }
 }");
@@ -220,7 +220,7 @@ class C
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestMissingIfValueParameterTypeIsUnconstraintGeneric()
+        public async Task TestValueParameterTypeIsUnconstraintGeneric()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -270,7 +270,7 @@ class C
 {
     public static void NotNull<T>(T value) where T:class
     {
-        if (value == null)
+        if (value is null)
         {
             return;
         }
