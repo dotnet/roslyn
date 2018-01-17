@@ -6,8 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -173,8 +171,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return true;
         }
 
-        private static bool s_reported = false;
-
         /// <summary>
         /// Show info bar and throw its own cancellation exception until 
         /// we figure out this issue.
@@ -185,15 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// </summary>
         private void ThrowOwnCancellationToken()
         {
-            if (CodeAnalysis.PrimaryWorkspace.Workspace != null && !s_reported)
-            {
-                // do not report it multiple times
-                s_reported = true;
-
-                // use info bar to show warning to users
-                CodeAnalysis.PrimaryWorkspace.Workspace.Services.GetService<IErrorReportingService>()?.ShowGlobalErrorInfo(
-                    ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio);
-            }
+            RemoteHostCrashInfoBar.ShowInfoBar();
 
             // log disconnect information before throw
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);
