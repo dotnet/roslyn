@@ -12,8 +12,8 @@ efforts behind them.
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | Prototype | [vsadov](https://github.com/vsadov) | [OmarTawfik](https://github.com/OmarTawfik) | [jaredpar](https://github.com/jaredpar) |
 | [Support == and != for tuples](https://github.com/dotnet/csharplang/issues/190) | | In Progress | [jcouv](https://github.com/jcouv) | | [jcouv](https://github.com/jcouv) |
-| strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | Merged | [tyoverby](https://github.com/tyoverby) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
-| [Attribute on backing field](https://github.com/dotnet/csharplang/issues/42) | master | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
+| strongname | master | Merged | [tyoverby](https://github.com/tyoverby) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
+| [Attribute on backing field](https://github.com/dotnet/csharplang/issues/42) | features/compiler | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
 | Ref Reassignment | [ref-reassignment](https://github.com/dotnet/roslyn/tree/features/ref-reassignment) | In Progress | [agocke](https://github.com/agocke) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
 | Constraints | [constraints](https://github.com/dotnet/roslyn/tree/features/constraints) | In Progress | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
 
