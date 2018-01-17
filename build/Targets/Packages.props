@@ -7,7 +7,7 @@
     <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
     <EnvDTEVersion>8.0.1</EnvDTEVersion>
     <EnvDTE80Version>8.0.0</EnvDTE80Version>
-    <dotnetxunitVersion>2.3.0-beta4-build3742</dotnetxunitVersion>
+    <dotnetxunitVersion>2.3.1</dotnetxunitVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>3.0.0.3403-beta4</ICSharpCodeDecompilerVersion>
@@ -232,11 +232,11 @@
     <VsWebsiteInteropVersion>8.0.0.0-alpha</VsWebsiteInteropVersion>
     <vswhereVersion>1.0.71</vswhereVersion>
     <XliffTasksVersion>0.2.0-beta-000081</XliffTasksVersion>
-    <xunitVersion>2.2.0</xunitVersion>
-    <xunitanalyzersVersion>0.5.0</xunitanalyzersVersion>
-    <xunitassertVersion>2.2.0</xunitassertVersion>
-    <xunitextensibilityexecution>2.2.0</xunitextensibilityexecution>
-    <xunitrunnerconsoleVersion>2.2.0</xunitrunnerconsoleVersion>
+    <xunitVersion>2.3.1</xunitVersion>
+    <xunitanalyzersVersion>0.7.0</xunitanalyzersVersion>
+    <xunitassertVersion>2.3.1</xunitassertVersion>
+    <xunitextensibilityexecution>2.3.1</xunitextensibilityexecution>
+    <xunitrunnerconsoleVersion>2.3.1</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.41</xunitrunnerwpfVersion>
   </PropertyGroup>
 
