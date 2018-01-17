@@ -3218,6 +3218,7 @@ namespace AsyncBug
         }
 
         [Fact]
+        [WorkItem(17706, "https://github.com/dotnet/roslyn/issues/17706")]
         public void SpillAwaitBeforeRefReordered()
         {
             string source = @"
@@ -3253,6 +3254,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(17706, "https://github.com/dotnet/roslyn/issues/17706")]
         public void SpillRefBeforeAwaitReordered()
         {
             string source = @"
