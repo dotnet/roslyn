@@ -882,6 +882,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             return result;
         }
 
+        // internal for testing
         internal static ENCPROG_EXCEPTION_RANGE[] GetExceptionRanges(ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
         {
             var exceptionRegionCount = nonRemappableRegions.Count(d => d.Region.IsExceptionRegion);

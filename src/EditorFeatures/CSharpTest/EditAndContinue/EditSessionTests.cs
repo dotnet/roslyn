@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static async Task<(ActiveStatementsMap, ImmutableArray<ActiveStatementExceptionRegions>, ImmutableArray<DocumentId>)> GetBaseActiveStatementsAndExceptionRegions(
             string[] markedSource,
             ImmutableArray<ActiveStatementDebugInfo> activeStatements,
+            ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
             Func<Solution, Solution> adjustSolution = null)
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     debuggingSession,
                     activeStatementProvider,
                     ImmutableDictionary<ProjectId, ProjectReadOnlyReason>.Empty,
-                    ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                    nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                     stoppedAtException: false);
 
                 return (await editSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
@@ -125,6 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         private static string InspectAS(ActiveStatement statement)
             => $"{statement.Ordinal}: {statement.Span} flags=[{statement.Flags}] pdid={statement.PrimaryDocumentId.DebugName} docs=[{string.Join(",", statement.DocumentIds.Select(d => d.DebugName))}]";
+
+        private static string InspectActiveStatementAndInstruction(ActiveStatement statement)
+            => InspectAS(statement) + " " + statement.InstructionId.GetDebuggerDisplay();
 
         [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions()
@@ -199,12 +203,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
             AssertEx.Equal(new[]
             {
-                "0: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs]",
-                "1: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
-                "2: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
-                "3: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
-                "4: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]"
-            }, statements.Select(InspectAS));
+                "0: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0001",
+                "1: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v1 IL_0001",
+                "2: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs] mvid=22222222-2222-2222-2222-222222222222 0x06000003 v1 IL_0001",
+                "3: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs] mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002",
+                "4: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs] mvid=22222222-2222-2222-2222-222222222222 0x06000005 v1 IL_0003"
+            }, statements.Select(InspectActiveStatementAndInstruction));
 
             // Active Statements per document
 
@@ -259,38 +263,190 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            var initialNonRemappableRegions = new Dictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>
-            {
-                { new ActiveMethodId(), ImmutableArray.Create(new NonRemappableRegion()) }
-            };
-
             EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module2,
                 baseActiveStatements,
                 baseExceptionRegions,
                 updatedMethodTokens: new[] { 0x06000004 }, // contains only recompiled methods in the project we are interested in (module2)
-                initialNonRemappableRegions.ToImmutableDictionary(),
+                ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                newActiveStatementsInChangedDocuments,
+                out var activeStatementsInUpdatedMethods,
+                out var nonRemappableRegions);
+            
+            AssertEx.Equal(new[]
+            {
+                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | AS (8,20)-(8,25) δ=1",
+                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | ER (14,8)-(16,9) δ=1",
+                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | ER (10,10)-(12,11) δ=1"
+            }, nonRemappableRegions.Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+
+            AssertEx.Equal(new[]
+            {
+                "thread=00000000-0000-0000-0000-000000000010 mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002: (9,20)-(9,25)"
+            }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
+        }
+
+        [Fact]
+        public async Task BaseActiveStatementsAndExceptionRegions_WithInitialNonRemappableRegions()
+        {
+            var markedSource =
+@"class Test
+{
+    static void F1()
+    {
+        try
+        {
+            <AS:0>M();</AS:0>
+        }
+        <ER:0.0>catch
+        {
+        }</ER:0.0>
+    }
+
+    static void F2()
+    {
+        try
+        {
+        }
+        <ER:1.0>catch
+        {
+            <AS:1>M();</AS:1>
+        }</ER:1.0>
+    }
+
+    static void F3()
+    {   
+        try
+        {
+            try 
+            {
+                <AS:2>M();</AS:2>
+            }
+            <ER:2.0>finally
+            {
+            }</ER:2.0>
+        }
+        <ER:2.1>catch
+        {
+        }</ER:2.1>
+    }
+
+    static void F4()
+    {
+        try
+        {
+            try
+            {
+            }
+            <ER:3.0>catch
+            {
+                <AS:3>M();</AS:3>
+            }</ER:3.0>
+        }
+        <ER:3.1>catch
+        {
+        }}</ER:3.1>
+    }
+}";
+
+            var module1 = new Guid("11111111-1111-1111-1111-111111111111");
+            var sourceText = SourceText.From(markedSource);
+
+            var activeStatements = GetActiveStatementDebugInfos(new[] { markedSource },
+                modules: new[] { module1, module1, module1, module1 },
+                methodVersions: new[] { 2, 2, 1, 1 }, // method F3 and F4 were not remapped
+                flags: new[] 
+                {
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, // F1
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, // F2
+                    ActiveStatementFlags.None | ActiveStatementFlags.IsNonLeafFrame,           // F3
+                    ActiveStatementFlags.None | ActiveStatementFlags.IsNonLeafFrame,           // F4
+                });
+
+            var exceptionSpans = ActiveStatementsDescription.GetExceptionRegions(markedSource, activeStatements.Length);
+
+            var span2 = activeStatements[2].LinePositionSpan;
+            var er20 = sourceText.Lines.GetLinePositionSpan(exceptionSpans[2][0]);
+            var er21 = sourceText.Lines.GetLinePositionSpan(exceptionSpans[2][1]);
+            var span3 = activeStatements[3].LinePositionSpan;
+            var er30 = sourceText.Lines.GetLinePositionSpan(exceptionSpans[3][0]);
+            var er31 = sourceText.Lines.GetLinePositionSpan(exceptionSpans[3][1]);
+
+            // assume that the follwing edits have been made:
+            var initialNonRemappableRegions = new Dictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>
+            {
+                { new ActiveMethodId(module1, 0x06000003, 1), ImmutableArray.Create(
+                    new NonRemappableRegion(span2, lineDelta: -1, isExceptionRegion: false),
+                    new NonRemappableRegion(er20, lineDelta: +2, isExceptionRegion: false),
+                    new NonRemappableRegion(er21, lineDelta: +2, isExceptionRegion: false)) },
+                { new ActiveMethodId(module1, 0x06000004, 1), ImmutableArray.Create(
+                    new NonRemappableRegion(span3, lineDelta: +1, isExceptionRegion: false),
+                    new NonRemappableRegion(er30, lineDelta: +1, isExceptionRegion: false),
+                    new NonRemappableRegion(er31, lineDelta: +1, isExceptionRegion: false)) }
+            };
+
+            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(new[] { markedSource }, activeStatements).ConfigureAwait(false);
+
+            // Active Statements
+#if TODO
+            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            AssertEx.Equal(new[]
+            {
+                "",
+            }, statements.Select(InspectActiveStatementAndInstruction));
+
+            // Exception Regions
+
+            AssertEx.Equal(new[]
+            {
+                "[]",
+            }, baseExceptionRegions.Select(r => "[" + string.Join(",", r.Spans) + "]"));
+
+            // GetActiveStatementAndExceptionRegionSpans
+
+            // Assume 2 updates:
+
+            var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
+                (
+                    docs[1],
+
+                    ImmutableArray.Create(
+                        statements[2].WithSpan(statements[2].Span.AddLineDelta(+2)),
+                        statements[3].WithSpan(statements[3].Span.AddLineDelta(+1)),
+                        statements[4]),
+
+                    ImmutableArray.Create(
+                        baseExceptionRegions[2].Spans,
+                        baseExceptionRegions[3].Spans.SelectAsArray(es => es.AddLineDelta(+1)),
+                        baseExceptionRegions[4].Spans)
+                )
+            );
+
+            EditSession.GetActiveStatementAndExceptionRegionSpans(
+                module1,
+                baseActiveStatements,
+                baseExceptionRegions,
+                updatedMethodTokens: new[] { 0x06000001 }, // contains only recompiled methods in the project we are interested in (module2)
+                ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
                 out var nonRemappableRegions);
 
-            //AssertEx.Equal(new[]
-            //{
-            //    "mvid=22222222-2222-2222-2222-222222222222 0x06000003 v1 IL_0001: (23,14)-(23,24)",
-            //    "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002: (9,20)-(9,25)"
-            //}, updatedActiveStatementSpans.Select(v => $"{v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
+            AssertEx.Equal(new[]
+            {
+                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | AS (8,20)-(8,25) δ=1",
+                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | ER (14,8)-(16,9) δ=1",
+                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | ER (10,10)-(12,11) δ=1"
+            }, nonRemappableRegions.Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
             {
                 "thread=00000000-0000-0000-0000-000000000010 mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002: (9,20)-(9,25)"
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
 
-            //AssertEx.Equal(new[] 
-            //{
-            //    "0x06000004 v1: (14,8)-(16,9) -> (15,8)-(17,9)",
-            //    "0x06000004 v1: (10,10)-(12,11) -> (11,10)-(13,11)",
-            //    "0x06000005 v1: (26,35)-(26,46) -> (26,35)-(26,46)"
-            //}, exceptionRegionSpanDeltas.Select(v => $"0x{v.MethodToken:X8} v{v.OldMethodVersion}: {v.OldSpan} -> {v.NewSpan}"));
+            // GetActiveStatementAndExceptionRegionSpans with initial remaps
+
+#endif
         }
 
         [Fact]
@@ -328,7 +484,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 markedSource,
                 methodRowIds: new[] { 1, 2 },
                 ilOffsets: new[] { 1, 1 },
-                flags: new[] { ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.NonUserCode | ActiveStatementFlags.PartiallyExecuted, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame },
+                flags: new[] 
+                {
+                    ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.NonUserCode | ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.MethodUpToDate,
+                    ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.MethodUpToDate
+                },
                 threads: new[] { ImmutableArray.Create(thread1, thread2), ImmutableArray.Create(thread1, thread2, thread2) });
 
             var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(markedSource, activeStatements).ConfigureAwait(false);
@@ -339,8 +499,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[] 
             {
-                "0: (15,14)-(15,18) flags=[PartiallyExecuted, NonUserCode, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
-                "1: (6,18)-(6,22) flags=[IsLeafFrame, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
+                "0: (15,14)-(15,18) flags=[PartiallyExecuted, NonUserCode, MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
+                "1: (6,18)-(6,22) flags=[IsLeafFrame, MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
             }, baseActiveStatements.DocumentMap[docs[0]].Select(InspectAS));
 
             Assert.Equal(2, baseActiveStatements.InstructionMap.Count);
@@ -421,7 +581,7 @@ class Test2
                 return solution;
             });
 
-            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(markedSource, activeStatements, adjustSolution).ConfigureAwait(false);
+            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(markedSource, activeStatements, adjustSolution: adjustSolution).ConfigureAwait(false);
 
             // Active Statements
 
@@ -434,30 +594,30 @@ class Test2
 
             AssertEx.Equal(new[]
             {
-                "1: (3,29)-(3,49) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
-                "2: (2,32)-(2,52) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
+                "1: (3,29)-(3,49) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
+                "2: (2,32)-(2,52) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
             }, documentMap[docs[0]].Select(InspectAS));
 
             AssertEx.Equal(new[]
             {
-                "0: (3,29)-(3,49) flags=[IsLeafFrame] pdid=test2.cs docs=[test2.cs,Project4->test2.cs]",
+                "0: (3,29)-(3,49) flags=[IsLeafFrame, MethodUpToDate] pdid=test2.cs docs=[test2.cs,Project4->test2.cs]",
             }, documentMap[docs[1]].Select(InspectAS));
 
             AssertEx.Equal(new[]
             {
-                "1: (3,29)-(3,49) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
-                "2: (2,32)-(2,52) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
+                "1: (3,29)-(3,49) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
+                "2: (2,32)-(2,52) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
             }, documentMap[docs[2]].Select(InspectAS));
 
             AssertEx.Equal(new[]
             {
-                "1: (3,29)-(3,49) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
-                "2: (2,32)-(2,52) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
+                "1: (3,29)-(3,49) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
+                "2: (2,32)-(2,52) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
             }, documentMap[docs[3]].Select(InspectAS));
 
             AssertEx.Equal(new[]
             {
-                "0: (3,29)-(3,49) flags=[IsLeafFrame] pdid=test2.cs docs=[test2.cs,Project4->test2.cs]",
+                "0: (3,29)-(3,49) flags=[IsLeafFrame, MethodUpToDate] pdid=test2.cs docs=[test2.cs,Project4->test2.cs]",
             }, documentMap[docs[4]].Select(InspectAS));
 
             Assert.Equal(3, baseActiveStatements.InstructionMap.Count);

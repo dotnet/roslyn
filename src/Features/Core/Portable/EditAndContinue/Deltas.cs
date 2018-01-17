@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> LineEdits;
         public readonly PdbDelta Pdb;
         public readonly EmitDifferenceResult EmitResult;
-        public readonly ImmutableArray<(ActiveMethodId, NonRemappableRegion)> NonRemappableRegions;
+        public readonly ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> NonRemappableRegions;
         public readonly ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
 
         public Deltas(

@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal struct NonRemappableRegion
     {
         /// <summary>
@@ -30,5 +32,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public NonRemappableRegion WithLineDelta(int value)
             => new NonRemappableRegion(Span, value, IsExceptionRegion);
+
+        internal string GetDebuggerDisplay()
+            => $"{(IsExceptionRegion ? "ER" : "AS")} {Span} δ={LineDelta}";
     }
 }

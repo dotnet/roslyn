@@ -178,15 +178,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
         }
 
-        private static LinePositionSpan AddLineDelta(LinePositionSpan span, int lineDelta)
-            => new LinePositionSpan(new LinePosition(span.Start.Line + lineDelta, span.Start.Character), new LinePosition(span.End.Line + lineDelta, span.End.Character));
-
-        private static int GetLineDelta(LinePositionSpan oldSpan, LinePositionSpan newSpan)
-            => newSpan.Start.Line - oldSpan.Start.Line;
-
-        private static bool Contains(LinePositionSpan container, LinePositionSpan span)
-            => span.Start >= container.Start && span.End <= container.End;
-
         private LinePositionSpan GetUpToDateSpan(ActiveStatementDebugInfo activeStatementInfo)
         {
             if ((activeStatementInfo.Flags & ActiveStatementFlags.MethodUpToDate) != 0)
@@ -199,9 +190,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 foreach (var region in regionsInMethod)
                 {
-                    if (Contains(region.Span, activeStatementInfo.LinePositionSpan))
+                    if (region.Span.Contains(activeStatementInfo.LinePositionSpan))
                     {
-                        return AddLineDelta(activeStatementInfo.LinePositionSpan, region.LineDelta);
+                        return activeStatementInfo.LinePositionSpan.AddLineDelta(region.LineDelta);
                     }
                 }
             }
@@ -535,7 +526,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> previousNonRemappableRegions,
             ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> newActiveStatementsInChangedDocuments,
             out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
-            out ImmutableArray<(ActiveMethodId, NonRemappableRegion)> nonRemappableRegions)
+            out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
         {
             int activeStatementCount = baseActiveStatements.InstructionMap.Count;
             int exceptionRegionCount = baseActiveExceptionRegions.Sum(regions => regions.Spans.Length);
@@ -577,7 +568,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         else if (isMethodUpdated)
                         {
                             // Start tracking non-remappable regions for active statements in methods that were up-to-date when break state was entered and now being updated.
-                            int lineDelta = GetLineDelta(oldSpan: oldActiveStatement.Span, newSpan: newActiveStatement.Span);
+                            int lineDelta = oldActiveStatement.Span.GetLineDelta(newSpan: newActiveStatement.Span);
                             nonRemappableRegionsBuilder.Add((oldInstructionId.MethodId, new NonRemappableRegion(oldActiveStatement.Span, lineDelta, isExceptionRegion: false)));
                         }
                     }
@@ -595,7 +586,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             else if (isMethodUpdated)
                             {
                                 // Start tracking non-remappable regions for exception regions in methods that were up-to-date when break state was entered and now being updated.
-                                int lineDelta = GetLineDelta(oldSpan: oldSpan, newSpan: newSpan);
+                                int lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
                                 nonRemappableRegionsBuilder.Add((oldInstructionId.MethodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion: true)));
                             }
                         }
@@ -629,7 +620,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     foreach (var region in regionsInMethod)
                     {
                         // We have calculated changes against a base snapshot (last break state):
-                        var baseSpan = AddLineDelta(region.Span, region.LineDelta);
+                        var baseSpan = region.Span.AddLineDelta(region.LineDelta);
 
                         NonRemappableRegion newRegion;
                         if (changedNonRemappableSpans.TryGetValue((methodInstance.MethodToken, methodInstance.MethodVersion, baseSpan), out var newSpan))
@@ -638,7 +629,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             Debug.Assert(newSpan.End.Line - newSpan.Start.Line == baseSpan.End.Line - baseSpan.Start.Line);
                             Debug.Assert(region.Span.End.Line - region.Span.Start.Line == baseSpan.End.Line - baseSpan.Start.Line);
 
-                            newRegion = region.WithLineDelta(GetLineDelta(oldSpan: region.Span, newSpan: newSpan));
+                            newRegion = region.WithLineDelta(region.Span.GetLineDelta(newSpan: newSpan));
                         }
                         else
                         {
