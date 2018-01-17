@@ -1,39 +1,35 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Language.Intellisense.Prototype.Definition;
-using Prototype = Microsoft.VisualStudio.Language.Intellisense.Prototype.Definition;
-using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Intellisense.Prototype.Definition;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
+using Prototype = Microsoft.VisualStudio.Language.Intellisense.Prototype.Definition;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
-using System.Threading;
-using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace RoslynCompletionPrototype
 {
     [Export(typeof(IAsyncCompletionItemSource))]
     [Name("C# completion item source")]
-    [ContentType("CSharp")]
-    [ContentType("Basic")]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
     class RoslynCompletionItemSource : IAsyncCompletionItemSource
     {
-        static readonly ImmutableArray<string> CommitChars = ImmutableArray.Create<string>(".", ",", "(", ")", "[", "]", " ", "\t");
-        const string RoslynItem = nameof(RoslynItem);
+        private static readonly ImmutableArray<string> CommitChars = ImmutableArray.Create<string>(".", ",", "(", ")", "[", "]", " ", "\t");
+        private const string RoslynItem = nameof(RoslynItem);
         private const string TriggerSnapshot = nameof(TriggerSnapshot);
 
         public async Task<Prototype.CompletionContext> GetCompletionContextAsync(Prototype.CompletionTrigger trigger, SnapshotPoint triggerLocation)
@@ -49,26 +45,31 @@ namespace RoslynCompletionPrototype
 
             var completionList = await completionService.GetCompletionsAsync(document, triggerLocation.Position).ConfigureAwait(false);
             if (completionList == null)
-                return default(Prototype.CompletionContext);
+            {
+                return default;
+            }
 
             var text = await document.GetTextAsync().ConfigureAwait(false);
             var applicableSpan = completionService.GetDefaultCompletionListSpan(text, triggerLocation.Position).ToSnapshotSpan(triggerLocation.Snapshot);
-
 
             var imageIdService = document.Project.Solution.Workspace.Services.GetService<IImageIdService>();
 
             Dictionary<string, CompletionFilter> filterCache = new Dictionary<string, CompletionFilter>();
 
-            var items = completionList.Items.Select(roslynItem =>
+            var items = completionList.Items.SelectAsArray(roslynItem =>
             {
-                var i = Convert(roslynItem, imageIdService, completionService, filterCache);
-                i.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
-                return i;
-            }).ToArray();
+                var item = Convert(roslynItem, imageIdService, completionService, filterCache);
+                item.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
+                return item;
+            });
 
-
-            return new Prototype.CompletionContext(items,
-                applicableSpan, filterCache.Values.ToImmutableArray(), false, false, suggestionModeDescription: "builder");
+            return new Prototype.CompletionContext(
+                items,
+                applicableSpan, 
+                filterCache.Values.ToImmutableArray(), 
+                useSoftSelection: false, 
+                useSuggestionMode: completionList.SuggestionModeItem != null,
+                suggestionModeDescription: completionList.SuggestionModeItem?.DisplayText);
         }
 
         private Prototype.CompletionItem Convert(RoslynCompletionItem roslynItem, IImageIdService imageService, CompletionService completionService, Dictionary<string, CompletionFilter> filterCache)
@@ -113,11 +114,9 @@ namespace RoslynCompletionPrototype
             return result.ToImmutableArray();
         }
 
-
-
-        public async Task<object> GetDescriptionAsync(Prototype.CompletionItem item)
+        public Task<object> GetDescriptionAsync(Prototype.CompletionItem item)
         {
-            return "Documentation!"; // Editor doesn't call this yet
+            return Task.FromResult<object>("Documentation!"); // Editor doesn't call this yet
         }
 
         public void CustomCommit(ITextView view, ITextBuffer buffer, Prototype.CompletionItem item, ITrackingSpan applicableSpan, string textEdit)
