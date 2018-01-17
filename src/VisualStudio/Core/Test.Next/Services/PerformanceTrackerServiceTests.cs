@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // minimum sample is 100
             var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 80);
 
-            Assert.True(badAnalyzers.Length == 0);
+            Assert.True(badAnalyzers.Count == 0);
         }
 
         [Fact]
@@ -27,9 +27,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         {
             var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 200);
 
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast.CSharpRemoveUnnecessaryCastDiagnosticAnalyzer,Microsoft.CodeAnalysis.CSharp.Features,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 101.244432561581 5448 2181.63001442628"));
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.CSharp.InlineDeclaration.CSharpInlineDeclarationDiagnosticAnalyzer,Microsoft.CodeAnalysis.CSharp.Features,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 49.9389715502954 2666.86092715232 929.871330548841"));
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast.VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer,Microsoft.CodeAnalysis.VisualBasic.Features,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 42.0967360557792 2327.7619047619 725.464266261805"));
+            VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 101.244432561581, 54.48, 21.8163001442628);
+            VerifyBadAnalyzer(badAnalyzers[1], "CSharpInlineDeclarationDiagnosticAnalyzer", 49.9389715502954, 26.6686092715232, 9.2987133054884);
+            VerifyBadAnalyzer(badAnalyzers[2], "VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer", 42.0967360557792, 23.277619047619, 7.25464266261805);
         }
 
         [Fact]
@@ -37,9 +37,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         {
             var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 300);
 
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast.CSharpRemoveUnnecessaryCastDiagnosticAnalyzer,Microsoft.CodeAnalysis.CSharp.Features,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 85.6039521236341 5845.42358078603 1842.45217226717"));
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.CSharp.InlineDeclaration.CSharpInlineDeclarationDiagnosticAnalyzer,Microsoft.CodeAnalysis.CSharp.Features,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 42.2014208750466 2879.35371179039 799.261581900397"));
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer,Microsoft.CodeAnalysis.VisualBasic.EditorFeatures,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 45.0918385052674 2906.22535211268 913.728667060397"));
+            VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 85.6039521236341, 58.4542358078603, 18.4245217226717);
+            VerifyBadAnalyzer(badAnalyzers[1], "VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer", 45.0918385052674, 29.0622535211268, 9.13728667060397);
+            VerifyBadAnalyzer(badAnalyzers[2], "CSharpInlineDeclarationDiagnosticAnalyzer", 42.2014208750466, 28.7935371179039, 7.99261581900397);
         }
 
         [Fact]
@@ -48,9 +48,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // data starting to rolling at 300 data points
             var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 400);
 
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast.CSharpRemoveUnnecessaryCastDiagnosticAnalyzer,Microsoft.CodeAnalysis.CSharp.Features,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 76.2748443491853 5116.98695652174 1738.19563479479"));
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer,Microsoft.CodeAnalysis.VisualBasic.EditorFeatures,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 43.5700167914005 2925.97857142857 921.213873850298"));
-            Assert.True(badAnalyzers.Contains(@"[Microsoft.CodeAnalysis.CSharp.InlineDeclaration.CSharpInlineDeclarationDiagnosticAnalyzer,Microsoft.CodeAnalysis.CSharp.Features,Version=42.42.42.42,Culture=neutral,PublicKeyToken=31bf3856ad364e35] 36.4336594793033 2397.64782608696 743.956680199015"));
+            VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 76.2748443491852, 51.1698695652174, 17.3819563479479);
+            VerifyBadAnalyzer(badAnalyzers[1], "VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer", 43.5700167914005, 29.2597857142857, 9.21213873850298);
+            VerifyBadAnalyzer(badAnalyzers[2], "InlineDeclaration.CSharpInlineDeclarationDiagnosticAnalyzer", 36.4336594793033, 23.9764782608696, 7.43956680199015);
         }
 
         [Fact]
@@ -65,7 +65,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.True(badAnalyzer2.PIISafeAnalyzerId == "test".GetHashCode().ToString());
         }
 
-        private string[] GetBadAnalyzers(string testFileName, int to)
+        private void VerifyBadAnalyzer(BadAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
+        {
+            Assert.True(analyzer.PIISafeAnalyzerId.IndexOf(analyzerId, StringComparison.OrdinalIgnoreCase) >= 0);
+            Assert.True(Math.Abs(analyzer.LOF - lof) < 0.0001D);
+            Assert.True(Math.Abs(analyzer.Mean - mean) < 0.0001D);
+            Assert.True(Math.Abs(analyzer.Stddev - stddev) < 0.0001D);
+        }
+
+        private List<BadAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
         {
             var testFile = GetTestFile(testFileName);
 
@@ -73,23 +81,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             to = Math.Min(to, dataCount);
 
-            var service = new PerformanceTrackerService();
+            var service = new PerformanceTrackerService(minLOFValue: 0, meanThreshold: 0, stddevThreshold: 0);
 
             for (var i = 0; i < to; i++)
             {
-                service.AddSnapshot(CreateSnapshots(matrix, i));
+                service.AddSnapshot(CreateSnapshots(matrix, i), unitCount: 100);
             }
 
             var badAnalyzerInfo = new List<BadAnalyzerInfo>();
             service.GenerateReport(badAnalyzerInfo);
 
-            var badAnalyzers = badAnalyzerInfo.Select(i => Convert(i)).ToArray();
-            return badAnalyzers;
-        }
-
-        private string Convert(BadAnalyzerInfo info)
-        {
-            return $"[{info.PIISafeAnalyzerId}] {info.LOF} {info.Mean} {info.Stddev}";
+            return badAnalyzerInfo;
         }
 
         private IEnumerable<AnalyzerPerformanceInfo> CreateSnapshots(Dictionary<string, double[]> matrix, int index)

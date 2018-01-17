@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
                 }
 
-                // disabled for now. enable it once connection pool is implemented
-                // await ReportAnalyzerPerformanceAsync(document, analyzerDriverOpt, cancellationToken).ConfigureAwait(false);
+                await ReportAnalyzerPerformanceAsync(document, analyzerDriverOpt, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -88,15 +87,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             using (var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject())
             {
+                var containsData = false;
                 foreach (var analyzer in analyzerDriverOpt.Analyzers)
                 {
                     var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
+                    {
+                        // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked
+                        // one by one rather than in bulk.
+                        containsData = true;
+                    }
+
                     pooledObject.Object.Add(analyzer, telemetryInfo);
+                }
+
+                if (!containsData)
+                {
+                    // looks like there is no new data from driver. skip reporting.
+                    return;
                 }
 
                 await client.TryRunCodeAnalysisRemoteAsync(
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                    pooledObject.Object.ToAnalyzerPerformanceInfo(Owner),
+                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
                     cancellationToken).ConfigureAwait(false);
             }
         }

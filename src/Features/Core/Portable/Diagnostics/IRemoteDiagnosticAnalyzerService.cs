@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     interface IRemoteDiagnosticAnalyzerService
     {
         Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken);
-        void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, CancellationToken cancellationToken);
+        void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken);
     }
 
     internal struct AnalyzerPerformanceInfo

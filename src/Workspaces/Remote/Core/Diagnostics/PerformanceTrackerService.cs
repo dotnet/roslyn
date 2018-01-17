@@ -3,12 +3,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
-using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
@@ -19,12 +16,16 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     [ExportWorkspaceService(typeof(IPerformanceTrackerService), WorkspaceKind.Host), Shared]
     internal class PerformanceTrackerService : IPerformanceTrackerService
     {
-        private const double MinLOFValue = 20;
-        private const double MeanThreshold = 1000;
-        private const double StddevThreshold = 1000;
+        private const double DefaultMinLOFValue = 20;
+        private const double DefaultMeanThreshold = 500;
+        private const double DefaultStddevThreshold = 500;
 
         private const int SampleSize = 300;
         private const double K_Value_Ratio = 2D / 3D;
+
+        private readonly double _minLOFValue;
+        private readonly double _meanThreshold;
+        private readonly double _stddevThreshold;
 
         private readonly object _gate;
         private readonly PerformanceQueue _queue;
@@ -32,20 +33,29 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public event EventHandler SnapshotAdded;
 
-        public PerformanceTrackerService()
+        public PerformanceTrackerService() :
+            this(DefaultMinLOFValue, DefaultMeanThreshold, DefaultStddevThreshold)
         {
-            _gate = new object();
+        }
 
+        // internal for testing
+        internal PerformanceTrackerService(double minLOFValue, double meanThreshold, double stddevThreshold)
+        {
+            _minLOFValue = minLOFValue;
+            _meanThreshold = meanThreshold;
+            _stddevThreshold = stddevThreshold;
+
+            _gate = new object();
             _queue = new PerformanceQueue(SampleSize);
         }
 
-        public void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot)
+        public void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount)
         {
             RecordBuiltInAnalyzers(snapshot);
 
             lock (_gate)
             {
-                _queue.Add(snapshot.Select(entry => (entry.AnalyzerId, entry.TimeSpan)));
+                _queue.Add(snapshot.Select(entry => (entry.AnalyzerId, entry.TimeSpan)), unitCount);
             }
 
             OnSnapshotAdded();
@@ -69,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     return;
                 }
 
-                using (var generator = new ReportGenerator(this, MinLOFValue, MeanThreshold, StddevThreshold, badAnalyzers))
+                using (var generator = new ReportGenerator(this, _minLOFValue, _meanThreshold, _stddevThreshold, badAnalyzers))
                 {
                     generator.Report(rawPerformanceData);
                 }

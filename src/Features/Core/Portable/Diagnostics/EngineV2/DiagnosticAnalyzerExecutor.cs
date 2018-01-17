@@ -106,7 +106,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     await client.TryRunCodeAnalysisRemoteAsync(
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                        analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_owner),
+                        new object[]
+                        {
+                            analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_owner),
+                            // +1 for project itself
+                            project.DocumentIds.Count + 1
+                        },
                         cancellationToken).ConfigureAwait(false);
                 }
 

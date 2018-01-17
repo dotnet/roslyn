@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public int Count => _snapshots.Count;
 
-        public void Add(IEnumerable<(string, TimeSpan)> rawData)
+        public void Add(IEnumerable<(string, TimeSpan)> rawData, int unitCount)
         {
             if (_snapshots.Count < _maxSampleSize)
             {
-                _snapshots.AddLast(new Snapshot(rawData));
+                _snapshots.AddLast(new Snapshot(rawData, unitCount));
             }
             else
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _snapshots.RemoveFirst();
 
                 // update data to new data and put it back
-                first.Value.Update(rawData);
+                first.Value.Update(rawData, unitCount);
                 _snapshots.AddLast(first);
             }
         }
@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 {
                     foreach (var snapshot in _snapshots)
                     {
-                        var timeSpan = snapshot.GetTimeSpan(assignedAnalyzerNumber);
+                        var timeSpan = snapshot.GetTimeSpanInMillisecond(assignedAnalyzerNumber);
                         if (timeSpan == null)
                         {
                             // not all snapshot contains all analyzers
                             continue;
                         }
 
-                        list.Add(timeSpan.Value.TotalMilliseconds);
+                        list.Add(timeSpan.Value);
                     }
 
                     // data is only stable once we have more than certain set
@@ -119,23 +119,23 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             /// Keyped by analyzer unique number got from AnalyzerNumberAssigner.
             /// Value is delta (TimeSpan - minSpan) among span in this snapshot
             /// </summary>
-            private readonly Dictionary<int, TimeSpan> _performanceMap;
+            private readonly Dictionary<int, double> _performanceMap;
 
-            public Snapshot(IEnumerable<(string, TimeSpan)> snapshot) :
-                this(Convert(snapshot))
+            public Snapshot(IEnumerable<(string, TimeSpan)> snapshot, int unitCount) :
+                this(Convert(snapshot), unitCount)
             {
             }
 
-            public Snapshot(IEnumerable<(int, TimeSpan)> rawData)
+            public Snapshot(IEnumerable<(int, TimeSpan)> rawData, int unitCount)
             {
-                _performanceMap = new Dictionary<int, TimeSpan>();
+                _performanceMap = new Dictionary<int, double>();
 
-                Reset(_performanceMap, rawData);
+                Reset(_performanceMap, rawData, unitCount);
             }
 
-            public void Update(IEnumerable<(string, TimeSpan)> rawData)
+            public void Update(IEnumerable<(string, TimeSpan)> rawData, int unitCount)
             {
-                Reset(_performanceMap, Convert(rawData));
+                Reset(_performanceMap, Convert(rawData), unitCount);
             }
 
             public void AppendAnalyzers(HashSet<int> set)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 set.UnionWith(_performanceMap.Keys);
             }
 
-            public TimeSpan? GetTimeSpan(int assignedAnalyzerNumber)
+            public double? GetTimeSpanInMillisecond(int assignedAnalyzerNumber)
             {
                 if (!_performanceMap.TryGetValue(assignedAnalyzerNumber, out var value))
                 {
@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return value;
             }
 
-            private void Reset(Dictionary<int, TimeSpan> map, IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> rawData)
+            private void Reset(
+                Dictionary<int, double> map, IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> rawData, int fileCount)
             {
                 // get smallest timespan in the snapshot
                 var minSpan = rawData.Select(kv => kv.timeSpan).Min();
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 // map is normalized to current timespan - min timspan of the snapshot
                 foreach (var (assignedAnalyzerNumber, timeSpan) in rawData)
                 {
-                    map[assignedAnalyzerNumber] = timeSpan - minSpan;
+                    map[assignedAnalyzerNumber] = (timeSpan.TotalMilliseconds - minSpan.TotalMilliseconds) / fileCount;
                 }
             }
 

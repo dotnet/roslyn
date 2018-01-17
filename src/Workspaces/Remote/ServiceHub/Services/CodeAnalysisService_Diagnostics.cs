@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, CancellationToken cancellationToken)
+        public void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken)
         {
             RunService(token =>
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    service.AddSnapshot(snapshot);
+                    service.AddSnapshot(snapshot, unitCount);
                 }
             }, cancellationToken);
         }

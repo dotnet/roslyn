@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal interface IPerformanceTrackerService : IWorkspaceService
     {
-        void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot);
+        void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount);
         void GenerateReport(List<BadAnalyzerInfo> badAnalyzers);
 
         event EventHandler SnapshotAdded;
