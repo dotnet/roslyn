@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -42,6 +43,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        internal static bool IsExperimentActive(this ITextBuffer buffer, string experimentName)
+        {
+            var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
+            }
+
+            var experimentService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+            return experimentService?.IsExperimentEnabled(experimentName) ?? false;
         }
     }
 }
