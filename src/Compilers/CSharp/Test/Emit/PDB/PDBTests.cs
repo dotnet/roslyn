@@ -7416,9 +7416,6 @@ class C
 
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics(
-                // (9,19): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     int F = G(out var v1);    
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var v1").WithLocation(9, 19),
                 // (9,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.G(out int)'
                 //     int F = G(out var v1);    
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "G(out var v1)").WithArguments("C.G(out int)").WithLocation(9, 13),
