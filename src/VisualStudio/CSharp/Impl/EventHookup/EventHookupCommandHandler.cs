@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         public EventHookupCommandHandler(
             IInlineRenameService inlineRenameService,
             Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
+#pragma warning disable CS0618 // IQuickInfo* is obsolete
             IQuickInfoBroker quickInfoBroker,
+#pragma warning restore CS0618 // IQuickInfo* is obsolete
             [Import(AllowDefault = true)] IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer,
             IAsynchronousOperationListenerProvider listenerProvider)
         {

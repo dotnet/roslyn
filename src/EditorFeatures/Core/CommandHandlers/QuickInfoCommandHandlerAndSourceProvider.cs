@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
@@ -93,3 +94,4 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete
