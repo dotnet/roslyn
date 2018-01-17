@@ -1157,18 +1157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-
-        private bool IsPossibleModifier()
-        {
-            return IsPossibleModifier(this.CurrentToken);
-        }
-
-        private static bool IsPossibleModifier(SyntaxToken token)
-        {
-            return GetModifier(token) != DeclarationModifiers.None;
-        }
-
-        private void ParseModifiers(SyntaxListBuilder tokens)
+        
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
             {
@@ -1227,6 +1217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 modTok = this.EatToken();
                                 modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
+                            }
+                            else if (forAccessors && this.IsPossibleAccessorModifier())
+                            {
+                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
+                                modTok = this.EatToken();
                             }
                             else
                             {
@@ -2102,7 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // All modifiers that might start an expression are processed above.
-                this.ParseModifiers(modifiers);
+                this.ParseModifiers(modifiers, forAccessors: false);
                 if (modifiers.Count > 0)
                 {
                     acceptStatement = false;
@@ -3183,33 +3178,36 @@ parse_member_name:;
             // Note: we allow all modifiers here.  That's because we want to parse things like
             // "abstract get" as an accessor.  This way we can provide a good error message
             // to the user that this is not allowed.
-            if (IsPossibleModifier())
+
+            if (GetModifier(this.CurrentToken) == DeclarationModifiers.None)
             {
-                var peekIndex = 1;
-                while (IsPossibleModifier(this.PeekToken(peekIndex)))
-                {
-                    peekIndex++;
-                }
-
-                var token = this.PeekToken(peekIndex);
-                if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
-                {
-                    // If we see "{ get { } public }
-                    // then we will think that "public" likely starts an accessor.
-                    return true;
-                }
-
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.GetKeyword:
-                    case SyntaxKind.SetKeyword:
-                    case SyntaxKind.AddKeyword:
-                    case SyntaxKind.RemoveKeyword:
-                        return true;
-                }
+                return false;
             }
 
-            return false;
+            var peekIndex = 1;
+            while (GetModifier(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            {
+                peekIndex++;
+            }
+
+            var token = this.PeekToken(peekIndex);
+            if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
+            {
+                // If we see "{ get { } public }
+                // then we will think that "public" likely starts an accessor.
+                return true;
+            }
+
+            switch (token.ContextualKind)
+            {
+                case SyntaxKind.GetKeyword:
+                case SyntaxKind.SetKeyword:
+                case SyntaxKind.AddKeyword:
+                case SyntaxKind.RemoveKeyword:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private enum PostSkipAction
@@ -3386,7 +3384,7 @@ parse_member_name:;
             try
             {
                 this.ParseAttributeDeclarations(accAttrs);
-                this.ParseModifiers(accMods);
+                this.ParseModifiers(accMods, forAccessors: true);
 
                 if (!isEvent)
                 {

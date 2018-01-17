@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         private static ComposableCatalog GetExtraParts()
         {
-            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupWaiter), typeof(EventHookupCommandHandler), typeof(EventHookupQuickInfoSourceProvider) });
+            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupQuickInfoSourceProvider) });
         }
 
         public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)

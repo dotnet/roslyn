@@ -823,13 +823,11 @@ public class C
 
             string name = GetUniqueName();
             string source1 = sourceTemplate.Replace("CHANGE", change1);
-            CSharpCompilation comp1 = CreateStandardCompilation(Parse(source1, options: TestOptions.RegularLatest),
-                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+            CSharpCompilation comp1 = CreateStandardCompilation(Parse(source1), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
-            Compilation comp2 = CreateStandardCompilation(Parse(source2, options: TestOptions.RegularLatest),
-                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+            Compilation comp2 = CreateStandardCompilation(Parse(source2), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             if (expectMatch)
@@ -3724,7 +3722,7 @@ class C
 }";
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            CompileAndVerify(compilation, symbolValidator: module =>
+            CompileAndVerify(compilation, verify: Verification.Passes, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
@@ -3967,7 +3965,7 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, RemotingConfiguration = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            CompileAndVerify(compilation, symbolValidator: module =>
+            CompileAndVerify(compilation, verify: Verification.Passes, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
@@ -4024,7 +4022,7 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestOptional").WithArguments("System.Security.Permissions.SecurityAction.RequestOptional", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            CompileAndVerify(compilation, symbolValidator: module =>
+            CompileAndVerify(compilation, verify: Verification.Passes, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
                 {

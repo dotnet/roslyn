@@ -1261,7 +1261,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
   // Code size      291 (0x123)
   .maxstack  4
@@ -1450,7 +1450,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
   // Code size      168 (0xa8)
   .maxstack  4

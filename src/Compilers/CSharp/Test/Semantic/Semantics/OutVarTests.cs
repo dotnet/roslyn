@@ -5690,7 +5690,7 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -5724,7 +5724,7 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }

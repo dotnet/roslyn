@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax, 
             Binder enclosing, 
             ArrayBuilder<SyntaxNode> methodsWithYields,
-            Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
+            Action<Binder, SyntaxNode> binderUpdatedHandler = null)
         {
             var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
 
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 enclosing = new ExpressionVariableBinder(syntax, enclosing);
 
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, syntax);
+                    binderUpdatedHandler(enclosing, syntax);
                 }
 
                 builder.AddToMap(syntax, enclosing);
@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode embeddedScopeDesignator;
                 enclosing = builder.GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
 
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, embeddedScopeDesignator);
+                    binderUpdatedHandler(enclosing, embeddedScopeDesignator);
                 }
 
                 if (embeddedScopeDesignator != null)
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, null);
+                    binderUpdatedHandler(enclosing, null);
                 }
 
                 builder.Visit((CSharpSyntaxNode)syntax, enclosing);

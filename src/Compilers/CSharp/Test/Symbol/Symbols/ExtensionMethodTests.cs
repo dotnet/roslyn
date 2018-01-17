@@ -3882,5 +3882,65 @@ public class BaseClass<TMember> : I1<TMember>
             Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
             Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
         }
+
+        [Fact]
+        public void InExtensionMethods()
+        {
+            var source = @"
+public static class C
+{
+    public static void M1(this in int p) { }
+    public static void M2(in this int p) { }
+}";
+
+            void Validator(ModuleSymbol module)
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+
+                var method = type.GetMember<MethodSymbol>("M1");
+                Assert.True(method.IsExtensionMethod);
+                var parameter = method.Parameters[0];
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(RefKind.In, parameter.RefKind);
+
+                method = type.GetMember<MethodSymbol>("M2");
+                Assert.True(method.IsExtensionMethod);
+                parameter = method.Parameters[0];
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(RefKind.In, parameter.RefKind);
+            }
+
+            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+        }
+
+        [Fact]
+        public void RefExtensionMethods()
+        {
+            var source = @"
+public static class C
+{
+    public static void M1(this ref int p) { }
+    public static void M2(ref this int p) { }
+}";
+
+            void Validator(ModuleSymbol module)
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+
+                var method = type.GetMember<MethodSymbol>("M1");
+                Assert.True(method.IsExtensionMethod);
+                var parameter = method.Parameters[0];
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(RefKind.Ref, parameter.RefKind);
+
+                method = type.GetMember<MethodSymbol>("M2");
+                Assert.True(method.IsExtensionMethod);
+                parameter = method.Parameters[0];
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(RefKind.Ref, parameter.RefKind);
+            }
+
+            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+        }
     }
 }

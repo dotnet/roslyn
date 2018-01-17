@@ -1799,15 +1799,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameter modifier &apos;{0}&apos; cannot be used after the modifier &apos;{1}&apos;.
-        /// </summary>
-        internal static string ERR_BadParameterModifiersOrder {
-            get {
-                return ResourceManager.GetString("ERR_BadParameterModifiersOrder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Parameter {0} should not be declared with the &apos;{1}&apos; keyword.
         /// </summary>
         internal static string ERR_BadParamExtraRef {
@@ -5431,6 +5422,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_IndirectRecursiveConstructorCall {
             get {
                 return ResourceManager.GetString("ERR_IndirectRecursiveConstructorCall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Arguments with &apos;in&apos; modifier cannot be used in dynamically dispatched expessions..
+        /// </summary>
+        internal static string ERR_InDynamicMethodArg {
+            get {
+                return ResourceManager.GetString("ERR_InDynamicMethodArg", resourceCulture);
             }
         }
         

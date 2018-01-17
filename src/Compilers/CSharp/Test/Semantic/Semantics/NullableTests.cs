@@ -171,7 +171,7 @@ class C
 }";
 
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.RegularLatest.WithPEVerifyCompatFeature());
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
         [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
@@ -230,7 +230,7 @@ class C
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
                 CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.RegularLatest.WithPEVerifyCompatFeature());
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
 

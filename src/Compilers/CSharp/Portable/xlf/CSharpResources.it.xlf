@@ -7468,7 +7468,31 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
  /utf8output                   Restituisce i messaggi del compilatore usando la codifica UTF-8
  /main:&lt;tipo&gt;                  Consente di specificare il tipo che contiene il punto di ingresso, 
                                ignorando tutti gli altri punti di ingresso possibili. Forma
-      </target>
+                               breve: /m
+ /fullpaths                    Il compilatore genera percorsi completi
+ /filealign:&lt;n&gt;                Consente di specificare l'allineamento usato per le sezioni del
+                               file di output
+ /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                               Consente di specificare un mapping per i nomi di percorso di origine
+                               visualizzati dal compilatore.
+ /pdb:&lt;file&gt;                   Consente di specificare il nome del file di informazioni di debug (impostazione predefinita:
+                               nome del file di output con estensione pdb)
+ /errorendlocation             Riga e colonna di output della posizione finale di
+                               ogni errore
+ /preferreduilang              Consente di specificare il nome del linguaggio di output preferito.
+ /nostdlib[+|-]                Omette i riferimenti alla libreria standard (mscorlib.dll)
+ /subsystemversion:&lt;stringa&gt;    Consente di specificare la versione del sottosistema di questo assembly
+ /lib:&lt;elenco file&gt;              Consente di specificare le directory aggiuntive in cui cercare i
+                               riferimenti
+ /errorreport:&lt;stringa&gt;         Consente di specificare la modalità di gestione degli errori interni del compilatore:
+                               prompt, send, queue o none. L'impostazione predefinita è
+                               queue.
+ /appconfig:&lt;file&gt;             Consente di specificare un file di configurazione dell'applicazione
+                               contenente le impostazioni di binding dell'assembly
+ /moduleassemblyname:&lt;stringa&gt;  Nome dell'assembly di cui farà parte
+                               questo modulo
+ /modulename:&lt;stringa&gt;          Consente di specificare il nome del modulo di origine
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8476,11 +8500,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">Il primo parametro di un metodo di estensione 'in' '{0}' deve essere un tipo valore.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Non è possibile usare il modificatore di parametro '{0}' dopo il modificatore '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">I campi di istanza di struct di sola lettura devono essere di sola lettura.</target>
@@ -8564,6 +8583,11 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
         <target state="translated">Non è possibile usare un valore letterale predefinito 'default' come criterio. Usare un altro valore letterale, ad esempio '0' o 'null'. Per abbinare tutto, usare un criterio di rimozione 'var _'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
         <note />
       </trans-unit>
     </body>

@@ -5135,5 +5135,44 @@ namespace ConsoleApplication1
 }",
             MainDescription($"void Program.Test<Bar>()"));
         }
+
+        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task InMalformedEmbeddedStatement_01()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b.Content$$Type, out var chars)
+        {
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task InMalformedEmbeddedStatement_02()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void method1()
+    {
+        if (method2())
+            .Any(b => b$$.ContentType, out var chars)
+        {
+        }
+    }
+}
+",
+            MainDescription("(parameter) ? b"));
+        }
     }
 }

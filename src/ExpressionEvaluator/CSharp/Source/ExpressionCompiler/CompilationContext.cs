@@ -331,6 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     _currentFrame,
                                     sourceAssembly,
                                     alias);
+                                // Skip pseudo-variables with errors.
+                                if (local.GetUseSiteDiagnostic()?.Severity == DiagnosticSeverity.Error)
+                                {
+                                    continue;
+                                }
                                 var methodName = GetNextMethodName(methodBuilder);
                                 var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
                                 var aliasMethod = this.CreateMethod(
@@ -887,40 +892,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     binder);
             }
 
-            Binder originalRootBinder = null;
+            binder = new EEMethodBinder(method, substitutedSourceMethod, binder);
+
+            if (methodNotType)
+            {
+                binder = new SimpleLocalScopeBinder(method.LocalsForBinding, binder);
+            }
+
+            Binder actualRootBinder = null;
             SyntaxNode declaredLocalsScopeDesignator = null;
+
             var executableBinder = new ExecutableCodeBinder(syntax, substitutedSourceMethod, binder,
                                               (rootBinder, declaredLocalsScopeDesignatorOpt) =>
                                               {
-                                                  originalRootBinder = rootBinder;
+                                                  actualRootBinder = rootBinder;
                                                   declaredLocalsScopeDesignator = declaredLocalsScopeDesignatorOpt;
-                                                  binder = new EEMethodBinder(method, substitutedSourceMethod, rootBinder);
-
-                                                  if (methodNotType)
-                                                  {
-                                                      binder = new SimpleLocalScopeBinder(method.LocalsForBinding, binder);
-                                                  }
-
-                                                  return binder;
                                               });
 
             // We just need to trigger the process of building the binder map
             // so that the lambda above was executed.
             executableBinder.GetBinder(syntax);
 
-            Debug.Assert(originalRootBinder != null);
-            Debug.Assert(executableBinder.Next != binder);
+            Debug.Assert(actualRootBinder != null);
 
             if (declaredLocalsScopeDesignator != null)
             {
-                declaredLocals = originalRootBinder.GetDeclaredLocalsForScope(declaredLocalsScopeDesignator);
+                declaredLocals = actualRootBinder.GetDeclaredLocalsForScope(declaredLocalsScopeDesignator);
             }
             else
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
-            return binder;
+            return actualRootBinder;
         }
 
         private static Imports BuildImports(CSharpCompilation compilation, PEModuleSymbol module, ImmutableArray<ImportRecord> importRecords, InContainerBinder binder)

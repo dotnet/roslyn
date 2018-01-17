@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ExpressionParsingTexts : ParsingTests
+    public class ExpressionParsingTests : ParsingTests
     {
-        public ExpressionParsingTexts(ITestOutputHelper output) : base(output) { }
+        public ExpressionParsingTests(ITestOutputHelper output) : base(output) { }
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {

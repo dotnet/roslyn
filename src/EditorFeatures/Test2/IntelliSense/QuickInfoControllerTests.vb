@@ -239,7 +239,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Public ReadOnly DocumentProvider As Mock(Of IDocumentProvider)
             Public ReadOnly Service As QuickInfoService
 
-            Public Sub New(view As Mock(Of ITextView), buffer As ITextBuffer, presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)), asyncListener As Mock(Of IAsynchronousOperationListener), documentProvider As Mock(Of IDocumentProvider), service As QuickInfoService)
+            Public Sub New(view As Mock(Of ITextView),
+                           buffer As ITextBuffer,
+                           presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)),
+                           asyncListener As Mock(Of IAsynchronousOperationListener),
+                           documentProvider As Mock(Of IDocumentProvider),
+                           service As QuickInfoService)
                 Me.View = view
                 Me.Buffer = buffer
                 Me.Presenter = presenter

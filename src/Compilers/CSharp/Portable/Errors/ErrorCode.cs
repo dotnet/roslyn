@@ -1517,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        ERR_BadParameterModifiersOrder = 8339,
+        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1552,5 +1552,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConditionalInInterpolation = 8361,
         ERR_CantUseVoidInArglist = 8362,
         ERR_DefaultInPattern = 8363,
+        ERR_InDynamicMethodArg = 8364,
     }
 }

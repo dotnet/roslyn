@@ -7469,7 +7469,30 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
  /main:&lt;Typ&gt;                  Gibt den Typ an, der den Einstiegspunkt enthält
                                (alle anderen möglichen Einstiegspunkte werden ignoriert) (Kurz-
                                form: /m)
- /fullpaths                    Der Compiler generiert vollqualifizierte </target>
+ /fullpaths                    Der Compiler generiert vollqualifizierte Pfade.
+ /filealign:&lt;n&gt;                Gibt die Ausrichtung an, die für Ausgabedateiabschnitte
+                               verwendet werden soll.
+ /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                               Gibt eine Zuordnung für die Quellpfadnamen an, die vom 
+                               Compiler ausgegeben werden.
+ /pdb:&lt;Datei&gt;                   Gibt den Namen der Debuginformationsdatei an (Standard:
+                               Ausgabedateiname mit der Erweiterung .pdb)
+ /errorendlocation             Die Ausgabezeile und -spalte des Endpunkts
+                               jedes Fehlers 
+ /preferreduilang              Gibt den bevorzugten Namen der Ausgabesprache an.
+ /nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+ /subsystemversion:&lt;Zeichenfolge&gt;    Verweist nicht auf die Standardbibliothek 
+ /lib:&lt;Dateiliste&gt;              Gibt zusätzliche Verzeichnisse an, in denen nach Verweisen
+                               gesucht werden soll.
+ /errorreport:&lt;Zeichenfolge&gt;         Gibt die Verarbeitung interner Compilerfehler an:
+                               "prompt", "send", "queue" oder "none". Der Standardwert ist
+                               "queue".
+ /appconfig:&lt;Datei&gt;             Gibt eine Anwendungskonfigurationsdatei
+                               mit Assemblybindungseinstellungen an.
+ /moduleassemblyname:&lt;Zeichenfolge&gt;  Der Name der Assembly, zu der dieses Modul
+                               gehören wird .
+ /modulename:&lt;Zeichenfolge&gt;          Gibt den Quellmodulnamen an.
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8477,11 +8500,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Der erste Parameter einer in-Erweiterungsmethode "{0}" muss ein Werttyp sein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Der Parametermodifizierer "{0}" kann nicht nach dem Modifizierer "{1}" verwendet werden. </target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">Instanzfelder oder schreibgeschützte Strukturen müssen schreibgeschützt sein.</target>
@@ -8565,6 +8583,11 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
         <target state="translated">Das Standardliteral "default" ist als Muster ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder NULL). Für einen Abgleich aller Elemente verwenden Sie ein discard-Muster "var _".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
         <note />
       </trans-unit>
     </body>

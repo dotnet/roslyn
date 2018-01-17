@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -27,25 +26,25 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         ForegroundThreadAffinitizedObject,
         IQuickInfoSourceProvider
     {
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters)
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters,
+            IAsynchronousOperationListenerProvider listenerProvider)
             : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                   asyncListeners)
+                   listenerProvider)
         {
         }
 
         // For testing purposes.
         public QuickInfoCommandHandlerAndSourceProvider(
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _asyncListeners = asyncListeners;
             _presenter = presenter;
+            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
         }
 
         private bool TryGetController(CommandArgs args, out Controller controller)
@@ -69,9 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             // TODO(cyrusn): If there are no presenters then we should not create a controller.
             // Otherwise we'll be affecting the user's typing and they'll have no idea why :)
-            controller = Controller.GetInstance(
-                args, _presenter,
-                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.QuickInfo));
+            controller = Controller.GetInstance(args, _presenter, _listener);
             return true;
         }
 

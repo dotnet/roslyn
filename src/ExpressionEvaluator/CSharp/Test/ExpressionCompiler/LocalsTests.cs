@@ -591,12 +591,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -609,12 +608,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -627,12 +625,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -645,12 +642,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<s>5__5""
   IL_0006:  ret
@@ -674,12 +670,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -692,12 +687,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -710,12 +704,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -728,12 +721,11 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__1.<s>5__6""
   IL_0006:  ret
@@ -3852,6 +3844,46 @@ class C
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
                 Assert.Equal(names, new[] { "x", "y" });
+                locals.Free();
+            });
+        }
+
+        /// <summary>
+        /// CompileGetLocals should skip locals with errors.
+        /// </summary>
+        [WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")]
+        [Fact]
+        public void SkipPseudoVariablesWithUseSiteErrors()
+        {
+            var source =
+@"class C
+{
+    static void M(object x)
+    {
+        object y;
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(ReturnValueAlias(1, "UnknownType, UnknownAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var diagnostics = DiagnosticBag.GetInstance();
+                var testData = new CompilationTestData();
+                context.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    aliases: aliases,
+                    diagnostics: diagnostics,
+                    typeName: out typeName,
+                    testData: testData);
+                diagnostics.Verify();
+                diagnostics.Free();
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "y");
                 locals.Free();
             });
         }

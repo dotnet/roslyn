@@ -1142,6 +1142,7 @@ End Class
         Dim outStrm = New MemoryStream()
         Dim emitResult = other.Emit(outStrm)
         Assert.True(emitResult.Success)
+        Assert.True(ILValidation.IsStreamFullSigned(outStrm))
     End Sub
 
     <WorkItem(545720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")>
@@ -1243,13 +1244,12 @@ End Class
         Dim outStrm = New MemoryStream()
         Dim emitResult = comp.Emit(outStrm)
         Assert.True(emitResult.Success)
-
     End Sub
 
     Private Sub ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
         moduleContents As Stream,
-        expectedModuleAttr As AttributeDescription
-    )
+        expectedModuleAttr As AttributeDescription,
+        legacyStrongName As Boolean)
         ' a module doesn't get signed for real. It should have either a keyfile or keycontainer attribute
         ' parked on a typeRef named 'AssemblyAttributesGoHere.' When the module is added to an assembly, the
         ' resulting assembly is signed with the key referred to by the aforementioned attribute.
@@ -1260,8 +1260,14 @@ End Class
 
         Using metadata = ModuleMetadata.CreateFromStream(moduleContents)
             Dim flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags
-            ' confirm file does not claim to be signed
-            Assert.Equal(0, CInt(flags And CorFlags.StrongNameSigned))
+            If legacyStrongName Then
+                ' confirm file does not claim to be signed
+                Assert.Equal(0, CInt(flags And CorFlags.StrongNameSigned))
+            Else
+                ' portable signing should sign the module
+                Assert.Equal(CorFlags.StrongNameSigned, CInt(flags And CorFlags.StrongNameSigned))
+            End If
+
             Dim token As EntityHandle = metadata.Module.GetTypeRef(metadata.Module.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
             Assert.False(token.IsNil)   ' could the magic type ref be located? If not then the attribute's not there.
             Dim attrInfos = metadata.Module.FindTargetAttributes(token, expectedModuleAttr)
@@ -1276,9 +1282,14 @@ End Class
     </file>
 </compilation>
 
+            Dim snProvider As StrongNameProvider = If(legacyStrongName, s_defaultDesktopProvider, s_defaultPortableProvider)
+
             ' now that the module checks out, ensure that adding it to a compilation outputting a dll
             ' results in a signed assembly.
-            Dim assemblyComp = CreateCompilationWithMscorlibAndReferences(source, {metadata.GetReference()}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+            Dim assemblyComp = CreateCompilationWithMscorlibAndReferences(
+                source,
+                {metadata.GetReference()},
+                TestOptions.ReleaseDll.WithStrongNameProvider(snProvider))
 
             Using finalStrm = tempFile.Open()
                 success = assemblyComp.Emit(finalStrm)
@@ -1292,15 +1303,13 @@ End Class
     End Sub
 
     Private Shared Sub AssertFileIsSigned(file As TempFile)
-        ' TODO should check to see that the output was actually signed
         Using peStream = New FileStream(file.Path, FileMode.Open)
-            Dim flags = New PEHeaders(peStream).CorHeader.Flags
-            Assert.Equal(CorFlags.StrongNameSigned, flags And CorFlags.StrongNameSigned)
+            Assert.True(ILValidation.IsStreamFullSigned(peStream))
         End Using
     End Sub
 
     <Fact>
-    Public Sub SignModuleKeyFileAttr()
+    Public Sub SignModuleKeyFileAttr_Legacy()
         Dim x = s_keyPairFile
 
         Dim source =
@@ -1317,7 +1326,10 @@ End Class
             source,
             options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
-        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(other.EmitToStream(), AttributeDescription.AssemblyKeyFileAttribute)
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            other.EmitToStream(),
+            AttributeDescription.AssemblyKeyFileAttribute,
+            legacyStrongName:=True)
     End Sub
 
     <Fact>
@@ -1338,7 +1350,10 @@ End Class
         Dim success = other.Emit(outStrm)
         Assert.True(success.Success)
 
-        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute)
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            outStrm,
+            AttributeDescription.AssemblyKeyNameAttribute,
+            legacyStrongName:=True)
     End Sub
 
     <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
@@ -1358,7 +1373,10 @@ End Class
         Dim success = other.Emit(outStrm)
         Assert.True(success.Success)
 
-        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute)
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            outStrm,
+            AttributeDescription.AssemblyKeyNameAttribute,
+            legacyStrongName:=True)
     End Sub
 
     <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
@@ -1374,13 +1392,42 @@ End Class
     ]]></file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib(
+            source,
+            TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
         Assert.True(success.Success)
 
-        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute)
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            outStrm,
+            AttributeDescription.AssemblyKeyNameAttribute,
+            legacyStrongName:=True)
+    End Sub
+
+    <Fact>
+    Public Sub SignModuleKeyFileAttr()
+        Dim x = s_keyPairFile
+
+        Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[<]]>Assembly: System.Reflection.AssemblyKeyFile("<%= x %>")>
+
+Public Class C
+End Class
+    </file>
+</compilation>
+
+        Dim other = CreateCompilationWithMscorlib(
+            source,
+            options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultPortableProvider))
+
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            other.EmitToStream(),
+            AttributeDescription.AssemblyKeyFileAttribute,
+            legacyStrongName:=False)
     End Sub
 
     <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
@@ -1406,7 +1453,7 @@ BC37207: Attribute 'System.Reflection.AssemblyKeyNameAttribute' given in a sourc
 
     <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
     <Fact>
-    Public Sub SignModuleKeyFileCmdLine()
+    Public Sub SignModuleKeyFileCmdLine_Legacy()
         Dim source =
 <compilation>
     <file name="a.vb">
@@ -1423,12 +1470,15 @@ End Class
         Dim success = other.Emit(outStrm)
         Assert.True(success.Success)
 
-        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute)
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            outStrm,
+            AttributeDescription.AssemblyKeyFileAttribute,
+            legacyStrongName:=True)
     End Sub
 
     <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
     <Fact>
-    Public Sub SignModuleKeyFileCmdLine_1()
+    Public Sub SignModuleKeyFileCmdLine_1_Legacy()
         Dim x = s_keyPairFile
         Dim source =
 <compilation>
@@ -1448,7 +1498,63 @@ End Class
         Dim success = other.Emit(outStrm)
         Assert.True(success.Success)
 
-        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute)
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            outStrm,
+            AttributeDescription.AssemblyKeyFileAttribute,
+            legacyStrongName:=True)
+    End Sub
+
+    <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
+    <Fact>
+    Public Sub SignModuleKeyFileCmdLine()
+        Dim source =
+<compilation>
+    <file name="a.vb">
+Public Class C
+End Class
+    </file>
+</compilation>
+
+        Dim other = CreateCompilationWithMscorlib(
+            source,
+            options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultPortableProvider))
+
+        Dim outStrm = New MemoryStream()
+        Dim success = other.Emit(outStrm)
+        Assert.True(success.Success)
+
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            outStrm,
+            AttributeDescription.AssemblyKeyFileAttribute,
+            legacyStrongName:=False)
+    End Sub
+
+    <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
+    <Fact>
+    Public Sub SignModuleKeyFileCmdLine_1()
+        Dim x = s_keyPairFile
+        Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[<]]>assembly: System.Reflection.AssemblyKeyFile("<%= x %>")>        
+
+Public Class C
+End Class
+    </file>
+</compilation>
+
+        Dim other = CreateCompilationWithMscorlib(
+            source,
+            options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultPortableProvider))
+
+        Dim outStrm = New MemoryStream()
+        Dim success = other.Emit(outStrm)
+        Assert.True(success.Success)
+
+        ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(
+            outStrm,
+            AttributeDescription.AssemblyKeyFileAttribute,
+            legacyStrongName:=False)
     End Sub
 
     <Fact>

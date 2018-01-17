@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, verify: verify);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)
@@ -1293,7 +1293,7 @@ class C
         Console.Write(i);
     }
 }";
-            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1");
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1", verify: Verification.Fails);
             verifier.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"
 {
@@ -1398,7 +1398,7 @@ class C
   IL_00c0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00c5:  ret
 }");
-            verifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"1");
+            verifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"1", verify: Verification.Fails);
             verifier.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"
 {
