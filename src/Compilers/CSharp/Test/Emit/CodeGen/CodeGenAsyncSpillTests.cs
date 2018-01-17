@@ -3225,5 +3225,80 @@ namespace AsyncBug
             var expected = new bool[] { false, true, false, true, false }.Aggregate("", (str, next) => str += $"{next}{Environment.NewLine}");
             var v = CompileAndVerify(source, expected);
         }
+
+        [Fact]
+        public void SpillAwaitBeforeRefReordered()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+    private static int i;
+
+    static ref int P => ref i;
+
+    static void Assign(ref int first, int second)
+    {
+        first = second;
+    }
+
+    public static async Task M(Task<int> t)
+    {
+        // OK: await goes before the ref
+        Assign(second: await t, first: ref P);
+    }
+
+    public static void Main()
+    {
+        M(Task.FromResult(42)).Wait();
+
+        System.Console.WriteLine(i);
+    }
+}
+";
+
+            var v = CompileAndVerify(source, "42");
+        }
+
+        [Fact]
+        public void SpillRefBeforeAwaitReordered()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+    private static int i;
+
+    static ref int P => ref i;
+
+    static void Assign(int first, ref int second)
+    {
+        second = first;
+    }
+
+    public static async Task M(Task<int> t)
+    {
+        // ERROR: await goes after the ref
+        Assign(second: ref P, first: await t);
+    }
+
+    public static void Main()
+    {
+        M(Task.FromResult(42)).Wait();
+
+        System.Console.WriteLine(i);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (18,28): error CS8178: 'await' cannot be used in an expression containing a call to 'C.P.get' because it returns by reference
+                //         Assign(second: ref P, first: await t);
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "P").WithArguments("C.P.get").WithLocation(18, 28)
+                );
+        }
     }
 }
