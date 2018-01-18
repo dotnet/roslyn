@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             private readonly ActiveStatementTrackingService _service;
             private readonly EditSession _editSession;
-            private readonly CancellationTokenSource _cancellation;
 
             #region lock(_trackingSpans)
 
@@ -114,18 +113,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 _service = service;
                 _editSession = editSession;
                 _trackingSpans = new Dictionary<DocumentId, ActiveStatementTrackingSpan[]>();
-                _cancellation = new CancellationTokenSource();
 
                 editSession.BaseSolution.Workspace.DocumentOpened += DocumentOpened;
 
                 // fire and forget on a background thread:
-                Task.Run(TrackActiveSpansAsync, _cancellation.Token);
+                try
+                {
+                    Task.Run(TrackActiveSpansAsync, _editSession.Cancellation.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                }
             }
 
             public void EndTracking()
             {
-                _cancellation.Cancel();
-
                 _editSession.BaseSolution.Workspace.DocumentOpened -= DocumentOpened;
 
                 lock (_trackingSpans)
@@ -157,7 +159,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         _service.OnTrackingSpansChanged(leafChanged);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                catch (OperationCanceledException)
+                {
+                    // nop
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
                     // nop
                 }
@@ -195,7 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                     _service.OnTrackingSpansChanged(leafChanged: true);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                catch (OperationCanceledException)
+                {
+                    // nop
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
                     // nop
                 }
