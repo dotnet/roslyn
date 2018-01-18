@@ -740,7 +740,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
-            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
 
             // prepare names
             var (elementNames, inferredPositions, hasErrors) = ExtractTupleElementNames(arguments, diagnostics);
@@ -771,8 +770,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 boundArguments.Add(boundArgument);
 
-                var elementType = boundArgument.GetTypeAndNullability(includeNullability);
-                elementTypes.Add(elementType);
+                var elementType = boundArgument.Type;
+                elementTypes.Add(TypeSymbolWithAnnotations.Create(elementType));
 
                 if ((object)elementType == null)
                 {

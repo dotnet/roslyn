@@ -394,6 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return valueResult.Expression ?? new BoundValuePlaceholder(value.Syntax, valueType?.IsNullable, valueType?.TypeSymbol);
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Remove.
+        private static ImmutableArray<BoundExpression> CreatePlaceholderExpressionsIfNecessary(ImmutableArray<BoundExpression> values, ImmutableArray<Result> valueResults)
+        {
+            return valueResults.ZipAsArray(values, (r, v) => CreatePlaceholderExpressionIfNecessary(v, r));
+        }
+
         /// <summary>
         /// Report nullable mismatch warnings and optionally update tracked value on assignment.
         /// </summary>
@@ -1625,11 +1631,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argsToParamsOpt = node.ArgsToParamsOpt;
             var arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
             ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, argsToParamsOpt, node.Expanded);
+            ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
             if (method.IsGenericMethod && !HasExplicitTypeArguments(node))
             {
-                method = InferMethod(node, method, results);
+                method = InferMethod(node, method, updatedArguments);
             }
-            var conversions = GetArgumentConversions(arguments, names, refKindsOpt, method, node.Expanded, _binder);
+            var conversions = GetArgumentConversions(updatedArguments, names, refKindsOpt, method, node.Expanded, _binder);
             VisitArgumentsWarn(arguments, conversions, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
 
             UpdateStateForCall(node);
@@ -1674,7 +1681,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             arguments = RemoveArgumentConversions(arguments, refKindsOpt);
             ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, argsToParamsOpt, expanded);
-            ImmutableArray<Conversion> conversions = (method is null) ? default : GetArgumentConversions(arguments, namesOpt, refKindsOpt, method, expanded, _binder);
+            ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
+            ImmutableArray<Conversion> conversions = (method is null) ? default : GetArgumentConversions(updatedArguments, namesOpt, refKindsOpt, method, expanded, _binder);
             VisitArgumentsWarn(arguments, conversions, refKindsOpt, (method is null) ? default : method.Parameters, argsToParamsOpt, expanded, results);
         }
 
@@ -1682,7 +1690,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             arguments = RemoveArgumentConversions(arguments, refKindsOpt);
             ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, argsToParamsOpt, expanded);
-            ImmutableArray<Conversion> conversions = GetArgumentConversions(property, property, default, arguments, namesOpt, refKindsOpt, _binder, expanded);
+            ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
+            ImmutableArray<Conversion> conversions = GetArgumentConversions(property, property, default, updatedArguments, namesOpt, refKindsOpt, _binder, expanded);
             VisitArgumentsWarn(arguments, conversions, refKindsOpt, property.Parameters, argsToParamsOpt, expanded, results);
         }
 
@@ -1934,13 +1943,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter;
         }
 
-        private MethodSymbol InferMethod(BoundCall node, MethodSymbol method, ImmutableArray<Result> argumentResults)
+        private MethodSymbol InferMethod(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(method.IsGenericMethod);
             // Use least overridden method, matching OverloadResolution.IsMemberApplicableInNormalForm
             // and IsMemberApplicableInExpandedForm.
             var definition = GetLeastOverriddenMethod(method.ConstructedFrom);
-            ImmutableArray<BoundExpression> arguments = argumentResults.ZipAsArray(node.Arguments, (r, a) => CreatePlaceholderExpressionIfNecessary(a, r));
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
             if (node.ArgumentRefKindsOpt != null)
             {
@@ -2167,12 +2175,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitTupleExpression(BoundTupleExpression node)
         {
             var arguments = node.Arguments;
-            foreach (var arg in arguments)
-            {
-                VisitRvalue(arg);
-            }
-            // PROTOTYPE(NullableReferenceTypes): Result should include nullability of arguments.
-            this.State.ResultType = TypeSymbolWithAnnotations.Create(node.Type);
+            var tuple = (TupleTypeSymbol)node.Type;
+            var elementTypes = arguments.SelectAsArray((a, w) => { w.VisitRvalue(a); return this.State.ResultType; }, this);
+            var resultType = TupleTypeSymbol.Create(
+                locationOpt: null,
+                elementTypes: elementTypes,
+                elementLocations: default,
+                elementNames: tuple.TupleElementNames,
+                compilation: compilation,
+                shouldCheckConstraints: false,
+                errorPositions: default,
+                syntax: (CSharpSyntaxNode)node.Syntax);
+            this.State.ResultType = TypeSymbolWithAnnotations.Create(resultType);
         }
 
         private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
@@ -2228,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE(NullableReferenceTypes): Remove `allowImplicitConversions`
         // parameter when all implicit conversion callers have been updated.
-        private static Result InferResultNullability(Conversion conversion, TypeSymbol targetType, Result operand, bool allowImplicitConversions = false)
+        private Result InferResultNullability(Conversion conversion, TypeSymbol targetType, Result operand, bool allowImplicitConversions = false)
         {
             Debug.Assert(allowImplicitConversions || !conversion.IsImplicit);
 
@@ -2299,6 +2313,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitEnumeration:
                     // Can reach here, with an error type.
                     break;
+
+                case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ExplicitTupleLiteral:
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTuple:
+                    {
+                        var targetTuple = (TupleTypeSymbol)targetType;
+                        var operandTuple = (TupleTypeSymbol)operand.Type.TypeSymbol;
+                        int n = operandTuple.TupleElementTypes.Length;
+                        var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
+                        var underlyingConversions = conversion.UnderlyingConversions;
+                        for (int i = 0; i < n; i++)
+                        {
+                            // PROTOTYPE(NullableReferenceTypes): Should pass in a BoundExpression for tuple
+                            // element rather than a Result. Another reason NullableWalker should be a rewriter.
+                            builder.Add(InferResultNullability(underlyingConversions[i], targetTuple.TupleElementTypes[i].TypeSymbol, Result.Create(operandTuple.TupleElementTypes[i]), allowImplicitConversions: true).Type);
+                        }
+                        return Result.Create(TypeSymbolWithAnnotations.Create(TupleTypeSymbol.Create(
+                            default,
+                            builder.ToImmutableAndFree(),
+                            elementLocations: default,
+                            elementNames: targetTuple.TupleElementNames,
+                            compilation: compilation,
+                            shouldCheckConstraints: false,
+                            errorPositions: default)));
+                    }
 
                 default:
                     Debug.Assert(targetType?.IsReferenceType != true);
@@ -3069,17 +3109,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
-            var result = base.VisitDefaultExpression(node);
-
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                this.State.ResultType = (object)node.Type == null ?
-                    null :
-                    TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true);
+                this.State.Result = Result.Create(node);
             }
 
-            return result;
+            return null;
         }
 
         public override BoundNode VisitIsOperator(BoundIsOperator node)
@@ -3136,15 +3172,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
         {
-            var result = base.VisitSuppressNullableWarningExpression(node);
+            var expr = node.Expression;
+            VisitRvalue(expr);
+            var result = this.State.Result;
+            expr = CreatePlaceholderExpressionIfNecessary(expr, result);
+            var type = result.Type?.SetUnknownNullabilityForReferenceTypes().TypeSymbol;
+            node = node.Update(expr, type);
+            this.State.Result = Result.Create(node);
 
-            Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
-            {
-                this.State.ResultType = this.State.ResultType?.SetUnknownNullabilityForReferenceTypes();
-            }
-
-            return result;
+            return null;
         }
 
         public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)
@@ -3587,8 +3623,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private string GetDebuggerDisplay()
             {
+                var expr = (object)Expression == null ? "<null>" : Expression.GetDebuggerDisplay();
                 var type = (object)Type == null ? "<null>" : Type.GetDebuggerDisplay();
-                return $"Type={type}, Slot={Slot}";
+                return $"Expression={expr}, Type={type}, Slot={Slot}";
             }
         }
 

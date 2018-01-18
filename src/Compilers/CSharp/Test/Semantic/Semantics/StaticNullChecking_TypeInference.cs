@@ -2085,6 +2085,30 @@ class C
         }
 
         [Fact]
+        public void TypeInference_Tuple_03()
+        {
+            var source =
+@"class C
+{
+    static void F(object? x, object? y)
+    {
+        if (x == null) return;
+        var t = (x, y);
+        t.x.ToString();
+        t.y.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,8): warning CS8602: Possible dereference of a null reference.
+                //         var t = (x, y);
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.x").WithLocation(6, 8));
+        }
+
+        [Fact]
         public void TypeInference_ObjectCreation()
         {
             var source =
