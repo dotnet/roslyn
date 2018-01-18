@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
-            // The semaphore is reset (closed) by default:
-            private readonly ManualResetEventSlim _disposeSemaphore = new ManualResetEventSlim(initialState: false);
+            private SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 0);
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
@@ -57,10 +56,14 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal void HookAutoRestartEvent()
             {
-                // hook the event only once per process:
-                if (Interlocked.Exchange(ref _processExitHandling, ProcessExitHooked) == 0)
+                using(_disposeSemaphore.DisposableWait())
                 {
-                    Process.Exited += ProcessExitedHandler;
+                    // hook the event only once per process:
+                    if (_processExitHandling == 0)
+                    {
+                        Process.Exited += ProcessExitedHandler;
+                        _processExitHandling = ProcessExitHooked;
+                    }
                 }
             }
 
@@ -68,16 +71,18 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
-                    if (Interlocked.Exchange(ref _processExitHandling, ProcessExitHandled) == ProcessExitHooked)
+                    using (await _disposeSemaphore.DisposableWaitAsync().ConfigureAwait(false))
                     {
-                        Process.Exited -= ProcessExitedHandler;
-
-                        if (!_disposing && _host != null)
+                        if (_processExitHandling == ProcessExitHooked)
                         {
-                            await _host.OnProcessExited(Process).ConfigureAwait(false);
-                        }
+                            Process.Exited -= ProcessExitedHandler;
+                            if (!_disposing)
+                            {
+                                await _host.OnProcessExited(Process).ConfigureAwait(false);
+                            }
 
-                        _disposeSemaphore.Set();
+                            _processExitHandling = ProcessExitHandled;
+                        }
                     }
                 }
                 catch (Exception e) when (FatalError.Report(e))
@@ -121,18 +126,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // set _disposing so that we don't attempt restart the host anymore:
                 _disposing = true;
 
-                if (Interlocked.Exchange(ref _processExitHandling, ProcessExitHandled) == ProcessExitHooked)
+                using(_disposeSemaphore.DisposableWait())
                 {
-                    Process.Exited -= ProcessExitedHandler;
-                    _disposeSemaphore.Set();
-                }
-
-                using (var semaphore = _disposeSemaphore)
-                {
-                    if (semaphore != null)
+                    if (_processExitHandling == ProcessExitHooked)
                     {
-                        // This semaphore should be set either in the block just above or by completion of another thread that was able to execute Interlocked.Exchange before.
-                        semaphore.Wait();
+                        Process.Exited -= ProcessExitedHandler;
+                        _processExitHandling = ProcessExitHandled;
                     }
                 }
 
