@@ -17,11 +17,13 @@ namespace Microsoft.CodeAnalysis.Operations
 
     /// <summary>
     /// PROTOTYPE(dataflow): Add documentation
+    /// PROTOTYPE(dataflow): We need to figure out how to split it into a builder and 
+    ///                      a public immutable type.
     /// </summary>
     public sealed class BasicBlock
     {
-        private ImmutableArray<IOperation>.Builder _statements;
-        private ImmutableHashSet<BasicBlock>.Builder _predecessors;
+        private readonly ImmutableArray<IOperation>.Builder _statements;
+        private readonly ImmutableHashSet<BasicBlock>.Builder _predecessors;
 
         public BasicBlock(BasicBlockKind kind)
         {
@@ -32,8 +34,17 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public BasicBlockKind Kind { get; private set; }
         public ImmutableArray<IOperation> Statements => _statements.ToImmutable();
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): Tuple is temporary return type, we probably should use special structure instead.
+        /// </summary>
         public (IOperation Condition, bool JumpIfTrue, BasicBlock Destination) Conditional { get; internal set; }
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): During CR there was a suggestion to use different name - "Successor".
+        /// </summary>
         public BasicBlock Next { get; internal set; }
+
         public ImmutableHashSet<BasicBlock> Predecessors => _predecessors.ToImmutable();
 
         internal void AddStatement(IOperation statement)

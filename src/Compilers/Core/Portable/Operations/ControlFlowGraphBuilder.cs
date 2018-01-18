@@ -12,13 +12,21 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed class ControlFlowGraphBuilder : OperationCloner
     {
+        // PROTOTYPE(dataflow): does it have to be a field?
         private readonly BasicBlock _entry = new BasicBlock(BasicBlockKind.Entry);
+
+        // PROTOTYPE(dataflow): does it have to be a field?
         private readonly BasicBlock _exit = new BasicBlock(BasicBlockKind.Exit);
+
         private ArrayBuilder<BasicBlock> _blocks;
         private BasicBlock _currentBasicBlock;
         private IOperation _currentStatement;
         private ArrayBuilder<IOperation> _evalStack;
-        private int _availableCaptureId;
+
+        // PROTOTYPE(dataflow): does the public API IFlowCaptureOperation.Id specify how identifiers are created or assigned?
+        // Should we use uint to exclude negative integers? Should we randomize them in any way to avoid dependencies 
+        // being taken?
+        private int _availableCaptureId = 0;
 
         private ControlFlowGraphBuilder()
         { }
@@ -160,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // afterif:
 
                     BasicBlock afterIf = null;
-                    VisitConditionalBranch(operation.Condition, ref afterIf, false);
+                    VisitConditionalBranch(operation.Condition, ref afterIf, sense: false);
                     VisitStatement(operation.WhenTrue);
                     AppendNewBlock(afterIf);
                 }
@@ -181,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // afterif:
 
                     BasicBlock whenFalse = null;
-                    VisitConditionalBranch(operation.Condition, ref whenFalse, false);
+                    VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
 
                     VisitStatement(operation.WhenTrue);
 
@@ -209,24 +217,24 @@ namespace Microsoft.CodeAnalysis.Operations
                 // alt:
                 // capture = alternative;
                 // afterif:
-                // result - cupture
+                // result - capture
 
                 SpillEvalStack();
                 int captureId = _availableCaptureId++;
 
                 BasicBlock whenFalse = null;
-                VisitConditionalBranch(operation.Condition, ref whenFalse, false);
+                VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
 
-                AddStatement(new SimpleAssignmentExpression(new FlowCapture(captureId, operation.Syntax, 
-                                                                            isInitialization:true, operation.Type, 
+                AddStatement(new SimpleAssignmentExpression(new FlowCapture(captureId, operation.Syntax,
+                                                                            isInitialization: true, operation.Type,
                                                                             default(Optional<object>)),
                                                             operation.IsRef,
                                                             Visit(operation.WhenTrue),
-                                                            semanticModel:null,
+                                                            semanticModel: null,
                                                             operation.WhenTrue.Syntax,
                                                             operation.Type,
                                                             default(Optional<object>),
-                                                            isImplicit:true));
+                                                            isImplicit: true));
 
                 var afterIf = new BasicBlock(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, afterIf);
@@ -247,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 AppendNewBlock(afterIf);
 
-                return new FlowCapture(captureId, operation.Syntax, isInitialization:false, operation.Type, operation.ConstantValue);
+                return new FlowCapture(captureId, operation.Syntax, isInitialization: false, operation.Type, operation.ConstantValue);
             }
         }
 
@@ -263,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     AddStatement(new SimpleAssignmentExpression(new FlowCapture(captureId, operation.Syntax,
                                                                                 isInitialization: true, operation.Type,
                                                                                 default(Optional<object>)),
-                                                                isRef:false, // PROTOTYPE(dataflow): Is 'false' always the right value?
+                                                                isRef: false, // PROTOTYPE(dataflow): Is 'false' always the right value?
                                                                 operation,
                                                                 semanticModel: null,
                                                                 operation.Syntax,
@@ -307,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             if (IsConditional(operation))
             {
-                return VisitBinaryConditionalOperator(operation, true);
+                return VisitBinaryConditionalOperator(operation, sense: true);
             }
 
             return base.VisitBinaryOperator(operation, argument);
@@ -347,12 +355,12 @@ namespace Microsoft.CodeAnalysis.Operations
                     if (!andOrSense)
                     {
                         // generate (~a || ~b)
-                        return VisitShortCircuitingOperator(binOp, sense, sense, true);
+                        return VisitShortCircuitingOperator(binOp, sense: sense, stopSense: sense, stopValue: true);
                     }
                     else
                     {
                         // generate (a && b)
-                        return VisitShortCircuitingOperator(binOp, sense, !sense, false);
+                        return VisitShortCircuitingOperator(binOp, sense: sense, stopSense: !sense, stopValue: false);
                     }
 
                 default:
@@ -395,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 AddStatement(new SimpleAssignmentExpression(new FlowCapture(captureId, rightSyntax,
                                                                             isInitialization: true, condition.Type,
                                                                             default(Optional<object>)),
-                                                            isRef:false,
+                                                            isRef: false,
                                                             resultFromRight,
                                                             semanticModel: null,
                                                             rightSyntax,
@@ -411,14 +419,14 @@ namespace Microsoft.CodeAnalysis.Operations
             AppendNewBlock(lazyFallThrough);
 
             var constantValue = new Optional<object>(stopValue);
-            SyntaxNode lrftSyntax = condition.LeftOperand.Syntax;
-            AddStatement(new SimpleAssignmentExpression(new FlowCapture(captureId, lrftSyntax,
+            SyntaxNode leftSyntax = condition.LeftOperand.Syntax;
+            AddStatement(new SimpleAssignmentExpression(new FlowCapture(captureId, leftSyntax,
                                                                         isInitialization: true, condition.Type,
                                                                         default(Optional<object>)),
                                                         isRef: false,
-                                                        new LiteralExpression(semanticModel:null, lrftSyntax, condition.Type, constantValue, isImplicit:true),
+                                                        new LiteralExpression(semanticModel: null, leftSyntax, condition.Type, constantValue, isImplicit: true),
                                                         semanticModel: null,
-                                                        lrftSyntax,
+                                                        leftSyntax,
                                                         condition.Type,
                                                         constantValue,
                                                         isImplicit: true));

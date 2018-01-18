@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// PROTOTYPE(dataflow): Add documentation. Also, we should guard this API with a feature flag before we merge it to master.
+        /// </summary>
         public ImmutableArray<Operations.BasicBlock> GetControlFlowGraph(Operations.IBlockOperation body)
         {
             return Operations.ControlFlowGraphBuilder.Create(body);

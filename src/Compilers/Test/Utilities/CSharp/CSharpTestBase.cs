@@ -1156,7 +1156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     {
                         stringBuilder.Builder.AppendLine($"        [{j}]");
                     }
-
                 }
 
                 var statements = block.Statements;
@@ -1168,13 +1167,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
                 if (block.Conditional.Condition != null)
                 {
-                    stringBuilder.Builder.AppendLine($"    Jump if {block.Conditional.JumpIfTrue} to Block[{(map.TryGetValue(block.Conditional.Destination, out var index) ? index : -1)}]");
+                    Assert.True(map.TryGetValue(block.Conditional.Destination, out int index));
+                    stringBuilder.Builder.AppendLine($"    Jump if {block.Conditional.JumpIfTrue} to Block[{index}]");
                     stringBuilder.Builder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, block.Conditional.Condition, initialIndent: 8));
                 }
 
                 if (block.Next != null)
                 {
-                    stringBuilder.Builder.AppendLine($"    Next Block[{(map.TryGetValue(block.Next, out var index) ? index : -1)}]");
+                    Assert.True(map.TryGetValue(block.Next, out var index));
+                    stringBuilder.Builder.AppendLine($"    Next Block[{index}]");
                 }
             }
 
