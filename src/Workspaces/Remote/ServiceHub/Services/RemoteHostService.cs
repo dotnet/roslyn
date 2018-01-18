@@ -214,9 +214,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            // set default culture for Roslyn OOP
-            CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(uiCultureLCID);
-            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(cultureLCID);
+            EnsureCulture(uiCultureLCID, cultureLCID);
 
             // set roslyn loggers
             WatsonReporter.SetTelemetrySession(session);
@@ -226,6 +224,31 @@ namespace Microsoft.CodeAnalysis.Remote
             // set both handler as NFW
             FatalError.Handler = WatsonReporter.Report;
             FatalError.NonFatalHandler = WatsonReporter.Report;
+        }
+
+        private static void EnsureCulture(int uiCultureLCID, int cultureLCID)
+        {
+            // this follows what VS does
+            // http://index/?leftProject=Microsoft.VisualStudio.Platform.AppDomainManager&leftSymbol=wok83tw8yxy7&file=VsAppDomainManager.cs&line=106
+            try
+            {
+                // set default culture for Roslyn OOP
+                CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(uiCultureLCID);
+                CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(cultureLCID);
+            }
+            catch (Exception ex) when (ExpectedCultureIssue(ex))
+            {
+                // ignore expected culture issue
+            }
+        }
+
+        private static bool ExpectedCultureIssue(Exception ex)
+        {
+            // report exception
+            WatsonReporter.Report(ex);
+
+            // ignore expected exception
+            return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
         }
 
         private static TelemetrySession GetTelemetrySession(string serializedSession)
