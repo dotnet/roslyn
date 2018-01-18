@@ -454,13 +454,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 if (PlatformInformation.IsWindows)
                 {
-                    if (CoreClrShim.IsRunningOnCoreClr)
-                    {
-                        // CoreCLR doesn't have these APIs, so we just have to rely on
-                        // Windows ACLs for security
-                        return true;
-                    }
-
                     var currentIdentity = WindowsIdentity.GetCurrent();
                     var currentOwner = currentIdentity.Owner;
                     var remotePipeSecurity = GetPipeSecurity(pipeStream);
@@ -512,14 +505,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
         {
-#if NETSTANDARD1_3
-            return (ObjectSecurity)typeof(PipeStream)
-                .GetTypeInfo()
-                .GetDeclaredMethod("GetAccessControl")
-                ?.Invoke(pipeStream, parameters: null);
-#else
             return pipeStream.GetAccessControl();
-#endif
         }
 
         private static string GetUserName() =>
