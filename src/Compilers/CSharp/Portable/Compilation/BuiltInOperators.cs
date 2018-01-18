@@ -729,8 +729,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var left = createIntRange.ParameterTypes[0];
                 var right = createIntRange.ParameterTypes[1];
                 var ret = createIntRange.ReturnType;
-                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefinedRange, left, right, ret, createIntRange));
-                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUserDefinedRange, nullable.Construct(left), nullable.Construct(right), nullable.Construct(ret), createIntRange));
+                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.IntRange, left, right, ret, createIntRange));
+                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedIntRange, nullable.Construct(left), nullable.Construct(right), nullable.Construct(ret), createIntRange));
             }
 
             if (createLongRange != null)
@@ -738,8 +738,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var left = createLongRange.ParameterTypes[0];
                 var right = createLongRange.ParameterTypes[1];
                 var ret = createLongRange.ReturnType;
-                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefinedRange, left, right, ret, createLongRange));
-                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUserDefinedRange, nullable.Construct(left), nullable.Construct(right), nullable.Construct(ret), createLongRange));
+                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.LongRange, left, right, ret, createLongRange));
+                builder.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedLongRange, nullable.Construct(left), nullable.Construct(right), nullable.Construct(ret), createLongRange));
             }
 
             // If the members are missing, errors will be reported in Binder_Operators.cs ReportBinaryOperatorError

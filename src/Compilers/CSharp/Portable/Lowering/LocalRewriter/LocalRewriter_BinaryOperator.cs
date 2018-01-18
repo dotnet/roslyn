@@ -351,6 +351,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.DecimalGreaterThanOrEqual:
                         return RewriteDecimalBinaryOperation(syntax, loweredLeft, loweredRight, operatorKind);
 
+                    case BinaryOperatorKind.IntRange:
+                    case BinaryOperatorKind.LongRange:
+                        return RewriteRangeOperation(syntax, loweredLeft, loweredRight, method);
+
                     case BinaryOperatorKind.PointerAndIntAddition:
                     case BinaryOperatorKind.PointerAndUIntAddition:
                     case BinaryOperatorKind.PointerAndLongAddition:
@@ -1902,6 +1906,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // call Operator (left, right)
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
+
+            return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+        }
+
+        private BoundExpression RewriteRangeOperation(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight, MethodSymbol method)
+        {
+            Debug.Assert(loweredLeft.Type.SpecialType.IsIntegralType());
+            Debug.Assert(loweredRight.Type.SpecialType.IsIntegralType());
 
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
         }
