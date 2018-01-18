@@ -1498,6 +1498,11 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
         <target state="translated">Rechtlicher Hinweis zum Decompiler</target>
         <note />
       </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
     </body>
   </file>
 </xliff>

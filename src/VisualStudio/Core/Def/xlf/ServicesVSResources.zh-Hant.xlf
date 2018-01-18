@@ -1498,6 +1498,11 @@ I agree to all of the foregoing:</source>
         <target state="translated">解編程式的法律聲明</target>
         <note />
       </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
     </body>
   </file>
 </xliff>

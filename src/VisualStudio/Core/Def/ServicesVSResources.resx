@@ -1015,4 +1015,8 @@ I agree to all of the foregoing:</value>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
   </data>
+  <data name="Disabling_the_extension_0_unbound_your_keyboard_bindings" xml:space="preserve">
+    <value>Disabling the extension '{0}' unbound your keyboard bindings.</value>
+    <comment>0 is an extension name</comment>
+  </data>
 </root>
