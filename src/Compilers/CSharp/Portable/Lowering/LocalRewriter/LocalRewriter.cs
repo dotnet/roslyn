@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
                 }
-
-                //LocalRewritingValidator.Validate(loweredStatement);
-
+#if DEBUG
+                LocalRewritingValidator.Validate(loweredStatement);
+#endif
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
@@ -600,17 +600,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if DEBUG
-        private class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        /// <summary>
+        /// Note: do not use a static/singleton instance of this type, as it holds state.
+        /// </summary>
+        private sealed class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
-            private static LocalRewritingValidator s_instance = new LocalRewritingValidator();
-
             /// <summary>
             /// Asserts that no unexpected nodes survived local rewriting.
             /// </summary>
-            [Conditional("DEBUG")]
             public static void Validate(BoundNode node)
             {
-                s_instance.Visit(node);
+                new LocalRewritingValidator().Visit(node);
             }
 
             public override BoundNode VisitUsingStatement(BoundUsingStatement node)
