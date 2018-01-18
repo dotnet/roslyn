@@ -20,89 +20,99 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         public Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
         {
             DkmComponentManager.InitializeThread(DebuggerComponentIds.ManagedEditAndContinueService);
-
-            // TODO: report errors
-            // TODO: return empty outside of debug session.
-
-            var workList = DkmWorkList.Create(CompletionRoutine: null);
-            var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
-            var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
-            int pendingRuntimes = 0;
-            int runtimeCount = 0;
-
-            foreach (var process in DkmProcess.GetProcesses())
+            try
             {
-                foreach (var runtimeInstance in process.GetRuntimeInstances())
+                // TODO: report errors
+                // TODO: return empty outside of debug session.
+                // https://github.com/dotnet/roslyn/issues/24325
+
+                var workList = DkmWorkList.Create(CompletionRoutine: null);
+                var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
+                var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
+                int pendingRuntimes = 0;
+                int runtimeCount = 0;
+
+                foreach (var process in DkmProcess.GetProcesses())
                 {
-                    if (runtimeInstance.TagValue == DkmRuntimeInstance.Tag.ClrRuntimeInstance)
+                    foreach (var runtimeInstance in process.GetRuntimeInstances())
                     {
-                        var clrRuntimeInstance = (DkmClrRuntimeInstance)runtimeInstance;
-
-                        int runtimeIndex = runtimeCount;
-                        clrRuntimeInstance.GetActiveStatements(workList, activeStatementsResult =>
+                        if (runtimeInstance.TagValue == DkmRuntimeInstance.Tag.ClrRuntimeInstance)
                         {
-                            if (cancellationToken.IsCancellationRequested)
+                            var clrRuntimeInstance = (DkmClrRuntimeInstance)runtimeInstance;
+
+                            int runtimeIndex = runtimeCount;
+                            clrRuntimeInstance.GetActiveStatements(workList, activeStatementsResult =>
                             {
-                                workList.Cancel();
-                                completion.SetCanceled();
-                            }
-
-                            // group active statement by instruction and aggregate flags and threads:
-                            var instructionMap = PooledDictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)>.GetInstance();
-                            GroupActiveStatementsByInstructionId(instructionMap, activeStatementsResult.ActiveStatements);
-
-                            int pendingStatements = instructionMap.Count;
-                            builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
-                            builders[runtimeIndex].Count = pendingStatements;
-
-                            foreach (var (instructionId, (symbol, threads, index, flags)) in instructionMap)
-                            {
-                                symbol.GetSourcePosition(workList, DkmSourcePositionFlags.None, InspectionSession: null, sourcePositionResult =>
+                                if (cancellationToken.IsCancellationRequested)
                                 {
-                                    if (cancellationToken.IsCancellationRequested)
-                                    {
-                                        workList.Cancel();
-                                        completion.SetCanceled();
-                                    }
+                                    workList.Cancel();
+                                    completion.SetCanceled();
+                                }
 
-                                    if (sourcePositionResult.ErrorCode == 0)
-                                    {
-                                        builders[runtimeIndex][index] = new ActiveStatementDebugInfo(
-                                            instructionId,
-                                            sourcePositionResult.SourcePosition.DocumentName,
-                                            ToLinePositionSpan(sourcePositionResult.SourcePosition.TextSpan),
-                                            threads.ToImmutableAndFree(),
-                                            flags);
-                                    }
+                                // group active statement by instruction and aggregate flags and threads:
+                                var instructionMap = PooledDictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)>.GetInstance();
+                                GroupActiveStatementsByInstructionId(instructionMap, activeStatementsResult.ActiveStatements);
 
-                                    // the last active statement of the current runtime has been processed:
-                                    if (Interlocked.Decrement(ref pendingStatements) == 0)
-                                    {
-                                        instructionMap.Free();
+                                int pendingStatements = instructionMap.Count;
+                                builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
+                                builders[runtimeIndex].Count = pendingStatements;
 
-                                        // the last active statement of the last runtime has been processed:
-                                        if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                foreach (var (instructionId, (symbol, threads, index, flags)) in instructionMap)
+                                {
+                                    symbol.GetSourcePosition(workList, DkmSourcePositionFlags.None, InspectionSession: null, sourcePositionResult =>
+                                    {
+                                        if (cancellationToken.IsCancellationRequested)
                                         {
-                                            completion.SetResult(builders.ToImmutableArrayAndFree());
+                                            workList.Cancel();
+                                            completion.SetCanceled();
                                         }
-                                    }
-                                });
-                            }
-                        });
 
-                        runtimeCount++;
+                                        if (sourcePositionResult.ErrorCode == 0)
+                                        {
+                                            builders[runtimeIndex][index] = new ActiveStatementDebugInfo(
+                                                instructionId,
+                                                sourcePositionResult.SourcePosition.DocumentName,
+                                                ToLinePositionSpan(sourcePositionResult.SourcePosition.TextSpan),
+                                                threads.ToImmutableAndFree(),
+                                                flags);
+                                        }
+
+                                        // the last active statement of the current runtime has been processed:
+                                        if (Interlocked.Decrement(ref pendingStatements) == 0)
+                                        {
+                                            instructionMap.Free();
+
+                                            // the last active statement of the last runtime has been processed:
+                                            if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                            {
+                                                completion.SetResult(builders.ToImmutableArrayAndFree());
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+
+                            runtimeCount++;
+                        }
                     }
                 }
+
+                pendingRuntimes = runtimeCount;
+                builders = ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>.GetInstance(runtimeCount);
+                builders.Count = runtimeCount;
+
+                // Start execution of the Concord work items.
+                workList.BeginExecution();
+
+                return completion.Task;
             }
-
-            pendingRuntimes = runtimeCount;
-            builders = ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>.GetInstance(runtimeCount);
-            builders.Count = runtimeCount;
-
-            // Start execution of the Concord work items.
-            workList.BeginExecution();
-
-            return completion.Task;
+            finally
+            {
+                // Since we don't own this thread we need to uninitialize the dispatcher. Otherwise if the thread is reused by another bit of code 
+                // trying to call into the Concord API than its InitializeThread will fail.
+                // The work items we queued to the work list above will be run on a dedicated thread maintained by the Concord dispatcher.
+                DkmComponentManager.UninitializeThread(DebuggerComponentIds.ManagedEditAndContinueService);
+            }
         }
     }
 }
