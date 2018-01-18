@@ -659,7 +659,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUserDefinedXor = Lifted | UserDefined | Xor,
         DynamicXor = Dynamic | Xor,
 
-        UserDefinedRange = UserDefined | Range,
-        LiftedUserDefinedRange = Lifted | UserDefined | Range,
+        IntRange = Int | Range,
+        LongRange = Long | Range,
+        LiftedIntRange = Lifted | IntRange,
+        LiftedLongRange = Lifted | LongRange,
     }
 }

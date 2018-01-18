@@ -449,7 +449,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsteriskToken:
                 case SyntaxKind.SlashToken:
                 case SyntaxKind.PercentToken:
-                case SyntaxKind.DotDotToken:
                 case SyntaxKind.CaretToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.BarToken:

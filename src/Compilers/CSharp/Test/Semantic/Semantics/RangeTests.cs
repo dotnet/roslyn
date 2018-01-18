@@ -206,6 +206,9 @@ class C
                 // (4,29): error CS8320: Feature 'range' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     public static C operator..(C l, C r) => null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "..").WithArguments("range", "7.3").WithLocation(4, 29),
+                // (4,29): error CS1020: Overloadable binary operator expected
+                //     public static C operator..(C l, C r) => null;
+                Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "..").WithLocation(4, 29),
                 // (7,18): error CS8320: Feature 'range' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var a = 0..1;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "..").WithArguments("range", "7.3").WithLocation(7, 18)
@@ -351,53 +354,6 @@ class C
 ";
 
             CompileAndVerify(new[] { RangeStruct, source }, expectedOutput: "2,3,4;2,3,4;2,3,4|False,False,False");
-        }
-
-        [Fact]
-        public void CustomOperatorDotDot()
-        {
-            var source = @"
-class C
-{
-    public static object operator..(C left, C right)
-    {
-        System.Console.Write(""ok"");
-        return null;
-    }
-    static void Main()
-    {
-        var x = new C()..new C();
-    }
-}
-";
-
-            CompileAndVerify(source, expectedOutput: "ok");
-        }
-
-        [Fact]
-        public void LiftedCustomOperatorDotDot()
-        {
-            var source = @"
-using System;
-struct C
-{
-    public static bool operator..(C left, C right)
-    {
-        Console.Write(""ok"");
-        return true;
-    }
-    static void Main()
-    {
-        C? nullable = new C();
-        var res = nullable..nullable;
-        Console.Write("","");
-        // Compare to null to make sure the type is bool?, not bool
-        Console.Write(res == null);
-    }
-}
-";
-
-            CompileAndVerify(source, expectedOutput: "ok,False");
         }
 
         [Fact]
