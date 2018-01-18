@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;              // nulled on dispose
-            private bool _disposing;                    // set to true on dispose
             private int _processExitHandling;           // set to ProcessExitHandled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
@@ -36,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(service != null);
 
                 _host = host;
-                _disposing = false;
                 this.Process = process;
                 _processId = processId;
                 this.Service = service;
@@ -76,11 +74,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         if (_processExitHandling == ProcessExitHooked)
                         {
                             Process.Exited -= ProcessExitedHandler;
-                            if (!_disposing)
-                            {
-                                await _host.OnProcessExited(Process).ConfigureAwait(false);
-                            }
-
+                            await _host.OnProcessExited(Process).ConfigureAwait(false);
                             _processExitHandling = ProcessExitHandled;
                         }
                     }
@@ -123,9 +117,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal void Dispose(bool joinThreads)
             {
-                // set _disposing so that we don't attempt restart the host anymore:
-                _disposing = true;
-
                 using(_disposeSemaphore.DisposableWait())
                 {
                     if (_processExitHandling == ProcessExitHooked)
