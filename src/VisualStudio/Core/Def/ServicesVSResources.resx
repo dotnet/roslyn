@@ -1016,6 +1016,6 @@ I agree to all of the foregoing:</value>
     <value>Decompiler Legal Notice</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
-    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use EditorConfig.</value>
+    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
   </data>
 </root>

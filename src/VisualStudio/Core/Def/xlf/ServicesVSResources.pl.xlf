@@ -1499,8 +1499,8 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use EditorConfig.</source>
-        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use EditorConfig.</target>
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
         <note />
       </trans-unit>
     </body>
