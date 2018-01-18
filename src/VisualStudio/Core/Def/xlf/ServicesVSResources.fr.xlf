@@ -1457,16 +1457,6 @@ Informations supplémentaires : {1}</target>
         <target state="translated">Utiliser des combinaisons de touches pour ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Vos combinaisons de touches ne sont plus mappées aux commandes Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Nous avons remarqué que vous avez suspendu 'ReSharper Ultimate'. Restaurez les combinaisons de touches Visual Studio pour continuer à naviguer et à refactoriser.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Activer la navigation vers des sources décompilées (expérimental)</target>

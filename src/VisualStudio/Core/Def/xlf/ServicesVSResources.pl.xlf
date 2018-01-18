@@ -1457,16 +1457,6 @@ Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżąceg
         <target state="translated">Użyj powiązań klawiszy dla programu ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Twoje powiązania klawiszy nie są już zamapowane na polecenia programu Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Zauważyliśmy, że program „ReSharper Ultimate” został przez Ciebie zawieszony. Przywróć powiązania klawiszy programu Visual Studio, aby kontynuować nawigowanie i refaktoryzację.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Włącz nawigowanie do dekompilowanych źródeł (funkcja eksperymentalna)</target>

@@ -1457,16 +1457,6 @@ La opción "Carga de solución ligera" está habilitada para la solución actual
         <target state="translated">Use enlaces de teclado para ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Los enlaces de teclado ya no están asignados a los comandos de Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Hemos observado que ha suspendido "ReSharper Ultimate". Restaure los enlaces de teclado de Visual Studio para seguir navegando y refactorizando.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Habilitar la navegación a orígenes decompilados (experimental)</target>

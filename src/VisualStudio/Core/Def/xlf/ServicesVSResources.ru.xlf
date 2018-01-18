@@ -1457,16 +1457,6 @@ Additional information: {1}</source>
         <target state="translated">Используйте настраиваемые сочетания клавиш для ReSharper, IntelliJ, Vim и т. д.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Ваши настраиваемые сочетания клавиш больше не сопоставлены с командами Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Мы обратили внимание, что вы перестали использовать "ReSharper Ultimate". Восстановите настраиваемые сочетания клавиш Visual Studio, чтобы возобновить навигацию и рефакторинг.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Включить переход к декомпилированным источникам (экспериментальная функция)</target>

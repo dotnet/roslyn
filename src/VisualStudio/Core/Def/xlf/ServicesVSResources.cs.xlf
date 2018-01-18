@@ -1457,16 +1457,6 @@ Pro aktuální řešení je povolené zjednodušené načtení řešení. Jeho z
         <target state="translated">Použijte vazby kláves pro ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Vaše vazby kláves už nejsou namapované na příkazy sady Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Všimli jsme si, že jste pozastavili ReSharper Ultimate. Pokud chcete pokračovat v navigaci a refaktoringu, obnovte vazby kláves pro Visual Studio.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Povolit navigaci na dekompilované zdroje (experimentální)</target>

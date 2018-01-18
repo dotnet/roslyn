@@ -1457,16 +1457,6 @@ O 'Carregamento da solução leve' está habilitado para a solução atual. Desa
         <target state="translated">Use associações de teclas para ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Suas associações de teclas não são mais mapeadas para comandos do Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Observamos que você suspendeu o 'ReSharper Ultimate'. Restaure as associações de teclas do Visual Studio para continuar a navegar e refatorar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Habilitar a navegação para origens descompiladas (experimental)</target>
