@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
@@ -19,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
-            private readonly SemaphoreSlim _disposeSemaphore;
+            // The semaphore is reset (closed) by default:
+            private readonly ManualResetEventSlim _disposeSemaphore = new ManualResetEventSlim(initialState: false);
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
@@ -28,12 +30,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             private bool _disposing;                    // set to true on dispose
             private int _processExitHandling;           // set to ProcessExitHandled on dispose
 
-            internal RemoteService(InteractiveHost host, Process process, int processId, Service service, SemaphoreSlim disposeSemaphore)
+            internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
             {
                 Debug.Assert(host != null);
                 Debug.Assert(process != null);
                 Debug.Assert(service != null);
-                Debug.Assert(disposeSemaphore != null);
 
                 _host = host;
                 _disposing = false;
@@ -41,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _processId = processId;
                 this.Service = service;
                 _processExitHandling = 0;
-                _disposeSemaphore = disposeSemaphore;
 
                 // TODO (tomat): consider using single-thread async readers
                 _readOutputThread = new Thread(() => ReadOutput(error: false));
@@ -72,16 +72,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                     {
                         Process.Exited -= ProcessExitedHandler;
 
-                        if (!_disposing)
+                        if (!_disposing && _host != null)
                         {
-                            using (await _disposeSemaphore.DisposableWaitAsync().ConfigureAwait(false))
-                            {
-                                if (_host != null)
-                                {
-                                    await _host.OnProcessExited(Process).ConfigureAwait(false);
-                                }
-                            }
+                            await _host.OnProcessExited(Process).ConfigureAwait(false);
                         }
+
+                        _disposeSemaphore.Set();
                     }
                 }
                 catch (Exception e) when (FatalError.Report(e))
@@ -124,39 +120,57 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 // set _disposing so that we don't attempt restart the host anymore:
                 _disposing = true;
+
                 if (Interlocked.Exchange(ref _processExitHandling, ProcessExitHandled) == ProcessExitHooked)
                 {
                     Process.Exited -= ProcessExitedHandler;
+                    _disposeSemaphore.Set();
+                }
+
+                using (var semaphore = _disposeSemaphore)
+                {
+                    if (semaphore != null)
+                    {
+                        // This semaphore should be set either in the block just above or by completion of another thread that was able to execute Interlocked.Exchange before.
+                        semaphore.Wait();
+                    }
                 }
 
                 InitiateTermination(Process, _processId);
 
-                // only tests require joining the threads, so we can wait synchronously
                 if (joinThreads)
                 {
-                    if (_readOutputThread != null)
+                    var readOutputThreadJoinTask = Task.Run(() =>
                     {
-                        try
+                        if (_readOutputThread != null)
                         {
-                            _readOutputThread.Join();
+                            try
+                            {
+                                _readOutputThread.Join();
+                            }
+                            catch (ThreadStateException)
+                            {
+                                // thread hasn't started
+                            }
                         }
-                        catch (ThreadStateException)
-                        {
-                            // thread hasn't started
-                        }
-                    }
+                    });
 
-                    if (_readErrorOutputThread != null)
+                    var readErrorOutputThreadJoinTask = Task.Run(() =>
                     {
-                        try
+                        if (_readErrorOutputThread != null)
                         {
-                            _readErrorOutputThread.Join();
+                            try
+                            {
+                                _readErrorOutputThread.Join();
+                            }
+                            catch (ThreadStateException)
+                            {
+                                // thread hasn't started
+                            }
                         }
-                        catch (ThreadStateException)
-                        {
-                            // thread hasn't started
-                        }
-                    }
+                    });
+
+                    Task.WaitAll(readOutputThreadJoinTask, readErrorOutputThreadJoinTask);
                 }
 
                 // null the host so that we don't attempt to write to the buffer anymore:
