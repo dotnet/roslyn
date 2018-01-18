@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [Export(typeof(IActiveStatementTrackingService))]
     internal sealed class ActiveStatementTrackingService : IActiveStatementTrackingService
     {
-        private TrackingSession _session;
+        private TrackingSession _sessionOpt;
 
         internal ActiveStatementTrackingService()
         {
@@ -43,23 +43,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public void StartTracking(EditSession editSession)
         {
-            if (Interlocked.CompareExchange(ref _session, new TrackingSession(this, editSession), null) != null)
+            var newSession = new TrackingSession(this, editSession);
+            if (Interlocked.CompareExchange(ref _sessionOpt, newSession, null) != null)
             {
-                Debug.Assert(false, "Can only track active statements for a single edit session.");
+                Contract.Fail("Can only track active statements for a single edit session.");
+                newSession.EndTracking();
             }
         }
 
         public void EndTracking()
         {
-            TrackingSession session = Interlocked.Exchange(ref _session, null);
-            Debug.Assert(session != null, "Active statement tracking not started.");
-
+            var session = Interlocked.Exchange(ref _sessionOpt, null);
+            Contract.ThrowIfNull(session, "Active statement tracking not started.");
             session.EndTracking();
         }
 
         public bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span)
         {
-            TrackingSession session = _session;
+            var session = _sessionOpt;
             if (session == null)
             {
                 span = default;
@@ -71,12 +72,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public IEnumerable<ActiveStatementTextSpan> GetSpans(SourceText source)
         {
-            return _session?.GetSpans(source) ?? SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
+            return _sessionOpt?.GetSpans(source) ?? SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
         }
 
         public void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans)
         {
-            _session?.UpdateActiveStatementSpans(source, spans);
+            _sessionOpt?.UpdateActiveStatementSpans(source, spans);
         }
 
         private sealed class TrackingSession
@@ -115,8 +116,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                 editSession.BaseSolution.Workspace.DocumentOpened += DocumentOpened;
 
-                // fire and forget:
-                TrackActiveSpansAsync();
+                // fire and forget on a background thread:
+                try
+                {
+                    Task.Run(TrackActiveSpansAsync, _editSession.Cancellation.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                }
             }
 
             public void EndTracking()
@@ -152,7 +159,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         _service.OnTrackingSpansChanged(leafChanged);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                catch (OperationCanceledException)
+                {
+                    // nop
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
                     // nop
                 }
@@ -170,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 return snapshot != null;
             }
 
-            private async void TrackActiveSpansAsync()
+            private async Task TrackActiveSpansAsync()
             {
                 try
                 {
@@ -190,7 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                     _service.OnTrackingSpansChanged(leafChanged: true);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                catch (OperationCanceledException)
+                {
+                    // nop
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
                     // nop
                 }
