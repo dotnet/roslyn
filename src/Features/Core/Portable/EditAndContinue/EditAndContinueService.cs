@@ -179,6 +179,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 Debug.Assert(_debuggingSession != null);
 
+                // TODO: Avoid enumerating active statements for unchanged documents.
+                // We would need to add a document path parameter to be able to find the document we need to check for changes.
+                // https://github.com/dotnet/roslyn/issues/24324
                 var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (!baseActiveStatements.InstructionMap.TryGetValue(instructionId, out var baseActiveStatement))
                 {
@@ -186,19 +189,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 Document primaryDocument = _debuggingSession.InitialSolution.Workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
-
-                // TODO:is this needed?
-                // Try to get spans from the tracking service first.
-                // We might get an imprecise result if the document analysis hasn't been finished yet and 
-                // the active statement has structurally changed, but that's ok. The user won't see an updated tag
-                // for the statement until the analysis finishes anyways.
-                //
-                // SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                //if (_trackingService.TryGetSpan(baseActiveStatement.Id, text, out var trackedSpan) && trackedSpan.Length > 0)
-                //{
-                //    lineSpan = text.Lines.GetLinePositionSpan(trackedSpan);
-                //}
-
                 var documentAnalysis = await _editSession.GetDocumentAnalysis(primaryDocument).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var currentActiveStatements = documentAnalysis.ActiveStatements;
                 if (currentActiveStatements.IsDefault)
@@ -226,6 +216,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 Debug.Assert(_debuggingSession != null);
 
+                // TODO: Avoid enumerating active statements for unchanged documents.
+                // We would need to add a document path parameter to be able to find the document we need to check for changes.
+                // https://github.com/dotnet/roslyn/issues/24324
                 var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (!baseActiveStatements.InstructionMap.TryGetValue(instructionId, out var baseActiveStatement))
                 {
@@ -233,6 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // TODO: avoid waiting for ERs of all active statements to be calculated and just calculate the one we are interested in at this moment:
+                // https://github.com/dotnet/roslyn/issues/24324
                 var baseExceptionRegions = await _editSession.BaseActiveExceptionRegions.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return baseExceptionRegions[baseActiveStatement.Ordinal].IsActiveStatementCovered;
             }
