@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _notificationService = notificationService;
             _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Classification);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
         public IAccurateTagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
