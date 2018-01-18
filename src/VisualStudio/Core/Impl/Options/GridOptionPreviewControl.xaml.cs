@@ -12,12 +12,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal partial class GridOptionPreviewControl : AbstractOptionPageControl
     {
-        private const string useEditorConfigUrl = "https://go.microsoft.com/fwlink/?linkid=866541";
+        private const string UseEditorConfigUrl = "https://go.microsoft.com/fwlink/?linkid=866541";
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
 
-        public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(useEditorConfigUrl);
+        public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
         public static string CodeStylePageHeader => ServicesVSResources.Code_style_header_use_editor_config;
         public static string CodeStylePageHeaderLearnMoreText => ServicesVSResources.Learn_more;
         public static string DescriptionHeader => ServicesVSResources.Description;
