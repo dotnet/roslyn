@@ -2,11 +2,8 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.EncapsulateField;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
 using Microsoft.CodeAnalysis.Editor.Shared;
@@ -16,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Xunit;
 
@@ -57,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         public void Encapsulate()
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
-            var commandHandler = new EncapsulateFieldCommandHandler(TestWaitIndicator.Default, Workspace.GetService<ITextBufferUndoManagerProvider>(),
+            var commandHandler = new EncapsulateFieldCommandHandler(Workspace.GetService<ITextBufferUndoManagerProvider>(),
                 Workspace.ExportProvider.GetExportedValues<Lazy<IAsynchronousOperationListener, FeatureMetadata>>());
-            commandHandler.ExecuteCommand(args, () => { });
+            commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create());
         }
 
         public void Dispose()

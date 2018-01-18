@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -12,66 +11,57 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 {
-    internal abstract class AbstractEncapsulateFieldCommandHandler : ICommandHandler<EncapsulateFieldCommandArgs>
+    internal abstract class AbstractEncapsulateFieldCommandHandler : VSCommanding.ICommandHandler<EncapsulateFieldCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly AggregateAsynchronousOperationListener _listener;
 
+        public string DisplayName => EditorFeaturesResources.Encapsulate_Field_Command_Handler;
+
         public AbstractEncapsulateFieldCommandHandler(
-            IWaitIndicator waitIndicator,
             ITextBufferUndoManagerProvider undoManager,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            _waitIndicator = waitIndicator;
             _undoManager = undoManager;
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.EncapsulateField);
         }
 
-        public void ExecuteCommand(EncapsulateFieldCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var workspace = document.Project.Solution.Workspace;
             var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRefactorings(document))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
-            bool executed = false;
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Encapsulate_Field,
-                message: EditorFeaturesResources.Applying_Encapsulate_Field_refactoring,
-                allowCancel: true,
-                action: waitContext =>
+            using (var waitScope = context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring))
             {
-                executed = Execute(args, waitContext);
-            });
-
-            if (!executed)
-            {
-                nextHandler();
+                return Execute(args, waitScope);
             }
         }
 
-        private bool Execute(EncapsulateFieldCommandArgs args, IWaitContext waitContext)
+        private bool Execute(EncapsulateFieldCommandArgs args, IUIThreadOperationScope waitScope)
         {
             using (var token = _listener.BeginAsyncOperation("EncapsulateField"))
             {
                 var text = args.TextView.TextBuffer.CurrentSnapshot.AsText();
-                var cancellationToken = waitContext.CancellationToken;
+                var cancellationToken = waitScope.Context.UserCancellationToken;
                 if (!Workspace.TryGetWorkspace(text.Container, out var workspace))
                 {
                     return false;
@@ -95,6 +85,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
                 var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
 
+                // We are about to show a modal UI dialog so we should take over the command execution
+                // wait context. That means the command system won't attempt to show its own wait dialog 
+                // and also will take it into consideration when measuring command handling duration.
+                waitScope.Context.TakeOwnership();
+
                 if (result == null)
                 {
                     var notificationService = workspace.Services.GetService<INotificationService>();
@@ -102,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                     return false;
                 }
 
-                waitContext.AllowCancel = false;
+                waitScope.AllowCancellation = false;
 
                 var finalSolution = result.GetSolutionAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
@@ -140,21 +135,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             }
         }
 
-        public CommandState GetCommandState(EncapsulateFieldCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(EncapsulateFieldCommandArgs args)
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
             var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRefactorings(document))
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
-            return CommandState.Available;
+            return VSCommanding.CommandState.Available;
         }
     }
 }

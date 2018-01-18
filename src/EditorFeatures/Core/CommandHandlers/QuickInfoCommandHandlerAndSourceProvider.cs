@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -14,9 +13,11 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             _presenter = presenter;
         }
 
-        private bool TryGetController(CommandArgs args, out Controller controller)
+        private bool TryGetController(EditorCommandArgs args, out Controller controller)
         {
             AssertIsForeground();
 
@@ -97,4 +98,4 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

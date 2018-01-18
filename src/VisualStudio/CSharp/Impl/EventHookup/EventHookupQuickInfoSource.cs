@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     internal sealed class EventHookupQuickInfoSource : IQuickInfoSource
@@ -102,4 +102,4 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
