@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, baseExceptionRegions.Select(r => "[" + string.Join(",", r.Spans) + "]"));
         }
 
-        [Fact]
+        [Fact, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
         public async Task BaseActiveStatementsAndExceptionRegions_LinkedDocuments()
         {
             var markedSource = new[]
@@ -591,6 +591,7 @@ class Test2
             Assert.Equal(5, documentMap.Count);
 
             // TODO: currently we associate all linked documents to the AS regardless of whether they belong to a project that matches the AS module.
+            // https://github.com/dotnet/roslyn/issues/24320
 
             AssertEx.Equal(new[]
             {

@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 primaryDocumentActiveStatements.Add(activeStatement);
 
                 // TODO: associate only those documents that are from a project with the right module id
+                // https://github.com/dotnet/roslyn/issues/24320
                 for (int i = 1; i < documentIds.Length; i++)
                 {
                     if (!byDocument.TryGetValue(documentIds[i], out var linkedDocumentActiveStatements))

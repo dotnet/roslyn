@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Ordinal of the active statement within the primary containing document (<see cref="PrimaryDocumentId"/>).
         /// </summary>
         public readonly int PrimaryDocumentOrdinal;
+
         /// <summary>
         /// The instruction of the active statement that is being executed.
         /// The executing version of the method might be several generations old.
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Document ids - multiple if the physical file is linked.
         /// TODO: currently we associate all linked documents to the AS regardless of whether they belong to a project that matches the AS module.
+        /// https://github.com/dotnet/roslyn/issues/24320
         /// </summary>
         public readonly ImmutableArray<DocumentId> DocumentIds;
 
