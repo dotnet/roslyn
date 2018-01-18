@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.StartListening();
         }
 
-        public string Connect(string host, string serializedSession, CancellationToken cancellationToken)
+        public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)
         {
             return RunService(token =>
             {
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var existing = Interlocked.CompareExchange(ref _host, host, null);
 
-                SetGlobalContext(serializedSession);
+                SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
 
                 if (existing != null && existing != host)
                 {
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Remote
             m["InstanceId"] = _primaryInstance;
         }
 
-        private static void SetGlobalContext(string serializedSession)
+        private static void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
         {
             // set global telemetry session
             var session = GetTelemetrySession(serializedSession);
@@ -212,6 +213,10 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return;
             }
+
+            // set default culture for Roslyn OOP
+            CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(uiCultureLCID);
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(cultureLCID);
 
             // set roslyn loggers
             WatsonReporter.SetTelemetrySession(session);
