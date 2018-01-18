@@ -1125,6 +1125,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
         }
 
+        protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
+            where TSyntaxNode : SyntaxNode
+        {
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+
+            ImmutableArray<Operations.BasicBlock> graph = model.GetControlFlowGraph((Operations.IBlockOperation)model.GetOperation(syntaxNode));
+            var map = new Dictionary<Operations.BasicBlock, int>();
+
+            for (int i = 0; i < graph.Length; i++)
+            {
+                map.Add(graph[i], i);
+            }
+
+            var stringBuilder = PooledObjects.PooledStringBuilder.GetInstance();
+
+            for (int i = 0; i < graph.Length; i++)
+            {
+                var block = graph[i];
+                stringBuilder.Builder.AppendLine($"Block[{i}] - {block.Kind}");
+
+                var predecessors = block.Predecessors;
+
+                if (!predecessors.IsEmpty)
+                {
+                    stringBuilder.Builder.AppendLine($"    Predecessors ({predecessors.Count})");
+                    foreach (int j in predecessors.Select(b => map[b]).OrderBy(ii => ii))
+                    {
+                        stringBuilder.Builder.AppendLine($"        [{j}]");
+                    }
+                }
+
+                var statements = block.Statements;
+                stringBuilder.Builder.AppendLine($"    Statements ({statements.Length})");
+                foreach (var statement in statements)
+                {
+                    stringBuilder.Builder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, statement, initialIndent: 8));
+                }
+
+                if (block.Conditional.Condition != null)
+                {
+                    Assert.True(map.TryGetValue(block.Conditional.Destination, out int index));
+                    stringBuilder.Builder.AppendLine($"    Jump if {block.Conditional.JumpIfTrue} to Block[{index}]");
+                    stringBuilder.Builder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, block.Conditional.Condition, initialIndent: 8));
+                }
+
+                if (block.Next != null)
+                {
+                    Assert.True(map.TryGetValue(block.Next, out var index));
+                    stringBuilder.Builder.AppendLine($"    Next Block[{index}]");
+                }
+            }
+
+            var actualFlowGraph = stringBuilder.ToStringAndFree();
+            OperationTreeVerifier.Verify(expectedFlowGraph, actualFlowGraph);
+        }
+
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(
             string testSrc,
             string expectedOperationTree,
@@ -1149,6 +1207,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree, additionalOperationTreeVerifier);
         }
 
+        protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
+            CSharpCompilation compilation,
+            string expectedFlowGraph,
+            DiagnosticDescription[] expectedDiagnostics)
+            where TSyntaxNode : SyntaxNode
+        {
+            var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
+            actualDiagnostics.Verify(expectedDiagnostics);
+            VerifyFlowGraphForTest<TSyntaxNode>(compilation, expectedFlowGraph);
+        }
+
         private static readonly MetadataReference[] s_defaultOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef };
         private static readonly MetadataReference[] s_latestOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46 };
 
@@ -1167,6 +1236,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var references = additionalReferences == null ? defaultRefs : additionalReferences.Concat(defaultRefs);
             var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
+        }
+
+        protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
+            string testSrc,
+            string expectedFlowGraph,
+            DiagnosticDescription[] expectedDiagnostics,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            MetadataReference[] additionalReferences = null,
+            bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode
+        {
+            var defaultRefs = useLatestFrameworkReferences ? s_latestOperationReferences : s_defaultOperationReferences;
+            var references = additionalReferences == null ? defaultRefs : additionalReferences.Concat(defaultRefs);
+            var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedFlowGraph, expectedDiagnostics);
         }
 
         protected static MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc,

@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
-    internal sealed class OperationCloner : OperationVisitor<object, IOperation>
+    internal class OperationCloner : OperationVisitor<object, IOperation>
     {
         private static readonly OperationCloner s_instance = new OperationCloner();
 
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return s_instance.Visit(operation);
         }
 
-        private OperationCloner()
+        protected OperationCloner()
         {
         }
 
@@ -516,6 +516,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, object argument)
         {
             return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object argument)
+        {
+            return new FlowCapture(operation.Id, operation.Syntax, operation.IsInitialization, operation.Type, operation.ConstantValue);
         }
     }
 }

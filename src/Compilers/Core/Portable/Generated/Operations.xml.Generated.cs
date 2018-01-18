@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1288,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1525,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1551,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2507,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3329,7 +3329,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3362,7 +3362,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3825,7 +3825,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3919,7 +3919,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4012,7 +4012,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4554,7 +4554,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4585,7 +4585,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4611,7 +4611,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4995,7 +4995,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -6068,7 +6068,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                return Array.Empty<IOperation>();
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -6546,5 +6546,33 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
         protected override IOperation ExpressionImpl => _lazyExpression.Value;
+    }
+
+    internal sealed partial class FlowCapture : Operation, IFlowCaptureOperation
+    {
+        public FlowCapture(int id, SyntaxNode syntax, bool isInitialization, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.FlowCapture, semanticModel: null, syntax, type, constantValue, isImplicit: true)
+        {
+            Id = id;
+            IsInitialization = isInitialization;
+        }
+
+        public int Id { get; }
+        public bool IsInitialization { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                return Array.Empty<IOperation>();
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitFlowCapture(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFlowCapture(this, argument);
+        }
     }
 }

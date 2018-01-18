@@ -92,6 +92,7 @@ Microsoft.CodeAnalysis.OperationKind.EventReference = 30 -> Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.OperationKind.ExpressionStatement = 15 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FieldInitializer = 72 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FieldReference = 26 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.FlowCapture = 87 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Increment = 66 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InstanceReference = 39 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InterpolatedString = 48 -> Microsoft.CodeAnalysis.OperationKind
@@ -145,6 +146,17 @@ Microsoft.CodeAnalysis.Operations.ArgumentKind.DefaultValue = 3 -> Microsoft.Cod
 Microsoft.CodeAnalysis.Operations.ArgumentKind.Explicit = 1 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
 Microsoft.CodeAnalysis.Operations.ArgumentKind.None = 0 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
 Microsoft.CodeAnalysis.Operations.ArgumentKind.ParamArray = 2 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
+Microsoft.CodeAnalysis.Operations.BasicBlock
+Microsoft.CodeAnalysis.Operations.BasicBlock.BasicBlock(Microsoft.CodeAnalysis.Operations.BasicBlockKind kind) -> void
+Microsoft.CodeAnalysis.Operations.BasicBlock.Conditional.get -> (Microsoft.CodeAnalysis.IOperation Condition, bool JumpIfTrue, Microsoft.CodeAnalysis.Operations.BasicBlock Destination)
+Microsoft.CodeAnalysis.Operations.BasicBlock.Kind.get -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.BasicBlock.Next.get -> Microsoft.CodeAnalysis.Operations.BasicBlock
+Microsoft.CodeAnalysis.Operations.BasicBlock.Predecessors.get -> System.Collections.Immutable.ImmutableHashSet<Microsoft.CodeAnalysis.Operations.BasicBlock>
+Microsoft.CodeAnalysis.Operations.BasicBlock.Statements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
+Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.BasicBlockKind.Block = 2 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.BasicBlockKind.Entry = 0 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.BasicBlockKind.Exit = 1 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.Add = 1 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.And = 10 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
@@ -307,6 +319,9 @@ Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation.InitializedFields.g
 Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation
 Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation.Field.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation.IsDeclaration.get -> bool
+Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation
+Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.Id.get -> int
+Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.IsInitialization.get -> bool
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.Collection.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.LoopControlVariable.get -> Microsoft.CodeAnalysis.IOperation
@@ -489,6 +504,7 @@ Microsoft.CodeAnalysis.Operations.UnaryOperatorKind.Plus = 3 -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Operations.UnaryOperatorKind.True = 5 -> Microsoft.CodeAnalysis.Operations.UnaryOperatorKind
 Microsoft.CodeAnalysis.RefKind.In = 3 -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.RefKind.RefReadOnly = 3 -> Microsoft.CodeAnalysis.RefKind
+Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IBlockOperation body) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.BasicBlock>
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.SyntaxList<TNode>.SyntaxList(System.Collections.Generic.IEnumerable<TNode> nodes) -> void
 Microsoft.CodeAnalysis.SyntaxList<TNode>.SyntaxList(TNode node) -> void
@@ -568,6 +584,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitEventReference(M
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitExpressionStatement(Microsoft.CodeAnalysis.Operations.IExpressionStatementOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFieldInitializer(Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFieldReference(Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCapture(Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitForEachLoop(Microsoft.CodeAnalysis.Operations.IForEachLoopOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitForLoop(Microsoft.CodeAnalysis.Operations.IForLoopOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitForToLoop(Microsoft.CodeAnalysis.Operations.IForToLoopOperation operation) -> void
@@ -659,6 +676,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitExpressionStatement(Microsoft.CodeAnalysis.Operations.IExpressionStatementOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFieldInitializer(Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFieldReference(Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCapture(Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitForEachLoop(Microsoft.CodeAnalysis.Operations.IForEachLoopOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitForLoop(Microsoft.CodeAnalysis.Operations.IForLoopOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitForToLoop(Microsoft.CodeAnalysis.Operations.IForToLoopOperation operation, TArgument argument) -> TResult
