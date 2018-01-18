@@ -19,9 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     {
         public Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
         {
+            DkmComponentManager.InitializeThread(DebuggerComponentIds.ManagedEditAndContinueService);
+
             // TODO: report errors
             // TODO: return empty outside of debug session.
-            
+
             var workList = DkmWorkList.Create(CompletionRoutine: null);
             var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
             var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
