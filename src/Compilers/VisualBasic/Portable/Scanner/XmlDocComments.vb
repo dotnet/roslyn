@@ -231,9 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If IsAtNewLine() OrElse _isStartingFirstXmlDocLine Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 _isStartingFirstXmlDocLine = False           ' no longer starting
-                If xDocTrivia Is Nothing Then
-                    Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
-                End If
+                If xDocTrivia Is Nothing Then Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 precedingTrivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
             End If
 
@@ -245,9 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Select Case (c)
                     Case CARRIAGE_RETURN, LINE_FEED
-                        If Here <> 0 Then
-                            Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
-                        End If
+                        If Here <> 0 Then Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
 
                         Here = SkipLineBreak(c, Here)
 
@@ -269,16 +265,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Here += 1
 
                     Case "&"c
-                        If Here <> 0 Then
-                            Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
-                        End If
-
+                        If Here <> 0 Then Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
                         Return ScanXmlReference(precedingTrivia)
 
                     Case "<"c
-                        If Here <> 0 Then
-                            Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
-                        End If
+                        If Here <> 0 Then Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
 
                         Debug.Assert(Here = 0)
                         If CanGet(1) Then
@@ -287,24 +278,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                 Case "!"c
                                     If CanGet(2) Then
                                         Select Case (Peek(2))
-                                            Case "-"c
-                                                If NextIs(3, "-"c) Then
-                                                    Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
-                                                End If
-                                            Case "["c
-                                                If NextAre(3, "CDATA[") Then
-                                                    Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
-                                                End If
-                                            Case "D"c
-                                                If NextAre(3, "OCTYPE") Then
-                                                    Return XmlMakeBeginDTDToken(precedingTrivia)
-                                                End If
+                                            Case "-"c : If NextIs(3, "-"c) Then Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
+                                            Case "["c : If NextAre(3, "CDATA[") Then Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
+                                            Case "D"c : If NextAre(3, "OCTYPE") Then Return XmlMakeBeginDTDToken(precedingTrivia)
                                         End Select
                                     End If
-                                Case "?"c
-                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, s_scanNoTriviaFunc)
-                                Case "/"c
-                                    Return XmlMakeBeginEndElementToken(precedingTrivia, s_scanNoTriviaFunc)
+                                Case "?"c : Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, s_scanNoTriviaFunc)
+                                Case "/"c : Return XmlMakeBeginEndElementToken(precedingTrivia, s_scanNoTriviaFunc)
                             End Select
                         End If
 
@@ -314,10 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         If NextAre(Here + 1, "]>") Then
 
                             ' // If valid characters found then return them.
-                            If Here <> 0 Then
-                                Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
-                            End If
-
+                            If Here <> 0 Then Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
                             ' // Create an invalid character data token for the illegal ']]>' sequence
                             Return XmlMakeTextLiteralToken(precedingTrivia, 3, ERRID.ERR_XmlEndCDataNotAllowedInContent)
                         End If
@@ -329,11 +306,8 @@ ScanChars:
 
                         If xmlCh.Length = 0 Then
                             ' bad char
-                            If Here > 0 Then
-                                Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
-                            Else
-                                Return XmlMakeBadToken(precedingTrivia, 1, ERRID.ERR_IllegalChar)
-                            End If
+                            If Here > 0 Then Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
+                            Return XmlMakeBadToken(precedingTrivia, 1, ERRID.ERR_IllegalChar)
                         End If
 
                         xmlCh.AppendTo(scratch)
@@ -342,11 +316,8 @@ ScanChars:
             End While
 
             ' no more chars
-            If Here > 0 Then
-                Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
-            Else
-                Return MakeEofToken(precedingTrivia)
-            End If
+            If Here > 0 Then Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
+            Return MakeEofToken(precedingTrivia)
         End Function
 
         Friend Function ScanXmlPIDataInXmlDoc(state As ScannerState) As SyntaxToken
@@ -358,86 +329,65 @@ ScanChars:
             Debug.Assert(state = ScannerState.StartProcessingInstruction OrElse
                          state = ScannerState.ProcessingInstruction)
 
-            Dim precedingTrivia = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
-            Dim result As SyntaxToken
+            'Dim result As SyntaxToken
+            Using precedingTrivia = _triviaListPool.PoolAllocate(Of VisualBasicSyntaxNode)()
 
-            If IsAtNewLine() Then
-                Dim xDocTrivia = ScanXmlDocTrivia()
-                If xDocTrivia Is Nothing Then
-                    Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
+                If IsAtNewLine() Then
+                    Dim xDocTrivia = ScanXmlDocTrivia()
+                    If xDocTrivia Is Nothing Then Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
+                    precedingTrivia.Builder.Add(xDocTrivia)
                 End If
-                precedingTrivia.Add(xDocTrivia)
-            End If
 
-            If state = ScannerState.StartProcessingInstruction AndAlso CanGet() Then
-                ' // Whitespace
-                ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                Dim c = Peek()
-                Select Case c
-                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
-                        Dim offsets = CreateOffsetRestorePoint()
-                        Dim continueLine = ScanXmlTriviaInXmlDoc(c, precedingTrivia)
-                        If Not continueLine Then
-                            offsets.Restore()
-                            result = SyntaxFactory.Token(precedingTrivia.ToList.Node, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)
-                            GoTo CleanUp
-                        End If
-                End Select
-            End If
+                If state = ScannerState.StartProcessingInstruction AndAlso CanGet() Then
+                    ' // Whitespace
+                    ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
+                    Dim c = Peek()
+                    Select Case c
+                        Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
+                            Dim offsets = CreateOffsetRestorePoint()
+                            Dim continueLine = ScanXmlTriviaInXmlDoc(c, precedingTrivia.Builder)
+                            If Not continueLine Then
+                                offsets.Restore()
+                                Return SyntaxFactory.Token(precedingTrivia.Builder.ToList.Node, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)
+                            End If
+                    End Select
+                End If
 
-            Dim Here = 0
-            While CanGet(Here)
-                Dim c As Char = Peek(Here)
-                Select Case (c)
+                Dim Here = 0
+                While CanGet(Here)
+                    Dim c As Char = Peek(Here)
+                    Select Case (c)
 
-                    Case CARRIAGE_RETURN, LINE_FEED
-                        result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here + LengthOfLineBreak(c, Here))
-                        GoTo CleanUp
+                        Case CARRIAGE_RETURN, LINE_FEED
+                            Return XmlMakeProcessingInstructionToken(precedingTrivia, Here + LengthOfLineBreak(c, Here))
 
-                    Case "?"c
-                        If NextIs(Here + 1, ">"c) Then
+                        Case "?"c
+                            If NextIs(Here + 1, ">"c) Then
+                                '// If valid characters found then return them.
+                                If Here <> 0 Then Return XmlMakeProcessingInstructionToken(precedingTrivia, Here)
+                                ' // Create token for the '?>' termination sequence
+                                Return XmlMakeEndProcessingInstructionToken(precedingTrivia)
+                            End If
+                            GoTo ScanChars
 
-                            '// If valid characters found then return them.
-                            If Here <> 0 Then
-                                result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)
-                                GoTo CleanUp
+                        Case Else
+ScanChars:
+                            Dim xmlCh = ScanXmlChar(Here)
+                            If xmlCh.Length > 0 Then
+                                Here += xmlCh.Length
+                                Continue While
                             End If
 
-                            ' // Create token for the '?>' termination sequence
-                            result = XmlMakeEndProcessingInstructionToken(precedingTrivia.ToList)
-                            GoTo CleanUp
-                        End If
-                        GoTo ScanChars
+                            ' bad char
+                            If Here <> 0 Then Return XmlMakeProcessingInstructionToken(precedingTrivia.Builder.ToList, Here)
+                            Return XmlMakeBadToken(precedingTrivia.Builder.ToList, 1, ERRID.ERR_IllegalChar)
+                    End Select
+                End While
 
-                    Case Else
-ScanChars:
-                        Dim xmlCh = ScanXmlChar(Here)
-                        If xmlCh.Length > 0 Then
-                            Here += xmlCh.Length
-                            Continue While
-                        End If
-
-                        ' bad char
-                        If Here <> 0 Then
-                            result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)
-                            GoTo CleanUp
-                        Else
-                            result = XmlMakeBadToken(precedingTrivia.ToList, 1, ERRID.ERR_IllegalChar)
-                            GoTo CleanUp
-                        End If
-                End Select
-            End While
-
-            ' no more chars
-            If Here > 0 Then
-                result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)
-            Else
-                result = MakeEofToken(precedingTrivia.ToList)
-            End If
-
-CleanUp:
-            _triviaListPool.Free(precedingTrivia)
-            Return result
+                ' no more chars
+                If Here > 0 Then Return XmlMakeProcessingInstructionToken(precedingTrivia, Here)
+                Return MakeEofToken(precedingTrivia)
+            End Using
         End Function
 
         Private Function ScanXmlElementInXmlDoc(state As ScannerState) As SyntaxToken
@@ -479,8 +429,7 @@ CleanUp:
                         Dim offsets = CreateOffsetRestorePoint()
                         Dim triviaList = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
                         Dim continueLine = ScanXmlTriviaInXmlDoc(c, triviaList)
-                        precedingTrivia = triviaList.ToList()
-                        _triviaListPool.Free(triviaList)
+                        precedingTrivia = _triviaListPool.ToListAndFree(triviaList)
                         If Not continueLine Then
                             offsets.Restore()
                             Return SyntaxFactory.Token(precedingTrivia.Node, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)

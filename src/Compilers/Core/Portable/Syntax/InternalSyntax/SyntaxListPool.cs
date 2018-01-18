@@ -6,6 +6,73 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
+    internal class PooledSyntaxListBuilder<TNode> : IDisposable where TNode : GreenNode 
+    {
+        public readonly SyntaxListBuilder<TNode> Builder;
+        public readonly SyntaxListPool Pool;
+        internal PooledSyntaxListBuilder(SyntaxListPool Pool, SyntaxListBuilder<TNode> Builder)
+        {
+            this.Builder = Builder;
+            this.Pool = Pool;
+        }
+        public bool Any()
+        {
+            return this.Builder.ToListNode() != null;
+        }
+
+        public static void SwapWith(ref PooledSyntaxListBuilder<TNode> thisnode, ref PooledSyntaxListBuilder<TNode> withThis)
+        {
+            var tmp = thisnode;
+            thisnode = withThis;
+            withThis = tmp;
+        }
+        public static implicit operator SyntaxList<TNode>(PooledSyntaxListBuilder<TNode> pslb)
+        {
+            Debug.Assert(pslb != null);
+            return pslb.Builder.ToList();
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    this.Pool.Free(this.Builder);
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+        public static implicit operator SyntaxListBuilder(PooledSyntaxListBuilder<TNode> pslb) 
+        {
+            return pslb.Builder;
+        }
+       
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~PooledSyntaxListBuilder() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        void IDisposable.Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
+    }
     internal class SyntaxListPool
     {
         private ArrayElement<SyntaxListBuilder>[] _freeList = new ArrayElement<SyntaxListBuilder>[10];
@@ -40,7 +107,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return item;
         }
 
-        internal SyntaxListBuilder<TNode> Allocate<TNode>() where TNode : GreenNode
+        internal PooledSyntaxListBuilder<TNode> PoolAllocate<TNode>() where TNode : GreenNode
+        {
+            return new PooledSyntaxListBuilder<TNode>(this,this.Allocate<TNode>());
+        }
+        internal  SyntaxListBuilder<TNode> Allocate<TNode>() where TNode : GreenNode
         {
             return new SyntaxListBuilder<TNode>(this.Allocate());
         }
