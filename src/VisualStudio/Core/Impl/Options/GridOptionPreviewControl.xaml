@@ -35,12 +35,14 @@
             <converters:MarginConverter x:Key="MarginConverter" />
         </Grid.Resources>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="5" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeader}" >
+        <TextBlock TextWrapping="Wrap">
+            <Run Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeader}"/>
+            <Run Text=" "/>
             <Hyperlink RequestNavigate="LearnMoreHyperlink_RequestNavigate" NavigateUri="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreUri}">
                 <TextBlock Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreText}"/>
             </Hyperlink>
