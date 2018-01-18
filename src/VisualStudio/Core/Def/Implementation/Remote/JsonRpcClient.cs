@@ -57,17 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                cancellationToken.ThrowIfCancellationRequested();
-
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
+                HandleException(ex, cancellationToken);
             }
         }
 
@@ -81,17 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                cancellationToken.ThrowIfCancellationRequested();
-
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
+                HandleException(ex, cancellationToken);
                 return Contract.FailWithReturn<T>("can't reach here");
             }
         }
@@ -107,17 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                cancellationToken.ThrowIfCancellationRequested();
-
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
+                HandleException(ex, cancellationToken);
             }
         }
 
@@ -132,19 +102,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                cancellationToken.ThrowIfCancellationRequested();
-
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
+                HandleException(ex, cancellationToken);
                 return Contract.FailWithReturn<T>("can't reach here");
             }
+        }
+
+        private void HandleException(Exception ex, CancellationToken cancellationToken)
+        {
+            // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
+            // Handle this case by throwing a proper cancellation exception instead.
+            // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
+            cancellationToken.ThrowIfCancellationRequested();
+
+            LogError($"exception: {ex.ToString()}");
+
+            // we are getting unexpected exception from service hub. rather than doing hard crash on unexpected exception,
+            // we decided to do soft crash where we show info bar to users saying "VS got corrupted and users should save
+            // thier works and close VS"
+            ThrowSoftCrashException(ex, cancellationToken);
         }
 
         // these are for debugging purpose. once we find out root cause of the issue
@@ -168,30 +143,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             GC.KeepAlive(_debuggingLastDisconnectReason);
             GC.KeepAlive(_debuggingLastDisconnectCallstack);
 
+            // we return true here to catch all exceptions from servicehub.
+            // we record them in NFW and convert that to our soft crash exception.
             return true;
         }
 
-        /// <summary>
-        /// Show info bar and throw its own cancellation exception until 
-        /// we figure out this issue.
-        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/453544
-        /// 
-        /// the issue is basically we are getting unexpected exception from InvokeAsync
-        /// and we don't know exactly why that is happening.
-        /// </summary>
-        private void ThrowOwnCancellationToken()
+        private void ThrowSoftCrashException(Exception ex, CancellationToken token)
         {
             RemoteHostCrashInfoBar.ShowInfoBar();
 
             // log disconnect information before throw
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);
 
-            // create its own cancellation token and throw it
-            using (var ownCancellationSource = new CancellationTokenSource())
-            {
-                ownCancellationSource.Cancel();
-                ownCancellationSource.Token.ThrowIfCancellationRequested();
-            }
+            // throw soft crash exception
+            throw new SoftCrashException("remote host call failed", ex, token);
         }
 
         protected void Disconnect()
