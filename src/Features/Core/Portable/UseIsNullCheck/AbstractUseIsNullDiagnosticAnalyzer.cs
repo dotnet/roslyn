@@ -15,14 +15,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         where TLanguageKindEnum : struct
     {
 
-        private enum ConstraintParameterKind
-        {
-            NotGeneric,
-            UnconstraintGeneric,
-            ReferenceTypeConstraint,
-            ValueTypeConstraint,
-        }
-
         protected AbstractUseIsNullCheckDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    title,
@@ -121,13 +113,22 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
             var properties = ImmutableDictionary<string, string>.Empty;
 
-            switch (GetGenericParameterConstraintType(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken))
+            var genericParameterSymbol = GetGenericParameterSymbol(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken);
+            if (genericParameterSymbol != null)
             {
-                case ConstraintParameterKind.ValueTypeConstraint:
+                if (genericParameterSymbol.HasValueTypeConstraint)
+                {
+                    // 'is null' would generate error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                    // '== null' would generate error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
+                    // 'Is Nothing' would generate error BC30020: 'Is' operator does not accept operands of type 'T'. Operands must be reference or nullable types.
                     return;
-                case ConstraintParameterKind.UnconstraintGeneric:
-                    properties = properties.Add(AbstractUseIsNullCheckCodeFixProvider.UnconstraintGeneric, "");
-                    break;
+                }
+
+                if (!genericParameterSymbol.HasReferenceTypeConstraint)
+                {
+                    // Needs special casing for C#
+                    properties = properties.Add(AbstractUseIsNullCheckCodeFixProvider.UnconstrainedGeneric, "");
+                }
             }
 
             var additionalLocations = ImmutableArray.Create(invocation.GetLocation());
@@ -145,30 +146,17 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     additionalLocations, properties));
         }
 
-        private static ConstraintParameterKind GetGenericParameterConstraintType(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
+        private static ITypeParameterSymbol GetGenericParameterSymbol(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
         {
             var valueNode = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) ? node2 : node1;
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(valueNode);
             if (argumentExpression != null)
             {
                 var parameterType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type;
-                if (parameterType is ITypeParameterSymbol typeParameter)
-                {
-                    if (typeParameter.HasReferenceTypeConstraint)
-                    {
-                        return ConstraintParameterKind.ReferenceTypeConstraint;
-                    }
-
-                    if (typeParameter.HasValueTypeConstraint)
-                    {
-                        return ConstraintParameterKind.ValueTypeConstraint;
-                    }
-
-                    return ConstraintParameterKind.UnconstraintGeneric;
-                }
+                return parameterType as ITypeParameterSymbol;
             }
 
-            return ConstraintParameterKind.NotGeneric;
+            return default;
         }
 
         private static bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)

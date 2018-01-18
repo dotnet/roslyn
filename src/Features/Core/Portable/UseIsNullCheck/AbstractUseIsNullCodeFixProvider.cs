@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
     internal abstract class AbstractUseIsNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public const string Negated = nameof(Negated);
-        public const string UnconstraintGeneric = nameof(UnconstraintGeneric);
+        public const string UnconstrainedGeneric = nameof(UnconstrainedGeneric);
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             {
                 var invocation = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 var negate = diagnostic.Properties.ContainsKey(Negated);
-                var isUnconstraintGeneric = diagnostic.Properties.ContainsKey(UnconstraintGeneric);
+                var isUnconstraintGeneric = diagnostic.Properties.ContainsKey(UnconstrainedGeneric);
 
                 var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
                 var argument = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(arguments[0]))
