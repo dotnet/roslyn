@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal partial class GridOptionPreviewControl : AbstractOptionPageControl
     {
-        private static string useEditorConfigUrl = "https://go.microsoft.com/fwlink/?linkid=866541";
+        private const string useEditorConfigUrl = "https://go.microsoft.com/fwlink/?linkid=866541";
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
