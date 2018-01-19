@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -2887,7 +2886,7 @@ class C1
             var projectFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             using (File.Open(projectFile, FileMode.Open, FileAccess.ReadWrite))
             {
-                AssertThrows<IOException>(() =>
+                AssertEx.Throws<IOException>(() =>
                     {
                         using (var workspace = CreateMSBuildWorkspace())
                         {
@@ -2904,7 +2903,7 @@ class C1
 
             // open for read-write so no-one else can read
             var projectFile = GetSolutionFileName(@"CSharpProject\NoProject.csproj");
-            AssertThrows<FileNotFoundException>(() =>
+            AssertEx.Throws<FileNotFoundException>(() =>
                 {
                     using (var workspace = CreateMSBuildWorkspace())
                     {
@@ -2920,7 +2919,7 @@ class C1
 
             // open for read-write so no-one else can read
             var solutionFile = GetSolutionFileName(@"NoSolution.sln");
-            AssertThrows<System.IO.FileNotFoundException>(() =>
+            AssertEx.Throws<FileNotFoundException>(() =>
                 {
                     using (var workspace = CreateMSBuildWorkspace())
                     {

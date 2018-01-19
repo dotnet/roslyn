@@ -225,25 +225,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return Directory.GetParent(parentOfContainingDir).FullName;
         }
 
-        protected static void AssertThrows<TException>(Action action, Action<TException> checker = null)
-            where TException : Exception
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception e)
-            {
-                if (e is AggregateException agg && agg.InnerExceptions.Count == 1)
-                {
-                    e = agg.InnerExceptions[0];
-                }
-
-                Assert.Equal(typeof(TException), e.GetType());
-                checker?.Invoke((TException)e);
-            }
-        }
-
         protected int GetMethodInsertionPoint(VB.Syntax.ClassBlockSyntax cb)
         {
             if (cb.Implements.Count > 0)
