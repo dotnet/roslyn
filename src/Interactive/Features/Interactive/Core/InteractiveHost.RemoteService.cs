@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         if (_processExitHandling == ProcessExitHooked)
                         {
                             Process.Exited -= ProcessExitedHandler;
-                            await _host.OnProcessExited(Process).ConfigureAwait(false);
+                        //    await _host.OnProcessExited(Process).ConfigureAwait(false);
                             _processExitHandling = ProcessExitHandled;
                         }
                     }
