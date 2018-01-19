@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             for (int i = 0; i < activeNodes.Length; i++)
             {
                 int ordinal = start + i;
-                var oldStatementStart = oldText.Lines.GetTextSpan(oldActiveStatements[ordinal].Span).Start;
+                var oldStatementStart = oldText.Lines.GetTextSpanSafe(oldActiveStatements[ordinal].Span).Start;
 
                 var oldStatementSyntax = FindStatement(oldBody, oldStatementStart, out var statementPart);
                 Contract.ThrowIfNull(oldStatementSyntax);
@@ -1454,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public ImmutableArray<LinePositionSpan> GetExceptionRegions(SourceText text, SyntaxNode syntaxRoot, LinePositionSpan activeStatementSpan, bool isNonLeaf, out bool isCovered)
         {
-            var textSpan = text.Lines.GetTextSpan(activeStatementSpan);
+            var textSpan = text.Lines.GetTextSpanSafe(activeStatementSpan);
             var token = syntaxRoot.FindToken(textSpan.Start);
             var ancestors = GetExceptionHandlingAncestors(token.Parent, isNonLeaf);
             return GetExceptionRegions(ancestors, text, out isCovered);
@@ -1602,7 +1602,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // TODO (tomat): use BinarySearch
 
             int i = 0;
-            while (i < statements.Length && !declarationSpan.OverlapsWith(lines.GetTextSpan(statements[i].Span)))
+            while (i < statements.Length && !declarationSpan.OverlapsWith(lines.GetTextSpanSafe(statements[i].Span)))
             {
                 i++;
             }
@@ -1616,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             start = i;
             i++;
 
-            while (i < statements.Length && declarationSpan.OverlapsWith(lines.GetTextSpan(statements[i].Span)))
+            while (i < statements.Length && declarationSpan.OverlapsWith(lines.GetTextSpanSafe(statements[i].Span)))
             {
                 i++;
             }

@@ -16,5 +16,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal static bool Contains(this LinePositionSpan container, LinePositionSpan span)
             => span.Start >= container.Start && span.End <= container.End;
+
+        // TODO: Remove. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/554205 
+        internal static TextSpan GetTextSpanSafe(this TextLineCollection lines, LinePositionSpan span)
+        {
+            if (lines.Count == 0)
+            {
+                return default;
+            }
+
+            try
+            {
+                return lines.GetTextSpan(span);
+            }
+            catch
+            {
+                return new TextSpan(lines[0].Text.Length - 1, 0);
+            }
+        }
     }
 }
