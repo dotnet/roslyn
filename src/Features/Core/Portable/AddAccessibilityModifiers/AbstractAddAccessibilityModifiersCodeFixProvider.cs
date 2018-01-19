@@ -51,17 +51,10 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                 editor.ReplaceNode(
                     declaration,
                     (currentDeclaration, generator) =>
-                    {                        
-                        if(generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable)
-                        {
-                            // No accessibilty was declared, we need to add it
-                            return generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility);
-                        }
-                        else
-                        {
-                            // There was an accessibility, so remove it
-                            return generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable);
-                        }                        
+                    {
+                        return generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable ?
+                            generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) : // No accessibilty was declared, we need to add it
+                            generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable);   // There was an accessibility, so remove it                       
                     });
             }
         }

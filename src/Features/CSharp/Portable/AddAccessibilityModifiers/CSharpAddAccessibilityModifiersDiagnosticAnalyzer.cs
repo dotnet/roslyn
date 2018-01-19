@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                 }
 
                 var parentKind = member.Parent.Kind();
-                switch(parentKind)
+                switch (parentKind)
                 {
                     // Check for default modifiers in namespace and outside of namespace
                     case SyntaxKind.CompilationUnit:

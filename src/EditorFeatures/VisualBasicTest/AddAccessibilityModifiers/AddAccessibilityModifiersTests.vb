@@ -105,7 +105,7 @@ namespace N
             dim f as integer
 
             sub M()
-            end sub()
+            end sub
 
             shared operator &(c1 as S, c2 as S) as integer
             end operator
@@ -115,7 +115,7 @@ namespace N
             dim f as integer
 
             sub M()
-            end sub()
+            end sub
         end module
     end namespace
 end namespace",
@@ -197,7 +197,7 @@ namespace N
             Public f as integer
 
             Public sub M()
-            end sub()
+            end sub
 
             Public shared operator &(c1 as S, c2 as S) as integer
             end operator
@@ -207,7 +207,7 @@ namespace N
             Private f as integer
 
             Public sub M()
-            end sub()
+            end sub
         end module
     end namespace
 end namespace")
@@ -230,6 +230,18 @@ namespace N
             Private f2, f3 as integer
             Private f4, f5 as integer, f6, f7 as boolean
             public f4 as integer
+
+            Private Const foo As long = 3
+            private const bar = 4, barbar = 5
+
+            public Const pfoo As long = 3
+            public Const pbar = 4, pbarbar As ULong = 5
+
+            Private Shared sfoo = 4
+            private shared sbar as Long = 5, sbarbar = 0
+
+            public Shared spfoo = 4
+            public Shared spbar = 4, spbarbar as Long = 4
 
             Public event e1 as Action
             public event e2 as Action
@@ -294,7 +306,7 @@ namespace N
             Public f as integer
 
             Public sub M()
-            end sub()
+            end sub
 
             Public shared operator &(c1 as S, c2 as S) as integer
             end operator
@@ -304,7 +316,7 @@ namespace N
             Private f as integer
 
             Public sub M()
-            end sub()
+            end sub
         end module
     end namespace
 end namespace",
@@ -322,6 +334,18 @@ namespace N
             Dim f2, f3 as integer
             Dim f4, f5 as integer, f6, f7 as boolean
             public f4 as integer
+
+            Const foo As long = 3
+            const bar = 4, barbar = 5
+
+            public Const pfoo As long = 3
+            public Const pbar = 4, pbarbar As ULong = 5
+
+            Shared sfoo = 4
+            shared sbar as Long = 5, sbarbar = 0
+
+            public Shared spfoo = 4
+            public Shared spbar = 4, spbarbar as Long = 4
 
             event e1 as Action
             event e2 as Action
@@ -386,7 +410,7 @@ namespace N
             Dim f as integer
 
             sub M()
-            end sub()
+            end sub
 
             shared operator &(c1 as S, c2 as S) as integer
             end operator
@@ -396,7 +420,7 @@ namespace N
             Dim f as integer
 
             sub M()
-            end sub()
+            end sub
         end module
     end namespace
 end namespace", options:=OmitDefaultModifiers)
