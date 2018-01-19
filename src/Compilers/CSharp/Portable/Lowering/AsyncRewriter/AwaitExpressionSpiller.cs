@@ -453,6 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool forceSpill = false,
             bool sideEffectsOnly = false)
         {
+            Debug.Assert(!sideEffectsOnly || refKinds.IsDefault);
             Debug.Assert(refKinds.IsDefault || refKinds.Length == args.Length);
 
             if (args.Length == 0)
@@ -491,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = new BoundSpillSequenceBuilder();
             }
 
-            var result = ArrayBuilder<BoundExpression>.GetInstance();
+            var result = ArrayBuilder<BoundExpression>.GetInstance(newList.Length);
 
             // everything up until the last spill must be spilled entirely
             for (int i = 0; i < lastSpill; i++)
@@ -500,7 +501,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var replacement = Spill(builder, newList[i], refKind, sideEffectsOnly);
 
                 Debug.Assert(sideEffectsOnly || replacement != null);
-                Debug.Assert(!sideEffectsOnly || refKind == RefKind.None);
 
                 if (!sideEffectsOnly)
                 {

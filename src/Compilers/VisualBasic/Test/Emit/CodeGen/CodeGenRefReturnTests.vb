@@ -2327,7 +2327,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a
 
         <Fact>
         <WorkItem(17706, "https://github.com/dotnet/roslyn/issues/17706")>
-        Public Sub SpillingByrefCall_NoSpilling()
+        Public Sub SpillingByRefCall_NoSpilling()
             Dim comp1 = CreateCSharpCompilation(
 "
 using System;
@@ -2395,7 +2395,7 @@ End Module
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/24275")>
         <WorkItem(24275, "https://github.com/dotnet/roslyn/issues/24275")>
-        Public Sub SpillingByrefCall_Spilling()
+        Public Sub SpillingByRefCall_Spilling()
             Dim comp1 = CreateCSharpCompilation(
 "
 using System;
