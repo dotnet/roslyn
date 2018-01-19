@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                     declaration,
                     (currentDeclaration, generator) =>
                     {
-                        return generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable ?
-                            generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) : // No accessibilty was declared, we need to add it
-                            generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable);   // There was an accessibility, so remove it                       
+                        return generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable
+                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibilty was declared, we need to add it
+                                    : generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable); // There was an accessibility, so remove it                       
                     });
             }
         }
