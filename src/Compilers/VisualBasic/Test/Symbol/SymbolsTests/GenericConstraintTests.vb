@@ -5719,6 +5719,41 @@ BC40008: 'Class2' is obsolete.
 </expected>)
         End Sub
 
+        <Fact>
+        Public Sub EnumConstraint_FromCSharp()
+            Dim reference = CreateCSharpCompilation("
+public class Test<T> where T : System.Enum
+{
+}", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Enum E1
+    A
+End Enum
+Public Class Test2
+    Public Sub M()
+        Dim a = new Test(Of E1)()             ' enum
+        Dim b = new Test(Of Integer)()        ' value type
+        Dim c = new Test(Of string)()         ' reference type
+        Dim d = new Test(Of System.Enum)()    ' Enum type
+    End Sub
+End Class
+    </file>
+</compilation>, {reference})
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32044: Type argument 'Integer' does not inherit from or implement the constraint type '[Enum]'.
+        Dim b = new Test(Of Integer)()        ' value type
+                            ~~~~~~~
+BC32044: Type argument 'String' does not inherit from or implement the constraint type '[Enum]'.
+        Dim c = new Test(Of string)()         ' reference type
+                            ~~~~~~
+</expected>)
+        End Sub
+
     End Class
 
 End Namespace

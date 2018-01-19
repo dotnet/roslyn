@@ -257,7 +257,20 @@ class Program
                 LanguageVersion.Latest,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
-#endregion C# 7.3
+
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest_EnumConstraint()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class X<T> where T : [|System.Enum|]
+{
+}
+",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2),
+                index: 1);
+        }
+        #endregion C# 7.3
 
         [Fact]
         public async Task UpgradeAllProjectsToDefault()
@@ -432,19 +445,6 @@ class C
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                     });
-        }
-
-        [Fact]
-        public async Task EnumConstraint_UpgradeTo_7_3()
-        {
-            await TestLanguageVersionUpgradedAsync(
-@"public class X<T> where T : [|System.Enum|]
-{
-}
-",
-                LanguageVersion.CSharp7_3,
-                new CSharpParseOptions(LanguageVersion.CSharp7_2),
-                index: 1);
         }
     }
 }

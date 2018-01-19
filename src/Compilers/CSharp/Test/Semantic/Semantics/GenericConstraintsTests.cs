@@ -25,12 +25,13 @@ public enum E1
 }
 public class Test2
 {
-    public void M()
+    public void M<U>() where U : System.Enum
     {
         var a = new Test<E1>();             // enum
         var b = new Test<int>();            // value type
         var c = new Test<string>();         // reference type
         var d = new Test<System.Enum>();    // Enum type
+        var e = new Test<U>();              // Generic type constrained to enum
     }
 }").VerifyDiagnostics(
                 // (14,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
@@ -54,12 +55,13 @@ public enum E1
 }
 public class Test2
 {
-    public void M()
+    public void M<U>() where U : class, System.Enum
     {
         var a = new Test<E1>();             // enum
         var b = new Test<int>();            // value type
         var c = new Test<string>();         // reference type
         var d = new Test<System.Enum>();    // Enum type
+        var e = new Test<U>();              // Generic type constrained to enum
     }
 }").VerifyDiagnostics(
                 // (13,26): error CS0452: The type 'E1' must be a reference type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
@@ -86,12 +88,13 @@ public enum E1
 }
 public class Test2
 {
-    public void M()
+    public void M<U>() where U : struct, System.Enum
     {
         var a = new Test<E1>();             // enum
         var b = new Test<int>();            // value type
         var c = new Test<string>();         // reference type
         var d = new Test<System.Enum>();    // Enum type
+        var e = new Test<U>();              // Generic type constrained to enum
     }
 }").VerifyDiagnostics(
                 // (14,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
@@ -118,12 +121,13 @@ public enum E1
 }
 public class Test2
 {
-    public void M()
+    public void M<U>() where U : System.Enum, new()
     {
         var a = new Test<E1>();             // enum
         var b = new Test<int>();            // value type
         var c = new Test<string>();         // reference type
         var d = new Test<System.Enum>();    // Enum type
+        var e = new Test<U>();              // Generic type constrained to enum
     }
 }").VerifyDiagnostics(
                 // (14,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
@@ -157,12 +161,13 @@ public enum E1
 
 public class Test2
 {
-    public void M()
+    public void M<U>() where U : System.Enum
     {
         var a = new Test<E1>();             // enum
         var b = new Test<int>();            // value type
         var c = new Test<string>();         // reference type
         var d = new Test<System.Enum>();    // Enum type
+        var e = new Test<U>();              // Generic type constrained to enum
     }
 }";
 
@@ -192,12 +197,13 @@ public enum E1
 
 public class Test2
 {
-    public void M()
+    public void M<U>() where U : class, System.Enum
     {
         var a = new Test<E1>();             // enum
         var b = new Test<int>();            // value type
         var c = new Test<string>();         // reference type
         var d = new Test<System.Enum>();    // Enum type
+        var e = new Test<U>();              // Generic type constrained to enum
     }
 }";
 
@@ -230,12 +236,13 @@ public enum E1
 
 public class Test2
 {
-    public void M()
+    public void M<U>() where U : struct, System.Enum
     {
         var a = new Test<E1>();             // enum
         var b = new Test<int>();            // value type
         var c = new Test<string>();         // reference type
         var d = new Test<System.Enum>();    // Enum type
+        var e = new Test<U>();              // Generic type constrained to enum
     }
 }";
 
@@ -268,12 +275,13 @@ public enum E1
 
 public class Test2
 {
-    public void M()
+    public void M<U>() where U : System.Enum, new()
     {
         var a = new Test<E1>();             // enum
         var b = new Test<int>();            // value type
         var c = new Test<string>();         // reference type
         var d = new Test<System.Enum>();    // Enum type
+        var e = new Test<U>();              // Generic type constrained to enum
     }
 }";
 
@@ -355,11 +363,20 @@ public class Test2
     public void M()
     {
         var a = new Test<Test2, E>();
+
+        var b = new Test<E, E>();
+        var c = new Test<System.Enum, System.Enum>();
+
+        var d = new Test<E, System.Enum>();
+        var e = new Test<System.Enum, E>();
     }
 }").VerifyDiagnostics(
                 // (13,33): error CS0315: The type 'E' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no boxing conversion from 'E' to 'Test2'.
                 //         var a = new Test<Test2, E>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "E").WithArguments("Test<T, U>", "Test2", "U", "E").WithLocation(13, 33));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "E").WithArguments("Test<T, U>", "Test2", "U", "E").WithLocation(13, 33),
+                // (18,29): error CS0311: The type 'System.Enum' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'System.Enum' to 'E'.
+                //         var d = new Test<E, System.Enum>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "System.Enum").WithArguments("Test<T, U>", "E", "U", "System.Enum").WithLocation(18, 29));
         }
 
         [Fact]
@@ -544,6 +561,23 @@ public class B : A<MyEnum>
             };
 
             CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void EnumConstraint_TypeNotAvailable()
+        {
+            CreateCompilation(@"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+public class Test<T> where T : System.Enum
+{
+}").VerifyDiagnostics(
+                // (7,39): error CS0234: The type or namespace name 'Enum' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                // public class Test<T> where T : System.Enum
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Enum").WithArguments("Enum", "System").WithLocation(7, 39));
         }
     }
 }
