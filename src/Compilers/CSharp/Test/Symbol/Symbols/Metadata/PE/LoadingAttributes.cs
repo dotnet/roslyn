@@ -734,8 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var appNS = (NamespaceSymbol)assemblies[0].Modules[0].GlobalNamespace.GetMember("Interop");
             var dfoo = (NamedTypeSymbol)appNS.GetMember("DFoo");
-            // Pseudo - Serializable
-            Assert.Equal(2, dfoo.GetAttributes().Length);
+            Assert.Equal(3, dfoo.GetAttributes().Length);
 
             // get attr by NamedTypeSymbol
             var attrObj = (NamedTypeSymbol)interopNS.GetTypeMembers("ComVisibleAttribute").Single();

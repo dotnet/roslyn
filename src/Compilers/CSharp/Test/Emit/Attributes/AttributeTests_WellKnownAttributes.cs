@@ -4703,6 +4703,119 @@ delegate void D();
             });
         }
 
+        [Fact]
+        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
+        void SerializableFromPE()
+        {
+            string lib_cs = @"
+using System;
+[Serializable, Bob]
+public class C
+{
+}
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class BobAttribute : Attribute
+{
+}";
+            var lib_comp = CreateStandardCompilation(lib_cs);
+            verifyBothAttributes(lib_comp);
+
+            var client1 = CreateStandardCompilation("", references: new[] { lib_comp.ToMetadataReference() });
+            verifyBothAttributes(client1);
+
+            var client2 = CreateStandardCompilation("", references: new[] { lib_comp.EmitToImageReference() });
+            verifyBothAttributes(client2);
+
+            void verifyBothAttributes(CSharpCompilation comp)
+            {
+                NamedTypeSymbol type = comp.GetTypeByMetadataName("C");
+                AssertEx.SetEqual(new[] { "System.SerializableAttribute", "BobAttribute" }, type.GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
+        void SerializableFromPE_WithErrors()
+        {
+            string corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public class Void { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute() { }
+    }
+    public struct Int32 { }
+    public class ValueType { }
+}";
+            string serializable_cs = @"
+namespace System
+{
+    public class SerializableAttribute : Attribute
+    {
+        public SerializableAttribute() { }
+    }
+}";
+
+            string serializableNoCtor_cs = @"
+namespace System
+{
+    public class SerializableAttribute : Attribute
+    {
+        public SerializableAttribute(int x) { }
+    }
+}";
+
+            var corlibWithSerializable = CreateCompilation(corlib_cs + serializable_cs, assemblyName: "corlib");
+            corlibWithSerializable.VerifyDiagnostics();
+            var corlibWithoutSerializableRef = corlibWithSerializable.EmitToImageReference();
+
+            var corlibWithoutAttribute = CreateCompilation(corlib_cs, assemblyName: "corlib");
+            corlibWithoutAttribute.VerifyDiagnostics();
+            var corlibWithoutAttributeRef = corlibWithoutAttribute.EmitToImageReference();
+            var attribute_comp = CreateCompilation(serializable_cs, references: new[] { corlibWithoutAttributeRef });
+            attribute_comp.VerifyDiagnostics();
+
+            var corlibWithoutAttributeCtor = CreateCompilation(corlib_cs + serializableNoCtor_cs, assemblyName: "corlib");
+            corlibWithoutAttributeCtor.VerifyDiagnostics();
+            var corlibWithoutAttributeCtorRef = corlibWithoutAttributeCtor.EmitToImageReference();
+
+            string lib_cs = @"
+using System;
+[Serializable]
+public class C
+{
+}
+[AttributeUsage()]
+public class BobAttribute : Attribute
+{
+}";
+            var lib_comp = CreateCompilation(lib_cs, references: new[] { corlibWithoutSerializableRef });
+            lib_comp.VerifyDiagnostics();
+            var lib_compRef = lib_comp.EmitToImageReference();
+
+            var client2 = CreateCompilation("", references: new[] { corlibWithoutAttributeRef, lib_compRef });
+            client2.VerifyDiagnostics();
+            verifyNoAttributes(client2);
+
+            var client3 = CreateCompilation("", references: new[] { corlibWithoutAttributeCtorRef, lib_compRef });
+            client3.VerifyDiagnostics();
+            verifyNoAttributes(client3);
+
+            // attribute is not restored when not present specifically in corlib
+            var client4 = CreateCompilation("", references: new[] { corlibWithoutAttributeRef, attribute_comp.EmitToImageReference(), lib_compRef });
+            client4.VerifyDiagnostics();
+            verifyNoAttributes(client4);
+
+            void verifyNoAttributes(CSharpCompilation comp)
+            {
+                NamedTypeSymbol type = comp.GetTypeByMetadataName("C");
+                Assert.Equal(new string[] { }, type.GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
         #endregion
 
         #region ParamArrayAttribute

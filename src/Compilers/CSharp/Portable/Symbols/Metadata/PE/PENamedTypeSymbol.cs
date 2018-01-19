@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return true;
             }
 
+            if (this.IsSerializable)
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -608,6 +613,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     out _,
                     // Filter out [Obsolete], unless it was user defined
                     (IsByRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default);
+
+                if (IsSerializable)
+                {
+                    var attribute = this.ContainingAssembly.CorLibrary.GetTypeByMetadataName("System.SerializableAttribute");
+                    var ctor = attribute?.InstanceConstructors.Where(c => c.ParameterCount == 0).FirstOrDefault();
+                    if ((object)ctor != null)
+                    {
+                        var attributeData = new SynthesizedAttributeData(
+                            ctor,
+                            ImmutableArray<TypedConstant>.Empty,
+                            ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+
+                        loadedCustomAttributes = loadedCustomAttributes.Concat(attributeData);
+                    }
+                }
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
