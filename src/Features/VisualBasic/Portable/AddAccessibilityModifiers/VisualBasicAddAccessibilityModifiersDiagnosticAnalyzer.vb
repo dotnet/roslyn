@@ -64,30 +64,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
             If isOmit Then
                 If Accessibility = Accessibility.NotApplicable Then
+                    ' Accessibility modifier already missing.  nothing we need to do.
+                    Return
+                End If
+
+                If Not MatchesDefaultAccessibility(Accessibility, member) Then
+                    ' Explicit accessibility was different than the default accessibility.
+                    ' We have to keep this here.
                     Return
                 End If
            
-                If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
-                   member.IsParentKind(SyntaxKind.NamespaceBlock) Then
-                    ' default is Friend
-                    If Accessibility <> Accessibility.Friend Then
-                        Return
-                    End If
-                End If
-
-                If member.IsParentKind(SyntaxKind.ClassBlock) Then
-                    ' default for const and field in a class is private
-                    If member.IsKind(SyntaxKind.FieldDeclaration) Then
-                        If Accessibility <> Accessibility.Private Then
-                            Return
-                        End If
-                    End If
-                End If
-
-                ' Everything else has a default of public
-                If Accessibility <> Accessibility.Public Then
-                    Return
-                End If
             Else ' Require all, flag missing modidifers
                 If Accessibility <> Accessibility.NotApplicable Then
                     Return
@@ -101,5 +87,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 name.GetLocation(),
                 additionalLocations:=additionalLocations))
         End Sub
+
+        Private Function MatchesDefaultAccessibility(accessibility As Accessibility, member As StatementSyntax) As Boolean
+
+            ' Top level items in a namespace or file
+            If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
+               member.IsParentKind(SyntaxKind.NamespaceBlock) Then
+               ' default is Friend
+                Return accessibility = Accessibility.Friend
+            End If
+
+            ' default for const and field in a class is private
+            If member.IsParentKind(SyntaxKind.ClassBlock) Then                
+                If member.IsKind(SyntaxKind.FieldDeclaration) Then
+                    Return accessibility = Accessibility.Private
+                End If
+            End If
+
+            ' Everything else has a default of public
+            Return accessibility = Accessibility.Public
+        End Function
     End Class
 End Namespace

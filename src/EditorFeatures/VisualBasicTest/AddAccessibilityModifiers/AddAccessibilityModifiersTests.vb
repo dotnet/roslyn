@@ -318,9 +318,9 @@ namespace N
             structure NestedStruct
             end structure
 
-            dim f1 as integer
-            dim f2, f3 as integer
-            dim f4, f5 as integer, f6, f7 as boolean
+            Dim f1 as integer
+            Dim f2, f3 as integer
+            Dim f4, f5 as integer, f6, f7 as boolean
             public f4 as integer
 
             event e1 as Action
