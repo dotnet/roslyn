@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         if (_processExitHandling == ProcessExitHooked)
                         {
                             Process.Exited -= ProcessExitedHandler;
-                        //    await _host.OnProcessExited(Process).ConfigureAwait(false);
+                            await _host.OnProcessExited(Process).ConfigureAwait(false);
                             _processExitHandling = ProcessExitHandled;
                         }
                     }
@@ -130,31 +130,23 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 if (joinThreads)
                 {
-                    var readOutputThreadJoinTask = Task.Run(() =>
+                    try
                     {
-                        try
-                        {
-                            _readOutputThread?.Join();
-                        }
-                        catch (ThreadStateException)
-                        {
-                            // thread hasn't started
-                        }
-                    });
-
-                    var readErrorOutputThreadJoinTask = Task.Run(() =>
+                        _readOutputThread?.Join();
+                    }
+                    catch (ThreadStateException)
                     {
-                        try
-                        {
-                            _readErrorOutputThread?.Join();
-                        }
-                        catch (ThreadStateException)
-                        {
-                            // thread hasn't started
-                        }
-                    });
+                        // thread hasn't started
+                    }
 
-                    Task.WaitAll(readOutputThreadJoinTask, readErrorOutputThreadJoinTask);
+                    try
+                    {
+                        _readErrorOutputThread?.Join();
+                    }
+                    catch (ThreadStateException)
+                    {
+                        // thread hasn't started
+                    }
                 }
 
                 // null the host so that we don't attempt to write to the buffer anymore:
