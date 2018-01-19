@@ -793,6 +793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetMemberBodySpanForSpeculativeBinding(node As SyntaxNode) As TextSpan Implements ISyntaxFactsService.GetMemberBodySpanForSpeculativeBinding
+            If node Is Nothing Then Return Nothing
             Dim member = GetContainingMemberDeclaration(node, node.SpanStart)
             If member Is Nothing Then
                 Return Nothing

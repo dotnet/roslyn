@@ -43,13 +43,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return type
         End Function
 
+        'Friend Function Bind_TypeListSyntax(node As TypeListSyntax,
+        '                       diagBag As DiagnosticBag,
+        '                       Optional suppressUseSiteError As Boolean = False) As Symbol
+        '   Dim xs = ImmutableArray(Of TypeSymbol).Empty
+        '   For Each ts As TypeSyntax In node.Types
+        '        Dim sym = BindTypeOrAliasSyntax(ts,diagBag,suppressUseSiteError)
+        '      Dim type = TryCast(sym, TypeSymbol)
+        '    If type IsNot Nothing Then
+        '            ReportUseOfModuleOrVoidType(ts, type, diagBag)
+        '        End If
+        '        xs = xs.Add(type)
+        '    Next
+        '    Return New BoundTypeList(node, xs, GetSpecialType(SpecialType.System_TypedReference, node, diagBag)).Type
+        'End Function
+
         Friend Function BindTypeOrAliasSyntax(typeSyntax As TypeSyntax,
                                diagBag As DiagnosticBag,
                                Optional suppressUseSiteError As Boolean = False) As Symbol
+            Dim sym As Symbol = Nothing
 
-            Dim sym As Symbol = TypeBinder.BindTypeOrAliasSyntax(typeSyntax, Me, diagBag, suppressUseSiteError,
+            sym  = TypeBinder.BindTypeOrAliasSyntax(typeSyntax, Me, diagBag, suppressUseSiteError,
                                                                  inGetTypeContext:=False, resolvingBaseType:=False)
-
             Dim type = TryCast(sym, TypeSymbol)
             If type IsNot Nothing Then
                 ReportUseOfModuleOrVoidType(typeSyntax, type, diagBag)

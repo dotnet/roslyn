@@ -160,10 +160,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.PredefinedCastExpression
                     Return BindPredefinedCastExpression(DirectCast(node, PredefinedCastExpressionSyntax), diagnostics)
 
-                Case SyntaxKind.TypeOfIsExpression,
-                     SyntaxKind.TypeOfIsNotExpression
-
+                Case SyntaxKind.TypeOfIsExpression, SyntaxKind.TypeOfIsNotExpression
                     Return BindTypeOfExpression(DirectCast(node, TypeOfExpressionSyntax), diagnostics)
+
+                Case SyntaxKind.TypeOfManyIsExpression, SyntaxKind.TypeOfManyIsNotExpression
+                    Return BindTypeOfManyExpression(DirectCast(node, TypeOfManyExpressionSyntax), diagnostics)
 
                 Case SyntaxKind.BinaryConditionalExpression
                     Return BindBinaryConditionalExpression(DirectCast(node, BinaryConditionalExpressionSyntax), diagnostics)
@@ -739,27 +740,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function BindTypeOfExpression(node As TypeOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
+        Private Function BindTypeOfExpression(node As TypeOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
             Dim operandType = operand.Type
-
             Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfIsNotExpression)
+            Return BindTypeOf_Inner(node, diagnostics, operand, operandType, operatorIsIsNot, node.Type)
+        End Function
 
-            Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(node.Type, diagnostics)
+        Private Function BindTypeOf_Inner(
+                                         node As SyntaxNode,
+                                   ByRef diagnostics As DiagnosticBag,
+                                   ByRef operand As BoundExpression,
+                                         operandType As TypeSymbol,
+                                         operatorIsIsNot As Boolean,
+                                         targetTypeSyntax As TypeSyntax
+                                         ) As BoundTypeOf
+            Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
+            Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(targetTypeSyntax, diagnostics)
             Dim targetType = DirectCast(If(TryCast(targetSymbol, TypeSymbol), DirectCast(targetSymbol, AliasSymbol).Target), TypeSymbol)
 
-            Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
 
             If operand.HasErrors OrElse operandType.IsErrorType() OrElse targetType.IsErrorType() Then
                 ' If operand is bad or either the source or target types have errors, bail out preventing more cascading errors.
-                Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
+                Return New BoundTypeOf(node, targetType, operand, operatorIsIsNot, resultType)
             End If
 
             If Not operandType.IsReferenceType AndAlso
                Not operandType.IsTypeParameter() Then
 
-                ReportDiagnostic(diagnostics, node.Expression, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
+                ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
 
             Else
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -774,10 +784,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If operandType.IsTypeParameter() Then
-                operand = ApplyImplicitConversion(node, GetSpecialType(SpecialType.System_Object, node.Expression, diagnostics), operand, diagnostics)
+                operand = ApplyImplicitConversion(node, GetSpecialType(SpecialType.System_Object, node, diagnostics), operand, diagnostics)
             End If
 
-            Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
+            Return New BoundTypeOf(node, targetType, operand, operatorIsIsNot, resultType)
+        End Function
+
+        Private Function BindTypeOfManyExpression(node As TypeOfManyExpressionSyntax, diagnostics As DiagnosticBag) As BoundTypeOfBase
+            Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
+            Dim operandType = operand.Type
+
+            Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfIsNotExpression)
+            Dim targertTypes = ImmutableArray(Of BoundTypeOf).Empty
+            Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
+            For Each _type_ In node.Types
+                Dim b As BoundTypeOf = BindTypeOf_Inner(_type_, diagnostics, operand, operandType, operatorIsIsNot, _type_)
+                targertTypes = targertTypes.Add(b)
+            Next
+            Return New BoundTypeOfMany(node, targertTypes, operand, operatorIsIsNot, resultType)
 
         End Function
 

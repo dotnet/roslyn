@@ -524,15 +524,8 @@
         <Field Name="RelaxationLambdaOpt" Type="BoundLambda" Null="allow" />
     </Node>
 
-    <Node Name="BoundTypeOf" Base="BoundExpression">
-      <!-- Non-null type is required for this node kind -->
-      <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-      <Field Name="Operand" Type="BoundExpression"/>
-      <Field Name="IsTypeOfIsNotExpression" Type="Boolean"/>
-      <Field Name="TargetType" Type="TypeSymbol"/>
-    </Node>
-
+  
     <AbstractNode Name="BoundStatement" Base="BoundNode"/>
 
     <Node Name="BoundSequencePoint" Base="BoundStatement">
@@ -1914,9 +1907,28 @@
     <Field Name="FormatStringOpt" Type="BoundLiteral" Null="allow"/>
   </Node>
 
-  <Node Name="BoundTypeList" Base="BoundExpression" HasValidate="true">
+  <!--<Node Name="BoundTypeOf" Base="BoundExpression">
+    --><!-- Non-null type is required for this node kind --><!--
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Contents" Type="ImmutableArray(Of TypeSymbol)"/>
 
-  </Node>
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="IsTypeOfIsNotExpression" Type="Boolean"/>
+    <Field Name="TargetType" Type="ImmutableArray(Of TypeSymbol)"  Null="disallow"/>
+    </Node>-->
+   <AbstractNode Name="BoundTypeOfBase" Base="BoundExpression">
+   <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="IsTypeOfIsNotExpression" Type="Boolean"/>
+    </AbstractNode>
+
+    <Node Name="BoundTypeOf" Base="BoundTypeOfBase">
+      <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+      <Field Name="TargetType" Type="TypeSymbol" />
+    </Node>
+   <Node Name="BoundTypeOfMany" Base="BoundTypeOfBase" HasValidate="true">
+      <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+      <Field Name="TargetTypes" Type="ImmutableArray(Of BoundTypeOf)"/>
+    </Node>
+
 </Tree>

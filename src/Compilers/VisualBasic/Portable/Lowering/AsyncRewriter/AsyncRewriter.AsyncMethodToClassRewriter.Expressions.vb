@@ -857,10 +857,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(operand.Kind = BoundKind.SpillSequence)
                 Dim spill = DirectCast(operand, BoundSpillSequence)
                 Return SpillSequenceWithNewValue(spill,
-                                                 rewritten.Update(spill.ValueOpt,
-                                                                  rewritten.IsTypeOfIsNotExpression,
-                                                                  rewritten.TargetType,
-                                                                  rewritten.Type))
+                                                 rewritten.Update(rewritten.TargetType, spill.ValueOpt,
+                                                                     rewritten.IsTypeOfIsNotExpression,
+                                                                   rewritten.Type))
             End Function
 
             Public Overrides Function VisitSequencePointExpression(node As BoundSequencePointExpression) As BoundNode

@@ -3198,6 +3198,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Trivia created when merge conflict markers (like "&lt;&lt;&lt;&lt;&lt;&lt;&lt;") are detected in source code
         ''' </summary>
         ConflictMarkerTrivia = 792
-        TypeList = 793
+
+        TypeOfManyIsExpression = 793
+        TypeOfManyIsNotExpression = 794
     End Enum
 End Namespace

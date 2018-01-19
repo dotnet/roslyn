@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis
             var span = node.FullSpan;
             var textSpanOpt = span.Intersection(fullSpan);
             int index;
+            char ex= '\0';
+            char ac= '\0';
 
             if (textSpanOpt == null)
             {
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var fromText = text.ToString(textSpanOpt.Value);
                 var fromNode = node.ToFullString();
-                index = FindFirstDifference(fromText, fromNode);
+                (index,ex, ac) = FindFirstDifference(fromText, fromNode);
             }
 
             if (index >= 0)
@@ -63,11 +65,11 @@ namespace Microsoft.CodeAnalysis
                     var position = text.Lines.GetLinePosition(index);
                     var line = text.Lines[position.Line];
                     var allText = text.ToString(); // Entire document as string to allow inspecting the text in the debugger.
-                    message = string.Format("Unexpected difference at offset {0}: Line {1}, Column {2} \"{3}\"",
+                    message = string.Format("Unexpected difference (expected:{4} actual:{5}) at offset {0}: Line {1}, Column {2} \"{3}\"",
                         index,
                         position.Line + 1,
                         position.Character + 1,
-                        line.ToString());
+                        line.ToString(),ex,ac);
                 }
                 else
                 {
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis
         /// Return the index of the first difference between
         /// the two strings, or -1 if the strings are the same.
         /// </summary>
-        private static int FindFirstDifference(string s1, string s2)
+        private static (int index,char expected,char actual) FindFirstDifference(string s1, string s2)
         {
             var n1 = s1.Length;
             var n2 = s2.Length;
@@ -90,10 +92,11 @@ namespace Microsoft.CodeAnalysis
             {
                 if (s1[i] != s2[i])
                 {
-                    return i;
+                    return (i,s1[i],s2[i]);
                 }
             }
-            return (n1 == n2) ? -1 : n + 1;
+            if (n1 == n2) return (index:-1,expected: '\0', actual: '\0');
+            return (n + 1,'\0', '\0');
         }
 
         /// <summary>

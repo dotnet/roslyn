@@ -5240,23 +5240,8 @@ Unify Enum declarations with other block type declarations.
       </child>
     </node-structure>
 
-    <!--****************
-      -  TypeOf ... Is/IsNot
-      ******************-->
-    <node-structure name="TypeOfExpressionSyntax" parent="ExpressionSyntax">
-      <description>Represents a TypeOf...Is or IsNot expression.</description>
-      <lm-equiv name="IsTypeNode"></lm-equiv>
-      <native-equiv name="TypeValueExpression"></native-equiv>
-      <spec-section>11.5.2</spec-section>
-      <grammar>TypeOfIsExpression</grammar>
-
-      <node-kind name="TypeOfIsExpression">
-        <lm-equiv name="IsType" />
-        <native-equiv name="Expression.Opcodes.IsType" />
-      </node-kind>
-
-      <node-kind name="TypeOfIsNotExpression" />
-
+    <node-structure name="TypeOfBaseExpressionSyntax" parent="ExpressionSyntax" abstract="true" partial="true" >
+ 
       <child name="TypeOfKeyword" kind="TypeOfKeyword">
         <description>The "TypeOf" keyword.</description>
         <lm-equiv name="TypeOfKeyword"></lm-equiv>
@@ -5276,15 +5261,58 @@ Unify Enum declarations with other block type declarations.
 
         <kind name="IsKeyword" node-kind="TypeOfIsExpression" />
         <kind name="IsNotKeyword" node-kind="TypeOfIsNotExpression" />
-      </child>
+      </child>    
 
-      <child name="Type" kind="@TypeSyntax">
-        <description>The name of the type being tested against.</description>
-        <lm-equiv name="TargetType"></lm-equiv>
-        <native-equiv name="TargetType"></native-equiv>
-      </child>
+        <!--<child  optional="true" name="TargetType" type="NodeKind"></child>-->
+
     </node-structure>
 
+    <!--****************
+      -  TypeOf ... Is/IsNot ...
+      ******************-->
+    <node-structure name="TypeOfExpressionSyntax" parent="TypeOfBaseExpressionSyntax">
+      <description>Represents a TypeOf...Is or IsNot expression.</description>
+      <lm-equiv name="IsTypeNode"></lm-equiv>
+      <native-equiv name="TypeValueExpression"></native-equiv>
+      <spec-section>11.5.2</spec-section>
+      <grammar>TypeOfIsExpression</grammar>
+
+      <node-kind name="TypeOfIsExpression">
+        <lm-equiv name="IsType" />
+        <native-equiv name="Expression.Opcodes.IsType" />
+      </node-kind>
+
+      <node-kind name="TypeOfIsNotExpression" />
+   
+      <child name="Type" kind="@TypeSyntax">
+        <description>The name of the type being tested against.</description>
+      </child>
+
+    </node-structure>
+    <!--****************
+      -  TypeOf ... Is/IsNot {..., ...}
+      ******************-->
+    <node-structure name="TypeOfManyExpressionSyntax" parent="TypeOfBaseExpressionSyntax">
+      <description>Represents a TypeOf...Is or IsNot expression.</description>
+      <lm-equiv name="IsTypeNode"></lm-equiv>
+      <native-equiv name="TypeValueExpression"></native-equiv>
+      <spec-section>11.5.2</spec-section>
+      <grammar>TypeOfIsExpression</grammar>
+
+      <node-kind name="TypeOfManyIsExpression">
+        <lm-equiv name="IsType" />
+        <native-equiv name="Expression.Opcodes.IsType" />
+      </node-kind>
+
+      <node-kind name="TypeOfManyIsNotExpression" />
+      <child name="OpeningBrace" kind="OpenBraceToken" />
+      <child name="Types" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TypeSyntax">
+        <description>The name of the type being tested against.</description>
+      </child>
+      <child name="ClosingBrace" kind="CloseBraceToken"/>
+
+    </node-structure>
+    
     <!--****************
       -  GetXmlNamespaceExpression
       ******************-->
@@ -5678,7 +5706,7 @@ Unify Enum declarations with other block type declarations.
       <node-kind name="TryCastExpression" />
     </node-structure>
 
-    <!--****************
+    <!--***************
       -  PredefinedCast
       ******************-->
     <node-structure name="PredefinedCastExpressionSyntax" parent="ExpressionSyntax">
@@ -5733,7 +5761,7 @@ Unify Enum declarations with other block type declarations.
       </child>
     </node-structure>
 
-    <!--****************
+    <!--***************
       -  BinaryOperator
       ******************-->
     <node-structure name="BinaryExpressionSyntax" parent="ExpressionSyntax">
@@ -6459,7 +6487,7 @@ Unify Enum declarations with other block type declarations.
       </child>
     </node-structure>
 
-    <!--********************
+    <!--*******************
       -  VariableNameEquals
       **********************-->
     <node-structure name="VariableNameEqualsSyntax" parent="VisualBasicSyntaxNode">
@@ -7446,7 +7474,7 @@ Unify Enum declarations with other block type declarations.
       </child>
     </node-structure>
 
-    <!--********************
+    <!--*******************
       -  PredefinedTypeName
       **********************-->
     <node-structure name="PredefinedTypeSyntax" parent="TypeSyntax">
@@ -7707,7 +7735,7 @@ Unify Enum declarations with other block type declarations.
     <!-- **  Visual Basic 11.0 Syntax                                                                    ** -->
     <!-- ************************************************************************************************** -->
 
-    <!--****************
+    <!--***************
       -  YieldStatement
       ******************-->
     <node-structure name="YieldStatementSyntax" parent="ExecutableStatementSyntax">
@@ -8836,7 +8864,8 @@ Unify Enum declarations with other block type declarations.
       **********************
       -  TypeList
       **********************-->
-    <node-structure name="TypeListSyntax" parent="TypeSyntax">
+       <!--
+ <node-structure name="TypeListSyntax" parent="TypeSyntax">
       <description>Represents the type parameter list in a declaration.</description>
       <lm-equiv name="TypeList"></lm-equiv>
 
@@ -8859,7 +8888,9 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="TypeListRightBrace"></lm-equiv>
         <native-equiv name="TypeListRightBrace"></native-equiv>
       </child>
-    </node-structure>
+    </node-structure> -->
+    
+    
     <!--********************
       -  XmlNameToken
       **********************-->
@@ -9119,7 +9150,7 @@ Unify Enum declarations with other block type declarations.
       </field>
     </node-structure>
 
-    <!--********************
+    <!--*******************
       -  StringLiteralToken
       **********************-->
     <node-structure name="StringLiteralTokenSyntax" parent="SyntaxToken">

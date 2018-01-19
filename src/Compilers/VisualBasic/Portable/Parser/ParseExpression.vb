@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Private Function ParseTypeOf() As TypeOfExpressionSyntax
+        Private Function ParseTypeOf() As TypeOfBaseExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.TypeOfKeyword, "must be at TypeOf.")
             Dim [typeOf] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
@@ -960,16 +960,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ReportSyntaxError(operatorToken, ERRID.ERR_MissingIsInTypeOf)
             End If
             current = CurrentToken
-            Dim typeName As TypeSyntax = Nothing
             If current.Kind = SyntaxKind.OpenBraceToken Then
-                Dim openBrace As PunctuationSyntax = Nothing
-                Dim closeBrace As PunctuationSyntax = Nothing
-                Dim types = ParseTypeList(openBrace, closeBrace)
-                typeName = SyntaxFactory.TypeList(openBrace, types, closeBrace)
-                current = CheckFeatureAvailability(Feature.TypeOfMany, current)
-            Else
-                typeName = ParseGeneralType()
+                Return Parse_RestAs_TypeOfMany([typeOf], exp, operatorToken, current)
             End If
+
+            Return Parse_RestAs_TypeOfSingle([typeOf], exp, operatorToken)
+        End Function
+
+        Private Function Parse_RestAs_TypeOfSingle([typeOf] As KeywordSyntax, exp As ExpressionSyntax, operatorToken As KeywordSyntax) As TypeOfBaseExpressionSyntax
+            Dim typeName As TypeSyntax = ParseGeneralType()
+
 
             Dim kind As SyntaxKind = If(operatorToken.Kind = SyntaxKind.IsNotKeyword,
                                         SyntaxKind.TypeOfIsNotExpression,
@@ -978,9 +978,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.TypeOfExpression(kind, [typeOf], exp, operatorToken, typeName)
         End Function
 
+        Private Function Parse_RestAs_TypeOfMany([typeOf] As KeywordSyntax, exp As ExpressionSyntax, operatorToken As KeywordSyntax, ByRef current As SyntaxToken) As TypeOfBaseExpressionSyntax
+            Dim openBrace As PunctuationSyntax = Nothing
+            Dim closeBrace As PunctuationSyntax = Nothing
+            Dim types = ParseTypeList(openBrace, closeBrace)
+
+            current = CheckFeatureAvailability(Feature.TypeOfMany, current)
+            Dim mkind As SyntaxKind = If(operatorToken.Kind = SyntaxKind.IsNotKeyword,
+                                    SyntaxKind.TypeOfManyIsNotExpression,
+                                    SyntaxKind.TypeOfManyIsExpression)
+            Return SyntaxFactory.TypeOfManyExpression(mkind, [typeOf], exp, operatorToken, openBrace, types, closeBrace)
+        End Function
+
         Private Function ParseTypeList(ByRef openBrace As PunctuationSyntax, ByRef closeBrace As PunctuationSyntax) As CoreInternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenBraceToken, "ParseTypeList list parsing confused.")
-            TryGetTokenAndEatNewLine(SyntaxKind.OpenBraceToken, openBrace)
+            TryGetTokenAndEatNewLine(SyntaxKind.OpenBraceToken, openBrace, True)
 
             Dim typelist = _pool.AllocateSeparated(Of TypeSyntax)()
 
@@ -1032,25 +1044,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Current token is left at either tkRParen, EOS
 
-            TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
+            Dim ok = TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
 
             Dim result = typelist.ToList()
 
             _pool.Free(typelist)
-
             Return result
 
         End Function
-        'Private Function Parse_TypeMany() As TypeSyntax
-        '    ' TypeMany ::= OpeningBrace TypeIdentifer ( Comma TypeIdentifier )+ ClosingBrace
-        '    Dim openingBrace = CurrentToken
-        '    Dim listOfTypeNames As Immutable.ImmutableList(Of TypeSyntax) = Immutable.ImmutableList(Of TypeSyntax).Empty
-        '    ' Consume {
-        '    GetNextToken()
-        '    Dim t = ParseTypeName()
-        '    If t.Kind =
-        '    While CurrentToken.Kind =
-        'End Function
 
         ' /*********************************************************************
         ' *

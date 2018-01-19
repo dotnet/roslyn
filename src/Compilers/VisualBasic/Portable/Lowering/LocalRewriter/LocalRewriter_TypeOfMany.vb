@@ -10,10 +10,67 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
-        Public Overrides Function VisitTypeOf(node As BoundTypeOf) As BoundNode
-            'If TypeOf node Is bound Then
-            Return MyBase.VisitTypeOf(node)
+        Public Overrides Function VisitTypeOfMany(node As BoundTypeOfMany) As BoundNode
+            Return Rewrite_AsMultipleTypeOfs(node)
         End Function
 
+        Function Rewrite_AsMultipleTypeOfs(node As BoundTypeOfMany) As BoundNode
+            If node.IsTypeOfIsNotExpression Then
+                Return Rewrite_AsMultiple_TypeOfIsNot(node)
+            Else
+                Return Rewrite_AsMultiple_TypeOfIs(node)
+            End If
+        End Function
+
+#Region "Rewrite as Multiple (TypeOf expr Is _type_) OrElse ..."
+        Private Function Make_OrElse(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression) As BoundExpression
+            Dim _OrElse_ = New BoundBinaryOperator(syntax, BinaryOperatorKind.OrElse, left, right, False, GetSpecialType(SpecialType.System_Boolean))
+            Return _OrElse_
+        End Function
+
+        Private Function Make_TypeOfIs(syntax As SyntaxNode, left As BoundExpression, right As BoundTypeExpression) As BoundExpression
+            Dim _Is_ = New BoundBinaryOperator(syntax, BinaryOperatorKind.Is, left, right, False, GetSpecialType(SpecialType.System_Boolean))
+            Dim _TypeOf_ As BoundExpression = New BoundTypeOf(syntax, left.Type, _Is_, False, right.Type)
+            Return _TypeOf_
+        End Function
+
+        Private Function Rewrite_AsMultiple_TypeOfIs(node As BoundTypeOfMany) As BoundNode
+            Dim syn = DirectCast(node.Syntax, TypeOfExpressionSyntax)
+            Dim Current As BoundExpression = New BoundLiteral(syn, ConstantValue.False, GetSpecialType(SpecialType.System_Boolean))
+            For Each t In node.TargetTypes
+                Dim _TypeOf_ = t ' Make_TypeOfIs(syn, New BoundTypeExpression(syn, node.Type), New BoundTypeExpression(syn, t))
+                Dim [Next] = Make_OrElse(syn, Current, _TypeOf_)
+                Current = [Next]
+            Next
+            Current.SetWasCompilerGenerated()
+            Return Current
+
+        End Function
+#End Region
+
+#Region "Rewrite as Multiple (TypeOf expr IsNot _type_) AndAlso ..."
+        Private Function Make_AndAlso(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression) As BoundExpression
+            Dim _AndAlso_ = New BoundBinaryOperator(syntax, BinaryOperatorKind.AndAlso, left, right, False, GetSpecialType(SpecialType.System_Boolean))
+            Return _AndAlso_
+        End Function
+
+        Private Function Make_TypeOfIsNot(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression) As BoundExpression
+            Dim _IsNot_ = New BoundBinaryOperator(syntax, BinaryOperatorKind.IsNot, left, right, False, GetSpecialType(SpecialType.System_Boolean))
+            Dim _TypeOf_ As BoundExpression = New BoundTypeOf(syntax, left.Type, _IsNot_, True, right.Type)
+            Return _TypeOf_
+        End Function
+
+        Private Function Rewrite_AsMultiple_TypeOfIsNot(node As BoundTypeOfMany) As BoundNode
+            Dim syn = DirectCast(node.Syntax, TypeOfExpressionSyntax)
+            Dim Current As BoundExpression = New BoundLiteral(syn, ConstantValue.False, GetSpecialType(SpecialType.System_Boolean))
+            For Each t In node.TargetTypes
+                Dim _TypeOf_ = t 'Make_TypeOfIs(syn, New BoundTypeExpression(syn, node.Type), New BoundTypeExpression(syn, t))
+                Dim [Next] = Make_OrElse(syn, Current, _TypeOf_)
+                Current = [Next]
+            Next
+            Current.SetWasCompilerGenerated()
+            Return Current
+        End Function
+#End Region
     End Class
 End Namespace
