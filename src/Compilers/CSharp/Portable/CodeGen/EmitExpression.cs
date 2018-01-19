@@ -308,6 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitThrowExpression((BoundThrowExpression)expression, used);
                     break;
 
+                case BoundKind.GotoExpression:
+                    EmitGotoExpression((BoundGotoExpression)expression, used);
+                    break;
+
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -315,6 +319,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitGotoExpression(BoundGotoExpression node, bool used)
+        {
+            _builder.EmitBranch(ILOpCode.Br, node.Label);
+
+            // to satisfy invariants, we push a default value to pretend to adjust the stack height
+            EmitDefaultValue(node.Type, used, node.Syntax);
         }
 
         private void EmitThrowExpression(BoundThrowExpression node, bool used)

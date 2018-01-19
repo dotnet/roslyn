@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -76,8 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (leftConversion.IsIdentity || leftConversion.Kind == ConversionKind.ExplicitNullable)
             {
-                var conditionalAccess = rewrittenLeft as BoundLoweredConditionalAccess;
-                if (conditionalAccess != null &&
+                if (rewrittenLeft is BoundLoweredConditionalAccess conditionalAccess &&
                     (conditionalAccess.WhenNullOpt == null || NullableNeverHasValue(conditionalAccess.WhenNullOpt)))
                 {
                     var notNullAccess = NullableAlwaysHasValue(conditionalAccess.WhenNotNull);
@@ -113,8 +113,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (temp != null) ? MakeConversion(temp) : right
             //
 
-            BoundAssignmentOperator tempAssignment;
-            BoundLocal boundTemp = _factory.StoreToTemp(rewrittenLeft, out tempAssignment);
+            BoundLocal boundTemp;
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+            if (rewrittenLeft.Kind != BoundKind.Local)
+            {
+                boundTemp = _factory.StoreToTemp(rewrittenLeft, out BoundAssignmentOperator tempAssignment);
+                sideEffects.Add(tempAssignment);
+                locals.Add(boundTemp.LocalSymbol);
+            }
+            else
+            {
+                boundTemp = (BoundLocal)rewrittenLeft;
+            }
 
             // temp != null
             BoundExpression nullCheck = MakeNullCheck(syntax, boundTemp, BinaryOperatorKind.NotEqual);
@@ -138,8 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: syntax,
-                locals: ImmutableArray.Create(boundTemp.LocalSymbol),
-                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
+                locals: locals.ToImmutableAndFree(),
+                sideEffects: sideEffects.ToImmutableAndFree(),
                 value: conditionalExpression,
                 type: rewrittenResultType);
         }
