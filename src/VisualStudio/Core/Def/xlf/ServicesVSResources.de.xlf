@@ -1493,6 +1493,11 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
         <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
         <note>0 is an extension name</note>
       </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
