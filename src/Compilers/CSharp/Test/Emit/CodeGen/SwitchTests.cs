@@ -2424,7 +2424,6 @@ class Program
             case 0:
                 Console.Write(1);
                 break;
-
         }
     }
 }";

@@ -2222,17 +2222,9 @@ struct X
                 // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //     switch (x)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 13),
-                // (9,5): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //     switch (x)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (x)
-    {
-      case null:
-        Console.WriteLine(""null"");
-        break;
-      case 1:
-        Console.WriteLine(1);
-        break;
-    }").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 5)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 13)
                 );
         }
 

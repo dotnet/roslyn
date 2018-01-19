@@ -1058,37 +1058,14 @@ public class C
             var compilation = CompileAndVerify(source, expectedOutput: string.Empty);
             compilation.VerifyIL("C.Nullable_a_Implicit_b_to_a0_null_a", @"
 {
-  // Code size       31 (0x1f)
+  // Code size       29 (0x1d)
   .maxstack  1
   .locals init (char V_0, //b
-  int? V_1)
+                int? V_1) //a
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  initobj    ""int?""
-  IL_000a:  ldloc.1
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  call       ""bool int?.HasValue.get""
-  IL_0013:  brtrue.s   IL_0017
-  IL_0015:  ldloc.0
-  IL_0016:  ret
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  call       ""int int?.GetValueOrDefault()""
-  IL_001e:  ret
-}
-");
-            compilation.VerifyIL("C.Nullable_a_Implicit_b_to_a0_constant_non_null_a", @"
-{
-  // Code size       29 (0x1d)
-  .maxstack  1
-  .locals init (char V_0, //b
-  int? V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.s   10
-  IL_0004:  newobj     ""int?..ctor(int)""
-  IL_0009:  stloc.1
   IL_000a:  ldloca.s   V_1
   IL_000c:  call       ""bool int?.HasValue.get""
   IL_0011:  brtrue.s   IL_0015
@@ -1097,13 +1074,34 @@ public class C
   IL_0015:  ldloca.s   V_1
   IL_0017:  call       ""int int?.GetValueOrDefault()""
   IL_001c:  ret
+}
+");
+            compilation.VerifyIL("C.Nullable_a_Implicit_b_to_a0_constant_non_null_a", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (char V_0, //b
+                int? V_1) //a
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.s   10
+  IL_0006:  call       ""int?..ctor(int)""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""bool int?.HasValue.get""
+  IL_0012:  brtrue.s   IL_0016
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       ""int int?.GetValueOrDefault()""
+  IL_001d:  ret
 }");
             compilation.VerifyIL("C.Nullable_a_Implicit_b_to_a0_not_null_a", @"
 {
   // Code size       23 (0x17)
   .maxstack  1
   .locals init (char V_0, //b
-  int? V_1)
+                int? V_1) //a
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldarg.1
@@ -1191,24 +1189,22 @@ public class C
             var compilation = CompileAndVerify(source, expectedOutput: string.Empty);
             compilation.VerifyIL("C.Nullable_a_Implicit_b_to_a0_null_a", @"
 {
-  // Code size       31 (0x1f)
+  // Code size       29 (0x1d)
   .maxstack  1
   .locals init (char V_0, //b
-  int? V_1)
+                int? V_1) //a
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  initobj    ""int?""
-  IL_000a:  ldloc.1
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  call       ""bool int?.HasValue.get""
-  IL_0013:  brtrue.s   IL_0017
-  IL_0015:  ldloc.0
-  IL_0016:  ret
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  call       ""int int?.GetValueOrDefault()""
-  IL_001e:  ret
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""bool int?.HasValue.get""
+  IL_0011:  brtrue.s   IL_0015
+  IL_0013:  ldloc.0
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""int int?.GetValueOrDefault()""
+  IL_001c:  ret
 }");
         }
 
@@ -1265,25 +1261,23 @@ public class C
             var compilation = CompileAndVerify(source, expectedOutput: string.Empty);
             compilation.VerifyIL("C.ImplicitReference_a_to_b_null_a_nullable", @"
 {
-  // Code size       36 (0x24)
+  // Code size       34 (0x22)
   .maxstack  1
   .locals init (int? V_0, //b
-  char? V_1)
+                char? V_1) //a
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  initobj    ""char?""
-  IL_000a:  ldloc.1
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  call       ""bool char?.HasValue.get""
-  IL_0013:  brtrue.s   IL_0017
-  IL_0015:  ldloc.0
-  IL_0016:  ret
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  call       ""char char?.GetValueOrDefault()""
-  IL_001e:  newobj     ""int?..ctor(int)""
-  IL_0023:  ret
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""bool char?.HasValue.get""
+  IL_0011:  brtrue.s   IL_0015
+  IL_0013:  ldloc.0
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""char char?.GetValueOrDefault()""
+  IL_001c:  newobj     ""int?..ctor(int)""
+  IL_0021:  ret
 }");
 
             compilation.VerifyIL("C.Null_Literal_a", @"
@@ -3108,34 +3102,33 @@ class Program
 
             verifier.VerifyIL("Program.Main", @"
 {
-  // Code size       70 (0x46)
-  .maxstack  1
-  .locals init (SnapshotPoint V_0,
-  SnapshotPoint? V_1)
+  // Code size       69 (0x45)
+  .maxstack  2
+  .locals init (SnapshotPoint? V_0, //s
+                SnapshotPoint? V_1, //s2
+                SnapshotPoint V_2)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""SnapshotPoint""
-  IL_0008:  ldloc.0
-  IL_0009:  newobj     ""SnapshotPoint?..ctor(SnapshotPoint)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloca.s   V_1
-  IL_0011:  call       ""bool SnapshotPoint?.HasValue.get""
-  IL_0016:  brfalse.s  IL_0025
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  call       ""SnapshotPoint SnapshotPoint?.GetValueOrDefault()""
-  IL_001f:  call       ""int SnapshotPoint.op_Implicit(SnapshotPoint)""
-  IL_0024:  pop
-  IL_0025:  ldloca.s   V_1
-  IL_0027:  initobj    ""SnapshotPoint?""
-  IL_002d:  ldloc.1
-  IL_002e:  stloc.1
-  IL_002f:  ldloca.s   V_1
-  IL_0031:  call       ""bool SnapshotPoint?.HasValue.get""
-  IL_0036:  brfalse.s  IL_0045
-  IL_0038:  ldloca.s   V_1
-  IL_003a:  call       ""SnapshotPoint SnapshotPoint?.GetValueOrDefault()""
-  IL_003f:  call       ""int SnapshotPoint.op_Implicit(SnapshotPoint)""
-  IL_0044:  pop
-  IL_0045:  ret
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  initobj    ""SnapshotPoint""
+  IL_000a:  ldloc.2
+  IL_000b:  call       ""SnapshotPoint?..ctor(SnapshotPoint)""
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""bool SnapshotPoint?.HasValue.get""
+  IL_0017:  brfalse.s  IL_0026
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  call       ""SnapshotPoint SnapshotPoint?.GetValueOrDefault()""
+  IL_0020:  call       ""int SnapshotPoint.op_Implicit(SnapshotPoint)""
+  IL_0025:  pop
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  initobj    ""SnapshotPoint?""
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  call       ""bool SnapshotPoint?.HasValue.get""
+  IL_0035:  brfalse.s  IL_0044
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  call       ""SnapshotPoint SnapshotPoint?.GetValueOrDefault()""
+  IL_003e:  call       ""int SnapshotPoint.op_Implicit(SnapshotPoint)""
+  IL_0043:  pop
+  IL_0044:  ret
 }");
         }
 
@@ -4673,7 +4666,7 @@ class Program
 {
   // Code size       21 (0x15)
   .maxstack  1
-  .locals init (Program.cls1 V_0)
+  .locals init (Program.cls1 V_0) //f1
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
