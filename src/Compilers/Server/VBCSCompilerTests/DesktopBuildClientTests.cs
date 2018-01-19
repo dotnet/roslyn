@@ -371,6 +371,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar));
                 Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
             }
+
+            [Fact]
+            public void GetBasePipeNameLength()
+            {
+                var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
+                var name = BuildServerConnection.GetBasePipeName(path);
+                // We only have ~50 total bytes to work with on mac, so the base path must be small
+                Assert.InRange(name.Length, 10, 30);
+            }
         }
     }
 }

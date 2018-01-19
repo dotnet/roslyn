@@ -92,6 +92,7 @@ class C
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(x, y)", lhs.ToString());
                 Assert.Equal("(System.Int64 x, System.String y)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int64 x, System.String y)", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
 
                 var right = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
                 Assert.Equal(@"new C()", right.ToString());
@@ -2392,10 +2393,10 @@ class C
 {
     static void Main()
     {
-        int x;
+        long x;
         string y, z;
 
-        (x, (y, z)) = (1, (""a"", ""b""));
+        (x, (y, z)) = ((int)1, (""a"", ""b""));
         System.Console.WriteLine(x + "" "" + y + "" "" + z);
     }
 }
@@ -2409,7 +2410,8 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(x, (y, z))", lhs.ToString());
-                Assert.Equal("(System.Int32 x, (System.String y, System.String z))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int64 x, (System.String y, System.String z))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int64 x, (System.String y, System.String z))", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
@@ -2906,11 +2908,13 @@ class C
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal("(var x1, var (x2, x3))", lhs.ToString());
                 Assert.Equal("(System.Int32 x1, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x1, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(lhs).Symbol);
 
                 var lhsNested = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
                 Assert.Equal("var (x2, x3)", lhsNested.ToString());
                 Assert.Equal("(System.Int32 x2, System.String x3)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x2, System.String x3)", model.GetTypeInfo(lhsNested).ConvertedType.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(lhsNested).Symbol);
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
@@ -2954,6 +2958,7 @@ class C
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal("(var x1, byte _, var (x2, x3))", lhs.ToString());
                 Assert.Equal("(System.Int32 x1, System.Byte, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x1, System.Byte, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(lhs).Symbol);
 
                 var lhsNested = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(2);
