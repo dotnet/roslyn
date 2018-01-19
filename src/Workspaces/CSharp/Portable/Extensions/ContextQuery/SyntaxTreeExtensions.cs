@@ -1512,7 +1512,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //  out var
             //  for (var
             //  foreach (var
+            //  foreach await (var
             //  using (var
+            //  using await (var
             //  from var
             //  join var
 
@@ -1532,15 +1534,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.OpenParenToken))
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.Parent.IsKind(
+                    SyntaxKind.ForStatement, SyntaxKind.ForEachStatement,
+                    SyntaxKind.ForEachVariableStatement, SyntaxKind.UsingStatement))
             {
-                var previous = token.GetPreviousToken(includeSkipped: true);
-                if (previous.IsKind(SyntaxKind.ForKeyword) ||
-                    previous.IsKind(SyntaxKind.ForEachKeyword) ||
-                    previous.IsKind(SyntaxKind.UsingKeyword))
-                {
-                    return true;
-                }
+                return true;
             }
 
             var tokenOnLeftOfStart = syntaxTree.FindTokenOnLeftOfPosition(token.SpanStart, cancellationToken);
@@ -2270,6 +2269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // foreach (var v in |
+            // foreach await (var v in |
             // from a in |
             // join b in |
             if (token.IsKind(SyntaxKind.InKeyword))
@@ -2357,8 +2357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // todo: handle 'for' cases.
 
             // using ( |
-            if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword))
+            // using await ( |
+            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.UsingStatement))
             {
                 return true;
             }
