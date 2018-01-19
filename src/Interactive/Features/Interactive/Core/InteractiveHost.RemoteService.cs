@@ -132,31 +132,25 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     var readOutputThreadJoinTask = Task.Run(() =>
                     {
-                        if (_readOutputThread != null)
+                        try
                         {
-                            try
-                            {
-                                _readOutputThread.Join();
-                            }
-                            catch (ThreadStateException)
-                            {
-                                // thread hasn't started
-                            }
+                            _readOutputThread?.Join();
+                        }
+                        catch (ThreadStateException)
+                        {
+                            // thread hasn't started
                         }
                     });
 
                     var readErrorOutputThreadJoinTask = Task.Run(() =>
                     {
-                        if (_readErrorOutputThread != null)
+                        try
                         {
-                            try
-                            {
-                                _readErrorOutputThread.Join();
-                            }
-                            catch (ThreadStateException)
-                            {
-                                // thread hasn't started
-                            }
+                            _readErrorOutputThread?.Join();
+                        }
+                        catch (ThreadStateException)
+                        {
+                            // thread hasn't started
                         }
                     });
 
