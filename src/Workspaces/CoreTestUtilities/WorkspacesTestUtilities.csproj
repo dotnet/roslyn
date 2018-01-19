@@ -42,6 +42,8 @@
     <EmbeddedResource Include="TestFiles\VisualBasicProject_Settings.settings" />
     <EmbeddedResource Include="TestFiles\Directory.Build.props" />
     <EmbeddedResource Include="TestFiles\Directory.Build.targets" />
+    <EmbeddedResource Include="TestFiles\NetCoreApp2\NetCoreApp2.csproj" />
+    <EmbeddedResource Include="TestFiles\NetCoreApp2\Program.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -312,5 +314,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="TestFiles\*.cs" />
+    <Compile Remove="TestFiles\**\*.cs" />
   </ItemGroup>
 </Project>
