@@ -128,26 +128,26 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 InitiateTermination(Process, _processId);
 
-                if (joinThreads)
-                {
-                    try
-                    {
-                        _readOutputThread?.Join();
-                    }
-                    catch (ThreadStateException)
-                    {
-                        // thread hasn't started
-                    }
+                //if (joinThreads)
+                //{
+                //    try
+                //    {
+                //        _readOutputThread?.Join();
+                //    }
+                //    catch (ThreadStateException)
+                //    {
+                //        // thread hasn't started
+                //    }
 
-                    try
-                    {
-                        _readErrorOutputThread?.Join();
-                    }
-                    catch (ThreadStateException)
-                    {
-                        // thread hasn't started
-                    }
-                }
+                //    try
+                //    {
+                //        _readErrorOutputThread?.Join();
+                //    }
+                //    catch (ThreadStateException)
+                //    {
+                //        // thread hasn't started
+                //    }
+                //}
 
                 // null the host so that we don't attempt to write to the buffer anymore:
                 _host = null;
