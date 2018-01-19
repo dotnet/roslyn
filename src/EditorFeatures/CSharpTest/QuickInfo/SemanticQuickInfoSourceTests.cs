@@ -4790,6 +4790,29 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
+        public async Task QuickInfoCapturesOnLocalFunction3()
+        {
+            await TestWithoutSpeculativeAsync(@"
+class C
+{
+    public void M(int @this)
+    {
+        int i = 0;
+        local$$();
+
+        void local()
+        {
+            M(1);
+            i++;
+            @this++;
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, @this, i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLambda()
         {
             await TestWithoutSpeculativeAsync(@"

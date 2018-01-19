@@ -273,6 +273,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return CreateDocumentationCommentDeferredContent(null);
         }
 
+        protected abstract SyntaxNode GetBindableNodeForTokenIndicatingLambda(SyntaxToken token);
+
         private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(
             Document document,
             SyntaxToken token,
@@ -281,8 +283,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-            var symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
-                                       .GetSymbols(includeType: true);
+            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+
+            ImmutableArray<ISymbol> symbols;
+            if (syntaxFacts.IdentifiesLambda(token))
+            {
+                symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(GetBindableNodeForTokenIndicatingLambda(token)).Symbol);
+            }
+            else
+            {
+                symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
+                    .GetSymbols(includeType: true);
+            }
 
             var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
             var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
@@ -305,7 +317,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
             // least bind it to a type.
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token))
             {
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);

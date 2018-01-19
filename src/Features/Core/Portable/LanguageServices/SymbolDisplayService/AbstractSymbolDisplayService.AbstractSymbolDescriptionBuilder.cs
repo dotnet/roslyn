@@ -176,14 +176,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
+            /// <summary>
+            /// If the symbol is a local or anonymous function (lambda or delegate), adds the variables captured
+            /// by that local or anonymous function to the "Captures" group.
+            /// </summary>
+            /// <param name="symbol"></param>
             protected abstract void AddCaptures(ISymbol symbol);
 
+            /// <summary>
+            /// Given the body of a local or an anonymous function (lambda or delegate), add the variables captured
+            /// by that local or anonymous function to the "Captures" group.
+            /// </summary>
             protected void AddCaptures(SyntaxNode syntax)
             {
                 var semanticModel = GetSemanticModel(syntax.SyntaxTree);
                 if (semanticModel.IsSpeculativeSemanticModel)
                 {
                     // Speculative semantic models cannot do region analysis
+                    // PROTOTYPE We should probably eliminate speculation from QuickInfo and avoid this altogether. Or we need a localized resource string
+                    AddToGroup(SymbolDescriptionGroups.Captures, new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Variables_captured_colon} Not computed yet"));
                     return;
                 }
 

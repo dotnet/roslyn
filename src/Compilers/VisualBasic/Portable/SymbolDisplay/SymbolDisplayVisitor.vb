@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    symbol As ISymbol,
                                    text As String,
                                    noEscaping As Boolean) As SymbolDisplayPart
-            Dim escape = (AlwaysEscape(kind, text) OrElse Not noEscaping) AndAlso _escapeKeywordIdentifiers AndAlso IsEscapable(kind)
+            Dim escape = (AlwaysEscape(kind, text) OrElse Not noEscaping) AndAlso _escapeKeywordIdentifiers AndAlso IsEscapable(kind, symbol)
             Return New SymbolDisplayPart(kind, symbol, If(escape, EscapeIdentifier(text), text))
         End Function
 
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Shared Function IsEscapable(kind As SymbolDisplayPartKind) As Boolean
+        Private Shared Function IsEscapable(kind As SymbolDisplayPartKind, symbol As ISymbol) As Boolean
             Select Case kind
                 Case SymbolDisplayPartKind.ModuleName,
                      SymbolDisplayPartKind.ClassName,
@@ -91,13 +91,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SymbolDisplayPartKind.FieldName,
                      SymbolDisplayPartKind.LocalName,
                      SymbolDisplayPartKind.NamespaceName,
-                     SymbolDisplayPartKind.ParameterName,
                      SymbolDisplayPartKind.AliasName,
                      SymbolDisplayPartKind.ErrorTypeName,
                      SymbolDisplayPartKind.LabelName,
                      SymbolDisplayPartKind.EventName,
                      SymbolDisplayPartKind.RangeVariableName
                     Return True
+                Case SymbolDisplayPartKind.ParameterName
+                    Dim parameter = TryCast(symbol, IParameterSymbol)
+                    Dim isMe = parameter IsNot Nothing AndAlso parameter.IsThis
+                    Return Not isMe
                 Case Else
                     Return False
             End Select

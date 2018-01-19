@@ -194,19 +194,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 declaredSymbol = null;
                 allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create(overriddenSymbol);
             }
-            else if (syntaxFacts.IdentifiesLambda(token))
-            {
-                aliasSymbol = null;
-                var bindableParent = syntaxFacts.GetBindableParent(token);
-                var lambda = semanticModel.GetSymbolInfo(bindableParent);
-                declaredSymbol = lambda.Symbol;
-                type = null;
-
-                allSymbols = semanticModel.GetSymbolInfo(bindableParent, cancellationToken)
-                    .GetBestOrAllSymbols()
-                    .WhereAsArray(s => !s.Equals(declaredSymbol))
-                    .SelectAsArray(s => MapSymbol(s, type));
-            }
             else
             {
                 aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
@@ -275,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<ISymbol> GetExistingSymbols(
             this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
         {
-            // Ignore an annonymous type property or tuple field.  It's ok if they have a name that 
+            // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
             // matches the name of the local we're introducing.
             return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
                 .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());

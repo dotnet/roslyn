@@ -5358,12 +5358,6 @@ class A
         this.M(@this);
     }
 }";
-            var format = new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions: SymbolDisplayMemberOptions.IncludeType,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 

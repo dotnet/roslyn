@@ -13,6 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
     [ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Semantic, LanguageNames.CSharp)]
     internal class SemanticQuickInfoProvider : AbstractSemanticQuickInfoProvider
     {
+        /// <summary>
+        /// Given a => token for a lambda, returns the syntax for the whole lambda
+        /// </summary>
+        protected override SyntaxNode GetBindableNodeForTokenIndicatingLambda(SyntaxToken token)
+        {
+            return token.Parent;
+        }
+
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         {
             return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);

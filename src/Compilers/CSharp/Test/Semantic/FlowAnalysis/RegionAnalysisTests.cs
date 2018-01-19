@@ -3967,9 +3967,9 @@ class C
 }");
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("this, i",  GetSymbolNamesJoined(analysis.Captured));
-            Assert.Equal("this",  GetSymbolNamesJoined(analysis.CapturedInside));
-            Assert.Equal("i",  GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Equal("this, i", GetSymbolNamesJoined(analysis.Captured));
+            Assert.Equal("this", GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.CapturedOutside));
         }
 
         [Fact]

@@ -92,6 +92,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
             Return Await MyBase.BuildContentAsync(document, token, cancellationToken).ConfigureAwait(False)
         End Function
 
+        ''' <summary>
+        ''' Given a Sub or Function token for a lambda, returns the syntax for the whole lambda
+        ''' </summary>
+        Protected Overrides Function GetBindableNodeForTokenIndicatingLambda(token As SyntaxToken) As SyntaxNode
+            Return token.Parent.Parent
+        End Function
+
         Private Overloads Async Function BuildContentAsync(document As Document,
                                                 token As SyntaxToken,
                                                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),

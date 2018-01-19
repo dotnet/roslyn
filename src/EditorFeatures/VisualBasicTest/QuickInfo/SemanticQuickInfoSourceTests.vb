@@ -2089,7 +2089,6 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
         Public Async Function TestQuickInfoCaptures2() As Task
-            ' PROTOTYPE there is a bug getting token from position (finds = instead of Sub)
             Await TestAsyncWithoutSpeculative("
 Class C
     Sub M(x As Integer)
@@ -2126,6 +2125,24 @@ Class C
 End Class
 ",
                 Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures5() As Task
+            Await TestAsyncWithoutSpeculative("
+Class C
+    Sub M([Me] As Integer)
+        Dim x As Integer = 0
+        Dim a As System.Action(Of Integer) = Functio$$n(a)
+            M(1)
+            x = x + 1
+            [Me] = [Me] + 1
+        End Function
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} Me, [Me], x"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

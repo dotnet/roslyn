@@ -579,15 +579,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch ((SyntaxKind)token.RawKind)
                 {
+                    case SyntaxKind.DelegateKeyword:
                     case SyntaxKind.VoidKeyword:
                         return false;
                 }
 
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.EqualsGreaterThanToken))
-            {
                 return true;
             }
 
@@ -1805,6 +1801,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IdentifiesLambda(SyntaxToken token)
-            => token.IsKind(SyntaxKind.EqualsGreaterThanToken, SyntaxKind.DelegateKeyword);
+        {
+            if (token.IsKind(SyntaxKind.EqualsGreaterThanToken)
+                && token.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression))
+            {
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.DelegateKeyword) && token.Parent.IsKind(SyntaxKind.AnonymousMethodExpression))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

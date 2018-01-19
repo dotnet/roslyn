@@ -1137,14 +1137,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Exit While
                 End If
 
-                If token.IsKind(SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword) Then
-                    Dim lambda = TryCast(parent, LambdaExpressionSyntax)
-                    If lambda IsNot Nothing Then
-                        node = parent
-                        Exit While
-                    End If
-                End If
-
                 ' If this node is not parented by a name, we're done.
                 Dim name = TryCast(parent, NameSyntax)
                 If name Is Nothing Then
@@ -1729,7 +1721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IdentifiesLambda(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IdentifiesLambda
-            Return token.IsKind(SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword)
+            Return token.IsKind(SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword) AndAlso token.Parent.IsKind(SyntaxKind.SubLambdaHeader, SyntaxKind.FunctionLambdaHeader)
         End Function
     End Class
 End Namespace

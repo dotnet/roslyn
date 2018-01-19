@@ -84,32 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string EscapeIdentifier(string identifier, ISymbol symbol)
         {
-            SyntaxKind kind = SyntaxFacts.GetKeywordKind(identifier);
-            bool escape;
-            switch (kind)
-            {
-                case SyntaxKind.None:
-                    escape = false;
-                    break;
-
-                case SyntaxKind.ThisKeyword:
-                    var parameter = symbol as IParameterSymbol;
-                    if (parameter is null)
-                    {
-                        escape = true;
-                    }
-                    else
-                    {
-                        escape = !parameter.IsThis;
-                    }
-                    break;
-
-                default:
-                    escape = true;
-                    break;
-            }
-
-            return escape ? $"@{identifier}" : identifier;
+            var kind = SyntaxFacts.GetKeywordKind(identifier);
+            return kind == SyntaxKind.None || (symbol as IParameterSymbol)?.IsThis == true
+                ? identifier
+                : $"@{identifier}";
         }
 
         public override void VisitAssembly(IAssemblySymbol symbol)

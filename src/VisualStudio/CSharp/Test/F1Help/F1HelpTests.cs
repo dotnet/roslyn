@@ -501,7 +501,7 @@ class Program
         var a = new System.Action(() =[||]> {
         });
     }
-}", "C.lambda expression");
+}", "=>_CSharpKeyword");
         }
 
         [WorkItem(867572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867572")]
