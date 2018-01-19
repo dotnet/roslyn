@@ -260,7 +260,7 @@ namespace N
             public function M5() as integer
             end function
 
-            Public partial sub M6()
+            Private partial sub M6()
             end sub
 
             Public property P1 as integer
@@ -324,7 +324,7 @@ namespace N
             public f4 as integer
 
             event e1 as Action
-            public event e2 as Action
+            event e2 as Action
 
             custom event e4 as Action
             end event
@@ -335,13 +335,13 @@ namespace N
             sub new()
             end sub
 
-            public sub new(i as integer)
+            sub new(i as integer)
             end sub
 
             sub M1()
             end sub
 
-            public sub M2()
+            sub M2()
             end sub
 
             function M3() as integer
@@ -349,20 +349,20 @@ namespace N
 
             function M4() as integer
 
-            public function M5() as integer
+            function M5() as integer
             end function
 
-            partial sub M6()
+            Private partial sub M6()
             end sub
 
             property P1 as integer
-            
+
             property P2 as integer
                 get
                 end get
             end property
 
-            public property P3 as integer
+            property P3 as integer
 
             shared operator &(c1 as C, c2 as C) as integer
             end operator
@@ -383,7 +383,7 @@ namespace N
         end enum
 
         structure S
-            dim f as integer
+            Dim f as integer
 
             sub M()
             end sub()
@@ -393,7 +393,7 @@ namespace N
         end structure
 
         module M
-            dim f as integer
+            Dim f as integer
 
             sub M()
             end sub()

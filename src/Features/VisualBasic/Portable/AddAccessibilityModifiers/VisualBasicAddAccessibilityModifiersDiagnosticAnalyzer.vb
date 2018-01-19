@@ -98,7 +98,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             End If
 
             ' default for const and field in a class is private
-            If member.IsParentKind(SyntaxKind.ClassBlock) Then                
+            If member.IsParentKind(SyntaxKind.ClassBlock) OrElse 
+               member.IsParentKind(SyntaxKind.ModuleBlock) Then                
                 If member.IsKind(SyntaxKind.FieldDeclaration) Then
                     Return accessibility = Accessibility.Private
                 End If
