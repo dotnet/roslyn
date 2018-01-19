@@ -370,5 +370,10 @@ namespace Analyzer.Utilities
         {
             return compilation.GetTypeByMetadataName("System.Data.IDataAdapter");
         }
+
+        public static INamedTypeSymbol ExpectedException(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.ExpectedExceptionAttribute");
+        }
     }
 }
