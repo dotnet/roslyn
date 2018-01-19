@@ -198,7 +198,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            Contract.Fail("Active statement method is not up-to-date and not in a non-remappable region.");
+            // The active statement is in a method that's not up-to-date but the active span have not changed.
+            // We only add changed spans to non-remappable regions map, so we won't find unchanged span there.
+            // Return the original span.
             return activeStatementInfo.LinePositionSpan;
         }
 
@@ -442,7 +444,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         allLineEdits.Add((documentId, result.LineEdits));
                     }
 
-                    allActiveStatements.Add((documentId, result.ActiveStatements, result.ExceptionRegions));
+                    if (result.ActiveStatements.Length > 0)
+                    {
+                        allActiveStatements.Add((documentId, result.ActiveStatements, result.ExceptionRegions));
+                    }
                 }
 
                 // Ideally we shouldn't be asking for deltas in absence of significant changes.

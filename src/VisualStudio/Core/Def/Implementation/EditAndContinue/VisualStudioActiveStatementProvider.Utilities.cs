@@ -27,12 +27,17 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             foreach (var dkmStatement in dkmStatements)
             {
                 // flags whose value only depends on the active instruction:
-                const DkmActiveStatementFlags instructionFlagsMask = DkmActiveStatementFlags.MethodUpToDate | DkmActiveStatementFlags.MidStatement | DkmActiveStatementFlags.NonUser;
+                const DkmActiveStatementFlags instructionFlagsMask = DkmActiveStatementFlags.MethodUpToDate | DkmActiveStatementFlags.NonUser;
                 var instructionFlags = (ActiveStatementFlags)(dkmStatement.Flags & instructionFlagsMask);
 
                 bool isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
-                var frameFlags = isLeaf ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame;
 
+                // MidStatement is set differently for leaf frames and non-leaf frames.
+                // We aggregate it so that if any frame has MidStatement the ActiveStatement is considered partially executed.
+                var frameFlags = 
+                    (isLeaf ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) |
+                    (ActiveStatementFlags)(dkmStatement.Flags & DkmActiveStatementFlags.MidStatement);
+                
                 var instruction = dkmStatement.InstructionAddress;
 
                 var instructionId = new ActiveInstructionId(

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void EndEditSession(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
         {
-            Debug.Assert(_debuggingSession != null && _editSession != null);
+            Debug.Assert(_debuggingSession != null && _editSession != null && nonRemappableRegions != null);
 
             // first, publish null session:
             var session = Interlocked.Exchange(ref _editSession, null);
