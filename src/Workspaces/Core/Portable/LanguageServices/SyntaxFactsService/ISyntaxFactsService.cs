@@ -341,8 +341,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         Location GetDeconstructionReferenceLocation(SyntaxNode node);
 
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
-
-        bool IdentifiesLambda(SyntaxToken token);
     }
 
     [Flags]

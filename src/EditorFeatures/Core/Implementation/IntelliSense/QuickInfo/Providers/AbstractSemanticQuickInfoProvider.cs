@@ -273,22 +273,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return CreateDocumentationCommentDeferredContent(null);
         }
 
-        protected abstract SyntaxNode GetBindableNodeForTokenIndicatingLambda(SyntaxToken token);
+        protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);
 
         private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
             var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
             ImmutableArray<ISymbol> symbols;
-            if (syntaxFacts.IdentifiesLambda(token))
+            if (GetBindableNodeForTokenIndicatingLambda(token, out SyntaxNode lambdaSyntax))
             {
-                symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(GetBindableNodeForTokenIndicatingLambda(token)).Symbol);
+                symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(lambdaSyntax).Symbol);
             }
             else
             {

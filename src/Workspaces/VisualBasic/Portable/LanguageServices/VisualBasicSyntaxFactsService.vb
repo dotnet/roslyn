@@ -1719,9 +1719,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return Nothing
         End Function
-
-        Public Function IdentifiesLambda(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IdentifiesLambda
-            Return token.IsKind(SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword) AndAlso token.Parent.IsKind(SyntaxKind.SubLambdaHeader, SyntaxKind.FunctionLambdaHeader)
-        End Function
     End Class
 End Namespace

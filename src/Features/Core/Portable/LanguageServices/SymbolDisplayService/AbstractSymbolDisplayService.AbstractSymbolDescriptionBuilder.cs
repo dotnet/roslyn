@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -190,13 +191,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected void AddCaptures(SyntaxNode syntax)
             {
                 var semanticModel = GetSemanticModel(syntax.SyntaxTree);
-                if (semanticModel.IsSpeculativeSemanticModel)
-                {
-                    // Speculative semantic models cannot do region analysis
-                    // PROTOTYPE We should probably eliminate speculation from QuickInfo and avoid this altogether. Or we need a localized resource string
-                    AddToGroup(SymbolDescriptionGroups.Captures, new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Variables_captured_colon} Not computed yet"));
-                    return;
-                }
+                Debug.Assert(!semanticModel.IsSpeculativeSemanticModel);
 
                 var analysis = semanticModel.AnalyzeDataFlow(syntax);
                 var captures = analysis.CapturedInside;

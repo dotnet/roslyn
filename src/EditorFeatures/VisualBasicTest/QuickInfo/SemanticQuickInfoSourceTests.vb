@@ -19,10 +19,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), skipSpeculative:=False, expectedResults)
         End Function
 
-        Protected Function TestAsyncWithoutSpeculative(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
-            Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), skipSpeculative:=True, expectedResults)
-        End Function
-
         Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, skipSpeculative As Boolean, ParamArray expectedResults() As Action(Of Object)) As Task
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
@@ -2074,7 +2070,7 @@ End Namespace
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
         Public Async Function TestQuickInfoCaptures() As Task
-            Await TestAsyncWithoutSpeculative("
+            Await TestAsync("
 Class C
     Sub M(x As Integer)
         Dim a As System.Action = Sub$$()
@@ -2089,7 +2085,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
         Public Async Function TestQuickInfoCaptures2() As Task
-            Await TestAsyncWithoutSpeculative("
+            Await TestAsync("
 Class C
     Sub M(x As Integer)
         Dim a As System.Action = S$$ub() x = x + 1
@@ -2102,7 +2098,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
         Public Async Function TestQuickInfoCaptures3() As Task
-            Await TestAsyncWithoutSpeculative("
+            Await TestAsync("
 Class C
     Sub M(x As Integer)
         Dim a As System.Action(Of Integer) = Functio$$n(a) x = x + 1
@@ -2115,7 +2111,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
         Public Async Function TestQuickInfoCaptures4() As Task
-            Await TestAsyncWithoutSpeculative("
+            Await TestAsync("
 Class C
     Sub M(x As Integer)
         Dim a As System.Action(Of Integer) = Functio$$n(a)
@@ -2130,7 +2126,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
         Public Async Function TestQuickInfoCaptures5() As Task
-            Await TestAsyncWithoutSpeculative("
+            Await TestAsync("
 Class C
     Sub M([Me] As Integer)
         Dim x As Integer = 0

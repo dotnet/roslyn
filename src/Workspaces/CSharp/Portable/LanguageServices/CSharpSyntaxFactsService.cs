@@ -1799,21 +1799,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
-
-        public bool IdentifiesLambda(SyntaxToken token)
-        {
-            if (token.IsKind(SyntaxKind.EqualsGreaterThanToken)
-                && token.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression))
-            {
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.DelegateKeyword) && token.Parent.IsKind(SyntaxKind.AnonymousMethodExpression))
-            {
-                return true;
-            }
-
-            return false;
-        }
     }
 }
