@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Retrives active statements from the debuggee process.
         /// Shall only be called while in debug mode.
+        /// Can be invoked on any thread.
         /// </summary>
         Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken);
     }

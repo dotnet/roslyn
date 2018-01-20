@@ -553,8 +553,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldActiveStatement = oldActiveStatements[i];
                     var newActiveStatement = newActiveStatements[i];
                     var oldInstructionId = oldActiveStatement.InstructionId;
-                    var methodToken = oldInstructionId.MethodToken;
-                    var methodVersion = oldInstructionId.MethodVersion;
+                    var methodToken = oldInstructionId.MethodId.Token;
+                    var methodVersion = oldInstructionId.MethodId.Version;
 
                     bool isMethodUpdated = updatedMethodTokens.Contains(methodToken);
                     if (isMethodUpdated)
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var unremappedActiveMethods = PooledHashSet<ActiveMethodId>.GetInstance();
             foreach (var (instruction, baseActiveStatement) in baseActiveStatements.InstructionMap)
             {
-                if (moduleId == instruction.ModuleId && !baseActiveStatement.IsMethodUpToDate)
+                if (moduleId == instruction.MethodId.ModuleId && !baseActiveStatement.IsMethodUpToDate)
                 {
                     unremappedActiveMethods.Add(instruction.MethodId);
                 }
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var baseSpan = region.Span.AddLineDelta(region.LineDelta);
 
                         NonRemappableRegion newRegion;
-                        if (changedNonRemappableSpans.TryGetValue((methodInstance.MethodToken, methodInstance.MethodVersion, baseSpan), out var newSpan))
+                        if (changedNonRemappableSpans.TryGetValue((methodInstance.Token, methodInstance.Version, baseSpan), out var newSpan))
                         {
                             // all spans must be of the same size:
                             Debug.Assert(newSpan.End.Line - newSpan.Start.Line == baseSpan.End.Line - baseSpan.Start.Line);

@@ -868,8 +868,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 result[i] = new ENCPROG_ACTIVE_STATEMENT_REMAP
                 {
                     ThreadId = remaps[i].ThreadId,
-                    MethodToken = remaps[i].OldInstructionId.MethodToken,
-                    OldMethodVersion = remaps[i].OldInstructionId.MethodVersion,
+                    MethodToken = remaps[i].OldInstructionId.MethodId.Token,
+                    OldMethodVersion = remaps[i].OldInstructionId.MethodId.Version,
                     OldILOffset = remaps[i].OldInstructionId.ILOffset,
                     // the debugger expects these to be 0-based
                     NewStartLine = remaps[i].NewSpan.Start.Line,
@@ -903,8 +903,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     result[i++] = new ENCPROG_EXCEPTION_RANGE
                     {
-                        MethodToken = method.MethodToken,
-                        MethodVersion = method.MethodVersion,
+                        MethodToken = method.Token,
+                        MethodVersion = method.Version,
                         // the debugger expects these to be 0-based
                         StartLine = region.Span.Start.Line + delta,
                         StartCol = region.Span.Start.Character,

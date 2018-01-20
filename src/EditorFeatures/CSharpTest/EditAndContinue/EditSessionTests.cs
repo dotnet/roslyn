@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             // GetActiveStatementAndExceptionRegionSpans
 
             // Assume 2 more updates:
-
+#if TODO
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
                 (
                     docs[0],
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
                 out var nonRemappableRegions);
-#if TODO
+
             AssertEx.Equal(new[]
             {
                 "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | AS (8,20)-(8,25) δ=1",
@@ -522,16 +522,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             Assert.Equal(2, baseActiveStatements.InstructionMap.Count);
 
-            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.InstructionId.MethodToken).ToArray();
+            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.InstructionId.MethodId.Token).ToArray();
             var s = statements[0];
-            Assert.Equal(0x06000001, s.InstructionId.MethodToken);
+            Assert.Equal(0x06000001, s.InstructionId.MethodId.Token);
             Assert.Equal(0, s.PrimaryDocumentOrdinal);
             Assert.Equal(docs[0], s.DocumentIds.Single());
             Assert.True(s.IsNonLeaf);
             AssertEx.Equal(new[] { thread1, thread2 }, s.ThreadIds);
 
             s = statements[1];
-            Assert.Equal(0x06000002, s.InstructionId.MethodToken);
+            Assert.Equal(0x06000002, s.InstructionId.MethodId.Token);
             Assert.Equal(1, s.PrimaryDocumentOrdinal);
             Assert.Equal(docs[0], s.DocumentIds.Single());
             Assert.True(s.IsLeaf);
@@ -642,16 +642,16 @@ class Test2
 
             var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
             var s = statements[0];
-            Assert.Equal(0x06000001, s.InstructionId.MethodToken);
-            Assert.Equal(module4, s.InstructionId.ModuleId);
+            Assert.Equal(0x06000001, s.InstructionId.MethodId.Token);
+            Assert.Equal(module4, s.InstructionId.MethodId.ModuleId);
 
             s = statements[1];
-            Assert.Equal(0x06000002, s.InstructionId.MethodToken);
-            Assert.Equal(module2, s.InstructionId.ModuleId);
+            Assert.Equal(0x06000002, s.InstructionId.MethodId.Token);
+            Assert.Equal(module2, s.InstructionId.MethodId.ModuleId);
 
             s = statements[2];
-            Assert.Equal(0x06000001, s.InstructionId.MethodToken);
-            Assert.Equal(module1, s.InstructionId.ModuleId);
+            Assert.Equal(0x06000001, s.InstructionId.MethodId.Token);
+            Assert.Equal(module1, s.InstructionId.MethodId.ModuleId);
         }
     }
 }

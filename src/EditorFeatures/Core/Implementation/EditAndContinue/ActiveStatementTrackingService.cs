@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             var newSession = new TrackingSession(this, editSession);
             if (Interlocked.CompareExchange(ref _sessionOpt, newSession, null) != null)
             {
-                Contract.Fail("Can only track active statements for a single edit session.");
                 newSession.EndTracking();
+                Contract.Fail("Can only track active statements for a single edit session.");
             }
         }
 
