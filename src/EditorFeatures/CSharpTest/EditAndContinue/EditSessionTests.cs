@@ -124,6 +124,49 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }
         }
 
+        private static string Delete(string src, string marker)
+        {
+            while (true)
+            {
+                string startStr = "/*delete" + marker;
+                string endStr = "*/";
+                int start = src.IndexOf(startStr);
+                if (start == -1)
+                {
+                    return src;
+                }
+
+                int end = src.IndexOf(endStr, start + startStr.Length) + endStr.Length;
+                src = src.Substring(0, start) + src.Substring(end);
+            }
+        }
+
+        private static string Insert(string src, string marker)
+        {
+            while (true)
+            {
+                string startStr = "/*insert" + marker + "[";
+                string endStr = "*/";
+
+                int start = src.IndexOf(startStr);
+                if (start == -1)
+                {
+                    return src;
+                }
+
+                int startOfLineCount = start + startStr.Length;
+                int endOfLineCount = src.IndexOf(']', startOfLineCount);
+                int lineCount = int.Parse(src.Substring(startOfLineCount, endOfLineCount - startOfLineCount));
+
+                var end = src.IndexOf(endStr, endOfLineCount) + endStr.Length;
+
+                src = src.Substring(0, start) + string.Join("", Enumerable.Repeat(Environment.NewLine, lineCount)) + src.Substring(end);
+            }
+        }
+
+        private static string Update(string src, string marker)
+            => Insert(Delete(src, marker), marker);
+
         private static string InspectAS(ActiveStatement statement)
             => $"{statement.Ordinal}: {statement.Span} flags=[{statement.Flags}] pdid={statement.PrimaryDocumentId.DebugName} docs=[{string.Join(",", statement.DocumentIds.Select(d => d.DebugName))}]";
 
@@ -131,7 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             => InspectAS(statement) + " " + statement.InstructionId.GetDebuggerDisplay();
 
         private static string InspectActiveStatementAndInstruction(ActiveStatement statement, SourceText text)
-            => InspectActiveStatementAndInstruction(statement) + $" '{text.Lines[statement.Span.Start.Line].ToString().Trim()}'";
+            => InspectActiveStatementAndInstruction(statement) + $" '{GetFirstLineText(statement.Span, text)}'";
+
+        private static string GetFirstLineText(LinePositionSpan span, SourceText text)
+            => text.Lines[span.Start.Line].ToString().Trim();
 
         [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions()
@@ -292,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions_WithInitialNonRemappableRegions()
         {
-            var markedSourcePreRemap =
+            var markedSourceV1 =
 @"class Test
 {
     static void F1()
@@ -307,14 +353,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     }
 
     static void F2()
-    {
-        try
+    {   /*delete2
+      */try
         {
         }
         <ER:1.0>catch
         {
             <AS:1>M();</AS:1>
-        }</ER:1.0>
+        }</ER:1.0>/*insert2[1]*/
     }
 
     static void F3()
@@ -322,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         try
         {
             try 
-            {   // current location of AS:2
-                <AS:2>M();</AS:2>
+            {   /*delete1
+              */<AS:2>M();</AS:2>/*insert1[3]*/
             }
             <ER:2.0>finally
             {
@@ -332,10 +378,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         <ER:2.1>catch
         {
         }</ER:2.1>
-    }
+/*delete1
+
+*/  }
 
     static void F4()
-    {
+    {   /*insert1[1]*//*insert2[2]*/
         try
         {
             try
@@ -344,18 +392,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             <ER:3.0>catch
             {
                 <AS:3>M();</AS:3>
-            }</ER:3.0> // current location of AS:3
+            }</ER:3.0>
         }
         <ER:3.1>catch
         {
-        }}</ER:3.1>
+        }</ER:3.1>
     }
 }";
+            var markedSourceV2 = Update(markedSourceV1, "1");
+            var markedSourceV3 = Update(markedSourceV2, "2");
 
             var module1 = new Guid("11111111-1111-1111-1111-111111111111");
-            var sourceTextPreRemap = SourceText.From(markedSourcePreRemap);
+            var sourceTextV1 = SourceText.From(markedSourceV1);
+            var sourceTextV2 = SourceText.From(markedSourceV2);
+            var sourceTextV3 = SourceText.From(markedSourceV3);
 
-            var activeStatementsPreRemap = GetActiveStatementDebugInfos(new[] { markedSourcePreRemap },
+            var activeStatementsPreRemap = GetActiveStatementDebugInfos(new[] { markedSourceV1 },
                 modules: new[] { module1, module1, module1, module1 },
                 methodVersions: new[] { 2, 2, 1, 1 }, // method F3 and F4 were not remapped
                 flags: new[] 
@@ -366,14 +418,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     ActiveStatementFlags.None | ActiveStatementFlags.IsNonLeafFrame,           // F4
                 });
 
-            var exceptionSpans = ActiveStatementsDescription.GetExceptionRegions(markedSourcePreRemap, activeStatementsPreRemap.Length);
+            var exceptionSpans = ActiveStatementsDescription.GetExceptionRegions(markedSourceV1, activeStatementsPreRemap.Length);
 
             var spanPreRemap2 = activeStatementsPreRemap[2].LinePositionSpan;
-            var erPreRemap20 = sourceTextPreRemap.Lines.GetLinePositionSpan(exceptionSpans[2][0]);
-            var erPreRemap21 = sourceTextPreRemap.Lines.GetLinePositionSpan(exceptionSpans[2][1]);
+            var erPreRemap20 = sourceTextV1.Lines.GetLinePositionSpan(exceptionSpans[2][0]);
+            var erPreRemap21 = sourceTextV1.Lines.GetLinePositionSpan(exceptionSpans[2][1]);
             var spanPreRemap3 = activeStatementsPreRemap[3].LinePositionSpan;
-            var erPreRemap30 = sourceTextPreRemap.Lines.GetLinePositionSpan(exceptionSpans[3][0]);
-            var erPreRemap31 = sourceTextPreRemap.Lines.GetLinePositionSpan(exceptionSpans[3][1]);
+            var erPreRemap30 = sourceTextV1.Lines.GetLinePositionSpan(exceptionSpans[3][0]);
+            var erPreRemap31 = sourceTextV1.Lines.GetLinePositionSpan(exceptionSpans[3][1]);
 
             // Assume that the following edits have been made to F3 and F4 and set up non-remappable regions mapping
             // from the pre-remap spans of AS:2 and AS:3 to their current location.
@@ -388,82 +440,88 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 { new ActiveMethodId(module1, 0x06000004, 1), ImmutableArray.Create(
                     // move AS:3 one line down:
                     new NonRemappableRegion(spanPreRemap3, lineDelta: +1, isExceptionRegion: false),
-                    // move ER:2.0 and ER:2.1 one line down:
+                    // move ER:3.0 and ER:3.1 one line down:
                     new NonRemappableRegion(erPreRemap30, lineDelta: +1, isExceptionRegion: true),
                     new NonRemappableRegion(erPreRemap31, lineDelta: +1, isExceptionRegion: true)) }
             }.ToImmutableDictionary();
 
-            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(new[] { markedSourcePreRemap }, activeStatementsPreRemap, initialNonRemappableRegions).ConfigureAwait(false);
+            var (baseActiveStatementMap, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(new[] { markedSourceV2 }, activeStatementsPreRemap, initialNonRemappableRegions).ConfigureAwait(false);
 
             // Active Statements
 
-            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
 
-            // Note that the spans of AS:2 and AS:3 correspond to the base snapshot, while the source text captures their pre-remap versions.
+            // Note that the spans of AS:2 and AS:3 correspond to the base snapshot (V2).
             AssertEx.Equal(new[]
             {
                 "0: (6,18)-(6,22) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v2 IL_0000 '<AS:0>M();</AS:0>'",
                 "1: (20,18)-(20,22) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v2 IL_0000 '<AS:1>M();</AS:1>'",
-                "2: (29,22)-(29,26) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000003 v1 IL_0000 '{   // current location of AS:2'",
-                "3: (51,22)-(51,26) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 IL_0000 '}</ER:3.0> // current location of AS:3'"
-            }, statements.Select(s => InspectActiveStatementAndInstruction(s, sourceTextPreRemap)));
+                "2: (29,22)-(29,26) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000003 v1 IL_0000 '{   <AS:2>M();</AS:2>'",
+                "3: (53,22)-(53,26) flags=[IsNonLeafFrame] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 IL_0000 '<AS:3>M();</AS:3>'"
+            }, baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, sourceTextV2)));
 
             // Exception Regions
 
-            // Note that the spans correspond to the base snapshort. 
+            // Note that the spans correspond to the base snapshot (V2). 
             AssertEx.Equal(new[]
             {
-                "[(8,16)-(10,9)]",
-                "[(18,16)-(21,9)]",
-                "[(36,16)-(38,9),(32,20)-(34,13)]",
-                "[(53,16)-(55,9),(48,20)-(51,13)]",
-            }, baseExceptionRegions.Select(r => "[" + string.Join(",", r.Spans) + "]"));
+                "[(8,16)-(10,9) '<ER:0.0>catch']",
+                "[(18,16)-(21,9) '<ER:1.0>catch']",
+                "[(38,16)-(40,9) '<ER:2.1>catch', (34,20)-(36,13) '<ER:2.0>finally']",
+                "[(56,16)-(58,9) '<ER:3.1>catch', (51,20)-(54,13) '<ER:3.0>catch']",
+            }, baseExceptionRegions.Select(r => "[" + string.Join(", ", r.Spans.Select(s => $"{s} '{GetFirstLineText(s, sourceTextV2)}'")) + "]"));
 
             // GetActiveStatementAndExceptionRegionSpans
 
             // Assume 2 more updates:
-#if TODO
+            //   F2: Move 'try' one line up (a new non-remappable entries will be added)
+            //   F4: Insert 2 new lines before the first 'try' (an existing non-remappable entries will be updated)
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
                 (
                     docs[0],
 
                     ImmutableArray.Create(
-                        statements[2].WithSpan(statements[2].Span.AddLineDelta(+2)),
-                        statements[3].WithSpan(statements[3].Span.AddLineDelta(+1)),
-                        statements[4]),
+                        baseActiveStatements[0],
+                        baseActiveStatements[1].WithSpan(baseActiveStatements[1].Span.AddLineDelta(-1)),
+                        baseActiveStatements[2],
+                        baseActiveStatements[3].WithSpan(baseActiveStatements[3].Span.AddLineDelta(+2))),
 
                     ImmutableArray.Create(
+                        baseExceptionRegions[0].Spans,
+                        baseExceptionRegions[1].Spans.SelectAsArray(es => es.AddLineDelta(-1)),
                         baseExceptionRegions[2].Spans,
-                        baseExceptionRegions[3].Spans.SelectAsArray(es => es.AddLineDelta(+1)),
-                        baseExceptionRegions[4].Spans)
+                        baseExceptionRegions[3].Spans.SelectAsArray(es => es.AddLineDelta(+2)))
                 )
             );
 
             EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module1,
-                baseActiveStatements,
+                baseActiveStatementMap,
                 baseExceptionRegions,
-                updatedMethodTokens: new[] { 0x06000001 }, // contains only recompiled methods in the project we are interested in (module2)
+                updatedMethodTokens: new[] { 0x06000002, 0x06000004 }, // F2, F4
                 initialNonRemappableRegions,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
                 out var nonRemappableRegions);
 
+            // Note: Since no method have been remapped yet all the following spans are in their pre-remap locations: 
             AssertEx.Equal(new[]
             {
-                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | AS (8,20)-(8,25) δ=1",
-                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | ER (14,8)-(16,9) δ=1",
-                "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | ER (10,10)-(12,11) δ=1"
-            }, nonRemappableRegions.Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000002 v2 | ER (18,16)-(21,9) δ=-1",
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000002 v2 | AS (20,18)-(20,22) δ=-1",
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000003 v1 | AS (30,22)-(30,26) δ=-1", // AS:2 moved -1 in first edit, 0 in second
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000003 v1 | ER (32,20)-(34,13) δ=2",  // ER:2.0 moved +2 in first edit, 0 in second
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000003 v1 | ER (36,16)-(38,9) δ=2",   // ER:2.0 moved +2 in first edit, 0 in second
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 | ER (50,20)-(53,13) δ=3",  // ER:3.0 moved +1 in first edit, +2 in second              
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 | AS (52,22)-(52,26) δ=3",  // AS:3 moved +1 in first edit, +2 in second
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 | ER (55,16)-(57,9) δ=3",   // ER:3.1 moved +1 in first edit, +2 in second     
+            }, nonRemappableRegions.OrderBy(r => r.Region.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
             {
-                "thread=00000000-0000-0000-0000-000000000010 mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002: (9,20)-(9,25)"
-            }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
-
-            // GetActiveStatementAndExceptionRegionSpans with initial remaps
-
-#endif
+                "thread=00000000-0000-0000-0000-000000000010 mvid=11111111-1111-1111-1111-111111111111 0x06000002 v2 IL_0000: (19,18)-(19,22) '<AS:1>M();</AS:1>'",
+                "thread=00000000-0000-0000-0000-000000000010 mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 IL_0000: (55,22)-(55,26) '<AS:3>M();</AS:3>'"
+            }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, sourceTextV3)}'"));
         }
 
         [Fact]
