@@ -745,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
             Dim operandType = operand.Type
             Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfIsNotExpression)
-            Return BindTypeOf_Inner(node, diagnostics, operand, operandType, operatorIsIsNot, node.Type, node.Expression)
+            Return BindTypeOf_Inner(node, diagnostics, operand, operandType, operatorIsIsNot, node.Type, node.Expression, True)
         End Function
 
         Private Function BindTypeOf_Inner(
@@ -783,7 +783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         diagnostics = New DiagnosticBag()
                     End If
                 ElseIf Not Conversions.ConversionExists(convKind) Then
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
+                    diagnostics.Add(ERRID.ERR_TypeOfExprAlwaysFalse2, node.Location, operandType, targetType)
                 End If
             End If
 
@@ -802,7 +802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim targertTypes = ImmutableArray(Of BoundTypeOf).Empty
             Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
             For Each _type_ In node.Types
-                Dim b As BoundTypeOf = BindTypeOf_Inner(_type_, diagnostics, operand, operandType, operatorIsIsNot, _type_, node.Expression)
+                Dim b As BoundTypeOf = BindTypeOf_Inner(_type_, diagnostics, operand, operandType, operatorIsIsNot, _type_, node.Expression, True)
                 targertTypes = targertTypes.Add(b)
             Next
             Return New BoundTypeOfMany(node, targertTypes, operand, operatorIsIsNot, resultType)

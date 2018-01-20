@@ -37,8 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function Rewrite_AsMultiple_TypeOfIs(node As BoundTypeOfMany) As BoundNode
             Dim syn = DirectCast(node.Syntax, TypeOfExpressionSyntax)
             Dim Current As BoundExpression = New BoundLiteral(syn, ConstantValue.False, GetSpecialType(SpecialType.System_Boolean))
-            For Each t In node.TargetTypes
-                Dim _TypeOf_ = t ' Make_TypeOfIs(syn, New BoundTypeExpression(syn, node.Type), New BoundTypeExpression(syn, t))
+            For Each _TypeOf_ In node.TargetTypes
                 Dim [Next] = Make_OrElse(syn, Current, _TypeOf_)
                 Current = [Next]
             Next
@@ -63,8 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function Rewrite_AsMultiple_TypeOfIsNot(node As BoundTypeOfMany) As BoundNode
             Dim syn = DirectCast(node.Syntax, TypeOfExpressionSyntax)
             Dim Current As BoundExpression = New BoundLiteral(syn, ConstantValue.False, GetSpecialType(SpecialType.System_Boolean))
-            For Each t In node.TargetTypes
-                Dim _TypeOf_ = t 'Make_TypeOfIs(syn, New BoundTypeExpression(syn, node.Type), New BoundTypeExpression(syn, t))
+            For Each _TypeOf_ In node.TargetTypes
                 Dim [Next] = Make_OrElse(syn, Current, _TypeOf_)
                 Current = [Next]
             Next

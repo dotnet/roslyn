@@ -94,6 +94,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundTernaryConditionalExpressionOperation(DirectCast(boundNode, BoundTernaryConditionalExpression))
                 Case BoundKind.TypeOf
                     Return CreateBoundTypeOfOperation(DirectCast(boundNode, BoundTypeOf))
+                Case BoundKind.TypeOfMany
+                    Return CreateBoundTypeOfManyOperation(DirectCast(boundNode, BoundTypeOfMany))
                 Case BoundKind.GetType
                     Return CreateBoundGetTypeOperation(DirectCast(boundNode, BoundGetType))
                 Case BoundKind.ObjectCreationExpression
@@ -250,6 +252,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
                     Return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode), isImplicit)
             End Select
+        End Function
+
+        Private Function CreateBoundTypeOfManyOperation(boundNode As BoundTypeOfMany) As IOperation
+            Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
+            Return Operation.CreateOperationNone(_semanticModel,
+                                                 boundNode.Syntax,
+                                                 constantValue,
+                                                 Function() GetIOperationChildren(boundNode),
+                                                 isImplicit)
         End Function
 
         Private Function GetIOperationChildren(boundNode As BoundNode) As ImmutableArray(Of IOperation)
@@ -653,6 +665,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isImplicit As Boolean = boundTypeOf.WasCompilerGenerated
             Return New LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
+
 
         Private Function CreateBoundGetTypeOperation(boundGetType As BoundGetType) As ITypeOfExpression
             Dim typeOperand As ITypeSymbol = boundGetType.SourceType.Type
