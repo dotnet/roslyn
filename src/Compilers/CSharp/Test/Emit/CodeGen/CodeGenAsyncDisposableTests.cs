@@ -155,16 +155,17 @@ class C : System.IAsyncDisposable
         };
         await x();
     }
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
-        System.Console.Write(""DisposeAsync "");
-        return Task.Delay(10);
+        System.Console.Write(""DisposeAsync1 "");
+        await Task.Delay(10);
+        System.Console.Write(""DisposeAsync2 "");
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "C body DisposeAsync end");
+            CompileAndVerify(comp, expectedOutput: "C body DisposeAsync1 DisposeAsync2 end");
         }
 
         [Fact]
@@ -249,16 +250,17 @@ class C : System.IAsyncDisposable
             System.Console.Write(""end"");
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public async System.Threading.Tasks.Task DisposeAsync()
     {
-        System.Console.Write(""dispose "");
-        return System.Threading.Tasks.Task.Delay(10);
+        System.Console.Write($""dispose_start "");
+        await System.Threading.Tasks.Task.Delay(10);
+        System.Console.Write($""dispose_end "");
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "try using dispose end");
+            CompileAndVerify(comp, expectedOutput: "try using dispose_start dispose_end end");
         }
 
         [Fact]
@@ -363,16 +365,17 @@ class C : System.IAsyncDisposable
         System.Console.Write(""return"");
         return 1;
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public async System.Threading.Tasks.Task DisposeAsync()
     {
-        System.Console.Write(""dispose "");
-        return System.Threading.Tasks.Task.Delay(10);
+        System.Console.Write($""dispose_start "");
+        await System.Threading.Tasks.Task.Delay(10);
+        System.Console.Write($""dispose_end "");
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose return");
+            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
         [Fact]
@@ -547,12 +550,12 @@ class C : System.IAsyncDisposable
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                // (13,15): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
                 //         using await (new C()) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (new C()) { }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 9),
-                // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 15),
+                // (14,15): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
                 //         using await (var x = new C()) { return 1; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (var x = new C()) { return 1; }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 15)
                 );
         }
 
@@ -612,12 +615,12 @@ class C : System.IAsyncDisposable
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                // (13,15): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
                 //         using await (new C()) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (new C()) { }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 9),
-                // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 15),
+                // (14,15): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
                 //         using await (var x = new C()) { return 1; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using await (var x = new C()) { return 1; }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 15)
                 );
         }
 
@@ -1262,16 +1265,17 @@ class S : System.IAsyncDisposable
             return;
         }
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public async System.Threading.Tasks.Task DisposeAsync()
     {
-        System.Console.Write($""dispose{_i} "");
-        return System.Threading.Tasks.Task.Delay(10);
+        System.Console.Write($""dispose{_i}_start "");
+        await System.Threading.Tasks.Task.Delay(10);
+        System.Console.Write($""dispose{_i}_end "");
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1");
+            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end");
         }
 
         [Fact]
@@ -1310,7 +1314,52 @@ class S : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
+            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
+        }
+
+        [Fact]
+        public void TestWithMultipleResourcesAndExceptionInSecondResource()
+        {
+            string source = @"
+class S : System.IAsyncDisposable
+{
+    private int _i;
+    S(int i)
+    {
+        System.Console.Write($""ctor{i} "");
+        if (i == 1)
+        {
+            _i = i;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+    public static async System.Threading.Tasks.Task Main()
+    {
+        try
+        {
+            using await (S s1 = new S(1), s2 = new S(2))
+            {
+                System.Console.Write(""SKIPPED"");
+            }
+        }
+        catch (System.Exception)
+        {
+            System.Console.Write(""caught"");
+        }
+    }
+    public System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write($""dispose{_i} "");
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 dispose1 caught");
         }
 
         [Fact]

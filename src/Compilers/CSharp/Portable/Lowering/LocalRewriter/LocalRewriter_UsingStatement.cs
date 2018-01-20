@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.DeclarationsOpt != null);
 
-                SyntaxNode usingSyntax = node.Syntax;
+                var usingSyntax = (UsingStatementSyntax)node.Syntax;
                 Conversion idisposableConversion = node.IDisposableConversion;
                 ImmutableArray<BoundLocalDeclaration> declarations = node.DeclarationsOpt.LocalDeclarations;
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion iDisposableConversion, AwaitableInfo awaitOpt)
+        private BoundBlock RewriteDeclarationUsingStatement(UsingStatementSyntax usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion iDisposableConversion, AwaitableInfo awaitOpt)
         {
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, AwaitableInfo awaitOpt)
+        private BoundStatement RewriteUsingStatementTryFinally(UsingStatementSyntax syntax, BoundBlock tryBlock, BoundLocal local, AwaitableInfo awaitOpt)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -310,7 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // local.Dispose()
                 disposeCall = BoundCall.Synthesized(syntax, disposedExpression, disposeMethodSymbol);
             }
-            else if (awaitOpt != null && TryGetWellKnownTypeMember(syntax, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out MethodSymbol disposeAsyncMethodSymbol))
+            else if (awaitOpt != null
+                && TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync,
+                    out MethodSymbol disposeAsyncMethodSymbol, location: syntax.AwaitKeyword.GetLocation()))
             {
                 // await local.DisposeAsync()
                 _sawAwaitInExceptionHandler = true;
