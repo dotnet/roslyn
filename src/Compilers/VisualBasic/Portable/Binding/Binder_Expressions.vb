@@ -745,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
             Dim operandType = operand.Type
             Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfIsNotExpression)
-            Return BindTypeOf_Inner(node, diagnostics, operand, operandType, operatorIsIsNot, node.Type)
+            Return BindTypeOf_Inner(node, diagnostics, operand, operandType, operatorIsIsNot, node.Type, node.Expression)
         End Function
 
         Private Function BindTypeOf_Inner(
@@ -754,7 +754,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    ByRef operand As BoundExpression,
                                          operandType As TypeSymbol,
                                          operatorIsIsNot As Boolean,
-                                         targetTypeSyntax As TypeSyntax
+                                         targetTypeSyntax As TypeSyntax,
+                                         expr As ExpressionSyntax,
+                                    Optional suppressAdditionalDiagostics As Boolean = False
                                          ) As BoundTypeOf
             Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
             Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(targetTypeSyntax, diagnostics)
@@ -769,17 +771,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not operandType.IsReferenceType AndAlso
                Not operandType.IsTypeParameter() Then
 
-                ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
+                ReportDiagnostic(diagnostics, expr, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
 
             Else
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 Dim convKind As ConversionKind = Conversions.ClassifyTryCastConversion(operandType, targetType, useSiteDiagnostics)
 
                 If diagnostics.Add(node, useSiteDiagnostics) Then
-                    ' Suppress any additional diagnostics
-                    diagnostics = New DiagnosticBag()
+                    If suppressAdditionalDiagostics Then
+                        ' Suppress any additional diagnostics
+                        diagnostics = New DiagnosticBag()
+                    End If
                 ElseIf Not Conversions.ConversionExists(convKind) Then
-                    ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
                 End If
             End If
 
@@ -798,7 +802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim targertTypes = ImmutableArray(Of BoundTypeOf).Empty
             Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
             For Each _type_ In node.Types
-                Dim b As BoundTypeOf = BindTypeOf_Inner(_type_, diagnostics, operand, operandType, operatorIsIsNot, _type_)
+                Dim b As BoundTypeOf = BindTypeOf_Inner(_type_, diagnostics, operand, operandType, operatorIsIsNot, _type_, node.Expression)
                 targertTypes = targertTypes.Add(b)
             Next
             Return New BoundTypeOfMany(node, targertTypes, operand, operatorIsIsNot, resultType)
