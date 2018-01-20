@@ -650,15 +650,15 @@ Module Program
 
         Dim o As Object = ""
 
-        Dim isString = TypeOf o Is CharacterSequence '0
+        Dim isString = TypeOf o Is {CharacterSequence} '0
 
-        Dim isInteger = TypeOf o Is HRESULT '1
+        Dim isInteger = TypeOf o Is {HRESULT} '1
 
-        Dim isNotString = TypeOf o IsNot String '2
+        Dim isNotString = TypeOf o IsNot {String} '2
 
-        Dim isNotInteger As Object = TypeOf o IsNot Integer '3
+        Dim isNotInteger As Object = TypeOf o IsNot {Integer} '3
 
-        If TypeOf CObj(isString) Is Boolean Then '4
+        If TypeOf CObj(isString) Is {Boolean} Then '4
             System.Console.WriteLine(True)
         End If
 
@@ -667,7 +667,7 @@ Module Program
         System.Console.WriteLine(isNotString)
         System.Console.WriteLine(isNotInteger)
 
-        System.Console.WriteLine(TypeOf "" Is String) '5
+        System.Console.WriteLine(TypeOf "" Is {String}) '5
 
     End Sub
 
@@ -681,25 +681,27 @@ End Module
 
             Dim semantics = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
 
-            Dim typeOfExpressions = compilation.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes.OfType(Of TypeOfExpressionSyntax).ToArray()
+            Dim typeOfExpressions = compilation.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes.OfType(Of TypeOfManyExpressionSyntax).ToArray()
 
             ' Dim isString = TypeOf o Is CharacterSequence '0
-            Assert.Equal("System.Boolean", semantics.GetTypeInfo(typeOfExpressions(0)).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
-            Assert.Equal("System.String", semantics.GetSymbolInfo(typeOfExpressions(0).Type).Symbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Dim _Typeof_ = typeOfExpressions(0).Types(0)
+            Assert.Equal("System.Boolean", semantics.GetTypeInfo(_Typeof_).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Dim _Symbol_ = semantics.GetSymbolInfo(_Typeof_).Symbol
+            Assert.Equal("System.String", _Symbol_?.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             ' Dim isInteger = TypeOf o Is HRESULT '1
-            Dim aliasSymbol = semantics.GetAliasInfo(CType(typeOfExpressions(1).Type, IdentifierNameSyntax))
+            Dim aliasSymbol = semantics.GetAliasInfo(CType(typeOfExpressions(1).Types(0), IdentifierNameSyntax))
             Assert.Equal(SymbolKind.Alias, aliasSymbol.Kind)
             Assert.Equal("HRESULT", aliasSymbol.Name)
-            Assert.Equal("System.Int32", semantics.GetSymbolInfo(typeOfExpressions(1).Type).Symbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Assert.Equal("System.Int32", semantics.GetSymbolInfo(typeOfExpressions(1).Types(0)).Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             ' Dim isNotString = TypeOf o IsNot String '2
-            Assert.Equal("System.Boolean", semantics.GetTypeInfo(typeOfExpressions(2)).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
-            Assert.Equal("System.String", semantics.GetSymbolInfo(typeOfExpressions(2).Type).Symbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Assert.Equal("System.Boolean", semantics.GetTypeInfo(typeOfExpressions(2).Types(0)).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Assert.Equal("System.String", semantics.GetSymbolInfo(typeOfExpressions(2).Types(0)).Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             ' Dim isNotInteger As Object = TypeOf o IsNot Integer '3
-            Dim typeInfo = semantics.GetTypeInfo(typeOfExpressions(3))
-            Dim conv = semantics.GetConversion(typeOfExpressions(3))
+            Dim typeInfo = semantics.GetTypeInfo(typeOfExpressions(3).Types(0))
+            Dim conv = semantics.GetConversion(typeOfExpressions(3).Types(0))
             Assert.Equal(ConversionKind.WideningValue, conv.Kind)
             Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType)
 
@@ -757,13 +759,13 @@ Module Program
 
         Dim o As Object = ""
 
-        Dim isString = TypeOf o Is String
+        Dim isString = TypeOf o Is {String}
 
-        Dim isInteger = TypeOf o Is Integer
+        Dim isInteger = TypeOf o Is {Integer}
 
-        Dim isNotString = TypeOf o IsNot String
+        Dim isNotString = TypeOf o IsNot {String}
 
-        Dim isNotInteger = TypeOf o IsNot Integer 
+        Dim isNotInteger = TypeOf o IsNot {Integer}
 
         Console.WriteLine(isString)
         Console.WriteLine(isInteger)
@@ -799,19 +801,19 @@ Module Program
 
         Dim o As Object = ""
 
-        If TypeOf o Is String Then
+        If TypeOf o Is {String} Then
             Console.WriteLine("It's a String")
         End If
 
-        If TypeOf o Is Integer Then
+        If TypeOf o Is {Integer} Then
             Console.WriteLine("It's an Integer")
         End If
 
-        If TypeOf o IsNot String Then
+        If TypeOf o IsNot {String} Then
             Console.WriteLine("It's NOT a String")
         End If
 
-        If TypeOf o IsNot Integer Then
+        If TypeOf o IsNot {Integer} Then
             Console.WriteLine("It's NOT an Integer")
         End If
 
@@ -846,26 +848,26 @@ Module Program
 
         Dim o As Object = ""
 
-        Dim isString = TypeOf o Is String
+        Dim isString = TypeOf o Is {String}
         Console.WriteLine(isString)
 
-        If TypeOf o IsNot Integer Then
+        If TypeOf o IsNot {Integer} Then
             Console.WriteLine(True)
         Else
             Console.WriteLine(False)
         End If
 
-        Dim isInteger = TypeOf o Is Integer
+        Dim isInteger = TypeOf o Is {Integer}
         Console.WriteLine(isInteger)
 
-        If TypeOf o IsNot String Then
+        If TypeOf o IsNot {String} Then
             Console.WriteLine(True)
         Else
             Console.WriteLine(False)
         End If
 
-        Console.WriteLine(If(TypeOf o Is Decimal, True, False))
-        Console.WriteLine(If(TypeOf o IsNot Decimal, True, False))
+        Console.WriteLine(If(TypeOf o Is {Decimal}, True, False))
+        Console.WriteLine(If(TypeOf o IsNot {Decimal}, True, False))
 
     End Sub
 
@@ -873,21 +875,21 @@ Module Program
 
         Dim oT As T = Nothing
 
-        If TypeOf oT Is TRef Then
+        If TypeOf oT Is {TRef} Then
             Console.WriteLine(False)
         End If
 
-        If TypeOf oT Is TVal Then
+        If TypeOf oT Is {TVal} Then
             Console.WriteLine(False)
         End If
 
         Dim vVal As TVal = Nothing
 
-        If TypeOf vVal Is TRef Then
+        If TypeOf vVal Is {TRef} Then
             Console.WriteLine(False)
         End If
 
-        If TypeOf oT Is String Then
+        If TypeOf oT Is {String} Then
             Console.WriteLine(False)
         End If
 
@@ -995,13 +997,13 @@ End Module
 Imports System
 Module M
     Sub M(Of T, U As Structure, V As Class)(x As T, y As U, z As V)
-        If TypeOf x Is Integer Then
+        If TypeOf x Is {Integer} Then
             Console.WriteLine("x")
         End If
-        If TypeOf y Is Integer Then
+        If TypeOf y Is {Integer} Then
             Console.WriteLine("y")
         End If
-        If TypeOf z Is Integer Then
+        If TypeOf z Is {Integer} Then
             Console.WriteLine("z")
         End If
     End Sub
@@ -1060,9 +1062,9 @@ End Class
 Class B0
     Inherits A0(Of S1, S2)
     Public Overloads Overrides Sub M(Of U1 As S1, U2 As S2)(_1 As U1, _2 As U2)
-        If TypeOf _1 Is S2 Then ' B0.M
+        If TypeOf _1 Is {S2} Then ' B0.M
         End If
-        If TypeOf _1 Is U2 Then ' B0.M
+        If TypeOf _1 Is {U2} Then ' B0.M
         End If
     End Sub
 End Class
@@ -1072,13 +1074,13 @@ End Class
 Class B1
     Inherits A1(Of S1, S2)
     Public Overloads Overrides Sub M(Of U1 As {Structure, S1}, U2 As {S2})(_1 As U1, _2 As U2)
-        If TypeOf _1 Is S2 Then ' B1.M
+        If TypeOf _1 Is {S2} Then ' B1.M
         End If
-        If TypeOf _1 Is U2 Then ' B1.M
+        If TypeOf _1 Is {U2} Then ' B1.M
         End If
-        If TypeOf _2 Is S1 Then ' B1.M
+        If TypeOf _2 Is {S1} Then ' B1.M
         End If
-        If TypeOf _2 Is U1 Then ' B1.M
+        If TypeOf _2 Is {U1} Then ' B1.M
         End If
     End Sub
 End Class
@@ -1088,9 +1090,9 @@ End Class
 Class B2
     Inherits A2(Of S1, S2)
     Public Overloads Overrides Sub M(Of U1 As {Structure, S1}, U2 As {Structure, S2})(_1 As U1, _2 As U2)
-        If TypeOf _1 Is S2 Then ' B2.M
+        If TypeOf _1 Is {S2} Then ' B2.M
         End If
-        If TypeOf _1 Is U2 Then ' B2.M (Dev10 no error)
+        If TypeOf _1 Is {U2} Then ' B2.M (Dev10 no error)
         End If
     End Sub
 End Class
@@ -1098,26 +1100,26 @@ End Class
 </compilation>)
             compilation.AssertTheseDiagnostics(<expected>
 BC31430: Expression of type 'U1' can never be of type 'S2'.
-        If TypeOf _1 Is S2 Then ' B0.M
-           ~~~~~~~~~~~~~~~
+        If TypeOf _1 Is {S2} Then ' B0.M
+           ~~~~~~~~~~~~~~~~~
 BC31430: Expression of type 'U1' can never be of type 'U2'.
-        If TypeOf _1 Is U2 Then ' B0.M
-           ~~~~~~~~~~~~~~~
+        If TypeOf _1 Is {U2} Then ' B0.M
+           ~~~~~~~~~~~~~~~~~
 BC31430: Expression of type 'U1' can never be of type 'S2'.
-        If TypeOf _1 Is S2 Then ' B1.M
-           ~~~~~~~~~~~~~~~
+        If TypeOf _1 Is {S2} Then ' B1.M
+           ~~~~~~~~~~~~~~~~~
 BC31430: Expression of type 'U1' can never be of type 'U2'.
-        If TypeOf _1 Is U2 Then ' B1.M
-           ~~~~~~~~~~~~~~~
+        If TypeOf _1 Is {U2} Then ' B1.M
+           ~~~~~~~~~~~~~~~~~
 BC31430: Expression of type 'U2' can never be of type 'S1'.
-        If TypeOf _2 Is S1 Then ' B1.M
-           ~~~~~~~~~~~~~~~
+        If TypeOf _2 Is {S1} Then ' B1.M
+           ~~~~~~~~~~~~~~~~~
 BC31430: Expression of type 'U2' can never be of type 'U1'.
-        If TypeOf _2 Is U1 Then ' B1.M
-           ~~~~~~~~~~~~~~~
+        If TypeOf _2 Is {U1} Then ' B1.M
+           ~~~~~~~~~~~~~~~~~
 BC31430: Expression of type 'U1' can never be of type 'S2'.
-        If TypeOf _1 Is S2 Then ' B2.M
-           ~~~~~~~~~~~~~~~
+        If TypeOf _1 Is {S2} Then ' B2.M
+           ~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -1138,26 +1140,26 @@ End Class
 Class B1
     Inherits A(Of C, I)
     Public Overrides Sub M(Of U1 As C, U2 As I)(_1 As U1, _2 As U2)
-        If TypeOf _1 Is I Then
+        If TypeOf _1 Is {I} Then
         End If
-        If TypeOf _1 Is U2 Then
+        If TypeOf _1 Is {U2} Then
         End If
-        If TypeOf _2 Is C Then
+        If TypeOf _2 Is {C} Then
         End If
-        If TypeOf _2 Is U1 Then
+        If TypeOf _2 Is {U1} Then
         End If
     End Sub
 End Class
 Class B2
     Inherits A(Of S, I)
     Public Overrides Sub M(Of U1 As S, U2 As I)(_1 As U1, _2 As U2)
-        If TypeOf _1 Is I Then
+        If TypeOf _1 Is {I} Then
         End If
-        If TypeOf _1 Is U2 Then
+        If TypeOf _1 Is {U2} Then
         End If
-        If TypeOf _2 Is S Then
+        If TypeOf _2 Is {S} Then
         End If
-        If TypeOf _2 Is U1 Then
+        If TypeOf _2 Is {U1} Then
         End If
     End Sub
 End Class
@@ -1177,16 +1179,16 @@ End Class
 Class B0
     Inherits A(Of System.Array)
     Public Overrides Sub M(Of U As System.Array)(_u As U)
-        If TypeOf _u Is String() Then
+        If TypeOf _u Is {String()} Then
         End If
     End Sub
 End Class
 Class B1
     Inherits A(Of String())
     Public Overrides Sub M(Of U As String())(_u As U)
-        If TypeOf _u Is System.Array Then
+        If TypeOf _u Is {System.Array} Then
         End If
-        If TypeOf _u Is Integer() Then
+        If TypeOf _u Is {Integer()} Then
         End If
     End Sub
 End Class
@@ -1194,8 +1196,8 @@ End Class
 </compilation>)
             compilation.AssertTheseDiagnostics(<expected>
 BC31430: Expression of type 'U' can never be of type 'Integer()'.
-        If TypeOf _u Is Integer() Then
-           ~~~~~~~~~~~~~~~~~~~~~~
+        If TypeOf _u Is {Integer()} Then
+                  ~~
 </expected>)
         End Sub
 
@@ -1213,14 +1215,14 @@ End Class
 Class B1
     Inherits A(Of Integer)
     Public Overrides Sub M(Of U As Integer)(_u As U)
-        If TypeOf _u Is E Then
+        If TypeOf _u Is {E} Then
         End If
     End Sub
 End Class
 Class B2
     Inherits A(Of E)
     Public Overrides Sub M(Of U As E)(_u As U)
-        If TypeOf _u Is Integer Then
+        If TypeOf _u Is {Integer} Then
         End If
     End Sub
 End Class
@@ -1228,8 +1230,8 @@ End Class
 </compilation>)
             compilation.AssertTheseDiagnostics(<expected>
 BC31430: Expression of type 'U' can never be of type 'E'.
-        If TypeOf _u Is E Then
-           ~~~~~~~~~~~~~~
+        If TypeOf _u Is {E} Then
+           ~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -1242,7 +1244,7 @@ BC31430: Expression of type 'U' can never be of type 'E'.
         Shared Sub M()
             Dim i2 As Integer?
             'COMPILEERROR: BC30021, "i2"
-            If TypeOf i2 Is Integer Then
+            If TypeOf i2 Is {Integer} Then
             End If
         End Sub
     End Class
@@ -1269,19 +1271,19 @@ Class A
 End Class
 Class C
     Shared Sub M(Of T1, T2 As Class, T3 As Structure, T4 As New, T5 As I, T6 As A, T7 As U, U)(_1 As T1, _2 As T2, _3 As T3, _4 As T4, _5 As T5, _6 As T6, _7 As T7)
-        If TypeOf _1 Is Object Then
+        If TypeOf _1 Is {Object} Then
         End If
-        If TypeOf _2 Is Object Then
+        If TypeOf _2 Is {Object} Then
         End If
-        If TypeOf _3 Is Object Then
+        If TypeOf _3 Is {Object} Then
         End If
-        If TypeOf _4 Is Object Then
+        If TypeOf _4 Is {Object} Then
         End If
-        If TypeOf _5 Is Object Then
+        If TypeOf _5 Is {Object} Then
         End If
-        If TypeOf _6 Is Object Then
+        If TypeOf _6 Is {Object} Then
         End If
-        If TypeOf _7 Is Object Then
+        If TypeOf _7 Is {Object} Then
         End If
     End Sub
 End Class
@@ -1297,7 +1299,7 @@ End Class
         <file name="a.vb">
         Module M
             Sub Goo(Of T As Structure)(ByVal x As T)
-                Dim y = TypeOf x Is String
+                Dim y = TypeOf x Is {String}
             End Sub
         End Module
     </file>
@@ -1305,8 +1307,8 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC31430: Expression of type 'T' can never be of type 'String'.
-                Dim y = TypeOf x Is String
-                        ~~~~~~~~~~~~~~~~~~
+                Dim y = TypeOf x Is {String}
+                                     ~~~~~~
 </expected>)
         End Sub
 

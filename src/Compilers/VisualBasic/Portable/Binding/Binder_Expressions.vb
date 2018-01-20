@@ -744,6 +744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindTypeOfExpression(node As TypeOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
             Dim operandType = operand.Type
+            Debug.Assert(node.Kind = SyntaxKind.TypeOfIsExpression OrElse node.Kind = SyntaxKind.TypeOfIsNotExpression)
             Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfIsNotExpression)
             Return BindTypeOf_Inner(node, diagnostics, operand, operandType, operatorIsIsNot, node.Type, node.Expression, True)
         End Function
@@ -797,8 +798,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindTypeOfManyExpression(node As TypeOfManyExpressionSyntax, diagnostics As DiagnosticBag) As BoundTypeOfBase
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
             Dim operandType = operand.Type
-
-            Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfIsNotExpression)
+            Debug.Assert(node.Kind = SyntaxKind.TypeOfManyIsExpression OrElse node.Kind = SyntaxKind.TypeOfManyIsNotExpression)
+            Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfManyIsNotExpression)
             Dim targertTypes = ImmutableArray(Of BoundTypeOf).Empty
             Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
             For Each _type_ In node.Types

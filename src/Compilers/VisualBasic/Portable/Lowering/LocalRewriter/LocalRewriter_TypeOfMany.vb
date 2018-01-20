@@ -35,10 +35,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function Rewrite_AsMultiple_TypeOfIs(node As BoundTypeOfMany) As BoundNode
-            Dim syn = DirectCast(node.Syntax, TypeOfExpressionSyntax)
-            Dim Current As BoundExpression = New BoundLiteral(syn, ConstantValue.False, GetSpecialType(SpecialType.System_Boolean))
+            Dim syn = DirectCast(node.Syntax, TypeOfManyExpressionSyntax)
+            Dim Current As BoundExpression = Nothing '= New BoundLiteral(syn, ConstantValue.False, GetSpecialType(SpecialType.System_Boolean))
+            Dim first = True
             For Each _TypeOf_ In node.TargetTypes
-                Dim [Next] = Make_OrElse(syn, Current, _TypeOf_)
+                Dim [Next] As BoundExpression
+                If Not first Then
+                    [Next] = Make_OrElse(syn, Current, _TypeOf_)
+                Else
+                    [Next] = _TypeOf_
+                    first = False
+                End If
                 Current = [Next]
             Next
             Current.SetWasCompilerGenerated()
@@ -54,16 +61,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function Make_TypeOfIsNot(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression) As BoundExpression
-            Dim _IsNot_ = New BoundBinaryOperator(syntax, BinaryOperatorKind.IsNot, left, right, False, GetSpecialType(SpecialType.System_Boolean))
+            Dim _IsNot_ = New BoundBinaryOperator(syntax, BinaryOperatorKind.IsNot, left, right, True, GetSpecialType(SpecialType.System_Boolean))
             Dim _TypeOf_ As BoundExpression = New BoundTypeOf(syntax, left.Type, _IsNot_, True, right.Type)
             Return _TypeOf_
         End Function
 
         Private Function Rewrite_AsMultiple_TypeOfIsNot(node As BoundTypeOfMany) As BoundNode
-            Dim syn = DirectCast(node.Syntax, TypeOfExpressionSyntax)
-            Dim Current As BoundExpression = New BoundLiteral(syn, ConstantValue.False, GetSpecialType(SpecialType.System_Boolean))
+            Dim syn = DirectCast(node.Syntax, TypeOfManyExpressionSyntax)
+
+            Dim Current As BoundExpression = Nothing ' New BoundLiteral(syn, ConstantValue.False, GetSpecialType(SpecialType.System_Boolean))
+            Dim first = True
             For Each _TypeOf_ In node.TargetTypes
-                Dim [Next] = Make_OrElse(syn, Current, _TypeOf_)
+                Dim [Next] As BoundExpression
+                If Not first Then
+                    [Next] = Make_AndAlso(syn, Current, _TypeOf_)
+                Else
+                    [Next] = _TypeOf_
+                    first = False
+                End If
                 Current = [Next]
             Next
             Current.SetWasCompilerGenerated()
