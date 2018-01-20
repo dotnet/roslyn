@@ -6,10 +6,24 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
+    /// <summary>
+    /// Active statement debug information retrieved from the runtime and the PDB.
+    /// </summary>
     internal readonly struct ActiveStatementDebugInfo
     {
+        /// <summary>
+        /// The instruction of the active statement that is being executed.
+        /// </summary>
         public readonly ActiveInstructionId InstructionId;
+
+        /// <summary>
+        /// Document name as found in the PDB.
+        /// </summary>
         public readonly string DocumentName;
+
+        /// <summary>
+        /// Location of the closest non-hidden sequence point in retrieved from the PDB.
+        /// </summary>
         public readonly LinePositionSpan LinePositionSpan;
 
         /// <summary>

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Document ids - multiple if the physical file is linked.
-        /// TODO: currently we associate all linked documents to the AS regardless of whether they belong to a project that matches the AS module.
+        /// TODO: currently we associate all linked documents to the <see cref="ActiveStatement"/> regardless of whether they belong to a project that matches the AS module.
         /// https://github.com/dotnet/roslyn/issues/24320
         /// </summary>
         public readonly ImmutableArray<DocumentId> DocumentIds;

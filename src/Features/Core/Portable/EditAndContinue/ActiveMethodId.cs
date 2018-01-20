@@ -10,31 +10,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal struct ActiveMethodId : IEquatable<ActiveMethodId>
     {
         public readonly Guid ModuleId;
-        public readonly int MethodToken;
-        public readonly int MethodVersion;
+        public readonly int Token;
+        public readonly int Version;
 
-        public ActiveMethodId(Guid moduleId, int methodToken, int methodVersion)
+        public ActiveMethodId(Guid moduleId, int token, int version)
         {
             ModuleId = moduleId;
-            MethodToken = methodToken;
-            MethodVersion = methodVersion;
+            Token = token;
+            Version = version;
         }
 
         public override bool Equals(object obj)
             => obj is ActiveMethodId && Equals((ActiveMethodId)obj);
 
         public bool Equals(ActiveMethodId other)
-            => MethodToken == other.MethodToken &&
-               MethodVersion == other.MethodVersion &&
+            => Token == other.Token &&
+               Version == other.Version &&
                ModuleId.Equals(other.ModuleId);
 
         public override int GetHashCode()
-            => Hash.Combine(ModuleId.GetHashCode(), Hash.Combine(MethodToken, MethodVersion));
+            => Hash.Combine(ModuleId.GetHashCode(), Hash.Combine(Token, Version));
 
         public static bool operator ==(ActiveMethodId left, ActiveMethodId right) => left.Equals(right);
         public static bool operator !=(ActiveMethodId left, ActiveMethodId right) => !left.Equals(right);
 
         internal string GetDebuggerDisplay()
-            => $"mvid={ModuleId} 0x{MethodToken:X8} v{MethodVersion}";
+            => $"mvid={ModuleId} 0x{Token:X8} v{Version}";
     }
 }

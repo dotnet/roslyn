@@ -17,6 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     [Export(typeof(IActiveStatementProvider)), Shared]
     internal sealed partial class VisualStudioActiveStatementProvider : IActiveStatementProvider
     {
+        /// <summary>
+        /// Retrives active statements from the debuggee process.
+        /// Shall only be called while in debug mode.
+        /// Can be invoked on any thread.
+        /// </summary>
         public Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
         {
             DkmComponentManager.InitializeThread(DebuggerComponentIds.ManagedEditAndContinueService);
@@ -41,12 +46,17 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                             var clrRuntimeInstance = (DkmClrRuntimeInstance)runtimeInstance;
 
                             int runtimeIndex = runtimeCount;
+                            runtimeCount++;
+
                             clrRuntimeInstance.GetActiveStatements(workList, activeStatementsResult =>
                             {
                                 if (cancellationToken.IsCancellationRequested)
                                 {
                                     workList.Cancel();
-                                    completion.SetCanceled();
+
+                                    // make sure we cancel with the token we received from the caller:
+                                    completion.TrySetCanceled(cancellationToken);
+                                    return;
                                 }
 
                                 // group active statement by instruction and aggregate flags and threads:
@@ -64,7 +74,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                         if (cancellationToken.IsCancellationRequested)
                                         {
                                             workList.Cancel();
-                                            completion.SetCanceled();
+
+                                            // make sure we cancel with the token we received from the caller:
+                                            completion.TrySetCanceled(cancellationToken);
+                                            return;
                                         }
 
                                         if (sourcePositionResult.ErrorCode == 0)
@@ -85,14 +98,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             // the last active statement of the last runtime has been processed:
                                             if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                             {
-                                                completion.SetResult(builders.ToImmutableArrayAndFree());
+                                                completion.SetResult(builders.ToFlattenedImmutableArrayAndFree());
                                             }
                                         }
                                     });
                                 }
                             });
-
-                            runtimeCount++;
                         }
                     }
                 }

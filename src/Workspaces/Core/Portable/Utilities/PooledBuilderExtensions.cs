@@ -48,7 +48,7 @@ namespace Roslyn.Utilities
             return result.ToImmutable();
         }
 
-        public static ImmutableArray<T> ToImmutableArrayAndFree<T>(this ArrayBuilder<ArrayBuilder<T>> builders)
+        public static ImmutableArray<T> ToFlattenedImmutableArrayAndFree<T>(this ArrayBuilder<ArrayBuilder<T>> builders)
         {
             try
             {
