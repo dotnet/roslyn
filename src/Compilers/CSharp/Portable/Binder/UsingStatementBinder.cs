@@ -132,9 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol taskType = this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
                 hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, _syntax.AwaitKeyword);
 
-                var syntaxForAwait = (SyntaxNode)expressionSyntax ?? declarationSyntax;
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntaxForAwait, taskType).MakeCompilerGenerated();
-                awaitOpt = BindAwaitInfo(placeholder, syntaxForAwait, diagnostics, ref hasErrors);
+                var resource = (SyntaxNode)expressionSyntax ?? declarationSyntax;
+                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(resource, taskType).MakeCompilerGenerated();
+                awaitOpt = BindAwaitInfo(placeholder, resource, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             }
 
             BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);

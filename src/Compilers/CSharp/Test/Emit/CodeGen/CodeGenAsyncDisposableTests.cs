@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -68,9 +69,9 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,22): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                // (6,15): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "var x = new C()").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(6, 15)
                 );
         }
 
@@ -95,9 +96,9 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,22): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
+                // (6,15): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
                 //         using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "var x = new C()").WithArguments("int").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("int").WithLocation(6, 15)
                 );
         }
 
@@ -125,9 +126,9 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (8,26): error CS4034: The 'await' operator can only be used within an async lambda expression. Consider marking this lambda expression with the 'async' modifier.
+                // (8,19): error CS4034: The 'await' operator can only be used within an async lambda expression. Consider marking this lambda expression with the 'async' modifier.
                 //             using await (var y = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncLambda, "var y = new C()").WithArguments("lambda expression").WithLocation(8, 26)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncLambda, "await").WithArguments("lambda expression").WithLocation(8, 19)
                 );
         }
 
@@ -135,34 +136,35 @@ class C : System.IAsyncDisposable
         public void TestInAsyncAnonymousMethod()
         {
             string source = @"
+using System.Threading.Tasks;
 class C : System.IAsyncDisposable
 {
     C()
     {
         System.Console.Write(""C "");
     }
-    public static void Main()
+    public static async Task Main()
     {
-        System.Action x = async () =>
+        System.Func<Task> x = async () =>
         {
             using await (var y = new C())
             {
                 System.Console.Write(""body "");
-                return;
             }
+            System.Console.Write(""end"");
         };
-        x();
+        await x();
     }
-    public System.Threading.Tasks.Task DisposeAsync()
+    public Task DisposeAsync()
     {
-        System.Console.Write(""DisposeAsync"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        System.Console.Write(""DisposeAsync "");
+        return Task.Delay(10);
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "C body DisposeAsync");
+            CompileAndVerify(comp, expectedOutput: "C body DisposeAsync end");
         }
 
         [Fact]
@@ -189,9 +191,9 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (8,26): error CS4004: Cannot await in an unsafe context
+                // (8,19): error CS4004: Cannot await in an unsafe context
                 //             using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "var x = new C()").WithLocation(8, 26)
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(8, 19)
                 );
         }
 
@@ -219,9 +221,9 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (8,26): error CS1996: Cannot await in the body of a lock statement
+                // (8,19): error CS1996: Cannot await in the body of a lock statement
                 //             using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitInLock, "var x = new C()").WithLocation(8, 26)
+                Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await").WithLocation(8, 19)
                 );
         }
 
@@ -243,20 +245,20 @@ class C : System.IAsyncDisposable
             using await (var x = new C())
             {
                 System.Console.Write(""using "");
-                return;
             }
+            System.Console.Write(""end"");
         }
     }
     public System.Threading.Tasks.Task DisposeAsync()
     {
-        System.Console.Write(""dispose"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        System.Console.Write(""dispose "");
+        return System.Threading.Tasks.Task.Delay(10);
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "try using dispose");
+            CompileAndVerify(comp, expectedOutput: "try using dispose end");
         }
 
         [Fact]
@@ -269,17 +271,23 @@ class C
     {
         System.Action a = () =>
         {
-            System.Action b = async () => { await local(); }; // this await doesn't count towards Main method
+            System.Action b = async () =>
+            {
+                await local();
+                using await (null) { }
+            }; // these awaits don't count towards Main method
         };
 
         async System.Threading.Tasks.Task local()
         {
-            await local(); // neither does this one
+            await local();
+            using await (null) { }
+            // neither do these
         }
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (4,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static async System.Threading.Tasks.Task Main()
@@ -297,7 +305,11 @@ class C
     {
         System.Action lambda1 = async () =>
         {
-            System.Action b = async () => { await local(); }; // this await doesn't count towards lambda
+            System.Action b = async () =>
+            {
+                await local();
+                using await (null) { }
+            }; // these awaits don't count towards lambda
         };
 
         System.Action lambda2 = async () => await local2(); // this await counts towards lambda
@@ -308,7 +320,9 @@ class C
 
             async System.Threading.Tasks.Task innerLocal()
             {
-                await local(); // this await doesn't count towards local function
+                await local();
+                using await (null) { }
+                // these awaits don't count towards lambda either
             }
         }
 
@@ -318,12 +332,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
             comp.VerifyDiagnostics(
+                // (17,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async System.Threading.Tasks.Task local()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(17, 43),
                 // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         System.Action lambda1 = async () =>
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42),
-                // (13,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async System.Threading.Tasks.Task local()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(13, 43)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42)
                 );
         }
 
@@ -345,27 +359,30 @@ class C : System.IAsyncDisposable
                 System.Console.Write(""using "");
             }
         }
+
+        System.Console.Write(""return"");
         return 1;
     }
     public System.Threading.Tasks.Task DisposeAsync()
     {
-        System.Console.Write(""dispose"");
-        return System.Threading.Tasks.Task.CompletedTask;
+        System.Console.Write(""dispose "");
+        return System.Threading.Tasks.Task.Delay(10);
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose");
+            CompileAndVerify(comp, expectedOutput: "using dispose return");
         }
 
         [Fact]
         public void TestRegularAwaitInFinallyBlock()
         {
             string source = @"
+using System.Threading.Tasks;
 class C
 {
-    static async System.Threading.Tasks.Task<int> Main()
+    static async Task<int> Main()
     {
         try
         {
@@ -373,7 +390,7 @@ class C
         finally
         {
             System.Console.Write(""before "");
-            await System.Threading.Tasks.Task.CompletedTask;
+            await Task.Delay(10);
             System.Console.Write(""after"");
         }
         return 1;
@@ -450,9 +467,9 @@ class C
                 // (6,15): error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
                 //         using await (new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.Task").WithLocation(6, 15),
-                // (6,22): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
+                // (6,15): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
                 //         using await (new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "new C()").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 15),
                 // (9,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (var x = new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 15),
@@ -462,9 +479,9 @@ class C
                 // (9,15): error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
                 //         using await (var x = new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.Task").WithLocation(9, 15),
-                // (9,22): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
+                // (9,15): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
                 //         using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "var x = new C()").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 22),
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 15),
                 // (11,20): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
                 //             return 1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(11, 20)
@@ -702,35 +719,6 @@ class C : System.IAsyncDisposable, System.IDisposable
         }
 
         [Fact]
-        public void TestWithMultipleDeclarations()
-        {
-            string source = @"
-class C : System.IAsyncDisposable
-{
-    int _i;
-    C(int i) { _i = i; }
-
-    public static async System.Threading.Tasks.Task<int> Main()
-    {
-        using await (C x = new C(1), y = new C(2))
-        {
-            System.Console.Write(""body "");
-            return 1;
-        }
-    }
-    public System.Threading.Tasks.Task DisposeAsync()
-    {
-        System.Console.Write($""DisposeAsync{_i} "");
-        return System.Threading.Tasks.Task.CompletedTask;
-    }
-}
-";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync2 DisposeAsync1");
-        }
-
-        [Fact]
         public void TestWithDynamicDeclaration()
         {
             string source = @"
@@ -741,19 +729,20 @@ class C : System.IAsyncDisposable
         using await (dynamic x = new C())
         {
             System.Console.Write(""body "");
-            return 1;
         }
+        System.Console.Write(""end "");
+        return 1;
     }
     public System.Threading.Tasks.Task DisposeAsync()
     {
-        System.Console.Write(""DisposeAsync"");
+        System.Console.Write(""DisposeAsync "");
         return System.Threading.Tasks.Task.CompletedTask;
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
         }
 
         [Fact]
@@ -1218,6 +1207,7 @@ struct S : System.IAsyncDisposable
         }
 
         [Fact]
+        [WorkItem(24267, "https://github.com/dotnet/roslyn/issues/24267")]
         public void AssignsInAsyncWithAsyncUsing()
         {
             var comp = CreateCompilationWithMscorlib46(@"
@@ -1275,7 +1265,7 @@ class S : System.IAsyncDisposable
     public System.Threading.Tasks.Task DisposeAsync()
     {
         System.Console.Write($""dispose{_i} "");
-        return System.Threading.Tasks.Task.CompletedTask;
+        return System.Threading.Tasks.Task.Delay(10);
     }
 }
 ";

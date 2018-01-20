@@ -610,7 +610,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public static void Validate(BoundNode node)
             {
-                new LocalRewritingValidator().Visit(node);
+                try
+                {
+                    new LocalRewritingValidator().Visit(node);
+                }
+                catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+                {
+                    // Intentionally ignored to let the overflow get caught in a more crucial visitor
+                }
             }
 
             public override BoundNode VisitUsingStatement(BoundUsingStatement node)
