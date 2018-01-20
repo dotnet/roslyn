@@ -4918,6 +4918,9 @@ public class X
     bool Test72 = Dummy(x7, 2); 
     void Test73() { Dummy(x7, 3); } 
 
+    bool Test81 = TakeOutParam(8, out int x8), Test82 = x8 > 0;
+    bool Test91 = x9 > 0, Test92 = TakeOutParam(9, out int x9);
+
     bool Dummy(params object[] x) {return true;}
     static bool TakeOutParam(object y, out int x) 
     {
@@ -4928,39 +4931,24 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (8,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test3 = TakeOutParam(3, out int x3) && x3 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(8, 38),
                 // (10,18): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     bool Test4 = x4 && TakeOutParam(4, out int x4);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(10, 18),
-                // (10,44): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test4 = x4 && TakeOutParam(4, out int x4);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(10, 44),
-                // (12,39): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test5 = TakeOutParam(51, out int x5) && 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(12, 39),
-                // (13,39): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  TakeOutParam(52, out int x5) && 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(13, 39),
                 // (13,43): error CS0128: A local variable named 'x5' is already defined in this scope
                 //                  TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(13, 43),
-                // (16,39): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test61 = TakeOutParam(6, out int x6) && x6 > 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 39),
-                // (16,87): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test61 = TakeOutParam(6, out int x6) && x6 > 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 87),
-                // (18,39): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test71 = TakeOutParam(7, out int x7) && x7 > 0; 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(18, 39),
                 // (19,25): error CS0103: The name 'x7' does not exist in the current context
                 //     bool Test72 = Dummy(x7, 2); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(19, 25),
                 // (20,27): error CS0103: The name 'x7' does not exist in the current context
                 //     void Test73() { Dummy(x7, 3); } 
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(20, 27)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(20, 27),
+                // (22,57): error CS0103: The name 'x8' does not exist in the current context
+                //     bool Test81 = TakeOutParam(8, out int x8), Test82 = x8 > 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(22, 57),
+                // (23,19): error CS0103: The name 'x9' does not exist in the current context
+                //     bool Test91 = x9 > 0, Test92 = TakeOutParam(9, out int x9);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x9").WithArguments("x9").WithLocation(23, 19)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -4993,6 +4981,16 @@ public class X
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
+
+            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            var x8Ref = GetReference(tree, "x8");
+            VerifyModelForOutVar(model, x8Decl);
+            VerifyNotInScope(model, x8Ref);
+
+            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            var x9Ref = GetReference(tree, "x9");
+            VerifyNotInScope(model, x9Ref);
+            VerifyModelForOutVar(model, x9Decl);
         }
 
         [Fact]
@@ -5030,15 +5028,6 @@ class Test
                 // (6,13): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     Test4 = x4 && TakeOutParam(4, out int x4) ? 1 : 0,
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(6, 13),
-                // (6,39): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     Test4 = x4 && TakeOutParam(4, out int x4) ? 1 : 0,
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(6, 39),
-                // (8,34): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     Test5 = TakeOutParam(51, out int x5) && 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(8, 34),
-                // (9,34): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //             TakeOutParam(52, out int x5) && 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(9, 34),
                 // (9,38): error CS0128: A local variable named 'x5' is already defined in this scope
                 //             TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(9, 38),
@@ -5047,30 +5036,18 @@ class Test
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"TakeOutParam(51, out int x5) && 
             TakeOutParam(52, out int x5) && 
             x5 > 0 ? 1 : 0").WithArguments("X.Test5").WithLocation(8, 13),
-                // (12,34): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     Test61 = TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0,
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(12, 34),
                 // (12,14): error CS0133: The expression being assigned to 'X.Test61' must be constant
                 //     Test61 = TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0,
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0").WithArguments("X.Test61").WithLocation(12, 14),
-                // (12,90): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     Test61 = TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0,
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(12, 90),
                 // (12,70): error CS0133: The expression being assigned to 'X.Test62' must be constant
                 //     Test61 = TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0,
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(6, out int x6) && x6 > 0 ? 1 : 0").WithArguments("X.Test62").WithLocation(12, 70),
-                // (14,34): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     Test71 = TakeOutParam(7, out int x7) && x7 > 0 ? 1 : 0, 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(14, 34),
                 // (14,14): error CS0133: The expression being assigned to 'X.Test71' must be constant
                 //     Test71 = TakeOutParam(7, out int x7) && x7 > 0 ? 1 : 0, 
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(7, out int x7) && x7 > 0 ? 1 : 0").WithArguments("X.Test71").WithLocation(14, 14),
                 // (15,14): error CS0103: The name 'x7' does not exist in the current context
                 //     Test72 = x7, 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 14),
-                // (4,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     Test3 = TakeOutParam(3, out int x3) ? x3 : 0,
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(4, 33),
                 // (4,13): error CS0133: The expression being assigned to 'X.Test3' must be constant
                 //     Test3 = TakeOutParam(3, out int x3) ? x3 : 0,
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(3, out int x3) ? x3 : 0").WithArguments("X.Test3").WithLocation(4, 13)
@@ -5142,24 +5119,12 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (8,44): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     const bool Test3 = TakeOutParam(3, out int x3) && x3 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(8, 44),
                 // (8,24): error CS0133: The expression being assigned to 'X.Test3' must be constant
                 //     const bool Test3 = TakeOutParam(3, out int x3) && x3 > 0;
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(3, out int x3) && x3 > 0").WithArguments("X.Test3").WithLocation(8, 24),
                 // (10,24): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     const bool Test4 = x4 && TakeOutParam(4, out int x4);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(10, 24),
-                // (10,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     const bool Test4 = x4 && TakeOutParam(4, out int x4);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(10, 50),
-                // (12,45): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     const bool Test5 = TakeOutParam(51, out int x5) && 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(12, 45),
-                // (13,45): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                        TakeOutParam(52, out int x5) && 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(13, 45),
                 // (13,49): error CS0128: A local variable named 'x5' is already defined in this scope
                 //                        TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(13, 49),
@@ -5168,21 +5133,12 @@ public class X
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"TakeOutParam(51, out int x5) && 
                        TakeOutParam(52, out int x5) && 
                        x5 > 0").WithArguments("X.Test5").WithLocation(12, 24),
-                // (16,45): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     const bool Test61 = TakeOutParam(6, out int x6) && x6 > 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 45),
                 // (16,25): error CS0133: The expression being assigned to 'X.Test61' must be constant
                 //     const bool Test61 = TakeOutParam(6, out int x6) && x6 > 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0;
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(6, out int x6) && x6 > 0").WithArguments("X.Test61").WithLocation(16, 25),
-                // (16,93): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     const bool Test61 = TakeOutParam(6, out int x6) && x6 > 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 93),
                 // (16,73): error CS0133: The expression being assigned to 'X.Test62' must be constant
                 //     const bool Test61 = TakeOutParam(6, out int x6) && x6 > 0, Test62 = TakeOutParam(6, out int x6) && x6 > 0;
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(6, out int x6) && x6 > 0").WithArguments("X.Test62").WithLocation(16, 73),
-                // (18,45): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     const bool Test71 = TakeOutParam(7, out int x7) && x7 > 0; 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(18, 45),
                 // (18,25): error CS0133: The expression being assigned to 'X.Test71' must be constant
                 //     const bool Test71 = TakeOutParam(7, out int x7) && x7 > 0; 
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(7, out int x7) && x7 > 0").WithArguments("X.Test71").WithLocation(18, 25),
@@ -5254,16 +5210,14 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-#if ALLOW_IN_FIELD_INITIALIZERS
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
-#else
-            compilation.VerifyDiagnostics(
-                // (9,45): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (9,45): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 = TakeOutParam(1, out int x1) && Dummy(x1); 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(9, 45)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 45)
                 );
-#endif 
         }
 
         [Fact]
@@ -5295,16 +5249,8 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-#if ALLOW_IN_FIELD_INITIALIZERS
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
-#else
-            compilation.VerifyDiagnostics(
-                // (9,45): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     static bool Test1 = TakeOutParam(1, out int x1) && Dummy(() => x1); 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(9, 45)
-                );
-#endif
         }
 
         [Fact]
@@ -10642,33 +10588,12 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (8,45): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test3 {get;} = TakeOutParam(3, out int x3) && x3 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(8, 45),
                 // (10,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     bool Test4 {get;} = x4 && TakeOutParam(4, out int x4);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(10, 25),
-                // (10,51): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test4 {get;} = x4 && TakeOutParam(4, out int x4);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(10, 51),
-                // (12,46): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test5 {get;} = TakeOutParam(51, out int x5) && 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(12, 46),
-                // (13,39): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  TakeOutParam(52, out int x5) && 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(13, 39),
                 // (13,43): error CS0128: A local variable named 'x5' is already defined in this scope
                 //                  TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(13, 43),
-                // (16,46): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test61 {get;} = TakeOutParam(6, out int x6) && x6 > 0; bool Test62 {get;} = TakeOutParam(6, out int x6) && x6 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 46),
-                // (16,106): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test61 {get;} = TakeOutParam(6, out int x6) && x6 > 0; bool Test62 {get;} = TakeOutParam(6, out int x6) && x6 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 106),
-                // (18,46): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test71 {get;} = TakeOutParam(7, out int x7) && x7 > 0; 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(18, 46),
                 // (19,32): error CS0103: The name 'x7' does not exist in the current context
                 //     bool Test72 {get;} = Dummy(x7, 2); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(19, 32),
@@ -10737,16 +10662,14 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-#if ALLOW_IN_FIELD_INITIALIZERS
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
-#else
-            compilation.VerifyDiagnostics(
-                // (9,52): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (9,52): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 {get;} = TakeOutParam(1, out int x1) && Dummy(x1); 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(9, 52)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 52)
                 );
-#endif
         }
 
         [Fact]
@@ -10926,18 +10849,12 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (23,63): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   from x2 in new[] { TakeOutParam(x1, out var z2) ? z2 : 0, z2, y2}
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z2").WithLocation(23, 63),
                 // (25,26): error CS0103: The name 'z2' does not exist in the current context
                 //                          z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(25, 26),
                 // (27,15): error CS0103: The name 'z2' does not exist in the current context
                 //         Dummy(z2); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(27, 15),
-                // (33,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   let x2 = TakeOutParam(x1, out var z3) && z3 > 0 && y3 < 0 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z3").WithLocation(33, 53),
                 // (35,32): error CS0103: The name 'z3' does not exist in the current context
                 //                                z3};
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(35, 32),
@@ -10947,15 +10864,9 @@ public class X
                 // (45,35): error CS0103: The name 'v4' does not exist in the current context
                 //                                   v4 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(45, 35),
-                // (44,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                             on x1 + y4 + z4 + (TakeOutParam(3, out var u4) ? u4 : 0) + 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(44, 72),
                 // (47,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                                   u4 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(47, 35),
-                // (46,79): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                                equals x2 + y4 + z4 + (TakeOutParam(4, out var v4) ? v4 : 0) +
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(46, 79),
                 // (49,32): error CS0103: The name 'u4' does not exist in the current context
                 //                                u4, v4 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(49, 32),
@@ -10971,15 +10882,9 @@ public class X
                 // (61,35): error CS0103: The name 'v5' does not exist in the current context
                 //                                   v5 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(61, 35),
-                // (60,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                             on x1 + y5 + z5 + (TakeOutParam(3, out var u5) ? u5 : 0) + 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(60, 72),
                 // (63,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                                   u5 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(63, 35),
-                // (62,79): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                                equals x2 + y5 + z5 + (TakeOutParam(4, out var v5) ? v5 : 0) +
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(62, 79),
                 // (66,32): error CS0103: The name 'u5' does not exist in the current context
                 //                                u5, v5 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(66, 32),
@@ -10992,9 +10897,6 @@ public class X
                 // (70,15): error CS0103: The name 'v5' does not exist in the current context
                 //         Dummy(v5); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(70, 15),
-                // (76,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   where x > y6 && TakeOutParam(1, out var z6) && z6 == 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z6").WithLocation(76, 59),
                 // (78,26): error CS0103: The name 'z6' does not exist in the current context
                 //                          z6;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(78, 26),
@@ -11004,15 +10906,9 @@ public class X
                 // (87,27): error CS0103: The name 'u7' does not exist in the current context
                 //                           u7,
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(87, 27),
-                // (86,61): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   orderby x > y7 && TakeOutParam(1, out var z7) && z7 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z7").WithLocation(86, 61),
                 // (89,27): error CS0103: The name 'z7' does not exist in the current context
                 //                           z7   
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(89, 27),
-                // (88,61): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           x > y7 && TakeOutParam(1, out var u7) && u7 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u7").WithLocation(88, 61),
                 // (91,26): error CS0103: The name 'z7' does not exist in the current context
                 //                          z7 + u7;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(91, 26),
@@ -11028,24 +10924,15 @@ public class X
                 // (88,68): error CS0165: Use of unassigned local variable 'u7'
                 //                           x > y7 && TakeOutParam(1, out var u7) && u7 == 
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(88, 68),
-                // (100,60): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   select x > y8 && TakeOutParam(1, out var z8) && z8 == 1;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z8").WithLocation(100, 60),
                 // (102,15): error CS0103: The name 'z8' does not exist in the current context
                 //         Dummy(z8); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z8").WithArguments("z8").WithLocation(102, 15),
                 // (112,25): error CS0103: The name 'z9' does not exist in the current context
                 //                         z9;   
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(112, 25),
-                // (111,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                         x > y9 && TakeOutParam(1, out var u9) && u9 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u9").WithLocation(111, 59),
                 // (109,25): error CS0103: The name 'u9' does not exist in the current context
                 //                         u9
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(109, 25),
-                // (108,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   group x > y9 && TakeOutParam(1, out var z9) && z9 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z9").WithLocation(108, 59),
                 // (114,15): error CS0103: The name 'z9' does not exist in the current context
                 //         Dummy(z9); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(114, 15),
@@ -11282,15 +11169,9 @@ public class X
                 // (18,35): error CS0103: The name 'v4' does not exist in the current context
                 //                                   v4 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(18, 35),
-                // (17,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                             on x1 + y4 + z4 + (TakeOutParam(3, out var u4) ? u4 : 0) + 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(17, 72),
                 // (20,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                                   u4 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(20, 35),
-                // (19,79): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                                equals x2 + y4 + z4 + (TakeOutParam(4, out var v4) ? v4 : 0) +
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(19, 79),
                 // (22,32): error CS0103: The name 'u4' does not exist in the current context
                 //                                u4, v4 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(22, 32),
@@ -11306,15 +11187,9 @@ public class X
                 // (35,35): error CS0103: The name 'v5' does not exist in the current context
                 //                                   v5 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(35, 35),
-                // (34,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                             on x1 + y5 + z5 + (TakeOutParam(3, out var u5) ? u5 : 0) + 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(34, 72),
                 // (37,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                                   u5 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(37, 35),
-                // (36,80): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                                equals x2 + y5 + z5 + (TakeOutParam(4 , out var v5) ? v5 : 0) +
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(36, 80),
                 // (40,32): error CS0103: The name 'u5' does not exist in the current context
                 //                                u5, v5 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(40, 32),
@@ -11439,69 +11314,36 @@ public class X
                 // (17,62): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { TakeOutParam(2, out var y2) ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(17, 62),
-                // (17,62): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   from x2 in new[] { TakeOutParam(2, out var y2) ? y2 : 0}
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(17, 62),
                 // (18,62): error CS0128: A local variable or function named 'y3' is already defined in this scope
                 //                   join x3 in new[] { TakeOutParam(3, out var y3) ? y3 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(18, 62),
                 // (19,51): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on TakeOutParam(4, out var y4) ? y4 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(19, 51),
-                // (19,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                        on TakeOutParam(4, out var y4) ? y4 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(19, 51),
                 // (20,58): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           equals TakeOutParam(5, out var y5) ? y5 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(20, 58),
-                // (20,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           equals TakeOutParam(5, out var y5) ? y5 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(20, 58),
                 // (21,49): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where TakeOutParam(6, out var y6) && y6 == 1
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(21, 49),
-                // (21,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   where TakeOutParam(6, out var y6) && y6 == 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(21, 49),
                 // (22,51): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby TakeOutParam(7, out var y7) && y7 > 0, 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(22, 51),
-                // (22,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   orderby TakeOutParam(7, out var y7) && y7 > 0, 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(22, 51),
                 // (23,51): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           TakeOutParam(8, out var y8) && y8 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(23, 51),
-                // (23,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           TakeOutParam(8, out var y8) && y8 > 0 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(23, 51),
                 // (25,47): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by TakeOutParam(10, out var y10) && y10 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(25, 47),
-                // (25,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   by TakeOutParam(10, out var y10) && y10 > 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(25, 47),
                 // (24,49): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group TakeOutParam(9, out var y9) && y9 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(24, 49),
-                // (24,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   group TakeOutParam(9, out var y9) && y9 > 0 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(24, 49),
                 // (27,54): error CS0136: A local or parameter named 'y11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y11").WithArguments("y11").WithLocation(27, 54),
-                // (27,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(27, 54),
                 // (28,51): error CS0136: A local or parameter named 'y12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select TakeOutParam(12, out var y12) && y12 > 0
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(28, 51),
-                // (28,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   select TakeOutParam(12, out var y12) && y12 > 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(28, 51),
-                // (30,115): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12 + (TakeOutParam(13, out var y13) ? y13 : 0);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y13").WithLocation(30, 115)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(28, 51)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -11612,66 +11454,36 @@ public class X
                 // (27,62): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { TakeOutParam(2, out var y2) ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(27, 62),
-                // (27,62): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   from x2 in new[] { TakeOutParam(2, out var y2) ? y2 : 0}
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(27, 62),
                 // (28,62): error CS0128: A local variable or function named 'y3' is already defined in this scope
                 //                   join x3 in new[] { TakeOutParam(3, out var y3) ? y3 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(28, 62),
                 // (29,51): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on TakeOutParam(4, out var y4) ? y4 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(29, 51),
-                // (29,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                        on TakeOutParam(4, out var y4) ? y4 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(29, 51),
                 // (30,58): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           equals TakeOutParam(5, out var y5) ? y5 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(30, 58),
-                // (30,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           equals TakeOutParam(5, out var y5) ? y5 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(30, 58),
                 // (31,49): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where TakeOutParam(6, out var y6) && y6 == 1
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(31, 49),
-                // (31,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   where TakeOutParam(6, out var y6) && y6 == 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(31, 49),
                 // (32,51): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby TakeOutParam(7, out var y7) && y7 > 0, 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(32, 51),
-                // (32,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   orderby TakeOutParam(7, out var y7) && y7 > 0, 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(32, 51),
                 // (33,51): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           TakeOutParam(8, out var y8) && y8 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(33, 51),
-                // (33,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           TakeOutParam(8, out var y8) && y8 > 0 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(33, 51),
                 // (35,47): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by TakeOutParam(10, out var y10) && y10 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(35, 47),
-                // (35,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   by TakeOutParam(10, out var y10) && y10 > 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(35, 47),
                 // (34,49): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group TakeOutParam(9, out var y9) && y9 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(34, 49),
-                // (34,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   group TakeOutParam(9, out var y9) && y9 > 0 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(34, 49),
                 // (37,54): error CS0136: A local or parameter named 'y11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y11").WithArguments("y11").WithLocation(37, 54),
-                // (37,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(37, 54),
                 // (38,51): error CS0136: A local or parameter named 'y12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select TakeOutParam(12, out var y12) && y12 > 0
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(38, 51),
-                // (38,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   select TakeOutParam(12, out var y12) && y12 > 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(38, 51)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(38, 51)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -12029,63 +11841,33 @@ public class X
                 // (15,59): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { TakeOutParam(out var y1) ? y1 : 1 }
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y1").WithArguments("y1").WithLocation(15, 59),
-                // (15,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   from x2 in new[] { TakeOutParam(out var y1) ? y1 : 1 }
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y1").WithLocation(15, 59),
                 // (23,48): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on TakeOutParam(out var y2) ? y2 : 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(23, 48),
-                // (23,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                        on TakeOutParam(out var y2) ? y2 : 0 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(23, 48),
                 // (33,52): error CS0136: A local or parameter named 'y3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        equals TakeOutParam(out var y3) ? y3 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y3").WithArguments("y3").WithLocation(33, 52),
-                // (33,52): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                        equals TakeOutParam(out var y3) ? y3 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y3").WithLocation(33, 52),
                 // (40,46): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where TakeOutParam(out var y4) && y4 == 1
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(40, 46),
-                // (40,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   where TakeOutParam(out var y4) && y4 == 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(40, 46),
                 // (47,48): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby TakeOutParam(out var y5) && y5 > 1, 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(47, 48),
-                // (47,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   orderby TakeOutParam(out var y5) && y5 > 1, 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(47, 48),
                 // (56,48): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           TakeOutParam(out var y6) && y6 > 1 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(56, 48),
-                // (56,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           TakeOutParam(out var y6) && y6 > 1 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(56, 48),
                 // (63,46): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group TakeOutParam(out var y7) && y7 == 3 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(63, 46),
-                // (63,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   group TakeOutParam(out var y7) && y7 == 3 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(63, 46),
                 // (71,43): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by TakeOutParam(out var y8) && y8 == 3;
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(71, 43),
-                // (71,43): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   by TakeOutParam(out var y8) && y8 == 3;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(71, 43),
                 // (77,49): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x4 = TakeOutParam(out var y9) && y9 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(77, 49),
-                // (77,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   let x4 = TakeOutParam(out var y9) && y9 > 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(77, 49),
                 // (84,47): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select TakeOutParam(out var y10) && y10 > 0;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(84, 47),
-                // (84,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   select TakeOutParam(out var y10) && y10 > 0;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(84, 47)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(84, 47)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -12167,57 +11949,22 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            compilation.VerifyDiagnostics(
-                // (14,62): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   from x2 in new[] { TakeOutParam(2, out var y2) && Print(y2) ? 1 : 0}
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(14, 62),
-                // (16,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                        on TakeOutParam(4, out var y4) && Print(y4) ? 1 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(16, 51),
-                // (17,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           equals TakeOutParam(5, out var y5) && Print(y5) ? 1 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(17, 58),
-                // (18,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   where TakeOutParam(6, out var y6) && Print(y6)
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(18, 49),
-                // (19,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   orderby TakeOutParam(7, out var y7) && Print(y7), 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(19, 51),
-                // (20,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           TakeOutParam(8, out var y8) && Print(y8) 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(20, 51),
-                // (22,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   by TakeOutParam(10, out var y10) && Print(y10)
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(22, 47),
-                // (21,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   group TakeOutParam(9, out var y9) && Print(y9) 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(21, 49),
-                // (24,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   let x11 = TakeOutParam(11, out var y11) && Print(y11)
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(24, 54),
-                // (25,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   select TakeOutParam(12, out var y12) && Print(y12);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(25, 51)
-                );
+            compilation.VerifyDiagnostics();
 
-            // Because expression variables are not permitted in query clauses (https://github.com/dotnet/roslyn/issues/15910)
-            // this program cannot be run. However, once we allow that (https://github.com/dotnet/roslyn/issues/15619)
-            // the program wil be capable of being run. In that case the following (commented code) would test for the expected output.
-
-            //            CompileAndVerify(compilation, expectedOutput:
-            //@"1
-            //3
-            //5
-            //2
-            //4
-            //6
-            //7
-            //8
-            //10
-            //9
-            //11
-            //12
-            //");
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+3
+5
+2
+4
+6
+7
+8
+10
+9
+11
+12
+");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -22885,30 +22632,18 @@ static bool TakeOutParam<T>(T y, out T x)
             {
                 var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
-                // (12,57): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             from x2 in new[] { TakeOutParam(x1, out var z2) ? z2 : 0, z2, y2}
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z2").WithLocation(12, 57),
                 // (14,21): error CS0103: The name 'z2' does not exist in the current context
                 //                     z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(14, 21),
-                // (19,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             let x2 = TakeOutParam(x1, out var z3) && z3 > 0 && y3 < 0 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z3").WithLocation(19, 47),
                 // (21,25): error CS0103: The name 'z3' does not exist in the current context
                 //                         z3};
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(21, 25),
                 // (28,29): error CS0103: The name 'v4' does not exist in the current context
                 //                             v4 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(28, 29),
-                // (27,64): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                     on x1 + y4 + z4 + (TakeOutParam(3, out var u4) ? u4 : 0) + 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(27, 64),
                 // (30,29): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                             u4 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(30, 29),
-                // (29,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                         equals x2 + y4 + z4 + (TakeOutParam(4, out var v4) ? v4 : 0) +
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(29, 72),
                 // (32,25): error CS0103: The name 'u4' does not exist in the current context
                 //                         u4, v4 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(32, 25),
@@ -22918,60 +22653,36 @@ static bool TakeOutParam<T>(T y, out T x)
                 // (41,29): error CS0103: The name 'v5' does not exist in the current context
                 //                             v5 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(41, 29),
-                // (40,64): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                     on x1 + y5 + z5 + (TakeOutParam(3, out var u5) ? u5 : 0) + 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(40, 64),
                 // (43,29): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                             u5 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(43, 29),
-                // (42,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                         equals x2 + y5 + z5 + (TakeOutParam(4, out var v5) ? v5 : 0) +
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(42, 72),
                 // (46,25): error CS0103: The name 'u5' does not exist in the current context
                 //                         u5, v5 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(46, 25),
                 // (46,29): error CS0103: The name 'v5' does not exist in the current context
                 //                         u5, v5 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(46, 29),
-                // (53,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             where x > y6 && TakeOutParam(1, out var z6) && z6 == 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z6").WithLocation(53, 53),
                 // (55,21): error CS0103: The name 'z6' does not exist in the current context
                 //                     z6;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(55, 21),
                 // (61,21): error CS0103: The name 'u7' does not exist in the current context
                 //                     u7,
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(61, 21),
-                // (60,55): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             orderby x > y7 && TakeOutParam(1, out var z7) && z7 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z7").WithLocation(60, 55),
                 // (63,21): error CS0103: The name 'z7' does not exist in the current context
                 //                     z7   
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(63, 21),
-                // (62,55): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                     x > y7 && TakeOutParam(1, out var u7) && u7 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u7").WithLocation(62, 55),
                 // (65,21): error CS0103: The name 'z7' does not exist in the current context
                 //                     z7 + u7;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(65, 21),
                 // (65,26): error CS0103: The name 'u7' does not exist in the current context
                 //                     z7 + u7;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(65, 26),
-                // (71,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             select x > y8 && TakeOutParam(1, out var z8) && z8 == 1;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z8").WithLocation(71, 54),
                 // (80,17): error CS0103: The name 'z9' does not exist in the current context
                 //                 z9;   
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(80, 17),
-                // (79,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                 x > y9 && TakeOutParam(1, out var u9) && u9 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u9").WithLocation(79, 51),
                 // (77,17): error CS0103: The name 'u9' does not exist in the current context
                 //                 u9
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(77, 17),
-                // (76,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             group x > y9 && TakeOutParam(1, out var z9) && z9 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z9").WithLocation(76, 53),
                 // (16,7): error CS0103: The name 'z2' does not exist in the current context
                 // Dummy(z2); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(16, 7),
@@ -23190,9 +22901,7 @@ static bool TakeOutParam<T>(T y, out T x)
                                         (int)ErrorCode.ERR_TypeVarNotFound,
                                         (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
                                         (int)ErrorCode.ERR_IdentifierExpectedKW,
-                                        (int)ErrorCode.ERR_NameNotInContext,
-                                        (int)ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer,
-                                        (int)ErrorCode.ERR_ExpressionVariableInQueryClause
+                                        (int)ErrorCode.ERR_NameNotInContext
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
@@ -26961,27 +26670,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b = H.TakeOutParam(1, out int x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 32),
-                // (7,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d = H.TakeOutParam(2, out int x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 32),
-                // (9,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f = H.TakeOutParam(3, out int x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 32),
-                // (12,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h = H.Dummy(H.TakeOutParam(41, out int x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 41),
-                // (13,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  H.TakeOutParam(42, out int x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 41),
                 // (13,45): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                  H.TakeOutParam(42, out int x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 45),
-                // (15,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool x5 = H.TakeOutParam(5, out int x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(15, 33),
                 // (20,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -27147,27 +26838,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b = H.TakeOutParam(1, out var x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 32),
-                // (7,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d = H.TakeOutParam(2, out var x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 32),
-                // (9,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f = H.TakeOutParam(3, out var x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 32),
-                // (12,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h = H.Dummy(H.TakeOutParam(41, out var x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 41),
-                // (13,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  H.TakeOutParam(42, out var x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 41),
                 // (13,45): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                  H.TakeOutParam(42, out var x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 45),
-                // (15,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool x5 = H.TakeOutParam(5, out var x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(15, 33),
                 // (20,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -27773,30 +27446,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b = H.TakeOutParam(1, out int x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 32),
-                // (7,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d = H.TakeOutParam(2, out int x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 32),
-                // (9,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f = H.TakeOutParam(3, out int x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 32),
-                // (12,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h = H.Dummy(H.TakeOutParam(41, out int x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 41),
-                // (13,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  H.TakeOutParam(42, out int x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 41),
                 // (13,45): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                  H.TakeOutParam(42, out int x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 45),
-                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           H.TakeOutParam(5, out int x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 33),
-                // (18,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool i = H.TakeOutParam(5, out int x6),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(18, 32),
                 // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
@@ -27972,30 +27624,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b = H.TakeOutParam(1, out var x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 32),
-                // (7,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d = H.TakeOutParam(2, out var x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 32),
-                // (9,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f = H.TakeOutParam(3, out var x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 32),
-                // (12,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h = H.Dummy(H.TakeOutParam(41, out var x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 41),
-                // (13,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  H.TakeOutParam(42, out var x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 41),
                 // (13,45): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                  H.TakeOutParam(42, out var x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 45),
-                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           H.TakeOutParam(5, out var x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 33),
-                // (18,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool i = H.TakeOutParam(5, out var x6),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x6").WithLocation(18, 32),
                 // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
@@ -28384,27 +28015,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b { get; } = H.TakeOutParam(1, out int x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 41),
-                // (7,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d { get; } = H.TakeOutParam(2, out int x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 41),
-                // (9,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f { get; } = H.TakeOutParam(3, out int x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 41),
-                // (12,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h { get; } = H.Dummy(H.TakeOutParam(41, out int x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 50),
-                // (13,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                           H.TakeOutParam(42, out int x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 50),
                 // (13,54): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                           H.TakeOutParam(42, out int x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
-                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           H.TakeOutParam(5, out int x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 33),
                 // (20,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -28559,27 +28172,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b { get; } = H.TakeOutParam(1, out var x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 41),
-                // (7,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d { get; } = H.TakeOutParam(2, out var x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 41),
-                // (9,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f { get; } = H.TakeOutParam(3, out var x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 41),
-                // (12,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h { get; } = H.Dummy(H.TakeOutParam(41, out var x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 50),
-                // (13,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                           H.TakeOutParam(42, out var x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 50),
                 // (13,54): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                           H.TakeOutParam(42, out var x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
-                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           H.TakeOutParam(5, out var x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 33),
                 // (20,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -28929,30 +28524,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action b = H.TakeOutParam(1, out int x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 47),
-                // (7,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action d = H.TakeOutParam(2, out int x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 47),
-                // (9,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action f = H.TakeOutParam(3, out int x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 47),
-                // (12,56): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action h = H.Dummy(H.TakeOutParam(41, out int x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 56),
-                // (13,48): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                         H.TakeOutParam(42, out int x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 48),
                 // (13,52): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                         H.TakeOutParam(42, out int x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 52),
-                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           H.TakeOutParam(5, out int x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 33),
-                // (18,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action i = H.TakeOutParam(5, out int x6),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(18, 47),
                 // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
@@ -29128,30 +28702,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action b = H.TakeOutParam(1, out var x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 47),
-                // (7,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action d = H.TakeOutParam(2, out var x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 47),
-                // (9,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action f = H.TakeOutParam(3, out var x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 47),
-                // (12,56): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action h = H.Dummy(H.TakeOutParam(41, out var x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 56),
-                // (13,48): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                         H.TakeOutParam(42, out var x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 48),
                 // (13,52): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                         H.TakeOutParam(42, out var x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 52),
-                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           H.TakeOutParam(5, out var x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 33),
-                // (18,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action i = H.TakeOutParam(5, out var x6),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x6").WithLocation(18, 47),
                 // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
@@ -32195,9 +31748,6 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
-                // (5,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     const bool b = M(nameof(M(out var z2)), z2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var z2").WithLocation(5, 35),
                 // (5,29): error CS8081: Expression does not have a name.
                 //     const bool b = M(nameof(M(out var z2)), z2);
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(5, 29),
@@ -32210,9 +31760,6 @@ class C
                 // (6,26): error CS0103: The name 'z2' does not exist in the current context
                 //     const bool c = (z1 + z2) == 0;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(6, 26),
-                // (4,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     const bool a = M(nameof(M(out int z1)), z1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int z1").WithLocation(4, 35),
                 // (4,29): error CS8081: Expression does not have a name.
                 //     const bool a = M(nameof(M(out int z1)), z1);
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(4, 29),
@@ -32812,10 +32359,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
-            comp.VerifyDiagnostics(
-                // (7,38): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             group x > 1 && F(out var y) && y == null
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y").WithLocation(7, 38));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -33081,6 +32625,46 @@ IInvalidOperation (OperationKind.Invalid, Type: T, IsInvalid) (Syntax: 'new T(ou
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ");
+        }
+
+        [Fact]
+        public void EventInitializers_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static event System.Func<bool> Test1 = GetDelegate(TakeOutParam(1, out int x1) && Dummy(x1)); 
+
+    static System.Func<bool> GetDelegate(bool value) => () => value;
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (9,76): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //     static event System.Func<bool> Test1 = GetDelegate(TakeOutParam(1, out int x1) && Dummy(x1)); 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 76)
+                );
         }
     }
 
