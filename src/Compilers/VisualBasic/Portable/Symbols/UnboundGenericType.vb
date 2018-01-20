@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
+        Public NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return OriginalDefinition.IsSerializable
             End Get
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
 
-        Private NotInheritable Class ConstructedSymbol
+        Friend NotInheritable Class ConstructedSymbol
             Inherits UnboundGenericType
 
             Private ReadOnly _originalDefinition As NamedTypeSymbol
@@ -536,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Class
 
-        Private NotInheritable Class ConstructedFromSymbol
+        Friend NotInheritable Class ConstructedFromSymbol
             Inherits UnboundGenericType
 
             Public ReadOnly Constructed As ConstructedSymbol

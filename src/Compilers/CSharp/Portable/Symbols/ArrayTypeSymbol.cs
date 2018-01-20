@@ -686,6 +686,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
             }
+
+            public bool IsSerializable => false;
         }
     }
 }

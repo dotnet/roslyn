@@ -19,7 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Sub New(pointedAtType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier))
             Debug.Assert(pointedAtType IsNot Nothing)
-
             _pointedAtType = pointedAtType
             _customModifiers = customModifiers.NullToEmpty()
         End Sub

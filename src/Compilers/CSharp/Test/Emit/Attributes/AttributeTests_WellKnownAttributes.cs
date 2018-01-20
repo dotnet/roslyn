@@ -4718,104 +4718,139 @@ public class BobAttribute : Attribute
 {
 }";
             var lib_comp = CreateStandardCompilation(lib_cs);
-            verifyBothAttributes(lib_comp);
+            verify(lib_comp, isSerializablePresent: true);
 
             var client1 = CreateStandardCompilation("", references: new[] { lib_comp.ToMetadataReference() });
-            verifyBothAttributes(client1);
+            verify(client1, isSerializablePresent: true);
 
             var client2 = CreateStandardCompilation("", references: new[] { lib_comp.EmitToImageReference() });
-            verifyBothAttributes(client2);
+            verify(client2, isSerializablePresent: false);
 
-            void verifyBothAttributes(CSharpCompilation comp)
+            void verify(CSharpCompilation comp, bool isSerializablePresent)
             {
-                NamedTypeSymbol type = comp.GetTypeByMetadataName("C");
-                AssertEx.SetEqual(new[] { "System.SerializableAttribute", "BobAttribute" }, type.GetAttributes().Select(a => a.ToString()));
+                INamedTypeSymbol typeC = comp.GetTypeByMetadataName("C");
+                var expectedAttributes = isSerializablePresent ? new[] { "System.SerializableAttribute", "BobAttribute" } : new[] { "BobAttribute" };
+                AssertEx.SetEqual(expectedAttributes, typeC.GetAttributes().Select(a => a.ToString()));
+
+                Assert.True(typeC.IsSerializable);
+
+                INamedTypeSymbol typeBobAttribute = comp.GetTypeByMetadataName("BobAttribute");
+                Assert.False(typeBobAttribute.IsSerializable);
             }
         }
 
         [Fact]
         [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
-        void SerializableFromPE_WithErrors()
+        public void TestIsSerializableProperty()
         {
-            string corlib_cs = @"
-namespace System
+            string missing = @"
+public class TopLevel
 {
-    public class Object { }
-    public class Void { }
-    public class Attribute { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute() { }
-    }
-    public struct Int32 { }
-    public class ValueType { }
-}";
-            string serializable_cs = @"
-namespace System
-{
-    public class SerializableAttribute : Attribute
-    {
-        public SerializableAttribute() { }
-    }
-}";
-
-            string serializableNoCtor_cs = @"
-namespace System
-{
-    public class SerializableAttribute : Attribute
-    {
-        public SerializableAttribute(int x) { }
-    }
-}";
-
-            var corlibWithSerializable = CreateCompilation(corlib_cs + serializable_cs, assemblyName: "corlib");
-            corlibWithSerializable.VerifyDiagnostics();
-            var corlibWithoutSerializableRef = corlibWithSerializable.EmitToImageReference();
-
-            var corlibWithoutAttribute = CreateCompilation(corlib_cs, assemblyName: "corlib");
-            corlibWithoutAttribute.VerifyDiagnostics();
-            var corlibWithoutAttributeRef = corlibWithoutAttribute.EmitToImageReference();
-            var attribute_comp = CreateCompilation(serializable_cs, references: new[] { corlibWithoutAttributeRef });
-            attribute_comp.VerifyDiagnostics();
-
-            var corlibWithoutAttributeCtor = CreateCompilation(corlib_cs + serializableNoCtor_cs, assemblyName: "corlib");
-            corlibWithoutAttributeCtor.VerifyDiagnostics();
-            var corlibWithoutAttributeCtorRef = corlibWithoutAttributeCtor.EmitToImageReference();
-
-            string lib_cs = @"
-using System;
-[Serializable]
-public class C
-{
+    public class Nested { }
 }
-[AttributeUsage()]
-public class BobAttribute : Attribute
+public class TopLevel<T>
 {
-}";
-            var lib_comp = CreateCompilation(lib_cs, references: new[] { corlibWithoutSerializableRef });
-            lib_comp.VerifyDiagnostics();
-            var lib_compRef = lib_comp.EmitToImageReference();
+    public class Nested<U> { }
+}
+public class Constructed<T> { }
+";
 
-            var client2 = CreateCompilation("", references: new[] { corlibWithoutAttributeRef, lib_compRef });
-            client2.VerifyDiagnostics();
-            verifyNoAttributes(client2);
+            string source = @"
+public class C<T>
+{
+    public class Nested { }
+}
 
-            var client3 = CreateCompilation("", references: new[] { corlibWithoutAttributeCtorRef, lib_compRef });
-            client3.VerifyDiagnostics();
-            verifyNoAttributes(client3);
+[System.Serializable]
+public class CS<T>
+{
+    [System.Serializable]
+    public class NestedS { }
+}
 
-            // attribute is not restored when not present specifically in corlib
-            var client4 = CreateCompilation("", references: new[] { corlibWithoutAttributeRef, attribute_comp.EmitToImageReference(), lib_compRef });
-            client4.VerifyDiagnostics();
-            verifyNoAttributes(client4);
+public class SubstitutedNested : C<int>.Nested { }
+public class SubstitutedNestedS : CS<int>.NestedS { }
 
-            void verifyNoAttributes(CSharpCompilation comp)
-            {
-                NamedTypeSymbol type = comp.GetTypeByMetadataName("C");
-                Assert.Equal(new string[] { }, type.GetAttributes().Select(a => a.ToString()));
-            }
+public class Constructed : C<int> { }
+public class ConstructedS : CS<int> { }
+
+public class MissingTopLevel : TopLevel { }
+public class MissingNested : TopLevel.Nested { }
+public class MissingConstructed : Constructed<int> { }
+
+public class MissingSubstitutedNested<T, U> : TopLevel<T>.Nested<U> { }
+
+namespace System
+{
+    [System.Serializable]
+    public struct ValueTuple<T1, T2> { }
+}
+
+public class ValueTupleS
+{
+    (int, int) M() => throw null;
+}
+";
+
+            string errors = @"
+public class ExtendedError : ExtendedErrorBase { }
+public class Unbound : Constructed<> { }
+";
+            var lib = CreateCompilationWithMscorlib46(missing, assemblyName: "missing");
+            lib.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib46(source, references: new[] { lib.EmitToImageReference() });
+            comp.VerifyDiagnostics();
+            var comp2 = CreateCompilationWithMscorlib46(errors, references: new[] { comp.EmitToImageReference() });
+
+            var substitutedNested = comp.GetTypeByMetadataName("SubstitutedNested").BaseType();
+            Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNested);
+            Assert.False(((INamedTypeSymbol)substitutedNested).IsSerializable);
+
+            var substitutedNestedS = comp.GetTypeByMetadataName("SubstitutedNestedS").BaseType();
+            Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNestedS);
+            Assert.True(((INamedTypeSymbol)substitutedNestedS).IsSerializable);
+
+            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType();
+            Assert.IsType<TupleTypeSymbol>(valueTupleS);
+            Assert.True(((INamedTypeSymbol)valueTupleS).IsSerializable);
+
+            var constructed = comp.GetTypeByMetadataName("Constructed").BaseType();
+            Assert.IsType<ConstructedNamedTypeSymbol>(constructed);
+            Assert.False(((INamedTypeSymbol)constructed).IsSerializable);
+
+            var constructedS = comp.GetTypeByMetadataName("ConstructedS").BaseType();
+            Assert.IsType<ConstructedNamedTypeSymbol>(constructedS);
+            Assert.True(((INamedTypeSymbol)constructedS).IsSerializable);
+
+            var extendedError = comp2.GetTypeByMetadataName("ExtendedError").BaseType();
+            Assert.IsType<ExtendedErrorTypeSymbol>(extendedError);
+            Assert.False(((INamedTypeSymbol)extendedError).IsSerializable);
+
+            var topLevel = comp2.GetTypeByMetadataName("MissingTopLevel").BaseType();
+            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(topLevel);
+            Assert.False(((INamedTypeSymbol)topLevel).IsSerializable);
+
+            var nested = comp2.GetTypeByMetadataName("MissingNested").BaseType();
+            Assert.IsType<MissingMetadataTypeSymbol.Nested>(nested);
+            Assert.False(((INamedTypeSymbol)nested).IsSerializable);
+
+            var constructedError = comp2.GetTypeByMetadataName("MissingConstructed").BaseType();
+            Assert.IsType<ConstructedErrorTypeSymbol>(constructedError);
+            Assert.False(((INamedTypeSymbol)constructedError).IsSerializable);
+
+            var nestedSubstitutedError = comp2.GetTypeByMetadataName("MissingSubstitutedNested`2").BaseType().ConstructedFrom;
+            Assert.IsType<SubstitutedNestedErrorTypeSymbol>(nestedSubstitutedError);
+            Assert.False(((INamedTypeSymbol)nestedSubstitutedError).IsSerializable);
+
+            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0];
+            Assert.IsType<UnboundArgumentErrorTypeSymbol>(unbound);
+            Assert.False(((INamedTypeSymbol)unbound).IsSerializable);
+
+            var script = CreateCompilation("", parseOptions: TestOptions.Script);
+            var scriptClass = script.GetTypeByMetadataName("Script");
+            Assert.IsType<ImplicitNamedTypeSymbol>(scriptClass);
+            Assert.False(((INamedTypeSymbol)scriptClass).IsSerializable);
         }
-
         #endregion
 
         #region ParamArrayAttribute
