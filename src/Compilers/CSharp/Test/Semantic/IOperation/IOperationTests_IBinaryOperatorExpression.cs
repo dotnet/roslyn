@@ -433,7 +433,7 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
         }
 
         [Fact]
-        public void LogicalOrFlow_01()
+        public void LogicalFlow_01()
         {
             string source = @"
 class P
@@ -454,10 +454,8 @@ Block[1] - Block
     Predecessors (1)
         [0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
-          Left: 
-            IFlowCaptureOperation: 0 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
-          Right: 
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
+          Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Boolean) (Syntax: 'GetArray()[0]')
               Array reference: 
                 IInvocationOperation (System.Boolean[] P.GetArray()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'GetArray()')
@@ -475,10 +473,8 @@ Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'b')
-          Left: 
-            IFlowCaptureOperation: 1 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'b')
-          Right: 
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
     Next Block[4]
@@ -486,10 +482,8 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'a')
-          Left: 
-            IFlowCaptureOperation: 1 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Right: 
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'a')
 
     Next Block[4]
@@ -502,9 +496,9 @@ Block[4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'GetArray()[0] =  a || b')
               Left: 
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
               Right: 
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'a || b')
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a || b')
 
     Next Block[5]
 Block[5] - Exit
@@ -518,7 +512,7 @@ Block[5] - Exit
         }
 
         [Fact]
-        public void LogicalOrFlow_02()
+        public void LogicalFlow_02()
         {
             string source = @"
 class P
@@ -539,10 +533,8 @@ Block[1] - Block
     Predecessors (1)
         [0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
-          Left: 
-            IFlowCaptureOperation: 0 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
-          Right: 
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
+          Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Boolean) (Syntax: 'GetArray()[0]')
               Array reference: 
                 IInvocationOperation (System.Boolean[] P.GetArray()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'GetArray()')
@@ -568,10 +560,8 @@ Block[3] - Block
     Predecessors (1)
         [2]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'b')
-          Left: 
-            IFlowCaptureOperation: 1 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'b')
-          Right: 
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
     Next Block[6]
@@ -579,10 +569,8 @@ Block[4] - Block
     Predecessors (1)
         [2]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'a')
-          Left: 
-            IFlowCaptureOperation: 1 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Right: 
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'a')
 
     Next Block[6]
@@ -590,10 +578,8 @@ Block[5] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'c')
-          Left: 
-            IFlowCaptureOperation: 1 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'c')
-          Right: 
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'c')
 
     Next Block[6]
@@ -607,14 +593,305 @@ Block[6] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'GetArray()[ ... && (a || b)')
               Left: 
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
               Right: 
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'c && (a || b)')
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c && (a || b)')
 
     Next Block[7]
 Block[7] - Exit
     Predecessors (1)
         [6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void LogicalFlow_03()
+        {
+            string source = @"
+class P
+{
+    void M(bool a, bool b, bool c)
+/*<bind>*/{
+        GetArray()[0] =  c && (a && b);
+    }/*</bind>*/
+
+    static bool[] GetArray() => null;
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Boolean) (Syntax: 'GetArray()[0]')
+              Array reference: 
+                IInvocationOperation (System.Boolean[] P.GetArray()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Jump if False to Block[4]
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (0)
+    Jump if False to Block[4]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next Block[3]
+Block[3] - Block
+    Predecessors (1)
+        [2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next Block[5]
+Block[4] - Block
+    Predecessors (2)
+        [1]
+        [2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c && (a && b)')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'c && (a && b)')
+
+    Next Block[5]
+Block[5] - Block
+    Predecessors (2)
+        [3]
+        [4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... & (a && b);')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'GetArray()[ ... && (a && b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c && (a && b)')
+
+    Next Block[6]
+Block[6] - Exit
+    Predecessors (1)
+        [5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void LogicalFlow_04()
+        {
+            string source = @"
+class P
+{
+    void M(bool a, bool b, bool c)
+/*<bind>*/{
+        GetArray()[0] =  c || (a || b);
+    }/*</bind>*/
+
+    static bool[] GetArray() => null;
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Boolean) (Syntax: 'GetArray()[0]')
+              Array reference: 
+                IInvocationOperation (System.Boolean[] P.GetArray()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Jump if True to Block[4]
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (0)
+    Jump if True to Block[4]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next Block[3]
+Block[3] - Block
+    Predecessors (1)
+        [2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next Block[5]
+Block[4] - Block
+    Predecessors (2)
+        [1]
+        [2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c || (a || b)')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'c || (a || b)')
+
+    Next Block[5]
+Block[5] - Block
+    Predecessors (2)
+        [3]
+        [4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... | (a || b);')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'GetArray()[ ... || (a || b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c || (a || b)')
+
+    Next Block[6]
+Block[6] - Exit
+    Predecessors (1)
+        [5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void LogicalFlow_05()
+        {
+            string source = @"
+class P
+{
+    void M(bool a, bool b, bool c, bool d, bool e)
+/*<bind>*/{
+        GetArray()[0] =  a && (b || (c && (d || e)));
+    }/*</bind>*/
+
+    static bool[] GetArray() => null;
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Boolean) (Syntax: 'GetArray()[0]')
+              Array reference: 
+                IInvocationOperation (System.Boolean[] P.GetArray()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Jump if False to Block[7]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (0)
+    Jump if True to Block[6]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next Block[3]
+Block[3] - Block
+    Predecessors (1)
+        [2]
+    Statements (0)
+    Jump if False to Block[7]
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (1)
+        [3]
+    Statements (0)
+    Jump if True to Block[6]
+        IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'd')
+
+    Next Block[5]
+Block[5] - Block
+    Predecessors (1)
+        [4]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'e')
+          Value: 
+            IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'e')
+
+    Next Block[8]
+Block[6] - Block
+    Predecessors (2)
+        [2]
+        [4]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b || (c && (d || e))')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'b || (c && (d || e))')
+
+    Next Block[8]
+Block[7] - Block
+    Predecessors (2)
+        [1]
+        [3]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && (b ||  ...  (d || e)))')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'a && (b ||  ...  (d || e)))')
+
+    Next Block[8]
+Block[8] - Block
+    Predecessors (3)
+        [5]
+        [6]
+        [7]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... (d || e)));')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'GetArray()[ ...  (d || e)))')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a && (b ||  ...  (d || e)))')
+
+    Next Block[9]
+Block[9] - Exit
+    Predecessors (1)
+        [8]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

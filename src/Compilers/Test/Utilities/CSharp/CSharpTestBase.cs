@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Metadata.Tools;
@@ -1140,6 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 map.Add(graph[i], i);
             }
 
+            var visitor = TestOperationVisitor.GetInstance();
             var stringBuilder = PooledObjects.PooledStringBuilder.GetInstance();
 
             for (int i = 0; i < graph.Length; i++)
@@ -1162,6 +1164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 stringBuilder.Builder.AppendLine($"    Statements ({statements.Length})");
                 foreach (var statement in statements)
                 {
+                    ValidateRoot(statement);
                     stringBuilder.Builder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, statement, initialIndent: 8));
                 }
 
@@ -1169,7 +1172,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 {
                     Assert.True(map.TryGetValue(block.Conditional.Destination, out int index));
                     stringBuilder.Builder.AppendLine($"    Jump if {block.Conditional.JumpIfTrue} to Block[{index}]");
-                    stringBuilder.Builder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, block.Conditional.Condition, initialIndent: 8));
+
+                    IOperation condition = block.Conditional.Condition;
+                    ValidateRoot(condition);
+                    stringBuilder.Builder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, condition, initialIndent: 8));
+                }
+
+                void ValidateRoot(IOperation root)
+                {
+                    visitor.Visit(root);
+                    Assert.Null(root.Parent);
+                    Assert.Null(((Operation)root).SemanticModel);
+                    Assert.True(CanBeInControlFlowGraph(root), $"Unexpected node kind OperationKind.{root.Kind}");
+
+                    foreach (var operation in root.Descendants())
+                    {
+                        visitor.Visit(operation);
+                        Assert.NotNull(operation.Parent);
+                        Assert.Null(((Operation)operation).SemanticModel);
+                        Assert.True(CanBeInControlFlowGraph(operation), $"Unexpected node kind OperationKind.{operation.Kind}");
+                    }
                 }
 
                 if (block.Next != null)
@@ -1181,6 +1203,112 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             var actualFlowGraph = stringBuilder.ToStringAndFree();
             OperationTreeVerifier.Verify(expectedFlowGraph, actualFlowGraph);
+        }
+
+        private static bool CanBeInControlFlowGraph(IOperation n)
+        {
+            switch (n.Kind)
+            {
+                case OperationKind.Block:
+                case OperationKind.Switch:
+                case OperationKind.Loop: 
+                case OperationKind.Labeled:
+                case OperationKind.Branch:
+                case OperationKind.Lock:
+                case OperationKind.Try:
+                case OperationKind.Using:
+                case OperationKind.Conditional:
+                case OperationKind.Coalesce:
+                case OperationKind.ConditionalAccess:
+                case OperationKind.ConditionalAccessInstance:
+                case OperationKind.ObjectOrCollectionInitializer:
+                case OperationKind.MemberInitializer:
+                case OperationKind.CollectionElementInitializer:
+                case OperationKind.FieldInitializer:
+                case OperationKind.PropertyInitializer:
+                case OperationKind.ParameterInitializer:
+                case OperationKind.ArrayInitializer:
+                case OperationKind.CatchClause:
+                case OperationKind.SwitchCase:
+                case OperationKind.CaseClause:
+                    return false;
+
+                case OperationKind.VariableDeclarationGroup:
+                case OperationKind.VariableInitializer:
+                    return true; // PROTOTYPE(dataflow): should be translated into assignments
+
+                case OperationKind.BinaryOperator:
+                    var binary = (IBinaryOperation)n;
+                    return binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalAnd && binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalOr;
+
+                case OperationKind.None:
+                case OperationKind.Invalid:
+                case OperationKind.Empty:
+                case OperationKind.Return:
+                case OperationKind.YieldBreak:
+                case OperationKind.YieldReturn:
+                case OperationKind.ExpressionStatement:
+                case OperationKind.LocalFunction:
+                case OperationKind.Stop:
+                case OperationKind.End:
+                case OperationKind.RaiseEvent:
+                case OperationKind.Literal:
+                case OperationKind.Conversion:
+                case OperationKind.Invocation:
+                case OperationKind.ArrayElementReference:
+                case OperationKind.LocalReference:
+                case OperationKind.ParameterReference:
+                case OperationKind.FieldReference:
+                case OperationKind.MethodReference:
+                case OperationKind.PropertyReference:
+                case OperationKind.EventReference:
+                case OperationKind.AnonymousFunction:
+                case OperationKind.ObjectCreation:
+                case OperationKind.TypeParameterObjectCreation:
+                case OperationKind.ArrayCreation:
+                case OperationKind.InstanceReference:
+                case OperationKind.IsType:
+                case OperationKind.Await:
+                case OperationKind.SimpleAssignment:
+                case OperationKind.CompoundAssignment:
+                case OperationKind.Parenthesized:
+                case OperationKind.EventAssignment:
+                case OperationKind.InterpolatedString:
+                case OperationKind.AnonymousObjectCreation:
+                case OperationKind.NameOf:
+                case OperationKind.Tuple:
+                case OperationKind.DynamicObjectCreation:
+                case OperationKind.DynamicMemberReference:
+                case OperationKind.DynamicInvocation:
+                case OperationKind.DynamicIndexerAccess:
+                case OperationKind.TranslatedQuery:
+                case OperationKind.DelegateCreation:
+                case OperationKind.DefaultValue:
+                case OperationKind.TypeOf:
+                case OperationKind.SizeOf:
+                case OperationKind.AddressOf:
+                case OperationKind.IsPattern:
+                case OperationKind.Increment:
+                case OperationKind.Throw:
+                case OperationKind.Decrement:
+                case OperationKind.DeconstructionAssignment:
+                case OperationKind.DeclarationExpression:
+                case OperationKind.OmittedArgument:
+                case OperationKind.VariableDeclarator:
+                case OperationKind.VariableDeclaration:
+                case OperationKind.Argument:
+                case OperationKind.InterpolatedStringText:
+                case OperationKind.Interpolation:
+                case OperationKind.ConstantPattern:
+                case OperationKind.DeclarationPattern:
+                case OperationKind.UnaryOperator:
+                case OperationKind.FlowCapture:
+                case OperationKind.FlowCaptureReference:
+                    return true;
+            }
+
+            Assert.True(false, $"Unhandled node kind OperationKind.{n.Kind}");
+            return false;
         }
 
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(

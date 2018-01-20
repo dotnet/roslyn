@@ -3,20 +3,14 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents that an intermediate result is being captured.
+    /// Represents a point of use of an intermediate result captured earlier.
     /// PROTOTYPE(dataflow): Finalize the design how capturing/referencing intermediate results is represented.
     /// </summary>
-    public interface IFlowCaptureOperation : IOperation
+    public interface IFlowCaptureReferenceOperation : IOperation
     {
         /// <summary>
         /// An id used to match references to the same intermediate result.
         /// </summary>
         int Id { get; }
-
-        /// <summary>
-        /// Value to be captured.
-        /// </summary>
-        IOperation Value { get; }
     }
 }
-

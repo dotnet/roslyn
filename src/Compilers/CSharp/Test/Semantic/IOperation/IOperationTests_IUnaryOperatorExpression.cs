@@ -3442,10 +3442,8 @@ Block[1] - Block
     Predecessors (1)
         [0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
-          Left: 
-            IFlowCaptureOperation: 0 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
-          Right: 
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
+          Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Boolean) (Syntax: 'GetArray()[0]')
               Array reference: 
                 IInvocationOperation (System.Boolean[] P.GetArray()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'GetArray()')
@@ -3463,10 +3461,8 @@ Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'b')
-          Left: 
-            IFlowCaptureOperation: 1 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'b')
-          Right: 
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
             IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'b')
               Operand: 
                 IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
@@ -3476,10 +3472,8 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'a')
-          Left: 
-            IFlowCaptureOperation: 1 (IsInitialization: True) (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Right: 
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'a')
 
     Next Block[4]
@@ -3492,9 +3486,9 @@ Block[4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'GetArray()[ ...   !(a || b)')
               Left: 
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'GetArray()[0]')
               Right: 
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: System.Boolean, IsImplicit) (Syntax: 'a || b')
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a || b')
 
     Next Block[5]
 Block[5] - Exit
