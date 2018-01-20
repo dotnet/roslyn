@@ -68,9 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             return _baselineMetadata.GetOrAdd(mvid, m =>
             {
-                DkmComponentManager.InitializeThread(DebuggerComponentIds.ManagedEditAndContinueService);
-
-                try
+                using (DebuggerComponent.ManagedEditAndContinueService())
                 {
                     var clrModuleInstance = FindClrModuleInstance(m);
                     if (clrModuleInstance == null)
@@ -94,10 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         Parameter2: clrModuleInstance).SendLower();
 
                     return metadata;
-                }
-                finally
-                {
-                    DkmComponentManager.UninitializeThread(DebuggerComponentIds.ManagedEditAndContinueService);
                 }
             });
         }

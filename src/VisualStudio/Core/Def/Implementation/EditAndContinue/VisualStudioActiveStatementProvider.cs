@@ -24,8 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// </summary>
         public Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
         {
-            DkmComponentManager.InitializeThread(DebuggerComponentIds.ManagedEditAndContinueService);
-            try
+            using (DebuggerComponent.ManagedEditAndContinueService())
             {
                 // TODO: report errors
                 // TODO: return empty outside of debug session.
@@ -116,13 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 workList.BeginExecution();
 
                 return completion.Task;
-            }
-            finally
-            {
-                // Since we don't own this thread we need to uninitialize the dispatcher. Otherwise if the thread is reused by another bit of code 
-                // trying to call into the Concord API than its InitializeThread will fail.
-                // The work items we queued to the work list above will be run on a dedicated thread maintained by the Concord dispatcher.
-                DkmComponentManager.UninitializeThread(DebuggerComponentIds.ManagedEditAndContinueService);
             }
         }
     }
