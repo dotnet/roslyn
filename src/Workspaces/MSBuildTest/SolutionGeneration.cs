@@ -6,8 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using FileList = System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>;
-using StringPair = System.Collections.Generic.KeyValuePair<string, object>;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -56,13 +54,13 @@ EndGlobal
         public const string PublicKeyToken = "39d7e8ec38707fde";
         public static readonly byte[] KeySnk = MSBuildWorkspaceTests.GetResourceBytes("key.snk");
 
-        public static FileList GetSolutionFiles(params IBuilder[] inputs)
+        public static IEnumerable<(string fileName, object fileContent)> GetSolutionFiles(params IBuilder[] inputs)
         {
-            List<StringPair> list = new List<StringPair>();
+            var list = new List<(string, object)>();
             var projectBuilders = inputs.OfType<ProjectBuilder>();
             var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            int fileIndex = 1;
-            int projectIndex = 1;
+            var fileIndex = 1;
+            var projectIndex = 1;
 
             // first make sure all projects have names, as a separate loop
             foreach (var project in projectBuilders)
@@ -95,16 +93,16 @@ EndGlobal
                     }
                 }
 
-                foreach (var kvp in project.Files)
+                foreach (var (fileName, fileContent) in project.Files)
                 {
-                    if (files.Add(kvp.Key + kvp.Value))
+                    if (files.Add(fileName + fileContent))
                     {
-                        list.Add(new StringPair(kvp.Key, kvp.Value));
+                        list.Add((fileName, fileContent));
                     }
                 }
             }
 
-            list.Add(new KeyValuePair<string, object>("Solution.sln", GetSolutionContent(projectBuilders)));
+            list.Add(("Solution.sln", GetSolutionContent(projectBuilders)));
 
             return list;
         }
@@ -125,7 +123,7 @@ EndGlobal
 
             return new ProjectBuilder
             {
-                Name = projectName != null ? projectName.Name : null,
+                Name = projectName?.Name,
                 Documents = documents,
                 ProjectReferences = projectReferences,
                 Properties = properties
@@ -223,16 +221,16 @@ EndGlobal
                 }
             }
 
-            public FileList Files
+            public IEnumerable<(string fileName, object fileContent)> Files
             {
                 get
                 {
                     foreach (var document in Documents)
                     {
-                        yield return new StringPair(document.FilePath, document.Content);
+                        yield return (document.FilePath, document.Content);
                     }
 
-                    yield return new StringPair(Name + Extension, GetProjectContent());
+                    yield return (Name + Extension, GetProjectContent());
                 }
             }
 

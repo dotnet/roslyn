@@ -86,6 +86,22 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
+        protected static int GetMethodInsertionPoint(VB.Syntax.ClassBlockSyntax classBlock)
+        {
+            if (classBlock.Implements.Count > 0)
+            {
+                return classBlock.Implements[classBlock.Implements.Count - 1].FullSpan.End;
+            }
+            else if (classBlock.Inherits.Count > 0)
+            {
+                return classBlock.Inherits[classBlock.Inherits.Count - 1].FullSpan.End;
+            }
+            else
+            {
+                return classBlock.BlockStatement.FullSpan.End;
+            }
+        }
+
         protected async Task PrepareCrossLanguageProjectWithEmittedMetadataAsync()
         {
             // Now try variant of CSharpProject that has an emitted assembly 
@@ -116,7 +132,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             var files = GetSolutionFiles(inputs);
             CreateFiles(files);
-            var solutionFileName = files.First(kvp => kvp.Key.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)).Key;
+            var solutionFileName = files.First(t => t.fileName.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)).fileName;
             solutionFileName = GetSolutionFileName(solutionFileName);
             using (var workspace = CreateMSBuildWorkspace())
             {

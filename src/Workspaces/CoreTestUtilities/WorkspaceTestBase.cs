@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -13,7 +12,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class WorkspaceTestBase : TestBase
+    public class WorkspaceTestBase : TestBase
     {
         protected readonly TempDirectory SolutionDirectory;
 
@@ -34,18 +33,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected void CreateFiles(params string[] fileNames)
         {
-            var dictionary = fileNames.ToDictionary(id => id, fileName => (object)GetResourceText(fileName));
-            CreateFiles(new FileSet(dictionary));
+            var fileNamesAndContent = Array.ConvertAll(fileNames, fileName => (fileName, (object)GetResourceText(fileName)));
+            var fileSet = new FileSet(fileNamesAndContent);
+            CreateFiles(fileSet);
         }
 
-        protected void CreateFiles(IEnumerable<KeyValuePair<string, object>> fileNameAndContentPairs)
+        protected void CreateFiles(IEnumerable<(string filePath, object fileContent)> fileNamesAndContent)
         {
-            foreach (var pair in fileNameAndContentPairs)
+            foreach (var (filePath, fileContent) in fileNamesAndContent)
             {
-                Debug.Assert(pair.Value is string || pair.Value is byte[]);
+                Debug.Assert(fileContent is string || fileContent is byte[]);
 
-                var subdirectory = Path.GetDirectoryName(pair.Key);
-                var fileName = Path.GetFileName(pair.Key);
+                var subdirectory = Path.GetDirectoryName(filePath);
+                var fileName = Path.GetFileName(filePath);
 
                 var dir = SolutionDirectory;
 
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 // workspace uses File APIs that don't work with "delete on close" files:
                 var file = dir.CreateFile(fileName);
 
-                if (pair.Value is string)
+                if (fileContent is string s)
                 {
-                    file.WriteAllText((string)pair.Value);
+                    file.WriteAllText(s);
                 }
                 else
                 {
-                    file.WriteAllBytes((byte[])pair.Value);
+                    file.WriteAllBytes((byte[])fileContent);
                 }
             }
         }
@@ -88,100 +88,88 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected FileSet GetSimpleCSharpSolutionFiles()
         {
-            return new FileSet(new Dictionary<string, object>
-            {
-                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
-                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
-                { @"TestSolution.sln", GetResourceText("TestSolution_CSharp.sln") },
-                { @"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj") },
-                { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
-                { @"CSharpProject\Properties\AssemblyInfo.cs", GetResourceText("CSharpProject_AssemblyInfo.cs") }
-            });
+            return new FileSet(
+                (@"Directory.Build.props", GetResourceText("Directory.Build.props")),
+                (@"Directory.Build.targets", GetResourceText("Directory.Build.targets")),
+                (@"TestSolution.sln", GetResourceText("TestSolution_CSharp.sln")),
+                (@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj")),
+                (@"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs")),
+                (@"CSharpProject\Properties\AssemblyInfo.cs", GetResourceText("CSharpProject_AssemblyInfo.cs")));
         }
 
         protected FileSet GetMultiProjectSolutionFiles()
         {
-            return new FileSet(new Dictionary<string, object>
-            {
-                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
-                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
-                { @"TestSolution.sln", GetResourceText("TestSolution_VB_and_CSharp.sln") },
-                { @"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj") },
-                { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
-                { @"CSharpProject\Properties\AssemblyInfo.cs", GetResourceText("CSharpProject_AssemblyInfo.cs") },
-                { @"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject.vbproj") },
-                { @"VisualBasicProject\VisualBasicClass.vb", GetResourceText("VisualBasicProject_VisualBasicClass.vb") },
-                { @"VisualBasicProject\My Project\Application.Designer.vb", GetResourceText("VisualBasicProject_Application.Designer.vb") },
-                { @"VisualBasicProject\My Project\Application.myapp", GetResourceText("VisualBasicProject_Application.myapp") },
-                { @"VisualBasicProject\My Project\AssemblyInfo.vb", GetResourceText("VisualBasicProject_AssemblyInfo.vb") },
-                { @"VisualBasicProject\My Project\Resources.Designer.vb", GetResourceText("VisualBasicProject_Resources.Designer.vb") },
-                { @"VisualBasicProject\My Project\Resources.resx", GetResourceText("VisualBasicProject_Resources.resx_") },
-                { @"VisualBasicProject\My Project\Settings.Designer.vb", GetResourceText("VisualBasicProject_Settings.Designer.vb") },
-                { @"VisualBasicProject\My Project\Settings.settings", GetResourceText("VisualBasicProject_Settings.settings") },
-            });
+            return new FileSet(
+                (@"Directory.Build.props", GetResourceText("Directory.Build.props")),
+                (@"Directory.Build.targets", GetResourceText("Directory.Build.targets")),
+                (@"TestSolution.sln", GetResourceText("TestSolution_VB_and_CSharp.sln")),
+                (@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj")),
+                (@"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs")),
+                (@"CSharpProject\Properties\AssemblyInfo.cs", GetResourceText("CSharpProject_AssemblyInfo.cs")),
+                (@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject.vbproj")),
+                (@"VisualBasicProject\VisualBasicClass.vb", GetResourceText("VisualBasicProject_VisualBasicClass.vb")),
+                (@"VisualBasicProject\My Project\Application.Designer.vb", GetResourceText("VisualBasicProject_Application.Designer.vb")),
+                (@"VisualBasicProject\My Project\Application.myapp", GetResourceText("VisualBasicProject_Application.myapp")),
+                (@"VisualBasicProject\My Project\AssemblyInfo.vb", GetResourceText("VisualBasicProject_AssemblyInfo.vb")),
+                (@"VisualBasicProject\My Project\Resources.Designer.vb", GetResourceText("VisualBasicProject_Resources.Designer.vb")),
+                (@"VisualBasicProject\My Project\Resources.resx", GetResourceText("VisualBasicProject_Resources.resx_")),
+                (@"VisualBasicProject\My Project\Settings.Designer.vb", GetResourceText("VisualBasicProject_Settings.Designer.vb")),
+                (@"VisualBasicProject\My Project\Settings.settings", GetResourceText("VisualBasicProject_Settings.settings")));
         }
 
         protected FileSet GetProjectReferenceSolutionFiles()
         {
-            return new FileSet(new Dictionary<string, object>
-            {
-                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
-                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
-                { @"CSharpProjectReference.sln", GetResourceText("TestSolution_CSharpProjectReference.sln") },
-                { @"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj") },
-                { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
-                { @"CSharpProject\Properties\AssemblyInfo.cs", GetResourceText("CSharpProject_AssemblyInfo.cs") },
-                { @"CSharpProject\CSharpProject_ProjectReference.csproj", GetResourceText("CSharpProject_CSharpProject_ProjectReference.csproj") },
-                { @"CSharpProject\CSharpConsole.cs", GetResourceText("CSharpProject_CSharpConsole.cs") },
-            });
+            return new FileSet(
+                (@"Directory.Build.props", GetResourceText("Directory.Build.props")),
+                (@"Directory.Build.targets", GetResourceText("Directory.Build.targets")),
+                (@"CSharpProjectReference.sln", GetResourceText("TestSolution_CSharpProjectReference.sln")),
+                (@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj")),
+                (@"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs")),
+                (@"CSharpProject\Properties\AssemblyInfo.cs", GetResourceText("CSharpProject_AssemblyInfo.cs")),
+                (@"CSharpProject\CSharpProject_ProjectReference.csproj", GetResourceText("CSharpProject_CSharpProject_ProjectReference.csproj")),
+                (@"CSharpProject\CSharpConsole.cs", GetResourceText("CSharpProject_CSharpConsole.cs")));
         }
 
         protected FileSet GetAnalyzerReferenceSolutionFiles()
         {
-            return new FileSet(new Dictionary<string, object>
-            {
-                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
-                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
-                { @"AnalyzerReference.sln", GetResourceText("TestSolution_AnalyzerReference.sln") },
-                { @"AnalyzerSolution\CSharpProject.dll", GetResourceText("CSharpProject.dll") },
-                { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", GetResourceText("CSharpProject_CSharpProject_AnalyzerReference.csproj") },
-                { @"AnalyzerSolution\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
-                { @"AnalyzerSolution\XamlFile.xaml", GetResourceText("CSharpProject_MainWindow.xaml") },
-                { @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_AnalyzerReference.vbproj") },
-                { @"AnalyzerSolution\VisualBasicClass.vb", GetResourceText("VisualBasicProject_VisualBasicClass.vb") },
-                { @"AnalyzerSolution\My Project\Application.Designer.vb", GetResourceText("VisualBasicProject_Application.Designer.vb") },
-                { @"AnalyzerSolution\My Project\Application.myapp", GetResourceText("VisualBasicProject_Application.myapp") },
-                { @"AnalyzerSolution\My Project\AssemblyInfo.vb", GetResourceText("VisualBasicProject_AssemblyInfo.vb") },
-                { @"AnalyzerSolution\My Project\Resources.Designer.vb", GetResourceText("VisualBasicProject_Resources.Designer.vb") },
-                { @"AnalyzerSolution\My Project\Resources.resx", GetResourceText("VisualBasicProject_Resources.resx_") },
-                { @"AnalyzerSolution\My Project\Settings.Designer.vb", GetResourceText("VisualBasicProject_Settings.Designer.vb") },
-                { @"AnalyzerSolution\My Project\Settings.settings", GetResourceText("VisualBasicProject_Settings.settings") },
-            });
+            return new FileSet(
+                (@"Directory.Build.props", GetResourceText("Directory.Build.props")),
+                (@"Directory.Build.targets", GetResourceText("Directory.Build.targets")),
+                (@"AnalyzerReference.sln", GetResourceText("TestSolution_AnalyzerReference.sln")),
+                (@"AnalyzerSolution\CSharpProject.dll", GetResourceText("CSharpProject.dll")),
+                (@"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", GetResourceText("CSharpProject_CSharpProject_AnalyzerReference.csproj")),
+                (@"AnalyzerSolution\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs")),
+                (@"AnalyzerSolution\XamlFile.xaml", GetResourceText("CSharpProject_MainWindow.xaml")),
+                (@"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_AnalyzerReference.vbproj")),
+                (@"AnalyzerSolution\VisualBasicClass.vb", GetResourceText("VisualBasicProject_VisualBasicClass.vb")),
+                (@"AnalyzerSolution\My Project\Application.Designer.vb", GetResourceText("VisualBasicProject_Application.Designer.vb")),
+                (@"AnalyzerSolution\My Project\Application.myapp", GetResourceText("VisualBasicProject_Application.myapp")),
+                (@"AnalyzerSolution\My Project\AssemblyInfo.vb", GetResourceText("VisualBasicProject_AssemblyInfo.vb")),
+                (@"AnalyzerSolution\My Project\Resources.Designer.vb", GetResourceText("VisualBasicProject_Resources.Designer.vb")),
+                (@"AnalyzerSolution\My Project\Resources.resx", GetResourceText("VisualBasicProject_Resources.resx_")),
+                (@"AnalyzerSolution\My Project\Settings.Designer.vb", GetResourceText("VisualBasicProject_Settings.Designer.vb")),
+                (@"AnalyzerSolution\My Project\Settings.settings", GetResourceText("VisualBasicProject_Settings.settings")));
         }
 
         protected FileSet GetSolutionWithDuplicatedGuidFiles()
         {
-            return new FileSet(new Dictionary<string, object>
-            {
-                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
-                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
-                { @"DuplicatedGuids.sln", GetResourceText("TestSolution_DuplicatedGuids.sln") },
-                { @"ReferenceTest\ReferenceTest.csproj", GetResourceText("CSharpProject_DuplicatedGuidReferenceTest.csproj") },
-                { @"Library1\Library1.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary1.csproj") },
-                { @"Library2\Library2.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary2.csproj") }
-            });
+            return new FileSet(
+                (@"Directory.Build.props", GetResourceText("Directory.Build.props")),
+                (@"Directory.Build.targets", GetResourceText("Directory.Build.targets")),
+                (@"DuplicatedGuids.sln", GetResourceText("TestSolution_DuplicatedGuids.sln")),
+                (@"ReferenceTest\ReferenceTest.csproj", GetResourceText("CSharpProject_DuplicatedGuidReferenceTest.csproj")),
+                (@"Library1\Library1.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary1.csproj")),
+                (@"Library2\Library2.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary2.csproj")));
         }
 
         protected FileSet GetSolutionWithCircularProjectReferences()
         {
-            return new FileSet(new Dictionary<string, object>
-            {
-                { @"Directory.Build.props", GetResourceText("Directory.Build.props") },
-                { @"Directory.Build.targets", GetResourceText("Directory.Build.targets") },
-                { @"CircularSolution.sln", GetResourceText("CircularProjectReferences.CircularSolution.sln") },
-                { @"CircularCSharpProject1.csproj", GetResourceText("CircularProjectReferences.CircularCSharpProject1.csproj") },
-                { @"CircularCSharpProject2.csproj", GetResourceText("CircularProjectReferences.CircularCSharpProject2.csproj") },
-            });
+            return new FileSet(
+                (@"Directory.Build.props", GetResourceText("Directory.Build.props")),
+                (@"Directory.Build.targets", GetResourceText("Directory.Build.targets")),
+                (@"CircularSolution.sln", GetResourceText("CircularProjectReferences.CircularSolution.sln")),
+                (@"CircularCSharpProject1.csproj", GetResourceText("CircularProjectReferences.CircularCSharpProject1.csproj")),
+                (@"CircularCSharpProject2.csproj", GetResourceText("CircularProjectReferences.CircularCSharpProject2.csproj")));
         }
 
         public static byte[] GetResourceBytes(string fileName)
@@ -220,25 +208,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected static string GetParentDirOfParentDirOfContainingDir(string fileName)
         {
-            string containingDir = Directory.GetParent(fileName).FullName;
-            string parentOfContainingDir = Directory.GetParent(containingDir).FullName;
-            return Directory.GetParent(parentOfContainingDir).FullName;
-        }
+            var containingDir = Directory.GetParent(fileName).FullName;
+            var parentOfContainingDir = Directory.GetParent(containingDir).FullName;
 
-        protected int GetMethodInsertionPoint(VB.Syntax.ClassBlockSyntax cb)
-        {
-            if (cb.Implements.Count > 0)
-            {
-                return cb.Implements[cb.Implements.Count - 1].FullSpan.End;
-            }
-            else if (cb.Inherits.Count > 0)
-            {
-                return cb.Inherits[cb.Inherits.Count - 1].FullSpan.End;
-            }
-            else
-            {
-                return cb.BlockStatement.FullSpan.End;
-            }
+            return Directory.GetParent(parentOfContainingDir).FullName;
         }
 
         protected Document AssertSemanticVersionChanged(Document document, SourceText newText)

@@ -92,13 +92,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
         public async Task Test_OpenProjectReferencingPortableProject()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { @"CSharpProject\ReferencesPortableProject.csproj", GetResourceText("CSharpProject_ReferencesPortableProject.csproj") },
-                { @"CSharpProject\Program.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
-                { @"CSharpProject\PortableProject.csproj", GetResourceText("CSharpProject_PortableProject.csproj") },
-                { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") }
-            });
+            var files = new FileSet(
+                (@"CSharpProject\ReferencesPortableProject.csproj", GetResourceText("CSharpProject_ReferencesPortableProject.csproj")),
+                (@"CSharpProject\Program.cs", GetResourceText("CSharpProject_CSharpClass.cs")),
+                (@"CSharpProject\PortableProject.csproj", GetResourceText("CSharpProject_PortableProject.csproj")),
+                (@"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs")));
 
             CreateFiles(files);
 
@@ -154,12 +152,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             var projPath1 = @"CSharpProject\CSharpProject_ExternAlias.csproj";
             var projPath2 = @"CSharpProject\CSharpProject_ExternAlias2.csproj";
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { projPath1, GetResourceText("CSharpProject_CSharpProject_ExternAlias.csproj") },
-                { projPath2, GetResourceText("CSharpProject_CSharpProject_ExternAlias2.csproj") },
-                { @"CSharpProject\CSharpExternAlias.cs", GetResourceText("CSharpProject_CSharpExternAlias.cs") },
-            });
+            var files = new FileSet(
+                (projPath1, GetResourceText("CSharpProject_CSharpProject_ExternAlias.csproj")),
+                (projPath2, GetResourceText("CSharpProject_CSharpProject_ExternAlias2.csproj")),
+                (@"CSharpProject\CSharpExternAlias.cs", GetResourceText("CSharpProject_CSharpExternAlias.cs")));
 
             CreateFiles(files);
 
@@ -2679,11 +2675,9 @@ class C1
         public async Task TestCSharpExternAlias()
         {
             var projPath = @"CSharpProject\CSharpProject_ExternAlias.csproj";
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { projPath, GetResourceText("CSharpProject_CSharpProject_ExternAlias.csproj") },
-                { @"CSharpProject\CSharpExternAlias.cs", GetResourceText("CSharpProject_CSharpExternAlias.cs") },
-            });
+            var files = new FileSet(
+                (projPath, GetResourceText("CSharpProject_CSharpProject_ExternAlias.csproj")),
+                (@"CSharpProject\CSharpExternAlias.cs", GetResourceText("CSharpProject_CSharpExternAlias.cs")));
 
             CreateFiles(files);
 
@@ -2739,19 +2733,19 @@ class C1
 
         private FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
         {
-            var result = new List<KeyValuePair<string, object>>();
-            foreach (var file in files)
+            var result = new List<(string, object)>();
+            foreach (var (fileName, fileContent) in files)
             {
-                var text = file.Value.ToString();
-                if (file.Key.EndsWith("proj", StringComparison.OrdinalIgnoreCase))
+                var text = fileContent.ToString();
+                if (fileName.EndsWith("proj", StringComparison.OrdinalIgnoreCase))
                 {
                     text = VisitProjectReferences(text, visitProjectReference);
                 }
 
-                result.Add(new KeyValuePair<string, object>(file.Key, text));
+                result.Add((fileName, text));
             }
 
-            return new FileSet(result);
+            return new FileSet(result.ToArray());
         }
 
         private string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
@@ -2931,13 +2925,11 @@ class C1
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_SolutionFileHasEmptyLinesAndWhitespaceOnlyLines()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { @"TestSolution.sln", GetResourceText("TestSolution_CSharp_EmptyLines.sln") },
-                { @"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj") },
-                { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
-                { @"CSharpProject\Properties\AssemblyInfo.cs", GetResourceText("CSharpProject_AssemblyInfo.cs") }
-            });
+            var files = new FileSet(
+                (@"TestSolution.sln", GetResourceText("TestSolution_CSharp_EmptyLines.sln")),
+                (@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject.csproj")),
+                (@"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs")),
+                (@"CSharpProject\Properties\AssemblyInfo.cs", GetResourceText("CSharpProject_AssemblyInfo.cs")));
 
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
@@ -2953,10 +2945,8 @@ class C1
         [WorkItem(531543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
         public async Task TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { @"TestSolution.sln", GetResourceText("TestLoad_SolutionFileWithEmptyLineBetweenProjectBlock.sln") }
-            });
+            var files = new FileSet(
+                (@"TestSolution.sln", GetResourceText("TestLoad_SolutionFileWithEmptyLineBetweenProjectBlock.sln")));
 
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
@@ -2972,12 +2962,10 @@ class C1
         [WorkItem(531283, "DevDiv")]
         public async Task TestOpenSolution_SolutionFileHasMissingEndProject()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { @"TestSolution1.sln", GetResourceText("TestSolution_MissingEndProject1.sln") },
-                { @"TestSolution2.sln", GetResourceText("TestSolution_MissingEndProject2.sln") },
-                { @"TestSolution3.sln", GetResourceText("TestSolution_MissingEndProject3.sln") }
-            });
+            var files = new FileSet(
+                (@"TestSolution1.sln", GetResourceText("TestSolution_MissingEndProject1.sln")),
+                (@"TestSolution2.sln", GetResourceText("TestSolution_MissingEndProject2.sln")),
+                (@"TestSolution3.sln", GetResourceText("TestSolution_MissingEndProject3.sln")));
 
             CreateFiles(files);
 
@@ -3004,12 +2992,10 @@ class C1
         [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { @"DuplicatedGuids.sln", GetResourceText("TestSolution_DuplicatedGuidsBecomeSelfReferential.sln") },
-                { @"ReferenceTest\ReferenceTest.csproj", GetResourceText("CSharpProject_DuplicatedGuidsBecomeSelfReferential.csproj") },
-                { @"Library1\Library1.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary1.csproj") },
-            });
+            var files = new FileSet(
+                (@"DuplicatedGuids.sln", GetResourceText("TestSolution_DuplicatedGuidsBecomeSelfReferential.sln")),
+                (@"ReferenceTest\ReferenceTest.csproj", GetResourceText("CSharpProject_DuplicatedGuidsBecomeSelfReferential.csproj")),
+                (@"Library1\Library1.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary1.csproj")));
 
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("DuplicatedGuids.sln");
@@ -3033,13 +3019,11 @@ class C1
         [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { @"DuplicatedGuids.sln", GetResourceText("TestSolution_DuplicatedGuidsBecomeCircularReferential.sln") },
-                { @"ReferenceTest\ReferenceTest.csproj", GetResourceText("CSharpProject_DuplicatedGuidsBecomeCircularReferential.csproj") },
-                { @"Library1\Library1.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary3.csproj") },
-                { @"Library2\Library2.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary4.csproj") },
-            });
+            var files = new FileSet(
+                (@"DuplicatedGuids.sln", GetResourceText("TestSolution_DuplicatedGuidsBecomeCircularReferential.sln")),
+                (@"ReferenceTest\ReferenceTest.csproj", GetResourceText("CSharpProject_DuplicatedGuidsBecomeCircularReferential.csproj")),
+                (@"Library1\Library1.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary3.csproj")),
+                (@"Library2\Library2.csproj", GetResourceText("CSharpProject_DuplicatedGuidLibrary4.csproj")));
 
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("DuplicatedGuids.sln");
@@ -3067,11 +3051,9 @@ class C1
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleCodePageProperty()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>1254</CodePage>") },
-                { "class1.cs", "//\u201C" }
-            });
+            var files = new FileSet(
+                ("Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>1254</CodePage>")),
+                ("class1.cs", "//\u201C"));
 
             CreateFiles(files);
 
@@ -3095,11 +3077,9 @@ class C1
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleInvalidCodePageProperty()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>-1</CodePage>") },
-                { "class1.cs", "//\u201C" }
-            });
+            var files = new FileSet(
+                ("Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>-1</CodePage>")),
+                ("class1.cs", "//\u201C"));
 
             CreateFiles(files);
 
@@ -3118,11 +3098,9 @@ class C1
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleInvalidCodePageProperty2()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>Broken</CodePage>") },
-                { "class1.cs", "//\u201C" }
-            });
+            var files = new FileSet(
+                ("Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>Broken</CodePage>")),
+                ("class1.cs", "//\u201C"));
 
             CreateFiles(files);
 
@@ -3141,11 +3119,9 @@ class C1
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleDefaultCodePageProperty()
         {
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty) },
-                { "class1.cs", "//\u201C" }
-            });
+            var files = new FileSet(
+                ("Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty)),
+                ("class1.cs", "//\u201C"));
 
             CreateFiles(files);
 
@@ -3203,11 +3179,9 @@ class C1
             var encoding = Encoding.BigEndianUnicode;
             var fileContent = @"//“
 class C { }";
-            var files = new FileSet(new Dictionary<string, object>
-            {
-                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty) },
-                { "class1.cs", encoding.GetBytesWithPreamble(fileContent) }
-            });
+            var files = new FileSet(
+                ("Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty)),
+                ("class1.cs", encoding.GetBytesWithPreamble(fileContent)));
 
             CreateFiles(files);
             var projPath = GetSolutionFileName("Encoding.csproj");
