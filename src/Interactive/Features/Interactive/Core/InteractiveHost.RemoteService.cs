@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;              // nulled on dispose
-            private int _processExitHandling;           // set to ProcessExitHandled on dispose
+            private volatile int _processExitHandling;           // set to ProcessExitHandled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
             {
