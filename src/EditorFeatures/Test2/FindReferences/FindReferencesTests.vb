@@ -211,12 +211,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         Dim expected = doc.AnnotatedSpans(DefinitionKey).Order()
                         Dim actual = actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
-                        ' PROTOTYPE clean up
-                        Dim expected2 = doc.AnnotatedSpans(DefinitionKey).Order().Select(Function(s) ("Definition", s))
-                        Dim actual2 = actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order().Select(Function(s) ("Definition", s))
-
                         If Not TextSpansMatch(expected, actual) Then
-                            Assert.True(False, PrintSpans(expected2, actual2, workspace.CurrentSolution.GetDocument(doc.Id)))
+                            Assert.True(False, PrintSpans(expected, actual, "Definition", workspace.CurrentSolution.GetDocument(doc.Id)))
                         End If
                     Next
 
@@ -234,59 +230,29 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Assert.Equal(expectedDocuments.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualReferences.Keys.Order())
 
                     For Each doc In expectedDocuments
-                        Dim expectedSpans = doc.SelectedSpans.Order().Select(Function(s) (DirectCast(Nothing, String), s))
-                        Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order().Select(Function(s) (DirectCast(Nothing, String), s))
+                        Dim expectedSpans = doc.SelectedSpans.Order()
+                        Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
                         AssertEx.Equal(expectedSpans, actualSpans,
-                                       message:=PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), messageOnly:=True))
+                                       message:=PrintSpans(expectedSpans, actualSpans, name:=Nothing, workspace.CurrentSolution.GetDocument(doc.Id), messageOnly:=True))
                     Next
                 Next
             End Using
         End Function
 
-        ' PROTOTYPE
-        'Public Shared Function PrintSpans(expected As IEnumerable(Of TextSpan),
-        '                                  actual As IEnumerable(Of TextSpan),
-        '                                  name As String, doc As Document, Optional messageOnly As Boolean = False) As String
-        'End Function
-
-        Private Shared Function RemoveDuplicate(input As IEnumerable(Of (name As String, span As TextSpan))) As ArrayBuilder(Of (String, TextSpan))
-            Dim output = New ArrayBuilder(Of (name As String, span As TextSpan))()
-
-            For Each i In input
-                If output.IsEmpty Then
-                    output.Add(i)
-                    Continue For
-                End If
-
-                Dim last = output.Last
-                If last.span <> i.span Then
-                    output.Add(i)
-                    Continue For
-                End If
-
-                If last.name = "Definition" Then
-                    Continue For
-                End If
-
-                If last.name = "Reference" Then
-                    output.RemoveLast()
-                    output.Add(i)
-                    Continue For
-                End If
-
-                Throw ExceptionUtilities.UnexpectedValue(last.name)
-            Next
-
-            Return output
+        Public Shared Function PrintSpans(expected As IEnumerable(Of TextSpan),
+                                          actual As IEnumerable(Of TextSpan),
+                                          name As String, doc As Document, Optional messageOnly As Boolean = False) As String
+            Return PrintSpans(expected.Select(Function(e) (name, e)), actual.Select(Function(a) (name, a)), doc, messageOnly)
         End Function
 
         Public Shared Function PrintSpans(expected As IEnumerable(Of (name As String, span As TextSpan)),
                                           actual As IEnumerable(Of (name As String, span As TextSpan)),
                                           doc As Document, Optional messageOnly As Boolean = False) As String
 
-            expected = RemoveDuplicate(expected.OrderBy(Function(e) e.span))
-            actual = RemoveDuplicate(actual.OrderBy(Function(a) a.span))
+            expected = expected.OrderBy(Function(e) e.span)
+            actual = actual.OrderBy(Function(a) a.span)
+
 
             Debug.Assert(expected IsNot Nothing)
             Debug.Assert(actual IsNot Nothing)
@@ -304,16 +270,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             doc.TryGetText(text)
             Dim position = 0
 
-            For Each span In actual
-                builder.Append(text.GetSubText(New TextSpan(position, span.span.Start - position)))
-                builder.Append(If(span.name Is Nothing, "[|", "{|"))
-                If span.name IsNot Nothing Then
-                    builder.Append(span.name)
-                    builder.Append(":")
-                End If
-                builder.Append(text.GetSubText(span.span))
-                builder.Append(If(span.name Is Nothing, "|]", "|}"))
-                position = span.span.End
+            Dim actualGrouped = actual.GroupBy(Function(a) a.span)
+            For Each group In actualGrouped
+                builder.Append(text.GetSubText(New TextSpan(position, group.Key.Start - position)))
+
+                For Each name In group.Select(Function(g) g.name)
+                    builder.Append(If(name Is Nothing, "[|", "{|"))
+                    If name IsNot Nothing Then
+                        builder.Append(name)
+                        builder.Append(":")
+                    End If
+                Next
+
+                builder.Append(text.GetSubText(group.Key))
+
+                For Each name In group.Select(Function(g) g.name)
+                    builder.Append(If(name Is Nothing, "|]", "|}"))
+                Next
+
+                position = group.Key.End
             Next
             builder.Append(text.GetSubText(New TextSpan(position, text.Length - position)))
 
