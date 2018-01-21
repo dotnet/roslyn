@@ -362,7 +362,7 @@ class Program
         var y = ([|Alice|]:1, Bob: 2); // PROTOTYPE This probably should not be found
 
         var z = x.[|Alice|];
-        var z2 = x.Item1; // PROTOTYPE This should be found too
+        var z2 = x.[|Item1|];
     }
 }
         ]]>

@@ -52,18 +52,17 @@ class Program
         var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE Probably should not be highlighted
 
         var z = x.{|Reference:Alice|};
-        var z2 = x.Item1; // PROTOTYPE Should be highlighted
+        var z2 = x.{|Reference:Item1|};
     }
 }
                         </Document>
                     </Project>
                 </Workspace>)
-            ' PROTOTYPE
         End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function TestVerifyHighlightsForTupleElementUsage() As Task
+        Public Async Function TestVerifyHighlightsForNamedTupleElementUsage() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -76,13 +75,35 @@ class Program
         var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE Should not be highlighted
 
         var z = x.{|Reference:Al$$ice|};
-        var z2 = x.Item1; // PROTOTYPE Should be highlighted
+        var z2 = x.{|Reference:Item1|};
     }
 }
                         </Document>
                     </Project>
                 </Workspace>)
-            ' PROTOTYPE
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestVerifyHighlightsForUnnamedTupleElementUsage() As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Program
+{
+    static void Main(int Alice)
+    {
+        var x = (Alice, Bob: 2); // PROTOTYPE Definition should be highlighted
+        var y = (Alice:1, Bob: 2);
+
+        var z = x.Alice; // PROTOTYPE Reference should be highlighted
+        var z2 = x.{|Reference:Ite$$m1|};
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
         End Function
 
         <WpfFact>

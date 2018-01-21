@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
@@ -22,6 +23,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
+            if (symbol.IsTupleField())
+            {
+                // get the "other" field, if any
+                // PROTOTYPE
+                return Task.FromResult(
+                    ImmutableArray.Create(symbolAndProjectId.WithSymbol((ISymbol)symbol.CorrespondingTupleField)));
+            }
             if (symbol.AssociatedSymbol != null)
             {
                 return Task.FromResult(
