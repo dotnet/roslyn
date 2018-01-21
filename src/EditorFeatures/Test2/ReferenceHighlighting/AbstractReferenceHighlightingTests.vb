@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
@@ -50,19 +51,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                                    Order By tag.Span.Start
                                    Let spanType = If(tag.Tag.Type = DefinitionHighlightTag.TagId, "Definition",
                                        If(tag.Tag.Type = WrittenReferenceHighlightTag.TagId, "WrittenReference", "Reference"))
-                                   Select spanType + ":" + tag.Span.Span.ToTextSpan().ToString()
+                                   Select (name:=spanType, Span:=tag.Span.Span.ToTextSpan())
 
-                Dim expectedTags As New List(Of String)
+                Dim expectedTags As New List(Of (name As String, span As TextSpan))
 
                 For Each hostDocument In workspace.Documents
                     For Each nameAndSpans In hostDocument.AnnotatedSpans
                         For Each span In nameAndSpans.Value
-                            expectedTags.Add(nameAndSpans.Key + ":" + span.ToString())
+                            expectedTags.Add((nameAndSpans.Key, span))
                         Next
                     Next
                 Next
 
-                AssertEx.Equal(expectedTags, producedTags)
+                AssertEx.Equal(expectedTags, producedTags,
+                                      message:=FindReferences.FindReferencesTests.PrintSpans(expectedTags,
+                                                                                             producedTags,
+                                                                                             document, messageOnly:=True))
             End Using
         End Function
     End Class

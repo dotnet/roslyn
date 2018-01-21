@@ -27,15 +27,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
-        public static async Task<(ISymbol symbol, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
+        public static async Task<(ISymbol symbol, ISymbol secondary, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
+            var symbols = await SymbolFinder.FindSymbolExAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (symbols.primary == null)
             {
                 return null;
+            }
+
+            if (symbols.secondary != null)
+            {
+                return (symbols.primary, symbols.secondary, document.Project);
             }
 
             // If this document is not in the primary workspace, we may want to search for results
@@ -43,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // ISymbolMappingService to get a context for searching in the proper solution.
             var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
 
-            var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
+            var mapping = await mappingService.MapSymbolAsync(document, symbols.primary, cancellationToken).ConfigureAwait(false);
             if (mapping == null)
             {
                 return null;
             }
 
-            return (mapping.Symbol, mapping.Project);
+            return (mapping.Symbol, null, mapping.Project);
         }
 
         public static async Task<(ISymbol symbol, Project project, ImmutableArray<ISymbol> implementations, string message)?> FindImplementationsAsync(Document document, int position, CancellationToken cancellationToken)

@@ -181,13 +181,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
                     Assert.NotNull(document)
 
-                    Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition)
+                    Dim symbols = Await SymbolFinder.FindSymbolExAtPositionAsync(document, cursorPosition)
                     Dim result = SpecializedCollections.EmptyEnumerable(Of ReferencedSymbol)()
-                    If symbol IsNot Nothing Then
+                    If symbols.primary IsNot Nothing Then
 
                         Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
 
-                        result = result.Concat(Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=scope))
+                        result = result.Concat(Await SymbolFinder.FindReferencesAsync(symbols.primary, document.Project.Solution, progress:=Nothing, documents:=scope))
+
+                        If symbols.secondary IsNot Nothing Then
+                            result = result.Concat(Await SymbolFinder.FindReferencesAsync(symbols.secondary, document.Project.Solution, progress:=Nothing, documents:=scope))
+                        End If
                     End If
 
                     Dim actualDefinitions =
@@ -207,8 +211,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         Dim expected = doc.AnnotatedSpans(DefinitionKey).Order()
                         Dim actual = actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
+                        ' PROTOTYPE clean up
+                        Dim expected2 = doc.AnnotatedSpans(DefinitionKey).Order().Select(Function(s) ("Definition", s))
+                        Dim actual2 = actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order().Select(Function(s) ("Definition", s))
+
                         If Not TextSpansMatch(expected, actual) Then
-                            Assert.True(False, PrintSpans(expected, actual, workspace.CurrentSolution.GetDocument(doc.Id), "{|Definition:", "|}"))
+                            Assert.True(False, PrintSpans(expected2, actual2, workspace.CurrentSolution.GetDocument(doc.Id)))
                         End If
                     Next
 
@@ -226,17 +234,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Assert.Equal(expectedDocuments.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualReferences.Keys.Order())
 
                     For Each doc In expectedDocuments
-                        Dim expectedSpans = doc.SelectedSpans.Order()
-                        Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
+                        Dim expectedSpans = doc.SelectedSpans.Order().Select(Function(s) (DirectCast(Nothing, String), s))
+                        Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order().Select(Function(s) (DirectCast(Nothing, String), s))
 
                         AssertEx.Equal(expectedSpans, actualSpans,
-                                       message:=PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), "[|", "|]", messageOnly:=True))
+                                       message:=PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), messageOnly:=True))
                     Next
                 Next
             End Using
         End Function
 
-        Private Shared Function PrintSpans(expected As IOrderedEnumerable(Of TextSpan), actual As IOrderedEnumerable(Of TextSpan), doc As Document, prefix As String, suffix As String, Optional messageOnly As Boolean = False) As String
+        ' PROTOTYPE
+        'Public Shared Function PrintSpans(expected As IEnumerable(Of TextSpan),
+        '                                  actual As IEnumerable(Of TextSpan),
+        '                                  name As String, doc As Document, Optional messageOnly As Boolean = False) As String
+        'End Function
+
+        Public Shared Function PrintSpans(expected As IEnumerable(Of (name As String, span As TextSpan)),
+                                          actual As IEnumerable(Of (name As String, span As TextSpan)),
+                                          doc As Document, Optional messageOnly As Boolean = False) As String
             Debug.Assert(expected IsNot Nothing)
             Debug.Assert(actual IsNot Nothing)
 
@@ -245,8 +261,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             builder.AppendLine()
             If Not messageOnly Then
-                builder.AppendLine($"Expected: {String.Join(", ", expected.Select(Function(e) e.ToString()))}")
-                builder.AppendLine($"Actual: {String.Join(", ", actual.Select(Function(a) a.ToString()))}")
+                builder.AppendLine($"Expected: {String.Join(", ", expected.Select(Function(e) e.name + ":" + e.span.ToString()))}")
+                builder.AppendLine($"Actual: {String.Join(", ", actual.Select(Function(a) a.name + ":" + a.span.ToString()))}")
             End If
 
             Dim text As SourceText = Nothing
@@ -254,11 +270,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Dim position = 0
 
             For Each span In actual
-                builder.Append(text.GetSubText(New TextSpan(position, span.Start - position)))
-                builder.Append(prefix)
-                builder.Append(text.GetSubText(span))
-                builder.Append(suffix)
-                position = span.End
+                builder.Append(text.GetSubText(New TextSpan(position, span.span.Start - position)))
+                builder.Append(If(span.name Is Nothing, "[|", "{|"))
+                If span.name IsNot Nothing Then
+                    builder.Append(span.name)
+                    builder.Append(":")
+                End If
+                builder.Append(text.GetSubText(span.span))
+                builder.Append(If(span.name Is Nothing, "|]", "|}"))
+                position = span.span.End
             Next
             builder.Append(text.GetSubText(New TextSpan(position, text.Length - position)))
 

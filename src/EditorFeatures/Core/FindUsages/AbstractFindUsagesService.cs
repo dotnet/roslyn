@@ -121,6 +121,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             await FindSymbolReferencesAsync(
                 context, symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
+
+            // PROTOTYPE
+            var secondary = symbolAndProject.Value.secondary;
+            if (secondary != null)
+            {
+                await FindSymbolReferencesAsync(
+                    context, secondary, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>

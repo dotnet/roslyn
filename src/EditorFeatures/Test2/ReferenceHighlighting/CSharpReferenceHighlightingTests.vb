@@ -39,6 +39,54 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestVerifyHighlightsForTupleElement() As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Program
+{
+    static void Main(int Alice) // PROTOTYPE Should be highlighted
+    {
+        var x = ({|Definition:Al$$ice|}, Bob: 2);
+        var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE Probably should not be highlighted
+
+        var z = x.{|Reference:Alice|};
+        var z2 = x.Item1; // PROTOTYPE Should be highlighted
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
+            ' PROTOTYPE
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestVerifyHighlightsForTupleElementUsage() As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Program
+{
+    static void Main(int Alice)
+    {
+        var x = ({|Definition:Alice|}, Bob: 2);
+        var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE Should not be highlighted
+
+        var z = x.{|Reference:Al$$ice|};
+        var z2 = x.Item1; // PROTOTYPE Should be highlighted
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
+            ' PROTOTYPE
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestVerifyHighlightsForScriptReference() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>

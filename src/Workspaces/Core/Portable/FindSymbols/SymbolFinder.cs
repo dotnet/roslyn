@@ -73,6 +73,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
         }
 
+        internal static async Task<(ISymbol primary, ISymbol secondary)> FindSymbolExAtPositionAsync(
+            Document document,
+            int position,
+            CancellationToken cancellationToken = default)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var semanticInfo = await GetSemanticInfoAtPositionAsync(
+                semanticModel, position, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // PROTOTYPE also should handle anonymous types
+            if (semanticInfo.DeclaredSymbol?.IsTupleField() == true && semanticInfo.ReferencedSymbols.Length == 1)
+            {
+                return (semanticInfo.DeclaredSymbol, semanticInfo.ReferencedSymbols[0]);
+            }
+
+            return (semanticInfo.GetAnySymbol(includeType: false), null);
+        }
+
         /// <summary>
         /// Finds the definition symbol declared in source code for a corresponding reference symbol. 
         /// Returns null if no such symbol can be found in the specified solution.
