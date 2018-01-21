@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Current = [Next]
             Next
-            Current.SetWasCompilerGenerated()
+            '       Current.SetWasCompilerGenerated()
             Return Current
 
         End Function
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Current = [Next]
             Next
-            Current.SetWasCompilerGenerated()
+            '   Current.SetWasCompilerGenerated()
             Return Current
         End Function
 #End Region

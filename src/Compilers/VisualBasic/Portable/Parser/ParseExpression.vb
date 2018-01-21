@@ -1001,10 +1001,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Loop through the list of parameters.
 
                 Do
-                    Dim typeName = ParseTypeName()
+                    Dim typeName = ParseGeneralType()
 
-                    ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
-                    ' typeName reported. For now keep backwards compatibility.
                     If typeName.ContainsDiagnostics Then
                         typeName = typeName.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken}))
                     End If
@@ -1014,9 +1012,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         If CurrentToken.Kind <> SyntaxKind.CloseBraceToken AndAlso Not MustEndStatement(CurrentToken) Then
 
-                            ' Check the ')' on the next line
+                            ' Check the '}' on the next line
                             If IsContinuableEOL() Then
-                                If PeekToken(1).Kind = SyntaxKind.CloseParenToken Then
+                                If PeekToken(1).Kind = SyntaxKind.CloseBraceToken Then
                                     typelist.Add(typeName)
                                     Exit Do
                                 End If

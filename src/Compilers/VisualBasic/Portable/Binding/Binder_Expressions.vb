@@ -796,14 +796,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindTypeOfManyExpression(node As TypeOfManyExpressionSyntax, diagnostics As DiagnosticBag) As BoundTypeOfBase
+            Debug.Assert(node.Kind = SyntaxKind.TypeOfManyIsExpression OrElse node.Kind = SyntaxKind.TypeOfManyIsNotExpression)
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
             Dim operandType = operand.Type
-            Debug.Assert(node.Kind = SyntaxKind.TypeOfManyIsExpression OrElse node.Kind = SyntaxKind.TypeOfManyIsNotExpression)
             Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfManyIsNotExpression)
             Dim targertTypes = ImmutableArray(Of BoundTypeOf).Empty
             Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
             For Each _type_ In node.Types
-                Dim b As BoundTypeOf = BindTypeOf_Inner(_type_, diagnostics, operand, operandType, operatorIsIsNot, _type_, node.Expression, True)
+                Dim _operand_ = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
+                Dim b As BoundTypeOf = BindTypeOf_Inner(_type_, diagnostics, _operand_, operandType, operatorIsIsNot, _type_, node.Expression)
                 targertTypes = targertTypes.Add(b)
             Next
             Return New BoundTypeOfMany(node, targertTypes, operand, operatorIsIsNot, resultType)

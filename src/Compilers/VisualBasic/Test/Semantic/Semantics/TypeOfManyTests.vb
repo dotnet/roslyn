@@ -440,40 +440,40 @@ End Module
 <expected>
 BC31430: Expression of type 'TA' can never be of type 'TB'.
         If TypeOf a Is {TB,TC,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        ~~
 BC31430: Expression of type 'TA' can never be of type 'TC'.
         If TypeOf a Is {TB,TC,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                           ~~
 BC31430: Expression of type 'TA' can never be of type 'String'.
         If TypeOf a Is {TB,TC,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              ~~~~~~
 BC31430: Expression of type 'TB' can never be of type 'TA'.
         If TypeOf b Is {TA,TC,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        ~~
 BC31430: Expression of type 'TB' can never be of type 'TC'.
         If TypeOf b Is {TA,TC,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                           ~~
 BC31430: Expression of type 'TB' can never be of type 'String'.
         If TypeOf b Is {TA,TC,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              ~~~~~~
 BC31430: Expression of type 'TC' can never be of type 'TA'.
         If TypeOf c Is {TA,TB,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        ~~
 BC31430: Expression of type 'TC' can never be of type 'TB'.
         If TypeOf c Is {TA,TB,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                           ~~
 BC31430: Expression of type 'TC' can never be of type 'String'.
         If TypeOf c Is {TA,TB,String} Then
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              ~~~~~~
 BC31430: Expression of type 'String' can never be of type 'TA'.
         If TypeOf s Is {TA,TB,TC} Then
-           ~~~~~~~~~~~~~~~~~~~~~~
+                        ~~
 BC31430: Expression of type 'String' can never be of type 'TB'.
         If TypeOf s Is {TA,TB,TC} Then
-           ~~~~~~~~~~~~~~~~~~~~~~
+                           ~~
 BC31430: Expression of type 'String' can never be of type 'TC'.
         If TypeOf s Is {TA,TB,TC} Then
-           ~~~~~~~~~~~~~~~~~~~~~~
+                              ~~
 </expected>)
         End Sub
 
@@ -898,7 +898,8 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(source).VerifyIL("Program.Main",
+            Dim result = CompileAndVerify(source)
+            result.VerifyIL("Program.Main",
             <![CDATA[
 {
   // Code size      111 (0x6f)
@@ -1014,11 +1015,12 @@ Module M
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source, expectedOutput:=<![CDATA[
+            Dim res = CompileAndVerify(source, expectedOutput:=<![CDATA[
 x
 z
 y
-]]>).VerifyIL("M.M(Of T, U, V)(T, U, V)",
+]]>)
+            res.VerifyIL("M.M(Of T, U, V)(T, U, V)",
             <![CDATA[
 {
   // Code size       70 (0x46)
@@ -1101,25 +1103,25 @@ End Class
             compilation.AssertTheseDiagnostics(<expected>
 BC31430: Expression of type 'U1' can never be of type 'S2'.
         If TypeOf _1 Is {S2} Then ' B0.M
-           ~~~~~~~~~~~~~~~~~
+                         ~~
 BC31430: Expression of type 'U1' can never be of type 'U2'.
         If TypeOf _1 Is {U2} Then ' B0.M
-           ~~~~~~~~~~~~~~~~~
+                         ~~
 BC31430: Expression of type 'U1' can never be of type 'S2'.
         If TypeOf _1 Is {S2} Then ' B1.M
-           ~~~~~~~~~~~~~~~~~
+                         ~~
 BC31430: Expression of type 'U1' can never be of type 'U2'.
         If TypeOf _1 Is {U2} Then ' B1.M
-           ~~~~~~~~~~~~~~~~~
+                         ~~
 BC31430: Expression of type 'U2' can never be of type 'S1'.
         If TypeOf _2 Is {S1} Then ' B1.M
-           ~~~~~~~~~~~~~~~~~
+                         ~~
 BC31430: Expression of type 'U2' can never be of type 'U1'.
         If TypeOf _2 Is {U1} Then ' B1.M
-           ~~~~~~~~~~~~~~~~~
+                         ~~
 BC31430: Expression of type 'U1' can never be of type 'S2'.
         If TypeOf _1 Is {S2} Then ' B2.M
-           ~~~~~~~~~~~~~~~~~
+                         ~~
 </expected>)
         End Sub
 
@@ -1197,7 +1199,7 @@ End Class
             compilation.AssertTheseDiagnostics(<expected>
 BC31430: Expression of type 'U' can never be of type 'Integer()'.
         If TypeOf _u Is {Integer()} Then
-                  ~~
+                         ~~~~~~~~~
 </expected>)
         End Sub
 
@@ -1231,7 +1233,7 @@ End Class
             compilation.AssertTheseDiagnostics(<expected>
 BC31430: Expression of type 'U' can never be of type 'E'.
         If TypeOf _u Is {E} Then
-           ~~~~~~~~~~~~~~~~
+                         ~
 </expected>)
         End Sub
 
@@ -1242,7 +1244,7 @@ BC31430: Expression of type 'U' can never be of type 'E'.
     <file name="a.vb">
     Class C
         Shared Sub M()
-            Dim i2 As Integer?
+            Dim i2 As Integer? = Nothing
             'COMPILEERROR: BC30021, "i2"
             If TypeOf i2 Is {Integer} Then
             End If
@@ -1253,7 +1255,7 @@ BC31430: Expression of type 'U' can never be of type 'E'.
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30021: 'TypeOf ... Is' requires its left operand to have a reference type, but this operand has the value type 'Integer?'.
-            If TypeOf i2 Is Integer Then
+            If TypeOf i2 Is {Integer} Then
                       ~~
 </expected>)
         End Sub

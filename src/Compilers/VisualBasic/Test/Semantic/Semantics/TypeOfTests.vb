@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -952,8 +952,8 @@ Module Program
 End Module
     </file>
 </compilation>
-
-            CompileAndVerify(source).VerifyIL("Program.Main",
+            Dim res = CompileAndVerify(source)
+            res.VerifyIL("Program.Main",
             <![CDATA[
 {
   // Code size      111 (0x6f)
